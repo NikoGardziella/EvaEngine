@@ -1,3 +1,34 @@
+# Ignore Visual Studio specific files
+.vs/
+*.vcxproj.user
+*.VC.db
+*.VC.VC.opendb
+
+
+# Ignore build directories
+bin/
+bin-intermediate/
+
+# Ignore other common generated or temporary files
+*.obj
+*.exe
+*.log
+*.pdb
+*.idb
+*.ipch
+*.ilk
+*.pch
+*.tmp
+*.o
+*.out
+*.class
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
 # Prerequisites
 *.d
 
