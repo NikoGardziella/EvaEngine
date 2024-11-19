@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 #ifdef EE_PLATFORM_WINDOWS
 	#ifdef EE_BUILD_DLL
@@ -9,3 +10,5 @@
 #else
 	#error Only windows!
 #endif
+
+#define BIT(x) (1 << x)

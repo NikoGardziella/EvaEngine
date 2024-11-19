@@ -1,0 +1,3 @@
+[submodule "EvaEngine/vendor/spdlog"]
+	path = EvaEngine/vendor/spdlog
+	url = https://github.com/gabime/spdlog
