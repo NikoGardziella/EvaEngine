@@ -13,6 +13,15 @@ workspace "EvaEngine"
 -- Variable to determine the output directory format based on configuration, system, and architecture
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
+IncludeDir = {}
+IncludeDir["GLFW"] = "EvaEngine/vendor/GLFW/include"
+IncludeDir["GLAD"] = "EvaEngine/vendor/GLAD/include"
+IncludeDir["ImGui"] = "EvaEngine/vendor/imgui"
+
+include "EvaEngine/vendor/GLFW"
+include "EvaEngine/vendor/GLAD"
+include "EvaEngine/vendor/imgui"
+
 -- Define the "EvaEngine" project
 project "EvaEngine"
     location "EvaEngine"  -- The directory where project files are generated
@@ -22,6 +31,9 @@ project "EvaEngine"
     -- Directories for the output of compiled binaries and intermediate object files
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-obj/" .. outputdir .. "/%{prj.name}")
+
+    pchheader "pch.h"
+    pchsource "EvaEngine/source/pch.cpp"
 
     -- Specify the files to include in the project compilation
     files
@@ -33,7 +45,20 @@ project "EvaEngine"
     -- Include directories required for the project
     includedirs
     {
-        "EvaEngine/vendor/spdlog/include"  -- Include path for the spdlog logging library
+        "EvaEngine/source",
+        "EvaEngine/vendor/spdlog/include",  -- Include path for the spdlog logging library
+        "%{IncludeDir.GLFW}",
+        "%{IncludeDir.GLAD}",
+        "%{IncludeDir.ImGui}",
+
+    }
+    links
+    {
+        "GLFW",
+        "opengl32.lib",
+        "dwmapi.lib",
+        "GLAD",
+        "imgui"
     }
 
     -- Apply settings specifically when building for Windows
@@ -46,7 +71,8 @@ project "EvaEngine"
         defines
         {
             "EE_PLATFORM_WINDOWS",  -- Indicates Windows platform
-            "EE_BUILD_DLL"          -- Indicates the build is for a DLL
+            "EE_BUILD_DLL",          -- Indicates the build is for a DLL
+            "GLFW_INCLUDE_NONE"
         }
 
         -- Post-build commands to copy the DLL to the Sandbox project directory
@@ -62,19 +88,19 @@ project "EvaEngine"
     filter "configurations:Debug"
         defines "EE_DEBUG"  -- Define a macro for debug configuration
         symbols "On"        -- Enable debug symbols
-        buildoptions "/utf-8"  -- Use UTF-8 character encoding for source files
+        buildoptions { "/utf-8", "/MDd" }  -- Use UTF-8 character encoding for source files
 
     -- Settings specific to the Release configuration
     filter "configurations:Release"
         defines "EE_RELEASE"  -- Define a macro for release configuration
         optimize "On"         -- Enable code optimization
-        buildoptions "/utf-8" -- Use UTF-8 character encoding
+        buildoptions { "/utf-8", "/MD" }  -- Use UTF-8 character encoding
 
     -- Settings specific to the Distribution configuration
     filter "configurations:Dist"
         defines "EE_DIST"     -- Define a macro for distribution configuration
         optimize "On"         -- Enable code optimization
-        buildoptions "/utf-8" -- Use UTF-8 character encoding
+        buildoptions { "/utf-8", "/MD" }  -- Use UTF-8 character encoding
 
 -- Define the "Sandbox" project
 project "Sandbox"
@@ -123,16 +149,16 @@ project "Sandbox"
     filter "configurations:Debug"
         defines "EE_DEBUG"  -- Define a macro for debug configuration
         symbols "On"        -- Enable debug symbols
-        buildoptions "/utf-8"  -- Use UTF-8 character encoding for source files
+        buildoptions { "/utf-8", "/MDd" }   -- Use UTF-8 character encoding for source files
 
     -- Settings specific to the Release configuration
     filter "configurations:Release"
         defines "EE_RELEASE"  -- Define a macro for release configuration
         optimize "On"         -- Enable code optimization
-        buildoptions "/utf-8" -- Use UTF-8 character encoding
+        buildoptions { "/utf-8", "/MD" }  -- Use UTF-8 character encoding
 
     -- Settings specific to the Distribution configuration
     filter "configurations:Dist"
         defines "EE_DIST"     -- Define a macro for distribution configuration
         optimize "On"         -- Enable code optimization
-        buildoptions "/utf-8" -- Use UTF-8 character encoding
+        buildoptions { "/utf-8", "/MD" }  -- Use UTF-8 character encoding

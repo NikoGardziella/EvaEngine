@@ -4,8 +4,20 @@
     <Filter Include="Engine">
       <UniqueIdentifier>{DBC7D3B0-C769-FE86-B024-12DB9C6585D7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\Core">
+      <UniqueIdentifier>{130D9B61-7FC2-1357-08B7-0D2E746B0A5B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Engine\Events">
       <UniqueIdentifier>{5FAFB439-CB6F-3070-94AA-79ED002A754C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Platform">
+      <UniqueIdentifier>{8F0ABC95-FB95-295A-04A7-AC4E70B1855A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Platform\OpenGl">
+      <UniqueIdentifier>{035DAFB7-EF56-D809-D8C3-6E1AC45C3E76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Platform\Windows">
+      <UniqueIdentifier>{C9D3B605-350B-FF9C-3E15-63C0AACB2596}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -16,6 +28,15 @@
     <ClInclude Include="source\Engine\Core.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Core\Layer.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Core\LayerStack.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Core\Window.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\EntryPoint.h">
       <Filter>Engine</Filter>
     </ClInclude>
@@ -25,22 +46,66 @@
     <ClInclude Include="source\Engine\Events\Event.h">
       <Filter>Engine\Events</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Events\KeyCode.h">
+      <Filter>Engine\Events</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Events\KeyEvent.h">
+      <Filter>Engine\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Events\MouseCodes.h">
       <Filter>Engine\Events</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Events\MouseEvent.h">
       <Filter>Engine\Events</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Events\TouchEvent.h">
+      <Filter>Engine\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\ImGuiLayer.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Log.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Platform\OpenGl\imgui_impl_glfw.h">
+      <Filter>Engine\Platform\OpenGl</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\OpenGl\imgui_impl_opengl3.h">
+      <Filter>Engine\Platform\OpenGl</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Windows\WindowsWindow.h">
+      <Filter>Engine\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="source\pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Application.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Core\Layer.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Core\LayerStack.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Core\Window.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\ImGuiLayer.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Log.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Platform\OpenGl\imgui_impl_glfw.cpp">
+      <Filter>Engine\Platform\OpenGl</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\OpenGl\imgui_impl_opengl3.cpp">
+      <Filter>Engine\Platform\OpenGl</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Windows\WindowsWindow.cpp">
+      <Filter>Engine\Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="source\pch.cpp" />
   </ItemGroup>
 </Project>

@@ -1,3 +1,10 @@
 [submodule "EvaEngine/vendor/spdlog"]
 	path = EvaEngine/vendor/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "EvaEngine/vendor/GLFW"]
+	path = EvaEngine/vendor/GLFW
+	url = https://github.com/glfw/glfw
+
+[submodule "EvaEngine/vendor/imgui"]
+	path = EvaEngine/vendor/imgui
+	url = https://github.com/ocornut/imgui

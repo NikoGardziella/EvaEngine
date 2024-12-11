@@ -1,7 +1,10 @@
 #include "Event.h"
-#include "Hazel/Core/MouseCodes.h"
+#include "Engine/Events/MouseCodes.h"
 
-namespace Hazel {
+#include <sstream> // testing
+
+
+namespace Engine {
 
 	class MouseMovedEvent : public Event
 	{

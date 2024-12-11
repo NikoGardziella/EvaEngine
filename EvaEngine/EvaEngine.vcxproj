@@ -76,20 +76,22 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_BUILD_DLL;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /MDd %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>..\bin\Debug-windows-x86_64\EvaEngine\EvaEngine.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
@@ -99,17 +101,18 @@ xcopy /Y /Q "$(SolutionDir)bin\Debug-windows-x86_64\EvaEngine\EvaEngine.dll" "$(
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_BUILD_DLL;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /MD %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -117,6 +120,7 @@ xcopy /Y /Q "$(SolutionDir)bin\Debug-windows-x86_64\EvaEngine\EvaEngine.dll" "$(
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opengl32.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>..\bin\Release-windows-x86_64\EvaEngine\EvaEngine.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
@@ -126,17 +130,18 @@ xcopy /Y /Q "$(SolutionDir)bin\Release-windows-x86_64\EvaEngine\EvaEngine.dll" "
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_BUILD_DLL;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /MD %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -144,6 +149,7 @@ xcopy /Y /Q "$(SolutionDir)bin\Release-windows-x86_64\EvaEngine\EvaEngine.dll" "
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opengl32.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>..\bin\Dist-windows-x86_64\EvaEngine\EvaEngine.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
@@ -155,16 +161,48 @@ xcopy /Y /Q "$(SolutionDir)bin\Dist-windows-x86_64\EvaEngine\EvaEngine.dll" "$(S
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Application.h" />
     <ClInclude Include="source\Engine\Core.h" />
+    <ClInclude Include="source\Engine\Core\Layer.h" />
+    <ClInclude Include="source\Engine\Core\LayerStack.h" />
+    <ClInclude Include="source\Engine\Core\Window.h" />
     <ClInclude Include="source\Engine\EntryPoint.h" />
     <ClInclude Include="source\Engine\Events\ApplicationEvent.h" />
     <ClInclude Include="source\Engine\Events\Event.h" />
+    <ClInclude Include="source\Engine\Events\KeyCode.h" />
     <ClInclude Include="source\Engine\Events\KeyEvent.h" />
+    <ClInclude Include="source\Engine\Events\MouseCodes.h" />
     <ClInclude Include="source\Engine\Events\MouseEvent.h" />
+    <ClInclude Include="source\Engine\Events\TouchEvent.h" />
+    <ClInclude Include="source\Engine\ImGuiLayer.h" />
     <ClInclude Include="source\Engine\Log.h" />
+    <ClInclude Include="source\Engine\Platform\OpenGl\imgui_impl_glfw.h" />
+    <ClInclude Include="source\Engine\Platform\OpenGl\imgui_impl_opengl3.h" />
+    <ClInclude Include="source\Engine\Platform\Windows\WindowsWindow.h" />
+    <ClInclude Include="source\pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Application.cpp" />
+    <ClCompile Include="source\Engine\Core\Layer.cpp" />
+    <ClCompile Include="source\Engine\Core\LayerStack.cpp" />
+    <ClCompile Include="source\Engine\Core\Window.cpp" />
+    <ClCompile Include="source\Engine\ImGuiLayer.cpp" />
     <ClCompile Include="source\Engine\Log.cpp" />
+    <ClCompile Include="source\Engine\Platform\OpenGl\imgui_impl_glfw.cpp" />
+    <ClCompile Include="source\Engine\Platform\OpenGl\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="source\Engine\Platform\Windows\WindowsWindow.cpp" />
+    <ClCompile Include="source\pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">
+      <Project>{154B857C-0182-860D-AA6E-6C109684020F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\GLAD\GLAD.vcxproj">
+      <Project>{5D4A857C-4981-860D-F26D-6C10DE83020F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\imgui\ImGui.vcxproj">
+      <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

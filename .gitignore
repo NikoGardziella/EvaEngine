@@ -61,3 +61,6 @@ desktop.ini
 *.exe
 *.out
 *.app
+*.tlog
+*.recipe
+EvaEngine/vendor/VulkanSDK/
