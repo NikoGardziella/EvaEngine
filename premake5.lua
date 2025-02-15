@@ -17,6 +17,8 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "EvaEngine/vendor/GLFW/include"
 IncludeDir["GLAD"] = "EvaEngine/vendor/GLAD/include"
 IncludeDir["ImGui"] = "EvaEngine/vendor/imgui"
+IncludeDir["glm"] = "EvaEngine/vendor/glm"
+IncludeDir["stb_image"] = "EvaEngine/vendor/stb_image"
 
 include "EvaEngine/vendor/GLFW"
 include "EvaEngine/vendor/GLAD"
@@ -25,9 +27,11 @@ include "EvaEngine/vendor/imgui"
 -- Define the "EvaEngine" project
 project "EvaEngine"
     location "EvaEngine"  -- The directory where project files are generated
-    kind "SharedLib"      -- The project outputs a shared library (DLL)
+    kind "StaticLib"      -- The project outputs a static library 
     language "C++"        -- The programming language used
-  
+    cppdialect "C++17"          -- Use C++17 standard
+    staticruntime "on"
+
     -- Directories for the output of compiled binaries and intermediate object files
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-obj/" .. outputdir .. "/%{prj.name}")
@@ -39,7 +43,16 @@ project "EvaEngine"
     files
     {
         "%{prj.name}/source/**.h",  -- All header files in the source directory
-        "%{prj.name}/source/**.cpp" -- All C++ source files in the source directory
+        "%{prj.name}/source/**.cpp", -- All C++ source files in the source directory
+        "%{prj.name}/vendor/glm/glm/**.hpp",
+        "%{prj.name}/vendor/glm/glm/**.inl",
+        "%{prj.name}/vendor/stb_image/**.cpp",
+        "%{prj.name}/vendor/stb_image/**.h",
+    }
+
+    defines
+    {
+        "_CRT_SECURE_NO_WARNINGS"
     }
 
     -- Include directories required for the project
@@ -50,21 +63,19 @@ project "EvaEngine"
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.ImGui}",
-
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.stb_image}",
     }
     links
     {
         "GLFW",
         "opengl32.lib",
-        "dwmapi.lib",
         "GLAD",
         "imgui"
     }
 
     -- Apply settings specifically when building for Windows
     filter "system:windows"
-        cppdialect "C++17"          -- Use C++17 standard
-        staticruntime "On"          -- Link the runtime library statically
         systemversion "latest"      -- Use the latest Windows SDK
 
         -- Preprocessor definitions for the Windows platform
@@ -72,35 +83,33 @@ project "EvaEngine"
         {
             "EE_PLATFORM_WINDOWS",  -- Indicates Windows platform
             "EE_BUILD_DLL",          -- Indicates the build is for a DLL
-            "GLFW_INCLUDE_NONE"
+            "GLFW_INCLUDE_NONE",
+            "SPDLOG_NO_UNICODE"
+
         }
 
-        -- Post-build commands to copy the DLL to the Sandbox project directory
-        postbuildcommands
-        { 
-            -- Create the directory if it doesn't exist
-            'if not exist "$(SolutionDir)bin\\' .. outputdir .. '\\Sandbox" mkdir "$(SolutionDir)bin\\' .. outputdir .. '\\Sandbox"',
-            -- Copy the compiled DLL to the Sandbox directory
-            'xcopy /Y /Q "$(SolutionDir)bin\\' .. outputdir .. '\\EvaEngine\\EvaEngine.dll" "$(SolutionDir)bin\\' .. outputdir .. '\\Sandbox\\"'
-        }
+       
 
     -- Settings specific to the Debug configuration
     filter "configurations:Debug"
         defines "EE_DEBUG"  -- Define a macro for debug configuration
         symbols "On"        -- Enable debug symbols
-        buildoptions { "/utf-8", "/MDd" }  -- Use UTF-8 character encoding for source files
+        runtime "Debug"
+        --buildoptions "/utf-8"-- Use UTF-8 character encoding for source files
 
     -- Settings specific to the Release configuration
     filter "configurations:Release"
         defines "EE_RELEASE"  -- Define a macro for release configuration
         optimize "On"         -- Enable code optimization
-        buildoptions { "/utf-8", "/MD" }  -- Use UTF-8 character encoding
+        runtime "Release"
+        --buildoptions "/utf-8" -- Use UTF-8 character encoding
 
     -- Settings specific to the Distribution configuration
     filter "configurations:Dist"
         defines "EE_DIST"     -- Define a macro for distribution configuration
         optimize "On"         -- Enable code optimization
-        buildoptions { "/utf-8", "/MD" }  -- Use UTF-8 character encoding
+        runtime "Release"
+        --buildoptions "/utf-8"  -- Use UTF-8 character encoding
 
 -- Define the "Sandbox" project
 project "Sandbox"
@@ -108,6 +117,8 @@ project "Sandbox"
     kind "ConsoleApp"      -- The project outputs a console application
     language "C++"         -- The programming language used
     architecture "x64"     -- Specify 64-bit architecture
+    staticruntime "on"          -- Link the runtime library statically
+    cppdialect "C++17"          -- Use C++17 standard
 
     -- Directories for the output of compiled binaries and intermediate object files
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -124,7 +135,10 @@ project "Sandbox"
     includedirs
     {
         "EvaEngine/vendor/spdlog/include",  -- Include path for the spdlog library
-        "EvaEngine/source"                  -- Include path for EvaEngine source
+        "EvaEngine/source",                 -- Include path for EvaEngine source
+        "EvaEngine/vendor",
+        "%{IncludeDir.glm}",
+
     }
 
     -- Link the Sandbox project to the EvaEngine library
@@ -136,7 +150,6 @@ project "Sandbox"
     -- Apply settings specifically when building for Windows
     filter "system:windows"
         cppdialect "C++17"          -- Use C++17 standard
-        staticruntime "On"          -- Link the runtime library statically
         systemversion "latest"      -- Use the latest Windows SDK
 
         -- Preprocessor definitions for the Windows platform
@@ -149,16 +162,19 @@ project "Sandbox"
     filter "configurations:Debug"
         defines "EE_DEBUG"  -- Define a macro for debug configuration
         symbols "On"        -- Enable debug symbols
-        buildoptions { "/utf-8", "/MDd" }   -- Use UTF-8 character encoding for source files
+        runtime "Debug"
+        --buildoptions "/utf-8"  -- Use UTF-8 character encoding
 
     -- Settings specific to the Release configuration
     filter "configurations:Release"
         defines "EE_RELEASE"  -- Define a macro for release configuration
         optimize "On"         -- Enable code optimization
-        buildoptions { "/utf-8", "/MD" }  -- Use UTF-8 character encoding
+        runtime "Release"
+        --buildoptions "/utf-8"  -- Use UTF-8 character encoding
 
     -- Settings specific to the Distribution configuration
     filter "configurations:Dist"
         defines "EE_DIST"     -- Define a macro for distribution configuration
         optimize "On"         -- Enable code optimization
-        buildoptions { "/utf-8", "/MD" }  -- Use UTF-8 character encoding
+        runtime "Release"
+        --buildoptions "/utf-8"  -- Use UTF-8 character encoding

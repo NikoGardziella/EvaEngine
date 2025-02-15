@@ -6,26 +6,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\EvaEngine\source\Engine.h" />
-    <ClInclude Include="..\EvaEngine\source\Engine\Application.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EvaEngine\source\Engine\Core.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EvaEngine\source\Engine\EntryPoint.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\EvaEngine\source\Engine\Log.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
+    <ClCompile Include="source\SandboxApp.cpp" />
+    <ClCompile Include="source\Sandbox2D.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\EvaEngine\source\Engine\Application.cpp">
-      <Filter>Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\EvaEngine\source\Engine\Log.cpp">
-      <Filter>Engine</Filter>
-    </ClCompile>
+    <ClInclude Include="source\Sandbox2D.h" />
   </ItemGroup>
 </Project>

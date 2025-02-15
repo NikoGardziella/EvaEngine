@@ -8,3 +8,6 @@
 [submodule "EvaEngine/vendor/imgui"]
 	path = EvaEngine/vendor/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "EvaEngine/vendor/glm"]
+	path = EvaEngine/vendor/glm
+	url = https://github.com/g-truc/glm

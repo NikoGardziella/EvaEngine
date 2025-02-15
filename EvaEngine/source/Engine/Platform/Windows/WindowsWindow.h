@@ -4,6 +4,8 @@
 
 #include "GLFW/glfw3.h"
 
+#include "Engine/Renderer/GraphicsContext.h"
+
 
 namespace Engine {
 
@@ -34,7 +36,7 @@ namespace Engine {
 		virtual void Shutdown();
 	private:
 		GLFWwindow* m_Window;
-		//Scope<GraphicsContext> m_Context;
+		GraphicsContext* m_Context;
 
 		struct WindowData
 		{

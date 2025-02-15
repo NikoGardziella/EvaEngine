@@ -1,15 +1,15 @@
 #include "pch.h"
 #include "WindowsWindow.h"
 
+#include "Engine/Core/Core.h"
 
 #include "Engine/Events/ApplicationEvent.h"
 #include "Engine/Events/MouseEvent.h"
 #include "Engine/Events/KeyEvent.h"
 		
-#include "Engine/Log.h"
+#include "Engine/Core/Log.h"
 
-#include "glad/glad.h"
-
+#include "Engine/Platform/OpenGl/OpenGLContext.h"
 
 namespace Engine {
 
@@ -28,18 +28,21 @@ namespace Engine {
 
 	WindowsWindow::WindowsWindow(const WindowProps& props)
 	{
+		EE_PROFILE_FUNCTION();
 
 		Init(props);
 	}
 
 	WindowsWindow::~WindowsWindow()
 	{
+		EE_PROFILE_FUNCTION();
 
 		Shutdown();
 	}
 
 	void WindowsWindow::Init(const WindowProps& props)
 	{
+		EE_PROFILE_FUNCTION();
 
 		m_Data.Title = props.Title;
 		m_Data.Width = props.Width;
@@ -49,23 +52,21 @@ namespace Engine {
 
 		if (s_GLFWWindowCount == 0)
 		{
+			EE_PROFILE_SCOPE("glfwInit");
 			int success = glfwInit();
-			EE_CORE_ASSERT(success, "Could not initialize GLFW!");
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
 		{
+			EE_PROFILE_SCOPE("glfwCreateWindow");
 
 			m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 			++s_GLFWWindowCount;
-			glfwMakeContextCurrent(m_Window);
-
-			int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-			EE_CORE_ASSERT(status, "Failed to initialize glad");
+			
 
 		}
-		//m_Context = GraphicsContext::Create(m_Window);
-		//m_Context->Init();
+		m_Context = new OpenGLContext(m_Window);
+		m_Context->Init();
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
@@ -164,6 +165,7 @@ namespace Engine {
 
 	void WindowsWindow::Shutdown()
 	{
+		EE_PROFILE_FUNCTION();
 
 		glfwDestroyWindow(m_Window);
 		--s_GLFWWindowCount;
@@ -176,9 +178,10 @@ namespace Engine {
 
 	void WindowsWindow::OnUpdate()
 	{
-		glfwSwapBuffers(m_Window);
+		EE_PROFILE_FUNCTION();
+
 		glfwPollEvents();
-		//m_Context->SwapBuffers();
+		m_Context->SwapBuffers();
 	}
 
 	void WindowsWindow::SetVSync(bool enabled)

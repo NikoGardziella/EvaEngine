@@ -1,13 +1,12 @@
 #pragma once
-#include "Engine/Core.h"
+#include "Engine/Core/Core.h"
 
 #include <string>
 #include <functional>
 
+#include <spdlog/formatter.h>
 
 namespace Engine {
-
-
 	enum class EventType
 	{
 		None = 0,
@@ -37,6 +36,9 @@ namespace Engine {
 
 #define EVENT_CLASS_CATEGORY(category) virtual int GetCategoryFlags() const override { return category; }
 
+
+	
+
 	class Event
 	{
 	public:
@@ -53,7 +55,11 @@ namespace Engine {
 		{
 			return GetCategoryFlags() & category;
 		}
+
+		
 	};
+
+	
 
 	class EventDispatcher
 	{
@@ -104,5 +110,8 @@ namespace Engine {
 	{
 		return os << e.ToString();
 	}
+
+
+
 
 }
