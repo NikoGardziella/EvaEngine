@@ -24,11 +24,22 @@ private:
 	Engine::OrthographicCameraController m_orthoCameraController;
 	Engine::Ref<Engine::Shader> m_flatColorShader;
 	glm::vec4 m_squareColor = { 0.2f, 0.3f, 0.8f, 1.0f };
-	Engine::Ref<Engine::VertexArray> m_squareVA;
+
+
+	Engine::Ref<Engine::Framebuffer> m_framebuffer;
 
 	Engine::Ref<Engine::Texture2D> m_checkerBoardTexture;
 	Engine::Ref<Engine::Texture2D> m_spriteSheet;
+	Engine::Ref<Engine::Texture2D> m_textureSpriteSheetPacked;
+
+	Engine::Ref<Engine::SubTexture2D> m_textureSprite;
+	Engine::Ref<Engine::SubTexture2D> m_textureBarrel;
 
 
+	uint32_t m_mapWidth;
+	uint32_t m_mapHeight;
+
+
+	std::unordered_map<char, Engine::Ref<Engine::SubTexture2D>> m_textureMap;
 };
 

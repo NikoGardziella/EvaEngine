@@ -19,7 +19,7 @@ namespace Engine
 	class EE_API Application
 	{
 	public:
-		Application();
+		Application(const std::string& name = "");
 
 
 		virtual ~Application();
@@ -31,6 +31,11 @@ namespace Engine
 
 		static Application& Get() { return *s_Instance; }
 		Window& GetWindow() { return *m_window; }
+
+		void Close();
+
+		ImGuiLayer* GetImGuiLayer() { return m_imGuiLayer; }
+
 	private:
 
 		static Application* s_Instance;

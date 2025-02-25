@@ -15,14 +15,17 @@ namespace Engine
 		void OnUpdate(Timestep timestep);
 		void OnEvent(Event& event);
 
+		void OnResize(float width, float height);
+
 		OrthographicCamera& GetCamera() { return m_camera;  }
 		const OrthographicCamera& GetCamera() const { return m_camera;  }
 
-		void SetZoomLevel(float level) { m_zoomLevel = level;  }
+		void SetZoomLevel(float level) { m_zoomLevel = level; CalculateView(); }
 		float GetZoomLevel() { return m_zoomLevel;  }
 
 	private:
 
+		void CalculateView();
 		bool OnMouseScrolled(MouseScrolledEvent& event);
 		bool OnWindowResize(WindowResizeEvent& event);
 

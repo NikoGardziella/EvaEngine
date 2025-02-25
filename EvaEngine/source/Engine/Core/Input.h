@@ -1,31 +1,22 @@
 #pragma once
-#include "Engine/Core/Core.h"
+#include "Engine/Events/MouseCodes.h"
 
+#include "glm/glm.hpp"
+#include <Engine/Events/KeyCode.h>
 
 namespace Engine{
 
 
-	class EE_API Input
+	class Input
 	{
-
 	public:
-		inline static bool IsKeyPressed(int keycode) { return s_instance->IsKeyPressedImplentation(keycode); }
+		static bool IsKeyPressed(KeyCode key);
 
-		inline static bool IsMouseButtonyPressed(int button) { return s_instance->IsMouseButtonPressedImplentation(button); }
-		inline static std::pair<float, float> GetMousePosition() { return s_instance->GetMousePositionImplentation(); }
-		inline static float GetMouseX() { return s_instance->GetMouseXImplentation(); }
-		inline static float GetMouseY() { return s_instance->GetMouseYImplentation(); }
-
-	protected:
-		virtual bool IsKeyPressedImplentation(int keycode) = 0;
-		virtual bool IsMouseButtonPressedImplentation(int keycode) = 0;
-		virtual std::pair<float, float> GetMousePositionImplentation() = 0;
-		virtual float GetMouseXImplentation() = 0;
-		virtual float GetMouseYImplentation() = 0;
-
-	private:
-		static Input* s_instance;
-
+		static bool IsMouseButtonPressed(MouseCode button);
+		static glm::vec2 GetMousePosition();
+		static float GetMouseX();
+		static float GetMouseY();
+	
 
 	};
 }

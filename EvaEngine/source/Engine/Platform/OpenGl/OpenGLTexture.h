@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Engine/Renderer/Texture.h"
-#include <glad/glad.h>
+typedef unsigned int GLenum;
+
 
 namespace Engine {
 
@@ -16,6 +17,7 @@ namespace Engine {
 		virtual uint32_t GetWidth() const override { return m_width; }
 		virtual uint32_t Getheight() const override { return m_height; }
 		virtual void Bind(uint32_t slot = 0) const override;
+		virtual uint32_t GetRendererID() const override { return m_rendererID; }
 
 		virtual void SetData(void* data, uint32_t size) override;
 

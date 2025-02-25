@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "WindowsInput.h"
+#include "Engine/Core/Input.h"
 
 #include <GLFW/glfw3.h>
 #include "Engine/Core/Application.h"
@@ -7,10 +7,8 @@
 
 namespace Engine {
 
-	// static initialization of interface class. Alternatively in  WindowsWindow::Init
-	Input* Input::s_instance = new WindowsInput();
 
-	bool WindowsInput::IsKeyPressedImplentation(int keycode)
+	bool Input::IsKeyPressed(const KeyCode keycode)
 	{
 		const auto& window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 
@@ -19,7 +17,9 @@ namespace Engine {
 		return state == GLFW_PRESS;
 	}
 
-	bool WindowsInput::IsMouseButtonPressedImplentation(int keycode)
+	
+
+	bool Input::IsMouseButtonPressed(MouseCode keycode)
 	{
 		const auto& window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 
@@ -28,18 +28,19 @@ namespace Engine {
 		return state == GLFW_PRESS;
 	}
 
-	std::pair<float, float> WindowsInput::GetMousePositionImplentation()
+	glm::vec2 Input::GetMousePosition()
 	{
-		const auto& window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+		auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 
 		return { (float)xpos, (float)ypos };
 	}
 
+
 	
 
-	float WindowsInput::GetMouseXImplentation()
+	float Input::GetMouseX()
 	{
 		const auto& window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 		double xpos, ypos;
@@ -47,7 +48,7 @@ namespace Engine {
 		return (float)xpos;
 	}
 
-	float WindowsInput::GetMouseYImplentation()
+	float Input::GetMouseY()
 	{
 		const auto& window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 		double xpos, ypos;

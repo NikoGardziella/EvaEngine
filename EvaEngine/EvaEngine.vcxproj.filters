@@ -10,6 +10,9 @@
     <Filter Include="source\Engine\Core">
       <UniqueIdentifier>{734A5FF6-5F2E-204C-C88E-1A9FB4910ACE}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Debug">
+      <UniqueIdentifier>{F1F354C2-5D55-32D0-E6C2-78825223698F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Events">
       <UniqueIdentifier>{BFC47D10-AB53-07DA-5472-1BD540E01780}</UniqueIdentifier>
     </Filter>
@@ -27,6 +30,9 @@
     </Filter>
     <Filter Include="source\Engine\Renderer">
       <UniqueIdentifier>{41FFFC1D-2DF9-2570-1666-BC8002FF8BDC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene">
+      <UniqueIdentifier>{985663C3-04B8-40D1-8D25-8783F9857790}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
@@ -69,9 +75,6 @@
     <ClInclude Include="source\Engine\Core\Input.h">
       <Filter>source\Engine\Core</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Core\KeyCodes.h">
-      <Filter>source\Engine\Core</Filter>
-    </ClInclude>
     <ClInclude Include="source\Engine\Core\Layer.h">
       <Filter>source\Engine\Core</Filter>
     </ClInclude>
@@ -81,14 +84,14 @@
     <ClInclude Include="source\Engine\Core\Log.h">
       <Filter>source\Engine\Core</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Core\MouseButtonCodes.h">
-      <Filter>source\Engine\Core</Filter>
-    </ClInclude>
     <ClInclude Include="source\Engine\Core\Timestep.h">
       <Filter>source\Engine\Core</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Core\Window.h">
       <Filter>source\Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Debug\Instrumentor.h">
+      <Filter>source\Engine\Debug</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Events\ApplicationEvent.h">
       <Filter>source\Engine\Events</Filter>
@@ -120,6 +123,9 @@
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLContext.h">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLFramebuffer.h">
+      <Filter>source\Engine\Platform\OpenGl</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLRendererAPI.h">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClInclude>
@@ -132,13 +138,13 @@
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Platform\Windows\WindowsInput.h">
-      <Filter>source\Engine\Platform\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="source\Engine\Platform\Windows\WindowsWindow.h">
       <Filter>source\Engine\Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Renderer\Buffer.h">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Framebuffer.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Renderer\GraphicsContext.h">
@@ -165,11 +171,17 @@
     <ClInclude Include="source\Engine\Renderer\Shader.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\SubTexture2D.h">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Renderer\Texture.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Renderer\VertexArray.h">
       <Filter>source\Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Scene.h">
+      <Filter>source\Engine\Scene</Filter>
     </ClInclude>
     <ClInclude Include="source\pch.h">
       <Filter>source</Filter>
@@ -1425,7 +1437,11 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Debug\Instrumentor.h" />
+    <ClInclude Include="source\Engine\Scene\Component.h" />
+    <ClInclude Include="source\Engine\Scene\Entity.h" />
+    <ClInclude Include="source\Engine\Renderer\Camera.h" />
+    <ClInclude Include="source\Engine\Scene\SceneCamera.h" />
+    <ClInclude Include="source\Engine\Scene\ScriptableEntity.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Core\Application.cpp">
@@ -1455,6 +1471,9 @@
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLContext.cpp">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLFramebuffer.cpp">
+      <Filter>source\Engine\Platform\OpenGl</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLRendererAPI.cpp">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClCompile>
@@ -1474,6 +1493,9 @@
       <Filter>source\Engine\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Renderer\Buffer.cpp">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Framebuffer.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Renderer\OrthographicCamera.cpp">
@@ -1497,11 +1519,17 @@
     <ClCompile Include="source\Engine\Renderer\Shader.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\SubTexture2D.cpp">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Renderer\Texture.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp">
       <Filter>source\Engine\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\Scene.cpp">
+      <Filter>source\Engine\Scene</Filter>
     </ClCompile>
     <ClCompile Include="source\pch.cpp">
       <Filter>source</Filter>
@@ -1509,5 +1537,7 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Scene\Entity.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneCamera.cpp" />
   </ItemGroup>
 </Project>

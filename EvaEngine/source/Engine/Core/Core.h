@@ -60,7 +60,7 @@
 
 
 
-
+#define FUNCTION_POINTER(name) ScriptableEntity* (*name)()
 
 #define  EE_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 

@@ -25,10 +25,11 @@ namespace Engine {
 		case RendererAPI::API::Vulkan:
 			EE_CORE_ASSERT(false, "Vulkan  not YET supported");
 
-			return nullptr;
 
 
 		}
+		return nullptr;
+
 	}
 
 	Ref<Shader> Shader::Create(const std::string& name, const std::string& vertexSource, const std::string& fragmentSource)

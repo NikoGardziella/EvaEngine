@@ -15,7 +15,6 @@
 #include "Engine/Renderer/OrthographicCamera.h"
 
 #include "GLFW/glfw3.h" // remove
-
 namespace Engine
 {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -24,13 +23,13 @@ namespace Engine
 
 	
 
-	Application::Application()
+	Application::Application(const std::string& name)
 	{
 		EE_PROFILE_FUNCTION();
 		
 		s_Instance = this;
 		
-		m_window = std::unique_ptr<Window>(WindowsWindow::Create());
+		m_window = std::unique_ptr<Window>(WindowsWindow::Create(WindowProps(name)));
 		m_window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 
 		Renderer::Init();
@@ -56,6 +55,11 @@ namespace Engine
 		m_LayerStack.PushOverlay(layer);
 		layer->OnAttach();
 
+	}
+
+	void Application::Close()
+	{
+		m_isRunning = false;
 	}
 
 	void Application::Run()

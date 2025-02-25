@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\glm;vendor\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -98,7 +98,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\glm;vendor\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -123,7 +123,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\glm;vendor\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\GLFW\include;vendor\GLAD\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -143,16 +143,17 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Scene\SceneCamera.h" />
+    <ClInclude Include="source\Engine\Renderer\Camera.h" />
+    <ClInclude Include="source\Engine\Scene\Entity.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Core\Application.h" />
     <ClInclude Include="source\Engine\Core\Core.h" />
     <ClInclude Include="source\Engine\Core\EntryPoint.h" />
     <ClInclude Include="source\Engine\Core\Input.h" />
-    <ClInclude Include="source\Engine\Core\KeyCodes.h" />
     <ClInclude Include="source\Engine\Core\Layer.h" />
     <ClInclude Include="source\Engine\Core\LayerStack.h" />
     <ClInclude Include="source\Engine\Core\Log.h" />
-    <ClInclude Include="source\Engine\Core\MouseButtonCodes.h" />
     <ClInclude Include="source\Engine\Core\Timestep.h" />
     <ClInclude Include="source\Engine\Core\Window.h" />
     <ClInclude Include="source\Engine\Debug\Instrumentor.h" />
@@ -166,13 +167,14 @@
     <ClInclude Include="source\Engine\ImGui\ImGuiLayer.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLBuffer.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLContext.h" />
+    <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLFramebuffer.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLRendererAPI.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLShader.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLTexture.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h" />
-    <ClInclude Include="source\Engine\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="source\Engine\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="source\Engine\Renderer\Buffer.h" />
+    <ClInclude Include="source\Engine\Renderer\Framebuffer.h" />
     <ClInclude Include="source\Engine\Renderer\GraphicsContext.h" />
     <ClInclude Include="source\Engine\Renderer\OrthographicCamera.h" />
     <ClInclude Include="source\Engine\Renderer\OrthographicCameraController.h" />
@@ -181,8 +183,12 @@
     <ClInclude Include="source\Engine\Renderer\Renderer2D.h" />
     <ClInclude Include="source\Engine\Renderer\RendererAPI.h" />
     <ClInclude Include="source\Engine\Renderer\Shader.h" />
+    <ClInclude Include="source\Engine\Renderer\SubTexture2D.h" />
     <ClInclude Include="source\Engine\Renderer\Texture.h" />
     <ClInclude Include="source\Engine\Renderer\VertexArray.h" />
+    <ClInclude Include="source\Engine\Scene\Component.h" />
+    <ClInclude Include="source\Engine\Scene\Scene.h" />
+    <ClInclude Include="source\Engine\Scene\ScriptableEntity.h" />
     <ClInclude Include="source\pch.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
     <ClInclude Include="vendor\glm\glm\detail\_features.hpp" />
@@ -603,6 +609,8 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Scene\SceneCamera.cpp" />
+    <ClCompile Include="source\Engine\Scene\Entity.cpp" />
     <ClCompile Include="source\Engine\Core\Application.cpp" />
     <ClCompile Include="source\Engine\Core\Layer.cpp" />
     <ClCompile Include="source\Engine\Core\LayerStack.cpp" />
@@ -612,6 +620,7 @@
     <ClCompile Include="source\Engine\ImGui\imGuiBuild.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLContext.cpp" />
+    <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLFramebuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLRendererAPI.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLShader.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLTexture.cpp" />
@@ -619,6 +628,7 @@
     <ClCompile Include="source\Engine\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="source\Engine\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="source\Engine\Renderer\Buffer.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Framebuffer.cpp" />
     <ClCompile Include="source\Engine\Renderer\OrthographicCamera.cpp" />
     <ClCompile Include="source\Engine\Renderer\OrthographicCameraController.cpp" />
     <ClCompile Include="source\Engine\Renderer\RenderCommand.cpp" />
@@ -626,8 +636,10 @@
     <ClCompile Include="source\Engine\Renderer\Renderer2D.cpp" />
     <ClCompile Include="source\Engine\Renderer\RendererAPI.cpp" />
     <ClCompile Include="source\Engine\Renderer\Shader.cpp" />
+    <ClCompile Include="source\Engine\Renderer\SubTexture2D.cpp" />
     <ClCompile Include="source\Engine\Renderer\Texture.cpp" />
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp" />
+    <ClCompile Include="source\Engine\Scene\Scene.cpp" />
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

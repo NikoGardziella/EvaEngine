@@ -54,7 +54,7 @@ namespace Engine {
 
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
-		//ImGui::StyleColorsClassic();
+		///ImGui::StyleColorsClassic();
 
 		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -88,10 +88,12 @@ namespace Engine {
 
 	void ImGuiLayer::OnEvent(Event& event)
 	{
-		ImGuiIO& io = ImGui::GetIO();
-		event.Handled |= event.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
-		event.Handled |= event.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
-
+		if (m_bockImGuiEvents)
+		{
+			 ImGuiIO& io = ImGui::GetIO();
+			 event.Handled |= event.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
+			 event.Handled |= event.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
+		}
 	}
 
 

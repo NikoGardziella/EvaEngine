@@ -182,27 +182,6 @@ class ExampleLayer : public Engine::Layer
 		
 
 
-		// *********** OBJECT TRANSFORM ***************
-		if (Engine::Input::IsKeyPressed(EE_KEY_A))
-		{
-			m_squarePosition.x -= 10.0f * timestep.GetSeconds();
-
-		}
-		else if (Engine::Input::IsKeyPressed(EE_KEY_D))
-		{
-			m_squarePosition.x += 10.0f * timestep.GetSeconds();
-
-		}
-		if (Engine::Input::IsKeyPressed(EE_KEY_W))
-		{
-			m_squarePosition.y += 10.0f * timestep.GetSeconds();
-
-		}
-		else if (Engine::Input::IsKeyPressed(EE_KEY_S))
-		{
-			m_squarePosition.y -= 10.0f * timestep.GetSeconds();
-
-		}
 
 		
 		//*************** RENDER ************************
