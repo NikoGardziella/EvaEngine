@@ -134,13 +134,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
     <ClInclude Include="source\EditorLayer.h" />
+    <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp" />
     <ClCompile Include="source\EditorApp.cpp" />
     <ClCompile Include="source\EditorLayer.cpp" />
+    <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EvaEngine\EvaEngine.vcxproj">

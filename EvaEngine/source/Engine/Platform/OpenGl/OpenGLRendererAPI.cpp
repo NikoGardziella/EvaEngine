@@ -38,9 +38,13 @@ namespace Engine {
 	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
 	{
 		// If indexCount is non-zero, use it. Otherwise, use the index count from the index buffer.
-		uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
+		if (indexCount == 0)
+		{
+			return;
+		}
+		//uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
 
-		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 		
 	}
 }

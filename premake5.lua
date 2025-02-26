@@ -20,6 +20,7 @@ IncludeDir["ImGui"] = "EvaEngine/vendor/imgui"
 IncludeDir["glm"] = "EvaEngine/vendor/glm"
 IncludeDir["entt"] = "EvaEngine/vendor/entt/include"
 IncludeDir["stb_image"] = "EvaEngine/vendor/stb_image"
+IncludeDir["yaml_cpp"] = "EvaEngine/vendor/yaml-cpp/include"
 
 include "EvaEngine/vendor/GLFW"
 include "EvaEngine/vendor/GLAD"
@@ -67,14 +68,16 @@ project "EvaEngine"
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.glm}",
         "%{IncludeDir.stb_image}",
-        "%{IncludeDir.entt}"
+        "%{IncludeDir.entt}",
+        "%{IncludeDir.yaml_cpp}"
     }
     links
     {
         "GLFW",
         "opengl32.lib",
         "GLAD",
-        "imgui"
+        "imgui",
+        "yaml-cpp"
     }
 
     -- Apply settings specifically when building for Windows

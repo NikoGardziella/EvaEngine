@@ -89,24 +89,24 @@ namespace Engine {
 
            void OnUpdate(Timestep ts)
            {
-               auto& transformComp = GetComponent<TransformComponent>().Transform;
+               auto& transform = GetComponent<TransformComponent>().Translation;
                float speed = 5.0f;
 
                if (Input::IsKeyPressed(Key::A))
                {
-                   transformComp[3][0] -= speed * ts;
+                   transform -= speed * ts;
                }
                if (Input::IsKeyPressed(Key::D))
                {
-                   transformComp[3][0] += speed * ts;
+                   transform += speed * ts;
                }
                if (Input::IsKeyPressed(Key::W))
                {
-                   transformComp[3][1] += speed * ts;
+                   transform += speed * ts;
                }
                if (Input::IsKeyPressed(Key::S))
                {
-                   transformComp[3][1] -= speed * ts;
+                   transform -= speed * ts;
                }
            }
 
@@ -189,8 +189,14 @@ namespace Engine {
         if (opt_fullscreen)
             ImGui::PopStyleVar(2);
 
+
+
+
         // Submit the DockSpace
         ImGuiIO& io = ImGui::GetIO();
+        ImGuiStyle& style = ImGui::GetStyle();
+        style.WindowMinSize.x = 350.0f;
+
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
             ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
@@ -200,6 +206,8 @@ namespace Engine {
         {
             //ShowDockingDisabledMessage();
         }
+
+        style.WindowMinSize.x = 32.0f;
 
         if (ImGui::BeginMenuBar())
         {
@@ -234,35 +242,7 @@ namespace Engine {
             ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
             ImGui::Text("Indicies: %d", stats.GetTotalIndexCount());
 
-            if (m_squareEntity)
-            {
-                ImGui::Separator();
-                auto& tag = m_squareEntity.GetComponent<TagComponent>().Tag;
-                ImGui::Text("%s", tag.c_str());
-                auto& squareColor = m_squareEntity.GetComponent<SpriteRendererComponent>().Color;
-                ImGui::ColorEdit3("Square color", glm::value_ptr(squareColor));
-
-                ImGui::Separator();
-            }
-
-
-            ImGui::DragFloat3("Camera transform", glm::value_ptr(m_cameraEntity.GetComponent<TransformComponent>().Transform[3]));
-
-
-            if (ImGui::Checkbox("Primary Camera", &m_primaryCamera))
-            {
-                m_cameraEntity.GetComponent<CameraComponent>().Primary = m_primaryCamera;
-                m_cameraSecondaryEntity.GetComponent<CameraComponent>().Primary = !m_primaryCamera;
-            }
-
-            {
-                auto& camera = m_cameraSecondaryEntity.GetComponent<CameraComponent>().Camera;
-                float orthoSize = camera.GetOrthographicSize();
-                if (ImGui::DragFloat("Second camera ortho size", &orthoSize))
-                {
-                    camera.SetOrthographicSize(orthoSize);
-                }
-            }
+          
 
             ImGui::End();
 
@@ -381,7 +361,7 @@ namespace Engine {
 
     void EditorLayer::OnEvent(Engine::Event& event)
     {
-        //m_orthoCameraController.OnEvent(event);
+        m_orthoCameraController.OnEvent(event);
 
     }
 

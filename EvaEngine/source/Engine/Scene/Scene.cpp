@@ -12,36 +12,7 @@ namespace Engine {
     {
 
 
-        /*
-        TransformComponent compTransform;
-
-        entt::entity entity = m_registry.create();
-
-        m_registry.emplace<TransformComponent>(entity, glm::mat4(1.0f));
-
-        TransformComponent& compTransform2 = m_registry.get<TransformComponent>(entity);
-
-        // Less cache-efficient because data may be scattered in memory.
-        m_registry.view<TransformComponent, SpriteRendererComponent>().each([&](auto entity, TransformComponent& transform, SpriteRendererComponent& meshComponent)
-            {
-
-            });
-
-        auto group = m_registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-
-
-        for (auto entity : group)
-        {
-            auto& [transform, mesh] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-
-        }
-
-        auto view = m_registry.view<TransformComponent>();
-        for (auto entity : view)
-        {
-
-        }
-        */
+        
     }
 
 
@@ -57,6 +28,11 @@ namespace Engine {
         return entity;
 
     }
+    void Scene::DestroyEntity(Entity entity)
+    {
+        m_registry.destroy(entity);
+    }
+
     void Scene::OnUpdate(Timestep timestep)
     {
 
@@ -79,7 +55,7 @@ namespace Engine {
         }
         
         Camera* mainCamera = nullptr;
-        glm::mat4* cameraTransform = nullptr;
+        glm::mat4 cameraTransform;
         {
             auto group = m_registry.group<TransformComponent, CameraComponent>();
             for (auto entity : group)
@@ -89,7 +65,7 @@ namespace Engine {
                 if (camera.Primary)
                 {
                     mainCamera = &camera.Camera;
-                    cameraTransform = &transform.Transform;
+                    cameraTransform = transform.GetTransform();
                     break;
                 }
             }
@@ -97,7 +73,7 @@ namespace Engine {
 
         if(mainCamera)
         {   
-            Renderer2D::BeginScene(mainCamera->GetProjection(), *cameraTransform);
+            Renderer2D::BeginScene(mainCamera->GetProjection(), cameraTransform);
             auto group = m_registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
 
             for (auto entity : group)
@@ -105,7 +81,7 @@ namespace Engine {
                 auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
                 
 
-                Renderer2D::DrawQuad(transform.Transform, sprite.Color);
+                Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
             }
 
             Renderer2D::EndScene();
@@ -124,7 +100,7 @@ namespace Engine {
         for (auto entity : view)
         {
             auto cameraComp = view.get<CameraComponent>(entity);
-            if (cameraComp.FixedAspectRatio)
+            if (!cameraComp.FixedAspectRatio)
             {
                 cameraComp.Camera.SetViewportSize(width, height);
             }
@@ -133,5 +109,42 @@ namespace Engine {
 
     }
 
-  
+    template<typename T>
+    inline void Scene::OnComponentAdded(Entity entity, T& component)
+    {
+        //  fails at compile-time if there’s no explicit specialization for a given component type.
+        static_assert(false);
+
+    }
+
+    // Specializations for Specific Components
+    template<>
+    void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
+    {
+        component.Camera.SetViewportSize(m_viewportWidth, m_viewportHeight);
+    }
+
+    template<>
+    void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
+    {
+
+    }
 }

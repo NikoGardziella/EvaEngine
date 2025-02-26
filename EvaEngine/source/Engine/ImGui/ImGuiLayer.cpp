@@ -53,8 +53,14 @@ namespace Engine {
 		//io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", fontSize);
 
 		// Setup Dear ImGui style
-		ImGui::StyleColorsDark();
-		///ImGui::StyleColorsClassic();
+		//ImGui::StyleColorsDark();
+		StyleColorsEva();
+		//ImGui::StyleColorsClassic();
+		//ImGui::StyleColorsLight();
+		
+		//StyleColorsCyberpunk();
+		//StyleColorsMidnightOcean();
+		//StyleColorsRustGold();
 
 		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -64,7 +70,13 @@ namespace Engine {
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 
-		SetDarkThemeColors();
+
+		io.Fonts->AddFontFromFileTTF("assets/fonts/kanit/Kanit-Bold.ttf", 18.0f);
+
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/kanit/Kanit-Regular.ttf", 18.0f);
+
+
+		//SetDarkThemeColors();
 
 		Application& app = Application::Get();
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
@@ -160,4 +172,131 @@ namespace Engine {
 		colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 		colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 	}
+	void ImGuiLayer::StyleColorsEva()
+	{
+		auto& colors = ImGui::GetStyle().Colors;
+
+		// Background
+		colors[ImGuiCol_WindowBg] = ImVec4{ 0.1f, 0.0f, 0.15f, 1.0f }; // Deep Purple
+
+		// Headers
+		colors[ImGuiCol_Header] = ImVec4{ 0.25f, 0.0f, 0.35f, 1.0f }; // Dark Magenta
+		colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.35f, 0.0f, 0.45f, 1.0f }; // Rich Violet
+		colors[ImGuiCol_HeaderActive] = ImVec4{ 0.5f, 0.1f, 0.6f, 1.0f }; // Warm Purple
+
+		// Buttons
+		colors[ImGuiCol_Button] = ImVec4{ 0.3f, 0.0f, 0.4f, 1.0f };
+		colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.45f, 0.1f, 0.55f, 1.0f };
+		colors[ImGuiCol_ButtonActive] = ImVec4{ 0.6f, 0.2f, 0.7f, 1.0f };
+
+		// Frame BG
+		colors[ImGuiCol_FrameBg] = ImVec4{ 0.2f, 0.0f, 0.3f, 1.0f };
+		colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.3f, 0.0f, 0.4f, 1.0f };
+		colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.5f, 0.1f, 0.6f, 1.0f };
+
+		// Tabs
+		colors[ImGuiCol_Tab] = ImVec4{ 0.2f, 0.0f, 0.25f, 1.0f };
+		colors[ImGuiCol_TabHovered] = ImVec4{ 0.4f, 0.0f, 0.5f, 1.0f };
+		colors[ImGuiCol_TabActive] = ImVec4{ 0.5f, 0.1f, 0.6f, 1.0f };
+		colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.15f, 0.0f, 0.2f, 1.0f };
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.3f, 0.0f, 0.35f, 1.0f };
+
+		// Title Bar
+		colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.0f, 0.2f, 1.0f };
+		colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.25f, 0.0f, 0.35f, 1.0f };
+		colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.1f, 0.0f, 0.15f, 1.0f };
+
+		// Resize Grip (for resizable windows)
+		colors[ImGuiCol_ResizeGrip] = ImVec4{ 0.6f, 0.2f, 0.8f, 1.0f };
+		colors[ImGuiCol_ResizeGripHovered] = ImVec4{ 0.7f, 0.3f, 0.9f, 1.0f };
+		colors[ImGuiCol_ResizeGripActive] = ImVec4{ 0.9f, 0.4f, 1.0f, 1.0f };
+
+		// Separators
+		colors[ImGuiCol_Separator] = ImVec4{ 0.4f, 0.0f, 0.5f, 1.0f };
+		colors[ImGuiCol_SeparatorHovered] = ImVec4{ 0.5f, 0.1f, 0.6f, 1.0f };
+		colors[ImGuiCol_SeparatorActive] = ImVec4{ 0.6f, 0.2f, 0.7f, 1.0f };
+	}
+
+	void ImGuiLayer::StyleColorsCyberpunk()
+	{
+		auto& colors = ImGui::GetStyle().Colors;
+
+		// Background
+		colors[ImGuiCol_WindowBg] = ImVec4{ 0.05f, 0.05f, 0.1f, 1.0f }; // Deep Dark Blue
+
+		// Headers
+		colors[ImGuiCol_Header] = ImVec4{ 0.1f, 0.3f, 0.5f, 1.0f }; // Electric Blue
+		colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.2f, 0.6f, 1.0f, 1.0f }; // Bright Neon Blue
+		colors[ImGuiCol_HeaderActive] = ImVec4{ 0.9f, 0.0f, 0.9f, 1.0f }; // Cyberpunk Pink
+
+		// Buttons
+		colors[ImGuiCol_Button] = ImVec4{ 0.1f, 0.5f, 0.8f, 1.0f }; // Bright Blue
+		colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.7f, 0.1f, 0.7f, 1.0f }; // Neon Pink
+		colors[ImGuiCol_ButtonActive] = ImVec4{ 1.0f, 0.5f, 0.0f, 1.0f }; // Orange Glow
+
+		// Tabs
+		colors[ImGuiCol_Tab] = ImVec4{ 0.1f, 0.2f, 0.3f, 1.0f };
+		colors[ImGuiCol_TabHovered] = ImVec4{ 0.3f, 0.7f, 1.0f, 1.0f };
+		colors[ImGuiCol_TabActive] = ImVec4{ 0.8f, 0.0f, 0.8f, 1.0f };
+
+		// Title Bar
+		colors[ImGuiCol_TitleBg] = ImVec4{ 0.1f, 0.1f, 0.2f, 1.0f };
+		colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.2f, 0.3f, 0.5f, 1.0f };
+	}
+
+	void ImGuiLayer::StyleColorsMidnightOcean()
+	{
+		auto& colors = ImGui::GetStyle().Colors;
+
+		// Background
+		colors[ImGuiCol_WindowBg] = ImVec4{ 0.02f, 0.02f, 0.06f, 1.0f }; // Deep Navy
+
+		// Headers
+		colors[ImGuiCol_Header] = ImVec4{ 0.05f, 0.3f, 0.4f, 1.0f }; // Ocean Teal
+		colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.1f, 0.5f, 0.6f, 1.0f };
+		colors[ImGuiCol_HeaderActive] = ImVec4{ 0.0f, 0.8f, 0.9f, 1.0f };
+
+		// Buttons
+		colors[ImGuiCol_Button] = ImVec4{ 0.05f, 0.3f, 0.4f, 1.0f };
+		colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.1f, 0.5f, 0.6f, 1.0f };
+		colors[ImGuiCol_ButtonActive] = ImVec4{ 0.0f, 0.8f, 0.9f, 1.0f };
+
+		// Tabs
+		colors[ImGuiCol_Tab] = ImVec4{ 0.02f, 0.1f, 0.15f, 1.0f };
+		colors[ImGuiCol_TabHovered] = ImVec4{ 0.1f, 0.5f, 0.6f, 1.0f };
+		colors[ImGuiCol_TabActive] = ImVec4{ 0.0f, 0.8f, 0.9f, 1.0f };
+
+		// Title Bar
+		colors[ImGuiCol_TitleBg] = ImVec4{ 0.02f, 0.1f, 0.15f, 1.0f };
+		colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.1f, 0.5f, 0.6f, 1.0f };
+	}
+
+	void ImGuiLayer::StyleColorsRustGold()
+	{
+		auto& colors = ImGui::GetStyle().Colors;
+
+		// Background
+		colors[ImGuiCol_WindowBg] = ImVec4{ 0.15f, 0.1f, 0.08f, 1.0f }; // Dark Brown
+
+		// Headers
+		colors[ImGuiCol_Header] = ImVec4{ 0.5f, 0.25f, 0.1f, 1.0f }; // Rust Orange
+		colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.7f, 0.3f, 0.15f, 1.0f };
+		colors[ImGuiCol_HeaderActive] = ImVec4{ 0.9f, 0.4f, 0.2f, 1.0f }; // Golden Accent
+
+		// Buttons
+		colors[ImGuiCol_Button] = ImVec4{ 0.5f, 0.25f, 0.1f, 1.0f };
+		colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.7f, 0.3f, 0.15f, 1.0f };
+		colors[ImGuiCol_ButtonActive] = ImVec4{ 0.9f, 0.4f, 0.2f, 1.0f };
+
+		// Tabs
+		colors[ImGuiCol_Tab] = ImVec4{ 0.2f, 0.15f, 0.1f, 1.0f };
+		colors[ImGuiCol_TabHovered] = ImVec4{ 0.7f, 0.3f, 0.15f, 1.0f };
+		colors[ImGuiCol_TabActive] = ImVec4{ 0.9f, 0.4f, 0.2f, 1.0f };
+
+		// Title Bar
+		colors[ImGuiCol_TitleBg] = ImVec4{ 0.2f, 0.15f, 0.1f, 1.0f };
+		colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.7f, 0.3f, 0.15f, 1.0f };
+	}
+
+
 }

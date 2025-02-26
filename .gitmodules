@@ -11,3 +11,6 @@
 [submodule "EvaEngine/vendor/glm"]
 	path = EvaEngine/vendor/glm
 	url = https://github.com/g-truc/glm
+[submodule "EvaEngine/vendor/yaml-cpp"]
+	path = EvaEngine/vendor/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git

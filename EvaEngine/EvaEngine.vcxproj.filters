@@ -144,6 +144,9 @@
     <ClInclude Include="source\Engine\Renderer\Buffer.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Camera.h">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Renderer\Framebuffer.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
@@ -180,7 +183,19 @@
     <ClInclude Include="source\Engine\Renderer\VertexArray.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Component.h">
+      <Filter>source\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Entity.h">
+      <Filter>source\Engine\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Scene.h">
+      <Filter>source\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\SceneCamera.h">
+      <Filter>source\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\ScriptableEntity.h">
       <Filter>source\Engine\Scene</Filter>
     </ClInclude>
     <ClInclude Include="source\pch.h">
@@ -1437,11 +1452,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Component.h" />
-    <ClInclude Include="source\Engine\Scene\Entity.h" />
-    <ClInclude Include="source\Engine\Renderer\Camera.h" />
-    <ClInclude Include="source\Engine\Scene\SceneCamera.h" />
-    <ClInclude Include="source\Engine\Scene\ScriptableEntity.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Core\Application.cpp">
@@ -1528,16 +1538,20 @@
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\pch.cpp">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\Entity.cpp">
+      <Filter>source\Engine\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Scene\Scene.cpp">
       <Filter>source\Engine\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="source\pch.cpp">
-      <Filter>source</Filter>
+    <ClCompile Include="source\Engine\Scene\SceneCamera.cpp">
+      <Filter>source\Engine\Scene</Filter>
     </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Scene\Entity.cpp" />
-    <ClCompile Include="source\Engine\Scene\SceneCamera.cpp" />
   </ItemGroup>
 </Project>

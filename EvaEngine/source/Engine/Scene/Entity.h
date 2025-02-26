@@ -29,7 +29,10 @@ namespace Engine {
             EE_CORE_ASSERT(m_scene, "Entity has no valid scene!");
             EE_CORE_ASSERT(m_entityHandle != entt::null, "Invalid entity handle!");
             EE_CORE_ASSERT(!HasComponent<T>(), "Entity already has component");
-            return m_scene->m_registry.emplace<T>(m_entityHandle, std::forward<Args>(args)...);
+
+            T& component = m_scene->m_registry.emplace<T>(m_entityHandle, std::forward<Args>(args)...);
+            m_scene->OnComponentAdded<T>(*this, component);
+            return component;
         }
 
 

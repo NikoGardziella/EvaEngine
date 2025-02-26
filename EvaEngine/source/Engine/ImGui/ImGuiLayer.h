@@ -28,6 +28,10 @@ namespace Engine {
 		void Begin();
 		void End();
 		void SetDarkThemeColors();
+		void StyleColorsEva();
+		void StyleColorsCyberpunk();
+		void StyleColorsMidnightOcean();
+		void StyleColorsRustGold();
 		//void OnEvent(Event& event);
 
 		void BlockEvents(bool block) { m_bockImGuiEvents = block; }
