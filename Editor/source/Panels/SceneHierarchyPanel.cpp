@@ -4,6 +4,7 @@
 #include "Engine/Scene/Component.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui/imgui_internal.h>
+#include "ImGuizmo/ImGuizmo.h"
 
 //#include "entt.hpp"
 
@@ -18,6 +19,8 @@ namespace Engine {
 	void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
 	{
 		m_context = context;
+        m_selectionContext = {};
+
 	}
 
     void SceneHierarchyPanel::OnImGuiRender()
@@ -70,7 +73,7 @@ namespace Engine {
     }
 
 
-    static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float collumWidth = 100.0f)
+    static void DrawVec3Control(const std::string& label, glm::vec3& values, int& gizmoType, ImGuizmo::OPERATION gizmoOperation, float resetValue = 0.0f, float collumWidth = 100.0f)
     {
         ImGuiIO& io = ImGui::GetIO();
         auto boldFont = io.Fonts->Fonts[0];
@@ -107,7 +110,11 @@ namespace Engine {
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+        if (ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f"))
+        {
+            gizmoType = gizmoOperation;
+
+        }
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -125,7 +132,10 @@ namespace Engine {
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+        if (ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f"))
+        {
+            gizmoType = gizmoOperation;
+        }
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -142,7 +152,10 @@ namespace Engine {
         ImGui::PopFont();
 
         ImGui::SameLine();
-        ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+        if (ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f"))
+        {
+            gizmoType = gizmoOperation;
+        }
         ImGui::PopItemWidth();
 
         ImGui::PopStyleVar();
@@ -303,14 +316,15 @@ namespace Engine {
         ImGui::PopItemWidth();
 
 
-        DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
+        DrawComponent<TransformComponent>("Transform", entity, [this](auto& component)
             {
-                DrawVec3Control("Translation", component.Translation);
-
+                DrawVec3Control("Translation", component.Translation, m_guizmoType, ImGuizmo::OPERATION::TRANSLATE);
+                 
                 glm::vec3 rotation = glm::degrees(component.Rotation);
-                DrawVec3Control("Rotation", rotation);
+                DrawVec3Control("Rotation", rotation, m_guizmoType, ImGuizmo::OPERATION::ROTATE);
+
                 component.Rotation = glm::radians(rotation);
-                DrawVec3Control("Scale", component.Scale);
+                DrawVec3Control("Scale", component.Scale, m_guizmoType, ImGuizmo::OPERATION::SCALE);
             });
 
         DrawComponent<CameraComponent>("Camera", entity, [](auto& component)
@@ -371,23 +385,24 @@ namespace Engine {
                 if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
                 {
                     float verticalFOV = glm::degrees(camera.GetPerspectiveFOV());
-                    if (ImGui::DragFloat("FOV", &verticalFOV))
+                    if (ImGui::DragFloat("FOV", &verticalFOV, 0.1f, 1.0f, 179.0f)) // Clamped for stability
                     {
                         camera.SetPerspectiveFOV(glm::radians(verticalFOV));
                     }
 
-                    float orthoNear = camera.GetPerspectiveNearClip();
-                    if (ImGui::DragFloat("Near clip", &orthoNear))
+                    float perspNear = camera.GetPerspectiveNearClip();
+                    if (ImGui::DragFloat("Near Clip", &perspNear, 0.01f, 0.01f, camera.GetPerspectiveFarClip() - 0.1f)) // Near must be > 0
                     {
-                        camera.SetPerspectiveNearClip(orthoNear);
+                        camera.SetPerspectiveNearClip(perspNear);
                     }
 
-                    float orthoFar = camera.GetPerspectiveFarClip();
-                    if (ImGui::DragFloat("Far Clip", &orthoFar))
+                    float perspFar = camera.GetPerspectiveFarClip();
+                    if (ImGui::DragFloat("Far Clip", &perspFar, 1.0f, camera.GetPerspectiveNearClip() + 0.1f, 10000.0f)) // Far must be > Near
                     {
-                        camera.SetPerspectiveFarClip(orthoFar);
+                        camera.SetPerspectiveFarClip(perspFar);
                     }
                 }
+
             });
 
         DrawComponent<SpriteRendererComponent>("Sprite renderer", entity, [](auto& component)

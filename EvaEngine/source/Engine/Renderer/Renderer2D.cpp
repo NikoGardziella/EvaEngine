@@ -139,11 +139,25 @@ namespace Engine {
 		s_Data.TextureSlotIndex = 1; // 0 = whiteTexture
 	}
 
+	void Renderer2D::BeginScene(const EditorCamera& camera)
+	{
+		EE_PROFILE_FUNCTION();
+
+		glm::mat4 viewProj = camera.GetViewProjection();
+
+		s_Data.TextureShader->Bind();
+		s_Data.TextureShader->SetMat4("u_viewProjection", viewProj);
+
+		s_Data.QuadIndexCount = 0;
+		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+		s_Data.TextureSlotIndex = 1; // 0 = whiteTexture
+	}
+
 	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
 	{
 		EE_PROFILE_FUNCTION();
 
-		glm::mat4 viewProj = camera.GetProjection() * glm::inverse(transform);
+		glm::mat4 viewProj = camera.GetViewProjection() * glm::inverse(transform);
 
 		//s_Data.TextureShader->Bind();
 		s_Data.TextureShader->SetMat4("u_viewProjection", viewProj);

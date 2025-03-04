@@ -4,7 +4,9 @@
 #include "Engine/Renderer/Texture.h"
 #include "SubTexture2D.h"
 
-#include "Camera.h"
+#include "Engine/Renderer/EditorCamera.h"
+#include "Engine/Renderer/Camera.h"
+
 namespace Engine {
 
 	class Renderer2D
@@ -17,6 +19,7 @@ namespace Engine {
 		static void Shutdown();
 
 		static void BeginScene(const OrthographicCamera& camera);
+		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(const Camera& camera, const glm::mat4& transform);
 		static void EndScene();
 		static void Flush();

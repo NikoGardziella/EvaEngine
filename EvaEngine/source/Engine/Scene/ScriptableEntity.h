@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine/Scene/Entity.h"
+#include "Engine/Core/Timestep.h"
 
 namespace Engine {
 

@@ -1,0 +1,5 @@
+Scene: My Scene
+Entities:
+  - ID: 0
+    TagComponent:
+      Tag: Empty entity

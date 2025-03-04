@@ -64,11 +64,10 @@ namespace Engine {
 		float GetPerspectiveFOV() const { return m_perspectiveFOV; }
 		void SetPerspectiveFOV(float fov)
 		{
-			if (m_perspectiveFOV != fov)
-			{
-				m_perspectiveFOV = fov;
-				RecalculateProjection();
-			}
+			
+			m_perspectiveFOV = fov;
+			
+			RecalculateProjection();
 		}
 
 		float GetPerspectiveNearClip() const { return m_perspectiveNear; }

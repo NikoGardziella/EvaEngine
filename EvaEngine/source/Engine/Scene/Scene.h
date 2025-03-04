@@ -1,8 +1,9 @@
 #pragma once
 
 
-#include "Engine/Core/Timestep.h"
 #include "Component.h"
+#include "Engine/Core/Timestep.h"
+#include "Engine/Renderer/EditorCamera.h"
 
 namespace Engine {
 
@@ -19,9 +20,12 @@ namespace Engine {
 		Entity CreateEntity(const std::string& name = std::string());
 		void DestroyEntity(Entity entity);
 
-		void OnUpdate(Timestep timestep);
+		void OnUpdateRuntime(Timestep timestep);
+		void OnUpdateEditor(Timestep timestep, EditorCamera& camera);
 		void OnViewportResize(uint32_t width, uint32_t height);
 
+
+		Entity GetPrimaryCameraEntity();
 	private:
 
 		template<typename T>
@@ -36,6 +40,7 @@ namespace Engine {
 
 
 		friend class Entity;
+		friend class SceneSerializer;
 		friend class SceneHierarchyPanel;
 	};
 

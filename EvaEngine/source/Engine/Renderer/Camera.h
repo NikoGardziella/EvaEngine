@@ -16,7 +16,7 @@ namespace Engine {
 
 		}
 		virtual ~Camera() = default;
-		const glm::mat4& GetProjection() const { return m_projection; }
+		const glm::mat4& GetViewProjection() const { return m_projection; }
 
 
 

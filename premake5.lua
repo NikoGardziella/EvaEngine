@@ -21,10 +21,12 @@ IncludeDir["glm"] = "EvaEngine/vendor/glm"
 IncludeDir["entt"] = "EvaEngine/vendor/entt/include"
 IncludeDir["stb_image"] = "EvaEngine/vendor/stb_image"
 IncludeDir["yaml_cpp"] = "EvaEngine/vendor/yaml-cpp/include"
+IncludeDir["ImGuizmo"] = "EvaEngine/vendor/ImGuizmo"
 
 include "EvaEngine/vendor/GLFW"
 include "EvaEngine/vendor/GLAD"
 include "EvaEngine/vendor/imgui"
+include "EvaEngine/vendor/yaml-cpp"
 
 -- Define the "EvaEngine" project
 project "EvaEngine"
@@ -50,12 +52,15 @@ project "EvaEngine"
         "%{prj.name}/vendor/glm/glm/**.inl",
         "%{prj.name}/vendor/stb_image/**.cpp",
         "%{prj.name}/vendor/stb_image/**.h",
+        "%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp",
+        "%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
     }
 
     defines
     {
         "_CRT_SECURE_NO_WARNINGS",
-		"GLFW_INCLUDE_NONE"
+		"GLFW_INCLUDE_NONE",
+        "YAML_CPP_STATIC_DEFINE "
     }
 
     -- Include directories required for the project
@@ -69,7 +74,8 @@ project "EvaEngine"
         "%{IncludeDir.glm}",
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.entt}",
-        "%{IncludeDir.yaml_cpp}"
+        "%{IncludeDir.yaml_cpp}",
+        "%{IncludeDir.ImGuizmo}"
     }
     links
     {
@@ -79,6 +85,9 @@ project "EvaEngine"
         "imgui",
         "yaml-cpp"
     }
+    filter"files:vendor/ImGuizmo/**.cpp"
+    flags { "NoPCH"} -- no need to add pch.h this
+    filter {} -- Reset filter after this block
 
     -- Apply settings specifically when building for Windows
     filter "system:windows"
@@ -92,7 +101,7 @@ project "EvaEngine"
             "GLFW_INCLUDE_NONE",
             "SPDLOG_NO_UNICODE"
 
-        }
+        } 
 
        
 

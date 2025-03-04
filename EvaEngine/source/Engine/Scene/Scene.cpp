@@ -33,7 +33,7 @@ namespace Engine {
         m_registry.destroy(entity);
     }
 
-    void Scene::OnUpdate(Timestep timestep)
+    void Scene::OnUpdateRuntime(Timestep timestep)
     {
 
 
@@ -73,7 +73,7 @@ namespace Engine {
 
         if(mainCamera)
         {   
-            Renderer2D::BeginScene(mainCamera->GetProjection(), cameraTransform);
+            Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
             auto group = m_registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
 
             for (auto entity : group)
@@ -88,6 +88,22 @@ namespace Engine {
         }
 
 
+    }
+
+    void Scene::OnUpdateEditor(Timestep timestep, EditorCamera& camera)
+    {
+        Renderer2D::BeginScene(camera);
+        auto group = m_registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
+
+        for (auto entity : group)
+        {
+            auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+
+
+            Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+        }
+
+        Renderer2D::EndScene();
     }
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)
@@ -107,7 +123,30 @@ namespace Engine {
 
         }
 
+
     }
+
+
+
+
+
+    Entity Scene::GetPrimaryCameraEntity()
+    {
+        auto view = m_registry.view<CameraComponent>();
+        for (auto cameraEntity : view)
+        {
+            const auto& cameraComp = view.get<CameraComponent>(cameraEntity);
+
+            if (cameraComp.Primary)
+            {
+                return Entity{ cameraEntity, this };
+            }
+        }
+        return {};
+    }
+
+
+
 
     template<typename T>
     inline void Scene::OnComponentAdded(Entity entity, T& component)

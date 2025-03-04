@@ -3,6 +3,8 @@
 #include "Engine.h"
 
 #include "Panels/SceneHierarchyPanel.h"
+#include "Engine/Scene/SceneSerializer.h"
+#include "Engine/Renderer/EditorCamera.h"
 
 namespace Engine {
 
@@ -19,6 +21,13 @@ namespace Engine {
 
 		void OnUpdate(Timestep timestep) override;
 		void OnEvent(Event& event) override;
+	private:
+		bool OnKeyPressed(KeyPressedEvent& e);
+
+		void NewScene();
+		void OpenScene();
+		void SaveSceneAs();
+
 
 	private:
 
@@ -38,6 +47,7 @@ namespace Engine {
 		Entity m_cameraEntity;
 		Entity m_cameraSecondaryEntity;
 		bool m_primaryCamera;
+		EditorCamera m_editorCamera;
 
 
 		Ref<Texture2D> m_checkerBoardTexture;
@@ -59,6 +69,7 @@ namespace Engine {
 		SceneHierarchyPanel m_sceneHierarchyPanel;
 
 
+		//int m_gizmoType = -1;
 	};
 
 }

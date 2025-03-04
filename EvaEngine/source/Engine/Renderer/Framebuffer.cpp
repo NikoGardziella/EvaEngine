@@ -7,7 +7,7 @@
 namespace Engine {
 
 
-	Ref<Framebuffer> Framebuffer::Create(const FrameBufferSpecification& spec)
+	Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& spec)
 	{
 		switch (Renderer::GetAPI())
 		{

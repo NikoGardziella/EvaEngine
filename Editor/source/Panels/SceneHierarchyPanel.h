@@ -19,6 +19,11 @@ namespace Engine {
 		void SetContext(const Ref<Scene>& scene);
 		void OnImGuiRender();
 		void SceneHierarchyPanel::DrawComponents(Entity entity);
+
+		void SetGizmoType(const int guizmoType) { m_guizmoType = guizmoType; }
+		int GetGuizmoType() const { return m_guizmoType; }
+
+		Entity GetSelectedEntity() const { return m_selectionContext;  }
 	private:
 
 		void DrawEntityNode(Entity entity);
@@ -27,6 +32,7 @@ namespace Engine {
 
 		Ref<Scene> m_context;
 		Entity m_selectionContext;
+		int m_guizmoType = -1;
 
 		friend class Scene;
 	};
