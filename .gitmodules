@@ -14,3 +14,6 @@
 [submodule "EvaEngine/vendor/yaml-cpp"]
 	path = EvaEngine/vendor/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "EvaEngine/vendor/ImGuizmo"]
+	path = EvaEngine/vendor/ImGuizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo
