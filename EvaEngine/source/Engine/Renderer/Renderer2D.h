@@ -7,6 +7,8 @@
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Renderer/Camera.h"
 
+#include "Engine/Scene/Component.h"
+
 namespace Engine {
 
 	class Renderer2D
@@ -26,16 +28,19 @@ namespace Engine {
 
 
 		// primitives
+		
 		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color);
 		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
 		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tiling = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
 		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texturer, float tiling = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
+		
+		
 		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<SubTexture2D>& subTexture, float tiling = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
 		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<SubTexture2D>& subTexture, float tiling = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
 
 
-		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
-		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, const Ref<Texture2D>& texture, float tiling = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
+		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, const Ref<Texture2D>& texture, float tiling = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f), int entityID = -1);
 
 
 		static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color);
@@ -44,6 +49,10 @@ namespace Engine {
 		static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tiling, const glm::vec4& tintColor = glm::vec4(1.0f));
 		static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<SubTexture2D>& subTexture, float tiling, const glm::vec4& tintColor = glm::vec4(1.0f));
 		static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<SubTexture2D>& subTexture, float tiling, const glm::vec4& tintColor = glm::vec4(1.0f));
+		
+		
+		static void DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
+
 
 		// statistics
 		struct Statistics
@@ -59,7 +68,7 @@ namespace Engine {
 
 
 	private:
-
+		// for next batch
 		static void FlushAndReset();
 
 

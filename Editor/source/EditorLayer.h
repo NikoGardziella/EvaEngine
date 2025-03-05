@@ -23,6 +23,7 @@ namespace Engine {
 		void OnEvent(Event& event) override;
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);
+		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
 		void NewScene();
 		void OpenScene();
@@ -38,6 +39,7 @@ namespace Engine {
 
 		Ref<Framebuffer> m_framebuffer;
 		glm::vec2 m_viewportSize = { 0.0f, 0.0f};
+		glm::vec2 m_viewportBounds[2];
 		bool m_viewportFocused = false;
 		bool m_viewportHovered = false;
 
@@ -48,7 +50,9 @@ namespace Engine {
 		Entity m_cameraSecondaryEntity;
 		bool m_primaryCamera;
 		EditorCamera m_editorCamera;
+		bool m_mouseIsInViewPort = false;
 
+		Entity m_hoveredEntity;
 
 		Ref<Texture2D> m_checkerBoardTexture;
 		Ref<Texture2D> m_spriteSheet;

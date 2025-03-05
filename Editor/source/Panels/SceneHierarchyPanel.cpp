@@ -165,6 +165,11 @@ namespace Engine {
     }
 
 
+    void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
+    {
+        m_selectionContext = entity;
+    }
+
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
         auto& tagComp = entity.GetComponent<TagComponent>();

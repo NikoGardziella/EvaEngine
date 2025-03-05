@@ -17,6 +17,9 @@ namespace Engine {
 		glm::vec2 TexCoord;
 		float TexIndex;
 		float Tiling;
+
+		//Editor only. TODO Create EditorQuadVertex, or something
+		int EntityID = 0;
 	};
 
 	struct Renderer2DData
@@ -63,8 +66,9 @@ namespace Engine {
 			{ ShaderDataType::Float3, "a_position" },
 			{ ShaderDataType::Float4, "a_color" },
 			{ ShaderDataType::Float2, "a_texCoord" },
-			{ ShaderDataType::Float, "a_texIndex" },
-			{ ShaderDataType::Float, "a_tiling" },
+			{ ShaderDataType::Float,  "a_texIndex" },
+			{ ShaderDataType::Float,  "a_tiling" },
+			{ ShaderDataType::Int,    "a_entityID" },
 			});
 		s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
 
@@ -386,7 +390,7 @@ namespace Engine {
 	}
 
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)
 	{
 		EE_PROFILE_FUNCTION();
 
@@ -405,6 +409,7 @@ namespace Engine {
 			s_Data.QuadVertexBufferPtr->TexCoord = (i == 0 || i == 3) ? glm::vec2{ 0.0f, (float)(i / 2) } : glm::vec2{ 1.0f, (float)(i / 2) };
 			s_Data.QuadVertexBufferPtr->TexIndex = whiteIndex;
 			s_Data.QuadVertexBufferPtr->Tiling = tiling;
+			s_Data.QuadVertexBufferPtr->EntityID = entityID;
 			s_Data.QuadVertexBufferPtr++;
 		}
 
@@ -414,7 +419,7 @@ namespace Engine {
 		s_Data.stats.QuadCount++;
 	}
 
-	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, const Ref<Texture2D>& texture, float tiling, const glm::vec4& tintColor)
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, const Ref<Texture2D>& texture, float tiling, const glm::vec4& tintColor, int entityID)
 	{
 		EE_PROFILE_FUNCTION();
 
@@ -457,6 +462,7 @@ namespace Engine {
 		s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[0];
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->Tiling = tiling;
+		s_Data.QuadVertexBufferPtr->EntityID = entityID;
 		s_Data.QuadVertexBufferPtr++;
 
 		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPosition[1] ;
@@ -464,6 +470,7 @@ namespace Engine {
 		s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[1];
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->Tiling = tiling;
+		s_Data.QuadVertexBufferPtr->EntityID = entityID;
 		s_Data.QuadVertexBufferPtr++;
 
 		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPosition[2];
@@ -471,6 +478,7 @@ namespace Engine {
 		s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[2];
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->Tiling = tiling;
+		s_Data.QuadVertexBufferPtr->EntityID = entityID;
 		s_Data.QuadVertexBufferPtr++;
 
 		s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPosition[3];
@@ -478,6 +486,7 @@ namespace Engine {
 		s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[3];
 		s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 		s_Data.QuadVertexBufferPtr->Tiling = tiling;
+		s_Data.QuadVertexBufferPtr->EntityID = entityID;
 		s_Data.QuadVertexBufferPtr++;
 
 		s_Data.QuadIndexCount += 6;
@@ -695,6 +704,12 @@ namespace Engine {
 		// For Statistics
 		s_Data.stats.QuadCount++;
 	}
+
+	void Renderer2D::DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID)
+	{
+		DrawQuad(transform, src.Color, entityID);
+	}
+
 	Renderer2D::Statistics Renderer2D::GetStats()
 	{
 		return s_Data.stats;

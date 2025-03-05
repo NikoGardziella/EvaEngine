@@ -240,6 +240,14 @@ namespace Engine {
 
             ImGui::Begin("Settings");
 
+            std::string name = "None";
+            if (m_hoveredEntity)
+            {
+                name = m_hoveredEntity.GetComponent<TagComponent>().Tag;
+            }
+            ImGui::Text("Entity: %s", name.c_str());
+
+
             auto stats = Engine::Renderer2D::GetStats();
             ImGui::Text("Renderer2D Stats:");
             ImGui::Text("Draw Calls: %d", stats.DrawCalls);
@@ -255,6 +263,9 @@ namespace Engine {
             //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 
             ImGui::Begin("Viewport");
+            ImVec2 viewportOffset = ImGui::GetCursorPos();
+
+
             m_viewportFocused = ImGui::IsWindowFocused();
             m_viewportHovered = ImGui::IsWindowHovered();
             Application::Get().GetImGuiLayer()->BlockEvents(!m_viewportFocused && !m_viewportHovered);
@@ -265,6 +276,15 @@ namespace Engine {
             uint32_t textureID = m_framebuffer->GetColorAttachmentRendererID();
             ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
 
+
+            ImVec2 windowSize = ImGui::GetWindowSize();
+            ImVec2 minBound = ImGui::GetWindowPos();
+            minBound.x += viewportOffset.x;
+            minBound.y += viewportOffset.y;
+
+            ImVec2 maxBound = { minBound.x + viewportPanelSize.x, minBound.y + viewportPanelSize.y };
+            m_viewportBounds[0] = { minBound.x ,minBound.y };
+            m_viewportBounds[1] = { maxBound.x ,maxBound.y };
 
             // Guizmo
            
@@ -325,17 +345,7 @@ namespace Engine {
                     transformComp.Rotation = glm::eulerAngles(deltaRotation) + transformComp.Rotation; // Convert back to Euler angles
                     transformComp.Scale = scale;
                 }
-
-
-                
             }
-
-
-
-
-
-
-
 
             ImGui::End();
 
@@ -380,10 +390,43 @@ namespace Engine {
             Engine::RenderCommand::Clear();
         }
 
+        m_framebuffer->ClearColorAttachment(1, -1);
+
         {
             EE_PROFILE_SCOPE("render draw");
             //********* update scene *********
             m_activeScene->OnUpdateEditor(timestep, m_editorCamera);
+
+
+            ImVec2 mousePos = ImGui::GetMousePos();
+            mousePos.x -= m_viewportBounds[0].x;
+            mousePos.y -= m_viewportBounds[0].y;
+            glm::vec2 viewportSize = m_viewportBounds[1] - m_viewportBounds[0];
+
+            mousePos.y = viewportSize.y - mousePos.y;
+            int mouseX = (int)mousePos.x;
+            int mouseY = (int)mousePos.y;
+
+           EE_CORE_INFO("mouseX: {0}, {1}", mouseX, mouseY);
+           //EE_CORE_INFO("viewportSize: {0}, {1}", viewportSize.x, viewportSize.y);
+
+            m_mouseIsInViewPort = mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y;
+            if (m_mouseIsInViewPort)
+            {
+                int pixelData = m_framebuffer->ReadPixel(1, mouseX, mouseY);
+                if (pixelData == -1)
+                {
+                    m_hoveredEntity = {};
+                }
+                else
+                {
+                    m_hoveredEntity = Entity{ (entt::entity)pixelData, m_activeScene.get()};
+
+                }
+            }
+
+
+
 
             m_framebuffer->Unbind();
         }
@@ -425,7 +468,29 @@ namespace Engine {
 
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(EE_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
+        dispatcher.Dispatch<MouseButtonPressedEvent>(EE_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
 
+    }
+
+    bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
+    {
+        if (e.GetMouseButton() == Mouse::Button0)
+        {
+           
+
+            if (m_hoveredEntity && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
+            {
+                m_sceneHierarchyPanel.SetSelectedEntity(m_hoveredEntity);
+                return true;
+            }
+            else if(m_mouseIsInViewPort && !ImGuizmo::IsOver() && !m_hoveredEntity)
+            {
+                // reset selected entity
+                m_sceneHierarchyPanel.SetSelectedEntity({}); 
+                return true;
+            }
+        }
+        return false;
     }
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
@@ -490,6 +555,8 @@ namespace Engine {
         }
         return false;
     }
+
+    
 
     void EditorLayer::NewScene()
     {

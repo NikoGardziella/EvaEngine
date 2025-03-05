@@ -1,24 +1,15 @@
 Scene: My Scene
 Entities:
-  - ID: 2
+  - ID: 1048576
     TagComponent:
-      Tag: Empty entity
+      Tag: Greeen
     TransformComponent:
-      Translation: [0, 2.5, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3.9, 3.3, 1]
-    SpriteRendererComponent:
-      Color: [0.16633935, 0.5868726, 0.033988744, 0.59607846]
-  - ID: 1
-    TagComponent:
-      Tag: Empty entity
-    TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [1.1, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [0.7254902, 0.105882354, 0.105882354, 0.8117647]
-  - ID: 0
+      Color: [0.017888794, 0.9266409, 0.15823661, 1]
+  - ID: 2
     TagComponent:
       Tag: Camera
     TransformComponent:
@@ -32,3 +23,12 @@ Entities:
       PerspectiveFOV: 0.7853982
       PerspectiveNearClip: 0.1
       PerspectiveFarClip: 1000
+  - ID: 1048577
+    TagComponent:
+      Tag: Red
+    TransformComponent:
+      Translation: [-1.2, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.7876448, 0.09731521, 0.09731521, 1]
