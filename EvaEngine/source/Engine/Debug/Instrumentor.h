@@ -96,15 +96,19 @@ namespace Engine {
 			}
 
 			
-			if (result.ElapsedTime > std::chrono::microseconds(10000)) // 10000 microseconds = 10ms
+			/*
+			if (result.ElapsedTime > std::chrono::microseconds(10000)) // 10ms
 			{
-				EE_CORE_WARN("Function: {0} exceeds 10ms. Elapsed time: {1} ", result.Name, result.ElapsedTime);
+				double elapsedMs = std::chrono::duration<double, std::milli>(result.ElapsedTime).count();
+				EE_CORE_WARN("Performance warning! Function: {0} exceeds 10ms. Elapsed time: {1:.2f} ms", result.Name, elapsedMs);
 			}
-			else if (result.ElapsedTime > std::chrono::microseconds(16670)) // 16670 microseconds Critical! 
-				//Exceeds 1 frame time in a 60 FPS game (1000ms / 60 = 16.67ms). This can cause visible stutters.
+			if (result.ElapsedTime > std::chrono::microseconds(16670)) // Exceeds 16.67ms (1 frame at 60 FPS)
 			{
-				EE_CORE_CRITICAL("Function: {0} exceeds 5ms. Elapsed time: {1} ", result.Name, result.ElapsedTime);
+				double elapsedMs = std::chrono::duration<double, std::milli>(result.ElapsedTime).count();
+				EE_CORE_CRITICAL("Performance warning! Function: {0} exceeds 16.67ms. Elapsed time: {1:.2f} ms", result.Name, elapsedMs);
 			}
+			*/
+
 
 		}
 
@@ -169,13 +173,19 @@ namespace Engine {
 				Stop();
 		}
 
+		std::chrono::milliseconds GetElapsedTime() const
+		{
+			// Convert microseconds to milliseconds
+			return std::chrono::duration_cast<std::chrono::milliseconds>(m_elapsedTime);
+		}
+
 		void Stop()
 		{
 			auto endTimepoint = std::chrono::steady_clock::now();
 			auto highResStart = FloatingPointMicroseconds{ m_StartTimepoint.time_since_epoch() };
-			auto elapsedTime = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch() - std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimepoint).time_since_epoch();
+			m_elapsedTime = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch() - std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimepoint).time_since_epoch();
 
-			Instrumentor::Get().WriteProfile({ m_Name, highResStart, elapsedTime, std::this_thread::get_id() });
+			Instrumentor::Get().WriteProfile({ m_Name, highResStart, m_elapsedTime, std::this_thread::get_id() });
 
 			m_Stopped = true;
 		}
@@ -183,6 +193,7 @@ namespace Engine {
 		const char* m_Name;
 		std::chrono::time_point<std::chrono::steady_clock> m_StartTimepoint;
 		bool m_Stopped;
+		std::chrono::microseconds m_elapsedTime;
 	};
 
 	namespace InstrumentorUtils {

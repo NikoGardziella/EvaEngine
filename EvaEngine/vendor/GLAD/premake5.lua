@@ -1,7 +1,7 @@
 project "GLAD"
 	kind "StaticLib"
 	language "C"
-	staticruntime "On" --staticly linking the runtime libraries
+	staticruntime "off" --staticly linking the runtime libraries
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")

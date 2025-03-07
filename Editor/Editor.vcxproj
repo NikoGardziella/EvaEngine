@@ -82,7 +82,7 @@
       <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -102,7 +102,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -123,7 +123,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -134,10 +134,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Panels\ContentBrowserPanel.h" />
     <ClInclude Include="source\EditorLayer.h" />
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Panels\ContentBrowserPanel.cpp" />
     <ClCompile Include="source\EditorApp.cpp" />
     <ClCompile Include="source\EditorLayer.cpp" />
     <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp" />

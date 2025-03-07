@@ -26,8 +26,8 @@
   #define EE_ASSERT(...)
     #define EE_CORE_ASSERT(...)
 #else
-   // #define EE_ASSERT(...)
-    //#define EE_CORE_ASSERT(...)
+    #define EE_ASSERT(...)
+    #define EE_CORE_ASSERT(...)
 #endif
 
 #define EE_EXPAND_MACRO(x) x

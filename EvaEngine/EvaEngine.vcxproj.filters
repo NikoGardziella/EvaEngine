@@ -19,6 +19,9 @@
     <Filter Include="source\Engine\ImGui">
       <UniqueIdentifier>{A55EB3C2-11C0-90D0-9A2D-D782068EC78F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Math">
+      <UniqueIdentifier>{F48A64F6-E06E-254C-49CF-1F9F35D20FCE}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Platform">
       <UniqueIdentifier>{EFF71F43-DBF1-4895-C45E-DFA5B0F7AE01}</UniqueIdentifier>
     </Filter>
@@ -123,6 +126,9 @@
     <ClInclude Include="source\Engine\ImGui\ImGuiLayer.h">
       <Filter>source\Engine\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Math\Math.h">
+      <Filter>source\Engine\Math</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLBuffer.h">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClInclude>
@@ -141,6 +147,9 @@
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLTexture.h">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLUniformBuffer.h">
+      <Filter>source\Engine\Platform\OpenGl</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClInclude>
@@ -151,6 +160,9 @@
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Renderer\Camera.h">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\EditorCamera.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Renderer\Framebuffer.h">
@@ -184,6 +196,9 @@
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Renderer\Texture.h">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\UniformBuffer.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Renderer\VertexArray.h">
@@ -1467,8 +1482,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Math\Math.h" />
-    <ClInclude Include="source\Engine\Renderer\EditorCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Core\Application.cpp">
@@ -1492,6 +1505,9 @@
     <ClCompile Include="source\Engine\ImGui\imGuiBuild.cpp">
       <Filter>source\Engine\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Math\Math.cpp">
+      <Filter>source\Engine\Math</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLBuffer.cpp">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClCompile>
@@ -1510,6 +1526,9 @@
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLTexture.cpp">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLUniformBuffer.cpp">
+      <Filter>source\Engine\Platform\OpenGl</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.cpp">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClCompile>
@@ -1523,6 +1542,9 @@
       <Filter>source\Engine\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Renderer\Buffer.cpp">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\EditorCamera.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Renderer\Framebuffer.cpp">
@@ -1555,10 +1577,10 @@
     <ClCompile Include="source\Engine\Renderer\Texture.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Renderer\VertexArray.cpp">
+    <ClCompile Include="source\Engine\Renderer\UniformBuffer.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Renderer\pch.cpp">
+    <ClCompile Include="source\Engine\Renderer\VertexArray.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Scene\Entity.cpp">
@@ -1573,13 +1595,14 @@
     <ClCompile Include="source\Engine\Scene\SceneSerializer.cpp">
       <Filter>source\Engine\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="source\pch.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp">
       <Filter>vendor\ImGuizmo</Filter>
     </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Math\Math.cpp" />
-    <ClCompile Include="source\Engine\Renderer\EditorCamera.cpp" />
   </ItemGroup>
 </Project>

@@ -22,7 +22,6 @@ namespace Engine {
 
         void UpdateView();
 
-        glm::quat GetOrientation() const;
 
         void OnUpdate(Timestep timestep);
         void OnMouseZoom(float deltaY);
@@ -56,8 +55,7 @@ namespace Engine {
         void SetProjection(float fov, float aspectRatio, float nearClip, float farClip);
 
     private:
-        void UpdateViewMatrix();
-        void UpdateProjectionMatrix();
+       
 
         //void OnMouseScroll(const ImVec2& delta);
         void OnMousePan(const glm::vec2& delta);

@@ -238,6 +238,8 @@ namespace Engine {
 
             m_sceneHierarchyPanel.OnImGuiRender();
 
+            m_contentBrowserPanel.OnImGuiRender();
+
             ImGui::Begin("Settings");
 
             std::string name = "None";
@@ -407,7 +409,7 @@ namespace Engine {
             int mouseX = (int)mousePos.x;
             int mouseY = (int)mousePos.y;
 
-           EE_CORE_INFO("mouseX: {0}, {1}", mouseX, mouseY);
+           //EE_CORE_INFO("mouseX: {0}, {1}", mouseX, mouseY);
            //EE_CORE_INFO("viewportSize: {0}, {1}", viewportSize.x, viewportSize.y);
 
             m_mouseIsInViewPort = mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y;

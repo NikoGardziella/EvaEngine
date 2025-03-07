@@ -1,93 +1,101 @@
+// Basic Texture Shader
+
 #type vertex
 #version 450 core
-			
-layout(location = 0) in vec3  a_position;
-layout(location = 1) in vec4  a_color;
-layout(location = 2) in vec2  a_texCoord;    
-layout(location = 3) in float a_texIndex;    
-layout(location = 4) in float a_tiling;
-layout(location = 5) in int   a_entityID;
 
+layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec4 a_Color;
+layout(location = 2) in vec2 a_TexCoord;
+layout(location = 3) in float a_TexIndex;
+layout(location = 4) in float a_TilingFactor;
+layout(location = 5) in int a_EntityID;
 
-uniform mat4 u_viewProjection; 
+layout(std140, binding = 0) uniform Camera
+{
+	mat4 u_ViewProjection;
+};
 
-out vec2 v_texCoord; 
-out vec4 v_color; 
-out float v_texIndex;
-out float v_tiling;
-out flat int v_entityID; // all fragments within a primitive will receive the exact same value
+struct VertexOutput
+{
+	vec4 Color;
+	vec2 TexCoord;
+	float TexIndex;
+	float TilingFactor;
+};
+
+layout (location = 0) out VertexOutput Output;
+layout (location = 4) out flat int v_EntityID;
 
 void main()
 {
-	v_texCoord = a_texCoord;
-	v_color = a_color;
-	v_texIndex = a_texIndex;
-	v_tiling = a_tiling;
-    v_entityID = a_entityID;
-	gl_Position = u_viewProjection * vec4(a_position, 1.0);
+	Output.Color = a_Color;
+	Output.TexCoord = a_TexCoord;
+	Output.TexIndex = a_TexIndex;
+	Output.TilingFactor = a_TilingFactor;
+	v_EntityID = a_EntityID;
+
+	gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
 }
 
-//***************** FRAGMENT/PIXEL SHADER *********************
 #type fragment
 #version 450 core
 
 layout(location = 0) out vec4 color;
 layout(location = 1) out int color2;
 
-in vec2 v_texCoord;
-in vec4 v_color;
-in float v_texIndex;
-in float v_tiling;
-in flat int v_entityID;
+struct VertexOutput
+{
+	vec4 Color;
+	vec2 TexCoord;
+	float TexIndex;
+	float TilingFactor;
+};
 
-uniform sampler2D u_textures[32];
+layout (location = 0) in VertexOutput Input;
+layout (location = 4) in flat int v_EntityID;
+
+layout (binding = 0) uniform sampler2D u_Textures[32];
 
 void main()
 {
-    vec4 sampledColor;
-    
-    int index = int(v_texIndex);
-    
-    switch (index)
-    {
-        // using an array of samplers indexed by a non-constant expression (like v_texIndex) is not guaranteed
-        //to work across all GPUs, especially on AMD and mobile devices.
+	vec4 texColor = Input.Color;
 
-        case 0:  sampledColor = texture(u_textures[0],  v_texCoord * v_tiling); break;
-        case 1:  sampledColor = texture(u_textures[1],  v_texCoord * v_tiling); break;
-        case 2:  sampledColor = texture(u_textures[2],  v_texCoord * v_tiling); break;
-        case 3:  sampledColor = texture(u_textures[3],  v_texCoord * v_tiling); break;
-        case 4:  sampledColor = texture(u_textures[4],  v_texCoord * v_tiling); break;
-        case 5:  sampledColor = texture(u_textures[5],  v_texCoord * v_tiling); break;
-        case 6:  sampledColor = texture(u_textures[6],  v_texCoord * v_tiling); break;
-        case 7:  sampledColor = texture(u_textures[7],  v_texCoord * v_tiling); break;
-        case 8:  sampledColor = texture(u_textures[8],  v_texCoord * v_tiling); break;
-        case 9:  sampledColor = texture(u_textures[9],  v_texCoord * v_tiling); break;
-        case 10: sampledColor = texture(u_textures[10], v_texCoord * v_tiling); break;
-        case 11: sampledColor = texture(u_textures[11], v_texCoord * v_tiling); break;
-        case 12: sampledColor = texture(u_textures[12], v_texCoord * v_tiling); break;
-        case 13: sampledColor = texture(u_textures[13], v_texCoord * v_tiling); break;
-        case 14: sampledColor = texture(u_textures[14], v_texCoord * v_tiling); break;
-        case 15: sampledColor = texture(u_textures[15], v_texCoord * v_tiling); break;
-        case 16: sampledColor = texture(u_textures[16], v_texCoord * v_tiling); break;
-        case 17: sampledColor = texture(u_textures[17], v_texCoord * v_tiling); break;
-        case 18: sampledColor = texture(u_textures[18], v_texCoord * v_tiling); break;
-        case 19: sampledColor = texture(u_textures[19], v_texCoord * v_tiling); break;
-        case 20: sampledColor = texture(u_textures[20], v_texCoord * v_tiling); break;
-        case 21: sampledColor = texture(u_textures[21], v_texCoord * v_tiling); break;
-        case 22: sampledColor = texture(u_textures[22], v_texCoord * v_tiling); break;
-        case 23: sampledColor = texture(u_textures[23], v_texCoord * v_tiling); break;
-        case 24: sampledColor = texture(u_textures[24], v_texCoord * v_tiling); break;
-        case 25: sampledColor = texture(u_textures[25], v_texCoord * v_tiling); break;
-        case 26: sampledColor = texture(u_textures[26], v_texCoord * v_tiling); break;
-        case 27: sampledColor = texture(u_textures[27], v_texCoord * v_tiling); break;
-        case 28: sampledColor = texture(u_textures[28], v_texCoord * v_tiling); break;
-        case 29: sampledColor = texture(u_textures[29], v_texCoord * v_tiling); break;
-        case 30: sampledColor = texture(u_textures[30], v_texCoord * v_tiling); break;
-        case 31: sampledColor = texture(u_textures[31], v_texCoord * v_tiling); break;
-        default: sampledColor = vec4(1.0, 0.0, 1.0, 1.0); // Magenta color for debugging (invalid texture index)
-    }
+	switch(int(Input.TexIndex))
+	{
+		case  0: texColor *= texture(u_Textures[ 0], Input.TexCoord * Input.TilingFactor); break;
+		case  1: texColor *= texture(u_Textures[ 1], Input.TexCoord * Input.TilingFactor); break;
+		case  2: texColor *= texture(u_Textures[ 2], Input.TexCoord * Input.TilingFactor); break;
+		case  3: texColor *= texture(u_Textures[ 3], Input.TexCoord * Input.TilingFactor); break;
+		case  4: texColor *= texture(u_Textures[ 4], Input.TexCoord * Input.TilingFactor); break;
+		case  5: texColor *= texture(u_Textures[ 5], Input.TexCoord * Input.TilingFactor); break;
+		case  6: texColor *= texture(u_Textures[ 6], Input.TexCoord * Input.TilingFactor); break;
+		case  7: texColor *= texture(u_Textures[ 7], Input.TexCoord * Input.TilingFactor); break;
+		case  8: texColor *= texture(u_Textures[ 8], Input.TexCoord * Input.TilingFactor); break;
+		case  9: texColor *= texture(u_Textures[ 9], Input.TexCoord * Input.TilingFactor); break;
+		case 10: texColor *= texture(u_Textures[10], Input.TexCoord * Input.TilingFactor); break;
+		case 11: texColor *= texture(u_Textures[11], Input.TexCoord * Input.TilingFactor); break;
+		case 12: texColor *= texture(u_Textures[12], Input.TexCoord * Input.TilingFactor); break;
+		case 13: texColor *= texture(u_Textures[13], Input.TexCoord * Input.TilingFactor); break;
+		case 14: texColor *= texture(u_Textures[14], Input.TexCoord * Input.TilingFactor); break;
+		case 15: texColor *= texture(u_Textures[15], Input.TexCoord * Input.TilingFactor); break;
+		case 16: texColor *= texture(u_Textures[16], Input.TexCoord * Input.TilingFactor); break;
+		case 17: texColor *= texture(u_Textures[17], Input.TexCoord * Input.TilingFactor); break;
+		case 18: texColor *= texture(u_Textures[18], Input.TexCoord * Input.TilingFactor); break;
+		case 19: texColor *= texture(u_Textures[19], Input.TexCoord * Input.TilingFactor); break;
+		case 20: texColor *= texture(u_Textures[20], Input.TexCoord * Input.TilingFactor); break;
+		case 21: texColor *= texture(u_Textures[21], Input.TexCoord * Input.TilingFactor); break;
+		case 22: texColor *= texture(u_Textures[22], Input.TexCoord * Input.TilingFactor); break;
+		case 23: texColor *= texture(u_Textures[23], Input.TexCoord * Input.TilingFactor); break;
+		case 24: texColor *= texture(u_Textures[24], Input.TexCoord * Input.TilingFactor); break;
+		case 25: texColor *= texture(u_Textures[25], Input.TexCoord * Input.TilingFactor); break;
+		case 26: texColor *= texture(u_Textures[26], Input.TexCoord * Input.TilingFactor); break;
+		case 27: texColor *= texture(u_Textures[27], Input.TexCoord * Input.TilingFactor); break;
+		case 28: texColor *= texture(u_Textures[28], Input.TexCoord * Input.TilingFactor); break;
+		case 29: texColor *= texture(u_Textures[29], Input.TexCoord * Input.TilingFactor); break;
+		case 30: texColor *= texture(u_Textures[30], Input.TexCoord * Input.TilingFactor); break;
+		case 31: texColor *= texture(u_Textures[31], Input.TexCoord * Input.TilingFactor); break;
+	}
+	color = texColor;
 
-    color = sampledColor * v_color;
-    color2 = v_entityID;
+	color2 = v_EntityID;
 }

@@ -3,6 +3,7 @@
 #include "Engine.h"
 
 #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/ContentBrowserPanel.h"
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Renderer/EditorCamera.h"
 
@@ -71,7 +72,7 @@ namespace Engine {
 
 		//panels
 		SceneHierarchyPanel m_sceneHierarchyPanel;
-
+		ContentBrowserPanel m_contentBrowserPanel;
 
 		//int m_gizmoType = -1;
 	};
