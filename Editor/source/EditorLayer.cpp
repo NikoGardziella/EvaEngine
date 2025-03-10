@@ -17,6 +17,10 @@
 
 namespace Engine {
 
+    //temporary
+    extern const std::filesystem::path s_assetPath;
+
+
     static const uint32_t s_mapWidth = 26;
     static const char* s_mapTiles =
         "WWWWWWWWWWWWWWWWWWWWWWWWWWW"
@@ -46,6 +50,8 @@ namespace Engine {
 
         m_checkerBoardTexture = Engine::Texture2D::Create("assets/textures/chess_board.png");
         m_textureSpriteSheetPacked = Engine::Texture2D::Create("assets/textures/game/RPGpack_sheet_2X.png");
+        m_iconPlay = Engine::Texture2D::Create("assets/icons/play-button-arrowhead.png");
+        m_iconStop = Engine::Texture2D::Create("assets/icons/stop-button.png");
 
         m_mapWidth = s_mapWidth;
         m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
@@ -288,6 +294,18 @@ namespace Engine {
             m_viewportBounds[0] = { minBound.x ,minBound.y };
             m_viewportBounds[1] = { maxBound.x ,maxBound.y };
 
+            if (ImGui::BeginDragDropTarget())
+            {
+               if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+               {
+                    const wchar_t* path = (const wchar_t*)payload->Data;
+
+                    OpenScene(std::filesystem::path(s_assetPath) / path);
+               }
+               ImGui::EndDragDropTarget();
+            }
+
+
             // Guizmo
            
             Entity selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
@@ -354,9 +372,52 @@ namespace Engine {
             ImGui::EndMenuBar();
         }
 
+        UI_Toolbar();
 
         ImGui::End();
 
+    }
+
+    void EditorLayer::UI_Toolbar()
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
+        //ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.90f, 0.2f, 0.2f, 1.0f });
+        //ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.75f, 0.12f, 0.12f, 1.0f });
+
+        ImGui::Begin("##toolbar",nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+        float size = ImGui::GetWindowHeight() - 10.0f;
+        Ref<Texture2D> icon = m_sceneState == SceneState::Edit ? m_iconPlay : m_iconStop;
+        ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - size * 0.5f);
+
+        if (ImGui::ImageButton("##playbutton", (ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0,0), ImVec2(1,1)))
+        {
+            if (m_sceneState == SceneState::Edit)
+            {
+                OnScenePlay();
+            }
+            else if (m_sceneState == SceneState::Play)
+            {
+                OnSceneStop();
+            }
+        }
+
+        ImGui::PopStyleColor(1);
+        ImGui::PopStyleVar(2);
+        ImGui::End();
+
+    }
+
+    void EditorLayer::OnScenePlay()
+    {
+        m_sceneState = SceneState::Play;
+    }
+
+    void EditorLayer::OnSceneStop()
+    {
+        m_sceneState = SceneState::Edit;
     }
 
     void EditorLayer::OnUpdate(Engine::Timestep timestep)
@@ -397,7 +458,23 @@ namespace Engine {
         {
             EE_PROFILE_SCOPE("render draw");
             //********* update scene *********
-            m_activeScene->OnUpdateEditor(timestep, m_editorCamera);
+
+            switch (m_sceneState)   
+            {
+                case Engine::EditorLayer::SceneState::Edit:
+                {
+
+                    m_activeScene->OnUpdateEditor(timestep, m_editorCamera);
+                    break;
+                }
+                case Engine::EditorLayer::SceneState::Play:
+                {
+                    m_activeScene->OnUpdateRuntime(timestep);
+                    break;
+                }
+
+            }
+
 
 
             ImVec2 mousePos = ImGui::GetMousePos();
@@ -427,39 +504,10 @@ namespace Engine {
                 }
             }
 
-
-
-
             m_framebuffer->Unbind();
         }
 
-        /*
-        Engine::Renderer2D::BeginScene(m_orthoCameraController.GetCamera());
-
-
-        for (uint32_t y = 0; y  < m_mapHeight; y ++)
-        {
-            // TOOD ? : combin the vertices and draw as one mesh
-            for (uint32_t x = 0; x < m_mapWidth; x++)
-            {
-                char tileType = s_mapTiles[x + y * m_mapWidth];
-                Engine::Ref<Engine::SubTexture2D> texture;
-                if (m_textureMap.find(tileType) != m_textureMap.end())
-                {
-                    texture = m_textureMap[tileType];
-                }
-                else
-                {
-                    texture = m_textureBarrel;
-
-                }
-                Engine::Renderer2D::DrawQuad({ x - m_mapWidth / 2.0f,m_mapHeight- y - m_mapHeight / 2.0f, 0.1f }, { 1.0f, 1.0f, }, texture);
-
-            }
-        }
-
-        Engine::Renderer2D::EndScene();
-        */
+        
 
     }
 
@@ -572,13 +620,18 @@ namespace Engine {
         std::string filepath = FileDialogs::OpenFile("Engine scene (*.ee)\0*.ee\0");
         if (!filepath.empty())
         {
-            m_activeScene = std::make_shared<Scene>();
-            m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-            m_sceneHierarchyPanel.SetContext(m_activeScene);
-
-            SceneSerializer serializer(m_activeScene);
-            serializer.Deserialize(filepath);
+            OpenScene(filepath);
         }
+    }
+
+    void EditorLayer::OpenScene(const std::filesystem::path& path)
+    {
+        m_activeScene = std::make_shared<Scene>();
+        m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+        m_sceneHierarchyPanel.SetContext(m_activeScene);
+
+        SceneSerializer serializer(m_activeScene);
+        serializer.Deserialize(path.string());
     }
 
     void EditorLayer::SaveSceneAs()
@@ -590,5 +643,7 @@ namespace Engine {
             serializer.Serialize(filepath);
         }
     }
+
+  
 
 }

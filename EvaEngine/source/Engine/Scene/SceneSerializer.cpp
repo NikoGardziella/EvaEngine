@@ -81,10 +81,25 @@ namespace Engine {
             auto& sprite = entity.GetComponent<SpriteRendererComponent>();
             out << YAML::Key << "SpriteRendererComponent" << YAML::Value;
             out << YAML::BeginMap;
+
+            // Serialize color
             out << YAML::Key << "Color" << YAML::Value << YAML::Flow
                 << std::vector<float>{ sprite.Color.r, sprite.Color.g, sprite.Color.b, sprite.Color.a };
+
+            // Serialize texture (if it exists)
+            /* MAke asset manager
+            if (sprite.Texture)
+                out << YAML::Key << "Texture" << YAML::Value << sprite.Texture->GetPath();
+            else
+                out << YAML::Key << "Texture" << YAML::Value << ""; // Empty string if no texture
+
+            */
+            // Serialize tiling
+            out << YAML::Key << "Tiling" << YAML::Value << sprite.Tiling;
+
             out << YAML::EndMap;
         }
+
 
         inline void SerializeNativeScriptComponent(Entity entity, YAML::Emitter& out)
         {

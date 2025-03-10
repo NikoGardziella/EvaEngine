@@ -56,7 +56,7 @@ namespace Engine {
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 		// Set the magnification filter to nearest neighbor (used when the texture is scaled up).
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		// Set the texture wrapping mode on the S coordinate (horizontal axis) to repeat,
 		// so the texture will tile if texture coordinates fall outside the range [0,1].
@@ -96,7 +96,7 @@ namespace Engine {
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 		// Set the magnification filter to nearest neighbor (used when the texture is scaled up).
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		// Set the texture wrapping mode on the S coordinate (horizontal axis) to repeat,
 		// so the texture will tile if texture coordinates fall outside the range [0,1].

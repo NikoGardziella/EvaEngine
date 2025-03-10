@@ -11,6 +11,13 @@ namespace Engine {
 
 	class EditorLayer : public Layer
 	{
+		enum class SceneState
+		{
+			Edit = 0,
+			Play = 1,
+		};
+
+
 	public:
 
 		EditorLayer();
@@ -28,7 +35,14 @@ namespace Engine {
 
 		void NewScene();
 		void OpenScene();
+		void OpenScene(const std::filesystem::path& path);
 		void SaveSceneAs();
+
+
+		// UI panel
+		void UI_Toolbar();
+		void OnScenePlay();
+		void OnSceneStop();
 
 
 	private:
@@ -75,6 +89,14 @@ namespace Engine {
 		ContentBrowserPanel m_contentBrowserPanel;
 
 		//int m_gizmoType = -1;
+
+
+
+		// PlayButton
+		SceneState m_sceneState = SceneState::Edit;
+		Ref<Texture2D> m_iconPlay;
+		Ref<Texture2D> m_iconStop;
+
 	};
 
 }

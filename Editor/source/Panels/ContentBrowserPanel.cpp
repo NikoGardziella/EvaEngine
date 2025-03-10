@@ -2,6 +2,7 @@
 #include "ContentBrowserPanel.h"
 #include <imgui/imgui.h>
 #include "filesystem"
+#include "Engine/Core/Log.h"
 
 #include <stb_image/stb_image.h>
 //#include <GLAD/include/glad/glad.h>
@@ -10,18 +11,24 @@
 
 namespace Engine {
 
-	static const std::filesystem::path s_assetPath = "assets";
+    extern const std::filesystem::path s_assetPath = std::filesystem::absolute("assets");
 
 
 	ContentBrowserPanel::ContentBrowserPanel()
 		: m_currentDirectory(s_assetPath)
 	{
-        m_folderIconTexture = LoadTexture("assets/icons/folder_6458782.png");
+        m_folderIconTexture = Engine::Texture2D::Create("assets/icons/folder_6458782.png");
+        m_fileIconTexture = Engine::Texture2D::Create("assets/icons/8725956_file_alt_icon.png");
 	}
 
     void ContentBrowserPanel::OnImGuiRender()
     {
         ImGui::Begin("Content Browser");
+
+        if (!std::filesystem::exists(s_assetPath))
+        {
+            EE_CORE_ERROR("Assets directory not found: {0}", s_assetPath.string());
+        }
 
         // Back Button
         if (m_currentDirectory != std::filesystem::path(s_assetPath))
@@ -33,73 +40,69 @@ namespace Engine {
         }
 
         ImGui::Separator(); // Visual separation
-        ImGui::Columns(4, nullptr, false); // 4-column grid layout (adjust as needed)
 
+
+        ImGui::Columns(5, nullptr, false); // 5 columns, disable border
+        try {
         for (auto& p : std::filesystem::directory_iterator(m_currentDirectory))
         {
             std::filesystem::path path = p.path();
             std::filesystem::path relativePath = std::filesystem::relative(path, s_assetPath);
             std::string filename = path.filename().string();
 
-            // Style for buttons
-            ImVec2 buttonSize(80, 80); // Uniform button size
-            ImGui::PushID(filename.c_str()); // Unique ID for each entry
+            ImGui::PushID(filename.c_str());
 
             if (p.is_directory())
             {
                 if (m_folderIconTexture)
                 {
-                    if (ImGui::ImageButton("##folder", (intptr_t)m_folderIconTexture, ImVec2(32, 32)))
+                    if (ImGui::ImageButton("##folder", m_folderIconTexture->GetRendererID(), ImVec2(32, 32)))
                     {
                         m_currentDirectory /= path.filename();
                     }
                 }
                 else
                 {
-                    ImGui::Text("Failed to load texture!");
+                    ImGui::Text("No Icon");
                 }
             }
             else
             {
-                // Placeholder for file icon
-                if (ImGui::Button(("📄 " + filename).c_str(), buttonSize))
+                if (ImGui::ImageButton("##file", m_fileIconTexture->GetRendererID(), ImVec2(32, 32)))
                 {
                     // TODO: Handle file selection
                 }
             }
 
-            ImGui::TextWrapped("%s", filename.c_str()); // Display filename below button
+            // Drag-drop functionality
+            static std::wstring itemPathW;
+            itemPathW = relativePath.wstring();
 
-            ImGui::PopID(); // Restore ImGui state
+            if (ImGui::BeginDragDropSource())
+            {
+                ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPathW.c_str(),
+                    (itemPathW.size() + 1) * sizeof(wchar_t), ImGuiCond_Once);
+
+                ImGui::TextUnformatted(filename.c_str());
+                ImGui::EndDragDropSource();
+            }
+
+            ImGui::TextWrapped("%s", filename.c_str()); // Display filename under icon
+
             ImGui::NextColumn(); // Move to next column
-        }
 
+            ImGui::PopID();
+        
+        }
+    }
+    catch (const std::filesystem::filesystem_error& e)
+    {
+        EE_CORE_ERROR("Filesystem error: {0}, ", e.what());
+    }
         ImGui::Columns(1); // Reset columns
         ImGui::End();
     }
 
-    GLuint ContentBrowserPanel::LoadTexture(const std::string& filepath)
-    {
-        GLuint textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-
-        int width, height, channels;
-        unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &channels, 4);
-
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        }
-        else
-        {
-            std::cerr << "Failed to load texture: " << filepath << std::endl;
-        }
-
-        stbi_image_free(data);
-        return textureID;
-    }
+    
 
 }
