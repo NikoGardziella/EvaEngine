@@ -303,20 +303,57 @@ namespace Engine {
         if (ImGui::BeginPopup("Add component"))
         {
 
-            if (ImGui::MenuItem("Camera"))
+            if (!m_selectionContext.HasComponent<CameraComponent>())
             {
-                m_selectionContext.AddComponent<CameraComponent>();
+                if (ImGui::MenuItem("Camera"))
+                {
+                    m_selectionContext.AddComponent<CameraComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            if (!m_selectionContext.HasComponent<SpriteRendererComponent>())
+            {
+                if (ImGui::MenuItem("Sprite renderer"))
+                {
+                    m_selectionContext.AddComponent<SpriteRendererComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            if (!m_selectionContext.HasComponent<CircleRendererComponent>())
+            {
+                if (ImGui::MenuItem("Circle renderer"))
+                {
+                    m_selectionContext.AddComponent<CircleRendererComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            if (!m_selectionContext.HasComponent<TransformComponent>())
+            {
+                if (ImGui::MenuItem("Transform"))
+                {
+                    m_selectionContext.AddComponent<TransformComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+
+            }
+            if (!m_selectionContext.HasComponent<RigidBody2DComponent>())
+            {
+                if (ImGui::MenuItem("RigidBody 2D"))
+                {
+                    m_selectionContext.AddComponent<RigidBody2DComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+
+            if (ImGui::MenuItem("BoxCollider 2D"))
+            {
+                m_selectionContext.AddComponent<BoxCollider2DComponent>();
                 ImGui::CloseCurrentPopup();
             }
 
-            if (ImGui::MenuItem("Sprite renderer"))
+            if (ImGui::MenuItem("Circle Collider"))
             {
-                m_selectionContext.AddComponent<SpriteRendererComponent>();
-                ImGui::CloseCurrentPopup();
-            }
-            if (ImGui::MenuItem("Transform"))
-            {
-                m_selectionContext.AddComponent<TransformComponent>();
+                m_selectionContext.AddComponent<CircleCollider2DComponent>();
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
@@ -435,7 +472,68 @@ namespace Engine {
                 ImGui::DragFloat("Tiling", &component.Tiling, 0.1f, 0.0f, 100.0f);
             });
 
+        DrawComponent<CircleRendererComponent>("Circle  renderer", entity, [](auto& component)
+            {
+                ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+                ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
+                ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
+            });
+
+        DrawComponent<CircleCollider2DComponent>("Circle  Collider", entity, [](auto& component)
+            {
+                ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
+                ImGui::DragFloat("Radius", &component.Radius, 0.1f, 0.0f, 100.0f);
+                ImGui::DragFloat("Density", &component.Density, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Friction", &component.Friction, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Restitution", &component.Restitution, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Restitution Threshold", &component.RestitutionThershold, 0.01, 0.0f, 1.0f);
+            });
+
+
+        DrawComponent<RigidBody2DComponent>("Rigid Body2d", entity, [](auto& component)
+            {
+                const char* bodyTypeStrings[] = { " Static", " Dynamic", "Kinematic"};
+                const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
+
+                if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
+                {
+                    const int bodyTypeCount = 3;
+                    for (int i = 0; i < bodyTypeCount; i++)
+                    {
+                        bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
+                        if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+                        {
+                            // clicked new type
+                            currentBodyTypeString = bodyTypeStrings[i];
+                            component.Type = (RigidBody2DComponent::BodyType)i;
+                        }
+
+                        if (isSelected)
+                        {
+                            ImGui::SetItemDefaultFocus();
+                        }
+
+                    }
+                    ImGui::EndCombo();
+                }
+
+                
+
+                ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+            });
       
+
+        DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
+            {
+                
+                ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
+                ImGui::DragFloat2("Size", glm::value_ptr(component.Size));
+                ImGui::DragFloat("Density", &component.Density, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Friction", &component.Friction, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Restitution", &component.Restitution, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Restitution Threshold", &component.RestitutionThershold, 0.01, 0.0f, 1.0f);
+
+            });
         // Add checks for other components here...
     }
 

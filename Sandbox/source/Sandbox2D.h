@@ -35,11 +35,15 @@ private:
 	Engine::Ref<Engine::SubTexture2D> m_textureSprite;
 	Engine::Ref<Engine::SubTexture2D> m_textureBarrel;
 
+	//Engine::Ref<Engine::Scene> m_gameScene;
 
 	uint32_t m_mapWidth;
 	uint32_t m_mapHeight;
 
 
 	std::unordered_map<char, Engine::Ref<Engine::SubTexture2D>> m_textureMap;
+
+
+
 };
 

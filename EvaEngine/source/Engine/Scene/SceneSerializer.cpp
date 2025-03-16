@@ -107,13 +107,78 @@ namespace Engine {
             out << YAML::Key << "NativeScriptComponent" << YAML::Value << "Script Attached";
         }
 
+        inline void SerializeRigidBody2DComponent(Entity entity, YAML::Emitter& out)
+        {
+            auto& rigidBodyComp = entity.GetComponent<RigidBody2DComponent>();
+
+            out << YAML::Key << "RigidBody2DComponent";
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "Type" << YAML::Value << static_cast<int>(rigidBodyComp.Type);
+            out << YAML::Key << "FixedRotation" << YAML::Value << rigidBodyComp.FixedRotation;
+
+            out << YAML::EndMap;
+        }
+
+        inline void SerializeBoxCollider2DComponent(Entity entity, YAML::Emitter& out)
+        {
+            auto& colliderComp = entity.GetComponent<BoxCollider2DComponent>();
+
+            out << YAML::Key << "BoxCollider2DComponent";
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "Offset" << YAML::Value << YAML::Flow << std::vector<float>{colliderComp.Offset.x, colliderComp.Offset.y};
+            out << YAML::Key << "Size" << YAML::Value << YAML::Flow << std::vector<float>{colliderComp.Size.x, colliderComp.Size.y};
+            out << YAML::Key << "Density" << YAML::Value << colliderComp.Density;
+            out << YAML::Key << "Friction" << YAML::Value << colliderComp.Friction;
+            out << YAML::Key << "Restitution" << YAML::Value << colliderComp.Restitution;
+            out << YAML::Key << "RestitutionThreshold" << YAML::Value << colliderComp.RestitutionThershold;
+
+            out << YAML::EndMap;
+        }
+        inline void SerializeCircleRendererComponent(Entity entity, YAML::Emitter& out)
+        {
+            auto& circleComp = entity.GetComponent<CircleRendererComponent>();
+
+            out << YAML::Key << "CircleRendererComponent";
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "Color" << YAML::Value << YAML::Flow
+                << std::vector<float>{circleComp.Color.r, circleComp.Color.g, circleComp.Color.b, circleComp.Color.a};
+
+            out << YAML::Key << "Thickness" << YAML::Value << circleComp.Thickness;
+            out << YAML::Key << "Fade" << YAML::Value << circleComp.Fade;
+
+            out << YAML::EndMap;
+        }
+
+        inline void SerializeCircleCollider2DComponent(Entity entity, YAML::Emitter& out)
+        {
+            auto& colliderComp = entity.GetComponent<CircleCollider2DComponent>();
+
+            out << YAML::Key << "CircleCollider2DComponent";
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "Offset" << YAML::Value << YAML::Flow << std::vector<float>{colliderComp.Offset.x, colliderComp.Offset.y};
+            out << YAML::Key << "Radius" << YAML::Value << YAML::Flow << colliderComp.Radius;
+            out << YAML::Key << "Density" << YAML::Value << colliderComp.Density;
+            out << YAML::Key << "Friction" << YAML::Value << colliderComp.Friction;
+            out << YAML::Key << "Restitution" << YAML::Value << colliderComp.Restitution;
+            out << YAML::Key << "RestitutionThreshold" << YAML::Value << colliderComp.RestitutionThershold;
+
+            out << YAML::EndMap;
+        }
+
         // Serializes an individual entity by checking for each component.
         void SerializeEntity(Entity entity, YAML::Emitter& out)
         {
+            EE_CORE_ASSERT(entity.HasComponent<IDComponent>());
+
+
             out << YAML::BeginMap;
 
             // You might want to serialize an ID; here we cast the entt::entity to a uint32_t.
-            out << YAML::Key << "ID" << YAML::Value << static_cast<uint32_t>(entity);
+            out << YAML::Key << "ID" << YAML::Value << entity.GetUUID();
 
             if (entity.HasComponent<TagComponent>())
                 SerializeTagComponent(entity, out);
@@ -125,7 +190,14 @@ namespace Engine {
                 SerializeSpriteRendererComponent(entity, out);
             if (entity.HasComponent<NativeScriptComponent>())
                 SerializeNativeScriptComponent(entity, out);
-
+            if (entity.HasComponent<RigidBody2DComponent>())
+                SerializeRigidBody2DComponent(entity, out);
+            if (entity.HasComponent<BoxCollider2DComponent>())
+                SerializeBoxCollider2DComponent(entity, out);
+            if (entity.HasComponent<CircleRendererComponent>())
+                SerializeCircleRendererComponent(entity, out);
+            if (entity.HasComponent<CircleCollider2DComponent>())
+                SerializeCircleCollider2DComponent(entity, out);
             out << YAML::EndMap;
         }
 
@@ -212,6 +284,78 @@ namespace Engine {
             }
         }
 
+        inline void DeserializeRigidBody2DComponent(Entity entity, const YAML::Node& entityNode)
+        {
+            if (entityNode["RigidBody2DComponent"])
+            {
+                auto& rb2d = entity.AddComponent<RigidBody2DComponent>();
+
+                rb2d.Type = static_cast<RigidBody2DComponent::BodyType>(entityNode["RigidBody2DComponent"]["Type"].as<int>());
+                rb2d.FixedRotation = entityNode["RigidBody2DComponent"]["FixedRotation"].as<bool>();
+            }
+        }
+
+        inline void DeserializeBoxCollider2DComponent(Entity entity, const YAML::Node& entityNode)
+        {
+            if (entityNode["BoxCollider2DComponent"])
+            {
+                auto& boxCollider = entity.AddComponent<BoxCollider2DComponent>();
+
+                auto offset = entityNode["BoxCollider2DComponent"]["Offset"].as<std::vector<float>>();
+                auto size = entityNode["BoxCollider2DComponent"]["Size"].as<std::vector<float>>();
+
+                boxCollider.Offset = { offset[0], offset[1] };
+                boxCollider.Size = { size[0], size[1] };
+
+                boxCollider.Density = entityNode["BoxCollider2DComponent"]["Density"].as<float>();
+                boxCollider.Friction = entityNode["BoxCollider2DComponent"]["Friction"].as<float>();
+                boxCollider.Restitution = entityNode["BoxCollider2DComponent"]["Restitution"].as<float>();
+                boxCollider.RestitutionThershold = entityNode["BoxCollider2DComponent"]["RestitutionThreshold"].as<float>();
+            }
+        }
+
+        inline void DeserializeCircleCollider2DComponent(Entity entity, const YAML::Node& entityNode)
+        {
+            if (entityNode["CircleCollider2DComponent"])
+            {
+                auto& circleCollider = entity.AddComponent<CircleCollider2DComponent>();
+
+                auto offset = entityNode["CircleCollider2DComponent"]["Offset"].as<std::vector<float>>();
+
+                circleCollider.Offset = { offset[0], offset[1] };
+
+                circleCollider.Radius = entityNode["CircleCollider2DComponent"]["Radius"].as<float>();
+                circleCollider.Density = entityNode["CircleCollider2DComponent"]["Density"].as<float>();
+                circleCollider.Friction = entityNode["CircleCollider2DComponent"]["Friction"].as<float>();
+                circleCollider.Restitution = entityNode["CircleCollider2DComponent"]["Restitution"].as<float>();
+                circleCollider.RestitutionThershold = entityNode["CircleCollider2DComponent"]["RestitutionThreshold"].as<float>();
+            }
+        }
+
+        inline void DeserializeCircleRendererComponent(Entity entity, const YAML::Node& node)
+        {
+            if (!node["CircleRendererComponent"])
+                return;
+
+            auto& circleComp = entity.AddComponent<CircleRendererComponent>();
+
+            if (node["CircleRendererComponent"]["Color"])
+            {
+                auto color = node["CircleRendererComponent"]["Color"].as<std::vector<float>>();
+                if (color.size() == 4)
+                {
+                    circleComp.Color = { color[0], color[1], color[2], color[3] };
+                }
+            }
+
+            if (node["CircleRendererComponent"]["Thickness"])
+                circleComp.Thickness = node["CircleRendererComponent"]["Thickness"].as<float>();
+
+            if (node["CircleRendererComponent"]["Fade"])
+                circleComp.Fade = node["CircleRendererComponent"]["Fade"].as<float>();
+        }
+
+
         inline void DeserializeEntity(Entity entity, const YAML::Node& entityNode)
         {
             DeserializeTagComponent(entity, entityNode);
@@ -219,6 +363,10 @@ namespace Engine {
             DeserializeCameraComponent(entity, entityNode);
             DeserializeSpriteRendererComponent(entity, entityNode);
             DeserializeNativeScriptComponent(entity, entityNode);
+            DeserializeBoxCollider2DComponent(entity, entityNode);
+            DeserializeRigidBody2DComponent(entity, entityNode);
+            DeserializeCircleRendererComponent(entity, entityNode);
+            DeserializeCircleCollider2DComponent(entity, entityNode);
         }
 
 
@@ -289,8 +437,8 @@ namespace Engine {
         {
             for (const auto& entityNode : entities)
             {
-                uint32_t entityID = entityNode["ID"].as<uint32_t>();
-                Entity entity = m_scene->CreateEntity();
+                uint32_t entityID = entityNode["ID"].as<uint64_t>();
+                Entity entity = m_scene->CreateEntityWithUUID(entityID);
 
                 SerializeUtils::DeserializeEntity(entity, entityNode);
             }

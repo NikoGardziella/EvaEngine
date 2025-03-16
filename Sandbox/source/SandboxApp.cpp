@@ -313,7 +313,9 @@ public:
 };
 
 
+
 Engine::Application* Engine::CreateApplication()
 {
-	return new Sandbox;
-} 
+	return new Sandbox(); // Only for sandbox builds
+}
+

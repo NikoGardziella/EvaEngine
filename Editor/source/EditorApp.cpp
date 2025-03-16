@@ -6,6 +6,8 @@
 
 namespace Engine {
 
+	class Sandbox;
+
 	class Editor : public Application
 	{
 	public:
@@ -27,6 +29,8 @@ namespace Engine {
 	{
 		return new Editor();
 	} 
+
+	
 }
 
 

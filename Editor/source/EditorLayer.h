@@ -7,6 +7,8 @@
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Renderer/EditorCamera.h"
 
+
+
 namespace Engine {
 
 	class EditorLayer : public Layer
@@ -37,6 +39,7 @@ namespace Engine {
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
 		void SaveSceneAs();
+		void SaveScene();
 
 
 		// UI panel
@@ -44,6 +47,10 @@ namespace Engine {
 		void OnScenePlay();
 		void OnSceneStop();
 
+
+		void OnDuplicateEntity();
+
+		void OnOverlayRender();
 
 	private:
 
@@ -59,7 +66,12 @@ namespace Engine {
 		bool m_viewportHovered = false;
 
 		Ref<Scene> m_activeScene;
+		Ref<Scene> m_editorScene;
+		Ref<Scene> m_runtimeScene;
 		Entity m_squareEntity;
+
+		std::filesystem::path m_currentScenePath;
+
 
 		Entity m_cameraEntity;
 		Entity m_cameraSecondaryEntity;
@@ -97,6 +109,9 @@ namespace Engine {
 		Ref<Texture2D> m_iconPlay;
 		Ref<Texture2D> m_iconStop;
 
+		bool m_showColliders = false;
+
+		//Scope<Sandbox> m_sandbox;
 	};
 
 }

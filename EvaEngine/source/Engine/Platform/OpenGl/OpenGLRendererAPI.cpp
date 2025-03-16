@@ -44,7 +44,26 @@ namespace Engine {
 		}
 		//uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
 
+		vertexArray->Bind();
+
 		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 		
+	}
+
+	void OpenGLRendererAPI::DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
+	{
+		// If indexCount is non-zero, use it. Otherwise, use the index count from the index buffer.
+		if (vertexCount == 0)
+		{
+			return;
+		}
+
+		vertexArray->Bind();
+		glDrawArrays(GL_LINES,0, vertexCount);
+
+	}
+	void OpenGLRendererAPI::SetLineWidth(float thickness)
+	{
+		glLineWidth(thickness);
 	}
 }

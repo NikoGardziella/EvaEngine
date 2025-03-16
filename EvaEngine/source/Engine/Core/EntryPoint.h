@@ -12,12 +12,7 @@ int main(int argc, char** argv)
 {
 	Engine::Log::Init();
 
-	/*
-	std::string shaderDir = "C:/EvaEngine/Editor/assets/shaders";
-	std::string vulkanSDK = "C:/VulkanSDK/1.4.304.1";
-	ShaderUtils::ShaderCompiler::CompileAllShaders(shaderDir, vulkanSDK);
-
-	*/
+	
 
 	EE_PROFILE_BEGIN_SESSION("Startup", "EvaEngineProfile-startup.json");
 	auto app = Engine::CreateApplication();
@@ -30,5 +25,7 @@ int main(int argc, char** argv)
 	EE_PROFILE_BEGIN_SESSION("Shutdown", "EvaEngineProfile-shutdown.json");
 	delete app;
 	EE_PROFILE_END_SESSION();
+
+
 }
 #endif 

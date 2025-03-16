@@ -17,3 +17,6 @@
 [submodule "EvaEngine/vendor/ImGuizmo"]
 	path = EvaEngine/vendor/ImGuizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo
+[submodule "EvaEngine/vendor/Box2D"]
+	path = EvaEngine/vendor/Box2D
+	url = https://github.com/NikoGardziella/box2d

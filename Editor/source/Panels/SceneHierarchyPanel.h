@@ -7,6 +7,8 @@
 
 namespace Engine {
 
+	class Scene;
+
 	class SceneHierarchyPanel
 	{
 

@@ -43,11 +43,7 @@ namespace Engine {
             glm::vec2 delta = (mouse - m_initialMousePosition) * 0.003f;
             m_initialMousePosition = mouse;
 
-            if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
-            {
-                OnMousePan(delta);
-            }
-            else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+            if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
             {
                 OnMouseRotate(delta);
             }
@@ -56,7 +52,29 @@ namespace Engine {
                 OnMouseZoom(delta.y);
             }
         }
+
+        if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
+        {
+            const glm::vec2 mouse{ Input::GetMouseX(), Input::GetMouseY() };
+
+            // Reset initial position if the mouse pan just started
+            if (!m_isPanning)
+            {
+                m_initialMousePosition = mouse;
+                m_isPanning = true;
+            }
+
+            glm::vec2 delta = (mouse - m_initialMousePosition) * 0.003f;
+            m_initialMousePosition = mouse;
+            OnMousePan(delta);
+        }
+        else
+        {
+            m_isPanning = false;  // Reset flag when mouse is released
+        }
+
         UpdateView();
+
     }
 
     void EditorCamera::OnEvent(Event& event)
@@ -77,12 +95,19 @@ namespace Engine {
     
     void EditorCamera::OnMouseZoom(float deltaY)
     {
-        m_FOV -= deltaY;
-        if (m_FOV < 10.0f) m_FOV = 10.0f;
-        if (m_FOV > 90.0f) m_FOV = 90.0f;
+        static const float minFOV = 10.0f;   // Minimum zoom-in limit
+        static const float maxFOV = 130.0f;  // Maximum zoom-out limit
+        static const float zoomSpeed = 0.5f; // Sensitivity for smoother zooming
+
+        m_FOV -= deltaY * zoomSpeed;
+
+        // Clamp the FOV within min and max limits
+        if (m_FOV < minFOV) m_FOV = minFOV;
+        if (m_FOV > maxFOV) m_FOV = maxFOV;
 
         UpdateProjection();
     }
+
 
     void EditorCamera::OnMousePan(const glm::vec2& delta)
     {
@@ -127,7 +152,7 @@ namespace Engine {
 
     glm::vec2 EditorCamera::PanSpeed() const
     {
-        float speed = 4.0f;
+        float speed = 15.0f;
         float x = std::min(m_viewportWidth / 1000.0f, 2.4f) * speed;
         float y = std::min(m_viewportHeight / 1000.0f, 2.4f) * speed;
         return { x, y };

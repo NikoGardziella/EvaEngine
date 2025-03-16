@@ -219,7 +219,7 @@ namespace Engine {
 				in.seekg(0, std::ios::end);
 				auto size = in.tellg();
 				in.seekg(0, std::ios::beg);
-
+				std::cout << "File size: " << size << " bytes." << std::endl;
 				auto& data = shaderData[stage];
 				data.resize(size / sizeof(uint32_t));
 				in.read((char*)data.data(), size);
@@ -244,8 +244,9 @@ namespace Engine {
 					out.close();
 				}
 			}
+			
 		}
-
+		
 		for (auto&& [stage, data] : shaderData)
 		{
 			Reflect(stage, data);

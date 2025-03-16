@@ -96,6 +96,9 @@
     <ClInclude Include="source\Engine\Core\Timestep.h">
       <Filter>source\Engine\Core</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Core\UUID.h">
+      <Filter>source\Engine\Core</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Core\Window.h">
       <Filter>source\Engine\Core</Filter>
     </ClInclude>
@@ -1494,6 +1497,9 @@
       <Filter>source\Engine\Core</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Core\Log.cpp">
+      <Filter>source\Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Core\UUID.cpp">
       <Filter>source\Engine\Core</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Core\Window.cpp">

@@ -30,10 +30,12 @@ IncludeDir["ImGuizmo"] = "EvaEngine/vendor/ImGuizmo"
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
 IncludeDir["shaderc"] = "%{VULKAN_SDK}/Include/shaderc"
 IncludeDir["SPIRV_Cross"] = "%{VULKAN_SDK}/Include/spirv_cross"
+IncludeDir["Box2D"] =  "EvaEngine/vendor/Box2D/include"
 
 -- Organize library directories
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
+LibraryDir["Box2D"] = "EvaEngine/vendor/Box2D/bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Box2D"
 
 -- Organize libraries with separate Debug and Release versions
 Library = {}
@@ -44,6 +46,7 @@ Library["ImGui"] = "imgui"
 Library["yaml_cpp"] = "yaml-cpp"
 Library["OpenGL"] = "opengl32.lib"
 Library["Vulkan"] = "vulkan-1.lib"
+Library["Box2D"] = "box2dd.lib"
 
 -- Debug specific libraries
 Library["shaderc_Debug"] = "shaderc_sharedd.lib"
@@ -61,6 +64,7 @@ include "EvaEngine/vendor/GLFW"
 include "EvaEngine/vendor/GLAD"
 include "EvaEngine/vendor/imgui"
 include "EvaEngine/vendor/yaml-cpp"
+include "EvaEngine/vendor/Box2D"
 
 -- Define the "EvaEngine" project
 project "EvaEngine"
@@ -89,6 +93,8 @@ project "EvaEngine"
         "%{prj.name}/vendor/stb_image/**.h",
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp",
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
+        "%{prj.name}/vendor/Box2D/box2d/include/**.h",
+        --"EvaEngine/vendor/Box2D/src/**.cpp"
     }
 
     defines
@@ -105,6 +111,7 @@ project "EvaEngine"
         "EvaEngine/vendor/spdlog/include",  -- Include path for the spdlog logging library
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.GLAD}",
+        "%{IncludeDir.Box2D}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.glm}",
         "%{IncludeDir.stb_image}",
@@ -113,12 +120,14 @@ project "EvaEngine"
         "%{IncludeDir.ImGuizmo}",
         "%{IncludeDir.VulkanSDK}",
         "%{IncludeDir.shaderc}",
-        "%{IncludeDir.SPIRV_Cross}"
+        "%{IncludeDir.SPIRV_Cross}",
     }
 
     libdirs
     {
-        "%{LibraryDir.VulkanSDK}"
+        "%{LibraryDir.VulkanSDK}",
+        "%{LibraryDir.Box2D}"
+
     }
 
     -- Apply settings specifically when building for Windows
@@ -151,7 +160,8 @@ project "EvaEngine"
             "%{Library.spirv_cross_core_Debug}",
             "%{Library.spirv_cross_glsl_Debug}",
             "%{Library.spirv_tools_Debug}",
-            "%{Library.Vulkan}"
+            "%{Library.Vulkan}",
+            "%{Library.Box2D}",
         }
 
     -- Settings specific to the Release configuration
@@ -171,7 +181,7 @@ project "EvaEngine"
             "%{Library.spirv_cross_core_Release}",
             "%{Library.spirv_cross_glsl_Release}",
             "%{Library.spirv_tools_Release}",
-            "%{Library.Vulkan}"
+            "%{Library.Vulkan}",
         }
 
     -- Settings specific to the Distribution configuration
@@ -191,7 +201,7 @@ project "EvaEngine"
             "%{Library.spirv_cross_core_Release}",
             "%{Library.spirv_cross_glsl_Release}",
             "%{Library.spirv_tools_Release}",
-            "%{Library.Vulkan}"
+            "%{Library.Vulkan}",
         }
 
 -- Shared function to set up application projects with common settings
@@ -220,7 +230,9 @@ function SetupAppProject(projectName)
             "EvaEngine/vendor",
             "%{IncludeDir.glm}",
             "%{IncludeDir.entt}",
+            "%{IncludeDir.Box2D}" 
         }
+
 
         links
         {

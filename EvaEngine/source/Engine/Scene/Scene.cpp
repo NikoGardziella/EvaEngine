@@ -1,12 +1,44 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Scene.h"
-
-#include <glm/glm.hpp>
-#include "Component.h"
-
 #include "Engine.h"
 
+#include <glm/glm.hpp>
+
+#include "Component.h"
+#include "ScriptableEntity.h"
+
+#include "box2d/box2d.h"
+//#include "box2d/collision.h"
+//#include "box2d/types.h"
+//#include "box2d/base.h"
+//#include "box2d/id.h"
+#include "box2d/math_functions.h"
+
+
 namespace Engine {
+
+
+    static b2BodyType Rigidbody2dTypeToBox2D(RigidBody2DComponent::BodyType bodytype)
+    {
+        switch (bodytype)
+        {
+            case Engine::RigidBody2DComponent::BodyType::Static:
+            {
+                return b2BodyType::b2_staticBody;
+            }
+            case Engine::RigidBody2DComponent::BodyType::Dynamic:
+            {
+                return b2BodyType::b2_dynamicBody;
+            }
+            case Engine::RigidBody2DComponent::BodyType::Kinematic:
+            {
+                return b2BodyType::b2_kinematicBody;
+
+            }
+        }
+        EE_CORE_ASSERT(false, " unkown bodytype");
+        return b2BodyType::b2_staticBody;
+    }
 
     Scene::Scene()
     {
@@ -20,22 +52,198 @@ namespace Engine {
     {
          
     }
+
+    
+    template<typename Component>
+    static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap)
+    {
+        auto view = src.view<Component>();
+        for (auto e : view)
+        {
+            UUID uuid = src.get<IDComponent>(e).ID;
+            EE_CORE_ASSERT(enttMap.find(uuid) != enttMap.end());
+
+            entt::entity dstEnttID = enttMap.at(uuid);
+
+            auto& component = src.get<Component>(e);
+            dst.emplace_or_replace<Component>(dstEnttID, component);
+
+        }
+
+    }
+    
+    template<typename Component>
+    static void CopyComponentIfExists(Entity dstEntity, Entity srcEntity)
+    {
+        if (srcEntity.HasComponent<Component>())
+        {
+            dstEntity.AddOrReplaceComponent<Component>(srcEntity.GetComponent<Component>());
+        }
+    }
+    
+    Ref<Scene> Scene::Copy(Ref<Scene> other)
+    {
+        Ref<Scene> newScene = std::make_shared<Scene>();
+
+        newScene->m_viewportWidth = other->m_viewportWidth;
+        newScene->m_viewportHeight = other->m_viewportHeight;
+
+        std::unordered_map<UUID, entt::entity> enttMap;
+
+        auto& srcSceneRegistry = other->m_registry;
+        auto& dstSceneRegistry = newScene->m_registry;
+        auto idView = srcSceneRegistry.view<IDComponent>();
+        for (auto e : idView)
+        {
+            UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
+            const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
+            Entity newEntity = newScene->CreateEntityWithUUID(uuid, name);
+
+            enttMap[uuid] = (entt::entity)newEntity;
+
+        }
+        
+        CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<RigidBody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        
+        return newScene;
+    }
+    
+
     Entity Scene::CreateEntity(const std::string& name)
     {
 
-        Entity entity = { m_registry.create(), this };
-        auto tag = entity.AddComponent<TagComponent>(std::move(name.empty() ? "Entity" : name));
-        return entity;
+        return CreateEntityWithUUID(UUID(), name);
 
     }
+
+    Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
+    {
+        Entity entity = { m_registry.create(), this };
+        entity.AddComponent<IDComponent>(uuid);
+        auto tag = entity.AddComponent<TagComponent>(std::move(name.empty() ? "Entity" : name));
+        return entity;
+    }
+
     void Scene::DestroyEntity(Entity entity)
     {
         m_registry.destroy(entity);
     }
 
+    void Scene::OnRunTimeStart()
+    {
+        b2WorldDef world = b2DefaultWorldDef();
+        
+        b2Vec2 gravity{};
+        gravity.x = 0.0f;
+        gravity.y = -9.8f;
+        world.gravity = gravity;
+        
+
+        m_worldId = b2CreateWorld(&world);
+       
+
+        auto view = m_registry.view<RigidBody2DComponent>();
+        for (auto e : view)
+        {
+            Entity entity = { e, this };
+            auto& transformComp = entity.GetComponent<TransformComponent>();
+            auto& rb2dComp = entity.GetComponent<RigidBody2DComponent>();
+
+            b2BodyDef bodyDef = b2DefaultBodyDef();
+            bodyDef.type = Rigidbody2dTypeToBox2D(rb2dComp.Type);
+            b2Vec2 position;
+            position.x = transformComp.Translation.x;
+            position.y = transformComp.Translation.y;
+            bodyDef.position = position;
+
+            float angle = transformComp.Rotation.z; // Assuming Rotation.z holds the rotation in radians
+            bodyDef.rotation.c = std::cos(angle);
+            bodyDef.rotation.s = std::sin(angle);
+            
+        
+            bodyDef.fixedRotation = rb2dComp.FixedRotation;
+            
+            EE_CORE_ASSERT(bodyId != b2_nullBodyId);  // Make sure the body is created successfully.
+            b2BodyId bodyId = b2CreateBody(m_worldId, &bodyDef);
+
+            rb2dComp.RuntimeBody = bodyId;
+
+            if (entity.HasComponent<BoxCollider2DComponent>())
+            {
+                auto& colliderComp = entity.GetComponent<BoxCollider2DComponent>();
+                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                shapeDef.density = colliderComp.Density;
+                shapeDef.friction = colliderComp.Friction;
+                shapeDef.restitution = colliderComp.Restitution;
+
+                b2Polygon dynamicBox = b2MakeBox(colliderComp.Size.x * transformComp.Scale.x , colliderComp.Size.y * transformComp.Scale.y);
+                
+                b2ShapeId boxShapeID = b2CreatePolygonShape(bodyId, &shapeDef, &dynamicBox);
+                colliderComp.shapeID = boxShapeID;
+            }
+            if(entity.HasComponent<CircleCollider2DComponent>())
+            {
+                auto& colliderComp = entity.GetComponent<CircleCollider2DComponent>();
+
+                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                shapeDef.density = colliderComp.Density;
+                shapeDef.friction = colliderComp.Friction;
+                shapeDef.restitution = colliderComp.Restitution;
+
+                // Define a circle shape (instead of using an AABB)
+                b2Circle circleShape;
+                circleShape.radius = colliderComp.Radius * transformComp.Scale.x;
+                b2Vec2 center;
+                center.x = colliderComp.Offset.x;
+                center.y = colliderComp.Offset.y;
+                circleShape.center = center;
+
+                b2ShapeId circleShapeID = b2CreateCircleShape(bodyId, &shapeDef, &circleShape);
+                colliderComp.shapeID = circleShapeID;
+            }
+
+        }
+
+
+    }
+
+    void Scene::OnRunTimeStop()
+    {
+        b2DestroyWorld(m_worldId);
+    }
+
     void Scene::OnUpdateRuntime(Timestep timestep)
     {
 
+        /*
+        ╔════════════════════════════════════════════════╗
+        ║ 🚀 EVA ENGINE | ENTT                        	║
+        ║                                                ║
+        ╚════════════════════════════════════════════════╝
+        // Full-owning group: The registry owns and tightly packs both SpriteRendererComponent and TransformComponent
+        auto group = m_registry.group<SpriteRendererComponent, TransformComponent>();
+        ✅ Pros: Fastest iteration speed, best memory locality.
+        ❌ Cons: Less flexibility, requires full ownership.
+
+        // Partial-owning group: Owns SpriteRendererComponent but references TransformComponent without owning it
+        auto group = m_registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
+        ✅ Pros: Keeps SpriteRendererComponent tightly packed, while still accessing TransformComponent.
+        ❌ Cons: TransformComponent is looked up dynamically, adding slight overhead.
+
+        // Non-owning group: Does not own any components, just filters entities that have both components
+        auto group = m_registry.group<>(entt::get<SpriteRendererComponent, TransformComponent>);
+        ✅ Pros: No memory reordering, keeps components untouched.
+        ❌ Cons: Slightly slower than owning groups because it doesn’t pack memory efficiently.
+
+
+        */
 
         // update scripts
         {
@@ -53,7 +261,39 @@ namespace Engine {
 
                 });
         }
-        
+
+
+
+
+        // physics
+
+        {
+  
+            const int32_t subStepCount = 4;
+            float physicsStep = 1.0f / 60.0f;
+
+            // update physics
+            b2World_Step(m_worldId, physicsStep, subStepCount);
+            auto view = m_registry.view<RigidBody2DComponent>();
+            for (auto e : view)
+            {
+                Entity entity = { e, this };
+                TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
+                auto& rb2dComp = entity.GetComponent<RigidBody2DComponent>();
+
+                b2BodyId bodyId = rb2dComp.RuntimeBody;
+ 
+                b2Vec2 position = b2Body_GetPosition(bodyId);
+                transformComp.Translation = { position.x, position.y, 0.0f };
+
+                b2Rot rotation = b2Body_GetRotation(bodyId);
+                transformComp.Rotation.z = std::atan2(rotation.s, rotation.c);
+
+            }
+
+        }
+
+
         Camera* mainCamera = nullptr;
         glm::mat4 cameraTransform;
         {
@@ -74,15 +314,28 @@ namespace Engine {
         if(mainCamera)
         {   
             Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
-            auto group = m_registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
-
-            for (auto entity : group)
             {
-                auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                
+                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
 
-                Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+                for (auto entity : view)
+                {
+                    auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+
+                    Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+                }
             }
+
+            {
+                auto view = m_registry.view<CircleRendererComponent, TransformComponent>();
+
+                for (auto entity : view)
+                {
+                    auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
+
+                    Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
+                }
+            }
+
 
             Renderer2D::EndScene();
         }
@@ -93,15 +346,31 @@ namespace Engine {
     void Scene::OnUpdateEditor(Timestep timestep, EditorCamera& camera)
     {
         Renderer2D::BeginScene(camera);
-        auto group = m_registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
 
-        for (auto entity : group)
         {
-            auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+            auto group = m_registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
 
-            Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+            for (auto entity : group)
+            {
+                auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 
+                Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+
+            }
         }
+
+        {
+            auto view = m_registry.view<CircleRendererComponent, TransformComponent>();
+
+            for (auto entity : view)
+            {
+                auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
+
+                Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
+
+            }
+        }
+
 
         Renderer2D::EndScene();
     }
@@ -123,6 +392,21 @@ namespace Engine {
 
         }
 
+
+    }
+
+    void Scene::DuplicateEntity(Entity entity)
+    {
+        Entity newEntity = CreateEntity(entity.GetName());
+
+        CopyComponentIfExists<TransformComponent>(newEntity, entity);
+        CopyComponentIfExists<SpriteRendererComponent>(newEntity, entity);
+        CopyComponentIfExists<CameraComponent>(newEntity, entity);
+        CopyComponentIfExists<BoxCollider2DComponent>(newEntity, entity);
+        CopyComponentIfExists<RigidBody2DComponent>(newEntity, entity);
+        CopyComponentIfExists<NativeScriptComponent>(newEntity, entity);
+        CopyComponentIfExists<CircleRendererComponent>(newEntity, entity);
+        CopyComponentIfExists<CircleCollider2DComponent>(newEntity, entity);
 
     }
 
@@ -151,12 +435,13 @@ namespace Engine {
     template<typename T>
     inline void Scene::OnComponentAdded(Entity entity, T& component)
     {
-        //  fails at compile-time if there�s no explicit specialization for a given component type.
-        static_assert(false);
+        //  fails at compile-time if there’s no explicit specialization for a given component type.
+       static_assert(false);
 
     }
 
-    // Specializations for Specific Components
+    // probably remove this. or remove static_assert ^
+    // Specializations for Specific Components 
     template<>
     void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
     {
@@ -176,6 +461,12 @@ namespace Engine {
     }
 
     template<>
+    void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent& component)
+    {
+
+    }
+
+    template<>
     void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
     {
 
@@ -183,6 +474,30 @@ namespace Engine {
 
     template<>
     void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<RigidBody2DComponent>(Entity entity, RigidBody2DComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
     {
 
     }

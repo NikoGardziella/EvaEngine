@@ -12,6 +12,7 @@
 #include "Engine/Renderer/VertexArray.h"
 #include "Engine/Renderer/OrthographicCamera.h"
 #include "Engine/Core/Timestep.h"
+//#include "../../../../Sandbox/source/SandboxApp.cpp"
 
 
 namespace Engine
@@ -42,6 +43,7 @@ namespace Engine
 
 		std::unique_ptr<Window> m_window;
 		ImGuiLayer* m_imGuiLayer;
+
 		bool m_isRunning = true;
 		bool m_minimized = false;
 		
