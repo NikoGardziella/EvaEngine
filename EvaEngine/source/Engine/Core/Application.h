@@ -15,9 +15,13 @@
 //#include "../../../../Sandbox/source/SandboxApp.cpp"
 
 
+
+
 namespace Engine
 {
-	class EE_API Application
+
+
+	class Application
 	{
 	public:
 		Application(const std::string& name = "");
@@ -60,7 +64,6 @@ namespace Engine
 
 	//in client
 	Application* CreateApplication();
-
 }
 
 

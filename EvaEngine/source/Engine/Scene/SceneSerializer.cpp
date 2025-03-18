@@ -417,12 +417,17 @@ namespace Engine {
     bool SceneSerializer::Deserialize(const std::string& filepath)
     {
         if (!std::filesystem::exists(filepath))
+        {
+            EE_CORE_ASSERT(false, "File does not exist: %s", filepath.c_str());
             return false;
+        }
 
         std::ifstream stream(filepath);
         if (!stream)
+        {
+            EE_CORE_ASSERT(false, "Failed to open file: %s", filepath.c_str());
             return false;
-
+        }
         std::stringstream strStream;
         strStream << stream.rdbuf();
 

@@ -19,6 +19,8 @@ public:
 	void OnUpdate(Engine::Timestep timestep) override;
 	void OnEvent(Engine::Event& event) override;
 
+	Engine::Ref<Engine::Scene> GetActiveGameScene() { return m_activeScene; }
+
 private:
 
 	Engine::OrthographicCameraController m_orthoCameraController;
@@ -44,6 +46,12 @@ private:
 	std::unordered_map<char, Engine::Ref<Engine::SubTexture2D>> m_textureMap;
 
 
+	Engine::Ref<Engine::Scene> m_activeScene;
+	Engine::Entity m_cameraEntity;
+	Engine::Entity m_squareEntity;
+	
+
 
 };
+
 

@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\EvaEngine\vendor\spdlog\include;..\..\EvaEngine\source;..\..\EvaEngine\vendor;..\..\EvaEngine\vendor\glm;..\..\EvaEngine\vendor\entt\include;..\..\EvaEngine\vendor\Box2D\include;..\..\Sandbox\source;..\..\Sandbox\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -96,7 +96,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\EvaEngine\vendor\spdlog\include;..\..\EvaEngine\source;..\..\EvaEngine\vendor;..\..\EvaEngine\vendor\glm;..\..\EvaEngine\vendor\entt\include;..\..\EvaEngine\vendor\Box2D\include;..\..\Sandbox\source;..\..\Sandbox\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -117,7 +117,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\EvaEngine\vendor\spdlog\include;..\..\EvaEngine\source;..\..\EvaEngine\vendor;..\..\EvaEngine\vendor\glm;..\..\EvaEngine\vendor\entt\include;..\..\EvaEngine\vendor\Box2D\include;..\..\Sandbox\source;..\..\Sandbox\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -134,25 +134,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\EditorLayer.h" />
-    <ClInclude Include="source\Panels\ContentBrowserPanel.h" />
-    <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
+    <ClInclude Include="..\source\EditorLayer.h" />
+    <ClInclude Include="..\source\Panels\ContentBrowserPanel.h" />
+    <ClInclude Include="..\source\Panels\SceneHierarchyPanel.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\EditorApp.cpp" />
-    <ClCompile Include="source\EditorLayer.cpp" />
-    <ClCompile Include="source\Panels\ContentBrowserPanel.cpp" />
-    <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp" />
+    <ClCompile Include="..\source\EditorApp.cpp" />
+    <ClCompile Include="..\source\EditorLayer.cpp" />
+    <ClCompile Include="..\source\Panels\ContentBrowserPanel.cpp" />
+    <ClCompile Include="..\source\Panels\SceneHierarchyPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\EvaEngine\EvaEngine.vcxproj">
+    <ProjectReference Include="..\..\EvaEngine\EvaEngine.vcxproj">
       <Project>{D7E7C411-4352-7988-8C90-2A2EF83957DD}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="assets\shaders\Line_shader.glsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </None>
+    <ProjectReference Include="..\..\Sandbox\Sandbox\Sandbox.vcxproj">
+      <Project>{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

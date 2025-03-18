@@ -165,12 +165,11 @@ namespace Engine {
 		glCreateFramebuffers(1, &m_rendererID);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
 
-
 		bool multiSample = m_specification.Samples > 1;
 
 		if (m_colorAttachmentSpecs.size())
 		{
-			// These are always ín sync
+			// These are always in sync
 			m_colorAttachments.resize(m_colorAttachmentSpecs.size());
 			Utils::CreateTextures(multiSample, m_colorAttachments.data(), m_colorAttachments.size());
 
@@ -200,34 +199,30 @@ namespace Engine {
 				Utils::AttachDepthTexture(m_depthAttachment, m_specification.Samples, GL_DEPTH24_STENCIL8, GL_DEPTH_ATTACHMENT, m_specification.Width, m_specification.Height);
 				break;
 			}
-
 		}
 
 		if (m_colorAttachments.size() > 1)
 		{
-			EE_CORE_ASSERT(m_colorAttachments.size() <= 4);
+			EE_CORE_ASSERT(m_colorAttachments.size() <= 4); // or a higher number if needed
 			GLenum buffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
 			glDrawBuffers(m_colorAttachments.size(), buffers);
-
-
 		}
-		else if(m_colorAttachments.empty())
+		else if (m_colorAttachments.empty())
 		{
 			glDrawBuffer(GL_NONE);
 		}
 
-		EE_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, " framebufer is incomplete");
+		EE_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
+		EE_CORE_INFO("Framebuffer status {0}", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	}
+
 
 	void OpenGLFramebuffer::Bind()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
 		glViewport(0, 0, m_specification.Width, m_specification.Height);
-
-
 
 	}
 
@@ -267,5 +262,19 @@ namespace Engine {
 
 		glClearTexImage(m_colorAttachments[attachmentIndex], 0,
 			Utils::EngineTextureFormatToGL(spec.TextureFormat), GL_INT, &value);
+	}
+
+	int OpenGLFramebuffer::GetFrameBufferStatus() const
+	{
+		GLint prevFramebuffer = 0;
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFramebuffer); // Store currently bound framebuffer
+
+		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID); // Bind our framebuffer
+		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, prevFramebuffer); // Restore previous framebuffer
+
+		return (int)status;
+
 	}
 }

@@ -26,6 +26,7 @@ namespace Engine {
 		virtual uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const override { EE_CORE_ASSERT(index < m_colorAttachments.size()); return m_colorAttachments[index]; }
 
 		virtual const FramebufferSpecification& GetSpecification() const override { return m_specification; }
+		virtual int GetFrameBufferStatus() const override;
 
 
 	private:

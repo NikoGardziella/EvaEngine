@@ -1,4 +1,4 @@
---include "Dependencies.lua"
+include "Dependencies.lua"
 
 -- Define the workspace, its name, and the architecture used
 workspace "EvaEngine"
@@ -15,56 +15,13 @@ workspace "EvaEngine"
 -- Variable to determine the output directory format based on configuration, system, and architecture
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-VULKAN_SDK = "C:/VulkanSDK/1.4.304.1"
-
--- Organize include directories
-IncludeDir = {}
-IncludeDir["GLFW"] = "EvaEngine/vendor/GLFW/include"
-IncludeDir["GLAD"] = "EvaEngine/vendor/GLAD/include"
-IncludeDir["ImGui"] = "EvaEngine/vendor/imgui"
-IncludeDir["glm"] = "EvaEngine/vendor/glm"
-IncludeDir["entt"] = "EvaEngine/vendor/entt/include"
-IncludeDir["stb_image"] = "EvaEngine/vendor/stb_image"
-IncludeDir["yaml_cpp"] = "EvaEngine/vendor/yaml-cpp/include"
-IncludeDir["ImGuizmo"] = "EvaEngine/vendor/ImGuizmo"
-IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
-IncludeDir["shaderc"] = "%{VULKAN_SDK}/Include/shaderc"
-IncludeDir["SPIRV_Cross"] = "%{VULKAN_SDK}/Include/spirv_cross"
-IncludeDir["Box2D"] =  "EvaEngine/vendor/Box2D/include"
-
--- Organize library directories
-LibraryDir = {}
-LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
-LibraryDir["Box2D"] = "EvaEngine/vendor/Box2D/bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Box2D"
-
--- Organize libraries with separate Debug and Release versions
-Library = {}
--- Common libraries
-Library["GLFW"] = "GLFW"
-Library["GLAD"] = "GLAD"
-Library["ImGui"] = "imgui"
-Library["yaml_cpp"] = "yaml-cpp"
-Library["OpenGL"] = "opengl32.lib"
-Library["Vulkan"] = "vulkan-1.lib"
-Library["Box2D"] = "box2dd.lib"
-
--- Debug specific libraries
-Library["shaderc_Debug"] = "shaderc_sharedd.lib"
-Library["spirv_cross_core_Debug"] = "spirv-cross-cored.lib"
-Library["spirv_cross_glsl_Debug"] = "spirv-cross-glsld.lib"
-Library["spirv_tools_Debug"] = "SPIRV-Toolsd.lib"
-
--- Release specific libraries
-Library["shaderc_Release"] = "shaderc_shared.lib"
-Library["spirv_cross_core_Release"] = "spirv-cross-core.lib"
-Library["spirv_cross_glsl_Release"] = "spirv-cross-glsl.lib"
-Library["spirv_tools_Release"] = "SPIRV-Tools.lib"
-
 include "EvaEngine/vendor/GLFW"
 include "EvaEngine/vendor/GLAD"
 include "EvaEngine/vendor/imgui"
 include "EvaEngine/vendor/yaml-cpp"
 include "EvaEngine/vendor/Box2D"
+include "Sandbox"
+include "Editor"
 
 -- Define the "EvaEngine" project
 project "EvaEngine"
@@ -204,66 +161,4 @@ project "EvaEngine"
             "%{Library.Vulkan}",
         }
 
--- Shared function to set up application projects with common settings
-function SetupAppProject(projectName)
-    project(projectName)
-        location(projectName)
-        kind "ConsoleApp"
-        language "C++"
-        architecture "x64"
-        staticruntime "off"
-        cppdialect "C++17"
 
-        targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-        objdir ("bin-obj/" .. outputdir .. "/%{prj.name}")
-
-        files
-        {
-            "%{prj.name}/source/**.h",
-            "%{prj.name}/source/**.cpp"
-        }
-
-        includedirs
-        {
-            "EvaEngine/vendor/spdlog/include",
-            "EvaEngine/source",
-            "EvaEngine/vendor",
-            "%{IncludeDir.glm}",
-            "%{IncludeDir.entt}",
-            "%{IncludeDir.Box2D}" 
-        }
-
-
-        links
-        {
-            "EvaEngine"
-        }
-
-        filter "system:windows"
-            systemversion "latest"
-            defines
-            {
-                "EE_PLATFORM_WINDOWS"
-            }
-
-        filter "configurations:Debug"
-            defines "EE_DEBUG"
-            symbols "On"
-            runtime "Debug"
-
-        filter "configurations:Release"
-            defines "EE_RELEASE"
-            optimize "On"
-            runtime "Release"
-
-        filter "configurations:Dist"
-            defines "EE_DIST"
-            optimize "On"
-            runtime "Release"
-end
-
--- Setup the Sandbox application project
-SetupAppProject("Sandbox")
-
--- Setup the Editor application project
-SetupAppProject("Editor")

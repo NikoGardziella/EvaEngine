@@ -17,7 +17,6 @@
 
 //remove
 #include "GLFW/glfw3.h"
-#include "glad/glad.h"
 
 
 
@@ -75,9 +74,27 @@ namespace Engine {
 		}
 
 
-		io.Fonts->AddFontFromFileTTF("assets/fonts/kanit/Kanit-Bold.ttf", 18.0f);
+		{
+			const char* ImguiFont = "assets/fonts/kanit/Kanit-Bold.ttf";
+			std::ifstream file(ImguiFont);
+			if (file.good())
+			{
+				io.Fonts->AddFontFromFileTTF(ImguiFont, 18.0f);
+			}
 
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/kanit/Kanit-Regular.ttf", 18.0f);
+		}
+
+		
+		{
+			const char* defaultImguiFont = "assets/fonts/kanit/Kanit-Regular.ttf";
+			std::ifstream file(defaultImguiFont);
+			if (file.good())
+			{
+				io.Fonts->AddFontFromFileTTF(defaultImguiFont, 18.0f);
+			}
+
+		}
+		
 
 
 		//SetDarkThemeColors();

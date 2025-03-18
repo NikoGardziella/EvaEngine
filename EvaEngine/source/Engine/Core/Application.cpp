@@ -15,6 +15,8 @@
 #include "Engine/Renderer/OrthographicCamera.h"
 
 #include "GLFW/glfw3.h" // remove
+
+
 namespace Engine
 {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -36,7 +38,8 @@ namespace Engine
 
 		m_imGuiLayer = new ImGuiLayer();
 		PushLayer(m_imGuiLayer);
-		//PushLayer(new Sandbox2D());
+
+
 
 	}
 
@@ -81,7 +84,9 @@ namespace Engine
 				// dont update layers if editor is minimized
 				for (Layer* layer : m_LayerStack)
 				{
+					
 					layer->OnUpdate(timestep);
+					
 				}
 
 			}

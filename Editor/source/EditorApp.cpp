@@ -1,12 +1,13 @@
+#include "pch.h"
 #include "Engine.h"
 #include "EditorLayer.h"
 #include "Engine/Core/EntryPoint.h"
 
+#include "Sandbox2D.h"
 
 
 namespace Engine {
 
-	class Sandbox;
 
 	class Editor : public Application
 	{
@@ -16,6 +17,9 @@ namespace Engine {
 			: Application("Eva Editor")
 		{
 			PushLayer(new EditorLayer());
+
+			
+
 		}
 
 		~Editor()
@@ -23,13 +27,20 @@ namespace Engine {
 
 		}
 
+	public:
+
+	private:
+		Sandbox2D* m_sandboxLayer;
+
 	};
 
+
+	
 	Application* CreateApplication()
 	{
 		return new Editor();
 	} 
-
+	
 	
 }
 

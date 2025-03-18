@@ -72,9 +72,12 @@ namespace Engine {
 		virtual void ClearColorAttachment(uint32_t attachmentIndex, int value) = 0;
 
 
+
 		virtual uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const = 0;
 		virtual const FramebufferSpecification& GetSpecification() const = 0;
 		//virtual FrameBufferSpecification& GetSpecification() = 0;
+		virtual int GetFrameBufferStatus() const = 0;
+
 
 		static Ref<Framebuffer> Create(const FramebufferSpecification& spec);
 

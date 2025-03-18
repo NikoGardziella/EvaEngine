@@ -1,12 +1,14 @@
 #pragma once
 #include <Engine/Debug/Instrumentor.h>
 //#include <Engine/Renderer/ShaderCompiler.h>
-
+//#include "Sandbox2D.h"
 
 #ifdef EE_PLATFORM_WINDOWS
 
 //defined in application/sandbox
-extern Engine::Application* Engine::CreateApplication();
+//extern Engine::Application* Engine::CreateApplication();
+//extern Engine::Application* Engine::CreateGameApplication();
+
 
 int main(int argc, char** argv)
 {

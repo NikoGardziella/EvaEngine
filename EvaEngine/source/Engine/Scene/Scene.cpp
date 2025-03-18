@@ -245,6 +245,9 @@ namespace Engine {
 
         */
 
+
+
+
         // update scripts
         {
             m_registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)

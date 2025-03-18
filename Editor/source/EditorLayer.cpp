@@ -14,6 +14,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include "Engine/Math/Math.h"
 
+#include "Sandbox2D.h"
 
 namespace Engine {
 
@@ -111,9 +112,9 @@ namespace Engine {
         };
 
 
-
+        //m_sandbox = std::make_shared<Sandbox2D>();
         m_sceneHierarchyPanel.SetContext(m_activeScene);
-
+        
     }
 
     void EditorLayer::OnDetach()
@@ -275,6 +276,7 @@ namespace Engine {
             m_viewportHovered = ImGui::IsWindowHovered();
             Application::Get().GetImGuiLayer()->BlockEvents(!m_viewportFocused && !m_viewportHovered);
 
+
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             m_viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
@@ -380,8 +382,8 @@ namespace Engine {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
-        //ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.90f, 0.2f, 0.2f, 1.0f });
-        //ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.75f, 0.12f, 0.12f, 1.0f });
+       // ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.90f, 0.2f, 0.2f, 1.0f });
+       // ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.75f, 0.12f, 0.12f, 1.0f });
 
         ImGui::Begin("##toolbar",nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
@@ -411,14 +413,21 @@ namespace Engine {
     {
         if (!m_editorScene)
         {
-            return;
+            m_sceneState = SceneState::Play;
+
+            //m_sandbox->GetActiveGameScene()->OnRunTimeStart();
+            m_activeScene = Scene::Copy(m_sandbox->GetActiveGameScene());
+            m_activeScene->OnRunTimeStart();
+
         }
+        else
+        {
+            m_sceneState = SceneState::Play;
 
-        m_sceneState = SceneState::Play;
+            m_activeScene = Scene::Copy(m_editorScene);
 
-        m_activeScene = Scene::Copy(m_editorScene);
-
-        m_activeScene->OnRunTimeStart();
+            m_activeScene->OnRunTimeStart();
+        }
 
     }
 

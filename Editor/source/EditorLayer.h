@@ -7,7 +7,7 @@
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Renderer/EditorCamera.h"
 
-
+#include "Sandbox2D.h"
 
 namespace Engine {
 
@@ -111,7 +111,7 @@ namespace Engine {
 
 		bool m_showColliders = false;
 
-		//Scope<Sandbox> m_sandbox;
+		Ref<Sandbox2D> m_sandbox;
 	};
 
 }

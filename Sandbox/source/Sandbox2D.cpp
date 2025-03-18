@@ -25,6 +25,8 @@ Sandbox2D::Sandbox2D()
 	: Layer ("Sandbox2D"),
 	m_orthoCameraController(1280.0f / 720.0f, true)
 {
+	m_activeScene = std::make_shared<Engine::Scene>();
+
 }
 
 void Sandbox2D::OnAttach()
@@ -49,6 +51,16 @@ void Sandbox2D::OnAttach()
     framebufferSpecs.Height = 720;
     framebufferSpecs.Width = 1280;
     m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
+
+
+	m_cameraEntity = m_activeScene->CreateEntity("camera");
+	m_cameraEntity.AddComponent<Engine::CameraComponent>();
+	m_cameraEntity.AddComponent<Engine::TransformComponent>();
+
+	m_squareEntity = m_activeScene->CreateEntity("square");
+	m_squareEntity.AddComponent<Engine::TransformComponent>();
+	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
+
 
 }
 

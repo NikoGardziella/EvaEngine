@@ -7,7 +7,6 @@
 #include "box2d/id.h"
 #include "entt.hpp"
 
-
 namespace Engine {
 
 	class Entity;
