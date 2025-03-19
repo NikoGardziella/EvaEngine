@@ -1,3 +1,7 @@
+<<<<<<< HEAD
 version https://git-lfs.github.com/spec/v1
-oid sha256:29c3afa8eb19ab58981b63542192159e4e9c079054503a3d2cefc713015c16da
-size 1571
+oid sha256:0d765f2d3232dd416318becec106495aff7df5219e9cb2b162bf7553ef021f66
+size 427
+=======
+{"otherData": {},"traceEvents":[{},{"cat":"function","dur":599,"name":"void Engine::ImGuiLayer::OnDetach(void)","ph":"X","pid":0,"tid":21904,"ts":424629332492.400},{"cat":"function","dur":1,"name":"void Engine::EditorLayer::OnDetach(void)","ph":"X","pid":0,"tid":21904,"ts":424629333138.800},{"cat":"function","dur":0,"name":"Engine::OpenGLTexture2D::~OpenGLTexture2D(void)","ph":"X","pid":0,"tid":21904,"ts":424629333168.000},{"cat":"function","dur":0,"name":"Engine::OpenGLTexture2D::~OpenGLTexture2D(void)","ph":"X","pid":0,"tid":21904,"ts":424629333196.400},{"cat":"function","dur":0,"name":"Engine::OpenGLTexture2D::~OpenGLTexture2D(void)","ph":"X","pid":0,"tid":21904,"ts":424629333222.700},{"cat":"function","dur":1,"name":"Engine::OpenGLTexture2D::~OpenGLTexture2D(void)","ph":"X","pid":0,"tid":21904,"ts":424629333248.900},{"cat":"function","dur":0,"name":"Engine::OpenGLTexture2D::~OpenGLTexture2D(void)","ph":"X","pid":0,"tid":21904,"ts":424629333280.400},{"cat":"function","dur":1,"name":"Engine::OpenGLTexture2D::~OpenGLTexture2D(void)","ph":"X","pid":0,"tid":21904,"ts":424629333308.800},{"cat":"function","dur":13511,"name":"void Engine::WindowsWindow::Shutdown(void)","ph":"X","pid":0,"tid":21904,"ts":424629333388.700},{"cat":"function","dur":13603,"name":"Engine::WindowsWindow::~WindowsWindow(void)","ph":"X","pid":0,"tid":21904,"ts":424629333388.600}]}
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde

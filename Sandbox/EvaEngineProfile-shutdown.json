@@ -1,3 +1,7 @@
+<<<<<<< HEAD
 version https://git-lfs.github.com/spec/v1
-oid sha256:376eb93d309e49b9428c8ffed0cc7b1e2547f46ff2c796b510bdf0ce23464ecd
-size 633
+oid sha256:4a22e2f10131513fb460ef1f33d6e063515d3bce2e50c3523d3a7c70e6459b18
+size 434
+=======
+{"otherData": {},"traceEvents":[{},{"cat":"function","dur":548,"name":"void Engine::ImGuiLayer::OnDetach(void)","ph":"X","pid":0,"tid":27708,"ts":424643056261.000},{"cat":"function","dur":16380,"name":"void Engine::WindowsWindow::Shutdown(void)","ph":"X","pid":0,"tid":27708,"ts":424643057022.700},{"cat":"function","dur":16466,"name":"Engine::WindowsWindow::~WindowsWindow(void)","ph":"X","pid":0,"tid":27708,"ts":424643057022.500}]}
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde
