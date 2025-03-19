@@ -15,6 +15,11 @@
 #include "Engine/Math/Math.h"
 
 #include "Sandbox2D.h"
+<<<<<<< HEAD
+
+#include "EditorApp.h"
+=======
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde
 
 namespace Engine {
 
@@ -38,9 +43,12 @@ namespace Engine {
         "WWWWWCWWWWWWWWWWWWWWWWWWWWW"
         ;
 
-    EditorLayer::EditorLayer()
+    class Editor;
+
+    EditorLayer::EditorLayer(Editor* editor)
         : Layer("EditorLayer"),
-        m_orthoCameraController(1280.0f / 720.0f, true)
+        m_orthoCameraController(1280.0f / 720.0f, true),
+        m_editor(editor)
     {
 
     }
@@ -110,8 +118,13 @@ namespace Engine {
             }
 
         };
+<<<<<<< HEAD
+      
+        
+=======
 
 
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde
         //m_sandbox = std::make_shared<Sandbox2D>();
         m_sceneHierarchyPanel.SetContext(m_activeScene);
         
@@ -280,9 +293,43 @@ namespace Engine {
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             m_viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-            uint32_t textureID = m_framebuffer->GetColorAttachmentRendererID();
-            ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
-
+            //uint32_t textureID = m_framebuffer->GetColorAttachmentRendererID();
+            if (m_editor)
+            {
+                // Ensure that GetGameLayer() does not return null
+                auto gameLayer = m_editor.get()->GetGameLayer();
+                if (gameLayer)
+                {
+                    // Ensure that GetGameFramebuffer() does not return null
+                    auto framebuffer = gameLayer->GetGameFramebuffer();
+                    if (framebuffer)
+                    {
+                        // Ensure that GetColorAttachmentRendererID() is valid
+                        uint32_t textureID = framebuffer->GetColorAttachmentRendererID();
+                        if (textureID != 0)
+                        { // Assuming 0 is an invalid ID
+                            // Proceed with ImGui Image rendering
+                            ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
+                        }
+                        else
+                        {
+                            EE_CORE_ERROR("Invalid texture ID: {0}", textureID);
+                        }
+                    }
+                    else
+                    {
+                        EE_CORE_ERROR("Framebuffer is null.");
+                    }
+                }
+                else
+                {
+                    EE_CORE_ERROR("Game layer is null.");
+                }
+            }
+            else 
+            {
+                EE_CORE_ERROR("Editor is null.");
+            }
 
             ImVec2 windowSize = ImGui::GetWindowSize();
             ImVec2 minBound = ImGui::GetWindowPos();

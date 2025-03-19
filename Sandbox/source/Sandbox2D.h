@@ -20,6 +20,10 @@ public:
 	void OnEvent(Engine::Event& event) override;
 
 	Engine::Ref<Engine::Scene> GetActiveGameScene() { return m_activeScene; }
+<<<<<<< HEAD
+	Engine::Ref<Engine::Framebuffer> GetGameFramebuffer() { return m_framebuffer; }
+=======
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde
 
 private:
 

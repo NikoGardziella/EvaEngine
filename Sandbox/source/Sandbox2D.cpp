@@ -47,6 +47,7 @@ void Sandbox2D::OnAttach()
 	m_orthoCameraController.SetZoomLevel(10.0f);
 
     Engine::FramebufferSpecification framebufferSpecs;
+	framebufferSpecs.Attachments = { Engine::FramebufferTextureFormat::RGBA8,Engine::FramebufferTextureFormat::RED_INTEGER, Engine::FramebufferTextureFormat::Depth };
 
     framebufferSpecs.Height = 720;
     framebufferSpecs.Width = 1280;

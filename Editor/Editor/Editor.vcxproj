@@ -55,22 +55,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>..\bin\Debug-windows-x86_64\Editor\</OutDir>
-    <IntDir>..\bin-obj\Debug-windows-x86_64\Editor\</IntDir>
+    <OutDir>bin\Debug-windows-x86_64\Editor\</OutDir>
+    <IntDir>bin-obj\Debug-windows-x86_64\Editor\</IntDir>
     <TargetName>Editor</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\bin\Release-windows-x86_64\Editor\</OutDir>
-    <IntDir>..\bin-obj\Release-windows-x86_64\Editor\</IntDir>
+    <OutDir>bin\Release-windows-x86_64\Editor\</OutDir>
+    <IntDir>bin-obj\Release-windows-x86_64\Editor\</IntDir>
     <TargetName>Editor</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\bin\Dist-windows-x86_64\Editor\</OutDir>
-    <IntDir>..\bin-obj\Dist-windows-x86_64\Editor\</IntDir>
+    <OutDir>bin\Dist-windows-x86_64\Editor\</OutDir>
+    <IntDir>bin-obj\Dist-windows-x86_64\Editor\</IntDir>
     <TargetName>Editor</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
@@ -79,7 +79,11 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+<<<<<<< HEAD:Editor/Editor.vcxproj
+      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\Sandbox\source;..\Sandbox\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+=======
       <AdditionalIncludeDirectories>..\..\EvaEngine\vendor\spdlog\include;..\..\EvaEngine\source;..\..\EvaEngine\vendor;..\..\EvaEngine\vendor\glm;..\..\EvaEngine\vendor\entt\include;..\..\EvaEngine\vendor\Box2D\include;..\..\Sandbox\source;..\..\Sandbox\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde:Editor/Editor/Editor.vcxproj
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -96,7 +100,11 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+<<<<<<< HEAD:Editor/Editor.vcxproj
+      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\Sandbox\source;..\Sandbox\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+=======
       <AdditionalIncludeDirectories>..\..\EvaEngine\vendor\spdlog\include;..\..\EvaEngine\source;..\..\EvaEngine\vendor;..\..\EvaEngine\vendor\glm;..\..\EvaEngine\vendor\entt\include;..\..\EvaEngine\vendor\Box2D\include;..\..\Sandbox\source;..\..\Sandbox\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde:Editor/Editor/Editor.vcxproj
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -117,7 +125,11 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+<<<<<<< HEAD:Editor/Editor.vcxproj
+      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\Sandbox\source;..\Sandbox\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+=======
       <AdditionalIncludeDirectories>..\..\EvaEngine\vendor\spdlog\include;..\..\EvaEngine\source;..\..\EvaEngine\vendor;..\..\EvaEngine\vendor\glm;..\..\EvaEngine\vendor\entt\include;..\..\EvaEngine\vendor\Box2D\include;..\..\Sandbox\source;..\..\Sandbox\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde:Editor/Editor/Editor.vcxproj
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -134,9 +146,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+<<<<<<< HEAD:Editor/Editor.vcxproj
+    <ClInclude Include="source\EditorApp.h" />
+    <ClInclude Include="source\EditorLayer.h" />
+    <ClInclude Include="source\Panels\ContentBrowserPanel.h" />
+    <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
+=======
     <ClInclude Include="..\source\EditorLayer.h" />
     <ClInclude Include="..\source\Panels\ContentBrowserPanel.h" />
     <ClInclude Include="..\source\Panels\SceneHierarchyPanel.h" />
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde:Editor/Editor/Editor.vcxproj
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\EditorApp.cpp" />
@@ -148,7 +167,11 @@
     <ProjectReference Include="..\..\EvaEngine\EvaEngine.vcxproj">
       <Project>{D7E7C411-4352-7988-8C90-2A2EF83957DD}</Project>
     </ProjectReference>
+<<<<<<< HEAD:Editor/Editor.vcxproj
+    <ProjectReference Include="..\Sandbox\Sandbox.vcxproj">
+=======
     <ProjectReference Include="..\..\Sandbox\Sandbox\Sandbox.vcxproj">
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde:Editor/Editor/Editor.vcxproj
       <Project>{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}</Project>
     </ProjectReference>
   </ItemGroup>

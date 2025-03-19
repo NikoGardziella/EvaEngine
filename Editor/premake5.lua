@@ -1,7 +1,11 @@
 
 -- Setup the Editor application project
 project "Editor"
+<<<<<<< HEAD
+    location "."
+=======
     location "Editor"
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde
     kind "ConsoleApp"
     language "C++"
     architecture "x64"

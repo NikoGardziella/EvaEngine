@@ -54,20 +54,35 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+<<<<<<< HEAD:Sandbox/Sandbox.vcxproj
+    <OutDir>bin\Debug-windows-x86_64\Sandbox\</OutDir>
+    <IntDir>bin-obj\Debug-windows-x86_64\Sandbox\</IntDir>
+=======
     <OutDir>..\bin\Debug-windows-x86_64\Sandbox\</OutDir>
     <IntDir>..\bin-obj\Debug-windows-x86_64\Sandbox\</IntDir>
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde:Sandbox/Sandbox/Sandbox.vcxproj
     <TargetName>Sandbox</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+<<<<<<< HEAD:Sandbox/Sandbox.vcxproj
+    <OutDir>bin\Release-windows-x86_64\Sandbox\</OutDir>
+    <IntDir>bin-obj\Release-windows-x86_64\Sandbox\</IntDir>
+=======
     <OutDir>..\bin\Release-windows-x86_64\Sandbox\</OutDir>
     <IntDir>..\bin-obj\Release-windows-x86_64\Sandbox\</IntDir>
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde:Sandbox/Sandbox/Sandbox.vcxproj
     <TargetName>Sandbox</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+<<<<<<< HEAD:Sandbox/Sandbox.vcxproj
+    <OutDir>bin\Dist-windows-x86_64\Sandbox\</OutDir>
+    <IntDir>bin-obj\Dist-windows-x86_64\Sandbox\</IntDir>
+=======
     <OutDir>..\bin\Dist-windows-x86_64\Sandbox\</OutDir>
     <IntDir>..\bin-obj\Dist-windows-x86_64\Sandbox\</IntDir>
+>>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde:Sandbox/Sandbox/Sandbox.vcxproj
     <TargetName>Sandbox</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
