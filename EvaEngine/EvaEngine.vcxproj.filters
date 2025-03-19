@@ -75,7 +75,7 @@
     <ClInclude Include="source\Engine.h">
       <Filter>source</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\AssetManager\AssetManger.h">
+    <ClInclude Include="source\Engine\AssetManager\AssetManager.h">
       <Filter>source\Engine\AssetManager</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Core\Application.h">
@@ -1493,7 +1493,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Engine\AssetManager\AssetManger.cpp">
+    <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
       <Filter>source\Engine\AssetManager</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Core\Application.cpp">

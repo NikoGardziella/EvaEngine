@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Engine/Platform/OpenGL/OpenGLShader.h"
-#include "Engine/AssetManager/AssetManger.h"
+#include "Engine/AssetManager/AssetManager.h"
 
 #include <fstream>
 #include <glad/glad.h>

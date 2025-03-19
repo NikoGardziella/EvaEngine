@@ -5,6 +5,7 @@
 #include "Engine/Renderer/Shader.h"
 #include "Engine/Renderer/UniformBuffer.h"
 #include "Engine/Renderer/RenderCommand.h"
+#include "Engine/AssetManager/AssetManager.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -179,10 +180,9 @@ namespace Engine {
 		for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
 			samplers[i] = i;
 
-		std::cout << "Current Working Directory: " << std::filesystem::current_path() << std::endl;
-		s_Data.CircleShader = Shader::Create("../assets/shaders/Circle_shader.glsl");
-		s_Data.QuadShader = Shader::Create("../assets/shaders/Renderer2D_Quad.glsl");
-		s_Data.LineShader = Shader::Create("../assets/shaders/Line_shader.glsl");
+		s_Data.CircleShader = Shader::Create(AssetManager::GetAssetPath("shaders/Circle_shader.glsl").string());
+		s_Data.QuadShader = Shader::Create(AssetManager::GetAssetPath("shaders/Renderer2D_Quad.glsl").string());
+		s_Data.LineShader = Shader::Create(AssetManager::GetAssetPath("shaders/Line_shader.glsl").string());
 
 		// Set first texture slot to 0
 		s_Data.TextureSlots[0] = s_Data.WhiteTexture;

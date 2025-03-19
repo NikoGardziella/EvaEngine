@@ -1,6 +1,6 @@
 #pragma once
 #include <Engine/Debug/Instrumentor.h>
-#include "Engine/AssetManager/AssetManger.h"
+#include "Engine/AssetManager/AssetManager.h"
 
 //#include <Engine/Renderer/ShaderCompiler.h>
 //#include "Sandbox2D.h"

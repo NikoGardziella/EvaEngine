@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "ContentBrowserPanel.h"
 #include "Engine/Core/Log.h"
-#include "Engine/AssetManager/AssetManger.h"
+#include "Engine/AssetManager/AssetManager.h"
 
 #include <imgui/imgui.h>
 #include <stb_image/stb_image.h>
@@ -17,8 +17,8 @@ namespace Engine {
 	ContentBrowserPanel::ContentBrowserPanel()
 		: m_currentDirectory(AssetManager::GetAssetFolderPath())
 	{
-        m_folderIconTexture = Engine::Texture2D::Create(AssetManager::GetAssetPath("icons/folder_6458782.png"));
-        m_fileIconTexture = Engine::Texture2D::Create(AssetManager::GetAssetPath("icons/8725956_file_alt_icon.png"));
+        m_folderIconTexture = Engine::Texture2D::Create(AssetManager::GetAssetPath("icons/folder_6458782.png").string());
+        m_fileIconTexture = Engine::Texture2D::Create(AssetManager::GetAssetPath("icons/8725956_file_alt_icon.png").string());
 	}
 
     void ContentBrowserPanel::OnImGuiRender()

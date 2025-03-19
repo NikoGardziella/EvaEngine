@@ -1,7 +1,7 @@
 #include "pch.h"
 
 #include "SceneHierarchyPanel.h"
-#include "Engine/AssetManager/AssetManger.h"
+#include "Engine/AssetManager/AssetManager.h"
 #include "Engine/Scene/Component.h"
 
 #include <glm/gtc/type_ptr.hpp>

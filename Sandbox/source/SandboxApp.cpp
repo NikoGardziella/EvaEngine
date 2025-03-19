@@ -1,15 +1,17 @@
 #include "Engine.h"
 #include "Engine/Core/Layer.h"
 #include "Engine/Core/EntryPoint.h"
+#include <Engine/Scene/SceneSerializer.h>
+#include "Engine/AssetManager/AssetManager.h"
+#include <Engine/Platform/OpenGl/OpenGLShader.h>
 
 #include <imgui/imgui.h>
 #include <glm/ext/matrix_transform.hpp>
 
-#include <Engine/Platform/OpenGl/OpenGLShader.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Sandbox2D.h"
-#include <Engine/Scene/SceneSerializer.h>
+
 
 class ExampleGameLayer : public Engine::Layer
 {
@@ -35,7 +37,7 @@ class ExampleGameLayer : public Engine::Layer
 
 		m_activeScene = std::make_shared<Engine::Scene>();
 		Engine::SceneSerializer serializer(m_activeScene);
-		std::string scenePath = "assets/scenes/physics2D.EE";
+		std::string scenePath = Engine::AssetManager::GetAssetPath("scenes/physics2D.EE").string();
 		if (!serializer.Deserialize(scenePath))
 		{
 			EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
@@ -137,11 +139,11 @@ public:
 
 
 
-#ifdef GAME_BUILD
-
+//#ifdef GAME_BUILD
 
 Engine::Application* Engine::CreateApplication()
 {
 	return new Sandbox(); // Only for sandbox builds
 }
-#endif
+//#endif
+
