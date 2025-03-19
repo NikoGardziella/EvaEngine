@@ -1,1 +1,0 @@
-{"otherData": {},"traceEvents":[{},{"cat":"function","dur":584,"name":"void Engine::ImGuiLayer::OnDetach(void)","ph":"X","pid":0,"tid":32180,"ts":569208047251.300},{"cat":"function","dur":1,"name":"void Engine::EditorLayer::OnDetach(void)","ph":"X","pid":0,"tid":32180,"ts":569208047879.900}

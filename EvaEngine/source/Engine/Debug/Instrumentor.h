@@ -11,6 +11,7 @@
 #include <thread>
 #include <mutex>
 #include <sstream>
+#include <filesystem>
 
 namespace Engine {
 
@@ -42,16 +43,24 @@ namespace Engine {
 			if (m_CurrentSession)
 			{
 				// If there is already a current session, then close it before beginning new one.
-				// Subsequent profiling output meant for the original session will end up in the
-				// newly opened session instead.  That's better than having badly formatted
-				// profiling output.
-				if (Log::GetCoreLogger()) // Edge case: BeginSession() might be before Log::Init()
+				if (Log::GetCoreLogger())
 				{
 					EE_CORE_ERROR("Instrumentor::BeginSession('{0}') when session '{1}' already open.", name, m_CurrentSession->Name);
 				}
 				InternalEndSession();
 			}
-			m_OutputStream.open(filepath);
+
+			// Ensure that the trace folder exists
+			std::filesystem::path traceDirectory = "trace";
+			if (!std::filesystem::exists(traceDirectory))
+			{
+				std::filesystem::create_directory(traceDirectory);
+			}
+
+			// Construct the full file path within the trace folder
+			std::filesystem::path fullFilePath = traceDirectory / filepath;
+
+			m_OutputStream.open(fullFilePath);
 
 			if (m_OutputStream.is_open())
 			{
@@ -60,12 +69,13 @@ namespace Engine {
 			}
 			else
 			{
-				if (Engine::Log::GetCoreLogger()) // Edge case: BeginSession() might be before Log::Init()
+				if (Engine::Log::GetCoreLogger())
 				{
-					EE_CORE_ERROR("Instrumentor could not open results file '{0}'.", filepath);
+					EE_CORE_ERROR("Instrumentor could not open results file '{0}'.", fullFilePath.string());
 				}
 			}
 		}
+
 
 		void EndSession()
 		{
