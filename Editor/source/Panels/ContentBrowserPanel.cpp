@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
 #include "ContentBrowserPanel.h"
-#include <imgui/imgui.h>
-#include "filesystem"
 #include "Engine/Core/Log.h"
+#include "Engine/AssetManager/AssetManger.h"
 
+#include <imgui/imgui.h>
 #include <stb_image/stb_image.h>
 //#include <GLAD/include/glad/glad.h>
 
@@ -11,27 +11,27 @@
 
 namespace Engine {
 
-    extern const std::filesystem::path s_assetPath = std::filesystem::absolute("assets");
+    //extern const std::filesystem::path s_assetPath = AssetManager::GetAssetPath("");
 
 
 	ContentBrowserPanel::ContentBrowserPanel()
-		: m_currentDirectory(s_assetPath)
+		: m_currentDirectory(AssetManager::GetAssetFolderPath())
 	{
-        m_folderIconTexture = Engine::Texture2D::Create("assets/icons/folder_6458782.png");
-        m_fileIconTexture = Engine::Texture2D::Create("assets/icons/8725956_file_alt_icon.png");
+        m_folderIconTexture = Engine::Texture2D::Create(AssetManager::GetAssetPath("icons/folder_6458782.png"));
+        m_fileIconTexture = Engine::Texture2D::Create(AssetManager::GetAssetPath("icons/8725956_file_alt_icon.png"));
 	}
 
     void ContentBrowserPanel::OnImGuiRender()
     {
         ImGui::Begin("Content Browser");
 
-        if (!std::filesystem::exists(s_assetPath))
+        if (!std::filesystem::exists(AssetManager::GetAssetFolderPath()))
         {
-            EE_CORE_ERROR("Assets directory not found: {0}", s_assetPath.string());
+            EE_CORE_ERROR("Assets directory not found: {0}", AssetManager::GetAssetFolderPath());
         }
 
         // Back Button
-        if (m_currentDirectory != std::filesystem::path(s_assetPath))
+        if (m_currentDirectory != std::filesystem::path(AssetManager::GetAssetFolderPath()))
         {
             if (ImGui::Button("<-"))
             {
@@ -47,7 +47,7 @@ namespace Engine {
         for (auto& p : std::filesystem::directory_iterator(m_currentDirectory))
         {
             std::filesystem::path path = p.path();
-            std::filesystem::path relativePath = std::filesystem::relative(path, s_assetPath);
+            std::filesystem::path relativePath = std::filesystem::relative(path, AssetManager::GetAssetFolderPath());
             std::string filename = path.filename().string();
 
             ImGui::PushID(filename.c_str());

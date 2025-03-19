@@ -1,7 +1,1 @@
-<<<<<<< HEAD
-version https://git-lfs.github.com/spec/v1
-oid sha256:4a22e2f10131513fb460ef1f33d6e063515d3bce2e50c3523d3a7c70e6459b18
-size 434
-=======
-{"otherData": {},"traceEvents":[{},{"cat":"function","dur":548,"name":"void Engine::ImGuiLayer::OnDetach(void)","ph":"X","pid":0,"tid":27708,"ts":424643056261.000},{"cat":"function","dur":16380,"name":"void Engine::WindowsWindow::Shutdown(void)","ph":"X","pid":0,"tid":27708,"ts":424643057022.700},{"cat":"function","dur":16466,"name":"Engine::WindowsWindow::~WindowsWindow(void)","ph":"X","pid":0,"tid":27708,"ts":424643057022.500}]}
->>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde
+{"otherData": {},"traceEvents":[{},{"cat":"function","dur":553,"name":"void Engine::ImGuiLayer::OnDetach(void)","ph":"X","pid":0,"tid":29224,"ts":569543925466.000},{"cat":"function","dur":11577,"name":"void Engine::WindowsWindow::Shutdown(void)","ph":"X","pid":0,"tid":29224,"ts":569543926243.600},{"cat":"function","dur":11671,"name":"Engine::WindowsWindow::~WindowsWindow(void)","ph":"X","pid":0,"tid":29224,"ts":569543926243.400}]}

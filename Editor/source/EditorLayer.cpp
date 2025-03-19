@@ -15,16 +15,14 @@
 #include "Engine/Math/Math.h"
 
 #include "Sandbox2D.h"
-<<<<<<< HEAD
 
 #include "EditorApp.h"
-=======
->>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde
+#include <Engine/AssetManager/AssetManger.h>
 
 namespace Engine {
 
     //temporary
-    extern const std::filesystem::path s_assetPath;
+    //extern const std::filesystem::path s_assetPath;
 
 
     static const uint32_t s_mapWidth = 26;
@@ -57,17 +55,17 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        m_checkerBoardTexture = Engine::Texture2D::Create("assets/textures/chess_board.png");
-        m_textureSpriteSheetPacked = Engine::Texture2D::Create("assets/textures/game/RPGpack_sheet_2X.png");
-        m_iconPlay = Engine::Texture2D::Create("assets/icons/play-button-arrowhead.png");
-        m_iconStop = Engine::Texture2D::Create("assets/icons/stop-button.png");
+        //m_checkerBoardTexture = Engine::Texture2D::Create("assets/textures/chess_board.png");
+       // m_textureSpriteSheetPacked = Engine::Texture2D::Create("assets/textures/game/RPGpack_sheet_2X.png");
+        m_iconPlay = Engine::Texture2D::Create(AssetManager::GetAssetPath("icons/play-button-arrowhead.png"));
+        m_iconStop = Engine::Texture2D::Create(AssetManager::GetAssetPath("icons/stop-button.png"));
 
         m_mapWidth = s_mapWidth;
         m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
-        m_textureMap['D'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 6, 11 }, { 128,128 });
-        m_textureMap['W'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 11, 11 }, { 128,128 });
+        //m_textureMap['D'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 6, 11 }, { 128,128 });
+        //m_textureMap['W'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 11, 11 }, { 128,128 });
 
-        m_textureBarrel = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 8, 0 }, { 128,128 });
+        //m_textureBarrel = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 8, 0 }, { 128,128 });
 
 
         //m_orthoCameraController.SetZoomLevel(10.0f);
@@ -118,13 +116,7 @@ namespace Engine {
             }
 
         };
-<<<<<<< HEAD
-      
-        
-=======
 
-
->>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde
         //m_sandbox = std::make_shared<Sandbox2D>();
         m_sceneHierarchyPanel.SetContext(m_activeScene);
         
@@ -346,7 +338,7 @@ namespace Engine {
                {
                     const wchar_t* path = (const wchar_t*)payload->Data;
 
-                    OpenScene(std::filesystem::path(s_assetPath) / path);
+                    OpenScene(std::filesystem::path(AssetManager::GetAssetFolderPath()) / path);
                }
                ImGui::EndDragDropTarget();
             }

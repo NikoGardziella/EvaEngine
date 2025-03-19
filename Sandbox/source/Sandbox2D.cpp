@@ -33,8 +33,8 @@ void Sandbox2D::OnAttach()
 {
 	EE_PROFILE_FUNCTION();
 
-	m_checkerBoardTexture = Engine::Texture2D::Create("assets/textures/chess_board.png");
-	m_textureSpriteSheetPacked = Engine::Texture2D::Create("assets/textures/game/RPGpack_sheet_2X.png");
+	m_checkerBoardTexture = Engine::Texture2D::Create("(../assets/textures/chess_board.png");
+	m_textureSpriteSheetPacked = Engine::Texture2D::Create("../assets/textures/game/RPGpack_sheet_2X.png");
 
 	m_mapWidth = s_mapWidth;
 	m_mapHeight = strlen(s_mapTiles) / s_mapWidth;

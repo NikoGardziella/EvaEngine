@@ -64,3 +64,4 @@ desktop.ini
 *.tlog
 *.recipe
 EvaEngine/vendor/VulkanSDK/
+EvaEngineProfile-runtime.json

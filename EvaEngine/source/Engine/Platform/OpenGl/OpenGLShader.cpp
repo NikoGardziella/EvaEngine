@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Engine/Platform/OpenGL/OpenGLShader.h"
+#include "Engine/AssetManager/AssetManger.h"
 
 #include <fstream>
 #include <glad/glad.h>
@@ -92,7 +93,7 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-		Utils::CreateCacheDirectoryIfNeeded();
+		AssetManager::CreateCacheDirectoryIfNeeded();
 
 		std::string source = ReadFile(filepath);
 		auto shaderSources = PreProcess(source);

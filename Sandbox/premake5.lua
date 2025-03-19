@@ -1,10 +1,6 @@
 
     project "Sandbox"
-<<<<<<< HEAD
         location "."
-=======
-        location "Sandbox"
->>>>>>> ff0c3b600b617aa742d76fd6bff3b49a5a8e1cde
         kind "StaticLib" 
         language "C++"
         architecture "x64"

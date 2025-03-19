@@ -22,7 +22,6 @@ namespace Engine {
 
     Editor::~Editor()
     {
-        delete m_sandboxLayer;
     }
 
     Sandbox2D* Editor::GetGameLayer()
@@ -31,17 +30,13 @@ namespace Engine {
     }
 
 
-	public:
-
-	private:
-		Sandbox2D* m_sandboxLayer;
-
-	};
+    Application* CreateApplication()
+    {
+        return new Editor();
+    }
+	
+};
 
 
 	
-	Application* CreateApplication()
-	{
-		return new Editor();
-	} 
-	
+

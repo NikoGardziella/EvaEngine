@@ -1,10 +1,12 @@
 #include "pch.h"
 
 #include "SceneHierarchyPanel.h"
+#include "Engine/AssetManager/AssetManger.h"
+#include "Engine/Scene/Component.h"
+
+#include <glm/gtc/type_ptr.hpp>
 
 #include "imgui/imgui.h"
-#include "Engine/Scene/Component.h"
-#include <glm/gtc/type_ptr.hpp>
 #include <imgui/imgui_internal.h>
 #include "ImGuizmo/ImGuizmo.h"
 
@@ -462,7 +464,7 @@ namespace Engine {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
                     {
                         const wchar_t* path = (const wchar_t*)payload->Data;
-                        std::filesystem::path texturePath = std::filesystem::path(s_assetPath) / path;
+                        std::filesystem::path texturePath = std::filesystem::path(AssetManager::GetAssetFolderPath()) / path;
 
                         component.Texture = Texture2D::Create(texturePath.string());
                     }

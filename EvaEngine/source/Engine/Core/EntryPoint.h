@@ -1,5 +1,7 @@
 #pragma once
 #include <Engine/Debug/Instrumentor.h>
+#include "Engine/AssetManager/AssetManger.h"
+
 //#include <Engine/Renderer/ShaderCompiler.h>
 //#include "Sandbox2D.h"
 
@@ -13,7 +15,8 @@
 int main(int argc, char** argv)
 {
 	Engine::Log::Init();
-
+	const int assetFolderSearchDepth = 5;
+	Engine::AssetManager::Initialize(assetFolderSearchDepth);
 	
 
 	EE_PROFILE_BEGIN_SESSION("Startup", "EvaEngineProfile-startup.json");

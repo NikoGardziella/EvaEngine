@@ -7,6 +7,9 @@
     <Filter Include="source\Engine">
       <UniqueIdentifier>{3B29441B-A7E9-BF51-7024-09CFDCA3042E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\AssetManager">
+      <UniqueIdentifier>{A555E108-9165-8DD9-FA1E-F2F7E64D7C72}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Core">
       <UniqueIdentifier>{734A5FF6-5F2E-204C-C88E-1A9FB4910ACE}</UniqueIdentifier>
     </Filter>
@@ -71,6 +74,9 @@
   <ItemGroup>
     <ClInclude Include="source\Engine.h">
       <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\AssetManager\AssetManger.h">
+      <Filter>source\Engine\AssetManager</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Core\Application.h">
       <Filter>source\Engine\Core</Filter>
@@ -1487,6 +1493,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\AssetManager\AssetManger.cpp">
+      <Filter>source\Engine\AssetManager</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Core\Application.cpp">
       <Filter>source\Engine\Core</Filter>
     </ClCompile>
