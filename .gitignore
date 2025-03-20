@@ -65,7 +65,7 @@ desktop.ini
 *.recipe
 EvaEngine/vendor/VulkanSDK/
 EvaEngineProfile-runtime.json
-EvaEngine/vendor/trace
+EvaEngine/Editor/trace
 EvaEngine/EvaEngine/trace
 EvaEngine/Sandbox/trace
 
