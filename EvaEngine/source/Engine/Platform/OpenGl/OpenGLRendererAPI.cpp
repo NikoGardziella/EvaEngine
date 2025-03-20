@@ -33,22 +33,32 @@ namespace Engine {
 	void OpenGLRendererAPI::Clear()
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	}
 
 	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
 	{
-		// If indexCount is non-zero, use it. Otherwise, use the index count from the index buffer.
-		if (indexCount == 0)
-		{
-			return;
-		}
-		//uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
-
 		vertexArray->Bind();
 
-		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
-		
+		// Get the count from the IndexBuffer if indexCount is zero
+		uint32_t count = indexCount;
+		if (count == 0)
+		{
+			auto indexBuffer = vertexArray->GetIndexBuffer();
+			if (indexBuffer)
+			{
+				count = indexBuffer->GetCount();
+			}
+		}
+
+		if (count == 0)
+		{
+			return; // No indices to render, exit early
+		}
+
+		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
 	}
+
 
 	void OpenGLRendererAPI::DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
 	{

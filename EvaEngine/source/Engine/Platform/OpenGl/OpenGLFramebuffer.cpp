@@ -111,16 +111,7 @@ namespace Engine {
 			return 0;
 		}
 
-		static GLenum EngineTextureGLDataType(FramebufferTextureFormat format)
-		{
-			switch (format)
-			{
-			
-			}
-
-			EE_CORE_ASSERT(false);
-			return 0;
-		}
+		
 	}
 
 
@@ -221,9 +212,9 @@ namespace Engine {
 
 	void OpenGLFramebuffer::Bind()
 	{
+
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
 		glViewport(0, 0, m_specification.Width, m_specification.Height);
-
 	}
 
 	void OpenGLFramebuffer::Unbind()
@@ -260,9 +251,11 @@ namespace Engine {
 
 		auto& spec = m_colorAttachmentSpecs[attachmentIndex];
 
+		// Assuming color attachments are typically in GL_FLOAT or GL_UNSIGNED_BYTE
 		glClearTexImage(m_colorAttachments[attachmentIndex], 0,
-			Utils::EngineTextureFormatToGL(spec.TextureFormat), GL_INT, &value);
+			Utils::EngineTextureFormatToGL(spec.TextureFormat), GL_FLOAT, &value);
 	}
+
 
 	int OpenGLFramebuffer::GetFrameBufferStatus() const
 	{
@@ -277,4 +270,7 @@ namespace Engine {
 		return (int)status;
 
 	}
+
+
+
 }

@@ -27,7 +27,7 @@ namespace Engine {
 
         if (!std::filesystem::exists(AssetManager::GetAssetFolderPath()))
         {
-            EE_CORE_ERROR("Assets directory not found: {0}", AssetManager::GetAssetFolderPath());
+            EE_CORE_ERROR("Assets directory not found: {0}", AssetManager::GetAssetFolderPath().string());
         }
 
         // Back Button

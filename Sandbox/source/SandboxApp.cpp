@@ -28,7 +28,7 @@ class ExampleGameLayer : public Engine::Layer
 	{
 		Engine::FramebufferSpecification framebufferSpecs;
 
-		framebufferSpecs.Attachments = { Engine::FramebufferTextureFormat::RGBA8, Engine::FramebufferTextureFormat::RED_INTEGER, Engine::FramebufferTextureFormat::Depth };
+		framebufferSpecs.Attachments = { Engine::FramebufferTextureFormat::RGBA8 , Engine::FramebufferTextureFormat::RED_INTEGER, Engine::FramebufferTextureFormat::Depth };
 		framebufferSpecs.Height = (uint32_t)m_viewportSize.y;
 		framebufferSpecs.Width = (uint32_t)m_viewportSize.x;
 		m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
@@ -47,10 +47,11 @@ class ExampleGameLayer : public Engine::Layer
 			EE_CORE_INFO("Scene loaded successfully!");
 		}
 
-		m_framebuffer->Resize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
+		//m_framebuffer->Resize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
 
 		m_activeScene->OnRunTimeStart();
-		m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+		//m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+		m_viewportRenderTexture = Engine::Texture2D::Create(m_viewportSize.x, m_viewportSize.y);
 
 	}
 
@@ -67,21 +68,17 @@ class ExampleGameLayer : public Engine::Layer
 		}
 		
 
-
-		//m_framebuffer->Bind();
-		Engine::RenderCommand::SetClearColor({ 0.2f, 0, 0.2f, 1 });
+		m_framebuffer->Bind();
 		Engine::RenderCommand::Clear();
+		Engine::RenderCommand::SetClearColor({ 0.0f, 0, 0.2f, 1.0f });
 		
-
-		
-		
-
 		m_framebuffer->ClearColorAttachment(1, -1);
-
+		
 		m_activeScene->OnUpdateRuntime(timestep);
 
 		m_framebuffer->Unbind();
-	
+		
+
 	}
 
 	
@@ -118,7 +115,7 @@ private:
 	Engine::Ref<Engine::Scene> m_activeScene;
 	glm::vec2 m_viewportSize = { 720.0f, 1280.0f };
 	Engine::EditorCamera m_editorCamera;
-
+	Engine::Ref<Engine::Texture2D> m_viewportRenderTexture;
 };
 
 class Sandbox : public Engine::Application
@@ -126,8 +123,8 @@ class Sandbox : public Engine::Application
 public:
 	Sandbox()
 	{
-		//PushLayer(new ExampleLayer());
 		PushLayer(new ExampleGameLayer());
+		//PushLayer(new Sandbox2D());
 	}
 	~Sandbox()
 	{

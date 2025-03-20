@@ -1,9 +1,11 @@
 #include "Sandbox2D.h"
-#include <imgui/imgui.h>
+#include <Engine/Debug/Instrumentor.h>
+#include <Engine/AssetManager/AssetManager.h>
+#include <Engine/Scene/SceneSerializer.h>
 
+#include <imgui/imgui.h>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <Engine/Debug/Instrumentor.h>
 
 static const uint32_t s_mapWidth = 26;
 static const char* s_mapTiles =
@@ -33,8 +35,8 @@ void Sandbox2D::OnAttach()
 {
 	EE_PROFILE_FUNCTION();
 
-	m_checkerBoardTexture = Engine::Texture2D::Create("(../assets/textures/chess_board.png");
-	m_textureSpriteSheetPacked = Engine::Texture2D::Create("../assets/textures/game/RPGpack_sheet_2X.png");
+	m_checkerBoardTexture = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());
+	m_textureSpriteSheetPacked = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/game/RPGpack_sheet_2X.png").string());
 
 	m_mapWidth = s_mapWidth;
 	m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
@@ -54,14 +56,31 @@ void Sandbox2D::OnAttach()
     m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
 
 
+	/*
 	m_cameraEntity = m_activeScene->CreateEntity("camera");
 	m_cameraEntity.AddComponent<Engine::CameraComponent>();
 	m_cameraEntity.AddComponent<Engine::TransformComponent>();
 
+	*/
 	m_squareEntity = m_activeScene->CreateEntity("square");
 	m_squareEntity.AddComponent<Engine::TransformComponent>();
 	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
+	m_squareEntity = m_activeScene->CreateEntity("square1");
+	m_squareEntity.AddComponent<Engine::TransformComponent>();
+	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
+	m_squareEntity = m_activeScene->CreateEntity("square2");
+	m_squareEntity.AddComponent<Engine::TransformComponent>();
+	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
 
+
+	Engine::SceneSerializer serializer(m_activeScene);
+	std::string scenePath = Engine::AssetManager::GetAssetPath("scenes/physics2D.EE").string();
+	if (!serializer.Deserialize(scenePath))
+	{
+		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
+	}
+	
+	m_activeScene->OnRunTimeStart();
 
 }
 
@@ -81,6 +100,11 @@ void Sandbox2D::OnImGuiRender()
 
 void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 {
+	if (!m_isPlaying)
+	{
+		//return;
+	}
+
 	EE_PROFILE_FUNCTION();
     {
 	    m_orthoCameraController.OnUpdate(timestep);
@@ -99,49 +123,28 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
     }
 
 
+
+
     {
-		
+		m_framebuffer->ClearColorAttachment(1, -1);
+
+		m_activeScene->OnUpdateRuntime(timestep);
 		static float rotation = 0.0f;
 		rotation += timestep * 20.0f;
 
 		EE_PROFILE_SCOPE("render draw");
-	    Engine::Renderer2D::BeginScene(m_orthoCameraController.GetCamera());
-	    Engine::Renderer2D::DrawQuad({ 0.5f, 0.5f }, {1.0f, 1.0f,}, { 0.8f, 0.3f, 0.3f, 1.0f});
-	    Engine::Renderer2D::DrawQuad({ 1.5f, 1.5f }, {1.0f, 1.0f,}, { 0.2f, 0.3f, 0.9f, 1.0f});
-	    Engine::Renderer2D::DrawRotatedQuad({ 1.0f,1.0f }, {1.0f, 1.0f,}, rotation, { 0.1f, 0.8f, 0.4f, 1.0f});
-	    Engine::Renderer2D::DrawRotatedQuad({ 0.0f,0.0f, -0.1f }, {10.f, 10.f,}, 45.0f, m_checkerBoardTexture, 10.0f, glm::vec4(1.0f, 0.9f, 0.9f, 1.0f));
+		Engine::Renderer2D::BeginScene(m_orthoCameraController.GetCamera());
+		Engine::Renderer2D::DrawQuad({ 0.5f, 0.5f }, { 1.0f, 1.0f, }, { 0.8f, 0.3f, 0.3f, 1.0f });
+		Engine::Renderer2D::DrawQuad({ 1.5f, 1.5f }, { 1.0f, 1.0f, }, { 0.2f, 0.3f, 0.9f, 1.0f });
+		Engine::Renderer2D::DrawRotatedQuad({ 1.0f,1.0f }, { 1.0f, 1.0f, }, rotation, { 0.1f, 0.8f, 0.4f, 1.0f });
+		Engine::Renderer2D::DrawRotatedQuad({ 0.0f,0.0f, -0.1f }, { 10.f, 10.f, }, 45.0f, m_checkerBoardTexture, 10.0f, glm::vec4(1.0f, 0.9f, 0.9f, 1.0f));
 		Engine::Renderer2D::EndScene();
+
         m_framebuffer->Unbind();
 
     }
 
-	/*
-	Engine::Renderer2D::BeginScene(m_orthoCameraController.GetCamera());
-
-
-	for (uint32_t y = 0; y  < m_mapHeight; y ++)
-	{
-		// TOOD ? : combin the vertices and draw as one mesh
-		for (uint32_t x = 0; x < m_mapWidth; x++)
-		{
-			char tileType = s_mapTiles[x + y * m_mapWidth];
-			Engine::Ref<Engine::SubTexture2D> texture;
-			if (m_textureMap.find(tileType) != m_textureMap.end())
-			{
-				texture = m_textureMap[tileType];
-			}
-			else
-			{
-				texture = m_textureBarrel;
-
-			}
-			Engine::Renderer2D::DrawQuad({ x - m_mapWidth / 2.0f,m_mapHeight- y - m_mapHeight / 2.0f, 0.1f }, { 1.0f, 1.0f, }, texture);
-
-		}
-	}
-
-	Engine::Renderer2D::EndScene();
-	*/
+	
 
 }
 

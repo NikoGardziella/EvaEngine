@@ -50,18 +50,9 @@ namespace Engine {
 			return nullptr;
 		}
 
-		static const char* GetCacheDirectory()
-		{
-			// TODO: make sure the assets directory is valid
-			return "assets/cache/shader/opengl";
-		}
+		
 
-		static void CreateCacheDirectoryIfNeeded()
-		{
-			std::string cacheDirectory = GetCacheDirectory();
-			if (!std::filesystem::exists(cacheDirectory))
-				std::filesystem::create_directories(cacheDirectory);
-		}
+		
 
 		static const char* GLShaderStageCachedOpenGLFileExtension(uint32_t stage)
 		{
@@ -205,7 +196,7 @@ namespace Engine {
 			options.SetOptimizationLevel(shaderc_optimization_level_performance);
 		}
 
-		std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
+		std::filesystem::path cacheDirectory = AssetManager::GetCacheDirectory();
 
 		auto& shaderData = m_VulkanSPIRV;
 		shaderData.clear();
@@ -265,7 +256,7 @@ namespace Engine {
 		if (optimize)
 			options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
-		std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
+		std::filesystem::path cacheDirectory = AssetManager::GetCacheDirectory();
 
 		shaderData.clear();
 		m_OpenGLSourceCode.clear();

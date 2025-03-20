@@ -351,11 +351,11 @@ namespace Engine {
         Renderer2D::BeginScene(camera);
 
         {
-            auto group = m_registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
+            auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
 
-            for (auto entity : group)
+            for (auto entity : view)
             {
-                auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+                auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
                 Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
 

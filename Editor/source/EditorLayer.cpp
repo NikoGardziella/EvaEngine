@@ -17,7 +17,7 @@
 #include "Sandbox2D.h"
 
 #include "EditorApp.h"
-#include <Engine/AssetManager/AssetManger.h>
+#include <Engine/AssetManager/AssetManager.h>
 
 namespace Engine {
 
@@ -57,8 +57,8 @@ namespace Engine {
 
         //m_checkerBoardTexture = Engine::Texture2D::Create("assets/textures/chess_board.png");
        // m_textureSpriteSheetPacked = Engine::Texture2D::Create("assets/textures/game/RPGpack_sheet_2X.png");
-        m_iconPlay = Engine::Texture2D::Create(AssetManager::GetAssetPath("icons/play-button-arrowhead.png"));
-        m_iconStop = Engine::Texture2D::Create(AssetManager::GetAssetPath("icons/stop-button.png"));
+        m_iconPlay = Texture2D::Create(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string());
+        m_iconStop = Texture2D::Create(AssetManager::GetAssetPath("icons/stop-button.png").string());
 
         m_mapWidth = s_mapWidth;
         m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
@@ -77,8 +77,6 @@ namespace Engine {
         framebufferSpecs.Width = 1280;
         m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
 
-        m_activeScene = std::make_shared<Scene>();
-        
         m_editorCamera = EditorCamera(30.0f, 1.78f, 0.1f, 1000.0f);
 
 
@@ -115,10 +113,27 @@ namespace Engine {
                 }
             }
 
-        };
+        };        
 
-        //m_sandbox = std::make_shared<Sandbox2D>();
-        m_sceneHierarchyPanel.SetContext(m_activeScene);
+        m_activeScene = std::make_shared<Scene>();
+      
+
+        //m_editorScene = std::make_shared<Scene>();
+        //m_editorScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+
+        /*
+        Engine::SceneSerializer serializer(m_editorScene);
+        std::string scenePath = Engine::AssetManager::GetAssetPath("scenes/physics2D.EE").string();
+        if (!serializer.Deserialize(scenePath))
+        {
+            EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
+        }
+        */
+       // m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+        //m_activeScene = Scene::Copy(m_editorScene);
+        //m_sceneHierarchyPanel.SetContext(m_editorScene);
+
+         m_sceneHierarchyPanel.SetContext(m_activeScene);
         
     }
 
@@ -126,6 +141,7 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
         //m_sceneSerializer->Serialize("assets/scene/example_scene.ee");
+        
     }
 
     void EditorLayer::OnImGuiRender()
@@ -320,6 +336,12 @@ namespace Engine {
             }
             else 
             {
+                uint32_t textureID = m_framebuffer->GetColorAttachmentRendererID();
+                if (textureID != 0)
+                { // Assuming 0 is an invalid ID
+                    // Proceed with ImGui Image rendering
+                    ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
+                }
                 EE_CORE_ERROR("Editor is null.");
             }
 
@@ -454,16 +476,17 @@ namespace Engine {
         {
             m_sceneState = SceneState::Play;
 
-            //m_sandbox->GetActiveGameScene()->OnRunTimeStart();
-            m_activeScene = Scene::Copy(m_sandbox->GetActiveGameScene());
+            m_activeScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+
             m_activeScene->OnRunTimeStart();
+            m_editor.get()->GetGameLayer()->SetIsPlaying(true);
 
         }
         else
         {
             m_sceneState = SceneState::Play;
 
-            m_activeScene = Scene::Copy(m_editorScene);
+            //m_activeScene = Scene::Copy(m_editorScene);
 
             m_activeScene->OnRunTimeStart();
         }
@@ -476,6 +499,9 @@ namespace Engine {
         m_activeScene->OnRunTimeStop();
 
         m_activeScene = m_editorScene;
+
+        m_editor.get()->GetGameLayer()->SetIsPlaying(false);
+
     }
 
     void EditorLayer::OnDuplicateEntity()

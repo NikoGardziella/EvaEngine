@@ -114,7 +114,6 @@ namespace Engine {
 
 		bool m_showColliders = false;
 
-		Ref<Sandbox2D> m_sandbox;
 		Ref<Editor> m_editor;
 
 	};

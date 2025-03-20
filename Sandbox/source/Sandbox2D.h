@@ -19,8 +19,10 @@ public:
 	void OnUpdate(Engine::Timestep timestep) override;
 	void OnEvent(Engine::Event& event) override;
 
-	Engine::Ref<Engine::Scene> GetActiveGameScene() { return m_activeScene; }
-	Engine::Ref<Engine::Framebuffer> GetGameFramebuffer() { return m_framebuffer; }
+	Engine::Ref<Engine::Scene>& GetActiveGameScene() { return m_activeScene; }
+	Engine::Ref<Engine::Framebuffer>& GetGameFramebuffer() { return m_framebuffer; }
+
+	void SetIsPlaying(bool play) { m_isPlaying = play; }
 
 private:
 
@@ -51,7 +53,7 @@ private:
 	Engine::Entity m_cameraEntity;
 	Engine::Entity m_squareEntity;
 	
-
+	bool m_isPlaying = false;
 
 };
 

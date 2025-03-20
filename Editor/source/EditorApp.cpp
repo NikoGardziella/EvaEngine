@@ -16,8 +16,10 @@ namespace Engine {
     {
         PushLayer(new EditorLayer(this));
 
-        m_sandboxLayer = new Sandbox2D();
+        m_sandboxLayer = new Sandbox2D();       
         PushLayer(m_sandboxLayer);
+        
+        
     }
 
     Editor::~Editor()
