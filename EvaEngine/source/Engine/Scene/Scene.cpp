@@ -219,131 +219,14 @@ namespace Engine {
         b2DestroyWorld(m_worldId);
     }
 
-    void Scene::OnUpdateRuntime(Timestep timestep)
+    void Scene::OnUpdateRuntime(Timestep timestep, bool updatePhysics)
     {
-
-        /*
-        ╔════════════════════════════════════════════════╗
-        ║ 🚀 EVA ENGINE | ENTT                        	║
-        ║                                                ║
-        ╚════════════════════════════════════════════════╝
-        // Full-owning group: The registry owns and tightly packs both SpriteRendererComponent and TransformComponent
-        auto group = m_registry.group<SpriteRendererComponent, TransformComponent>();
-        ✅ Pros: Fastest iteration speed, best memory locality.
-        ❌ Cons: Less flexibility, requires full ownership.
-
-        // Partial-owning group: Owns SpriteRendererComponent but references TransformComponent without owning it
-        auto group = m_registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
-        ✅ Pros: Keeps SpriteRendererComponent tightly packed, while still accessing TransformComponent.
-        ❌ Cons: TransformComponent is looked up dynamically, adding slight overhead.
-
-        // Non-owning group: Does not own any components, just filters entities that have both components
-        auto group = m_registry.group<>(entt::get<SpriteRendererComponent, TransformComponent>);
-        ✅ Pros: No memory reordering, keeps components untouched.
-        ❌ Cons: Slightly slower than owning groups because it doesn’t pack memory efficiently.
-
-
-        */
-
-
-
-
-        // update scripts
+        if (updatePhysics)
         {
-            m_registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
-                {
-
-                    if (!nsc.Instance)
-                    {
-                        nsc.Instance = nsc.InstantiateScript();
-                        nsc.Instance->m_entity = Entity{ entity, this };
-                        nsc.Instance->OnCreate();
-                    }
-
-                    nsc.Instance->OnUpdate(timestep);
-
-                });
+            UpdatePhysics();
         }
-
-
-
-
-        // physics
-
-        {
-  
-            const int32_t subStepCount = 4;
-            float physicsStep = 1.0f / 60.0f;
-
-            // update physics
-            b2World_Step(m_worldId, physicsStep, subStepCount);
-            auto view = m_registry.view<RigidBody2DComponent>();
-            for (auto e : view)
-            {
-                Entity entity = { e, this };
-                TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
-                auto& rb2dComp = entity.GetComponent<RigidBody2DComponent>();
-
-                b2BodyId bodyId = rb2dComp.RuntimeBody;
+        RenderEntities(timestep);
  
-                b2Vec2 position = b2Body_GetPosition(bodyId);
-                transformComp.Translation = { position.x, position.y, 0.0f };
-
-                b2Rot rotation = b2Body_GetRotation(bodyId);
-                transformComp.Rotation.z = std::atan2(rotation.s, rotation.c);
-
-            }
-
-        }
-
-
-        Camera* mainCamera = nullptr;
-        glm::mat4 cameraTransform;
-        {
-            auto group = m_registry.group<TransformComponent, CameraComponent>();
-            for (auto entity : group)
-            {
-                auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
-
-                if (camera.Primary)
-                {
-                    mainCamera = &camera.Camera;
-                    cameraTransform = transform.GetTransform();
-                    break;
-                }
-            }
-        }
-
-        if(mainCamera)
-        {   
-            Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
-            {
-                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
-
-                for (auto entity : view)
-                {
-                    auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-
-                    Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-                }
-            }
-
-            {
-                auto view = m_registry.view<CircleRendererComponent, TransformComponent>();
-
-                for (auto entity : view)
-                {
-                    auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
-
-                    Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
-                }
-            }
-
-
-            Renderer2D::EndScene();
-        }
-
-
     }
 
     void Scene::OnUpdateEditor(Timestep timestep, EditorCamera& camera)
@@ -430,6 +313,122 @@ namespace Engine {
             }
         }
         return {};
+    }
+
+    void Scene::UpdatePhysics()
+    {
+        const int32_t subStepCount = 4;
+        float physicsStep = 1.0f / 60.0f;
+
+        // update physics
+        b2World_Step(m_worldId, physicsStep, subStepCount);
+        auto view = m_registry.view<RigidBody2DComponent>();
+        for (auto e : view)
+        {
+            Entity entity = { e, this };
+            TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
+            auto& rb2dComp = entity.GetComponent<RigidBody2DComponent>();
+
+            b2BodyId bodyId = rb2dComp.RuntimeBody;
+
+            b2Vec2 position = b2Body_GetPosition(bodyId);
+            transformComp.Translation = { position.x, position.y, 0.0f };
+
+            b2Rot rotation = b2Body_GetRotation(bodyId);
+            transformComp.Rotation.z = std::atan2(rotation.s, rotation.c);
+
+        }
+    }
+
+    void Scene::RenderEntities(Timestep timestep)
+    {
+        /*
+       ╔════════════════════════════════════════════════╗
+       ║ 🚀 EVA ENGINE | ENTT                        	║
+       ║                                                ║
+       ╚════════════════════════════════════════════════╝
+       // Full-owning group: The registry owns and tightly packs both SpriteRendererComponent and TransformComponent
+       auto group = m_registry.group<SpriteRendererComponent, TransformComponent>();
+       ✅ Pros: Fastest iteration speed, best memory locality.
+       ❌ Cons: Less flexibility, requires full ownership.
+
+       // Partial-owning group: Owns SpriteRendererComponent but references TransformComponent without owning it
+       auto group = m_registry.group<SpriteRendererComponent>(entt::get<TransformComponent>);
+       ✅ Pros: Keeps SpriteRendererComponent tightly packed, while still accessing TransformComponent.
+       ❌ Cons: TransformComponent is looked up dynamically, adding slight overhead.
+
+       // Non-owning group: Does not own any components, just filters entities that have both components
+       auto group = m_registry.group<>(entt::get<SpriteRendererComponent, TransformComponent>);
+       ✅ Pros: No memory reordering, keeps components untouched.
+       ❌ Cons: Slightly slower than owning groups because it doesn’t pack memory efficiently.
+
+
+       */
+
+
+
+       // update scripts
+        {
+            m_registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+                {
+
+                    if (!nsc.Instance)
+                    {
+                        nsc.Instance = nsc.InstantiateScript();
+                        nsc.Instance->m_entity = Entity{ entity, this };
+                        nsc.Instance->OnCreate();
+                    }
+
+                    nsc.Instance->OnUpdate(timestep);
+
+                });
+        }
+
+        Camera* mainCamera = nullptr;
+        glm::mat4 cameraTransform;
+        {
+            auto group = m_registry.group<TransformComponent, CameraComponent>();
+            for (auto entity : group)
+            {
+                auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
+
+                if (camera.Primary)
+                {
+                    mainCamera = &camera.Camera;
+                    cameraTransform = transform.GetTransform();
+                    break;
+                }
+            }
+        }
+
+        if (mainCamera)
+        {
+            Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
+            {
+                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
+
+                for (auto entity : view)
+                {
+                    auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+
+                    Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+                }
+            }
+
+            {
+                auto view = m_registry.view<CircleRendererComponent, TransformComponent>();
+
+                for (auto entity : view)
+                {
+                    auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
+
+                    Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
+                }
+            }
+
+
+            Renderer2D::EndScene();
+        }
     }
 
 

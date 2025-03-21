@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Application.h"
+//#include "Engine/Core/Log.h"
 
 #include "Engine/Events/Event.h"
 #include "Engine/Events/ApplicationEvent.h"
@@ -13,6 +14,8 @@
 #include "Engine/Renderer/Renderer.h"
 
 #include "Engine/Renderer/OrthographicCamera.h"
+#include "Layer.h"         
+#include "LayerStack.h" 
 
 #include "GLFW/glfw3.h" // remove
 
@@ -36,10 +39,11 @@ namespace Engine
 
 		Renderer::Init();
 
-		m_imGuiLayer = new ImGuiLayer();
-		PushLayer(m_imGuiLayer);
+		m_layerStack = std::make_unique<LayerStack>();
 
-
+		m_imGuiLayer = std::make_unique<ImGuiLayer>();
+		PushLayer(std::move(m_imGuiLayer));
+		
 
 	}
 
@@ -48,16 +52,16 @@ namespace Engine
 
 	}
 
-	void Application::PushLayer(Layer* layer)
+	void Application::PushLayer(std::unique_ptr<Layer> layer)
 	{
-		m_LayerStack.PushLayer(layer);
 		layer->OnAttach();
+		m_layerStack->PushLayer(std::move(layer));
 	}
 
-	void Application::PushOverLay(Layer* layer)
+	void Application::PushOverLay(std::unique_ptr<Layer> layer)
 	{
-		m_LayerStack.PushOverlay(layer);
 		layer->OnAttach();
+		m_layerStack->PushOverlay(std::move(layer));
 
 	}
 
@@ -82,25 +86,36 @@ namespace Engine
 				EE_PROFILE_SCOPE("Application::Run() - Layer updates");
 
 				// dont update layers if editor is minimized
-				for (Layer* layer : m_LayerStack)
+				for (const auto& layer : m_layerStack->GetLayers())
 				{
 					
 					layer->OnUpdate(timestep);
 					
 				}
 
-			}
-			{
 				EE_PROFILE_SCOPE("Application::Run() - ImGui updates");
 
-				m_imGuiLayer->Begin();
-				for (Layer* layer : m_LayerStack)
-				{
-					layer->OnImGuiRender();
-				}
-				m_imGuiLayer->End();
 			}
+			{
+				//if (m_LayerStack.GetLayerCount() != 0)
+				{
+					m_imGuiLayer->Begin();
+				
+					for (const auto& layer : m_layerStack->GetLayers())
+					{
+						layer->OnImGuiRender();
+					}
 
+
+					m_imGuiLayer->End();
+
+				}
+			}
+			if (!m_window)
+			{
+				EE_ERROR("Failed to create window!");
+				return; 
+			}
 			m_window->OnUpdate();
 		}	
 	}
@@ -114,25 +129,24 @@ namespace Engine
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
-
 		// Propagate the event to layers in reverse order
-		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
+		// Access the underlying LayerStack object via *m_LayerStack
+		for (auto it = m_layerStack->rbegin(); it != m_layerStack->rend(); ++it)
 		{
 			if (*it) // Ensure the layer is valid
 			{
-				//EE_TRACE("Dispatching event: {}", e.ToString());
-				//EE_TRACE("Layer: {}", (*it)->GetName());
+				// Dispatch the event to the current layer
+				(*it)->OnEvent(e);
 
-				(*it)->OnEvent(e); // Call OnEvent on the current layer
-				if (e.Handled)     // Stop propagation if the event is handled
+				// If the event is handled, break out of the loop to stop propagation
+				if (e.Handled)
 				{
-
 					break;
 				}
 			}
 		}
-
 	}
+
 
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)

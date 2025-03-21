@@ -10,17 +10,22 @@
 
 namespace Engine {
 
-
     Editor::Editor()
         : Application("Eva Editor")
     {
-        PushLayer(new EditorLayer(this));
-
-        m_sandboxLayer = new Sandbox2D();       
-        PushLayer(m_sandboxLayer);
-        
-        
+        // Do not push layers inside the constructor
     }
+
+    void Editor::Init()
+    {
+        auto sandbox = std::make_unique<Sandbox2D>();
+        m_sandboxLayerPtr = sandbox.get();  // Store a raw pointer
+        PushLayer(std::move(sandbox));
+
+        auto editorLayer = std::make_unique<EditorLayer>(this);
+        PushLayer(std::move(editorLayer));
+    }
+
 
     Editor::~Editor()
     {
@@ -28,16 +33,17 @@ namespace Engine {
 
     Sandbox2D* Editor::GetGameLayer()
     {
-        return m_sandboxLayer;
+        return m_sandboxLayerPtr;
     }
-
 
     Application* CreateApplication()
     {
-        return new Editor();
+        auto editor = new Editor();
+        editor->Init();
+        return editor;
     }
-	
 };
+
 
 
 	

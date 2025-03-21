@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 	
 
 	EE_PROFILE_BEGIN_SESSION("Startup", "EvaEngineProfile-startup.json");
-	auto app = Engine::CreateApplication();
+	auto app = Engine::CreateApplication();	
 	EE_PROFILE_END_SESSION();
 
 	EE_PROFILE_BEGIN_SESSION("Runtimep", "EvaEngineProfile-runtime.json");

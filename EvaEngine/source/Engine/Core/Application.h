@@ -32,22 +32,21 @@ namespace Engine
 
 		void Run();
 
-		void PushLayer(Layer* layer);
-		void PushOverLay(Layer* layer);
+		void PushLayer(std::unique_ptr<Layer> layer);
+		void PushOverLay(std::unique_ptr<Layer> layer);
 
 		static Application& Get() { return *s_Instance; }
 		Window& GetWindow() { return *m_window; }
 
 		void Close();
 
-		ImGuiLayer* GetImGuiLayer() { return m_imGuiLayer; }
+		ImGuiLayer* GetImGuiLayer() { return m_imGuiLayer.get(); }
 
-	private:
 
 		static Application* s_Instance;
 
 		std::unique_ptr<Window> m_window;
-		ImGuiLayer* m_imGuiLayer;
+		std::unique_ptr<ImGuiLayer> m_imGuiLayer;
 
 		bool m_isRunning = true;
 		bool m_minimized = false;
@@ -57,10 +56,9 @@ namespace Engine
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
-		LayerStack m_LayerStack;
 		float m_lastFrameTime = 0.0f;
-
-
+	protected:
+		std::unique_ptr<LayerStack> m_layerStack;
 	};
 
 	//in client

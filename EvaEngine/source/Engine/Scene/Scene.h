@@ -31,7 +31,7 @@ namespace Engine {
 		void OnRunTimeStop();
 
 
-		void OnUpdateRuntime(Timestep timestep);
+		void OnUpdateRuntime(Timestep timestep, bool updatePhysics = true);
 		void OnUpdateEditor(Timestep timestep, EditorCamera& camera);
 		void OnViewportResize(uint32_t width, uint32_t height);
 
@@ -49,6 +49,9 @@ namespace Engine {
 
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
+
+		void UpdatePhysics();
+		void RenderEntities(Timestep timestep);
 
 
 	private:

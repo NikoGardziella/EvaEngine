@@ -10,13 +10,13 @@ namespace Engine {
         Editor();
         ~Editor();
 
+        void Init(); // New function to initialize layers after construction
         Sandbox2D* GetGameLayer();
 
     private:
-        Sandbox2D* m_sandboxLayer;
+        Sandbox2D* m_sandboxLayerPtr = nullptr; 
     };
 
     Application* CreateApplication();
-   
-
 }
+

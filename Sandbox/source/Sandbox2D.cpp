@@ -7,6 +7,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+/*
 static const uint32_t s_mapWidth = 26;
 static const char* s_mapTiles =
 "WWWWWWWWWWWWWWWWWWWWWWWWWWW"
@@ -22,6 +23,7 @@ static const char* s_mapTiles =
 "WWWWWWWWWWWWWWWWWWWWWWWWWWW"
 "WWWWWCWWWWWWWWWWWWWWWWWWWWW"
 ;
+*/
 
 Sandbox2D::Sandbox2D()
 	: Layer ("Sandbox2D"),
@@ -38,8 +40,8 @@ void Sandbox2D::OnAttach()
 	m_checkerBoardTexture = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());
 	m_textureSpriteSheetPacked = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/game/RPGpack_sheet_2X.png").string());
 
-	m_mapWidth = s_mapWidth;
-	m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
+	//m_mapWidth = s_mapWidth;
+	//m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
 	m_textureMap['D'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, {6, 11}, {128,128});
 	m_textureMap['W'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, {11, 11}, {128,128});
 
@@ -100,10 +102,7 @@ void Sandbox2D::OnImGuiRender()
 
 void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 {
-	if (!m_isPlaying)
-	{
-		//return;
-	}
+	
 
 	EE_PROFILE_FUNCTION();
     {
@@ -127,8 +126,15 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 
     {
 		m_framebuffer->ClearColorAttachment(1, -1);
+		if (!m_isPlaying)
+		{
+			m_activeScene->OnUpdateRuntime(timestep, false);
+		}
+		else
+		{
+			m_activeScene->OnUpdateRuntime(timestep);
 
-		m_activeScene->OnUpdateRuntime(timestep);
+		}
 		static float rotation = 0.0f;
 		rotation += timestep * 20.0f;
 

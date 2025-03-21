@@ -123,24 +123,26 @@ class Sandbox : public Engine::Application
 public:
 	Sandbox()
 	{
-		PushLayer(new ExampleGameLayer());
+		//m_exampleLayer = std::make_unique<ExampleGameLayer>();
+		//PushLayer(std::move(m_exampleLayer)); // Move it to LayerStack
 		//PushLayer(new Sandbox2D());
 	}
 	~Sandbox()
 	{
 
 	}
-
+private:
+	//std::unique_ptr<ExampleGameLayer> m_exampleLayer;
 
 };
 
 
 
-//#ifdef GAME_BUILD
+#ifdef GAME_BUILD
 
 Engine::Application* Engine::CreateApplication()
 {
 	return new Sandbox(); // Only for sandbox builds
 }
-//#endif
+#endif
 

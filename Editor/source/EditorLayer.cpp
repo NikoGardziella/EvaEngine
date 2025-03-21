@@ -25,21 +25,6 @@ namespace Engine {
     //extern const std::filesystem::path s_assetPath;
 
 
-    static const uint32_t s_mapWidth = 26;
-    static const char* s_mapTiles =
-        "WWWWWWWWWWWWWWWWWWWWWWWWWWW"
-        "WWWWWWDDDDWWWWWWWWWWWWWWWWW"
-        "WWWWDDDDDDDDDWWWWWWWWWWWWWW"
-        "WWWDDDDDDDDDDDDWWWWWWWWWWWW"
-        "WWDDDDDDDDDDDDDDWWWWWWWWWWW"
-        "WWDDDDDDDDDDDDDDDDWWWWWWWWW"
-        "WWWDDDDDDDDDDDDDWWWWWWWWWWW"
-        "WWWWWWWDDWWWWWWWWWWWWWWWWWW"
-        "WWWWDDDDDDDDDDDWWWWWWWWWWWW"
-        "WWWWWDDDDDDDDWWWWWWWWWWWWWW"
-        "WWWWWWWWWWWWWWWWWWWWWWWWWWW"
-        "WWWWWCWWWWWWWWWWWWWWWWWWWWW"
-        ;
 
     class Editor;
 
@@ -60,8 +45,7 @@ namespace Engine {
         m_iconPlay = Texture2D::Create(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string());
         m_iconStop = Texture2D::Create(AssetManager::GetAssetPath("icons/stop-button.png").string());
 
-        m_mapWidth = s_mapWidth;
-        m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
+
         //m_textureMap['D'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 6, 11 }, { 128,128 });
         //m_textureMap['W'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 11, 11 }, { 128,128 });
 
@@ -295,7 +279,10 @@ namespace Engine {
 
             m_viewportFocused = ImGui::IsWindowFocused();
             m_viewportHovered = ImGui::IsWindowHovered();
-            Application::Get().GetImGuiLayer()->BlockEvents(!m_viewportFocused && !m_viewportHovered);
+            if (Application::Get().GetImGuiLayer())
+            {
+                Application::Get().GetImGuiLayer()->BlockEvents(!m_viewportFocused && !m_viewportHovered);
+            }
 
 
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
