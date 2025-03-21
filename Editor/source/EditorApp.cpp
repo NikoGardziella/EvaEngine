@@ -23,12 +23,14 @@ namespace Engine {
         PushLayer(std::move(sandbox));
 
         auto editorLayer = std::make_unique<EditorLayer>(this);
+        m_editorLayerPtr = editorLayer.get();
         PushLayer(std::move(editorLayer));
     }
 
 
     Editor::~Editor()
     {
+
     }
 
     Sandbox2D* Editor::GetGameLayer()

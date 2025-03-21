@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Core/Application.h"
 #include "Sandbox2D.h"
+#include "EditorLayer.h"
 
 namespace Engine {
 
@@ -15,6 +16,7 @@ namespace Engine {
 
     private:
         Sandbox2D* m_sandboxLayerPtr = nullptr; 
+        EditorLayer* m_editorLayerPtr = nullptr;
     };
 
     Application* CreateApplication();

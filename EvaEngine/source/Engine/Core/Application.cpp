@@ -65,6 +65,17 @@ namespace Engine
 
 	}
 
+	void Application::PopLayer(Layer* layer)
+	{
+		m_layerStack->PopLayer(layer);
+
+	}
+
+	void Application::PopOverlay(Layer* layer)
+	{
+		m_layerStack->PopOverlay(layer);
+	}
+
 	void Application::Close()
 	{
 		m_isRunning = false;

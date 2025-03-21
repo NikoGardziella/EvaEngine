@@ -34,6 +34,8 @@ namespace Engine
 
 		void PushLayer(std::unique_ptr<Layer> layer);
 		void PushOverLay(std::unique_ptr<Layer> layer);
+		void PopLayer(Layer* layer);
+		void PopOverlay(Layer* overlay);
 
 		static Application& Get() { return *s_Instance; }
 		Window& GetWindow() { return *m_window; }
