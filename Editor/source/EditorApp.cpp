@@ -14,12 +14,12 @@ namespace Engine {
     Editor::Editor()
         : Application("Eva Editor")
     {
-        m_editorLayerPtr = new EditorLayer(this);
-        PushLayer(m_editorLayerPtr);
-
         m_sandboxLayerPtr = new Sandbox2D();       
         PushLayer(m_sandboxLayerPtr);
         
+        m_editorLayerPtr = new EditorLayer(this);
+        PushLayer(m_editorLayerPtr);
+
         
     }
 

@@ -23,6 +23,10 @@ public:
 	Engine::Ref<Engine::Framebuffer>& GetGameFramebuffer() { return m_framebuffer; }
 
 	void SetIsPlaying(bool play) { m_isPlaying = play; }
+	void SetActiveScene(Engine::Ref<Engine::Scene>& scene) { m_activeScene = Engine::Scene::Copy(scene); }
+
+public:
+
 
 private:
 

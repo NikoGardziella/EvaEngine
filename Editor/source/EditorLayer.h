@@ -19,6 +19,7 @@ namespace Engine {
 		{
 			Edit = 0,
 			Play = 1,
+			Pause = 2,
 		};
 
 
@@ -49,6 +50,7 @@ namespace Engine {
 		void UI_Toolbar();
 		void OnScenePlay();
 		void OnSceneStop();
+		void OnScenePause();
 
 
 		void OnDuplicateEntity();
@@ -111,6 +113,7 @@ namespace Engine {
 		SceneState m_sceneState = SceneState::Edit;
 		Ref<Texture2D> m_iconPlay;
 		Ref<Texture2D> m_iconStop;
+		Ref<Texture2D> m_iconPause;
 
 		bool m_showColliders = false;
 

@@ -8,6 +8,7 @@
 #include "ScriptableEntity.h"
 
 #include "box2d/box2d.h"
+
 //#include "box2d/collision.h"
 //#include "box2d/types.h"
 //#include "box2d/base.h"
@@ -219,7 +220,20 @@ namespace Engine {
         b2DestroyWorld(m_worldId);
     }
 
-    void Scene::OnUpdateRuntime(Timestep timestep)
+    void Scene::PauseRuntime()
+    {
+        b2BodyEvents bodyEvents = b2World_GetBodyEvents(m_worldId);
+
+        // TODO save all velocities and add them on resume
+    }
+
+
+    void Scene::ResumeRuntime()
+    {
+
+    }
+
+    void Scene::OnUpdateRuntime(Timestep timestep, bool isPlaying)
     {
 
         /*
@@ -269,31 +283,9 @@ namespace Engine {
 
 
         // physics
-
+        if (isPlaying)
         {
-  
-            const int32_t subStepCount = 4;
-            float physicsStep = 1.0f / 60.0f;
-
-            // update physics
-            b2World_Step(m_worldId, physicsStep, subStepCount);
-            auto view = m_registry.view<RigidBody2DComponent>();
-            for (auto e : view)
-            {
-                Entity entity = { e, this };
-                TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
-                auto& rb2dComp = entity.GetComponent<RigidBody2DComponent>();
-
-                b2BodyId bodyId = rb2dComp.RuntimeBody;
- 
-                b2Vec2 position = b2Body_GetPosition(bodyId);
-                transformComp.Translation = { position.x, position.y, 0.0f };
-
-                b2Rot rotation = b2Body_GetRotation(bodyId);
-                transformComp.Rotation.z = std::atan2(rotation.s, rotation.c);
-
-            }
-
+            UpdatePhysics(timestep);
         }
 
 
@@ -430,6 +422,31 @@ namespace Engine {
             }
         }
         return {};
+    }
+
+    void Scene::UpdatePhysics(Timestep timestep)
+    {
+        const int32_t subStepCount = 4;
+        float physicsStep = 1.0f / 60.0f;
+
+        // update physics
+        b2World_Step(m_worldId, physicsStep, subStepCount);
+        auto view = m_registry.view<RigidBody2DComponent>();
+        for (auto e : view)
+        {
+            Entity entity = { e, this };
+            TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
+            auto& rb2dComp = entity.GetComponent<RigidBody2DComponent>();
+
+            b2BodyId bodyId = rb2dComp.RuntimeBody;
+
+            b2Vec2 position = b2Body_GetPosition(bodyId);
+            transformComp.Translation = { position.x, position.y, 0.0f };
+
+            b2Rot rotation = b2Body_GetRotation(bodyId);
+            transformComp.Rotation.z = std::atan2(rotation.s, rotation.c);
+
+        }
     }
 
 

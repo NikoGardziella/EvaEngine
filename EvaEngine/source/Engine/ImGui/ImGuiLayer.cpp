@@ -56,8 +56,8 @@ namespace Engine {
 		//io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", fontSize);
 
 		// Setup Dear ImGui style
-		//ImGui::StyleColorsDark();
-		StyleColorsEva();
+		ImGui::StyleColorsDark();
+		//StyleColorsEva();
 		//ImGui::StyleColorsClassic();
 		//ImGui::StyleColorsLight();
 		

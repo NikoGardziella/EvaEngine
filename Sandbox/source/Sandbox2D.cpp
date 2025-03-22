@@ -62,6 +62,13 @@ void Sandbox2D::OnAttach()
 	m_cameraEntity.AddComponent<Engine::TransformComponent>();
 
 	*/
+	Engine::SceneSerializer serializer(m_activeScene);
+	std::string scenePath = Engine::AssetManager::GetAssetPath("scenes/physics2D.EE").string();
+	if (!serializer.Deserialize(scenePath))
+	{
+		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
+	}
+	/*
 	m_squareEntity = m_activeScene->CreateEntity("square");
 	m_squareEntity.AddComponent<Engine::TransformComponent>();
 	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
@@ -72,15 +79,10 @@ void Sandbox2D::OnAttach()
 	m_squareEntity.AddComponent<Engine::TransformComponent>();
 	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
 
+	*/
 
-	Engine::SceneSerializer serializer(m_activeScene);
-	std::string scenePath = Engine::AssetManager::GetAssetPath("scenes/physics2D.EE").string();
-	if (!serializer.Deserialize(scenePath))
-	{
-		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
-	}
 	
-	m_activeScene->OnRunTimeStart();
+	//m_activeScene->OnRunTimeStart();
 
 }
 
@@ -100,10 +102,7 @@ void Sandbox2D::OnImGuiRender()
 
 void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 {
-	if (!m_isPlaying)
-	{
-		//return;
-	}
+	
 
 	EE_PROFILE_FUNCTION();
     {
@@ -127,8 +126,13 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 
     {
 		m_framebuffer->ClearColorAttachment(1, -1);
+		
 
-		m_activeScene->OnUpdateRuntime(timestep);
+		m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
+		
+
+
+
 		static float rotation = 0.0f;
 		rotation += timestep * 20.0f;
 

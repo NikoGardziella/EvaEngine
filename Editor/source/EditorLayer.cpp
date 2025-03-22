@@ -59,6 +59,7 @@ namespace Engine {
        // m_textureSpriteSheetPacked = Engine::Texture2D::Create("assets/textures/game/RPGpack_sheet_2X.png");
         m_iconPlay = Texture2D::Create(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string());
         m_iconStop = Texture2D::Create(AssetManager::GetAssetPath("icons/stop-button.png").string());
+        m_iconPause = Texture2D::Create(AssetManager::GetAssetPath("icons/video-pause-button.png").string());
 
         m_mapWidth = s_mapWidth;
         m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
@@ -116,9 +117,12 @@ namespace Engine {
         };        
 
         m_activeScene = std::make_shared<Scene>();
-      
+        m_activeScene = m_editor.get()->GetGameLayer()->GetActiveGameScene();
 
-        //m_editorScene = std::make_shared<Scene>();
+
+        m_editorScene = std::make_shared<Scene>();
+        m_editorScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+
         //m_editorScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
         /*
@@ -443,22 +447,36 @@ namespace Engine {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
-       // ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.90f, 0.2f, 0.2f, 1.0f });
-       // ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.75f, 0.12f, 0.12f, 1.0f });
 
-        ImGui::Begin("##toolbar",nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
         float size = ImGui::GetWindowHeight() - 10.0f;
-        Ref<Texture2D> icon = m_sceneState == SceneState::Edit ? m_iconPlay : m_iconStop;
-        ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - size * 0.5f);
+        Ref<Texture2D> icon = m_sceneState == SceneState::Play ?  m_iconPause : m_iconPlay;
 
-        if (ImGui::ImageButton("##playbutton", (ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0,0), ImVec2(1,1)))
+        // Centering the toolbar buttons
+        float toolbarWidth = 2 * size;  // Adjust based on number of buttons
+        float offsetX = (ImGui::GetWindowContentRegionMax().x - toolbarWidth) * 0.5f;
+        ImGui::SetCursorPosX(offsetX);
+
+        // Play Button
+        if (ImGui::ImageButton("##playbutton", (ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
         {
-            if (m_sceneState == SceneState::Edit)
+            if (m_sceneState == SceneState::Pause || m_sceneState == SceneState::Edit)
             {
                 OnScenePlay();
             }
             else if (m_sceneState == SceneState::Play)
+            {
+                OnScenePause();
+            }
+        }
+
+        ImGui::SameLine(); // Move the next item to the same row
+
+        // Stop Button
+        if (ImGui::ImageButton("##stopbutton", (ImTextureID)m_iconStop->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
+        {
+            if (m_sceneState == SceneState::Play || m_sceneState == SceneState::Pause)
             {
                 OnSceneStop();
             }
@@ -467,28 +485,34 @@ namespace Engine {
         ImGui::PopStyleColor(1);
         ImGui::PopStyleVar(2);
         ImGui::End();
-
     }
+
 
     void EditorLayer::OnScenePlay()
     {
+
+        if (m_sceneState != SceneState::Pause)
+        {
+            m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStart();
+        }
+
+        m_sceneState = SceneState::Play;
+
+        //m_activeScene = m_editorScene;
+        m_editor.get()->GetGameLayer()->SetIsPlaying(true);
         if (!m_editorScene)
         {
-            m_sceneState = SceneState::Play;
 
-            m_activeScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
-            m_activeScene->OnRunTimeStart();
-            m_editor.get()->GetGameLayer()->SetIsPlaying(true);
 
         }
         else
         {
-            m_sceneState = SceneState::Play;
+            //m_sceneState = SceneState::Play;
 
             //m_activeScene = Scene::Copy(m_editorScene);
-
-            m_activeScene->OnRunTimeStart();
+           // m_editor.get()->GetGameLayer()->SetIsPlaying(true);
+            //m_activeScene->OnRunTimeStart();
         }
 
     }
@@ -496,12 +520,20 @@ namespace Engine {
     void EditorLayer::OnSceneStop()
     {      
         m_sceneState = SceneState::Edit;
-        m_activeScene->OnRunTimeStop();
-
-        m_activeScene = m_editorScene;
+        //m_activeScene = m_editorScene;
 
         m_editor.get()->GetGameLayer()->SetIsPlaying(false);
+        m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStop();
+        m_editor.get()->GetGameLayer()->SetActiveScene(m_editorScene);
+    }
 
+    void EditorLayer::OnScenePause()
+    {
+        m_sceneState = SceneState::Pause;
+        //m_activeScene->OnRunTimeStop();
+
+
+        m_editor.get()->GetGameLayer()->SetIsPlaying(false);
     }
 
     void EditorLayer::OnDuplicateEntity()
@@ -622,12 +654,12 @@ namespace Engine {
                 case Engine::EditorLayer::SceneState::Edit:
                 {
 
-                    m_activeScene->OnUpdateEditor(timestep, m_editorCamera);
+                   // m_activeScene->OnUpdateEditor(timestep, m_editorCamera);
                     break;
                 }
                 case Engine::EditorLayer::SceneState::Play:
                 {
-                    m_activeScene->OnUpdateRuntime(timestep);
+                    //m_activeScene->OnUpdateRuntime(timestep);
                     break;
                 }
 
