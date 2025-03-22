@@ -49,7 +49,9 @@ namespace Engine
 
 	Application::~Application()
 	{
-
+		EE_CORE_ERROR("~Application() destructor");
+		
+		//PopLayer(m_imGuiLayer.get());
 	}
 
 	void Application::PushLayer(std::unique_ptr<Layer> layer)
@@ -180,6 +182,11 @@ namespace Engine
 
 
 		return false;
+	}
+	void Application::Shutdown()
+	{
+		delete s_Instance;  
+		s_Instance = nullptr; 
 	}
 }
 

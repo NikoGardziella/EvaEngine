@@ -33,11 +33,16 @@ Sandbox2D::Sandbox2D()
 
 }
 
+Sandbox2D::~Sandbox2D()
+{
+	EE_CORE_ERROR("~Sandbox2D() destructor");
+}
+
 void Sandbox2D::OnAttach()
 {
 	EE_PROFILE_FUNCTION();
 
-	m_checkerBoardTexture = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());
+	//m_checkerBoardTexture = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());
 	m_textureSpriteSheetPacked = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/game/RPGpack_sheet_2X.png").string());
 
 	//m_mapWidth = s_mapWidth;
@@ -143,7 +148,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 		Engine::Renderer2D::DrawQuad({ 0.5f, 0.5f }, { 1.0f, 1.0f, }, { 0.8f, 0.3f, 0.3f, 1.0f });
 		Engine::Renderer2D::DrawQuad({ 1.5f, 1.5f }, { 1.0f, 1.0f, }, { 0.2f, 0.3f, 0.9f, 1.0f });
 		Engine::Renderer2D::DrawRotatedQuad({ 1.0f,1.0f }, { 1.0f, 1.0f, }, rotation, { 0.1f, 0.8f, 0.4f, 1.0f });
-		Engine::Renderer2D::DrawRotatedQuad({ 0.0f,0.0f, -0.1f }, { 10.f, 10.f, }, 45.0f, m_checkerBoardTexture, 10.0f, glm::vec4(1.0f, 0.9f, 0.9f, 1.0f));
+		//Engine::Renderer2D::DrawRotatedQuad({ 0.0f,0.0f, -0.1f }, { 10.f, 10.f, }, 45.0f, m_checkerBoardTexture, 10.0f, glm::vec4(1.0f, 0.9f, 0.9f, 1.0f));
 		Engine::Renderer2D::EndScene();
 
         m_framebuffer->Unbind();

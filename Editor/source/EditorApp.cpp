@@ -23,27 +23,35 @@ namespace Engine {
         PushLayer(std::move(sandbox));
 
         auto editorLayer = std::make_unique<EditorLayer>(this);
-        m_editorLayerPtr = editorLayer.get();
+        //m_editorLayerPtr = editorLayer.get();
         PushLayer(std::move(editorLayer));
     }
 
 
     Editor::~Editor()
     {
+        EE_CORE_ERROR("~Editor() destructor");
 
+        //PopLayer(m_sandboxLayerPtr);
+       // PopLayer(m_editorLayerPtr);
     }
 
     Sandbox2D* Editor::GetGameLayer()
     {
         return m_sandboxLayerPtr;
+    
     }
 
+    
     Application* CreateApplication()
     {
         auto editor = new Editor();
         editor->Init();
         return editor;
     }
+
+    
+  
 };
 
 

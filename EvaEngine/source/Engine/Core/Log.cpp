@@ -30,5 +30,7 @@ namespace Engine
 		m_ClientLogger = spdlog::stdout_color_mt("Client");
 		m_ClientLogger->set_level(spdlog::level::trace);
 
+	
+
 	}
 }

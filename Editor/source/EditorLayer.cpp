@@ -36,6 +36,12 @@ namespace Engine {
 
     }
 
+    EditorLayer::~EditorLayer()
+    {
+        EE_CORE_ERROR("~EditorLayer() destructor");
+
+    }
+
     void EditorLayer::OnAttach()
     {
         EE_PROFILE_FUNCTION();
@@ -125,7 +131,7 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
         //m_sceneSerializer->Serialize("assets/scene/example_scene.ee");
-        
+     
     }
 
     void EditorLayer::OnImGuiRender()

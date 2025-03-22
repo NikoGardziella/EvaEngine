@@ -1,25 +1,19 @@
 #include "pch.h"
 #include "LayerStack.h"
+#include "Application.h"
+
+
 
 namespace Engine {
 
 	
     LayerStack::~LayerStack()
     {
-        std::cout << "Destroying LayerStack. Layers size: " << m_Layers.size() << std::endl;
-
-        for (size_t i = 0; i < m_Layers.size(); ++i)
-        {
-            if (!m_Layers[i]) {
-                std::cerr << "Warning: Null layer detected at index " << i << " during destruction!" << std::endl;
-            }
-            else {
-                std::cout << "Destroying layer at index: " << i << " - " << typeid(*m_Layers[i]).name() << std::endl;
-            }
-        }
-
-        m_Layers.clear();  // This ensures all unique_ptr destructors are called.
+        EE_TRACE("Destroying LayerStack: {}", (void*)this);  // Debug log
+        
+        
     }
+
 
 
 	
@@ -42,30 +36,18 @@ namespace Engine {
     void LayerStack::PopLayer(Layer* layer)
     {
         EE_PROFILE_FUNCTION();
+        
+        auto it = std::find_if(m_Layers.begin(), m_Layers.begin() + m_LayerInsertIndex,
+            [layer](const std::unique_ptr<Layer>& ptr) { return ptr.get() == layer; });
 
-        if (!layer)  // Check if layer is null
+        if (it != m_Layers.begin() + m_LayerInsertIndex)
         {
-            EE_ERROR("Attempting to pop a null layer!");
-            return;
+            (*it)->OnDetach();   // Ensure proper cleanup
+            m_Layers.erase(it);  // Smart pointer automatically frees memory
+            if (m_LayerInsertIndex > 0)
+                m_LayerInsertIndex--; // Prevent underflow
         }
-
-        // Ensure the index is valid
-        if (m_LayerInsertIndex > 0 && m_LayerInsertIndex <= m_Layers.size())
-        {
-            auto it = std::find_if(m_Layers.begin(), m_Layers.begin() + m_LayerInsertIndex,
-                [layer](const std::unique_ptr<Layer>& ptr) { return ptr.get() == layer; });
-
-            if (it != m_Layers.begin() + m_LayerInsertIndex)
-            {
-                (*it)->OnDetach();
-                m_Layers.erase(it);
-                m_LayerInsertIndex--;
-            }
-        }
-        else
-        {
-            EE_ERROR("Invalid Layer Insert Index!");
-        }
+        
     }
 
     void LayerStack::PopOverlay(Layer* overlay)

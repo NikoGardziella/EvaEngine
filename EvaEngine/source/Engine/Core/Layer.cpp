@@ -8,4 +8,9 @@ namespace Engine {
 	{
 	}
 
+	Layer::~Layer()
+	{
+		EE_CORE_ERROR("~Layer() destructor");
+	}
+
 }

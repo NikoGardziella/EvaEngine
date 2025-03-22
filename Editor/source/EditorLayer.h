@@ -26,7 +26,7 @@ namespace Engine {
 
 
 		EditorLayer(Editor* editor);
-		virtual ~EditorLayer() = default;
+		virtual ~EditorLayer();
 
 		virtual void OnAttach() override;
 		virtual void OnDetach() override;
@@ -84,12 +84,14 @@ namespace Engine {
 
 		Entity m_hoveredEntity;
 
+		/*
 		Ref<Texture2D> m_checkerBoardTexture;
 		Ref<Texture2D> m_spriteSheet;
 		Ref<Texture2D> m_textureSpriteSheetPacked;
 
 		Ref<SubTexture2D> m_textureSprite;
 		Ref<SubTexture2D> m_textureBarrel;
+		*/
 
 
 		uint32_t m_mapWidth;

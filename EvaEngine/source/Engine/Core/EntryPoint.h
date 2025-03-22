@@ -11,7 +11,6 @@
 //extern Engine::Application* Engine::CreateApplication();
 //extern Engine::Application* Engine::CreateGameApplication();
 
-
 int main(int argc, char** argv)
 {
 	Engine::Log::Init();
@@ -23,12 +22,16 @@ int main(int argc, char** argv)
 	auto app = Engine::CreateApplication();	
 	EE_PROFILE_END_SESSION();
 
+
 	EE_PROFILE_BEGIN_SESSION("Runtimep", "EvaEngineProfile-runtime.json");
 	app->Run();
 	EE_PROFILE_END_SESSION();
 
+	
+
 	EE_PROFILE_BEGIN_SESSION("Shutdown", "EvaEngineProfile-shutdown.json");
-	delete app;
+	//app->Shutdown();
+	//delete app;
 	EE_PROFILE_END_SESSION();
 
 

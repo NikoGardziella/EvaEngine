@@ -59,6 +59,9 @@ namespace Engine
 		bool OnWindowResize(WindowResizeEvent& e);
 
 		float m_lastFrameTime = 0.0f;
+
+		void Shutdown();
+
 	protected:
 		std::unique_ptr<LayerStack> m_layerStack;
 	};
