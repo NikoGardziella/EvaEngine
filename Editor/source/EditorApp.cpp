@@ -14,21 +14,24 @@ namespace Engine {
     Editor::Editor()
         : Application("Eva Editor")
     {
-        PushLayer(new EditorLayer(this));
+        m_editorLayerPtr = new EditorLayer(this);
+        PushLayer(m_editorLayerPtr);
 
-        m_sandboxLayer = new Sandbox2D();       
-        PushLayer(m_sandboxLayer);
+        m_sandboxLayerPtr = new Sandbox2D();       
+        PushLayer(m_sandboxLayerPtr);
         
         
     }
 
     Editor::~Editor()
     {
+        PopLayer(m_sandboxLayerPtr);
+        PopLayer(m_editorLayerPtr);
     }
 
     Sandbox2D* Editor::GetGameLayer()
     {
-        return m_sandboxLayer;
+        return m_sandboxLayerPtr;
     }
 
 

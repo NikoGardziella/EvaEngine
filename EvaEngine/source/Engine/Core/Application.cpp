@@ -45,6 +45,7 @@ namespace Engine
 
 	Application::~Application()
 	{
+		PopLayer(m_imGuiLayer);
 
 	}
 
@@ -59,6 +60,18 @@ namespace Engine
 		m_LayerStack.PushOverlay(layer);
 		layer->OnAttach();
 
+	}
+
+	void Application::PopOverlay(Layer* overlay)
+	{
+		overlay->OnDetach();
+		m_LayerStack.PopOverlay(overlay);
+	}
+
+	void Application::PopLayer(Layer* layer)
+	{
+		layer->OnDetach();
+		m_LayerStack.PopLayer(layer);
 	}
 
 	void Application::Close()

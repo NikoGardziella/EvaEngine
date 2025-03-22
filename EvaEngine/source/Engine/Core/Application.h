@@ -34,6 +34,9 @@ namespace Engine
 
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* layer);
+		void PopOverlay(Layer* overlay);
+		void PopLayer(Layer* layer);
+
 
 		static Application& Get() { return *s_Instance; }
 		Window& GetWindow() { return *m_window; }

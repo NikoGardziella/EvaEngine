@@ -5,11 +5,10 @@ namespace Engine {
 
 	LayerStack::~LayerStack()
 	{
-		for (Layer* layer : m_Layers)
-		{
-			layer->OnDetach();
-			delete layer;
-		}
+		
+		
+		EE_CORE_INFO("~Layerstack. Index; {0}", m_LayerInsertIndex);
+		m_Layers.clear();
 	}
 
 	void LayerStack::PushLayer(Layer* layer)
@@ -36,7 +35,7 @@ namespace Engine {
 		auto it = std::find(m_Layers.begin(), m_Layers.begin() + m_LayerInsertIndex, layer);
 		if (it != m_Layers.begin() + m_LayerInsertIndex)
 		{
-			layer->OnDetach();
+			//layer->OnDetach(); // detached called in application
 			m_Layers.erase(it);
 			m_LayerInsertIndex--;
 		}
@@ -49,7 +48,7 @@ namespace Engine {
 		auto it = std::find(m_Layers.begin() + m_LayerInsertIndex, m_Layers.end(), overlay);
 		if (it != m_Layers.end())
 		{
-			overlay->OnDetach();
+			//overlay->OnDetach();
 			m_Layers.erase(it);
 		}
 	}
