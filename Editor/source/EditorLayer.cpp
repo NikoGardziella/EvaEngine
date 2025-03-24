@@ -126,14 +126,14 @@ namespace Engine {
         //m_editorScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
         
-        /*
+        
         Engine::SceneSerializer serializer(m_editorScene);
         std::string scenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName()).string();
         if (!serializer.Deserialize(scenePath))
         {
             EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
         }
-        */
+        
         
        // m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
         //m_activeScene = Scene::Copy(m_editorScene);
@@ -504,22 +504,8 @@ namespace Engine {
 
         m_sceneState = SceneState::Play;
 
-        //m_activeScene = m_editorScene;
         m_editor.get()->GetGameLayer()->SetIsPlaying(true);
-        if (!m_editorScene)
-        {
-
-
-
-        }
-        else
-        {
-            //m_sceneState = SceneState::Play;
-
-            //m_activeScene = Scene::Copy(m_editorScene);
-           // m_editor.get()->GetGameLayer()->SetIsPlaying(true);
-            //m_activeScene->OnRunTimeStart();
-        }
+       
 
     }
 
@@ -873,6 +859,7 @@ namespace Engine {
         if (!m_currentScenePath.empty())
         {
             SceneSerializer serializer(m_editorScene);
+            //serializer.Deserialize(m_currentScenePath.string());
             serializer.Serialize(m_currentScenePath.string());
         }
     }

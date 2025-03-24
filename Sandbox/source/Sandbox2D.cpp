@@ -64,12 +64,14 @@ void Sandbox2D::OnAttach()
 
 	*/
 	
+	/*
 	Engine::SceneSerializer serializer(m_activeScene);
 	std::string scenePath = Engine::AssetManager::GetScenePath(m_activeSceneName).string();
 	if (!serializer.Deserialize(scenePath))
 	{
 		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
 	}
+	*/
 	
 	
 	m_squareEntity = m_activeScene->CreateEntity("square");

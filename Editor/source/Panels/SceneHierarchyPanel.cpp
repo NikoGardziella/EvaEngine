@@ -243,9 +243,6 @@ namespace Engine {
         if (m_selectionContext)
         {
             DrawComponents(m_selectionContext);
-
-
-
         }
         ImGui::End();
     }
@@ -356,7 +353,6 @@ namespace Engine {
 
         // Set the new position for the popup
         ImGui::SetNextWindowPos(popupPos);
-
 
         if (ImGui::BeginPopup("Add component"))
         {

@@ -46,7 +46,7 @@ namespace Engine {
     {
         std::lock_guard<std::mutex> lock(s_Mutex);
 
-        std::filesystem::path sceneDirectory = s_AssetPath / "Scenes";
+        std::filesystem::path sceneDirectory = s_AssetPath / "scenes";
 
         for (const auto& entry : std::filesystem::recursive_directory_iterator(sceneDirectory))
         {
