@@ -9,7 +9,7 @@ class Sandbox2D : public Engine::Layer
 
 public:
 
-	Sandbox2D();
+	Sandbox2D(std::string scene = "");
 	virtual ~Sandbox2D() = default;
 
 	virtual void OnAttach() override;
@@ -24,6 +24,9 @@ public:
 
 	void SetIsPlaying(bool play) { m_isPlaying = play; }
 	void SetActiveScene(Engine::Ref<Engine::Scene>& scene) { m_activeScene = Engine::Scene::Copy(scene); }
+	
+	std::string GetActiveSceneName() { return m_activeSceneName; }
+
 
 public:
 
@@ -58,7 +61,7 @@ private:
 	Engine::Entity m_squareEntity;
 	
 	bool m_isPlaying = false;
-
+	std::string m_activeSceneName;
 };
 
 

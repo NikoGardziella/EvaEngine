@@ -81,6 +81,8 @@ namespace Engine {
             return !(*this == other);
         }
 
+        const Scene* GetScene() { return m_scene;  }
+
 	private:
         entt::entity m_entityHandle{ entt::null };
 		Scene* m_scene = nullptr;

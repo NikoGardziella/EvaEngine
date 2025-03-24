@@ -14,7 +14,7 @@ namespace Engine {
     Editor::Editor()
         : Application("Eva Editor")
     {
-        m_sandboxLayerPtr = new Sandbox2D();       
+        m_sandboxLayerPtr = new Sandbox2D("physics2D");
         PushLayer(m_sandboxLayerPtr);
         
         m_editorLayerPtr = new EditorLayer(this);

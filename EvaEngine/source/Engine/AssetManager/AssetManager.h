@@ -12,6 +12,7 @@ namespace Engine {
         static void Initialize(int maxDepth = 5);
 
         static std::filesystem::path GetAssetPath(const std::string& subPath);
+        static std::filesystem::path GetScenePath(const std::string& subPath);
         static std::filesystem::path GetAssetFolderPath();
 
         static std::filesystem::path GetCacheDirectory();

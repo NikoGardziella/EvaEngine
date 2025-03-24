@@ -18,9 +18,10 @@ namespace Engine {
 
 
 
-		void SetContext(const Ref<Scene>& scene);
+		void SetEditorContext(const Ref<Scene>& scene);
+		void SetGameContext(const Ref<Scene>& scene);
 		void OnImGuiRender();
-		void SceneHierarchyPanel::DrawComponents(Entity entity);
+		void DrawComponents(Entity entity);
 
 		void SetGizmoType(const int guizmoType) { m_guizmoType = guizmoType; }
 		int GetGuizmoType() const { return m_guizmoType; }
@@ -30,10 +31,12 @@ namespace Engine {
 	private:
 
 		void DrawEntityNode(Entity entity);
+		void DrawContext();
 
 	private:
 
-		Ref<Scene> m_context;
+		Ref<Scene> m_editorContext;
+		Ref<Scene> m_gameContext;
 		Entity m_selectionContext;
 		int m_guizmoType = -1;
 

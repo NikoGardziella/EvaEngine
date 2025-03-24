@@ -1,88 +1,19 @@
 Scene: My Scene
 Entities:
-  - ID: 1008069000
+  - ID: 8620445107690659188
     TagComponent:
-      Tag: Circle
-    TransformComponent:
-      Translation: [0, 1.6, 0]
-      Rotation: [0, -0.02617994, 0]
-      Scale: [1, 1, 1]
-    CircleRendererComponent:
-      Color: [0.8069498, 0.19628507, 0.19628507, 1]
-      Thickness: 1
-      Fade: 0.001
-  - ID: 3241354921
-    TagComponent:
-      Tag: Circle
-    TransformComponent:
-      Translation: [-1.7872703, 1.6, -0.046801455]
-      Rotation: [0, -0.026180102, 0]
-      Scale: [1, 1, 1]
-    RigidBody2DComponent:
-      Type: 1
-      FixedRotation: false
-    CircleRendererComponent:
-      Color: [0.14978574, 0.14521252, 0.73745173, 1]
-      Thickness: 1
-      Fade: 0.001
-    CircleCollider2DComponent:
-      Offset: [0, 0]
-      Radius: 0.5
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - ID: 2555671213
-    TagComponent:
-      Tag: Ground1
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0.059341196]
-      Scale: [48.75, 1, 1]
-    SpriteRendererComponent:
-      Color: [0.7799228, 0.093349844, 0.093349844, 1]
-      Tiling: 1
-    RigidBody2DComponent:
-      Type: 0
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - ID: 1925186462
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [2.9993894, 100, 0]
-      Rotation: [0, 0, 1.5707961]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      Tiling: 1
-    RigidBody2DComponent:
-      Type: 1
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 0.73
-      Friction: 0.19
-      Restitution: 0.41
-      RestitutionThreshold: 0.5
-  - ID: 743868321
+      Tag: Empty entity
+  - ID: 3959723789316771920
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Translation: [0, 0, 50.73]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     CameraComponent:
       Primary: true
       FixedAspectRatio: false
-      ProjectionType: Perspective
-      PerspectiveFOV: 0.7853982
-      PerspectiveNearClip: 0.1
-      PerspectiveFarClip: 1000
+      ProjectionType: Orthographic
+      OrthographicSize: 10
+      OrthographicNearClip: -1
+      OrthographicFarClip: 1

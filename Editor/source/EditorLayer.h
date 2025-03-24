@@ -78,8 +78,6 @@ namespace Engine {
 		std::filesystem::path m_currentScenePath;
 
 
-		Entity m_cameraEntity;
-		Entity m_cameraSecondaryEntity;
 		bool m_primaryCamera;
 		EditorCamera m_editorCamera;
 		bool m_mouseIsInViewPort = false;

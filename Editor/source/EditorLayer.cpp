@@ -117,28 +117,34 @@ namespace Engine {
         };        
 
         m_activeScene = std::make_shared<Scene>();
-        m_activeScene = m_editor.get()->GetGameLayer()->GetActiveGameScene();
+        //m_activeScene = m_editor.get()->GetGameLayer()->GetActiveGameScene();
 
 
         m_editorScene = std::make_shared<Scene>();
-        m_editorScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
-
+        m_activeScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+        m_editorScene->OnRunTimeStart();
         //m_editorScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
+        
         /*
         Engine::SceneSerializer serializer(m_editorScene);
-        std::string scenePath = Engine::AssetManager::GetAssetPath("scenes/physics2D.EE").string();
+        std::string scenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName()).string();
         if (!serializer.Deserialize(scenePath))
         {
             EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
         }
         */
+        
        // m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
         //m_activeScene = Scene::Copy(m_editorScene);
-        //m_sceneHierarchyPanel.SetContext(m_editorScene);
+        m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
+        m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
-         m_sceneHierarchyPanel.SetContext(m_activeScene);
-        
+       //m_sceneHierarchyPanel.SetContext(Scene::Combine(m_editorScene, m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+        //m_sceneHierarchyPanel.SetContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+      
+        m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_editorScene, m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+        m_currentScenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName());
     }
 
     void EditorLayer::OnDetach()
@@ -373,10 +379,10 @@ namespace Engine {
             // Guizmo
            
             Entity selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
-            auto cameraEntity = m_activeScene->GetPrimaryCameraEntity();
+           // auto cameraEntity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetPrimaryCameraEntity();
 
             if (selectedEntity && selectedEntity.HasComponent<TransformComponent>() &&
-                cameraEntity && m_sceneHierarchyPanel.GetGuizmoType() != -1)
+                  m_sceneHierarchyPanel.GetGuizmoType() != -1)
             {
                 
                 ImGuizmo::SetOrthographic(false);
@@ -524,7 +530,7 @@ namespace Engine {
 
         m_editor.get()->GetGameLayer()->SetIsPlaying(false);
         m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStop();
-        m_editor.get()->GetGameLayer()->SetActiveScene(m_editorScene);
+        m_editor.get()->GetGameLayer()->SetActiveScene(m_activeScene);
     }
 
     void EditorLayer::OnScenePause()
@@ -554,7 +560,7 @@ namespace Engine {
     {
         if (m_sceneState == SceneState::Play)
         {
-            Entity camera = m_activeScene->GetPrimaryCameraEntity();
+            Entity camera = m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetPrimaryCameraEntity();
             Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
         }
         else
@@ -622,7 +628,7 @@ namespace Engine {
             m_framebuffer->Resize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
             m_orthoCameraController.OnResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
             m_editorCamera.SetViewportSize(m_viewportSize.x, m_viewportSize.y);
-            m_activeScene->OnViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
+            m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
         }
 
         if (m_viewportFocused)
@@ -815,7 +821,7 @@ namespace Engine {
     {
         m_activeScene = std::make_shared<Scene>();
         m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-        m_sceneHierarchyPanel.SetContext(m_activeScene);
+        m_sceneHierarchyPanel.SetEditorContext(m_activeScene);
         m_currentScenePath = std::filesystem::path();
     }
 
@@ -843,7 +849,7 @@ namespace Engine {
 
         m_editorScene = std::make_shared<Scene>();
         m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-        m_sceneHierarchyPanel.SetContext(m_editorScene);
+        m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
 
         SceneSerializer serializer(m_editorScene);
         serializer.Deserialize(path.string());
@@ -867,7 +873,7 @@ namespace Engine {
     {
         if (!m_currentScenePath.empty())
         {
-            SceneSerializer serializer(m_activeScene);
+            SceneSerializer serializer(m_editorScene);
             serializer.Serialize(m_currentScenePath.string());
         }
     }

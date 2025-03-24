@@ -117,6 +117,54 @@ namespace Engine {
     }
     
 
+    void Scene::CopyEntities(Ref<Scene> sourceScene, Ref<Scene> combinedScene, std::unordered_map<UUID, entt::entity>& enttMap)
+    {
+        auto& srcSceneRegistry = sourceScene->m_registry;
+        auto& dstSceneRegistry = combinedScene->m_registry;
+        auto idView = srcSceneRegistry.view<IDComponent>();
+
+        for (auto e : idView)
+        {
+            UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
+
+            // Avoid UUID collision
+            if (enttMap.find(uuid) != enttMap.end())
+                uuid = UUID(); // Generate a new one
+
+            const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
+            Entity newEntity = combinedScene->CreateEntityWithUUID(uuid, name);
+
+            enttMap[uuid] = (entt::entity)newEntity;
+        }
+
+        // Copy components efficiently
+        CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<RigidBody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+    }
+
+    Ref<Scene> Scene::Combine(Ref<Scene> sceneA, Ref<Scene> sceneB)
+    {
+        Ref<Scene> combinedScene = std::make_shared<Scene>();
+
+        combinedScene->m_viewportWidth = sceneA->m_viewportWidth;
+        combinedScene->m_viewportHeight = sceneA->m_viewportHeight;
+
+        std::unordered_map<UUID, entt::entity> enttMap;
+
+        CopyEntities(sceneA, combinedScene, enttMap);
+        CopyEntities(sceneB, combinedScene, enttMap);
+
+        return combinedScene;
+    }
+
+
+
     Entity Scene::CreateEntity(const std::string& name)
     {
 

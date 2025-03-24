@@ -23,9 +23,10 @@ static const char* s_mapTiles =
 "WWWWWCWWWWWWWWWWWWWWWWWWWWW"
 ;
 
-Sandbox2D::Sandbox2D()
+Sandbox2D::Sandbox2D(std::string scene)
 	: Layer ("Sandbox2D"),
-	m_orthoCameraController(1280.0f / 720.0f, true)
+	m_orthoCameraController(1280.0f / 720.0f, true),
+	m_activeSceneName(scene)
 {
 	m_activeScene = std::make_shared<Engine::Scene>();
 
@@ -62,13 +63,15 @@ void Sandbox2D::OnAttach()
 	m_cameraEntity.AddComponent<Engine::TransformComponent>();
 
 	*/
+	
 	Engine::SceneSerializer serializer(m_activeScene);
-	std::string scenePath = Engine::AssetManager::GetAssetPath("scenes/physics2D.EE").string();
+	std::string scenePath = Engine::AssetManager::GetScenePath(m_activeSceneName).string();
 	if (!serializer.Deserialize(scenePath))
 	{
 		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
 	}
-	/*
+	
+	
 	m_squareEntity = m_activeScene->CreateEntity("square");
 	m_squareEntity.AddComponent<Engine::TransformComponent>();
 	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
@@ -76,10 +79,11 @@ void Sandbox2D::OnAttach()
 	m_squareEntity.AddComponent<Engine::TransformComponent>();
 	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
 	m_squareEntity = m_activeScene->CreateEntity("square2");
-	m_squareEntity.AddComponent<Engine::TransformComponent>();
+	Engine::TransformComponent& transformComp = m_squareEntity.AddComponent<Engine::TransformComponent>();
+	transformComp.Translation += glm::vec3(0.0f, 0.0f, -10.0f);
 	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
 
-	*/
+	
 
 	
 	//m_activeScene->OnRunTimeStart();
@@ -132,7 +136,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 		
 
 
-
+		/*
 		static float rotation = 0.0f;
 		rotation += timestep * 20.0f;
 
@@ -144,6 +148,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 		Engine::Renderer2D::DrawRotatedQuad({ 0.0f,0.0f, -0.1f }, { 10.f, 10.f, }, 45.0f, m_checkerBoardTexture, 10.0f, glm::vec4(1.0f, 0.9f, 0.9f, 1.0f));
 		Engine::Renderer2D::EndScene();
 
+		*/
         m_framebuffer->Unbind();
 
     }

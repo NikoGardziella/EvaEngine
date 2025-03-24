@@ -23,6 +23,10 @@ namespace Engine {
 		static Ref<Scene> Copy(Ref<Scene> other);
 
 
+		static Ref<Scene> Combine(Ref<Scene> sceneA, Ref<Scene> sceneB);
+
+		static void CopyEntities(Ref<Scene> sourceScene, Ref<Scene> combinedScene, std::unordered_map<UUID, entt::entity>& enttMap);
+
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
 		void DestroyEntity(Entity entity);

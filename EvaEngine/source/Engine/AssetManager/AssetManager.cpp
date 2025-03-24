@@ -42,6 +42,24 @@ namespace Engine {
         return path.lexically_normal();  // Ensures a consistent format
     }
 
+    std::filesystem::path AssetManager::GetScenePath(const std::string& sceneName)
+    {
+        std::lock_guard<std::mutex> lock(s_Mutex);
+
+        std::filesystem::path sceneDirectory = s_AssetPath / "Scenes";
+
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(sceneDirectory))
+        {
+            if (entry.is_regular_file() && entry.path().stem() == sceneName) // Compare file name without extension
+            {
+                return entry.path().lexically_normal();
+            }
+        }
+
+        return {};
+    }
+
+
     std::filesystem::path AssetManager::GetAssetFolderPath()
     {
         std::lock_guard<std::mutex> lock(s_Mutex);

@@ -19,63 +19,26 @@ namespace Engine {
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 	{
-		SetContext(context);
+		SetEditorContext(context);
 	}
 
-	void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
+	void SceneHierarchyPanel::SetEditorContext(const Ref<Scene>& context)
 	{
-		m_context = context;
+        m_editorContext = context;
         m_selectionContext = {};
 
 	}
 
+    void SceneHierarchyPanel::SetGameContext(const Ref<Scene>& context)
+    {
+        m_gameContext = context;
+        m_selectionContext = {};
+    }
+
     void SceneHierarchyPanel::OnImGuiRender()
     {
-        ImGui::Begin("Scene Hierarchy");
-
-        bool clickedOnEmptySpace = true;  // Track if no entity was clicked
-
-        // Iterate over all entities with a TagComponent
-        m_context->m_registry.view<TagComponent>().each([&](auto entityID, TagComponent& tagComp)
-            {
-                Entity entity{ entityID, m_context.get() };
-
-                DrawEntityNode(entity);
-
-                if (ImGui::IsItemHovered() || ImGui::IsItemClicked(ImGuiMouseButton_Right))
-                {
-                    clickedOnEmptySpace = false;
-                }
-            });
-
-        // Reset selection if clicking on empty space
-        if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && clickedOnEmptySpace)
-        {
-            m_selectionContext = {};
-        }
-
-        // Open "Create Empty Entity" popup **only** if no entity was clicked
-        if (clickedOnEmptySpace && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
-        {
-            if (ImGui::MenuItem("Create Empty Entity"))
-            {
-                m_context->CreateEntity("Empty entity");
-            }
-            ImGui::EndPopup();
-        }
-
-        ImGui::End();
-
-        // Properties panel
-        ImGui::Begin("Properties");
-        if (m_selectionContext)
-        {
-            DrawComponents(m_selectionContext);
-
-            
-
-        }
-        ImGui::End();
+        DrawContext();
+        
     }
 
 
@@ -192,7 +155,7 @@ namespace Engine {
 
         bool entityDeleted = false;
 
-        if (ImGui::BeginPopupContextItem()) // Corrected: Using ImGui::BeginPopupContextItem()
+        if (ImGui::BeginPopupContextItem())
         {
             if (ImGui::MenuItem("Delete entity"))
             {
@@ -215,12 +178,76 @@ namespace Engine {
 
         if (entityDeleted)
         {
-            m_context->DestroyEntity(entity);
+            m_editorContext->DestroyEntity(entity);
             if (m_selectionContext == entity)
             {
                 m_selectionContext = {};
             }
         }
+    }
+
+    void SceneHierarchyPanel::DrawContext()
+    {
+        ImGui::Begin("Scene Hierarchy");
+
+        bool clickedOnEmptySpace = true;  // Track if no entity was clicked
+
+        // Iterate over all entities with a TagComponent
+        ImGui::PushID((void*)m_editorContext.get()); // Push scene ID to make entity IDs unique
+
+        m_editorContext->m_registry.view<TagComponent>().each([&](auto entityID, TagComponent& tagComp)
+            {
+                Entity entity{ entityID, m_editorContext.get() };
+               // EE_CORE_INFO("Entity: {0} ", entity.GetComponent<IDComponent>().ID);
+
+                ImGui::PushID(entity.GetComponent<IDComponent>().ID);
+                DrawEntityNode(entity);
+                ImGui::PopID();
+            });
+        ImGui::PopID();
+
+
+        ImGui::PushID((void*)m_gameContext.get()); // Push scene ID to make entity IDs unique
+
+        m_gameContext->m_registry.view<TagComponent>().each([&](auto entityID, TagComponent& tagComp)
+            {
+                Entity entity{ entityID, m_gameContext.get() };
+                // EE_CORE_INFO("Entity: {0} ", entity.GetComponent<IDComponent>().ID);
+
+                ImGui::PushID(entity.GetComponent<IDComponent>().ID);
+                DrawEntityNode(entity);
+                ImGui::PopID();
+            });
+        ImGui::PopID();
+       
+        // Reset selection if clicking on empty space
+        if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && clickedOnEmptySpace)
+        {
+            m_selectionContext = {};
+        }
+
+        // Open "Create Empty Entity" popup **only** if no entity was clicked
+        if (clickedOnEmptySpace && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
+        {
+            if (ImGui::MenuItem("Create Empty Entity"))
+            {
+                m_editorContext->CreateEntity("Empty entity");
+            }
+            ImGui::EndPopup();
+        }
+
+        ImGui::End();
+
+        // Properties panel
+        ImGui::Begin("Properties");
+        if (m_selectionContext)
+        {
+            DrawComponents(m_selectionContext);
+
+
+
+        }
+        ImGui::End();
     }
 
     template<typename T, typename UIFunction>
@@ -229,27 +256,42 @@ namespace Engine {
         if (entity.HasComponent<T>())
         {
             auto& component = entity.GetComponent<T>();
+
+            // Unique tree node flags
             const ImGuiTreeNodeFlags treeNodeFlags =
                 ImGuiTreeNodeFlags_DefaultOpen |
                 ImGuiTreeNodeFlags_AllowItemOverlap |
                 ImGuiTreeNodeFlags_Framed |
                 ImGuiTreeNodeFlags_FramePadding |
                 ImGuiTreeNodeFlags_SpanAvailWidth;
-            ImVec2 contenRegionAvailable = ImGui::GetContentRegionAvail();
 
+            ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4 ,4 });
+            // Styling
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
             float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
             ImGui::Separator();
 
-            bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.c_str());
+            // Push unique IDs to avoid duplication
+            ImGui::PushID((int)entity.GetComponent<IDComponent>().ID);  // Entity-specific ID
+            ImGui::PushID(typeid(T).hash_code());  // Component type-specific ID
+
+            // Add component name and ID to create a unique tree node
+            bool open = ImGui::TreeNodeEx((std::string("##Component_") + std::to_string((int)entity.GetComponent<IDComponent>().ID) + "_" + std::to_string(typeid(T).hash_code())).c_str(),
+                treeNodeFlags, name.c_str());
+
+            // Pop the IDs after drawing the node
+            ImGui::PopID();
+            ImGui::PopID();
+
+            // Reset style
             ImGui::PopStyleVar();
-            
-            ImGui::SameLine(contenRegionAvailable.x - lineHeight * 0.5f);
+
+            // Display button for component settings
+            ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
             if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
             {
                 ImGui::OpenPopup("Component settings");
-
             }
 
             bool removeComponent = false;
@@ -262,14 +304,14 @@ namespace Engine {
                 ImGui::EndPopup();
             }
 
-
-
+            // If the tree node is open, draw the component using the provided function
             if (open)
             {
                 function(component);
                 ImGui::TreePop();
             }
 
+            // Handle component removal
             if (removeComponent)
             {
                 entity.RemoveComponent<T>();
@@ -277,8 +319,13 @@ namespace Engine {
         }
     }
 
+
     void SceneHierarchyPanel::DrawComponents(Entity entity)
     {
+        if (!entity)
+            return;
+
+
         if (entity.HasComponent<TagComponent>())
         {
             auto& tag = entity.GetComponent<TagComponent>().Tag;
