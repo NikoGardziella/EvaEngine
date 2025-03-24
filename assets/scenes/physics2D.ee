@@ -1,11 +1,8 @@
 Scene: My Scene
 Entities:
-  - ID: 8620445107690659188
+  - ID: 3053713730818899003
     TagComponent:
       Tag: Empty entity
-  - ID: 3959723789316771920
-    TagComponent:
-      Tag: Camera
     TransformComponent:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
@@ -13,7 +10,7 @@ Entities:
     CameraComponent:
       Primary: true
       FixedAspectRatio: false
-      ProjectionType: Orthographic
-      OrthographicSize: 10
-      OrthographicNearClip: -1
-      OrthographicFarClip: 1
+      ProjectionType: Perspective
+      PerspectiveFOV: 0.7853982
+      PerspectiveNearClip: 0.1
+      PerspectiveFarClip: 1000

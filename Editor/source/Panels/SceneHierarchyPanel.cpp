@@ -344,13 +344,23 @@ namespace Engine {
         ImGui::SameLine();
         ImGui::PushItemWidth(-1);
 
+        
         if (ImGui::Button("Add component"))
         {
             ImGui::OpenPopup("Add component");
         }
 
+        // move poput so its not in viweport( Would crash)
+        ImVec2 buttonPos = ImGui::GetItemRectMin();
+        ImVec2 popupPos = ImVec2(buttonPos.x - 25.0f, buttonPos.y + 15.0f); 
+
+        // Set the new position for the popup
+        ImGui::SetNextWindowPos(popupPos);
+
+
         if (ImGui::BeginPopup("Add component"))
         {
+
 
             if (!m_selectionContext.HasComponent<CameraComponent>())
             {
@@ -382,6 +392,7 @@ namespace Engine {
                 {
                     m_selectionContext.AddComponent<TransformComponent>();
                     ImGui::CloseCurrentPopup();
+
                 }
 
             }
@@ -406,7 +417,6 @@ namespace Engine {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
-
         }
         ImGui::PopItemWidth();
 

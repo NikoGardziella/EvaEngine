@@ -725,7 +725,6 @@ namespace Engine {
         if (e.GetMouseButton() == Mouse::Button0)
         {
            
-
             if (m_mouseIsInViewPort && m_hoveredEntity && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
             {
                 m_sceneHierarchyPanel.SetSelectedEntity(m_hoveredEntity);
