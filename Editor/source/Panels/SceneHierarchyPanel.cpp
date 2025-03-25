@@ -162,6 +162,7 @@ namespace Engine {
 
         bool entityDeleted = false;
 
+        
         if (ImGui::BeginPopupContextItem())
         {
             if (ImGui::MenuItem("Delete entity"))
@@ -312,6 +313,11 @@ namespace Engine {
             ImGui::PushID(entity.GetComponent<IDComponent>().ID); // Add unique ID for the entity
             ImGui::PushID(typeid(T).hash_code()); // Add unique ID for the component type
 
+            ImVec2 buttonPos = ImGui::GetItemRectMin();
+            ImVec2 popupPos = ImVec2(buttonPos.x - 25.0f, buttonPos.y + 15.0f);
+
+            // Set the new position for the popup
+            ImGui::SetNextWindowPos(popupPos);
             // Display button for component settings
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
             if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
@@ -340,6 +346,13 @@ namespace Engine {
             if (removeComponent)
             {
                 entity.RemoveComponent<T>();
+                /*
+                Entity entityInEditorRegistry = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (entityInEditorRegistry)
+                {
+                    entityInEditorRegistry.RemoveComponent<T>();
+                }
+                */
             }
 
             // Pop the IDs to avoid conflicts with other elements

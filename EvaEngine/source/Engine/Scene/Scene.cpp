@@ -138,20 +138,31 @@ namespace Engine {
         auto& dstSceneRegistry = combinedScene->m_registry;
         auto idView = srcSceneRegistry.view<IDComponent>();
 
+        std::vector<entt::entity> entitiesToCopy; // Store entities to copy components later
+
         for (auto e : idView)
         {
             UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
 
-            // Check if this UUID already exists in the combined scene
-            if (enttMap.find(uuid) == enttMap.end())
-            {
-                // Not found in the map, create a new entity
-                const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
-                Entity newEntity = combinedScene->CreateEntityWithUUID(uuid, name);
-                enttMap[uuid] = (entt::entity)newEntity;
-            }
+            // If the entity already exists in enttMap, skip it
+            if (enttMap.find(uuid) != enttMap.end())
+                continue;
 
-            // The entity exists, proceed to copy components
+            // Otherwise, create a new entity and store it in enttMap
+            const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
+            Entity newEntity = combinedScene->CreateEntityWithUUID(uuid, name);
+            enttMap[uuid] = (entt::entity)newEntity;
+
+            // Store the entity for component copying
+            entitiesToCopy.push_back(e);
+        }
+
+        // Now, copy components only for the entities that were actually added
+        for (auto e : entitiesToCopy)
+        {
+            UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
+            entt::entity dstEnttID = enttMap.at(uuid); // Now guaranteed to exist
+
             CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
@@ -162,6 +173,8 @@ namespace Engine {
             CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         }
     }
+
+
 
 
     Ref<Scene> Scene::Combine(Ref<Scene> sceneA, Ref<Scene> sceneB)
