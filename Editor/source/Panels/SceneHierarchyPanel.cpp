@@ -275,7 +275,7 @@ namespace Engine {
     }
 
     template<typename T, typename UIFunction>
-    static void DrawComponent(const std::string& name, Entity entity, UIFunction function)
+    static void DrawComponent(const std::string& name, Entity entity, Scene* sceneContext, UIFunction function)
     {
         if (entity.HasComponent<T>())
         {
@@ -297,34 +297,31 @@ namespace Engine {
             ImGui::Separator();
 
             // Push unique IDs to avoid duplication
-            ImGui::PushID((int)entity.GetComponent<IDComponent>().ID);  // Entity-specific ID
-            ImGui::PushID(typeid(T).hash_code());  // Component type-specific ID
+            ImGui::PushID((int)entity.GetComponent<IDComponent>().ID);
+            ImGui::PushID(typeid(T).hash_code());
 
-            // Add component name and ID to create a unique tree node
-            bool open = ImGui::TreeNodeEx((std::string("##Component_") + std::to_string((int)entity.GetComponent<IDComponent>().ID) + "_" + std::to_string(typeid(T).hash_code())).c_str(),
+            bool open = ImGui::TreeNodeEx(
+                (std::string("##Component_") + std::to_string((int)entity.GetComponent<IDComponent>().ID) + "_" + std::to_string(typeid(T).hash_code())).c_str(),
                 treeNodeFlags, name.c_str());
 
-            // Pop the IDs after drawing the node
             ImGui::PopID();
             ImGui::PopID();
             ImGui::PopStyleVar();
 
-            // Generate unique IDs for the component button and popup menu.
-            ImGui::PushID(entity.GetComponent<IDComponent>().ID); // Add unique ID for the entity
-            ImGui::PushID(typeid(T).hash_code()); // Add unique ID for the component type
+            ImGui::PushID(entity.GetComponent<IDComponent>().ID);
+            ImGui::PushID(typeid(T).hash_code());
 
-            ImVec2 buttonPos = ImGui::GetItemRectMin();
-            ImVec2 popupPos = ImVec2(buttonPos.x - 25.0f, buttonPos.y + 15.0f);
-
-            // Set the new position for the popup
-            ImGui::SetNextWindowPos(popupPos);
-            // Display button for component settings
+            
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
             if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
             {
                 ImGui::OpenPopup("Component settings");
             }
 
+            ImVec2 buttonPos = ImGui::GetItemRectMin();
+            ImVec2 popupPos = ImVec2(buttonPos.x - 80.0f, buttonPos.y + 20.0f);
+
+            ImGui::SetNextWindowPos(popupPos);
             bool removeComponent = false;
             if (ImGui::BeginPopup("Component settings"))
             {
@@ -335,39 +332,40 @@ namespace Engine {
                 ImGui::EndPopup();
             }
 
-            // If the tree node is open, draw the component using the provided function
             if (open)
             {
                 function(component);
                 ImGui::TreePop();
             }
 
-            // Handle component removal
             if (removeComponent)
             {
                 entity.RemoveComponent<T>();
-                /*
-                Entity entityInEditorRegistry = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
-                if (entityInEditorRegistry)
+
+                if (sceneContext)
                 {
-                    entityInEditorRegistry.RemoveComponent<T>();
+                    // Find and remove entity from the other registry
+                    entt::entity otherEntityID = Scene::GetEntityByUUID(sceneContext->GetRegistry(), entity.GetComponent<IDComponent>().ID);
+                    if (otherEntityID != entt::null)
+                    {
+                        Entity otherEntity{ otherEntityID, sceneContext };
+                        if (otherEntity.HasComponent<T>())
+                        {
+                            otherEntity.RemoveComponent<T>();
+                        }
+                    }
                 }
-                */
             }
 
-            // Pop the IDs to avoid conflicts with other elements
             ImGui::PopID();
             ImGui::PopID();
-
         }
     }
 
 
+
     void SceneHierarchyPanel::DrawComponents(Entity entity)
     {
-        if (!entity)
-            return;
-
 
         if (entity.HasComponent<TagComponent>())
         {
@@ -509,7 +507,7 @@ namespace Engine {
         ImGui::PopItemWidth();
 
 
-        DrawComponent<TransformComponent>("Transform", entity, [this, &entity](auto& component)
+        DrawComponent<TransformComponent>("Transform", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {
                 DrawVec3Control("Translation", component.Translation, m_guizmoType, ImGuizmo::OPERATION::TRANSLATE);
                  
@@ -530,7 +528,7 @@ namespace Engine {
 
             });
 
-        DrawComponent<CameraComponent>("Camera", entity, [this, &entity](auto& component)
+        DrawComponent<CameraComponent>("Camera", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {
                 auto& cameraComp = component;
                 auto& camera = component.Camera;
@@ -612,7 +610,7 @@ namespace Engine {
                 }
             });
 
-        DrawComponent<SpriteRendererComponent>("Sprite renderer", entity, [this, &entity](auto& component)
+        DrawComponent<SpriteRendererComponent>("Sprite renderer", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
 
@@ -638,7 +636,7 @@ namespace Engine {
                 }
             });
 
-        DrawComponent<CircleRendererComponent>("Circle  renderer", entity, [this, &entity](auto& component)
+        DrawComponent<CircleRendererComponent>("Circle  renderer", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
                 ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
@@ -651,7 +649,7 @@ namespace Engine {
                 }
             });
 
-        DrawComponent<CircleCollider2DComponent>("Circle  Collider", entity, [this, &entity](auto& component)
+        DrawComponent<CircleCollider2DComponent>("Circle  Collider", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {
                 ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
                 ImGui::DragFloat("Radius", &component.Radius, 0.1f, 0.0f, 100.0f);
@@ -668,7 +666,7 @@ namespace Engine {
             });
 
 
-        DrawComponent<RigidBody2DComponent>("Rigid Body2d", entity, [this, &entity](auto& component)
+        DrawComponent<RigidBody2DComponent>("Rigid Body2d", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {
                 const char* bodyTypeStrings[] = { " Static", " Dynamic", "Kinematic"};
                 const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
@@ -707,7 +705,7 @@ namespace Engine {
             });
       
 
-        DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [this, &entity](auto& component)
+        DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {
                 
                 ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));

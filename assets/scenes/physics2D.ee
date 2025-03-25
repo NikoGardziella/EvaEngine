@@ -7,20 +7,10 @@ Entities:
       Translation: [-1.9, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    RigidBody2DComponent:
-      Type: 0
-      FixedRotation: false
     CircleRendererComponent:
       Color: [0.82843137, 0.13807191, 0.13807191, 1]
       Thickness: 1
       Fade: 0.001
-  - ID: 11927415534268161537
+  - ID: 4169637377
     TagComponent:
       Tag: Empty entity
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0.7058823, 0.48442906, 0.48442906, 1]
-      Tiling: 1
