@@ -27,7 +27,8 @@ namespace Engine {
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
-		void DestroyEntity(Entity entity);
+		bool DestroyEntity(Entity entity);
+		static entt::entity GetEntityByUUID(entt::registry& registry, UUID uuid);
 
 		void OnRunTimeStart();
 		void OnRunTimeStop();
@@ -42,6 +43,10 @@ namespace Engine {
 		void DuplicateEntity(Entity entity);
 
 		Entity GetPrimaryCameraEntity();
+
+		void ClearRegistry() { m_registry.clear(); };
+
+		entt::registry& GetRegistry() { return m_registry;  }
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()
@@ -71,5 +76,6 @@ namespace Engine {
 	};
 
 	
+
 }
 

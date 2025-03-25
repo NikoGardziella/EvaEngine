@@ -177,7 +177,6 @@ namespace Engine {
 
             out << YAML::BeginMap;
 
-            // You might want to serialize an ID; here we cast the entt::entity to a uint32_t.
             out << YAML::Key << "ID" << YAML::Value << entity.GetUUID();
 
             if (entity.HasComponent<TagComponent>())

@@ -146,6 +146,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Debug\DebugUtils.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h" />
     <ClInclude Include="source\Engine\Core\Application.h" />
@@ -621,6 +622,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Debug\DebugUtils.cpp" />
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp" />
     <ClCompile Include="source\Engine\Core\Application.cpp" />
     <ClCompile Include="source\Engine\Core\Layer.cpp" />

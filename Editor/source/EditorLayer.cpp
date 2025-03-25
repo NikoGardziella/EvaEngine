@@ -19,6 +19,9 @@
 #include "EditorApp.h"
 #include <Engine/AssetManager/AssetManager.h>
 
+#include "Engine/Debug/DebugUtils.h"
+ 
+
 namespace Engine {
 
     //temporary
@@ -79,7 +82,7 @@ namespace Engine {
         m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
 
         m_editorCamera = EditorCamera(30.0f, 1.78f, 0.1f, 1000.0f);
-
+        m_framebuffer = m_editor.get()->GetGameLayer()->GetGameFramebuffer();
 
         class CameraController : public ScriptableEntity
         {
@@ -121,10 +124,11 @@ namespace Engine {
 
 
         m_editorScene = std::make_shared<Scene>();
-        m_activeScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
-        m_editorScene->OnRunTimeStart();
+        //m_activeScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+        //m_editorScene->OnRunTimeStart();
         //m_editorScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
+        
         
         
         Engine::SceneSerializer serializer(m_editorScene);
@@ -135,16 +139,21 @@ namespace Engine {
         }
         
         
+        
+        
        // m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
         //m_activeScene = Scene::Copy(m_editorScene);
         m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
         m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+        m_sceneHierarchyPanel.SetNewComponentsContext(m_editorScene); // remove this and only use new components?
 
        //m_sceneHierarchyPanel.SetContext(Scene::Combine(m_editorScene, m_editor.get()->GetGameLayer()->GetActiveGameScene()));
         //m_sceneHierarchyPanel.SetContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
       
-        m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_editorScene, m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+        //m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_editorScene, m_editor.get()->GetGameLayer()->GetActiveGameScene()));
         m_currentScenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName());
+        //m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStart();
+
     }
 
     void EditorLayer::OnDetach()
@@ -497,16 +506,19 @@ namespace Engine {
     void EditorLayer::OnScenePlay()
     {
 
+        m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetNewComponentsContext(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+        
         if (m_sceneState != SceneState::Pause)
         {
+            m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
             m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStart();
+            m_editor.get()->GetGameLayer()->OnGameStart();
         }
 
         m_sceneState = SceneState::Play;
 
         m_editor.get()->GetGameLayer()->SetIsPlaying(true);
-       
-
+         
     }
 
     void EditorLayer::OnSceneStop()
@@ -516,7 +528,9 @@ namespace Engine {
 
         m_editor.get()->GetGameLayer()->SetIsPlaying(false);
         m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStop();
-        m_editor.get()->GetGameLayer()->SetActiveScene(m_activeScene);
+        m_editor.get()->GetGameLayer()->OnGameStop();
+        //m_editor.get()->GetGameLayer()->SetActiveScene(m_activeScene);
+
     }
 
     void EditorLayer::OnScenePause()
@@ -547,6 +561,11 @@ namespace Engine {
         if (m_sceneState == SceneState::Play)
         {
             Entity camera = m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetPrimaryCameraEntity();
+            if (!camera)
+            {
+                return;
+            }
+
             Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
         }
         else
@@ -646,15 +665,19 @@ namespace Engine {
                 case Engine::EditorLayer::SceneState::Edit:
                 {
 
-                   // m_activeScene->OnUpdateEditor(timestep, m_editorCamera);
+                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateEditor(timestep, m_editorCamera);
                     break;
                 }
                 case Engine::EditorLayer::SceneState::Play:
                 {
-                    //m_activeScene->OnUpdateRuntime(timestep);
+                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateRuntime(timestep);
                     break;
                 }
-
+                case Engine::EditorLayer::SceneState::Pause:
+                {
+                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateRuntime(timestep, false);
+                    break;
+                }
             }
 
 
@@ -719,8 +742,8 @@ namespace Engine {
             else if(m_mouseIsInViewPort && !ImGuizmo::IsOver() && !m_hoveredEntity)
             {
                 // reset selected entity
-                m_sceneHierarchyPanel.SetSelectedEntity({}); 
-                return true;
+                //m_sceneHierarchyPanel.SetSelectedEntity({}); 
+                //return true;
             }
         }
         return false;
@@ -854,15 +877,25 @@ namespace Engine {
         }
     }
 
+
+
     void EditorLayer::SaveScene()
     {
         if (!m_currentScenePath.empty())
         {
-            SceneSerializer serializer(m_editorScene);
-            //serializer.Deserialize(m_currentScenePath.string());
+
+            SceneSerializer serializer(Scene::Combine(m_editorScene, m_sceneHierarchyPanel.GetNewComponentsContext()));
+
+            // Log before saving to check what exists in the scene
+            DebugUtils::LogAllEntitiesWithComponents(m_editorScene);
+            DebugUtils::LogAllEntitiesWithComponents(m_sceneHierarchyPanel.GetNewComponentsContext());
+
+            // Serialize the current editor scene without reloading it
             serializer.Serialize(m_currentScenePath.string());
+
         }
     }
+
 
   
 

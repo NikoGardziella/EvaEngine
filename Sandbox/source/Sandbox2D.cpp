@@ -57,38 +57,21 @@ void Sandbox2D::OnAttach()
     m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
 
 
-	/*
-	m_cameraEntity = m_activeScene->CreateEntity("camera");
-	m_cameraEntity.AddComponent<Engine::CameraComponent>();
-	m_cameraEntity.AddComponent<Engine::TransformComponent>();
-
-	*/
 	
-	/*
+	
+	
 	Engine::SceneSerializer serializer(m_activeScene);
 	std::string scenePath = Engine::AssetManager::GetScenePath(m_activeSceneName).string();
 	if (!serializer.Deserialize(scenePath))
 	{
 		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
 	}
-	*/
 	
 	
-	m_squareEntity = m_activeScene->CreateEntity("square");
-	m_squareEntity.AddComponent<Engine::TransformComponent>();
-	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
-	m_squareEntity = m_activeScene->CreateEntity("square1");
-	m_squareEntity.AddComponent<Engine::TransformComponent>();
-	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
-	m_squareEntity = m_activeScene->CreateEntity("square2");
-	Engine::TransformComponent& transformComp = m_squareEntity.AddComponent<Engine::TransformComponent>();
-	transformComp.Translation += glm::vec3(0.0f, 0.0f, -10.0f);
-	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
-
+	
 	
 
 	
-	//m_activeScene->OnRunTimeStart();
 
 }
 
@@ -108,7 +91,7 @@ void Sandbox2D::OnImGuiRender()
 
 void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 {
-	
+	return;
 
 	EE_PROFILE_FUNCTION();
     {
@@ -123,7 +106,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
     {
 		EE_PROFILE_SCOPE("render pre");
         m_framebuffer->Bind();
-	    Engine::RenderCommand::SetClearColor({ 0.2f, 0, 0.2f, 1 });
+	    Engine::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
 	    Engine::RenderCommand::Clear();
     }
 
@@ -133,8 +116,11 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
     {
 		m_framebuffer->ClearColorAttachment(1, -1);
 		
+		if (m_isPlaying)
+		{
+			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
 
-		m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
+		}
 		
 
 
@@ -163,6 +149,40 @@ void Sandbox2D::OnEvent(Engine::Event& event)
 {
 	m_orthoCameraController.OnEvent(event);
 
+}
+
+void Sandbox2D::OnGameStart()
+{
+	/*
+	m_squareEntity = m_activeScene->CreateEntity("square");
+	m_squareEntity.AddComponent<Engine::TransformComponent>();
+	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
+	m_squareEntity = m_activeScene->CreateEntity("square1");
+	m_squareEntity.AddComponent<Engine::TransformComponent>();
+	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
+	*/
+
+	
+	m_cameraEntity = m_activeScene->CreateEntity("camera");
+	m_cameraEntity.AddComponent<Engine::CameraComponent>();
+	m_cameraEntity.AddComponent<Engine::TransformComponent>();
+
+	
+	m_squareEntity = m_activeScene->CreateEntity("Gamesquare2");
+	Engine::TransformComponent& transformComp = m_squareEntity.AddComponent<Engine::TransformComponent>();
+	transformComp.Translation += glm::vec3(0.0f, 0.0f, -10.0f);
+	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
+
+	m_activeScene->OnRunTimeStart();
+
+}
+
+void Sandbox2D::OnGameStop()
+{
+	m_activeScene->ClearRegistry();
+
+	Engine::SceneSerializer serializer(m_activeScene);
+	serializer.Deserialize(Engine::AssetManager::GetAssetPath("scenes/physics2D.EE").string());
 }
 
 

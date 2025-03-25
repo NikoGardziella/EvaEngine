@@ -20,6 +20,8 @@ namespace Engine {
 
 		void SetEditorContext(const Ref<Scene>& scene);
 		void SetGameContext(const Ref<Scene>& scene);
+		void SetNewComponentsContext(const Ref<Scene>& scene);
+		const Ref<Scene>& GetNewComponentsContext() { return m_newComponentsContext; }
 		void OnImGuiRender();
 		void DrawComponents(Entity entity);
 
@@ -28,6 +30,9 @@ namespace Engine {
 
 		Entity GetSelectedEntity() const { return m_selectionContext;  }
 		void SetSelectedEntity(Entity entity);
+
+
+
 	private:
 
 		void DrawEntityNode(Entity entity);
@@ -35,9 +40,14 @@ namespace Engine {
 
 	private:
 
+		// remove thus
 		Ref<Scene> m_editorContext;
 		Ref<Scene> m_gameContext;
+
+		// change this to registry only?
+		Ref<Scene> m_newComponentsContext;
 		Entity m_selectionContext;
+		Entity m_editorSelectionContext;
 		int m_guizmoType = -1;
 
 		friend class Scene;

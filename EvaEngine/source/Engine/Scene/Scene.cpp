@@ -19,6 +19,21 @@
 namespace Engine {
 
 
+    entt::entity Scene::GetEntityByUUID(entt::registry& registry, Engine::UUID uuid) 
+    {
+        auto view = registry.view<IDComponent>();
+
+        for (auto entity : view)
+        {
+            auto& idComponent = view.get<IDComponent>(entity);
+            if (idComponent.ID == uuid) {
+                return entity;
+            }
+        }
+
+        return entt::null;  // Return null if no matching entity is found
+    }
+
     static b2BodyType Rigidbody2dTypeToBox2D(RigidBody2DComponent::BodyType bodytype)
     {
         switch (bodytype)
@@ -44,7 +59,7 @@ namespace Engine {
     Scene::Scene()
     {
 
-
+        m_registry = entt::registry();
         
     }
 
@@ -127,26 +142,27 @@ namespace Engine {
         {
             UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
 
-            // Avoid UUID collision
-            if (enttMap.find(uuid) != enttMap.end())
-                uuid = UUID(); // Generate a new one
+            // Check if this UUID already exists in the combined scene
+            if (enttMap.find(uuid) == enttMap.end())
+            {
+                // Not found in the map, create a new entity
+                const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
+                Entity newEntity = combinedScene->CreateEntityWithUUID(uuid, name);
+                enttMap[uuid] = (entt::entity)newEntity;
+            }
 
-            const auto& name = srcSceneRegistry.get<TagComponent>(e).Tag;
-            Entity newEntity = combinedScene->CreateEntityWithUUID(uuid, name);
-
-            enttMap[uuid] = (entt::entity)newEntity;
+            // The entity exists, proceed to copy components
+            CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            CopyComponent<RigidBody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         }
-
-        // Copy components efficiently
-        CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<RigidBody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
     }
+
 
     Ref<Scene> Scene::Combine(Ref<Scene> sceneA, Ref<Scene> sceneB)
     {
@@ -180,9 +196,16 @@ namespace Engine {
         return entity;
     }
 
-    void Scene::DestroyEntity(Entity entity)
+    bool Scene::DestroyEntity(Entity entity)
     {
-        m_registry.destroy(entity);
+        if (m_registry.valid(entity))
+        {
+            m_registry.destroy(entity);
+            return true;
+        }
+
+        EE_CORE_WARN("Tried to destroy an invalid entity!");
+        return false;
     }
 
     void Scene::OnRunTimeStart()
@@ -413,7 +436,6 @@ namespace Engine {
 
             }
         }
-
 
         Renderer2D::EndScene();
     }

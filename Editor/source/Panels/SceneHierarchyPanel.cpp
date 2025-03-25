@@ -35,6 +35,12 @@ namespace Engine {
         m_selectionContext = {};
     }
 
+    void SceneHierarchyPanel::SetNewComponentsContext(const Ref<Scene>& context)
+    {
+        m_newComponentsContext = context;
+        m_selectionContext = {};
+    }
+
     void SceneHierarchyPanel::OnImGuiRender()
     {
         DrawContext();
@@ -137,6 +143,7 @@ namespace Engine {
     void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
     {
         m_selectionContext = entity;
+        
     }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
@@ -178,7 +185,13 @@ namespace Engine {
 
         if (entityDeleted)
         {
-            m_editorContext->DestroyEntity(entity);
+            if (!m_newComponentsContext->DestroyEntity(entity))
+            {
+                // entity was not in new components. Delete it from GameScene
+                m_gameContext->DestroyEntity(entity);
+
+            }
+
             if (m_selectionContext == entity)
             {
                 m_selectionContext = {};
@@ -192,12 +205,15 @@ namespace Engine {
 
         bool clickedOnEmptySpace = true;  // Track if no entity was clicked
 
+        
         // Iterate over all entities with a TagComponent
-        ImGui::PushID((void*)m_editorContext.get()); // Push scene ID to make entity IDs unique
 
-        m_editorContext->m_registry.view<TagComponent>().each([&](auto entityID, TagComponent& tagComp)
+        
+        /*
+        ImGui::PushID((void*)m_newComponentsContext.get()); // Push scene ID to make entity IDs unique
+        m_newComponentsContext->m_registry.view<TagComponent>().each([&](auto entityID, TagComponent& tagComp)
             {
-                Entity entity{ entityID, m_editorContext.get() };
+                Entity entity{ entityID, m_newComponentsContext.get() };
                // EE_CORE_INFO("Entity: {0} ", entity.GetComponent<IDComponent>().ID);
 
                 ImGui::PushID(entity.GetComponent<IDComponent>().ID);
@@ -205,8 +221,12 @@ namespace Engine {
                 ImGui::PopID();
             });
         ImGui::PopID();
+        
+        
+        */
 
 
+        
         ImGui::PushID((void*)m_gameContext.get()); // Push scene ID to make entity IDs unique
 
         m_gameContext->m_registry.view<TagComponent>().each([&](auto entityID, TagComponent& tagComp)
@@ -219,6 +239,7 @@ namespace Engine {
                 ImGui::PopID();
             });
         ImGui::PopID();
+        
        
         // Reset selection if clicking on empty space
         if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && clickedOnEmptySpace)
@@ -227,11 +248,16 @@ namespace Engine {
         }
 
         // Open "Create Empty Entity" popup **only** if no entity was clicked
-        if (clickedOnEmptySpace && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
+        if (!m_selectionContext && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
         {
             if (ImGui::MenuItem("Create Empty Entity"))
             {
-                m_editorContext->CreateEntity("Empty entity");
+                // add new component to both of the registries. m_gameContext for normal rendering and interaciton
+                // m_newComponentsContext is used to save the scene and avoid any of the entities created in game scene 
+                // through code to be inclued in the saved scene file
+                Entity newEntity = m_newComponentsContext->CreateEntity("Empty entity");
+                m_gameContext->CreateEntityWithUUID(newEntity.GetUUID(), "Empty Entity");
+
             }
             ImGui::EndPopup();
         }
@@ -280,9 +306,11 @@ namespace Engine {
             // Pop the IDs after drawing the node
             ImGui::PopID();
             ImGui::PopID();
-
-            // Reset style
             ImGui::PopStyleVar();
+
+            // Generate unique IDs for the component button and popup menu.
+            ImGui::PushID(entity.GetComponent<IDComponent>().ID); // Add unique ID for the entity
+            ImGui::PushID(typeid(T).hash_code()); // Add unique ID for the component type
 
             // Display button for component settings
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
@@ -313,6 +341,11 @@ namespace Engine {
             {
                 entity.RemoveComponent<T>();
             }
+
+            // Pop the IDs to avoid conflicts with other elements
+            ImGui::PopID();
+            ImGui::PopID();
+
         }
     }
 
@@ -333,6 +366,7 @@ namespace Engine {
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
             {
                 tag = std::string(buffer);
+                m_newComponentsContext->GetRegistry().get<TagComponent>(entity).Tag = tag;
             }
 
            // ImGui::Text("TagComponent: %s", tag.Tag.c_str());
@@ -364,6 +398,15 @@ namespace Engine {
                 {
                     m_selectionContext.AddComponent<CameraComponent>();
                     ImGui::CloseCurrentPopup();
+
+                    // I add new components for the game registry. I also want to add it to newcomponetsContext, which
+                    // will be used for saving scene. Here I look for the corresponding entity - with UUID - from another scene
+                    // add add component to it 
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                    if (entity)
+                    {
+                        m_newComponentsContext->GetRegistry().emplace<CameraComponent>(entity);
+                    }
                 }
             }
             if (!m_selectionContext.HasComponent<SpriteRendererComponent>())
@@ -372,6 +415,12 @@ namespace Engine {
                 {
                     m_selectionContext.AddComponent<SpriteRendererComponent>();
                     ImGui::CloseCurrentPopup();
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                    if (entity)
+                    {
+                        m_newComponentsContext->GetRegistry().emplace<SpriteRendererComponent>(entity);
+
+                    }
                 }
             }
             if (!m_selectionContext.HasComponent<CircleRendererComponent>())
@@ -380,6 +429,12 @@ namespace Engine {
                 {
                     m_selectionContext.AddComponent<CircleRendererComponent>();
                     ImGui::CloseCurrentPopup();
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                    if (entity)
+                    {
+                        m_newComponentsContext->GetRegistry().emplace<CircleRendererComponent>(entity);
+
+                    }
                 }
             }
             if (!m_selectionContext.HasComponent<TransformComponent>())
@@ -388,6 +443,12 @@ namespace Engine {
                 {
                     m_selectionContext.AddComponent<TransformComponent>();
                     ImGui::CloseCurrentPopup();
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get()};
+                    if (entity)
+                    {
+                        m_newComponentsContext->GetRegistry().emplace<TransformComponent>(entity);
+
+                    }
 
                 }
 
@@ -398,6 +459,12 @@ namespace Engine {
                 {
                     m_selectionContext.AddComponent<RigidBody2DComponent>();
                     ImGui::CloseCurrentPopup();
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                    if (entity)
+                    {
+                        m_newComponentsContext->GetRegistry().emplace<RigidBody2DComponent>(entity);
+
+                    }
                 }
             }
 
@@ -405,19 +472,31 @@ namespace Engine {
             {
                 m_selectionContext.AddComponent<BoxCollider2DComponent>();
                 ImGui::CloseCurrentPopup();
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (entity)
+                {
+                    m_newComponentsContext->GetRegistry().emplace<BoxCollider2DComponent>(entity);
+
+                }
             }
 
             if (ImGui::MenuItem("Circle Collider"))
             {
                 m_selectionContext.AddComponent<CircleCollider2DComponent>();
                 ImGui::CloseCurrentPopup();
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (entity)
+                {
+                    m_newComponentsContext->GetRegistry().emplace<CircleCollider2DComponent>(entity);
+
+                }
             }
             ImGui::EndPopup();
         }
         ImGui::PopItemWidth();
 
 
-        DrawComponent<TransformComponent>("Transform", entity, [this](auto& component)
+        DrawComponent<TransformComponent>("Transform", entity, [this, &entity](auto& component)
             {
                 DrawVec3Control("Translation", component.Translation, m_guizmoType, ImGuizmo::OPERATION::TRANSLATE);
                  
@@ -426,9 +505,19 @@ namespace Engine {
 
                 component.Rotation = glm::radians(rotation);
                 DrawVec3Control("Scale", component.Scale, m_guizmoType, ImGuizmo::OPERATION::SCALE);
+
+                // The saga continues here. When I modify the components, I modify them in the game registy, but also 
+                // I want to save the changes to the scene - newCompnentsContext
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<TransformComponent>(newEntity) = component;
+
+                }
+
             });
 
-        DrawComponent<CameraComponent>("Camera", entity, [](auto& component)
+        DrawComponent<CameraComponent>("Camera", entity, [this, &entity](auto& component)
             {
                 auto& cameraComp = component;
                 auto& camera = component.Camera;
@@ -503,10 +592,14 @@ namespace Engine {
                         camera.SetPerspectiveFarClip(perspFar);
                     }
                 }
-
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<CameraComponent>(newEntity) = component;
+                }
             });
 
-        DrawComponent<SpriteRendererComponent>("Sprite renderer", entity, [](auto& component)
+        DrawComponent<SpriteRendererComponent>("Sprite renderer", entity, [this, &entity](auto& component)
             {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
 
@@ -525,16 +618,27 @@ namespace Engine {
                 }
 
                 ImGui::DragFloat("Tiling", &component.Tiling, 0.1f, 0.0f, 100.0f);
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<SpriteRendererComponent>(newEntity) = component;
+                }
             });
 
-        DrawComponent<CircleRendererComponent>("Circle  renderer", entity, [](auto& component)
+        DrawComponent<CircleRendererComponent>("Circle  renderer", entity, [this, &entity](auto& component)
             {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
                 ImGui::DragFloat("Fade", &component.Fade, 0.00025f, 0.0f, 1.0f);
                 ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
+               
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<CircleRendererComponent>(newEntity) = component;
+                }
             });
 
-        DrawComponent<CircleCollider2DComponent>("Circle  Collider", entity, [](auto& component)
+        DrawComponent<CircleCollider2DComponent>("Circle  Collider", entity, [this, &entity](auto& component)
             {
                 ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
                 ImGui::DragFloat("Radius", &component.Radius, 0.1f, 0.0f, 100.0f);
@@ -542,10 +646,16 @@ namespace Engine {
                 ImGui::DragFloat("Friction", &component.Friction, 0.01, 0.0f, 1.0f);
                 ImGui::DragFloat("Restitution", &component.Restitution, 0.01, 0.0f, 1.0f);
                 ImGui::DragFloat("Restitution Threshold", &component.RestitutionThershold, 0.01, 0.0f, 1.0f);
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<CircleCollider2DComponent>(newEntity) = component;
+                }
             });
 
 
-        DrawComponent<RigidBody2DComponent>("Rigid Body2d", entity, [](auto& component)
+        DrawComponent<RigidBody2DComponent>("Rigid Body2d", entity, [this, &entity](auto& component)
             {
                 const char* bodyTypeStrings[] = { " Static", " Dynamic", "Kinematic"};
                 const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
@@ -575,10 +685,16 @@ namespace Engine {
                 
 
                 ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<RigidBody2DComponent>(newEntity) = component;
+                }
             });
       
 
-        DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto& component)
+        DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [this, &entity](auto& component)
             {
                 
                 ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
@@ -587,6 +703,12 @@ namespace Engine {
                 ImGui::DragFloat("Friction", &component.Friction, 0.01, 0.0f, 1.0f);
                 ImGui::DragFloat("Restitution", &component.Restitution, 0.01, 0.0f, 1.0f);
                 ImGui::DragFloat("Restitution Threshold", &component.RestitutionThershold, 0.01, 0.0f, 1.0f);
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<BoxCollider2DComponent>(newEntity) = component;
+                }
 
             });
         // Add checks for other components here...

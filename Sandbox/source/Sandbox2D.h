@@ -18,6 +18,8 @@ public:
 
 	void OnUpdate(Engine::Timestep timestep) override;
 	void OnEvent(Engine::Event& event) override;
+	void OnGameStart();
+	void OnGameStop();
 
 	Engine::Ref<Engine::Scene>& GetActiveGameScene() { return m_activeScene; }
 	Engine::Ref<Engine::Framebuffer>& GetGameFramebuffer() { return m_framebuffer; }
