@@ -103,7 +103,7 @@ namespace Engine {
 		float m_orthographicFar = 1.0f;
 
 		// Perspective Camera Properties
-		float m_perspectiveFOV = glm::radians(45.0f);
+		float m_perspectiveFOV = 45.0f;
 		float m_perspectiveNear = 0.1f;
 		float m_perspectiveFar = 1000.0f;
 

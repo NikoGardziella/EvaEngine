@@ -2,15 +2,42 @@ Scene: My Scene
 Entities:
   - ID: 1462496962
     TagComponent:
-      Tag: Empty entity
+      Tag: Physics ball
     TransformComponent:
-      Translation: [-1.9, 0, 0]
+      Translation: [-0.5, 4.3, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    RigidBody2DComponent:
+      Type: 1
+      FixedRotation: false
     CircleRendererComponent:
       Color: [0.82843137, 0.13807191, 0.13807191, 1]
       Thickness: 1
       Fade: 0.001
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.5
+      Density: 0.16
+      Friction: 0.5
+      Restitution: 0.21
+      RestitutionThreshold: 0.5
   - ID: 4169637377
     TagComponent:
-      Tag: Empty entity
+      Tag: Ground
+    TransformComponent:
+      Translation: [0.1, -2.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [18.4, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Tiling: 1
+    RigidBody2DComponent:
+      Type: 0
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.26
+      RestitutionThreshold: 0.5

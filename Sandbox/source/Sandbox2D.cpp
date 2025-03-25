@@ -164,9 +164,13 @@ void Sandbox2D::OnGameStart()
 
 	
 	m_cameraEntity = m_activeScene->CreateEntity("camera");
-	m_cameraEntity.AddComponent<Engine::CameraComponent>();
-	m_cameraEntity.AddComponent<Engine::TransformComponent>();
-
+	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
+	cameraComp.FixedAspectRatio = true;
+	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
+	cameraComp.Camera.SetPerspectiveFOV(45.0f);
+	
+	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 20.0f);
 	
 	m_squareEntity = m_activeScene->CreateEntity("Gamesquare2");
 	Engine::TransformComponent& transformComp = m_squareEntity.AddComponent<Engine::TransformComponent>();
