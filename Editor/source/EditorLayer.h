@@ -8,6 +8,7 @@
 #include "Engine/Renderer/EditorCamera.h"
 
 #include "Sandbox2D.h"
+#include "FPSCounter.h"
 
 namespace Engine {
 
@@ -116,6 +117,8 @@ namespace Engine {
 		bool m_showColliders = false;
 
 		Ref<Editor> m_editor;
+
+		FPSCounter m_fpsCounter;
 
 	};
 

@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="source\EditorApp.h" />
     <ClInclude Include="source\EditorLayer.h" />
+    <ClInclude Include="source\FPSCounter.h" />
     <ClInclude Include="source\Panels\ContentBrowserPanel.h" />
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
   </ItemGroup>

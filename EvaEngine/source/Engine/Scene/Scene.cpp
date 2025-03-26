@@ -369,9 +369,11 @@ namespace Engine {
         // physics
         if (isPlaying)
         {
+
             UpdatePhysics(timestep);
         }
 
+        EE_PROFILE_FUNCTION();
 
         Camera* mainCamera = nullptr;
         glm::mat4 cameraTransform;
@@ -509,6 +511,8 @@ namespace Engine {
 
     void Scene::UpdatePhysics(Timestep timestep)
     {
+        EE_PROFILE_FUNCTION();
+
         const int32_t subStepCount = 4;
         float physicsStep = 1.0f / 60.0f;
 

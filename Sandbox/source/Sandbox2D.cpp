@@ -195,7 +195,7 @@ void Sandbox2D::OnGameStop()
 
 void Sandbox2D::CreateTestScene()
 {
-	for (int i = 0; i < 200; i++) // Create 10 entities
+	for (int i = 0; i < 500; i++) // Create 10 entities
 	{
 		// Generate a random position
 		glm::vec3 position = {
@@ -236,7 +236,6 @@ void Sandbox2D::CreateTestScene()
 		{
 			// Add Box Collider
 			Engine::BoxCollider2DComponent& colliderComp = entity.AddComponent<Engine::BoxCollider2DComponent>();
-			colliderComp.Size = { 1.0f, 1.0f }; // Standard box size
 		}
 		else
 		{

@@ -298,6 +298,9 @@ namespace Engine {
             ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
             ImGui::Text("Indicies: %d", stats.GetTotalIndexCount());
             ImGui::Text("Lines: %d", stats.LineCount);
+
+            ImGui::Text("FPS: %.1d", m_fpsCounter.GetFPS());
+
             ImGui::End();
 
 
@@ -642,6 +645,8 @@ namespace Engine {
         }
 
         m_editorCamera.OnUpdate(timestep);
+
+        m_fpsCounter.Update(timestep);
 
         // ******** Render ***********
 
