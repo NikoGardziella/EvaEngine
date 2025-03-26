@@ -1,6 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="assets">
+      <UniqueIdentifier>{583885F2-44DA-AFC8-2D95-C31C19D63619}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\shaders">
+      <UniqueIdentifier>{51CD2FD9-3D9B-23DF-262F-9405129CFF43}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source">
       <UniqueIdentifier>{76FF3A1C-62A1-65F2-4B5C-7946379DEC42}</UniqueIdentifier>
     </Filter>
@@ -107,6 +113,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Core\Window.h">
       <Filter>source\Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Debug\DebugUtils.h">
+      <Filter>source\Engine\Debug</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Debug\Instrumentor.h">
       <Filter>source\Engine\Debug</Filter>
@@ -1491,7 +1500,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Debug\DebugUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1514,6 +1522,9 @@
     </ClCompile>
     <ClCompile Include="source\Engine\Core\Window.cpp">
       <Filter>source\Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Debug\DebugUtils.cpp">
+      <Filter>source\Engine\Debug</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\ImGui\ImGuiLayer.cpp">
       <Filter>source\Engine\ImGui</Filter>
@@ -1620,6 +1631,19 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Debug\DebugUtils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\shaders\Circle_shader.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\FlatColor.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\Line_shader.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\Renderer2D_Quad.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

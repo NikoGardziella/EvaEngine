@@ -299,7 +299,7 @@ namespace Engine {
             ImGui::Text("Indicies: %d", stats.GetTotalIndexCount());
             ImGui::Text("Lines: %d", stats.LineCount);
 
-            ImGui::Text("FPS: %.1d", m_fpsCounter.GetFPS());
+            ImGui::Text("FPS: %d", m_fpsCounter.GetFPS());
 
             ImGui::End();
 

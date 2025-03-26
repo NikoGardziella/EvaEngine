@@ -38,6 +38,8 @@ project "EvaEngine"
     pchheader "pch.h"
     pchsource "EvaEngine/source/pch.cpp"
 
+    
+
     -- Specify the files to include in the project compilation
     files
     {
@@ -51,8 +53,10 @@ project "EvaEngine"
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp",
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
         "%{prj.name}/vendor/Box2D/box2d/include/**.h",
-        --"EvaEngine/vendor/Box2D/src/**.cpp"
+        "assets/shaders/*"  -- Match all files and subdirectories under assets
     }
+ 
+
 
     defines
     {

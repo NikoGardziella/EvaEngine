@@ -22,6 +22,8 @@ namespace Engine {
 
 		// Editor-only
 		int EntityID;
+
+		glm::mat4 TransformMatrix; // for instance
 	};
 
 	struct LineVertex
@@ -72,6 +74,12 @@ namespace Engine {
 		CircleVertex* CircleVertexBufferBase = nullptr;
 		CircleVertex* CircleVertexBufferPtr = nullptr;
 
+		static const uint32_t MaxInstances = 2000;
+		glm::mat4* InstanceTransformBufferBase;
+		glm::mat4* InstanceTransformBufferPtr = nullptr;
+		Ref<VertexBuffer> InstanceTransformBuffer;
+		uint32_t InstanceCount = 0;
+
 		Ref<VertexArray> QuadVertexArray;
 		Ref<VertexBuffer> QuadVertexBuffer;
 		Ref<Shader> QuadShader;
@@ -120,6 +128,17 @@ namespace Engine {
 		s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.MaxVertices];
 
 		uint32_t* quadIndices = new uint32_t[s_Data.MaxIndices];
+
+		s_Data.InstanceTransformBuffer = VertexBuffer::Create(s_Data.MaxInstances * sizeof(glm::mat4));
+		s_Data.InstanceTransformBuffer->SetLayout({
+			{ ShaderDataType::Mat4, "a_InstanceTransform" }
+			});
+		s_Data.QuadVertexArray->AddVertexBuffer(s_Data.InstanceTransformBuffer);
+
+		// Now we can initialize the base instance data (empty at first, as no instances have been uploaded yet)
+		s_Data.InstanceTransformBufferBase = new glm::mat4[s_Data.MaxInstances];  // Store the instance transforms here
+		s_Data.InstanceTransformBufferPtr = s_Data.InstanceTransformBufferBase;  // Pointer to the current position in the instance buffer
+
 
 		uint32_t offset = 0;
 		for (uint32_t i = 0; i < s_Data.MaxIndices; i += 6)
@@ -241,6 +260,8 @@ namespace Engine {
 
 	void Renderer2D::StartBatch()
 	{
+		s_Data.InstanceTransformBufferPtr = s_Data.InstanceTransformBufferBase;
+
 		s_Data.QuadIndexCount = 0;
 		s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
 
@@ -255,20 +276,35 @@ namespace Engine {
 
 	void Renderer2D::Flush()
 	{
+		// If there are quads to render
 		if (s_Data.QuadIndexCount)
 		{
+			// Calculate the total data size for the vertex buffer (quad vertices)
 			uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
 			s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
 
-			// Bind textures
+			// Calculate the data size for the instance buffer (transformation matrices)
+			uint32_t instanceDataSize = (uint32_t)((uint8_t*)s_Data.InstanceTransformBufferPtr - (uint8_t*)s_Data.InstanceTransformBufferBase);
+			s_Data.InstanceTransformBuffer->SetData(s_Data.InstanceTransformBufferBase, instanceDataSize);
+
+			// Bind textures (assuming the textures are correctly managed)
 			for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-				s_Data.TextureSlots[i]->Bind(i);
+			{
+				s_Data.TextureSlots[i]->Bind(i);  // Bind each texture in the slot
+			}
 
+			// Bind the shader for rendering the quads
 			s_Data.QuadShader->Bind();
-			RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
-			s_Data.Stats.DrawCalls++;
 
+			// Perform the instanced draw call using the indexed instancing technique
+			// `instanceCount` should be the number of instances you're rendering for this flush
+			RenderCommand::DrawIndexedInstanced(s_Data.QuadVertexArray, s_Data.QuadIndexCount, s_Data.InstanceCount);
+
+			// Update draw call stats
+			s_Data.Stats.DrawCalls++;
 		}
+
+		// Render circles if there are any
 		if (s_Data.CircleIndexCount)
 		{
 			uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.CircleVertexBufferPtr - (uint8_t*)s_Data.CircleVertexBufferBase);
@@ -278,6 +314,8 @@ namespace Engine {
 			RenderCommand::DrawIndexed(s_Data.CircleVertexArray, s_Data.CircleIndexCount);
 			s_Data.Stats.DrawCalls++;
 		}
+
+		// Render lines if there are any
 		if (s_Data.LineVertexCount)
 		{
 			uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.LineVertexBufferPtr - (uint8_t*)s_Data.LineVertexBufferBase);
@@ -288,8 +326,8 @@ namespace Engine {
 			RenderCommand::DrawLines(s_Data.LineVertexArray, s_Data.LineVertexCount);
 			s_Data.Stats.DrawCalls++;
 		}
-
 	}
+
 
 	void Renderer2D::NextBatch()
 	{
@@ -512,6 +550,41 @@ namespace Engine {
 			DrawQuad(transform, src.Color, entityID);
 		}
 	}
+
+	
+
+	void Renderer2D::DrawQuadInstanced(const glm::mat4& transform, const glm::vec4& color, int textureID, const std::vector<glm::mat4>& instanceTransforms)
+	{
+		if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+			NextBatch();
+
+		
+
+		// Prepare to draw each instance of the quad
+		for (size_t i = 0; i < instanceTransforms.size(); i++)
+		{
+			glm::mat4 instanceTransform = instanceTransforms[i];
+
+			// Write vertex data
+			for (size_t j = 0; j < 4; j++)
+			{
+				s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[j];
+				s_Data.QuadVertexBufferPtr->Color = color;
+				s_Data.QuadVertexBufferPtr->TexCoord = s_Data.QuadVertexPositions[j];
+				s_Data.QuadVertexBufferPtr->TexIndex = textureID;
+				s_Data.QuadVertexBufferPtr->TilingFactor = 1.0f;  // Use default tiling
+				s_Data.QuadVertexBufferPtr->EntityID = 0;
+				s_Data.QuadVertexBufferPtr->TransformMatrix = instanceTransform; // Set instance transform matrix
+				s_Data.QuadVertexBufferPtr++;
+			}
+
+			s_Data.QuadIndexCount += 6;  // 2 triangles per quad
+		}
+
+		// Now submit the batch for drawing
+		Flush();
+	}
+
 
 	float Renderer2D::GetLineWidth()
 	{

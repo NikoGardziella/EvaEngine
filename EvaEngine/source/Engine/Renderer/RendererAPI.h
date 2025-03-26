@@ -25,7 +25,7 @@ namespace Engine {
 
 		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount = 0) = 0;
 		virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) = 0;
-
+		virtual void DrawIndexedInstanced(const Ref<VertexArray>& vertexArray, uint32_t indexCount, uint32_t instanceCount) = 0;
 		virtual void SetLineWidth(float thickness) = 0;
 
 		inline static API GetAPI() { return s_API; }

@@ -195,6 +195,9 @@ void Sandbox2D::OnGameStop()
 
 void Sandbox2D::CreateTestScene()
 {
+
+	uint32_t boxCount = 0;
+	uint32_t circleCount = 0;
 	for (int i = 0; i < 500; i++) // Create 10 entities
 	{
 		// Generate a random position
@@ -224,8 +227,6 @@ void Sandbox2D::CreateTestScene()
 		transformComp.Translation = position;
 
 		// Add Sprite Renderer Component
-		Engine::SpriteRendererComponent& spriteComp = entity.AddComponent<Engine::SpriteRendererComponent>();
-		spriteComp.Color = color;
 
 		// Add Rigidbody Component
 		Engine::RigidBody2DComponent& rbComp = entity.AddComponent<Engine::RigidBody2DComponent>();
@@ -234,17 +235,26 @@ void Sandbox2D::CreateTestScene()
 		// Add the correct collider
 		if (isBox)
 		{
+			boxCount++;
 			// Add Box Collider
 			Engine::BoxCollider2DComponent& colliderComp = entity.AddComponent<Engine::BoxCollider2DComponent>();
+			Engine::SpriteRendererComponent& spriteComp = entity.AddComponent<Engine::SpriteRendererComponent>();
+			spriteComp.Color = color;
+
 		}
 		else
 		{
+			circleCount++;
 			// Add Circle Collider
 			Engine::CircleCollider2DComponent& colliderComp = entity.AddComponent<Engine::CircleCollider2DComponent>();
+			Engine::CircleRendererComponent& spriteComp = entity.AddComponent<Engine::CircleRendererComponent>();
+			spriteComp.Color = color;
 			colliderComp.Radius = 0.5f; // Standard circle radius
 		}
+
 	}
 
+	EE_INFO("box count: {0}   |   circle count:  {1}", boxCount, circleCount);
 
 }
 

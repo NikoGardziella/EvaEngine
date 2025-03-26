@@ -320,6 +320,7 @@ namespace Engine {
     void Scene::OnUpdateRuntime(Timestep timestep, bool isPlaying)
     {
 
+        EE_PROFILE_FUNCTION();
         /*
         ╔════════════════════════════════════════════════╗
         ║ 🚀 EVA ENGINE | ENTT                        	║
@@ -373,21 +374,23 @@ namespace Engine {
             UpdatePhysics(timestep);
         }
 
-        EE_PROFILE_FUNCTION();
-
         Camera* mainCamera = nullptr;
         glm::mat4 cameraTransform;
         {
-            auto group = m_registry.group<TransformComponent, CameraComponent>();
-            for (auto entity : group)
-            {
-                auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
+            EE_PROFILE_SCOPE("Get Update Runtime Camera");
 
-                if (camera.Primary)
+            {
+                auto group = m_registry.group<TransformComponent, CameraComponent>();
+                for (auto entity : group)
                 {
-                    mainCamera = &camera.Camera;
-                    cameraTransform = transform.GetTransform();
-                    break;
+                    auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
+
+                    if (camera.Primary)
+                    {
+                        mainCamera = &camera.Camera;
+                        cameraTransform = transform.GetTransform();
+                        break;
+                    }
                 }
             }
         }
@@ -395,18 +398,11 @@ namespace Engine {
         if(mainCamera)
         {   
             Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
-            {
-                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
-
-                for (auto entity : view)
-                {
-                    auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-
-                    Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-                }
-            }
+            
 
             {
+                EE_PROFILE_SCOPE("Update Runtime CircleRendererComponent");
+
                 auto view = m_registry.view<CircleRendererComponent, TransformComponent>();
 
                 for (auto entity : view)
@@ -416,7 +412,34 @@ namespace Engine {
                     Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
                 }
             }
+            {
+                EE_PROFILE_SCOPE("Update Runtime SpriteRendererComponent");
 
+                // Define the container to hold the instance transforms
+                std::vector<glm::mat4> instanceTransforms;
+                std::vector<glm::vec4> instanceColors;
+                std::vector<int> instanceTextureIDs;
+
+                // Iterate through each entity in the view
+                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
+                for (auto entity : view)
+                {
+                    // Get the transform and sprite components for the entity
+                    auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+
+                    // Collect the instance data for the instanced draw call
+                    instanceTransforms.push_back(transform.GetTransform());  // Transformation matrix for the entity
+                    instanceColors.push_back(sprite.Color);  // Color for the sprite
+                }
+
+                // After the loop, make a single instanced draw call
+                if (!instanceTransforms.empty())
+                {
+                    // Pass all collected instance data in one call
+                    Renderer2D::DrawQuadInstanced(glm::mat4(1.0f), glm::vec4(1.0f), 0, instanceTransforms);  // You may want to adjust parameters (like the color or texture) here
+                }
+
+            }
 
             Renderer2D::EndScene();
         }
