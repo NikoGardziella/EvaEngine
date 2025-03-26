@@ -507,11 +507,11 @@ namespace Engine {
     {
 
         m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetNewComponentsContext(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+        m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStart();
         
         if (m_sceneState != SceneState::Pause)
         {
             m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
-            m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStart();
             m_editor.get()->GetGameLayer()->OnGameStart();
         }
 
@@ -577,7 +577,7 @@ namespace Engine {
         if (m_showColliders)
         {
             {
-                auto view = m_activeScene->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+                auto view = m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
 
                 for (auto entity : view)
                 {
@@ -597,7 +597,7 @@ namespace Engine {
             }
 
             {
-                auto view = m_activeScene->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+                auto view = m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
 
                 for (auto entity : view)
                 {

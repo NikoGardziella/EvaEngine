@@ -170,12 +170,16 @@ void Sandbox2D::OnGameStart()
 	cameraComp.Camera.SetPerspectiveFOV(45.0f);
 	
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 20.0f);
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 100.0f);
 	
 	m_squareEntity = m_activeScene->CreateEntity("Gamesquare2");
 	Engine::TransformComponent& transformComp = m_squareEntity.AddComponent<Engine::TransformComponent>();
 	transformComp.Translation += glm::vec3(0.0f, 0.0f, -10.0f);
 	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
+
+
+	CreateTestScene();
+
 
 	m_activeScene->OnRunTimeStart();
 
@@ -187,6 +191,62 @@ void Sandbox2D::OnGameStop()
 
 	Engine::SceneSerializer serializer(m_activeScene);
 	serializer.Deserialize(Engine::AssetManager::GetAssetPath("scenes/physics2D.EE").string());
+}
+
+void Sandbox2D::CreateTestScene()
+{
+	for (int i = 0; i < 200; i++) // Create 10 entities
+	{
+		// Generate a random position
+		glm::vec3 position = {
+			(rand() % 40 - 20) * 1.0f,  // X: Random between -20 and 20
+			(rand() % 40 - 20) * 1.0f,  // Y: Random between -20 and 20
+			0.0f                      // Z: Fixed depth
+		};
+
+
+		// Generate a random color
+		glm::vec4 color = {
+			static_cast<float>(rand()) / RAND_MAX, // R
+			static_cast<float>(rand()) / RAND_MAX, // G
+			static_cast<float>(rand()) / RAND_MAX, // B
+			1.0f  // Alpha (fully opaque)
+		};
+
+		// Randomly choose between box or circle
+		bool isBox = rand() % 2 == 0;
+
+		// Create entity with a unique name
+		Engine::Entity entity = m_activeScene->CreateEntity(isBox ? "GameBox_" + std::to_string(i) : "GameCircle_" + std::to_string(i));
+
+		// Add Transform Component
+		Engine::TransformComponent& transformComp = entity.AddComponent<Engine::TransformComponent>();
+		transformComp.Translation = position;
+
+		// Add Sprite Renderer Component
+		Engine::SpriteRendererComponent& spriteComp = entity.AddComponent<Engine::SpriteRendererComponent>();
+		spriteComp.Color = color;
+
+		// Add Rigidbody Component
+		Engine::RigidBody2DComponent& rbComp = entity.AddComponent<Engine::RigidBody2DComponent>();
+		rbComp.Type = Engine::RigidBody2DComponent::BodyType::Dynamic; // Set to Dynamic
+
+		// Add the correct collider
+		if (isBox)
+		{
+			// Add Box Collider
+			Engine::BoxCollider2DComponent& colliderComp = entity.AddComponent<Engine::BoxCollider2DComponent>();
+			colliderComp.Size = { 1.0f, 1.0f }; // Standard box size
+		}
+		else
+		{
+			// Add Circle Collider
+			Engine::CircleCollider2DComponent& colliderComp = entity.AddComponent<Engine::CircleCollider2DComponent>();
+			colliderComp.Radius = 0.5f; // Standard circle radius
+		}
+	}
+
+
 }
 
 

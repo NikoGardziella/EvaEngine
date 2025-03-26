@@ -25,9 +25,9 @@ Entities:
     TagComponent:
       Tag: Ground
     TransformComponent:
-      Translation: [0.1, -2.5, 0]
+      Translation: [0.1, -8.2, 0]
       Rotation: [0, 0, 0]
-      Scale: [18.4, 1, 1]
+      Scale: [56.1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       Tiling: 1
