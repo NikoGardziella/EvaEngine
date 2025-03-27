@@ -2,7 +2,7 @@
 #include "Engine/Core/Timestep.h"
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Core/UUID.h"
-
+#include "Engine/Scene/Component.h"
 
 #include "box2d/id.h"
 #include "entt.hpp"

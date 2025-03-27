@@ -2,6 +2,8 @@
 #include "OpenGLBuffer.h"
 
 #include "glad/glad.h"
+#include <glm/ext/matrix_float4x4.hpp>
+
 
 namespace Engine {
 
@@ -57,8 +59,23 @@ namespace Engine {
 	void OpenGLVertexBuffer::SetData(const void* data, uint32_t size)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
+
 		glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+
+
 	}
+
+	void OpenGLVertexBuffer::SetMat4InstanceAttribute(uint32_t location)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID); // Bind instance buffer
+		for (uint32_t i = 0; i < 4; i++)
+		{
+			glEnableVertexAttribArray(location + i);
+			glVertexAttribPointer(location + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (const void*)(i * sizeof(glm::vec4)));
+			glVertexAttribDivisor(location + i, 1);
+		}
+	}
+
 
 	//********** OpenGLIndexBuffer ***************
 

@@ -170,7 +170,7 @@ void Sandbox2D::OnGameStart()
 	cameraComp.Camera.SetPerspectiveFOV(45.0f);
 	
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 100.0f);
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 40.0f);
 	
 	m_squareEntity = m_activeScene->CreateEntity("Gamesquare2");
 	Engine::TransformComponent& transformComp = m_squareEntity.AddComponent<Engine::TransformComponent>();
@@ -217,7 +217,7 @@ void Sandbox2D::CreateTestScene()
 		};
 
 		// Randomly choose between box or circle
-		bool isBox = rand() % 2 == 0;
+		bool isBox = 2 % 2 == 0;
 
 		// Create entity with a unique name
 		Engine::Entity entity = m_activeScene->CreateEntity(isBox ? "GameBox_" + std::to_string(i) : "GameCircle_" + std::to_string(i));

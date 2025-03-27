@@ -38,8 +38,10 @@ namespace Engine {
 
 	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
 	{
-		vertexArray->Bind();
+		EE_PROFILE_FUNCTION();
 
+		vertexArray->Bind();
+		//glDisable(GL_DEPTH_TEST);
 		// Get the count from the IndexBuffer if indexCount is zero
 		uint32_t count = indexCount;
 		if (count == 0)
@@ -75,7 +77,9 @@ namespace Engine {
 
 	void OpenGLRendererAPI::DrawIndexedInstanced(const Ref<VertexArray>& vertexArray, uint32_t indexCount, uint32_t instanceCount)
 	{
+		
 		vertexArray->Bind();
+
 
 		// Get the count from the IndexBuffer if indexCount is zero
 		uint32_t count = indexCount;
@@ -95,7 +99,10 @@ namespace Engine {
 
 		// Use instanced draw to render multiple instances
 		glDrawElementsInstanced(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr, instanceCount);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, count, instanceCount);
 	}
+
+
 
 
 	void OpenGLRendererAPI::SetLineWidth(float thickness)

@@ -42,7 +42,6 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-
 		glCreateVertexArrays(1, &m_rendererID);
 	}
 

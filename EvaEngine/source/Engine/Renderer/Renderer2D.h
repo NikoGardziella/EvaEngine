@@ -1,13 +1,12 @@
 #pragma once
 #include "Engine/Renderer/OrthographicCamera.h"
 
-#include "Engine/Renderer/Texture.h"
-#include "SubTexture2D.h"
 
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Renderer/Camera.h"
 
 #include "Engine/Scene/Component.h"
+#include <Engine/Renderer/SubTexture2D.h>
 
 namespace Engine {
 
@@ -62,7 +61,7 @@ namespace Engine {
 		static void DrawRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 
 		static void DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
-		static void DrawQuadInstanced(const glm::mat4& transform, const glm::vec4& color, int textureID, const std::vector<glm::mat4>& instanceTransforms);
+		static void DrawQuadInstanced(const std::vector<glm::mat4>& instanceTransforms, const std::vector<glm::vec4>& instanceColors, const std::vector<int>& instanceTextureIDs);
 
 		static float GetLineWidth();
 		static void SetLineWidth(float width);

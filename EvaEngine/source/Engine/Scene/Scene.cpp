@@ -370,7 +370,6 @@ namespace Engine {
         // physics
         if (isPlaying)
         {
-
             UpdatePhysics(timestep);
         }
 
@@ -415,28 +414,37 @@ namespace Engine {
             {
                 EE_PROFILE_SCOPE("Update Runtime SpriteRendererComponent");
 
-                // Define the container to hold the instance transforms
+                size_t maxInstances = 600;
                 std::vector<glm::mat4> instanceTransforms;
+                instanceTransforms.reserve(maxInstances);
+
                 std::vector<glm::vec4> instanceColors;
+                instanceColors.reserve(maxInstances);
                 std::vector<int> instanceTextureIDs;
 
                 // Iterate through each entity in the view
                 auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
                 for (auto entity : view)
                 {
-                    // Get the transform and sprite components for the entity
                     auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
                     // Collect the instance data for the instanced draw call
                     instanceTransforms.push_back(transform.GetTransform());  // Transformation matrix for the entity
                     instanceColors.push_back(sprite.Color);  // Color for the sprite
+                   // instanceTextureIDs.push_back(sprite.Texture);
+                   
                 }
 
-                // After the loop, make a single instanced draw call
+                if (instanceTransforms.size() > maxInstances)
+                {
+                    // increase masxInstances
+                    EE_CORE_INFO(" Max instance count reached: {0}", instanceTransforms.size());
+                }
+
                 if (!instanceTransforms.empty())
                 {
                     // Pass all collected instance data in one call
-                    Renderer2D::DrawQuadInstanced(glm::mat4(1.0f), glm::vec4(1.0f), 0, instanceTransforms);  // You may want to adjust parameters (like the color or texture) here
+                    Renderer2D::DrawQuadInstanced(instanceTransforms, instanceColors, instanceTextureIDs);
                 }
 
             }
@@ -536,28 +544,28 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        const int32_t subStepCount = 4;
-        float physicsStep = 1.0f / 60.0f;
+        constexpr int32_t subStepCount = 4;
+        constexpr float physicsStep = 1.0f / 60.0f;  // Precomputed constant
 
-        // update physics
+        // Step physics world
         b2World_Step(m_worldId, physicsStep, subStepCount);
-        auto view = m_registry.view<RigidBody2DComponent>();
-        for (auto e : view)
-        {
-            Entity entity = { e, this };
-            TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
-            auto& rb2dComp = entity.GetComponent<RigidBody2DComponent>();
 
-            b2BodyId bodyId = rb2dComp.RuntimeBody;
+        // Optimize entity iteration with `each()`
+        m_registry.view<TransformComponent, RigidBody2DComponent>().each(
+            [](TransformComponent& transformComp, RigidBody2DComponent& rb2dComp)
+            {
+                b2BodyId bodyId = rb2dComp.RuntimeBody;
 
-            b2Vec2 position = b2Body_GetPosition(bodyId);
-            transformComp.Translation = { position.x, position.y, 0.0f };
+                // Directly update transform from physics body
+                b2Vec2 position = b2Body_GetPosition(bodyId);
+                transformComp.Translation = { position.x, position.y, 0.0f };
 
-            b2Rot rotation = b2Body_GetRotation(bodyId);
-            transformComp.Rotation.z = std::atan2(rotation.s, rotation.c);
-
-        }
+                b2Rot rotation = b2Body_GetRotation(bodyId);
+                transformComp.Rotation.z = std::atan2(rotation.s, rotation.c);
+            }
+        );
     }
+
 
 
 

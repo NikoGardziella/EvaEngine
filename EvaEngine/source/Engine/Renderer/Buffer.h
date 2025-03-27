@@ -140,6 +140,7 @@ namespace Engine {
 		virtual const BufferLayout GetLayout() const = 0;
 
 		virtual void SetData(const void* data, uint32_t size) = 0;
+		virtual void SetMat4InstanceAttribute(uint32_t location) = 0;
 
 		static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
 		static Ref<VertexBuffer> Create(uint32_t size);
