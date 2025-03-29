@@ -55,6 +55,18 @@
     <Filter Include="vendor\ImGuizmo">
       <UniqueIdentifier>{73BF7F4C-DF4A-ED10-E85B-700554664911}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\enkiTS">
+      <UniqueIdentifier>{10199701-7CD9-1238-4514-5CB5B1935714}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\enkiTS\box2d">
+      <UniqueIdentifier>{5E5F384B-CAC0-1559-532E-5C0BBF8E4C18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\enkiTS\box2d\src">
+      <UniqueIdentifier>{759C10E5-E1D3-587C-EADD-BC9F56947F75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\enkiTS\src">
+      <UniqueIdentifier>{27DFB8BA-93F5-B650-DC6C-427248C287D8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor\glm">
       <UniqueIdentifier>{829FC5A8-6E57-07F6-D75E-E051C335A2E6}</UniqueIdentifier>
     </Filter>
@@ -248,6 +260,9 @@
     </ClInclude>
     <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h">
       <Filter>vendor\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\enkiTS\box2d\src\TaskScheduler.h">
+      <Filter>vendor\enkiTS\box2d\src</Filter>
     </ClInclude>
     <ClInclude Include="vendor\glm\glm\common.hpp">
       <Filter>vendor\glm\glm</Filter>
@@ -1500,6 +1515,8 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTask.h" />
+    <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1628,9 +1645,14 @@
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp">
       <Filter>vendor\ImGuizmo</Filter>
     </ClCompile>
+    <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp">
+      <Filter>vendor\enkiTS\src</Filter>
+    </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTask.cpp" />
+    <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">

@@ -16,6 +16,7 @@ IncludeDir["shaderc"] = "%{VULKAN_SDK}/Include/shaderc"
 IncludeDir["SPIRV_Cross"] = "%{VULKAN_SDK}/Include/spirv_cross"
 IncludeDir["Box2D"] =  "EvaEngine/vendor/Box2D/include"
 IncludeDir["Sandbox"] = ROOT_DIR .. "/Sandbox/source"
+IncludeDir["enkiTS"] = "EvaEngine/vendor/enkiTS/src"
 
 -- Organize library directories
 LibraryDir = {}

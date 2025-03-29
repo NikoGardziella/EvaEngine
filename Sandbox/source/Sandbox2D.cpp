@@ -172,11 +172,14 @@ void Sandbox2D::OnGameStart()
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
 	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 40.0f);
 	
+	/*
 	m_squareEntity = m_activeScene->CreateEntity("Gamesquare2");
 	Engine::TransformComponent& transformComp = m_squareEntity.AddComponent<Engine::TransformComponent>();
 	transformComp.Translation += glm::vec3(0.0f, 0.0f, -10.0f);
 	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
+	*/
 
+	
 
 	CreateTestScene();
 

@@ -1,0 +1,49 @@
+27.3.2025
+{
+    Performance:
+        Rendering
+        500 Quads in 3.649 ms with DrawQuadInstanced()
+
+    Physics
+    4.688 ms
+    4.478 ms
+
+
+}
+
+28.3.2025
+{
+    Performance:
+        Renderin
+        500 white(no color implemented) Quads in 0.982ms 
+
+    Physics
+    5.849 ms with   Sequential Loop    for size_t i = 0; i < count; i++
+
+    5.899 ms With Atomic index
+
+
+    5.830 ms Tried multithreading :(
+
+    4.238 ms  Use a parallel loop to update transforms
+    std::for_each(std::execution::par, m_renderSOA.BodyIds.begin(), m_renderSOA.BodyIds.end(),
+
+
+    3.383 ms with worldDef multthreading left out. ?!
+
+    32.730 ms with 2000 Quads multthreading commented - goes down to after inital collisions 17.136 ms. 12.402 ms after most quads have fallen below the static quad
+    12.456 ms with multithreadin, probably not working..
+
+    2.338 ms i dont know how I go this
+
+
+
+
+
+}
+
+29.03.2025
+{
+
+    Physics update 2.466 ms after implementing enki Task Scheduler
+}

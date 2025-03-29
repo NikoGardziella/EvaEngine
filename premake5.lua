@@ -53,6 +53,8 @@ project "EvaEngine"
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp",
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
         "%{prj.name}/vendor/Box2D/box2d/include/**.h",
+        "%{prj.name}/vendor/enkiTS/box2d/src/TaskScheduler.h",
+        "%{prj.name}/vendor/enkiTS/src/TaskScheduler.cpp", 
         "assets/shaders/*"  -- Match all files and subdirectories under assets
     }
  
@@ -77,6 +79,7 @@ project "EvaEngine"
         "%{IncludeDir.glm}",
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.entt}",
+        "%{IncludeDir.enkiTS}",
         "%{IncludeDir.yaml_cpp}",
         "%{IncludeDir.ImGuizmo}",
         "%{IncludeDir.VulkanSDK}",

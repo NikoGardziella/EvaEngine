@@ -28,7 +28,7 @@ project "Editor"
         "../EvaEngine/vendor/glm",
         "../EvaEngine/vendor/entt/include",
         "../EvaEngine/vendor/Box2D/include",
-
+        "../EvaEngine/vendor/enkiTS/src",
         "../Sandbox/source", 
         "../Sandbox/vendor"
     }

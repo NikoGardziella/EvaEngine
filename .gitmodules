@@ -20,3 +20,6 @@
 [submodule "EvaEngine/vendor/Box2D"]
 	path = EvaEngine/vendor/Box2D
 	url = https://github.com/NikoGardziella/box2d
+[submodule "EvaEngine/vendor/enkiTS"]
+	path = EvaEngine/vendor/enkiTS
+	url = https://github.com/dougbinks/enkiTS.git

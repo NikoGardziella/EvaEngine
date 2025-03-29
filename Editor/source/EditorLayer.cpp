@@ -510,7 +510,7 @@ namespace Engine {
     {
 
         m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetNewComponentsContext(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
-        m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStart();
+       // m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStart();
         
         if (m_sceneState != SceneState::Pause)
         {

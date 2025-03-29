@@ -3,17 +3,18 @@
 #include "Engine.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
+#include "Engine/Math/Math.h"
 #include "Component.h"
 #include "ScriptableEntity.h"
 
 #include "box2d/box2d.h"
-
-//#include "box2d/collision.h"
-//#include "box2d/types.h"
-//#include "box2d/base.h"
-//#include "box2d/id.h"
 #include "box2d/math_functions.h"
+
 
 
 namespace Engine {
@@ -60,7 +61,6 @@ namespace Engine {
     {
 
         m_registry = entt::registry();
-        
     }
 
 
@@ -221,20 +221,29 @@ namespace Engine {
         return false;
     }
 
+   
+
     void Scene::OnRunTimeStart()
     {
-        b2WorldDef world = b2DefaultWorldDef();
-        
         b2Vec2 gravity{};
         gravity.x = 0.0f;
         gravity.y = -9.8f;
-        world.gravity = gravity;
-        
+        b2WorldDef worldDef = b2DefaultWorldDef();;
+        worldDef.workerCount = std::thread::hardware_concurrency(); // Use max available threads
+        worldDef.enqueueTask = &PhysicsTaskScheduler::EnqueueTask;
+        worldDef.finishTask = &PhysicsTaskScheduler::FinishTask;
+        worldDef.userTaskContext = &m_physicsTaskScheduler;
+        worldDef.gravity = gravity;
 
-        m_worldId = b2CreateWorld(&world);
+        m_worldId = b2CreateWorld(&worldDef);
        
 
         auto view = m_registry.view<RigidBody2DComponent>();
+
+        m_renderSOA.Color.reserve(view.size());
+        m_renderSOA.InstanceTransforms.reserve(view.size());
+        m_renderSOA.BodyIds.reserve(view.size());
+        size_t index = 0;
         for (auto e : view)
         {
             Entity entity = { e, this };
@@ -294,10 +303,30 @@ namespace Engine {
                 colliderComp.shapeID = circleShapeID;
             }
 
+            m_renderSOA.InstanceTransforms.push_back(transformComp.GetTransform());
+
+            
+            m_renderSOA.BodyIds.push_back(bodyId);
+            if (entity.HasComponent<SpriteRendererComponent>())
+            {
+                auto& spriteComp = entity.GetComponent<SpriteRendererComponent>();
+
+                m_renderSOA.Color.push_back(spriteComp.Color);
+            }
+            else
+            {
+                m_renderSOA.Color.push_back(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+            }
+            index++;
         }
 
 
     }
+
+
+
+
 
     void Scene::OnRunTimeStop()
     {
@@ -364,9 +393,6 @@ namespace Engine {
                 });
         }
 
-
-
-
         // physics
         if (isPlaying)
         {
@@ -396,6 +422,7 @@ namespace Engine {
 
         if(mainCamera)
         {   
+
             Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
             
 
@@ -413,38 +440,34 @@ namespace Engine {
             }
             {
                 EE_PROFILE_SCOPE("Update Runtime SpriteRendererComponent");
-
+                std::vector<int> instanceTextureIDs;
+                /*
                 size_t maxInstances = 600;
                 std::vector<glm::mat4> instanceTransforms;
                 instanceTransforms.reserve(maxInstances);
 
                 std::vector<glm::vec4> instanceColors;
                 instanceColors.reserve(maxInstances);
-                std::vector<int> instanceTextureIDs;
-
+                
                 // Iterate through each entity in the view
-                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
-                for (auto entity : view)
-                {
-                    auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-
-                    // Collect the instance data for the instanced draw call
-                    instanceTransforms.push_back(transform.GetTransform());  // Transformation matrix for the entity
-                    instanceColors.push_back(sprite.Color);  // Color for the sprite
-                   // instanceTextureIDs.push_back(sprite.Texture);
-                   
-                }
+                auto view = m_registry.view<const TransformComponent, SpriteRendererComponent>();
+                view.each([&](const TransformComponent &transform, const SpriteRendererComponent &sprite)
+                    {
+                        instanceTransforms.push_back(transform.GetTransform());
+                        instanceColors.push_back(sprite.Color);
+                    });
 
                 if (instanceTransforms.size() > maxInstances)
                 {
                     // increase masxInstances
                     EE_CORE_INFO(" Max instance count reached: {0}", instanceTransforms.size());
                 }
+                */
 
-                if (!instanceTransforms.empty())
+                //if (!instanceTransforms.empty())
                 {
                     // Pass all collected instance data in one call
-                    Renderer2D::DrawQuadInstanced(instanceTransforms, instanceColors, instanceTextureIDs);
+                    Renderer2D::DrawQuadInstanced(m_renderSOA.InstanceTransforms, m_renderSOA.Color, instanceTextureIDs);
                 }
 
             }
@@ -547,26 +570,32 @@ namespace Engine {
         constexpr int32_t subStepCount = 4;
         constexpr float physicsStep = 1.0f / 60.0f;  // Precomputed constant
 
-        // Step physics world
+        // Step physics world in parallel (with multithreading)
         b2World_Step(m_worldId, physicsStep, subStepCount);
 
-        // Optimize entity iteration with `each()`
-        m_registry.view<TransformComponent, RigidBody2DComponent>().each(
-            [](TransformComponent& transformComp, RigidBody2DComponent& rb2dComp)
+        // Parallelize physics state updates
+        size_t count = m_renderSOA.BodyIds.size();
+
+        // Use a parallel loop to update transforms
+        std::for_each(std::execution::par, m_renderSOA.BodyIds.begin(), m_renderSOA.BodyIds.end(),
+            [&](b2BodyId& bodyId)
             {
-                b2BodyId bodyId = rb2dComp.RuntimeBody;
+                // Find the index of the current body
+                size_t index = &bodyId - m_renderSOA.BodyIds.data();
 
-                // Directly update transform from physics body
+                // Update physics state for the current body
                 b2Vec2 position = b2Body_GetPosition(bodyId);
-                transformComp.Translation = { position.x, position.y, 0.0f };
-
                 b2Rot rotation = b2Body_GetRotation(bodyId);
-                transformComp.Rotation.z = std::atan2(rotation.s, rotation.c);
+               
+
+                // Directly update transform (modify the transform in the same array)
+                m_renderSOA.InstanceTransforms[index] =
+                    glm::translate(glm::mat4(1.0f), { position.x, position.y, 0.0f }) *
+                    glm::rotate(glm::mat4(1.0f), std::atan2(rotation.s, rotation.c), { 0, 0, 1 }) *
+                    glm::scale(glm::mat4(1.0f), Math::extractScaleFromMat4(m_renderSOA.InstanceTransforms[index]));
             }
         );
     }
-
-
 
 
 

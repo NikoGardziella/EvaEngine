@@ -59,7 +59,7 @@ namespace Engine {
         TransformComponent(const glm::vec3 translation)
             : Translation(translation) {
         }
-
+        
         glm::mat4 GetTransform() const
         {
             glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
@@ -67,6 +67,23 @@ namespace Engine {
             return glm::translate(glm::mat4(1.0f), Translation)
                 * rotation
                 * glm::scale(glm::mat4(1.0f), Scale);
+        }
+
+        void SetTransform(const glm::mat4& transform)
+        {
+            Translation = glm::vec3(transform[3]);  
+
+            Scale.x = glm::length(glm::vec3(transform[0]));
+            Scale.y = glm::length(glm::vec3(transform[1]));
+            Scale.z = glm::length(glm::vec3(transform[2]));
+
+            glm::mat3 rotationMatrix = glm::mat3(
+                glm::vec3(transform[0]) / Scale.x,
+                glm::vec3(transform[1]) / Scale.y,
+                glm::vec3(transform[2]) / Scale.z
+            );
+
+            Rotation = glm::eulerAngles(glm::quat_cast(rotationMatrix)); // Convert to Euler angles
         }
     };
 

@@ -40,7 +40,14 @@ namespace Engine {
             return true; // Successful decomposition
         }
 
-
+        glm::vec3 extractScaleFromMat4(const glm::mat4& matrix)
+        {
+            glm::vec3 scale;
+            scale.x = glm::length(glm::vec3(matrix[0][0], matrix[0][1], matrix[0][2]));
+            scale.y = glm::length(glm::vec3(matrix[1][0], matrix[1][1], matrix[1][2]));
+            scale.z = glm::length(glm::vec3(matrix[2][0], matrix[2][1], matrix[2][2]));
+            return scale;
+        }
 
 
 

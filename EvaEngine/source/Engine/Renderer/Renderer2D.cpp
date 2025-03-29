@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace Engine {
 
@@ -558,14 +559,17 @@ namespace Engine {
 			// Write vertex data
 			for (size_t j = 0; j < 4; j++)
 			{
+
 				s_Data.QuadVertexBufferPtr->Position = instanceTransform * s_Data.QuadVertexPositions[j];  // Use quad's position
-				s_Data.QuadVertexBufferPtr->Color = instanceColor;  // Use per-instance color
-				s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[j];  // Use quad's texcoord
-				s_Data.QuadVertexBufferPtr->TexIndex = textureID;  // Use per-instance texture ID
-				s_Data.QuadVertexBufferPtr->TilingFactor = 1.0f;  // You can add support for tiling here if needed
-				s_Data.QuadVertexBufferPtr->EntityID = -1;  // You can use entity ID if needed
+				s_Data.QuadVertexBufferPtr->Color = instanceColor;  
+				s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[j];  
+				s_Data.QuadVertexBufferPtr->TexIndex = textureID;  
+				s_Data.QuadVertexBufferPtr->TilingFactor = 1.0f;  
+				s_Data.QuadVertexBufferPtr->EntityID = -1;  
 				//s_Data.QuadVertexBufferPtr->InstanceTansform = instanceTransform ; // Set instance transform matrix
 				s_Data.QuadVertexBufferPtr++;
+				s_Data.Stats.QuadCount++;
+
 			}
 			//memcpy(s_Data.InstanceTransformBufferPtr, &instanceTransform, sizeof(glm::mat4));
 			//s_Data.InstanceTransformBufferPtr++;
