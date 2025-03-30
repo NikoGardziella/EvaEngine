@@ -31,10 +31,13 @@ namespace Engine
 		
 		s_Instance = this;
 		
+
+		RendererAPI::API selectedAPI = RendererAPI::API::OpenGL;
+		RendererAPI::SetRendererAPI(selectedAPI);
 		m_window = std::unique_ptr<Window>(WindowsWindow::Create(WindowProps(name)));
 		m_window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+		Renderer::Init(selectedAPI);
 
-		Renderer::Init();
 
 		m_imGuiLayer = new ImGuiLayer();
 		PushLayer(m_imGuiLayer);

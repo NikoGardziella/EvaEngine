@@ -23,17 +23,24 @@ namespace Engine {
 	};
 }
 
+
+
+#define EE_FILE_NAME (__FILE__ + std::string_view(__FILE__).rfind('\\') + 1)  // Windows path separator
+
+//#define EE_FILE_NAME (__FILE__ + std::string_view(__FILE__).rfind('/') + 1)  // Unix path separator
+
+
 // core log macros
-#define EE_CORE_TRACE(...)    ::Engine::Log::GetCoreLogger()->trace(__VA_ARGS__)
-#define EE_CORE_INFO(...)     ::Engine::Log::GetCoreLogger()->info(__VA_ARGS__)
-#define EE_CORE_WARN(...)     ::Engine::Log::GetCoreLogger()->warn(__VA_ARGS__)
-#define EE_CORE_ERROR(...)    ::Engine::Log::GetCoreLogger()->error(__VA_ARGS__)
-#define EE_CORE_CRITICAL(...) ::Engine::Log::GetCoreLogger()->critical(__VA_ARGS__)
+#define EE_CORE_TRACE(msg, ...)		 ::Engine::Log::GetCoreLogger()->trace("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
+#define EE_CORE_INFO(msg, ...)	::Engine::Log::GetCoreLogger()->info("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
+#define EE_CORE_ERROR(msg, ...)		::Engine::Log::GetCoreLogger()->error("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
+#define EE_CORE_WARN(msg, ...)		 ::Engine::Log::GetCoreLogger()->warn("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
+#define EE_CORE_CRITICAL(msg, ...)	::Engine::Log::GetCoreLogger()->critical("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
 
 // client log macros
-#define EE_TRACE(...)    ::Engine::Log::GetClientLogger()->trace(__VA_ARGS__)
-#define EE_INFO(...)     ::Engine::Log::GetClientLogger()->info(__VA_ARGS__)
-#define EE_WARN(...)     ::Engine::Log::GetClientLogger()->warn(__VA_ARGS__)
-#define EE_ERROR(...)    ::Engine::Log::GetClientLogger()->error(__VA_ARGS__)
-#define EE_CRITICAL(...) ::Engine::Log::GetClientLogger()->critical(__VA_ARGS__)
+#define EE_TRACE(msg, ...)    ::Engine::Log::GetClientLogger()->trace("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
+#define EE_INFO(msg, ...)     ::Engine::Log::GetClientLogger()->info("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
+#define EE_WARN(msg, ...)     ::Engine::Log::GetClientLogger()->warn("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
+#define EE_ERROR(msg, ...)    ::Engine::Log::GetClientLogger()->error("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
+#define EE_CRITICAL(msg, ...) ::Engine::Log::GetClientLogger()->critical("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
 

@@ -343,7 +343,7 @@ namespace Engine {
                         }
                         else
                         {
-                            EE_CORE_ERROR("Invalid texture ID: {0}", textureID);
+                            EE_CORE_ERROR("Invalid texture ID: {}", textureID);
                         }
                     }
                     else
@@ -856,7 +856,7 @@ namespace Engine {
 
         if (path.extension().string() != ".ee")
         {
-            EE_CORE_WARN("could not load {0} - not s scene file .ee", path.filename().string());
+            EE_CORE_WARN("could not load {} - not s scene file .ee", path.filename().string());
             return;
         }
 

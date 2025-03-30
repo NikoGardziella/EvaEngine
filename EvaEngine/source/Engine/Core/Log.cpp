@@ -9,7 +9,6 @@ namespace Engine
 	std::shared_ptr<spdlog::logger> Log::m_CoreLogger;
 	std::shared_ptr<spdlog::logger> Log::m_ClientLogger;
 
-
 	void Log::Init()
 	{
 		//************************************************
@@ -22,7 +21,7 @@ namespace Engine
 		//	% v : The actual log message.
 		//	% $ : End color range.*/
 		//************************************************
-		spdlog::set_pattern("%^ [%H:%M:%S] [%n] %l [thread %t] %v %$");
+		spdlog::set_pattern("%^ [%H:%M:%S] [%n] %l [thread %t] [%s] %v %$");
 
 		m_CoreLogger = spdlog::stdout_color_mt("Engine");
 		m_CoreLogger->set_level(spdlog::level::trace);

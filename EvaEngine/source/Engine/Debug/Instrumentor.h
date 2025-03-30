@@ -45,7 +45,7 @@ namespace Engine {
 				// If there is already a current session, then close it before beginning new one.
 				if (Log::GetCoreLogger())
 				{
-					EE_CORE_ERROR("Instrumentor::BeginSession('{0}') when session '{1}' already open.", name, m_CurrentSession->Name);
+					EE_CORE_ERROR("Instrumentor::BeginSession('{}') when session '{}' already open.", name, m_CurrentSession->Name);
 				}
 				InternalEndSession();
 			}
@@ -71,7 +71,7 @@ namespace Engine {
 			{
 				if (Engine::Log::GetCoreLogger())
 				{
-					EE_CORE_ERROR("Instrumentor could not open results file '{0}'.", fullFilePath.string());
+					EE_CORE_ERROR("Instrumentor could not open results file '{}'.", fullFilePath.string());
 				}
 			}
 		}

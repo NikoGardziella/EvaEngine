@@ -204,7 +204,7 @@ namespace Engine {
 		}
 
 		EE_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
-		EE_CORE_INFO("Framebuffer status {0}", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
+		EE_CORE_INFO("Framebuffer status {}", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}

@@ -27,11 +27,11 @@ namespace Engine {
         if (std::filesystem::exists(currentPath / "assets"))
         {
             s_AssetPath = currentPath / "assets";
-            EE_CORE_INFO("Asset folder found at: {0}", s_AssetPath.string());
+            EE_CORE_INFO("Asset folder found at: {}", s_AssetPath.string());
         }
         else
         {
-            EE_CORE_WARN("Could not find asset folder within {0} parent levels!", maxDepth);
+            EE_CORE_WARN("Could not find asset folder within {} parent levels!", maxDepth);
         }
     }
 
@@ -77,7 +77,7 @@ namespace Engine {
         if (!std::filesystem::exists(cacheDirectory))
         {
             std::filesystem::create_directories(cacheDirectory);
-            EE_CORE_INFO("Created cache directory: {0}", cacheDirectory.string());
+            EE_CORE_INFO("Created cache directory: {}", cacheDirectory.string());
         }
     }
 

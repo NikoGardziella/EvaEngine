@@ -7,7 +7,7 @@ namespace Engine {
 	{
 		
 		
-		EE_CORE_INFO("~Layerstack. Index; {0}", m_LayerInsertIndex);
+		EE_CORE_INFO("~Layerstack. Index; {}", m_LayerInsertIndex);
 		m_Layers.clear();
 	}
 

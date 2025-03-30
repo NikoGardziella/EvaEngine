@@ -1679,5 +1679,6 @@
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\testShader.glsl" />
   </ItemGroup>
 </Project>

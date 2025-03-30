@@ -51,7 +51,6 @@ namespace Engine {
 		
 		inline static void SetRendererAPI(RendererAPI::API api)
 		{
-			RendererAPI::SetRendererAPI(api);
 
 			switch (api)
 			{

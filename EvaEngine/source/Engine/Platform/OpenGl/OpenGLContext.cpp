@@ -15,7 +15,7 @@ namespace Engine {
 	{
 		if (!windowHandle)
 		{
-			EE_CORE_ERROR("Failed to initialize {0} with error code {0}", "windowHandle", static_cast<void*>(m_windowHandle));
+			EE_CORE_ERROR("Failed to initialize {} with error code {}", "windowHandle", static_cast<void*>(m_windowHandle));
 		}
 		else
 		{
@@ -33,14 +33,14 @@ namespace Engine {
 		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		if (status == 0)
 		{
-			EE_CORE_ERROR("Failed to initialize {0} with status code {1} ", "glad", status);
+			EE_CORE_ERROR("Failed to initialize {} with status code {} ", "glad", status);
 		}
 		else
 		{
-			EE_CORE_INFO(" {0} initialized with status code {1} ", "glad", status);
+			EE_CORE_INFO(" {} initialized with status code {} ", "glad", status);
 		}
 
-		EE_CORE_INFO("OpenGL renderer: {0} , {1}",
+		EE_CORE_INFO("OpenGL renderer: {} , {}",
 			reinterpret_cast<const char*>(glGetString(GL_VENDOR)),
 			reinterpret_cast<const char*>(glGetString(GL_RENDERER))
 		);

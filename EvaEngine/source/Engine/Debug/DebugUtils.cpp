@@ -18,7 +18,7 @@ namespace Engine {
         {
             Entity entity = Entity{ entityID, scene.get() };
             auto& tag = entity.GetComponent<TagComponent>().Tag;
-            EE_CORE_INFO("Entity ID: {0}, Tag: {1}", (uint32_t)entity, tag.c_str());
+            EE_CORE_INFO("Entity ID: {}, Tag: {}", (uint32_t)entity, tag.c_str());
         }
     }
 

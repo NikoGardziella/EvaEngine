@@ -27,7 +27,7 @@ namespace Engine {
 
         if (!std::filesystem::exists(AssetManager::GetAssetFolderPath()))
         {
-            EE_CORE_ERROR("Assets directory not found: {0}", AssetManager::GetAssetFolderPath().string());
+            EE_CORE_ERROR("Assets directory not found: {}", AssetManager::GetAssetFolderPath().string());
         }
 
         // Back Button
@@ -97,7 +97,7 @@ namespace Engine {
     }
     catch (const std::filesystem::filesystem_error& e)
     {
-        EE_CORE_ERROR("Filesystem error: {0}, ", e.what());
+        EE_CORE_ERROR("Filesystem error: {}, ", e.what());
     }
         ImGui::Columns(1); // Reset columns
         ImGui::End();

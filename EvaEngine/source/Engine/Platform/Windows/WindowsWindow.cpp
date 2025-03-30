@@ -11,6 +11,7 @@
 
 #include "Engine/Platform/OpenGl/OpenGLContext.h"
 #include "Engine/Platform/Vulkan/VulkanContext.h"
+#include <backends/imgui_impl_opengl3_loader.h>
 
 namespace Engine {
 
@@ -24,7 +25,7 @@ namespace Engine {
 
 	static void GLFWErrorCallback(int error, const char* description)
 	{
-		EE_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
+		EE_CORE_ERROR("GLFW Error ({}): {}", error, description);
 	}
 
 	WindowsWindow::WindowsWindow(const WindowProps& props)
@@ -49,7 +50,7 @@ namespace Engine {
 		m_Data.Width = props.Width;
 		m_Data.Height = props.Height;
 
-		EE_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
+		EE_CORE_INFO("Creating window {} ({}, {})", props.Title, props.Width, props.Height);
 
 		if (s_GLFWWindowCount == 0)
 		{
@@ -61,10 +62,10 @@ namespace Engine {
 		// Configure GLFW window hints based on the selected API
 		if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
 		{
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1); // GL_TRUE
+			//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+			//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // GL_TRUE
 		}
 		else if (Renderer::GetAPI() == RendererAPI::API::Vulkan)
 		{

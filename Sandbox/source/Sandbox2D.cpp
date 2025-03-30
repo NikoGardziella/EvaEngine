@@ -257,7 +257,7 @@ void Sandbox2D::CreateTestScene()
 
 	}
 
-	EE_INFO("box count: {0}   |   circle count:  {1}", boxCount, circleCount);
+	EE_INFO("box count: {}   |   circle count:  {}", boxCount, circleCount);
 
 }
 

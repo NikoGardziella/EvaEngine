@@ -691,6 +691,7 @@
     <None Include="..\assets\shaders\FlatColor.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
+    <None Include="..\assets\shaders\testShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">

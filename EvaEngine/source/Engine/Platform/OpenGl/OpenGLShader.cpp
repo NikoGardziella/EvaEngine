@@ -95,7 +95,7 @@ namespace Engine {
 			CompileOrGetOpenGLBinaries();
 			CreateProgram();
 			timer.Stop();
-			EE_CORE_WARN("Shader creation took {0} ", timer.GetElapsedTime());
+			EE_CORE_WARN("Shader creation took {} ", timer.GetElapsedTime());
 		}
 
 		// Extract name from filepath
@@ -145,12 +145,12 @@ namespace Engine {
 			}
 			else
 			{
-				EE_CORE_ERROR("Could not read from file '{0}'", filepath);
+				EE_CORE_ERROR("Could not read from file '{}'", filepath);
 			}
 		}
 		else
 		{
-			EE_CORE_ERROR("Could not open file '{0}'", filepath);
+			EE_CORE_ERROR("Could not open file '{}'", filepath);
 		}
 
 		return result;
@@ -221,7 +221,7 @@ namespace Engine {
 				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_FilePath.c_str(), options);
 				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
-					EE_CORE_ERROR(module.GetErrorMessage());
+					EE_CORE_ERROR("errro compiling shaders: {}",module.GetErrorMessage());
 					EE_CORE_ASSERT(false);
 				}
 
@@ -285,7 +285,7 @@ namespace Engine {
 				shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_FilePath.c_str());
 				if (module.GetCompilationStatus() != shaderc_compilation_status_success)
 				{
-					EE_CORE_ERROR(module.GetErrorMessage());
+					EE_CORE_ERROR("errro compiling shaders: {}", module.GetErrorMessage());
 					EE_CORE_ASSERT(false);
 				}
 
@@ -327,7 +327,7 @@ namespace Engine {
 
 			std::vector<GLchar> infoLog(maxLength);
 			glGetProgramInfoLog(program, maxLength, &maxLength, infoLog.data());
-			EE_CORE_ERROR("Shader linking failed ({0}):\n{1}", m_FilePath, infoLog.data());
+			EE_CORE_ERROR("Shader linking failed ({}):\n{1}", m_FilePath, infoLog.data());
 
 			glDeleteProgram(program);
 
@@ -349,9 +349,9 @@ namespace Engine {
 		spirv_cross::Compiler compiler(shaderData);
 		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
-		EE_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_FilePath);
-		EE_CORE_TRACE("    {0} uniform buffers", resources.uniform_buffers.size());
-		EE_CORE_TRACE("    {0} resources", resources.sampled_images.size());
+		EE_CORE_TRACE("OpenGLShader::Reflect - {} {}", Utils::GLShaderStageToString(stage), m_FilePath);
+		EE_CORE_TRACE("    {} uniform buffers", resources.uniform_buffers.size());
+		EE_CORE_TRACE("    {} resources", resources.sampled_images.size());
 
 		EE_CORE_TRACE("Uniform buffers:");
 		for (const auto& resource : resources.uniform_buffers)
@@ -361,10 +361,10 @@ namespace Engine {
 			uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
 			int memberCount = bufferType.member_types.size();
 
-			EE_CORE_TRACE("  {0}", resource.name);
-			EE_CORE_TRACE("    Size = {0}", bufferSize);
-			EE_CORE_TRACE("    Binding = {0}", binding);
-			EE_CORE_TRACE("    Members = {0}", memberCount);
+			EE_CORE_TRACE("  {}", resource.name);
+			EE_CORE_TRACE("    Size = {}", bufferSize);
+			EE_CORE_TRACE("    Binding = {}", binding);
+			EE_CORE_TRACE("    Members = {}", memberCount);
 		}
 	}
 

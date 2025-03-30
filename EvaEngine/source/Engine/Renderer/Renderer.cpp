@@ -9,13 +9,12 @@ namespace Engine {
 
 	Renderer::SceneData* Renderer::m_sceneData = new SceneData();
 
-	void Renderer::Init()
+	void Renderer::Init(RendererAPI::API api)
 	{
 		//std::unique_ptr<RendererAPI> rendererAPI = RendererAPI::CreateRenderer(selectedAPI);
 		//rendererAPI->Init();
 		
-		RendererAPI::API selectedAPI = RendererAPI::API::Vulkan;
-		RenderCommand::SetRendererAPI(selectedAPI);
+		RenderCommand::SetRendererAPI(api);
 
 		RenderCommand::Init();
 		Renderer2D::Init();
