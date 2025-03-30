@@ -20,5 +20,6 @@ namespace Engine {
 		virtual const Ref<IndexBuffer>& GetIndexBuffer() const = 0;
 
 		static Ref<VertexArray> Create();
+
 	};
 }

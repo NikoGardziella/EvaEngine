@@ -21,10 +21,12 @@ namespace Engine {
 
 		virtual void SetLayout(const BufferLayout& layout) override { m_layout = layout;  }
 		virtual const BufferLayout GetLayout()  const override { return m_layout; }
+		virtual uint32_t GetSize() const override { return m_size; }
 
 	private:
 
 		uint32_t m_rendererID;
+		uint32_t m_size;
 		BufferLayout m_layout;
 
 	};
@@ -45,6 +47,7 @@ namespace Engine {
 		virtual void UnBind() const override;
 		 
 		virtual uint32_t GetCount() const { return m_count; }
+		virtual const void* GetData() const override { EE_CORE_WARN("dont to this"); return nullptr; }
 
 
 	private:

@@ -1,29 +1,58 @@
 #pragma once
 #include "Engine/Renderer/Buffer.h"
+#include <vulkan/vulkan.h>
 
 namespace Engine {
 
     class VulkanVertexBuffer : public VertexBuffer
     {
     public:
-		VulkanVertexBuffer(float* vertices, uint32_t size);
-		VulkanVertexBuffer(uint32_t size);
+        VulkanVertexBuffer(float* vertices, uint32_t size);
+        VulkanVertexBuffer(uint32_t size);
+        virtual ~VulkanVertexBuffer();
 
-		virtual ~VulkanVertexBuffer();
+        virtual void Bind() const override;
+        virtual void UnBind() const override;
+        virtual void SetData(const void* data, uint32_t size) override;
+        virtual void SetMat4InstanceAttribute(uint32_t location) override;
 
-		virtual void Bind() const override;
-		virtual void UnBind() const override;
+        virtual void SetLayout(const BufferLayout& layout) override { m_layout = layout; }
+        virtual const BufferLayout GetLayout()  const override { return m_layout; }
+        virtual uint32_t GetSize() const override { return m_size; }
 
-		virtual void SetData(const void* data, uint32_t size) override;
-		virtual void SetMat4InstanceAttribute(uint32_t location) override;
+    private:
+        void CreateBuffer(uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+        void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
-		virtual void SetLayout(const BufferLayout& layout) override { m_layout = layout; }
-		virtual const BufferLayout GetLayout()  const override { return m_layout; }
-	private:
+        BufferLayout m_layout;
 
-		uint32_t m_rendererID;
-		BufferLayout m_layout;
+        VkBuffer m_buffer;
+        VkDeviceMemory m_bufferMemory;
 
+        uint32_t m_size;
+    };
+    
+
+
+    class VulkanIndexBuffer : public IndexBuffer
+    {
+    public:
+        VulkanIndexBuffer(uint32_t* indices, uint32_t count);
+        virtual ~VulkanIndexBuffer();
+
+        virtual void Bind() const override;
+        virtual void UnBind() const override {};
+
+        virtual uint32_t GetCount() const override { return m_count; }
+        virtual const void* GetData() const override { return m_data.data(); } 
+
+    private:
+        void CreateIndexBuffer(uint32_t* indices, uint32_t count);
+
+        VkBuffer m_indexBuffer;
+        VkDeviceMemory m_indexBufferMemory;
+        uint32_t m_count;
+        std::vector<uint32_t> m_data;
     };
 
 }

@@ -32,7 +32,7 @@ namespace Engine
 		s_Instance = this;
 		
 
-		RendererAPI::API selectedAPI = RendererAPI::API::OpenGL;
+		RendererAPI::API selectedAPI = RendererAPI::API::Vulkan;
 		RendererAPI::SetRendererAPI(selectedAPI);
 		m_window = std::unique_ptr<Window>(WindowsWindow::Create(WindowProps(name)));
 		m_window->SetEventCallback(BIND_EVENT_FN(OnEvent));

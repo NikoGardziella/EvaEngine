@@ -9,6 +9,7 @@ namespace Engine {
 
 	
 	OpenGLVertexBuffer::OpenGLVertexBuffer(float* vertices, uint32_t size)
+		: m_size(size)
 	{
 		EE_PROFILE_FUNCTION();
 
@@ -22,6 +23,7 @@ namespace Engine {
 	}
 
 	OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size)
+		: m_size(size)
 	{
 		EE_PROFILE_FUNCTION();
 

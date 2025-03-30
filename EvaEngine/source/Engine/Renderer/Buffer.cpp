@@ -63,7 +63,7 @@ namespace Engine {
 			return  std::make_unique<OpenGLVertexBuffer>(size);
 
 		case RendererAPI::API::Vulkan:
-			EE_CORE_ASSERT(false, "Vulkan  not YET supported");
+			return  std::make_unique<VulkanVertexBuffer>(size);
 
 			return nullptr;
 
@@ -86,7 +86,8 @@ namespace Engine {
 			return std::make_unique<OpenGLIndexBuffer>(indices, count);
 
 		case RendererAPI::API::Vulkan:
-			EE_CORE_ASSERT(false, "Vulkan  not YET supported");
+			return std::make_unique<VulkanIndexBuffer>(indices, count);
+
 
 			return nullptr;
 

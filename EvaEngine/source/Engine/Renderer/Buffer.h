@@ -144,6 +144,9 @@ namespace Engine {
 
 		static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
 		static Ref<VertexBuffer> Create(uint32_t size);
+
+		virtual uint32_t GetSize() const = 0;
+
 	};
 
 	class IndexBuffer
@@ -158,7 +161,7 @@ namespace Engine {
 		virtual uint32_t GetCount() const = 0;
 
 		static  Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count);
-
+		virtual const void* GetData() const = 0;
 	};
 
 }
