@@ -1,5 +1,7 @@
 #pragma once
 #include "Engine/Renderer/RendererAPI.h"
+#include <Engine/Platform/Vulkan/VulkanRendererAPI.h>
+#include "Engine/Platform/OpenGl/OpenGLRendererAPI.h"
 
 namespace Engine {
 
@@ -10,7 +12,7 @@ namespace Engine {
 
 		inline static void Init()
 		{
-			s_RendererAPI->Init();
+			 s_RendererAPI->Init();
 		}
 
 		inline static void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
@@ -46,6 +48,32 @@ namespace Engine {
 		{
 			s_RendererAPI->SetLineWidth(width);
 		}
+		
+		inline static void SetRendererAPI(RendererAPI::API api)
+		{
+			RendererAPI::SetRendererAPI(api);
+
+			switch (api)
+			{
+			case RendererAPI::API::None:
+				EE_CORE_ASSERT(false, "RenderAPI not supported");
+				break;
+
+			case RendererAPI::API::OpenGL:
+				s_RendererAPI = new OpenGLRendererAPI;
+				break;
+
+			case RendererAPI::API::Vulkan:
+				s_RendererAPI = new VulkanRendererAPI;
+				break;
+
+			default:
+				EE_CORE_ASSERT(false, "Unknown RenderAPI");
+				break;
+			}
+
+		}
+		
 	private:
 
 		static RendererAPI* s_RendererAPI;

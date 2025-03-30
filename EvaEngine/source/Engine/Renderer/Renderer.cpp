@@ -11,6 +11,11 @@ namespace Engine {
 
 	void Renderer::Init()
 	{
+		//std::unique_ptr<RendererAPI> rendererAPI = RendererAPI::CreateRenderer(selectedAPI);
+		//rendererAPI->Init();
+		
+		RendererAPI::API selectedAPI = RendererAPI::API::Vulkan;
+		RenderCommand::SetRendererAPI(selectedAPI);
 
 		RenderCommand::Init();
 		Renderer2D::Init();

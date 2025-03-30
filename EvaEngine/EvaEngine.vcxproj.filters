@@ -1517,6 +1517,12 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTask.h" />
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanVertexArray.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanShader.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTexture.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1653,6 +1659,12 @@
     </ClCompile>
     <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTask.cpp" />
     <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanVertexArray.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanShader.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTexture.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">

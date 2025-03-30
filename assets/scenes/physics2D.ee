@@ -24,9 +24,9 @@ Entities:
     TagComponent:
       Tag: Ground
     TransformComponent:
-      Translation: [-0.5, -8.2, 0]
-      Rotation: [0, 0, 0]
-      Scale: [89.5, 1, 1]
+      Translation: [-0.5, -33.7, 0]
+      Rotation: [0, 0, 0.37873647]
+      Scale: [271.8, 1, 1]
     SpriteRendererComponent:
       Color: [0, 1, 0, 1]
       Tiling: 1
@@ -38,5 +38,5 @@ Entities:
       Size: [0.5, 0.5]
       Density: 1
       Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
+      Restitution: 1
+      RestitutionThreshold: 1

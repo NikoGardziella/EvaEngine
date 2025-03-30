@@ -170,7 +170,7 @@ void Sandbox2D::OnGameStart()
 	cameraComp.Camera.SetPerspectiveFOV(45.0f);
 	
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 40.0f);
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 80.0f);
 	
 	/*
 	m_squareEntity = m_activeScene->CreateEntity("Gamesquare2");

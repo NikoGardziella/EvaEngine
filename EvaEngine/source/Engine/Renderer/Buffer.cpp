@@ -5,6 +5,7 @@
 #include <Engine/Core/Core.h>
 
 #include "Engine/Platform/OpenGl/OpenGLBuffer.h"
+#include <Engine/Platform/Vulkan/VulkanBuffer.h>
 
 namespace Engine {
 
@@ -37,7 +38,7 @@ namespace Engine {
 			return std::make_unique<OpenGLVertexBuffer>(vertices, size);
 
 		case RendererAPI::API::Vulkan:
-			EE_CORE_ASSERT(false, "Vulkan  not YET supported");
+			return std::make_unique<VulkanVertexBuffer>(vertices, size);
 
 			return nullptr;
 

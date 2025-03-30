@@ -6,10 +6,11 @@
 #include "Engine/Events/ApplicationEvent.h"
 #include "Engine/Events/MouseEvent.h"
 #include "Engine/Events/KeyEvent.h"
-		
+#include "Engine/Renderer/Renderer.h"
 #include "Engine/Core/Log.h"
 
 #include "Engine/Platform/OpenGl/OpenGLContext.h"
+#include "Engine/Platform/Vulkan/VulkanContext.h"
 
 namespace Engine {
 
@@ -57,15 +58,35 @@ namespace Engine {
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
+		// Configure GLFW window hints based on the selected API
+		if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
+		{
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1); // GL_TRUE
+		}
+		else if (Renderer::GetAPI() == RendererAPI::API::Vulkan)
+		{
+			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Don't create an OpenGL context
+		}
+
 		{
 			EE_PROFILE_SCOPE("glfwCreateWindow");
 
 			m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 			++s_GLFWWindowCount;
-			
-
 		}
-		m_Context = new OpenGLContext(m_Window);
+
+		// Initialize Graphics Context based on API
+		if (Renderer::GetAPI() == RendererAPI::API::OpenGL)
+		{
+			m_Context = new OpenGLContext(m_Window);
+		}
+		else if (Renderer::GetAPI() == RendererAPI::API::Vulkan)
+		{
+			m_Context = new VulkanContext(m_Window);
+		}
 		m_Context->Init();
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);

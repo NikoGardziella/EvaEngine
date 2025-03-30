@@ -623,6 +623,12 @@
     <ClInclude Include="vendor\glm\glm\vec4.hpp" />
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanShader.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTexture.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanVertexArray.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.cpp" />
@@ -673,6 +679,12 @@
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanShader.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTexture.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanVertexArray.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl" />

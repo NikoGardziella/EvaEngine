@@ -30,6 +30,28 @@ namespace Engine {
 
 		inline static API GetAPI() { return s_API; }
 
+		inline static void SetRendererAPI(RendererAPI::API api)
+		{
+
+			switch (api)
+			{
+			case RendererAPI::API::None:
+				EE_CORE_ASSERT(false, "RenderAPI not supported");
+				break;
+
+			case RendererAPI::API::OpenGL:
+				s_API = RendererAPI::API::OpenGL;
+				break;
+
+			case RendererAPI::API::Vulkan:
+				s_API = RendererAPI::API::Vulkan;
+				break;
+
+			default:
+				EE_CORE_ASSERT(false, "Unknown RenderAPI");
+				break;
+			}
+		}
 	private:
 
 		static API s_API;
