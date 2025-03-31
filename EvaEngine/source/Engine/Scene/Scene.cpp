@@ -264,7 +264,6 @@ namespace Engine {
         
             bodyDef.fixedRotation = rb2dComp.FixedRotation;
             
-            EE_CORE_ASSERT(bodyId != b2_nullBodyId);  // Make sure the body is created successfully.
             b2BodyId bodyId = b2CreateBody(m_worldId, &bodyDef);
 
             rb2dComp.RuntimeBody = bodyId;

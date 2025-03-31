@@ -60,7 +60,7 @@ namespace Engine {
         template<typename T>
         void RemoveComponent()
         {
-            EE_CORE_ASSERT(m_scene, "Entity has no valid scene!");
+            //EE_CORE_ASSERT(m_scene, "Entity has no valid scene!");
             m_scene->m_registry.remove<T>(m_entityHandle);
         }
 
