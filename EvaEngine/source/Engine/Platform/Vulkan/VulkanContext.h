@@ -68,6 +68,7 @@ namespace Engine {
         void CreateSwapchain();
 
         void CreateImageViews();
+    private:
 
         VulkanContext::SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
         VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -75,6 +76,13 @@ namespace Engine {
         VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
         QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
         bool CheckValidationLayerSupport();
+        std::vector<const char*> GetRequiredExtensions();
+        void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+        void SetupDebugMessenger();
+        void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
+        VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
+        static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
+        bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
     private:
         GLFWwindow* m_windowHandle;
         VkInstance m_instance;
@@ -84,7 +92,7 @@ namespace Engine {
         VkCommandPool m_commandPool;
         VkQueue m_graphicsQueue;
 
-        VkSwapchainKHR m_swapchain;
+        VkSwapchainKHR m_swapChain;
         std::vector<VkImage> m_swapchainImages;
         std::vector<VkImageView> m_swapchainImageViews;
         VkFormat m_swapchainImageFormat;
@@ -94,18 +102,22 @@ namespace Engine {
         static VulkanContext* s_instance;
         SwapChainSupportDetails m_swapChainSupportDetails;
 
-        VkPhysicalDeviceFeatures deviceFeatures{};
+        VkPhysicalDeviceFeatures m_deviceFeatures{};
 
-
+        VkDebugUtilsMessengerEXT m_debugMessenger;
         const std::vector<const char*> m_validationLayers =
         {
             "VK_LAYER_KHRONOS_validation"
+        };
+        const std::vector<const char*> m_deviceExtensions =
+        {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
         };
 
     #ifdef NDEBUG
             const bool enableValidationLayers = false;
     #else
-            const bool enableValidationLayers = true;
+            const bool m_enableValidationLayers = true;
     #endif
     };
 

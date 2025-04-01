@@ -417,7 +417,8 @@ namespace Engine {
     {
         if (!std::filesystem::exists(filepath))
         {
-            //EE_CORE_ASSERT(false, "File does not exist: %s", filepath.c_str());
+            EE_CORE_ERROR("Failed to open file: {}", filepath);
+            EE_CORE_ASSERT(false, "Failed to open file");
             return false;
         }
 
