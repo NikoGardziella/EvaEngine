@@ -1523,6 +1523,7 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1665,6 +1666,7 @@
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">

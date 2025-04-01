@@ -24,11 +24,11 @@ namespace Engine {
     }
 
     VulkanContext::VulkanContext(GLFWwindow* windowHandle)
-        : m_windowHandle(windowHandle), m_instance(VK_NULL_HANDLE), m_surface(VK_NULL_HANDLE),
+        : m_windowHandle(windowHandle), m_surface(VK_NULL_HANDLE),
         m_device(VK_NULL_HANDLE), m_commandPool(VK_NULL_HANDLE), m_graphicsQueue(VK_NULL_HANDLE)
     {
         CreateInstance();
-        SetupDebugMessenger();
+       // SetupDebugMessenger();
         CreateSurface();
         PickPhysicalDevice();
         CreateLogicalDevice();
@@ -53,16 +53,13 @@ namespace Engine {
         }
         if (m_surface != VK_NULL_HANDLE)
         {
-            vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+            vkDestroySurfaceKHR(m_vulkanInstance->GetInstance(), m_surface, nullptr);
         }
-        if (m_instance != VK_NULL_HANDLE)
+        if (m_vulkanInstance->GetInstance() != VK_NULL_HANDLE)
         {
-            vkDestroyInstance(m_instance, nullptr);
+            m_vulkanInstance->DestroyInstance();
         }
-        if (m_enableValidationLayers)
-        {
-           DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
-        }
+        
 
 
     }
@@ -74,77 +71,7 @@ namespace Engine {
 
     void VulkanContext::CreateInstance()
     {
-        if (m_enableValidationLayers && !CheckValidationLayerSupport())
-        {
-            EE_CORE_ASSERT(false, " validation layers requested, but not available !");
-        }
-
-        
-
-        VkApplicationInfo appInfo{};
-        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = "Hello Triangle";
-        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.pEngineName = "No Engine";
-        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.apiVersion = VK_API_VERSION_1_0;
-
-        VkInstanceCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        createInfo.pApplicationInfo = &appInfo;
-        uint32_t glfwExtensionCount = 0;
-        const char** glfwExtensions;
-
-        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-        createInfo.enabledExtensionCount = glfwExtensionCount;
-        createInfo.ppEnabledExtensionNames = glfwExtensions;
-
-        if (m_enableValidationLayers)
-        {
-            createInfo.enabledLayerCount = static_cast<uint32_t>(m_validationLayers.size());
-            createInfo.ppEnabledLayerNames = m_validationLayers.data();
-        }
-        else
-        {
-            createInfo.enabledLayerCount = 0;
-        }
-       
-        createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-
-        std::vector<const char*> extensions = GetRequiredExtensions();
-        createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-        createInfo.ppEnabledExtensionNames = extensions.data();
-
-        createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-
-
-        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-        if (m_enableValidationLayers)
-        {
-            createInfo.enabledLayerCount = static_cast<uint32_t>(m_validationLayers.size());
-            createInfo.ppEnabledLayerNames = m_validationLayers.data();
-
-            PopulateDebugMessengerCreateInfo(debugCreateInfo);
-            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
-        }
-        else
-        {
-            createInfo.enabledLayerCount = 0;
-
-            createInfo.pNext = nullptr;
-        }
-
-     
-        if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS)
-        {
-            EE_CORE_INFO("Failed to create Vulkan instance!");
-
-        }
-        else
-        {
-            EE_CORE_INFO("Vulkan instance created");
-        }
+        m_vulkanInstance = new VulkanInstance();
     }
 
 
@@ -157,7 +84,7 @@ namespace Engine {
 
 
 
-        VkResult result = glfwCreateWindowSurface(m_instance, m_windowHandle, nullptr, &m_surface);
+        VkResult result = glfwCreateWindowSurface(m_vulkanInstance->GetInstance(), m_windowHandle, nullptr, &m_surface);
         if (result != VK_SUCCESS)
         {
             EE_CORE_INFO("Failed to create Vulkan surface! Error code:{} " + std::to_string(result));
@@ -174,7 +101,7 @@ namespace Engine {
     void VulkanContext::PickPhysicalDevice()
     {
         uint32_t deviceCount = 0;
-        vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
+        vkEnumeratePhysicalDevices(m_vulkanInstance->GetInstance(), &deviceCount, nullptr);
         if (deviceCount == 0)
         {
             EE_CORE_ERROR("Failed to find GPUs with Vulkan support!");
@@ -182,7 +109,7 @@ namespace Engine {
         }
 
         std::vector<VkPhysicalDevice> devices(deviceCount);
-        vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
+        vkEnumeratePhysicalDevices(m_vulkanInstance->GetInstance(), &deviceCount, devices.data());
 
         for (const auto& device : devices)
         {
@@ -670,77 +597,13 @@ namespace Engine {
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = DebugCallback;
+        createInfo.pfnUserCallback = VulkanInstance::DebugCallback;
     }
 
-    void VulkanContext::SetupDebugMessenger()
-    {
-        if (!m_enableValidationLayers) return;
-
-        VkDebugUtilsMessengerCreateInfoEXT createInfo;
-        PopulateDebugMessengerCreateInfo(createInfo);
-
-		if (CreateDebugUtilsMessengerEXT(m_instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS)
-		{
-            EE_CORE_ASSERT(false, "Failed to set up debug messenger!");
-		}
-    }
-
-    void VulkanContext::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator)
-    {
-        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-        if (func != nullptr)
-        {
-            func(instance, debugMessenger, pAllocator);
-        }
-    }
-
-    VkResult VulkanContext::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger)
-    {
-        auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-        if (func != nullptr)
-        {
-            return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-        }
-        else
-        {
-            return VK_ERROR_EXTENSION_NOT_PRESENT;
-        }
-    }
+    
 
 
-    VKAPI_ATTR VkBool32 VKAPI_CALL VulkanContext::DebugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-        VkDebugUtilsMessageTypeFlagsEXT messageType,
-        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void* pUserData)
-    {
-        if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-        {
-            if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
-            {
-                EE_CORE_TRACE("validation layer: {}", pCallbackData->pMessage);
-            }
-            else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
-            {
-                EE_CORE_INFO("validation layer: {}", pCallbackData->pMessage);
-            }
-            else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-            {
-                EE_CORE_WARN("validation layer: {}", pCallbackData->pMessage);
-            }
-            else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-            {
-                EE_CORE_ERROR("validation layer: {}", pCallbackData->pMessage);
-            }
-            else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT)
-            {
-                EE_CORE_CRITICAL("validation layer: {}", pCallbackData->pMessage);
-            }
-        }
 
-        return VK_FALSE;
-    }
 
     bool VulkanContext::CheckDeviceExtensionSupport(VkPhysicalDevice device)
     {

@@ -629,6 +629,7 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTexture.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanVertexArray.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.cpp" />
@@ -685,6 +686,7 @@
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanVertexArray.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl" />

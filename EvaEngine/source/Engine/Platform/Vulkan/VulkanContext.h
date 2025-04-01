@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 #include <optional>
+#include "VulkanInstance.h"
 
 namespace Engine {
 
@@ -78,14 +79,12 @@ namespace Engine {
         bool CheckValidationLayerSupport();
         std::vector<const char*> GetRequiredExtensions();
         void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-        void SetupDebugMessenger();
-        void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
-        VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
-        static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
         bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
     private:
         GLFWwindow* m_windowHandle;
-        VkInstance m_instance;
+
+        VulkanInstance* m_vulkanInstance;
+
         VkSurfaceKHR m_surface;
         VkDevice m_device;
         VkPhysicalDevice m_physicalDevice;
@@ -100,6 +99,8 @@ namespace Engine {
         VkQueue m_presentQueue;
 
         static VulkanContext* s_instance;
+
+
         SwapChainSupportDetails m_swapChainSupportDetails;
 
         VkPhysicalDeviceFeatures m_deviceFeatures{};
