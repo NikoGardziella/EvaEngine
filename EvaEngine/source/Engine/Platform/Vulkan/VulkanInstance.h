@@ -7,7 +7,7 @@ namespace Engine {
 
     class VulkanInstance {
     public:
-        VulkanInstance();
+        VulkanInstance(bool m_enableValidationLayers);
         ~VulkanInstance();
 
         void CreateInstance();
@@ -37,13 +37,13 @@ namespace Engine {
 
         const std::vector<const char*> m_validationLayers =
         {
+			// this same is in the VulkanContext.h
             "VK_LAYER_KHRONOS_validation"
         };
-#ifdef NDEBUG
-        const bool m_enableValidationLayers = false;
-#else
-        const bool m_enableValidationLayers = true;
-#endif
+
+
+        bool m_enableValidationLayers = true;
+
     };
 
 }

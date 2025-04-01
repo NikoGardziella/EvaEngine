@@ -1524,6 +1524,8 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1667,6 +1669,8 @@
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">

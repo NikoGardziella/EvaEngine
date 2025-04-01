@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <optional>
 #include "VulkanInstance.h"
+#include "VulkanDevice.h"
 
 namespace Engine {
 
@@ -43,7 +44,6 @@ namespace Engine {
         static VulkanContext* Get();
 
 
-        VkDevice& GetDevice() { return m_device;  }
         VkCommandPool& GetCommandPool() { return m_commandPool;  }
         VkQueue& GetGraphicsQueue() { return m_graphicsQueue;  }
 
@@ -53,16 +53,14 @@ namespace Engine {
         void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
 
-        VkPhysicalDevice GetPhysicalDevice() { return m_physicalDevice; }
+        //VkPhysicalDevice GetPhysicalDevice() { return m_physicalDevice; }
         VkCommandBuffer GetCommandBuffer();
 
     private:
-        bool IsDeviceSuitable(VkPhysicalDevice device);
         void CheckSwapchainSupport();
         void CreateInstance();
         void CreateSurface();
-        void PickPhysicalDevice();
-        void CreateLogicalDevice();
+        void SetupDevices();
         void CreateCommandPool();
         void CreateGraphicsQueue();
 
@@ -71,23 +69,21 @@ namespace Engine {
         void CreateImageViews();
     private:
 
-        VulkanContext::SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
         VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
         VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-        QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
         bool CheckValidationLayerSupport();
         std::vector<const char*> GetRequiredExtensions();
         void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-        bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
     private:
         GLFWwindow* m_windowHandle;
 
         VulkanInstance* m_vulkanInstance;
 
         VkSurfaceKHR m_surface;
-        VkDevice m_device;
-        VkPhysicalDevice m_physicalDevice;
+        //VkPhysicalDevice m_physicalDevice;
+
+        VulkanDevice* m_deviceManager;
         VkCommandPool m_commandPool;
         VkQueue m_graphicsQueue;
 
@@ -103,7 +99,6 @@ namespace Engine {
 
         SwapChainSupportDetails m_swapChainSupportDetails;
 
-        VkPhysicalDeviceFeatures m_deviceFeatures{};
 
         VkDebugUtilsMessengerEXT m_debugMessenger;
         const std::vector<const char*> m_validationLayers =
@@ -116,7 +111,7 @@ namespace Engine {
         };
 
     #ifdef NDEBUG
-            const bool enableValidationLayers = false;
+            const bool m_enableValidationLayers = false;
     #else
             const bool m_enableValidationLayers = true;
     #endif

@@ -7,7 +7,8 @@
 
 namespace Engine {
 
-    VulkanInstance::VulkanInstance()
+	VulkanInstance::VulkanInstance(bool m_enableValidationLayers)
+		: m_enableValidationLayers(m_enableValidationLayers)
     {
         CreateInstance();
         SetupDebugMessenger();

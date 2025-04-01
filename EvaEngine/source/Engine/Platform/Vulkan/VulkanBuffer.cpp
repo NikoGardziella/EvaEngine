@@ -8,7 +8,8 @@ namespace Engine {
 		: m_size(size)
 	{
 		VulkanContext* context = VulkanContext::Get();
-		VkDevice device = context->GetDevice();
+		//VkDevice device = context->GetDevice();
+		VkDevice device;
 
 		CreateBuffer(size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_buffer, m_bufferMemory);
@@ -36,7 +37,8 @@ namespace Engine {
 	void VulkanVertexBuffer::CreateBuffer(uint32_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 	{
 		VulkanContext* context = VulkanContext::Get();
-		VkDevice device = context->GetDevice();
+		//VkDevice device = context->GetDevice();
+		VkDevice device;
 
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -69,7 +71,9 @@ namespace Engine {
 	void VulkanVertexBuffer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 	{
 		VulkanContext* context = VulkanContext::Get();
-		VkDevice device = context->GetDevice();
+		//VkDevice device = context->GetDevice();
+		VkDevice device;
+
 		VkCommandBuffer commandBuffer = context->BeginSingleTimeCommands();
 
 		VkBufferCopy copyRegion{};
@@ -88,7 +92,9 @@ namespace Engine {
 
 	VulkanVertexBuffer::~VulkanVertexBuffer()
 	{
-		VkDevice device = VulkanContext::Get()->GetDevice();
+		//VkDevice device = VulkanContext::Get()->GetDevice();
+		VkDevice device;
+
 		vkDestroyBuffer(device, m_buffer, nullptr);
 		vkFreeMemory(device, m_bufferMemory, nullptr);
 	}
@@ -106,7 +112,8 @@ namespace Engine {
 	void VulkanVertexBuffer::SetData(const void* data, uint32_t size)
 	{
 		VulkanContext* context = VulkanContext::Get();
-		VkDevice device = context->GetDevice();
+		//VkDevice device = context->GetDevice();
+		VkDevice device;
 
 		void* mappedData;
 		vkMapMemory(device, m_bufferMemory, 0, size, 0, &mappedData);
@@ -132,7 +139,8 @@ namespace Engine {
 	VulkanIndexBuffer::~VulkanIndexBuffer()
 	{
 		VulkanContext* context = VulkanContext::Get();
-		VkDevice device = context->GetDevice();
+		//VkDevice device = context->GetDevice();
+		VkDevice device;
 
 		vkDestroyBuffer(device, m_indexBuffer, nullptr);
 		vkFreeMemory(device, m_indexBufferMemory, nullptr);
@@ -141,7 +149,8 @@ namespace Engine {
 	void VulkanIndexBuffer::CreateIndexBuffer(uint32_t* indices, uint32_t count)
 	{
 		VulkanContext* context = VulkanContext::Get();
-		VkDevice device = context->GetDevice();
+		VkDevice device;
+		//VkDevice device = context->GetDevice();
 
 		VkDeviceSize bufferSize = sizeof(uint32_t) * count;
 

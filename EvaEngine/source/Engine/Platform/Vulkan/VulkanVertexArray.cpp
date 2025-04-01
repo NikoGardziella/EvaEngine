@@ -12,8 +12,8 @@ namespace Engine {
     {
         // Obtain the Vulkan device and command pool from the Vulkan context
         VulkanContext* context = VulkanContext::Get();
-        m_device = context->GetDevice();
-        m_commandPool = context->GetCommandPool();
+        // VkDevice device = context->GetDevice();
+        VkDevice device;        m_commandPool = context->GetCommandPool();
         m_graphicsQueue = context->GetGraphicsQueue();
 
 
@@ -59,8 +59,10 @@ namespace Engine {
     void VulkanVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
     {
         auto context = VulkanContext::Get(); // Ensure context exists
-        VkDevice device = context->GetDevice();
-        VkPhysicalDevice physicalDevice = context->GetPhysicalDevice();
+       // VkDevice device = context->GetDevice();
+        VkDevice device;
+       // VkPhysicalDevice physicalDevice = context->GetPhysicalDevice();
+        VkPhysicalDevice physicalDevice;
 
         if (!device || !physicalDevice)
         {
@@ -100,8 +102,8 @@ namespace Engine {
     void VulkanVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
     {
         VulkanContext* context = VulkanContext::Get(); // Ensure VulkanContext has a Get() method
-        VkDevice device = context->GetDevice(); // Ensure VulkanContext has GetDevice()
-
+        // VkDevice device = context->GetDevice();
+        VkDevice device;
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = indexBuffer->GetCount(); // Ensure IndexBuffer has GetSize()
