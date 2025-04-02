@@ -3,7 +3,7 @@
 #include "OrthographicCamera.h"
 #include <Engine/Platform/OpenGl/OpenGLShader.h>
 #include "Engine/Renderer/Renderer2D.h"
-
+#include "Engine/Renderer/VulkanRenderer2D.h"
 
 namespace Engine {
 
@@ -17,7 +17,14 @@ namespace Engine {
 		RenderCommand::SetRendererAPI(api);
 
 		RenderCommand::Init();
-		//Renderer2D::Init();
+		if (api == RendererAPI::API::Vulkan)
+		{
+			VulkanRenderer2D::Init();
+		}
+		else
+		{
+			Renderer2D::Init();
+		}
 	}
 
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)
@@ -38,7 +45,7 @@ namespace Engine {
 	void Renderer::Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform)
 	{
 		shader->Bind();
-		 // could be static cast?
+   // could be static cast?
 		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_viewProjection", m_sceneData->ViewProjectionMatrix);
 		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_transform", transform); // per object
 

@@ -11,7 +11,6 @@
 #include <spirv_cross/spirv_cross.hpp>
 #include <spirv_cross/spirv_glsl.hpp>
 
-//#include "Hazel/Core/Timer.h"
 
 namespace Engine {
 

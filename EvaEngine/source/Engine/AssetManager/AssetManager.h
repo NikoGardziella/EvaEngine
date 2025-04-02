@@ -16,7 +16,9 @@ namespace Engine {
         static std::filesystem::path GetAssetFolderPath();
 
         static std::filesystem::path GetCacheDirectory();
+        static std::filesystem::path GetVulkanCacheDirectory();
         static void CreateCacheDirectoryIfNeeded();
+        static std::vector<char> ReadFile(const std::string& filename);
 
     private:
         static std::filesystem::path s_AssetPath;

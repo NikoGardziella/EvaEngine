@@ -6,6 +6,7 @@
 
 //#include "glad/glad.h"
 #include "Engine/Core/Log.h"
+#include <Engine/Platform/Vulkan/VulkanShader.h>
 //#include <glm/gtc/type_ptr.hpp>
 
 
@@ -23,7 +24,7 @@ namespace Engine {
 			return std::make_shared<OpenGLShader>(filepath);
 
 		case RendererAPI::API::Vulkan:
-			EE_CORE_ASSERT(false, "Vulkan  not YET supported");
+			return std::make_shared<VulkanShader>(filepath);
 
 
 
@@ -44,7 +45,7 @@ namespace Engine {
 			return std::make_shared<OpenGLShader>(name, vertexSource, fragmentSource);
 
 		case RendererAPI::API::Vulkan:
-			EE_CORE_ASSERT(false, "Vulkan  not YET supported");
+			return std::make_shared<VulkanShader>(name, vertexSource, fragmentSource);
 
 			return nullptr;
 

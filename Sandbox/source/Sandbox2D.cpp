@@ -34,6 +34,8 @@ Sandbox2D::Sandbox2D(std::string scene)
 
 void Sandbox2D::OnAttach()
 {
+
+	return; 
 	EE_PROFILE_FUNCTION();
 
 	m_checkerBoardTexture = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());

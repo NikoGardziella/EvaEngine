@@ -1526,6 +1526,11 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanUtils.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanSwapchain.h" />
+    <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRenderPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1671,6 +1676,11 @@
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanUtils.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanSwapchain.cpp" />
+    <ClCompile Include="source\Engine\Renderer\VulkanRenderer2D.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRenderPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">
@@ -1686,5 +1696,7 @@
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\testShader.glsl" />
+    <None Include="..\assets\shaders\quadshader.frag" />
+    <None Include="..\assets\shaders\quadshader.vert" />
   </ItemGroup>
 </Project>

@@ -6,11 +6,9 @@
 #include <optional>
 #include "VulkanInstance.h"
 #include "VulkanDevice.h"
+#include "VulkanSwapchain.h"
 
 namespace Engine {
-
-
-   
 
     class VulkanContext : public GraphicsContext
     {
@@ -55,49 +53,44 @@ namespace Engine {
 
         //VkPhysicalDevice GetPhysicalDevice() { return m_physicalDevice; }
         VkCommandBuffer GetCommandBuffer();
+        VulkanDevice& GetDeviceManager() const { return *m_deviceManager; }
+        VkRenderPass& GetRenderPass() { return m_renderPass; }
+        VulkanSwapchain& GetSwapchain() { return *m_swapchain; }
 
     private:
-        void CheckSwapchainSupport();
         void CreateInstance();
         void CreateSurface();
         void SetupDevices();
         void CreateCommandPool();
         void CreateGraphicsQueue();
-
         void CreateSwapchain();
+        void CreateRenderPass();
 
         void CreateImageViews();
     private:
 
-        VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-        VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-        VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-        bool CheckValidationLayerSupport();
-        std::vector<const char*> GetRequiredExtensions();
-        void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
     private:
         GLFWwindow* m_windowHandle;
-
         VulkanInstance* m_vulkanInstance;
-
         VkSurfaceKHR m_surface;
-        //VkPhysicalDevice m_physicalDevice;
-
         VulkanDevice* m_deviceManager;
+
+
+        VulkanSwapchain* m_swapchain;
+        std::vector<VkImageView> m_swapchainImageViews;
+        
+
+        SwapChainSupportDetails m_swapChainSupportDetails;
         VkCommandPool m_commandPool;
         VkQueue m_graphicsQueue;
+        VkRenderPass m_renderPass;
 
-        VkSwapchainKHR m_swapChain;
-        std::vector<VkImage> m_swapchainImages;
-        std::vector<VkImageView> m_swapchainImageViews;
-        VkFormat m_swapchainImageFormat;
-        VkExtent2D m_swapchainExtent;
+      
         VkQueue m_presentQueue;
 
         static VulkanContext* s_instance;
 
 
-        SwapChainSupportDetails m_swapChainSupportDetails;
 
 
         VkDebugUtilsMessengerEXT m_debugMessenger;

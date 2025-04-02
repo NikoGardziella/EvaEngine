@@ -29,6 +29,7 @@ namespace Engine {
         : m_windowHandle(windowHandle), m_surface(VK_NULL_HANDLE),
         m_commandPool(VK_NULL_HANDLE), m_graphicsQueue(VK_NULL_HANDLE)
     {
+        s_instance = this;
         CreateInstance();
         CreateSurface();
         SetupDevices();
@@ -38,6 +39,7 @@ namespace Engine {
         CreateCommandPool();
         CreateGraphicsQueue();
         CreateImageViews();
+        CreateRenderPass();
     }
 
     VulkanContext::~VulkanContext()
@@ -59,8 +61,8 @@ namespace Engine {
         {
             m_vulkanInstance->DestroyInstance();
         }
-        
-
+		m_swapchain->Cleanup();
+        vkDestroyRenderPass(m_deviceManager->GetDevice(), m_renderPass, nullptr);
 
     }
 
@@ -127,75 +129,59 @@ namespace Engine {
 
     void VulkanContext::CreateSwapchain()
     {
-
-        SwapChainSupportDetails swapChainSupport = VulkanUtils::QuerySwapChainSupport(m_deviceManager->GetPhysicalDevice(), m_surface);
-
-        VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
-        VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
-        VkExtent2D extent = ChooseSwapExtent(swapChainSupport.capabilities);
-
-
-        uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-
-        if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
-        {
-            // not exceed the maximum number of images. 0 means no max
-            imageCount = swapChainSupport.capabilities.maxImageCount;
-        }
-
-        VkSwapchainCreateInfoKHR createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        createInfo.surface = m_surface;
-        createInfo.minImageCount = imageCount;
-        createInfo.imageFormat = surfaceFormat.format;
-        createInfo.imageColorSpace = surfaceFormat.colorSpace;
-        createInfo.imageExtent = extent;
-        createInfo.imageArrayLayers = 1;
-        createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-        QueueFamilyIndices indices = VulkanUtils::FindQueueFamilies(m_deviceManager->GetPhysicalDevice(), m_surface);
-        uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
-
-        if (indices.graphicsFamily != indices.presentFamily) {
-            createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            createInfo.queueFamilyIndexCount = 2;
-            createInfo.pQueueFamilyIndices = queueFamilyIndices;
-        }
-        else
-        {
-            createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            createInfo.queueFamilyIndexCount = 0; // Optional
-            createInfo.pQueueFamilyIndices = nullptr; // Optional
-        }
-
-        createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
-        createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        createInfo.presentMode = presentMode;
-        createInfo.clipped = VK_TRUE;
-        createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-
-        if (vkCreateSwapchainKHR(m_deviceManager->GetDevice(), &createInfo, nullptr, &m_swapChain) != VK_SUCCESS)
-        {
-			EE_CORE_ASSERT(false, "Failed to create Vulkan swap chain!");
-        }
-        else
-        {
-			EE_CORE_INFO("Vulkan swap chain created");
-        }
-
+		m_swapchain = new VulkanSwapchain(m_deviceManager->GetDevice(), m_surface, m_deviceManager->GetPhysicalDevice());
     }
+
+    void VulkanContext::CreateRenderPass()
+    {
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = m_swapchain->GetSwapchainImageFormat();  // Swapchain format
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        VkAttachmentReference colorAttachmentRef{};
+        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachmentRef;
+
+        VkRenderPassCreateInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfo.attachmentCount = 1;
+        renderPassInfo.pAttachments = &colorAttachment;
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpass;
+
+        if (vkCreateRenderPass(m_deviceManager->GetDevice(), &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
+        {
+			EE_CORE_ASSERT(false, "Failed to create render pass!");
+        }
+        else
+        {
+			EE_CORE_INFO("Vulkan render pass created");
+        }
+    }
+
 
     void VulkanContext::CreateImageViews()
     {
-        m_swapchainImageViews.resize(m_swapchainImages.size());
+        //m_swapchainImageViews.resize(m_swapchainImages.size());
+        m_swapchainImageViews.resize(m_swapchain->GetSwapchainImages().size());
 
-        for (size_t i = 0; i < m_swapchainImages.size(); ++i) {
+        for (size_t i = 0; i < m_swapchain->GetSwapchainImages().size(); ++i) {
             VkImageViewCreateInfo viewCreateInfo = {};
             viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            viewCreateInfo.image = m_swapchainImages[i];
+            viewCreateInfo.image = m_swapchain->GetSwapchainImages()[i];
             viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            viewCreateInfo.format = m_swapchainImageFormat;
+            viewCreateInfo.format = m_swapchain->GetSwapchainImageFormat();
             viewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
             viewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
             viewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -293,142 +279,14 @@ namespace Engine {
 
  
 
-    void VulkanContext::CheckSwapchainSupport()
-    {
-        uint32_t extensionCount = 0;
-        vkEnumerateDeviceExtensionProperties(m_deviceManager->GetPhysicalDevice(), nullptr, &extensionCount, nullptr);
-        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-        vkEnumerateDeviceExtensionProperties(m_deviceManager->GetPhysicalDevice(), nullptr, &extensionCount, availableExtensions.data());
 
-        bool swapchainFound = false;
-        for (const auto& extension : availableExtensions)
-        {
-            if (strcmp(extension.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0)
-            {
-                swapchainFound = true;
-                break;
-            }
-        }
-
-        if (!swapchainFound)
-        {
-            throw std::runtime_error("VK_KHR_swapchain extension not supported by the physical device.");
-        }
-
-        EE_CORE_INFO("VK_KHR_swapchain extension is supported.");
-    }
-
-
-    VkSurfaceFormatKHR VulkanContext::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
-    {
-        for (const auto& availableFormat : availableFormats)
-        {
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-                return availableFormat;
-            }
-        }
-
-        return availableFormats[0];
-    }
-
-    VkPresentModeKHR VulkanContext::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
-    {
-        for (const auto& availablePresentMode : availablePresentModes)
-        {
-            if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-            {
-                return availablePresentMode;
-            }
-        }
-
-        return VK_PRESENT_MODE_FIFO_KHR;
-    }
-
-    VkExtent2D VulkanContext::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
-    {
-        if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
-        {
-            return capabilities.currentExtent;
-        }
-        else
-        {
-            int width, height;
-            glfwGetFramebufferSize(m_windowHandle, &width, &height);
-
-            VkExtent2D actualExtent =
-            {
-                static_cast<uint32_t>(width),
-                static_cast<uint32_t>(height)
-            };
-
-            actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-            actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-
-            return actualExtent;
-        }
-    }
 
   
 
-    bool VulkanContext::CheckValidationLayerSupport()
-    {
-        uint32_t layerCount;
-        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-        std::vector<VkLayerProperties> availableLayers(layerCount);
-        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-        for (const char* layerName : m_validationLayers)
-        {
-            bool layerFound = false;
-
-            for (const auto& layerProperties : availableLayers)
-            {
-                if (strcmp(layerName, layerProperties.layerName) == 0)
-                {
-                    layerFound = true;
-                    break;
-                }
-            }
-
-            if (!layerFound) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    std::vector<const char*> VulkanContext::GetRequiredExtensions()
-    {
-        uint32_t glfwExtensionCount = 0;
-        const char** glfwExtensions;
-        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-        if (m_enableValidationLayers)
-        {
-            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-        }
-
-        // Add VK_KHR_portability_enumeration extension
-        extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-
-        return extensions;
-    }
-
-
-    void VulkanContext::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
-    {
-        createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = VulkanInstance::DebugCallback;
-    }
-
     
+
+
+   
 
 
 
