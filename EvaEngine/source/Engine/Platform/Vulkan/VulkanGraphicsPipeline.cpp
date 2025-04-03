@@ -17,6 +17,7 @@ namespace Engine {
         m_pipelineLayout(VK_NULL_HANDLE)
     {
         CreateGraphicsPipeline(swapchainExtent, renderPass);
+
     }
 
     VulkanGraphicsPipeline::~VulkanGraphicsPipeline()

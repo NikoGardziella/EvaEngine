@@ -37,6 +37,9 @@
     <Filter Include="source\Engine\Platform\OpenGl">
       <UniqueIdentifier>{637E76A2-CF96-5DCC-9843-ED65041BF265}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Platform\Vulkan">
+      <UniqueIdentifier>{8FE228B3-FBFA-0FDD-C4A7-9F76307FA476}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Platform\Windows">
       <UniqueIdentifier>{29216249-1547-2CB0-FE8C-B17BEA51517C}</UniqueIdentifier>
     </Filter>
@@ -45,6 +48,9 @@
     </Filter>
     <Filter Include="source\Engine\Scene">
       <UniqueIdentifier>{985663C3-04B8-40D1-8D25-8783F9857790}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\TaskManager">
+      <UniqueIdentifier>{957A8D69-015E-9CA9-0A61-CAE576C362FA}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\Engine\Utils">
       <UniqueIdentifier>{DBEA90C3-474C-6ED1-D0B9-B4833C1AA590}</UniqueIdentifier>
@@ -183,6 +189,45 @@
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRenderPass.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanShader.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanSwapchain.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTexture.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanUtils.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanVertexArray.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Platform\Windows\WindowsWindow.h">
       <Filter>source\Engine\Platform\Windows</Filter>
     </ClInclude>
@@ -234,6 +279,9 @@
     <ClInclude Include="source\Engine\Renderer\VertexArray.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Component.h">
       <Filter>source\Engine\Scene</Filter>
     </ClInclude>
@@ -251,6 +299,12 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\ScriptableEntity.h">
       <Filter>source\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTask.h">
+      <Filter>source\Engine\Scene\TaskManager</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h">
+      <Filter>source\Engine\Scene\TaskManager</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Utils\PlatformUtils.h">
       <Filter>source\Engine\Utils</Filter>
@@ -1515,22 +1569,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTask.h" />
-    <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanVertexArray.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanShader.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTexture.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanUtils.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanSwapchain.h" />
-    <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRenderPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1590,6 +1628,45 @@
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.cpp">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRenderPass.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanShader.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanSwapchain.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTexture.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanUtils.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanVertexArray.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Platform\Windows\WindowsInput.cpp">
       <Filter>source\Engine\Platform\Windows</Filter>
     </ClCompile>
@@ -1641,6 +1718,9 @@
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\VulkanRenderer2D.cpp">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Scene\Entity.cpp">
       <Filter>source\Engine\Scene</Filter>
     </ClCompile>
@@ -1652,6 +1732,12 @@
     </ClCompile>
     <ClCompile Include="source\Engine\Scene\SceneSerializer.cpp">
       <Filter>source\Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTask.cpp">
+      <Filter>source\Engine\Scene\TaskManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.cpp">
+      <Filter>source\Engine\Scene\TaskManager</Filter>
     </ClCompile>
     <ClCompile Include="source\pch.cpp">
       <Filter>source</Filter>
@@ -1665,22 +1751,6 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTask.cpp" />
-    <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanVertexArray.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanShader.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTexture.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanUtils.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanSwapchain.cpp" />
-    <ClCompile Include="source\Engine\Renderer\VulkanRenderer2D.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRenderPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">
@@ -1695,9 +1765,17 @@
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="..\assets\shaders\testShader.glsl" />
-    <None Include="..\assets\shaders\quadshader.frag" />
-    <None Include="..\assets\shaders\quadshader.vert" />
-    <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
+    <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\quadshader.frag">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\quadshader.vert">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\testShader.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

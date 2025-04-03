@@ -36,12 +36,12 @@ namespace Engine {
         
         CreateSwapchain();
 
-        CreateCommandPool();
         CreateGraphicsQueue();
         CreateImageViews();
         CreateRenderPass();
 
         CreateFramebuffers();
+        CreateCommandPool();
     }
 
     VulkanContext::~VulkanContext()
@@ -111,15 +111,21 @@ namespace Engine {
 
     void VulkanContext::CreateCommandPool()
     {
-        VkCommandPoolCreateInfo poolCreateInfo = {};
-        poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-       // poolCreateInfo.queueFamilyIndex = m_GraphicsQueueFamilyIndex;
+        // manage the memory that is used to store the buffers and command buffers are allocated from them.
+        QueueFamilyIndices queueFamilyIndices = VulkanUtils::FindQueueFamilies(m_deviceManager->GetPhysicalDevice(), m_surface);
+        VkCommandPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-        if (vkCreateCommandPool(m_deviceManager->GetDevice(), &poolCreateInfo, nullptr, &m_commandPool) != VK_SUCCESS)
+        if (vkCreateCommandPool(m_deviceManager->GetDevice(), &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
         {
-            throw std::runtime_error("Failed to create Vulkan command pool!");
+			EE_CORE_ASSERT(false, "Failed to create command pool!");    
         }
-        EE_CORE_INFO("Vulkan command pool create");
+        else
+        {
+            EE_CORE_INFO("Vulkan command pool create");
+        }
 
     }
 

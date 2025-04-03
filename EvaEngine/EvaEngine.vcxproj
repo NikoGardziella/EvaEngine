@@ -146,8 +146,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />
-    <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTask.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h" />
     <ClInclude Include="source\Engine\Core\Application.h" />
@@ -179,6 +177,19 @@
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLTexture.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLUniformBuffer.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRenderPass.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanShader.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanSwapchain.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTexture.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanUtils.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanVertexArray.h" />
     <ClInclude Include="source\Engine\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="source\Engine\Renderer\Buffer.h" />
     <ClInclude Include="source\Engine\Renderer\Camera.h" />
@@ -196,12 +207,15 @@
     <ClInclude Include="source\Engine\Renderer\Texture.h" />
     <ClInclude Include="source\Engine\Renderer\UniformBuffer.h" />
     <ClInclude Include="source\Engine\Renderer\VertexArray.h" />
+    <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h" />
     <ClInclude Include="source\Engine\Scene\Component.h" />
     <ClInclude Include="source\Engine\Scene\Entity.h" />
     <ClInclude Include="source\Engine\Scene\Scene.h" />
     <ClInclude Include="source\Engine\Scene\SceneCamera.h" />
     <ClInclude Include="source\Engine\Scene\SceneSerializer.h" />
     <ClInclude Include="source\Engine\Scene\ScriptableEntity.h" />
+    <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTask.h" />
+    <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />
     <ClInclude Include="source\Engine\Utils\PlatformUtils.h" />
     <ClInclude Include="source\pch.h" />
     <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h" />
@@ -623,24 +637,8 @@
     <ClInclude Include="vendor\glm\glm\vec4.hpp" />
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanShader.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTexture.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanVertexArray.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanUtils.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanSwapchain.h" />
-    <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRenderPass.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.cpp" />
-    <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTask.cpp" />
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp" />
     <ClCompile Include="source\Engine\Core\Application.cpp" />
     <ClCompile Include="source\Engine\Core\Layer.cpp" />
@@ -660,6 +658,19 @@
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLTexture.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLUniformBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRenderPass.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanShader.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanSwapchain.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTexture.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanUtils.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanVertexArray.cpp" />
     <ClCompile Include="source\Engine\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="source\Engine\Platform\Windows\WindowsPlatformUtils.cpp" />
     <ClCompile Include="source\Engine\Platform\Windows\WindowsWindow.cpp" />
@@ -677,40 +688,29 @@
     <ClCompile Include="source\Engine\Renderer\Texture.cpp" />
     <ClCompile Include="source\Engine\Renderer\UniformBuffer.cpp" />
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp" />
+    <ClCompile Include="source\Engine\Renderer\VulkanRenderer2D.cpp" />
     <ClCompile Include="source\Engine\Scene\Entity.cpp" />
     <ClCompile Include="source\Engine\Scene\Scene.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneCamera.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneSerializer.cpp" />
+    <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTask.cpp" />
+    <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.cpp" />
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanShader.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTexture.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanVertexArray.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanUtils.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanSwapchain.cpp" />
-    <ClCompile Include="source\Engine\Renderer\VulkanRenderer2D.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRenderPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl" />
     <None Include="..\assets\shaders\FlatColor.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
+    <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
+    <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\quadshader.frag" />
     <None Include="..\assets\shaders\quadshader.vert" />
-    <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\testShader.glsl" />
-    <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">

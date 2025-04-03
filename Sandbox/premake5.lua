@@ -29,6 +29,9 @@
             "../EvaEngine/vendor/entt/include",
             "../EvaEngine/vendor/Box2D/include",
             "../EvaEngine/vendor/enkiTS/src",
+            "%{IncludeDir.VulkanSDK}",
+            "../EvaEngine/vendor/GLFW/include",
+
 
         }
 

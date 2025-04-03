@@ -4,6 +4,7 @@
 #include "RendererAPI.h"
 #include "Shader.h"
 #include "OrthographicCamera.h"
+#include "VulkanRenderer2D.h"
 
 namespace Engine {
 
@@ -35,7 +36,7 @@ namespace Engine {
 
 
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
-
+		static VulkanRenderer2D& Get2DRenderer() { return *s_VulkanRenderer2D; }
 	private:
 		struct SceneData
 		{
@@ -43,6 +44,7 @@ namespace Engine {
 		};
 
 		static SceneData* m_sceneData;
+		static std::unique_ptr<VulkanRenderer2D> s_VulkanRenderer2D;
 
 	};
 }

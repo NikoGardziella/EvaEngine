@@ -26,6 +26,7 @@ namespace Engine {
         VkPipelineLayout m_pipelineLayout;
         VkDescriptorSetLayout m_descriptorSetLayout;
 
+
         std::vector<VkDynamicState> m_dynamicStates =
         {
             VK_DYNAMIC_STATE_VIEWPORT,

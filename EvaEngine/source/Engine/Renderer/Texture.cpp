@@ -3,6 +3,7 @@
 
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Platform/OpenGl/OpenGLTexture.h"
+#include "Engine/Platform/Vulkan/VulkanTexture.h"
 
 namespace Engine {
 
@@ -20,7 +21,7 @@ namespace Engine {
 			return std::make_shared<OpenGLTexture2D>(path);
 
 		case RendererAPI::API::Vulkan:
-			EE_CORE_ASSERT(false, "Vulkan  not YET supported");
+			return std::make_shared<VulkanTexture>(path);
 
 			return nullptr;
 

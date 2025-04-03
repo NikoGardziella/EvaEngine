@@ -17,8 +17,8 @@ namespace Engine {
 	Ref<SubTexture2D> SubTexture2D::CreateFromCoordinates(const Ref<Texture2D>& texture, const glm::vec2& coords, const glm::vec2& cellSize, const glm::vec2& spriteSize)
 	{
 
-		glm::vec2 min = { coords.x * (cellSize.x ) / texture->GetWidth(), (coords.y * (cellSize.y )) / texture->Getheight() };
-		glm::vec2 max = { (coords.x + spriteSize.x) * (cellSize.x ) / texture->GetWidth(), (coords.y + spriteSize.y) * (cellSize.y) / texture->Getheight() };
+		glm::vec2 min = { coords.x * (cellSize.x ) / texture->GetWidth(), (coords.y * (cellSize.y )) / texture->GetHeight() };
+		glm::vec2 max = { (coords.x + spriteSize.x) * (cellSize.x ) / texture->GetWidth(), (coords.y + spriteSize.y) * (cellSize.y) / texture->GetHeight() };
 
 		return std::make_shared<SubTexture2D>(texture, min, max);
 	
@@ -27,7 +27,7 @@ namespace Engine {
 	Ref<SubTexture2D> SubTexture2D::CreateFromCoordinates(const Ref<Texture2D>& texture, const glm::vec2& coords, const glm::vec2& spriteSize, int padding)
 	{
 		float texWidth = texture->GetWidth();
-		float texHeight = texture->Getheight();
+		float texHeight = texture->GetHeight();
 
 		glm::vec2 min = {
 			(coords.x * (spriteSize.x + padding)) / texWidth,

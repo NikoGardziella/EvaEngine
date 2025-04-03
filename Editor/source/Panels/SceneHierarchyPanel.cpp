@@ -653,10 +653,10 @@ namespace Engine {
             {
                 ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
                 ImGui::DragFloat("Radius", &component.Radius, 0.1f, 0.0f, 100.0f);
-                ImGui::DragFloat("Density", &component.Density, 0.01, 0.0f, 1.0f);
-                ImGui::DragFloat("Friction", &component.Friction, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
+                ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
                 ImGui::DragFloat("Restitution", &component.Restitution, 0.01, 0.0f, 1.0f);
-                ImGui::DragFloat("Restitution Threshold", &component.RestitutionThershold, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Restitution Threshold", &component.RestitutionThershold, 0.01f, 0.0f, 1.0f);
 
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
                 if (newEntity)
@@ -710,10 +710,10 @@ namespace Engine {
                 
                 ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
                 ImGui::DragFloat2("Size", glm::value_ptr(component.Size));
-                ImGui::DragFloat("Density", &component.Density, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
                 ImGui::DragFloat("Friction", &component.Friction, 0.01, 0.0f, 1.0f);
                 ImGui::DragFloat("Restitution", &component.Restitution, 0.01, 0.0f, 1.0f);
-                ImGui::DragFloat("Restitution Threshold", &component.RestitutionThershold, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Restitution Threshold", &component.RestitutionThershold, 0.01f, 0.0f, 1.0f);
 
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
                 if (newEntity)

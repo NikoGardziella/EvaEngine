@@ -1,3 +1,6 @@
+--VULKAN_SDK = "C:/VulkanSDK/1.4.304.1"
+--IncludeDir = {}
+ --IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
 
 -- Setup the Editor application project
 project "Editor"
@@ -29,8 +32,11 @@ project "Editor"
         "../EvaEngine/vendor/entt/include",
         "../EvaEngine/vendor/Box2D/include",
         "../EvaEngine/vendor/enkiTS/src",
+        "../EvaEngine/vendor/GLFW/include",
         "../Sandbox/source", 
-        "../Sandbox/vendor"
+        "../Sandbox/vendor",
+        "%{IncludeDir.VulkanSDK}",
+
     }
 
 

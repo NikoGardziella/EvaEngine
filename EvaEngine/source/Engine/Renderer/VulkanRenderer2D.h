@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vulkan/vulkan.h"
 #include "Engine/Platform/Vulkan/VulkanContext.h"
 #include "Engine/Platform/Vulkan/VulkanDevice.h"
 #include "Engine/Platform/Vulkan/VulkanBuffer.h"
@@ -15,7 +16,12 @@ namespace Engine {
 	class VulkanRenderer2D
 	{
 	public:
-		static void Init();
+		VulkanRenderer2D();
+		~VulkanRenderer2D() = default;
+
+		void Init();
+		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
+		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		/*
 		static void Shutdown();
 
@@ -34,14 +40,12 @@ namespace Engine {
 
 		*/
 	private:
-		static Ref<VulkanGraphicsPipeline> m_pipeline;
-		static VkPipelineLayout m_pipelineLayout;
-		static VkDescriptorPool m_descriptorPool;
-		static VkCommandBuffer m_commandBuffer;
-		static VkDescriptorSet m_descriptorSet;
 
-		static VulkanVertexBuffer m_vertexBuffer;
-		static VulkanIndexBuffer m_indexBuffer;
-		static VulkanDevice m_device;
+		Ref<VulkanGraphicsPipeline> m_vulkanGraphicsPipeline;
+
+		std::vector<VkCommandBuffer> m_commandBuffers;
+		VulkanContext* m_vulkanContext;
+		VulkanSwapchain* m_swapchain;
+		VkExtent2D* m_swapchainExtent;
 	};
 }

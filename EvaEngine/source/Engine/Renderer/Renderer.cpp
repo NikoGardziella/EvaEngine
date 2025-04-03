@@ -8,6 +8,7 @@
 namespace Engine {
 
 	Renderer::SceneData* Renderer::m_sceneData = new SceneData();
+	std::unique_ptr<Engine::VulkanRenderer2D> Engine::Renderer::s_VulkanRenderer2D = nullptr;
 
 	void Renderer::Init(RendererAPI::API api)
 	{
@@ -19,7 +20,8 @@ namespace Engine {
 		RenderCommand::Init();
 		if (api == RendererAPI::API::Vulkan)
 		{
-			VulkanRenderer2D::Init();
+			s_VulkanRenderer2D = std::make_unique<VulkanRenderer2D>();
+			s_VulkanRenderer2D->Init();
 		}
 		else
 		{

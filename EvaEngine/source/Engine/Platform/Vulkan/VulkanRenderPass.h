@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.h>
 
 namespace Engine {
+    /*
     class VulkanRenderPass {
     public:
         VulkanRenderPass(VkDevice device, VkFormat swapchainImageFormat);
@@ -13,4 +14,5 @@ namespace Engine {
         VkDevice m_device;
         VkRenderPass m_renderPass;
     };
+    */
 }

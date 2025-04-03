@@ -59,18 +59,21 @@ namespace Engine {
         VulkanDevice& GetDeviceManager() const { return *m_deviceManager; }
         VkRenderPass& GetRenderPass() { return m_renderPass; }
         VulkanSwapchain& GetSwapchain() { return *m_swapchain; }
+        //std::vector<VkFramebuffer>& GetSwapchainFramebuffers() { return m_swapchainFramebuffers; }
+
+        VkFramebuffer& GetSwapchainFramebuffer(uint32_t imageIndex ) { return m_swapchainFramebuffers[imageIndex]; }
 
     private:
         void CreateInstance();
         void CreateSurface();
         void SetupDevices();
-        void CreateCommandPool();
         void CreateGraphicsQueue();
         void CreateSwapchain();
         void CreateRenderPass();
 
         void CreateImageViews();
         void CreateFramebuffers();
+        void CreateCommandPool();
 
         void CreateEntityIDAttachment();
 
