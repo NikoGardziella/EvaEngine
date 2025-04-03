@@ -36,6 +36,7 @@ namespace Engine {
             }
         };
 
+       
 
         virtual void Init() override;
         virtual void SwapBuffers() override {}; // No SwapBuffers in Vulkan
@@ -53,6 +54,8 @@ namespace Engine {
 
         //VkPhysicalDevice GetPhysicalDevice() { return m_physicalDevice; }
         VkCommandBuffer GetCommandBuffer();
+        VkFormat FindDepthFormat();
+        void CreateDepthAttachment();
         VulkanDevice& GetDeviceManager() const { return *m_deviceManager; }
         VkRenderPass& GetRenderPass() { return m_renderPass; }
         VulkanSwapchain& GetSwapchain() { return *m_swapchain; }
@@ -67,6 +70,10 @@ namespace Engine {
         void CreateRenderPass();
 
         void CreateImageViews();
+        void CreateFramebuffers();
+
+        void CreateEntityIDAttachment();
+
     private:
 
     private:
@@ -84,13 +91,18 @@ namespace Engine {
         VkCommandPool m_commandPool;
         VkQueue m_graphicsQueue;
         VkRenderPass m_renderPass;
-
+        std::vector<VkFramebuffer> m_swapchainFramebuffers;
       
         VkQueue m_presentQueue;
 
         static VulkanContext* s_instance;
 
-
+        VkImage m_entityIDImage;
+        VkImage m_depthImage;
+        VkImageView m_entityIDImageView;
+        VkImageView m_depthAttachmentView;
+        VkDeviceMemory m_depthImageMemory;
+        VkDeviceMemory m_entityIDImageMemory;
 
 
         VkDebugUtilsMessengerEXT m_debugMessenger;

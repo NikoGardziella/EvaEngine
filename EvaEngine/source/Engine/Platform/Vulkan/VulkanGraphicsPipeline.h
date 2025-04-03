@@ -7,6 +7,7 @@ namespace Engine {
 
     class VulkanGraphicsPipeline
     {
+       
     public:
         VulkanGraphicsPipeline(VkDevice device, VkExtent2D swapchainExtent, VkRenderPass renderPass);
         ~VulkanGraphicsPipeline();
@@ -23,6 +24,14 @@ namespace Engine {
         VkDevice m_device;
         VkPipeline m_graphicsPipeline;
         VkPipelineLayout m_pipelineLayout;
+        VkDescriptorSetLayout m_descriptorSetLayout;
+
+        std::vector<VkDynamicState> m_dynamicStates =
+        {
+            VK_DYNAMIC_STATE_VIEWPORT,
+            VK_DYNAMIC_STATE_SCISSOR
+        };
+
     };
 
 }

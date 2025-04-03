@@ -710,6 +710,7 @@
     <None Include="..\assets\shaders\quadshader.vert" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\testShader.glsl" />
+    <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">

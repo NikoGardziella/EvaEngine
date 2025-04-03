@@ -1698,5 +1698,6 @@
     <None Include="..\assets\shaders\testShader.glsl" />
     <None Include="..\assets\shaders\quadshader.frag" />
     <None Include="..\assets\shaders\quadshader.vert" />
+    <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
   </ItemGroup>
 </Project>

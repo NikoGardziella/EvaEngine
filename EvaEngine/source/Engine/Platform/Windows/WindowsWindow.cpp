@@ -91,7 +91,7 @@ namespace Engine {
 		m_Context->Init();
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		SetVSync(true);
+		SetVSync(false);
 
 
 		// Set GLFW callbacks
@@ -203,6 +203,7 @@ namespace Engine {
 		EE_PROFILE_FUNCTION();
 
 		glfwPollEvents();
+
 		m_Context->SwapBuffers();
 	}
 

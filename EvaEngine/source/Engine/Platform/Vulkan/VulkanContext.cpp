@@ -40,6 +40,8 @@ namespace Engine {
         CreateGraphicsQueue();
         CreateImageViews();
         CreateRenderPass();
+
+        CreateFramebuffers();
     }
 
     VulkanContext::~VulkanContext()
@@ -134,6 +136,7 @@ namespace Engine {
 
     void VulkanContext::CreateRenderPass()
     {
+        // First color attachment (o_Color)
         VkAttachmentDescription colorAttachment{};
         colorAttachment.format = m_swapchain->GetSwapchainImageFormat();  // Swapchain format
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -145,30 +148,51 @@ namespace Engine {
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference colorAttachmentRef{};
-        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.attachment = 0;  // Correct index
         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+        // Second color attachment (o_EntityID)
+        VkAttachmentDescription entityIDAttachment{};
+        entityIDAttachment.format = VK_FORMAT_R32_SINT;  // Format for integer output
+        entityIDAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        entityIDAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        entityIDAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        entityIDAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        entityIDAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        entityIDAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        entityIDAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+        VkAttachmentReference entityIDAttachmentRef{};
+        entityIDAttachmentRef.attachment = 1;  // 
+        entityIDAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        // Subpass description
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
-        subpass.pColorAttachments = &colorAttachmentRef;
+        VkAttachmentReference colorAttachments[] = { colorAttachmentRef };
+        subpass.pColorAttachments = colorAttachments;
 
+        // Render pass creation
+        std::array<VkAttachmentDescription, 1> attachments = { colorAttachment };
         VkRenderPassCreateInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.attachmentCount = 1;
-        renderPassInfo.pAttachments = &colorAttachment;
+        renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        renderPassInfo.pAttachments = attachments.data();
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
 
         if (vkCreateRenderPass(m_deviceManager->GetDevice(), &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
         {
-			EE_CORE_ASSERT(false, "Failed to create render pass!");
+            EE_CORE_ASSERT(false, "Failed to create render pass!");
         }
         else
         {
-			EE_CORE_INFO("Vulkan render pass created");
+            EE_CORE_INFO("Vulkan render pass created");
         }
     }
+
+
 
 
     void VulkanContext::CreateImageViews()
@@ -200,6 +224,99 @@ namespace Engine {
 
         }
     }
+
+    void VulkanContext::CreateFramebuffers()
+    {
+        //CreateDepthAttachment();
+        //CreateEntityIDAttachment();
+        m_swapchainFramebuffers.resize(m_swapchain->GetSwapchainImageViews().size());
+
+        for (size_t i = 0; i < m_swapchain->GetSwapchainImageViews().size(); ++i)
+        {
+            VkImageView attachments[] =
+            {
+                m_swapchain->GetSwapchainImageViews()[i]  // Swapchain image
+               /* m_depthAttachmentView*/                       // Depth buffer
+            };
+
+            VkFramebufferCreateInfo framebufferInfo = {};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = m_renderPass;
+            framebufferInfo.attachmentCount = static_cast<uint32_t>(std::size(attachments));
+            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.width = m_swapchain->GetSwapchainExtent().width;
+            framebufferInfo.height = m_swapchain->GetSwapchainExtent().height;
+            framebufferInfo.layers = 1;
+
+            if (vkCreateFramebuffer(m_deviceManager->GetDevice(), &framebufferInfo, nullptr, &m_swapchainFramebuffers[i]) != VK_SUCCESS)
+            {
+                EE_CORE_ERROR("Failed to create framebuffer!");
+            }
+            else
+            {
+                EE_CORE_INFO("Vulkan framebuffer created");
+            }
+        }
+    }
+
+
+
+    void VulkanContext::CreateEntityIDAttachment()
+    {
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageInfo.format = VK_FORMAT_R32_SINT;  // Store entity IDs as unsigned integers
+        imageInfo.extent.width = m_swapchain->GetSwapchainExtent().width;
+        imageInfo.extent.height = m_swapchain->GetSwapchainExtent().height;
+        imageInfo.extent.depth = 1;
+        imageInfo.mipLevels = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+        if (vkCreateImage(m_deviceManager->GetDevice(), &imageInfo, nullptr, &m_entityIDImage) != VK_SUCCESS)
+        {
+            EE_CORE_ERROR("Failed to create Entity ID image!");
+        }
+
+        // Allocate memory for image
+        VkMemoryRequirements memRequirements;
+        vkGetImageMemoryRequirements(m_deviceManager->GetDevice(), m_entityIDImage, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+        if (vkAllocateMemory(m_deviceManager->GetDevice(), &allocInfo, nullptr, &m_entityIDImageMemory) != VK_SUCCESS)
+        {
+            EE_CORE_ERROR("Failed to allocate memory for Entity ID image!");
+        }
+
+        // Bind image to allocated memory
+        vkBindImageMemory(m_deviceManager->GetDevice(), m_entityIDImage, m_entityIDImageMemory, 0);
+
+        // Create Image View
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = m_entityIDImage;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = VK_FORMAT_R32_SINT;
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        if (vkCreateImageView(m_deviceManager->GetDevice(), &viewInfo, nullptr, &m_entityIDImageView) != VK_SUCCESS)
+        {
+            EE_CORE_ERROR("Failed to create Entity ID image view!");
+        }
+    }
+
 
 
     uint32_t VulkanContext::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
@@ -274,6 +391,73 @@ namespace Engine {
         }
 
         return commandBuffer;
+    }
+
+    VkFormat VulkanContext::FindDepthFormat()
+    {
+        std::vector<VkFormat> candidates = {
+            VK_FORMAT_D32_SFLOAT,
+            VK_FORMAT_D32_SFLOAT_S8_UINT,
+            VK_FORMAT_D24_UNORM_S8_UINT
+        };
+
+        for (VkFormat format : candidates)
+        {
+            VkFormatProperties props;
+            vkGetPhysicalDeviceFormatProperties(m_deviceManager->GetPhysicalDevice(), format, &props);
+
+            if (props.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+            {
+                return format;
+            }
+        }
+
+        EE_CORE_ERROR("Failed to find suitable depth format!");
+        return VK_FORMAT_UNDEFINED;
+    }
+
+    void VulkanContext::CreateDepthAttachment()
+    {
+        VkFormat depthFormat = FindDepthFormat();
+
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageInfo.format = depthFormat;
+        imageInfo.extent.width = m_swapchain->GetSwapchainExtent().width;
+        imageInfo.extent.height = m_swapchain->GetSwapchainExtent().height;
+        imageInfo.extent.depth = 1;
+        imageInfo.mipLevels = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+        if (vkCreateImage(m_deviceManager->GetDevice(), &imageInfo, nullptr, &m_depthImage) != VK_SUCCESS)
+        {
+            EE_CORE_ERROR("Failed to create depth image!");
+        
+        }
+
+        vkBindImageMemory(m_deviceManager->GetDevice(), m_depthImage, m_depthImageMemory, 0);
+
+        // Create Depth Image View
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = m_depthImage;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = depthFormat;
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        if (vkCreateImageView(m_deviceManager->GetDevice(), &viewInfo, nullptr, &m_depthAttachmentView) != VK_SUCCESS)
+        {
+            EE_CORE_ERROR("Failed to create depth image view!");
+        }
     }
 
 
