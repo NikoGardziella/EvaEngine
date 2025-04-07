@@ -132,6 +132,8 @@ namespace Engine {
 
 	void ImGuiLayer::Begin()
 	{
+		
+
 		EE_PROFILE_FUNCTION();
 
 		ImGui_ImplOpenGL3_NewFrame();

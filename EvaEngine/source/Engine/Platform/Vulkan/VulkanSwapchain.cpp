@@ -164,4 +164,15 @@ namespace Engine {
         }
     }
 
+    void VulkanSwapchain::RecreateSwapchain()
+    {
+        vkDeviceWaitIdle(m_device); // Ensure no resources are in use before recreating
+
+        Cleanup(); // Destroy old swapchain resources
+
+        CreateSwapchain(); // Recreate the swapchain
+        CreateImageViews(); // Recreate swapchain image views
+    }
+
+
 }

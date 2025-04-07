@@ -30,18 +30,7 @@ namespace Engine {
         m_commandPool(VK_NULL_HANDLE), m_graphicsQueue(VK_NULL_HANDLE)
     {
         s_instance = this;
-        CreateInstance();
-        CreateSurface();
-        SetupDevices();
         
-        CreateSwapchain();
-
-        CreateGraphicsQueue();
-        CreateImageViews();
-        CreateRenderPass();
-
-        CreateFramebuffers();
-        CreateCommandPool();
     }
 
     VulkanContext::~VulkanContext()
@@ -70,7 +59,19 @@ namespace Engine {
 
     void VulkanContext::Init()
     {
-        // Vulkan initialization code here
+        CreateInstance();
+        CreateSurface();
+        SetupDevices();
+
+        CreateSwapchain();
+
+        CreateGraphicsQueue();
+        CreateImageViews();
+        CreateRenderPass();
+
+        CreateFramebuffers();
+        CreateCommandPool();
+        CreateDesciptorPool();
     }
 
     void VulkanContext::CreateInstance()
@@ -126,6 +127,12 @@ namespace Engine {
         {
             EE_CORE_INFO("Vulkan command pool create");
         }
+
+    }
+
+    void VulkanContext::CreateDesciptorPool()
+    {
+        m_descriptorPool = std::make_unique<VulkanDescriptorPool>(m_deviceManager->GetDevice(), 100, 100, 100); // Adjust the numbers as needed
 
     }
 
@@ -372,11 +379,9 @@ namespace Engine {
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
 
-        VkQueue graphicsQueue; // You need to retrieve your graphics queue
-       // vkGetDeviceQueue(m_device, m_GraphicsQueueFamilyIndex, 0, &graphicsQueue);
 
-        vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(graphicsQueue);
+        vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(m_graphicsQueue);
 
         vkFreeCommandBuffers(m_deviceManager->GetDevice(), m_commandPool, 1, &commandBuffer);
     }

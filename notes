@@ -47,3 +47,19 @@
 
     Physics update 2.466 ms after implementing enki Task Scheduler
 }
+
+05.04.2025
+{
+    🎮 In Practice: Module Ownership
+    Module	                             Responsibility
+    🔸 VulkanContext	                    Creates device, swapchain, surface, and the descriptor pool (global)
+
+    🔸 GraphicsPipeline	                    Creates shaders, render pass, pipeline layout, descriptor set layout
+
+    🔸 Renderer	                            High-level API, manages UBOs, draws stuff, updates data
+
+    🔸 Buffer,                              UniformBuffer, Texture, DescriptorSet	Wrappers around Vulkan resources
+    
+    🔸 Mesh, Renderable	                    Own descriptor sets, vertex/index buffers, textures
+
+}

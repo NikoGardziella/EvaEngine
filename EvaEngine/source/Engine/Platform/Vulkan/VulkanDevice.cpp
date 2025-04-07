@@ -62,10 +62,13 @@ namespace Engine {
             queueCreateInfos.push_back(queueCreateInfo);
         }
 
+
+
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         createInfo.pQueueCreateInfos = queueCreateInfos.data();
+
 
         createInfo.pEnabledFeatures = &m_deviceFeatures;
         createInfo.enabledExtensionCount = static_cast<uint32_t>(m_deviceExtensions.size());
@@ -112,6 +115,8 @@ namespace Engine {
 
     bool VulkanDevice::CheckDeviceExtensionSupport(VkPhysicalDevice device)
     {
+        
+
         uint32_t extensionCount;
         vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 

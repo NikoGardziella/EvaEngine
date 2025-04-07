@@ -7,6 +7,7 @@
 #include "VulkanInstance.h"
 #include "VulkanDevice.h"
 #include "VulkanSwapchain.h"
+#include "VulkanDescriptorPool.h"
 
 namespace Engine {
 
@@ -58,11 +59,11 @@ namespace Engine {
         void CreateDepthAttachment();
         VulkanDevice& GetDeviceManager() const { return *m_deviceManager; }
         VkRenderPass& GetRenderPass() { return m_renderPass; }
-        VulkanSwapchain& GetSwapchain() { return *m_swapchain; }
+        VulkanSwapchain& GetVulkanSwapchain() { return *m_swapchain; }
         //std::vector<VkFramebuffer>& GetSwapchainFramebuffers() { return m_swapchainFramebuffers; }
 
         VkFramebuffer& GetSwapchainFramebuffer(uint32_t imageIndex ) { return m_swapchainFramebuffers[imageIndex]; }
-
+		VulkanDescriptorPool& GetDescriptorPool() { return *m_descriptorPool; }
     private:
         void CreateInstance();
         void CreateSurface();
@@ -74,8 +75,11 @@ namespace Engine {
         void CreateImageViews();
         void CreateFramebuffers();
         void CreateCommandPool();
+        void CreateDesciptorPool();
 
         void CreateEntityIDAttachment();
+
+
 
     private:
 
@@ -84,7 +88,7 @@ namespace Engine {
         VulkanInstance* m_vulkanInstance;
         VkSurfaceKHR m_surface;
         VulkanDevice* m_deviceManager;
-
+		Scope<VulkanDescriptorPool> m_descriptorPool;
 
         VulkanSwapchain* m_swapchain;
         std::vector<VkImageView> m_swapchainImageViews;

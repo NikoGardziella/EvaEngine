@@ -17,8 +17,9 @@ namespace Engine {
         virtual uint32_t GetWidth() const override { return m_width; }
         virtual uint32_t GetHeight() const override { return m_height; }
         virtual void Bind(uint32_t slot = 0) const override;
-       virtual uint32_t GetRendererID() const override { return 0; }
-
+        virtual uint32_t GetRendererID() const override { return 0; }
+		VkImageView GetImageView() const { return m_imageView; }
+		VkSampler GetSampler() const { return m_sampler; }
         virtual void SetData(void* data, uint32_t size) override;
 
         virtual bool operator==(const Texture& other) const override

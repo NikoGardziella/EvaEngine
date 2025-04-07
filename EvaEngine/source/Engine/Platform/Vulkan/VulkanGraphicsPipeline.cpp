@@ -1,21 +1,43 @@
 #include "pch.h"
 #include "VulkanGraphicsPipeline.h"
 #include "Engine/AssetManager/AssetManager.h"
-
+#include "VulkanBuffer.h"
 
 #include <fstream>
 #include <stdexcept>
 #include <vector>
 #include <Engine/Renderer/Shader.h>
 #include "VulkanShader.h"
+#include "VulkanContext.h"
+#include <Engine/Renderer/VulkanRenderer2D.cpp>
 
 namespace Engine {
+   // const int MAX_FRAMES_IN_FLIGHT = 3;
+
+    struct alignas(16) UniformBufferObject
+    {
+        glm::mat4 u_ViewProjection;
+    };
 
     VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice device, VkExtent2D swapchainExtent, VkRenderPass renderPass)
         : m_device(device),
         m_graphicsPipeline(VK_NULL_HANDLE),
         m_pipelineLayout(VK_NULL_HANDLE)
     {
+
+        VulkanContext* vulkanContext = VulkanContext::Get();
+        m_descriptorPool = vulkanContext->GetDescriptorPool().m_descriptorPool;
+        m_texture = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("textures/ee_logo.png").string());
+        m_uniformBuffer = VulkanBuffer(
+            m_device,
+            vulkanContext->GetDeviceManager().GetPhysicalDevice(),
+            sizeof(UniformBufferObject),
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        );
+
+        CreateDescriptorSetLayout();
+        CreateDescriptorSet();
         CreateGraphicsPipeline(swapchainExtent, renderPass);
 
     }
@@ -24,20 +46,18 @@ namespace Engine {
     {
         vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
         vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
+
     }
 
-    struct QuadVertex
-    {
-        glm::vec3 Position;
-        glm::vec4 Color;
-        glm::vec2 TexCoord;
-        float TexIndex;
-        float TilingFactor;
+   
 
+   
 
-    };
     void VulkanGraphicsPipeline::CreateGraphicsPipeline(VkExtent2D swapchainExtent, VkRenderPass renderPass)
     {
+
+      
+
         Ref<VulkanShader> CircleShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
@@ -62,7 +82,7 @@ namespace Engine {
         // Define the vertex input binding description
         VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(QuadVertex);
+        bindingDescription.stride = sizeof(VulkanQuadVertex);
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
         // Define the vertex input attribute descriptions
@@ -70,27 +90,27 @@ namespace Engine {
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
         attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(QuadVertex, Position);
+        attributeDescriptions[0].offset = offsetof(VulkanQuadVertex, Position);
 
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
         attributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(QuadVertex, Color);
+        attributeDescriptions[1].offset = offsetof(VulkanQuadVertex, Color);
 
         attributeDescriptions[2].binding = 0;
         attributeDescriptions[2].location = 2;
         attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(QuadVertex, TexCoord);
+        attributeDescriptions[2].offset = offsetof(VulkanQuadVertex, TexCoord);
 
         attributeDescriptions[3].binding = 0;
         attributeDescriptions[3].location = 3;
         attributeDescriptions[3].format = VK_FORMAT_R32_SFLOAT;
-        attributeDescriptions[3].offset = offsetof(QuadVertex, TexIndex);
+        attributeDescriptions[3].offset = offsetof(VulkanQuadVertex, TexIndex);
 
         attributeDescriptions[4].binding = 0;
         attributeDescriptions[4].location = 4;
         attributeDescriptions[4].format = VK_FORMAT_R32_SFLOAT;
-        attributeDescriptions[4].offset = offsetof(QuadVertex, TilingFactor);
+        attributeDescriptions[4].offset = offsetof(VulkanQuadVertex, TilingFactor);
 
 
         //format of the vertex data that will be passed to the vertex shader.
@@ -172,36 +192,11 @@ namespace Engine {
         colorBlending.blendConstants[2] = 0.0f; // Optional
         colorBlending.blendConstants[3] = 0.0f; // Optional
 
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings{};
+        
 
-        // Uniform Buffer for Vertex Shader
-        bindings[0].binding = 0;
-        bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        bindings[0].descriptorCount = 1;
-        bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // Only used in the vertex shader
-        bindings[0].pImmutableSamplers = nullptr;
-
-        // Combined Image Sampler for Fragment Shader
-        bindings[1].binding = 1; // Set this to match the binding in your fragment shader
-        bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        bindings[1].descriptorCount = 32;
-        bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT; // Only used in the fragment shader
-        bindings[1].pImmutableSamplers = nullptr;
+        
 
 
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-        layoutInfo.pBindings = bindings.data();
-
-        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
-        {
-			EE_CORE_ASSERT(false, "failed to create descriptor set layout!");
-        }
-        else
-        {
-			EE_CORE_INFO("Vulkan descriptor set layout created");
-        }
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -219,7 +214,6 @@ namespace Engine {
         {
 			EE_CORE_INFO("Vulkan pipeline layout created");
         }
-
    
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -240,6 +234,7 @@ namespace Engine {
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineInfo.basePipelineIndex = -1; // Optional
 
+       
         if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
         {
 			EE_CORE_ASSERT(false, "failed to create graphics pipeline!");
@@ -249,6 +244,102 @@ namespace Engine {
 			EE_CORE_INFO("Vulkan graphics pipeline created");
         }
 
+    }
+
+    void VulkanGraphicsPipeline::CreateDescriptorSetLayout()
+    {
+        VkDescriptorSetLayoutBinding uboBinding{};
+        uboBinding.binding = 0;
+        uboBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboBinding.descriptorCount = 1;
+        uboBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        uboBinding.pImmutableSamplers = nullptr;
+
+        VkDescriptorSetLayoutBinding samplerBinding{};
+        samplerBinding.binding = 1;
+        samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerBinding.descriptorCount = 32;
+        samplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        samplerBinding.pImmutableSamplers = nullptr;
+
+        std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboBinding, samplerBinding };
+
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
+
+        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "failed to create descriptor set layout!");
+        }
+        else
+        {
+            EE_CORE_INFO("Vulkan descriptor set layout created");
+        }
+
+    
+    }
+
+    void VulkanGraphicsPipeline::CreateDescriptorSet()
+    {
+        m_descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_descriptorSetLayout);
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = m_descriptorPool;
+        allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        allocInfo.pSetLayouts = layouts.data();
+
+        if (vkAllocateDescriptorSets(m_device, &allocInfo, m_descriptorSets.data()) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate descriptor sets!");
+        }
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            UpdateDescriptorSet(i);
+        }
+    }
+
+
+
+    void VulkanGraphicsPipeline::UpdateDescriptorSet(size_t frameIndex)
+    {
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = m_uniformBuffer.GetBuffer();
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(UniformBufferObject);
+
+        VkWriteDescriptorSet uboWrite{};
+        uboWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        uboWrite.dstSet = m_descriptorSets[frameIndex];
+        uboWrite.dstBinding = 0;
+        uboWrite.dstArrayElement = 0;
+        uboWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboWrite.descriptorCount = 1;
+        uboWrite.pBufferInfo = &bufferInfo;
+
+        std::array<VkDescriptorImageInfo, 32> imageInfos{};
+        for (size_t i = 0; i < imageInfos.size(); i++)
+        {
+            imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfos[i].imageView = m_texture->GetImageView();
+            imageInfos[i].sampler = m_texture->GetSampler();
+        }
+
+        VkWriteDescriptorSet samplerWrite{};
+        samplerWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        samplerWrite.dstSet = m_descriptorSets[frameIndex];
+        samplerWrite.dstBinding = 1;
+        samplerWrite.dstArrayElement = 0;
+        samplerWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerWrite.descriptorCount = static_cast<uint32_t>(imageInfos.size());
+        samplerWrite.pImageInfo = imageInfos.data();
+
+        std::array<VkWriteDescriptorSet, 2> descriptorWrites = { uboWrite, samplerWrite };
+        vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
 
 

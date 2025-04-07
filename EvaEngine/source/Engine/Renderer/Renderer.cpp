@@ -39,6 +39,21 @@ namespace Engine {
 		m_sceneData->ViewProjectionMatrix = camera.GetViewProjectionMatrix();
 	}
 
+	void Renderer::DrawFrame()
+	{
+		if (s_VulkanRenderer2D)
+		{
+			s_VulkanRenderer2D->DrawFrame();
+			// clearing done in RecordCommandBuffer
+		}
+		else
+		{
+			Renderer2D::Flush();
+			RenderCommand::Clear();
+			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
+		}
+	}
+
 	void Renderer::EndScene()
 	{
 

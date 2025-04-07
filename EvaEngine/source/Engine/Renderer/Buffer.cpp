@@ -63,7 +63,7 @@ namespace Engine {
 			return  std::make_unique<OpenGLVertexBuffer>(size);
 
 		case RendererAPI::API::Vulkan:
-			return  std::make_unique<VulkanVertexBuffer>(size);
+			//return  std::make_unique<VulkanVertexBuffer>(size);
 
 			return nullptr;
 

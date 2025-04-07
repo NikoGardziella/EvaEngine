@@ -3,6 +3,9 @@
 #include "Engine/Platform/Vulkan/VulkanContext.h"
 #include "stb_image.h"
 #include <stdexcept>
+#include "VulkanUtils.h"
+#include "VulkanBuffer.h"
+
 
 namespace Engine {
 
@@ -54,22 +57,91 @@ namespace Engine {
         m_height = texHeight;
         VkDeviceSize imageSize = m_width * m_height * 4;
 
-        // Create Vulkan image and allocate memory here
-        // ...
+        VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
 
+        // Create staging buffer
+        VulkanBuffer stagingBuffer(
+            device,
+            VulkanContext::Get()->GetDeviceManager().GetPhysicalDevice(),
+            imageSize,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        );
+
+        // Copy pixel data
+        stagingBuffer.SetData(pixels, static_cast<size_t>(imageSize));
         stbi_image_free(pixels);
+
+        // Create the actual Vulkan image
+        VulkanUtils::CreateImage(
+            m_width,
+            m_height,
+            VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            m_image,
+            m_imageMemory
+        );
+
+        // Transition image layout and copy buffer data
+        VulkanUtils::TransitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+        VulkanUtils::CopyBufferToImage(stagingBuffer.GetBuffer(), m_image, m_width, m_height);
+
+        VulkanUtils::TransitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
+
 
     void VulkanTexture::CreateTextureImageView()
     {
-        // Create image view here
-        // ...
+        VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
+
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = m_image;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        if (vkCreateImageView(device, &viewInfo, nullptr, &m_imageView) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
     }
+
 
     void VulkanTexture::CreateTextureSampler()
     {
-        // Create sampler here
-        // ...
+        VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
+
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.anisotropyEnable = VK_FALSE;
+        samplerInfo.maxAnisotropy = 16.0f;
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 0.0f;
+
+        if (vkCreateSampler(device, &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture sampler!");
+        }
     }
+
 
 }

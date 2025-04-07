@@ -6,6 +6,8 @@
 #include "Engine/Renderer/UniformBuffer.h"
 #include "Engine/Renderer/RenderCommand.h"
 #include "Engine/AssetManager/AssetManager.h"
+#include "Engine/Platform/Vulkan/VulkanGraphicsPipeline.h"
+
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -21,10 +23,8 @@ namespace Engine {
 		glm::vec2 TexCoord;
 		float TexIndex;
 		float TilingFactor;
-
 		// Editor-only
 		int EntityID;
-
 	};
 
 	struct LineVertex
@@ -367,7 +367,6 @@ namespace Engine {
 			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-			s_Data.QuadVertexBufferPtr->EntityID = entityID;
 			//s_Data.QuadVertexBufferPtr->instancePosition = transform;
 
 			s_Data.QuadVertexBufferPtr++;
@@ -415,7 +414,6 @@ namespace Engine {
 			s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[i];
 			s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-			s_Data.QuadVertexBufferPtr->EntityID = entityID;
 			s_Data.QuadVertexBufferPtr++;
 		}
 
@@ -565,7 +563,6 @@ namespace Engine {
 				s_Data.QuadVertexBufferPtr->TexCoord = textureCoords[j];  
 				s_Data.QuadVertexBufferPtr->TexIndex = textureID;  
 				s_Data.QuadVertexBufferPtr->TilingFactor = 1.0f;  
-				s_Data.QuadVertexBufferPtr->EntityID = -1;  
 				//s_Data.QuadVertexBufferPtr->InstanceTansform = instanceTransform ; // Set instance transform matrix
 				s_Data.QuadVertexBufferPtr++;
 				s_Data.Stats.QuadCount++;

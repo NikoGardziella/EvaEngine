@@ -16,6 +16,8 @@ namespace Engine {
         void CreateSwapchain();
         void Cleanup();
 
+        void RecreateSwapchain();
+
         VkSwapchainKHR GetSwapchain() const { return m_swapchain; }
         VkFormat GetSwapchainImageFormat() const { return m_swapchainImageFormat; }
         VkExtent2D GetSwapchainExtent() const { return m_swapchainExtent; }

@@ -28,6 +28,7 @@ namespace Engine {
         EE_CORE_INFO("Vulkan Clear");
     }
 
+    
     void VulkanRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
     {
         EE_CORE_INFO("Vulkan DrawIndexed: {}", indexCount);

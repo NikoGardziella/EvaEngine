@@ -58,6 +58,8 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
+        return;
+
         //m_checkerBoardTexture = Engine::Texture2D::Create("assets/textures/chess_board.png");
        // m_textureSpriteSheetPacked = Engine::Texture2D::Create("assets/textures/game/RPGpack_sheet_2X.png");
         m_iconPlay = Texture2D::Create(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string());
@@ -627,6 +629,9 @@ namespace Engine {
     void EditorLayer::OnUpdate(Engine::Timestep timestep)
     {
         EE_PROFILE_FUNCTION();
+
+        Renderer::DrawFrame();
+        return;
 
         FramebufferSpecification spec = m_framebuffer->GetSpecification();
         if (m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
