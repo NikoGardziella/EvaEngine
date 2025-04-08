@@ -100,7 +100,6 @@ namespace Engine {
         VkRenderPass m_renderPass;
         std::vector<VkFramebuffer> m_swapchainFramebuffers;
       
-        VkQueue m_presentQueue;
 
         static VulkanContext* s_instance;
 
@@ -112,7 +111,7 @@ namespace Engine {
         VkDeviceMemory m_entityIDImageMemory;
 
 
-        VkDebugUtilsMessengerEXT m_debugMessenger;
+        //VkDebugUtilsMessengerEXT m_debugMessenger;
         const std::vector<const char*> m_validationLayers =
         {
             "VK_LAYER_KHRONOS_validation"

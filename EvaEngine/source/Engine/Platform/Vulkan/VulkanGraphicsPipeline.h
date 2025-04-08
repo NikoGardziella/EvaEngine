@@ -6,6 +6,7 @@
 #include <Engine/Renderer/Texture.h>
 #include "VulkanTexture.h"
 #include <glm/glm.hpp>
+#include "VulkanShader.h"
 
 
 namespace Engine {
@@ -19,6 +20,11 @@ namespace Engine {
         float TilingFactor;  // Tiling factor for the texture
     };
 
+    struct alignas(16) UniformBufferObject
+    {
+        glm::mat4 u_ViewProjection;
+    };
+
     class VulkanGraphicsPipeline
     {
        
@@ -30,14 +36,15 @@ namespace Engine {
 
         void CreateDescriptorSet();
 
-        void UpdateDescriptorSet(size_t frameIndex);
+        void UpdateDescriptorSets(size_t frameIndex);
+
+        void UpdateUniformBuffer(const glm::mat4& viewProjectionMatrix);
 
         VkPipeline GetPipeline() const { return m_graphicsPipeline; }
         VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
 		VkDescriptorSetLayout GetDescriptorSetLayout() const { return m_descriptorSetLayout; }
         VkDescriptorSet GetDescriptorSet(size_t frameIndex) const { return m_descriptorSets[frameIndex]; }
     private:
-        void CreateShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 		void CreateDescriptorSetLayout();
 
 
@@ -51,7 +58,7 @@ namespace Engine {
         VulkanBuffer m_uniformBuffer;
 
 		Ref<VulkanTexture> m_texture;
-
+        Ref<VulkanShader> m_circleShader;
         //VkImageView m_textureImageView;
         //VkSampler m_textureSampler;
 

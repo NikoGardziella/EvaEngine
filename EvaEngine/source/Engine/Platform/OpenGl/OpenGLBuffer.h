@@ -23,7 +23,6 @@ namespace Engine {
 		virtual const BufferLayout GetLayout()  const override { return m_layout; }
 		virtual uint32_t GetSize() const override { return m_size; }
 
-		void* GetBuffer() const override { EE_CORE_WARN("dont to this"); return nullptr; }
 
 	private:
 
@@ -51,7 +50,6 @@ namespace Engine {
 		virtual uint32_t GetCount() const { return m_count; }
 		virtual const void* GetData() const override { EE_CORE_WARN("dont to this"); return nullptr; }
 
-		void* GetBuffer() const override { EE_CORE_WARN("dont to this");  return nullptr; }
 
 
 	private:

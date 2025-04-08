@@ -171,7 +171,6 @@ namespace Engine {
         Cleanup(); // Destroy old swapchain resources
 
         CreateSwapchain(); // Recreate the swapchain
-        CreateImageViews(); // Recreate swapchain image views
     }
 
 

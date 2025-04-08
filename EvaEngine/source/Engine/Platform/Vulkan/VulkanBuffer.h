@@ -26,7 +26,7 @@ namespace Engine {
         virtual const BufferLayout GetLayout()  const override { return m_layout; }
         virtual uint32_t GetSize() const override { return m_size; }
 
-		void* GetBuffer() const { return m_buffer; }
+        VkBuffer GetBuffer() const { return m_buffer; }
 
     private:
         
@@ -51,7 +51,7 @@ namespace Engine {
 
         virtual uint32_t GetCount() const override { return m_count; }
         virtual const void* GetData() const override { return m_data.data(); } 
-		void* GetBuffer() const override { return m_indexBuffer; }
+        VkBuffer GetBuffer() const { return m_indexBuffer; }
 
     private:
         //void CreateIndexBuffer(uint32_t* indices, uint32_t count);
@@ -65,18 +65,19 @@ namespace Engine {
     class VulkanBuffer {
     public:
         VkBuffer m_buffer;
-        VkDeviceMemory m_memory;
         VkDeviceSize size;
 
 		VulkanBuffer() = default;
         VulkanBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
             
 		VkBuffer GetBuffer() const { return m_buffer; }
+		VkDeviceMemory GetMemory() const { return m_memory; }
         void Destroy();
 
         void SetData(const void* data, size_t size);
 
     private:
+        VkDeviceMemory m_memory;
         VkDevice m_device;
 
         uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);

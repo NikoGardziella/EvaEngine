@@ -147,7 +147,6 @@ namespace Engine {
 
 		virtual uint32_t GetSize() const = 0;
 
-		virtual void* GetBuffer() const = 0;
 
 
 	};
@@ -166,7 +165,6 @@ namespace Engine {
 		static  Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count);
 		virtual const void* GetData() const = 0;
 
-		virtual void* GetBuffer() const = 0;
 
 	};
 

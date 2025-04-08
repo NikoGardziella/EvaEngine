@@ -9,9 +9,12 @@
 #include "Engine/Platform/Vulkan/VulkanContext.h"
 #include "Engine/Platform/Vulkan/VulkanGraphicsPipeline.h"
 #include <glm/ext/matrix_float4x4.hpp>
+#include "OrthographicCameraController.h"
 
 
 namespace Engine {
+
+	const int MAX_FRAMES_IN_FLIGHT = 3;
 
 
 
@@ -31,7 +34,6 @@ namespace Engine {
 		void CreateSyncObjects();
 
 		//void UpdateDescriptorSet(VkDescriptorSet descriptorSet, const VulkanBuffer& uniformBuffer, VkImageView textureImageView, VkSampler textureSampler);
-		void UpdateDescriptorSet();
 	private:
 
 		Ref<VulkanGraphicsPipeline> m_vulkanGraphicsPipeline;
@@ -49,30 +51,24 @@ namespace Engine {
 		uint32_t m_currentFrame = 0;
 
 
-		Ref<VertexBuffer> m_vertexBuffer;
-		Ref<IndexBuffer> m_indexBuffer;
+		Ref<VulkanVertexBuffer> m_vertexBuffer;
+		Ref<VulkanIndexBuffer> m_indexBuffer;
 
+		Ref<OrthographicCamera> m_camera;
 
-		struct QuadVertex
-		{
-			glm::vec3 Position;  // Vertex position (x, y, z)
-			glm::vec4 Color;     // Vertex color (r, g, b, a)
-			glm::vec2 TexCoord;  // Texture coordinates (u, v)
-			float TexIndex;      // Texture index for binding
-			float TilingFactor;  // Tiling factor for the texture
-		};
+		
 
 		// Define quad vertices for a textured quad
-		const std::vector<QuadVertex> quadVertices =
+		const std::vector<VulkanQuadVertex> quadVertices =
 		{
 			// Position              Color                   TexCoord    TexIndex  TilingFactor
 			// Bottom Left
 			{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 0.0f, 1.0f},
-			// Bottom Right
+			// Bottom Right	0
 			{{ 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, {1.0f, 0.0f}, 0.0f, 1.0f},
-			// Top Right
+			// Top Right	0
 			{{ 0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, 0.0f, 1.0f},
-			// Top Left
+			// Top Left		0
 			{{-0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, 0.0f, 1.0f}
 		};
 

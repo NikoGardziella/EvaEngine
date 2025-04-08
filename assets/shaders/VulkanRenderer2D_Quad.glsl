@@ -98,8 +98,9 @@ void main()
 		case 31: texColor *= texture(u_Textures[31], Input.TexCoord * Input.TilingFactor); break;
 	}
 
-	if (texColor.a == 0.0)
-		discard;
+	//if (texColor.a == 0.0)
+	//	discard;
 
 	o_Color = texColor;
+	//o_Color = vec4(0.5, 0.5, 0.5, 1.0);
 }

@@ -4,65 +4,15 @@
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
 #include "VertexArray.h"
 #include "Shader.h"
-#include "Renderer2D.cpp"
+#include "Renderer2D.h"
+#include "OrthographicCameraController.h"
 
 namespace Engine {
 
-	const int MAX_FRAMES_IN_FLIGHT = 3;
 
-	struct VulkanRenderer2DData
-	{
-		static const uint32_t MaxQuads = 20000;
-		static const uint32_t MaxVertices = MaxQuads * 4;
-		static const uint32_t MaxIndices = MaxQuads * 6;
-		static const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
+	
 
 
-		Ref<VertexArray> LineVertexArray;
-		Ref<VertexBuffer> LineVertexBuffer;
-		Ref<Shader> LineShader;
-
-		uint32_t LineVertexCount = 0;
-		LineVertex* LineVertexBufferBase = nullptr;
-		LineVertex* LineVertexBufferPtr = nullptr;
-		float LineWidth = 2.0f;
-
-
-		Ref<VertexArray> CircleVertexArray;
-		Ref<VertexBuffer> CircleVertexBuffer;
-		Ref<Shader> CircleShader;
-
-		uint32_t CircleIndexCount = 0;
-		CircleVertex* CircleVertexBufferBase = nullptr;
-		CircleVertex* CircleVertexBufferPtr = nullptr;
-
-
-		Ref<VertexArray> QuadVertexArray;
-		Ref<VertexBuffer> QuadVertexBuffer;
-		Ref<Shader> QuadShader;
-		Ref<Texture2D> WhiteTexture;
-
-		uint32_t QuadIndexCount = 0;
-		VulkanQuadVertex* QuadVertexBufferBase = nullptr;
-		VulkanQuadVertex* QuadVertexBufferPtr = nullptr;
-
-		std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
-		uint32_t TextureSlotIndex = 1; // 0 = white texture
-
-		glm::vec4 QuadVertexPositions[4];
-
-		Renderer2D::Statistics Stats;
-
-		struct CameraData
-		{
-			glm::mat4 ViewProjection;
-		};
-		CameraData CameraBuffer;
-		Ref<UniformBuffer> CameraUniformBuffer;
-	};
-
-
-	static VulkanRenderer2DData s_VulkanData;
 
 	VulkanRenderer2D::VulkanRenderer2D()
 	{
@@ -101,17 +51,27 @@ namespace Engine {
 			sizeof(QuadVertex) * quadVertices.size()              
 		);
 		*/
-		m_vertexBuffer = VertexBuffer::Create((float*)quadVertices.data(), sizeof(QuadVertex) * quadVertices.size());
+		m_vertexBuffer = std::make_shared<VulkanVertexBuffer>((float*)quadVertices.data(), sizeof(VulkanQuadVertex) * quadVertices.size());
 
+		EE_CORE_INFO("Vertex buffer created with size: {}", sizeof(VulkanQuadVertex) * quadVertices.size());
 
 		
-		m_indexBuffer = IndexBuffer::Create(quadIndices.data(), sizeof(QuadVertex) * quadVertices.size());
+		m_indexBuffer = std::make_shared<VulkanIndexBuffer>(quadIndices.data(), sizeof(VulkanQuadVertex) * quadVertices.size());
+		EE_CORE_INFO("Index buffer created with size: {}", sizeof(uint32_t) * quadVertices.size());
+
+		m_camera = std::make_shared<OrthographicCamera>(-5.0f, 5.0f, -5.0f, 5.0f);
+		m_camera->SetPosition({ 0.0f, 0.0f, 0.0f }); // Move the camera back to see the quad
+
+		// Update the uniform buffer with the camera's view-projection matrix
+		m_vulkanGraphicsPipeline->UpdateUniformBuffer(m_camera->GetViewProjectionMatrix());
+	
 	}
 
 
 
 	void VulkanRenderer2D::DrawFrame()
 	{
+		m_vulkanGraphicsPipeline->UpdateUniformBuffer(m_camera->GetViewProjectionMatrix());
 
 		// Wait for the fence to ensure the previous frame has finished
 		vkWaitForFences(m_device, 1, &m_inFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
@@ -120,7 +80,7 @@ namespace Engine {
 		vkResetFences(m_device, 1, &m_inFlightFences[m_currentFrame]);
 
 		// Update the descriptor set after ensuring the previous frame has completed
-		m_vulkanGraphicsPipeline->UpdateDescriptorSet(m_currentFrame);
+		m_vulkanGraphicsPipeline->UpdateDescriptorSets(m_currentFrame);
 
 		// Acquire next image from swapchain
 		VkResult result = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX,
@@ -166,7 +126,6 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to submit draw command buffer!");
 		}
 
-
 		// Present the image
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -188,7 +147,6 @@ namespace Engine {
 		{
 			EE_CORE_ASSERT(false, "Failed to present swapchain image!");
 		}
-
 
 		// Advance to the next frame
 		m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -225,7 +183,6 @@ namespace Engine {
 		{
 			EE_CORE_ERROR("Failed to begin recording command buffer!");
 		}
-		
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -234,15 +191,13 @@ namespace Engine {
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
 
-		VkClearValue clearColor = { {{0.9f, 0.0f, 0.0f, 1.0f}} };
+		VkClearValue clearColor = { {{0.9f, 0.7f, 0.7f, 1.0f}} };
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipeline());
-
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;
@@ -258,26 +213,20 @@ namespace Engine {
 		scissor.extent = m_swapchainExtent;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-
-		VkBuffer vertexBuffers[] = { (VkBuffer)m_vertexBuffer->GetBuffer() };
+		// Bind the vertex buffer
+		VkBuffer vertexBuffers[] = { m_vertexBuffer->GetBuffer() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-		// If using an index buffer
-		vkCmdBindIndexBuffer(commandBuffer, (VkBuffer)m_indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT16);
-
-
-
+		// Bind the index buffer
+		vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetDescriptorSet(m_currentFrame);
 
-
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,	m_vulkanGraphicsPipeline->GetPipelineLayout(),
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipelineLayout(),
 			0, // first set
 			1, // descriptorSetCount
-			&descriptorSet,0,	nullptr);
-
-
+			&descriptorSet, 0, nullptr);
 
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(quadIndices.size()), 1, 0, 0, 0);
 
@@ -287,8 +236,8 @@ namespace Engine {
 		{
 			EE_CORE_ASSERT(false, "Failed to record command buffer!");
 		}
-
 	}
+
 
 	void VulkanRenderer2D::CreateSyncObjects()
 	{
@@ -319,45 +268,5 @@ namespace Engine {
 	
 
 
-	/*
-	void VulkanRenderer2D::UpdateDescriptorSet(VkDescriptorSet descriptorSet, const VulkanBuffer& uniformBuffer, VkImageView textureImageView, VkSampler textureSampler)
-	{
-		// Uniform buffer descriptor (binding 0)
-		VkDescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer = uniformBuffer.m_buffer;
-		bufferInfo.offset = 0;
-		bufferInfo.range = uniformBuffer.size;
-
-		// Image descriptors (binding 1)
-		std::array<VkDescriptorImageInfo, 32> imageInfos{};
-		for (size_t i = 0; i < imageInfos.size(); i++)
-		{
-			imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfos[i].imageView = textureImageView;
-			imageInfos[i].sampler = textureSampler;
-		}
-
-		std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-
-		// Binding 0: Uniform Buffer
-		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[0].dstSet = descriptorSet;
-		descriptorWrites[0].dstBinding = 0;
-		descriptorWrites[0].dstArrayElement = 0;
-		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrites[0].descriptorCount = 1;
-		descriptorWrites[0].pBufferInfo = &bufferInfo;
-
-		// Binding 1: Combined Image Samplers
-		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[1].dstSet = descriptorSet;
-		descriptorWrites[1].dstBinding = 1;
-		descriptorWrites[1].dstArrayElement = 0;
-		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrites[1].descriptorCount = static_cast<uint32_t>(imageInfos.size());
-		descriptorWrites[1].pImageInfo = imageInfos.data();
-
-		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-	}
-	*/
+	
 }

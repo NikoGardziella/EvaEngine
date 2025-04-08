@@ -7,17 +7,13 @@
 #include <stdexcept>
 #include <vector>
 #include <Engine/Renderer/Shader.h>
-#include "VulkanShader.h"
 #include "VulkanContext.h"
-#include <Engine/Renderer/VulkanRenderer2D.cpp>
+#include <Engine/Renderer/VulkanRenderer2D.h>
 
 namespace Engine {
    // const int MAX_FRAMES_IN_FLIGHT = 3;
 
-    struct alignas(16) UniformBufferObject
-    {
-        glm::mat4 u_ViewProjection;
-    };
+  
 
     VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice device, VkExtent2D swapchainExtent, VkRenderPass renderPass)
         : m_device(device),
@@ -35,6 +31,7 @@ namespace Engine {
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
+        m_circleShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());
 
         CreateDescriptorSetLayout();
         CreateDescriptorSet();
@@ -58,18 +55,17 @@ namespace Engine {
 
       
 
-        Ref<VulkanShader> CircleShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertShaderStageInfo.module = CircleShader->GetVertexShaderModule();
+        vertShaderStageInfo.module = m_circleShader->GetVertexShaderModule();
         vertShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
         fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragShaderStageInfo.module = CircleShader->GetFragmentShaderModule();
+        fragShaderStageInfo.module = m_circleShader->GetFragmentShaderModule();
         fragShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
@@ -130,8 +126,8 @@ namespace Engine {
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = (float)swapchainExtent.width;
-        viewport.height = (float)swapchainExtent.height;
+        viewport.width = static_cast<float>(swapchainExtent.width);
+        viewport.height = static_cast<float>(swapchainExtent.height);
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
 
@@ -154,7 +150,7 @@ namespace Engine {
         rasterizer.rasterizerDiscardEnable = VK_FALSE;
         rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizer.lineWidth = 1.0f;
-        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizer.cullMode = VK_CULL_MODE_NONE;
         rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
         rasterizer.depthBiasEnable = VK_FALSE;
         rasterizer.depthBiasConstantFactor = 0.0f; // Optional
@@ -299,18 +295,18 @@ namespace Engine {
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            UpdateDescriptorSet(i);
+            UpdateDescriptorSets(i);
         }
     }
 
 
 
-    void VulkanGraphicsPipeline::UpdateDescriptorSet(size_t frameIndex)
+    void VulkanGraphicsPipeline::UpdateDescriptorSets(size_t frameIndex)
     {
         VkDescriptorBufferInfo bufferInfo{};
         bufferInfo.buffer = m_uniformBuffer.GetBuffer();
         bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(UniformBufferObject);
+        bufferInfo.range = sizeof(glm::mat4);
 
         VkWriteDescriptorSet uboWrite{};
         uboWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -343,6 +339,12 @@ namespace Engine {
     }
 
 
-  
+    void VulkanGraphicsPipeline::UpdateUniformBuffer(const glm::mat4& viewProjectionMatrix)
+    {
+        void* data;
+        vkMapMemory(m_device, m_uniformBuffer.GetMemory(), 0, sizeof(viewProjectionMatrix), 0, &data);
+        memcpy(data, &viewProjectionMatrix, sizeof(viewProjectionMatrix));
+        vkUnmapMemory(m_device, m_uniformBuffer.GetMemory());
+    }
 
 }
