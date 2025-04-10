@@ -14,7 +14,6 @@
 
 namespace Engine {
 
-	const int MAX_FRAMES_IN_FLIGHT = 3;
 
 
 
@@ -26,7 +25,7 @@ namespace Engine {
 		~VulkanRenderer2D();
 
 		void Init();
-		void DrawFrame();
+		void DrawFrame(uint32_t currentFrame);
 	private:
 
 		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
@@ -48,7 +47,7 @@ namespace Engine {
 		std::vector<VkSemaphore> m_renderFinishedSemaphores;
 		std::vector<VkFence> m_inFlightFences;
 
-		uint32_t m_currentFrame = 0;
+		//uint32_t currentFrame = 0;
 
 
 		Ref<VulkanVertexBuffer> m_vertexBuffer;

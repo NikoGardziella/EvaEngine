@@ -195,6 +195,12 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorSet.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClInclude>
@@ -1569,8 +1575,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorSet.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1634,6 +1638,12 @@
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorSet.cpp">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp">
@@ -1753,8 +1763,6 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorSet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">

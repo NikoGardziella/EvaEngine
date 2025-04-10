@@ -39,6 +39,8 @@ namespace Engine {
         void UpdateDescriptorSets(size_t frameIndex);
 
         void UpdateUniformBuffer(const glm::mat4& viewProjectionMatrix);
+        //void BindTextures(VkCommandBuffer commandBuffer);
+
 
         VkPipeline GetPipeline() const { return m_graphicsPipeline; }
         VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
@@ -57,7 +59,11 @@ namespace Engine {
         VkDescriptorPool m_descriptorPool;
         VulkanBuffer m_uniformBuffer;
 
+        VkDescriptorSet m_playButtondescriptorSet;
+
 		Ref<VulkanTexture> m_texture;
+		//std::vector<Ref<VulkanTexture>> m_textures;
+
         Ref<VulkanShader> m_circleShader;
         //VkImageView m_textureImageView;
         //VkSampler m_textureSampler;

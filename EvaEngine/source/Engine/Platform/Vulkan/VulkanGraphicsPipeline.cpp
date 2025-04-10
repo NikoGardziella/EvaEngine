@@ -9,6 +9,10 @@
 #include <Engine/Renderer/Shader.h>
 #include "VulkanContext.h"
 #include <Engine/Renderer/VulkanRenderer2D.h>
+#include <Engine/Renderer/Renderer.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <backends/imgui_impl_glfw.h>
+#include <Engine/Core/Application.h>
 
 namespace Engine {
    // const int MAX_FRAMES_IN_FLIGHT = 3;
@@ -20,10 +24,17 @@ namespace Engine {
         m_graphicsPipeline(VK_NULL_HANDLE),
         m_pipelineLayout(VK_NULL_HANDLE)
     {
+        
 
         VulkanContext* vulkanContext = VulkanContext::Get();
-        m_descriptorPool = vulkanContext->GetDescriptorPool().m_descriptorPool;
+        m_descriptorPool = vulkanContext->GetDescriptorPool();
         m_texture = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("textures/ee_logo.png").string());
+
+       
+        //m_iconStop = AssetManager::AddTexture("stopButton", AssetManager::GetAssetPath("icons/stop-button.png").string());
+        //m_iconPause = AssetManager::AddTexture("pauseButton", AssetManager::GetAssetPath("icons/video-pause-button.png").string());
+
+        
         m_uniformBuffer = VulkanBuffer(
             m_device,
             vulkanContext->GetDeviceManager().GetPhysicalDevice(),
@@ -36,6 +47,7 @@ namespace Engine {
         CreateDescriptorSetLayout();
         CreateDescriptorSet();
         CreateGraphicsPipeline(swapchainExtent, renderPass);
+
 
     }
 
@@ -52,7 +64,7 @@ namespace Engine {
 
     void VulkanGraphicsPipeline::CreateGraphicsPipeline(VkExtent2D swapchainExtent, VkRenderPass renderPass)
     {
-
+		
       
 
 
@@ -290,7 +302,11 @@ namespace Engine {
 
         if (vkAllocateDescriptorSets(m_device, &allocInfo, m_descriptorSets.data()) != VK_SUCCESS)
         {
-            throw std::runtime_error("failed to allocate descriptor sets!");
+			EE_CORE_ASSERT(false, "failed to allocate descriptor sets!");
+        }
+        else
+        {
+			EE_CORE_INFO("Vulkan descriptor sets allocated");
         }
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -303,6 +319,8 @@ namespace Engine {
 
     void VulkanGraphicsPipeline::UpdateDescriptorSets(size_t frameIndex)
     {
+       
+
         VkDescriptorBufferInfo bufferInfo{};
         bufferInfo.buffer = m_uniformBuffer.GetBuffer();
         bufferInfo.offset = 0;
@@ -346,5 +364,7 @@ namespace Engine {
         memcpy(data, &viewProjectionMatrix, sizeof(viewProjectionMatrix));
         vkUnmapMemory(m_device, m_uniformBuffer.GetMemory());
     }
+
+  
 
 }

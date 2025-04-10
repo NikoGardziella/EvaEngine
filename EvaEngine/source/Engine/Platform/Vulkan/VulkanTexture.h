@@ -9,7 +9,7 @@ namespace Engine {
     class VulkanTexture : public Texture2D
     {
     public:
-        VulkanTexture(const std::string& path);
+        VulkanTexture(const std::string& path, bool imGuiTexture = false);
         VulkanTexture(uint32_t width, uint32_t height);
 
         virtual ~VulkanTexture();
@@ -20,6 +20,8 @@ namespace Engine {
         virtual uint32_t GetRendererID() const override { return 0; }
 		VkImageView GetImageView() const { return m_imageView; }
 		VkSampler GetSampler() const { return m_sampler; }
+		VkDescriptorSet GetTextureDescriptor() const { return m_textureDescriptor; }
+
         virtual void SetData(void* data, uint32_t size) override;
 
         virtual bool operator==(const Texture& other) const override
@@ -41,6 +43,8 @@ namespace Engine {
         VkImage m_image;
         VkDeviceMemory m_imageMemory;
         VkImageView m_imageView;
+        VkDescriptorSet m_textureDescriptor;
+
         VkSampler m_sampler;
     };
 

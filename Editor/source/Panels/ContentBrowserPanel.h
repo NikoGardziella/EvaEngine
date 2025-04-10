@@ -3,6 +3,7 @@
 #include <gl/GL.h>
 #include <Engine/Platform/OpenGl/OpenGLTexture.h>
 
+#include <Engine/Platform/Vulkan/VulkanTexture.h>
 
 namespace Engine {
 
@@ -15,8 +16,8 @@ namespace Engine {
 
 	private:
 		std::filesystem::path m_currentDirectory;
-		Ref<Texture2D> m_folderIconTexture;
-		Ref<Texture2D> m_fileIconTexture;
+		Ref<VulkanTexture> m_folderIconTexture;
+		Ref<VulkanTexture> m_fileIconTexture;
 
 	};
 

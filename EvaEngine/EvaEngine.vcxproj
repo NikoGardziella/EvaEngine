@@ -179,6 +179,8 @@
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorSet.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h" />
@@ -637,8 +639,6 @@
     <ClInclude Include="vendor\glm\glm\vec4.hpp" />
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorSet.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp" />
@@ -662,6 +662,8 @@
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorSet.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp" />
@@ -703,8 +705,6 @@
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorSet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl" />

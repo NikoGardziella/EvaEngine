@@ -106,7 +106,7 @@ namespace Engine
 				}
 
 			}
-			/*
+			
 			{
 				EE_PROFILE_SCOPE("Application::Run() - ImGui updates");
 
@@ -117,7 +117,7 @@ namespace Engine
 				}
 				m_imGuiLayer->End();
 			}
-			*/
+			
 
 			m_window->OnUpdate();
 		}	

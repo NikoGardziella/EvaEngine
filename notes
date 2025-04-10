@@ -59,7 +59,8 @@
     🔸 Renderer	                            High-level API, manages UBOs, draws stuff, updates data
 
     🔸 Buffer,                              UniformBuffer, Texture, DescriptorSet	Wrappers around Vulkan resources
-    
+
     🔸 Mesh, Renderable	                    Own descriptor sets, vertex/index buffers, textures
 
 }
+

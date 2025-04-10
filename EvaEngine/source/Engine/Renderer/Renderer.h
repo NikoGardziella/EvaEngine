@@ -8,6 +8,7 @@
 
 namespace Engine {
 
+	const int MAX_FRAMES_IN_FLIGHT = 3;
 
 
 	class Renderer
@@ -34,7 +35,7 @@ namespace Engine {
 
 		static void Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform = glm::mat4(1.0f));
 
-
+		static uint32_t GetCurrentFrame() { return s_currentFrame; }
 
 
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
@@ -47,7 +48,7 @@ namespace Engine {
 
 		static SceneData* m_sceneData;
 		static std::unique_ptr<VulkanRenderer2D> s_VulkanRenderer2D;
-
+		static uint32_t s_currentFrame;
 	};
 }
 

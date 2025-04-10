@@ -43,7 +43,7 @@ namespace Engine {
 
     void SceneHierarchyPanel::OnImGuiRender()
     {
-        DrawContext();
+        //DrawContext();
         
     }
 

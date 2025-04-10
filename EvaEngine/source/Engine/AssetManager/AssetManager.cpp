@@ -10,6 +10,7 @@ namespace Engine {
 
     // prevent multiple threads from accessing shared resources simultaneously
     std::mutex AssetManager::s_Mutex;
+    std::unordered_map<std::string, std::shared_ptr<VulkanTexture>> AssetManager::s_textureCache;
 
     void AssetManager::Initialize(int maxDepth)
     {
@@ -104,6 +105,49 @@ namespace Engine {
 
         file.close();
         return buffer;
+    }
+
+    Ref<VulkanTexture> AssetManager::AddTexture(const std::string& name, const std::string& path)
+    {
+		std::lock_guard<std::mutex> lock(s_Mutex);
+		if (s_textureCache.find(name) == s_textureCache.end())
+		{
+            s_textureCache[name] = std::make_shared<VulkanTexture>(path);
+			EE_CORE_INFO("Texture added to cache: {}", name);
+		}
+		else
+		{
+			EE_CORE_WARN("Texture {} already exists in cache!", name);
+		}
+        return GetTexture(name);
+    }
+
+    std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures()
+    {
+        std::lock_guard<std::mutex> lock(s_Mutex);
+        std::vector<Ref<VulkanTexture>> textures;
+        for (const auto& pair : s_textureCache)
+        {
+            textures.push_back(pair.second);
+        }
+        return textures;
+    }
+
+
+    Ref<VulkanTexture> AssetManager::GetTexture(const std::string& name)
+    {
+       // std::lock_guard<std::mutex> lock(s_Mutex);
+
+        auto it = s_textureCache.find(name);
+        if (it != s_textureCache.end())
+        {
+            return it->second; // Return the shared_ptr directly
+        }
+        else
+        {
+            EE_CORE_WARN("Texture {} not found in cache!", name);
+            return nullptr;
+        }
     }
 
 }

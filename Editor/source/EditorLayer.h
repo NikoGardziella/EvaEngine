@@ -2,10 +2,14 @@
 
 #include "Engine.h"
 
+//#include "imgui/backends/imgui_impl_vulkan.h"
+
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/ContentBrowserPanel.h"
 #include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Renderer/EditorCamera.h"
+#include "Engine/Platform/Vulkan/VulkanTexture.h"
+
 
 #include "Sandbox2D.h"
 #include "FPSCounter.h"
@@ -110,9 +114,9 @@ namespace Engine {
 
 		// PlayButton
 		SceneState m_sceneState = SceneState::Edit;
-		Ref<Texture2D> m_iconPlay;
-		Ref<Texture2D> m_iconStop;
-		Ref<Texture2D> m_iconPause;
+		Ref<VulkanTexture> m_iconPlay;
+		Ref<VulkanTexture> m_iconStop;
+		Ref<VulkanTexture> m_iconPause;
 
 		bool m_showColliders = false;
 

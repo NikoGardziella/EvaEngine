@@ -52,30 +52,43 @@ namespace Engine {
         VkCommandBuffer BeginSingleTimeCommands();
         void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
+        void CreateCommandBuffers();
+
 
         //VkPhysicalDevice GetPhysicalDevice() { return m_physicalDevice; }
-        VkCommandBuffer GetCommandBuffer();
         VkFormat FindDepthFormat();
         void CreateDepthAttachment();
+        void CreateImGuiDescriptorPool();
+
         VulkanDevice& GetDeviceManager() const { return *m_deviceManager; }
         VkRenderPass& GetRenderPass() { return m_renderPass; }
+		VkRenderPass& GetImGuiRenderPass() { return m_imGuiRenderPass; }
         VulkanSwapchain& GetVulkanSwapchain() { return *m_swapchain; }
         //std::vector<VkFramebuffer>& GetSwapchainFramebuffers() { return m_swapchainFramebuffers; }
-
+		VulkanInstance& GetVulkanInstance() { return *m_vulkanInstance; }
         VkFramebuffer& GetSwapchainFramebuffer(uint32_t imageIndex ) { return m_swapchainFramebuffers[imageIndex]; }
-		VulkanDescriptorPool& GetDescriptorPool() { return *m_descriptorPool; }
+		VkFramebuffer& GetImGuiFramebuffer(uint32_t imageIndex) { return m_imguiFramebuffers[imageIndex]; }
+
+       // VkCommandBuffer VulkanContext::GetCurrentCommandBuffer() { return m_commandBuffers[Renderer::GetCurrentFrame()];   }
+        VkCommandBuffer& GetCommandBuffer(uint32_t imageIndex) { return m_commandBuffers[imageIndex]; }
+        VkDescriptorPool GetDescriptorPool() { return m_descriptorPool->GetDescriptorPool(); }
+		VkDescriptorPool& GetImGuiDescriptorPool() { return m_imguiDescriptorPool; }
+
+
     private:
         void CreateInstance();
         void CreateSurface();
         void SetupDevices();
         void CreateGraphicsQueue();
         void CreateSwapchain();
+
         void CreateRenderPass();
+        void CreateImGuiRenderPass();
 
         void CreateImageViews();
         void CreateFramebuffers();
         void CreateCommandPool();
-        void CreateDesciptorPool();
+        void CreateDescriptorPool();
 
         void CreateEntityIDAttachment();
 
@@ -88,17 +101,21 @@ namespace Engine {
         VulkanInstance* m_vulkanInstance;
         VkSurfaceKHR m_surface;
         VulkanDevice* m_deviceManager;
-		Scope<VulkanDescriptorPool> m_descriptorPool;
+		Ref<VulkanDescriptorPool> m_descriptorPool;
+        VkDescriptorPool m_imguiDescriptorPool;
 
         VulkanSwapchain* m_swapchain;
         std::vector<VkImageView> m_swapchainImageViews;
         
-
+        std::vector<VkCommandBuffer> m_commandBuffers;
         SwapChainSupportDetails m_swapChainSupportDetails;
         VkCommandPool m_commandPool;
         VkQueue m_graphicsQueue;
         VkRenderPass m_renderPass;
+        VkRenderPass m_imGuiRenderPass;
+
         std::vector<VkFramebuffer> m_swapchainFramebuffers;
+        std::vector<VkFramebuffer> m_imguiFramebuffers;
       
 
         static VulkanContext* s_instance;

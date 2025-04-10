@@ -35,6 +35,8 @@ project "Editor"
         "../EvaEngine/vendor/GLFW/include",
         "../Sandbox/source", 
         "../Sandbox/vendor",
+        "%{IncludeDir.ImGui}",
+
         "%{IncludeDir.VulkanSDK}",
 
     }

@@ -11,6 +11,7 @@
 #include <set>
 
 #include "VulkanUtils.h"
+#include <Engine/Renderer/Renderer.h>
 
 namespace Engine {
 
@@ -68,10 +69,14 @@ namespace Engine {
         CreateGraphicsQueue();
         CreateImageViews();
         CreateRenderPass();
+        CreateImGuiRenderPass();
 
         CreateFramebuffers();
         CreateCommandPool();
-        CreateDesciptorPool();
+        CreateDescriptorPool();
+        CreateImGuiDescriptorPool();
+
+        CreateCommandBuffers();
     }
 
     void VulkanContext::CreateInstance()
@@ -130,11 +135,16 @@ namespace Engine {
 
     }
 
-    void VulkanContext::CreateDesciptorPool()
+    void VulkanContext::CreateDescriptorPool()
     {
-        m_descriptorPool = std::make_unique<VulkanDescriptorPool>(m_deviceManager->GetDevice(), 100, 100, 100); // Adjust the numbers as needed
+        // Adjust the numbers as needed to ensure the pool is large enough for both normal rendering and ImGui
+        uint32_t maxSets = 200; // Total number of descriptor sets
+        uint32_t maxUniformBuffers = 100; // Number of uniform buffers
+        uint32_t maxCombinedImageSamplers = 100; // Number of combined image samplers
 
+        m_descriptorPool = std::make_shared<VulkanDescriptorPool>(m_deviceManager->GetDevice(), maxSets, maxUniformBuffers, maxCombinedImageSamplers);
     }
+
 
     void VulkanContext::CreateGraphicsQueue()
     {
@@ -205,6 +215,51 @@ namespace Engine {
         }
     }
 
+    void VulkanContext::CreateImGuiRenderPass()
+    {
+        VkAttachmentDescription colorAttachment = {};
+        colorAttachment.format = m_swapchain->GetSwapchainImageFormat();
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;  // We usually draw ImGui after scene
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        VkAttachmentReference colorAttachmentRef = {};
+        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass = {};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachmentRef;
+
+        VkSubpassDependency dependency = {};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        VkRenderPassCreateInfo renderPassInfo = {};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfo.attachmentCount = 1;
+        renderPassInfo.pAttachments = &colorAttachment;
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpass;
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
+
+        if (vkCreateRenderPass(m_deviceManager->GetDevice(), &renderPassInfo, nullptr, &m_imGuiRenderPass) != VK_SUCCESS)
+        {
+			EE_CORE_ASSERT(false, "Failed to create ImGui render pass!");
+        }
+
+
+    }
 
 
 
@@ -240,37 +295,67 @@ namespace Engine {
 
     void VulkanContext::CreateFramebuffers()
     {
-        //CreateDepthAttachment();
-        //CreateEntityIDAttachment();
+        // Create standard scene framebuffers
         m_swapchainFramebuffers.resize(m_swapchain->GetSwapchainImageViews().size());
+        m_imguiFramebuffers.resize(m_swapchain->GetSwapchainImageViews().size()); // Add this line
 
         for (size_t i = 0; i < m_swapchain->GetSwapchainImageViews().size(); ++i)
         {
-            VkImageView attachments[] =
-            {
-                m_swapchain->GetSwapchainImageViews()[i]  // Swapchain image
-               /* m_depthAttachmentView*/                       // Depth buffer
-            };
+            VkImageView swapchainImageView = m_swapchain->GetSwapchainImageViews()[i];
 
-            VkFramebufferCreateInfo framebufferInfo = {};
-            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            framebufferInfo.renderPass = m_renderPass;
-            framebufferInfo.attachmentCount = static_cast<uint32_t>(std::size(attachments));
-            framebufferInfo.pAttachments = attachments;
-            framebufferInfo.width = m_swapchain->GetSwapchainExtent().width;
-            framebufferInfo.height = m_swapchain->GetSwapchainExtent().height;
-            framebufferInfo.layers = 1;
-
-            if (vkCreateFramebuffer(m_deviceManager->GetDevice(), &framebufferInfo, nullptr, &m_swapchainFramebuffers[i]) != VK_SUCCESS)
+            // === Scene framebuffer ===
             {
-                EE_CORE_ERROR("Failed to create framebuffer!");
+                VkImageView attachments[] = {
+                    swapchainImageView
+                    // You can add depth or entityID views here if needed
+                };
+
+                VkFramebufferCreateInfo framebufferInfo = {};
+                framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+                framebufferInfo.renderPass = m_renderPass; // Main scene render pass
+                framebufferInfo.attachmentCount = static_cast<uint32_t>(std::size(attachments));
+                framebufferInfo.pAttachments = attachments;
+                framebufferInfo.width = m_swapchain->GetSwapchainExtent().width;
+                framebufferInfo.height = m_swapchain->GetSwapchainExtent().height;
+                framebufferInfo.layers = 1;
+
+                if (vkCreateFramebuffer(m_deviceManager->GetDevice(), &framebufferInfo, nullptr, &m_swapchainFramebuffers[i]) != VK_SUCCESS)
+                {
+                    EE_CORE_ERROR("Failed to create scene framebuffer!");
+                }
+                else
+                {
+                    EE_CORE_INFO("Scene framebuffer created");
+                }
             }
-            else
+
+            // === ImGui framebuffer ===
             {
-                EE_CORE_INFO("Vulkan framebuffer created");
+                VkImageView attachments[] = {
+                    swapchainImageView // Only the swapchain image (no depth or entity ID)
+                };
+
+                VkFramebufferCreateInfo framebufferInfo = {};
+                framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+                framebufferInfo.renderPass = m_imGuiRenderPass; // ImGui render pass (must match ImGui_ImplVulkan_Init)
+                framebufferInfo.attachmentCount = 1;
+                framebufferInfo.pAttachments = attachments;
+                framebufferInfo.width = m_swapchain->GetSwapchainExtent().width;
+                framebufferInfo.height = m_swapchain->GetSwapchainExtent().height;
+                framebufferInfo.layers = 1;
+
+                if (vkCreateFramebuffer(m_deviceManager->GetDevice(), &framebufferInfo, nullptr, &m_imguiFramebuffers[i]) != VK_SUCCESS)
+                {
+                    EE_CORE_ERROR("Failed to create ImGui framebuffer!");
+                }
+                else
+                {
+                    EE_CORE_INFO("ImGui framebuffer created");
+                }
             }
         }
     }
+
 
 
 
@@ -386,23 +471,23 @@ namespace Engine {
         vkFreeCommandBuffers(m_deviceManager->GetDevice(), m_commandPool, 1, &commandBuffer);
     }
 
-
-    VkCommandBuffer VulkanContext::GetCommandBuffer()
+    void VulkanContext::CreateCommandBuffers()
     {
+        m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = m_commandPool;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount = 1;
+        allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
 
-        VkCommandBuffer commandBuffer;
-        if (vkAllocateCommandBuffers(m_deviceManager->GetDevice(), &allocInfo, &commandBuffer) != VK_SUCCESS)
+        if (vkAllocateCommandBuffers(m_deviceManager->GetDevice(), &allocInfo, m_commandBuffers.data()) != VK_SUCCESS)
         {
-            throw std::runtime_error("Failed to allocate command buffer!");
+			EE_CORE_ASSERT(false, "Failed to allocate command buffers!");
         }
-
-        return commandBuffer;
     }
+
+   
 
     VkFormat VulkanContext::FindDepthFormat()
     {
@@ -471,20 +556,36 @@ namespace Engine {
         }
     }
 
+    void VulkanContext::CreateImGuiDescriptorPool()
+    {
+        std::array<VkDescriptorPoolSize, 11> poolSizes = {
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+            VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 },
+        };
+
+        VkDescriptorPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        poolInfo.maxSets = 1000 * static_cast<uint32_t>(poolSizes.size());
+        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        poolInfo.pPoolSizes = poolSizes.data();
+
+        if (vkCreateDescriptorPool(m_deviceManager->GetDevice(), &poolInfo, nullptr, &m_imguiDescriptorPool) != VK_SUCCESS)
+        {
+		    EE_CORE_ASSERT(false, "Failed to create ImGui descriptor pool!");
+        }
+    }
 
  
-
-
-
-  
-
-    
-
-
-   
-
-
-
 
 
 

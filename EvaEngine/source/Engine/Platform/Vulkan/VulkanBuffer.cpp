@@ -95,18 +95,24 @@ namespace Engine {
 
     void VulkanVertexBuffer::Bind() const
     {
-        VkCommandBuffer commandBuffer = VulkanContext::Get()->GetCommandBuffer();
+		EE_CORE_WARN("VulkanVertexBuffer::Bind() called");
+        /*
+        VkCommandBuffer commandBuffer = VulkanContext::Get()->GetCurrentCommandBuffer();
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, &m_buffer, offsets);
+        */
     }
 
     void VulkanVertexBuffer::UnBind() const
     {
-        VkCommandBuffer commandBuffer = VulkanContext::Get()->GetCommandBuffer();
+        EE_CORE_WARN("VulkanVertexBuffer::unBind() called");
+        /*
+        VkCommandBuffer commandBuffer = VulkanContext::Get()->GetCurrentCommandBuffer();
         VkDeviceSize offsets[] = { 0 };
 
         // Unbind the vertex buffer by binding nullptr (no buffer)
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, nullptr, offsets);
+        */
     }
 
     void VulkanVertexBuffer::SetData(const void* data, uint32_t size)

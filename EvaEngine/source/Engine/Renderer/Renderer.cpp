@@ -7,8 +7,11 @@
 
 namespace Engine {
 
+
 	Renderer::SceneData* Renderer::m_sceneData = new SceneData();
 	std::unique_ptr<Engine::VulkanRenderer2D> Engine::Renderer::s_VulkanRenderer2D = nullptr;
+
+	uint32_t Renderer::s_currentFrame = 0;
 
 	void Renderer::Init(RendererAPI::API api)
 	{
@@ -43,7 +46,7 @@ namespace Engine {
 	{
 		if (s_VulkanRenderer2D)
 		{
-			s_VulkanRenderer2D->DrawFrame();
+			s_VulkanRenderer2D->DrawFrame(s_currentFrame);
 			// clearing done in RecordCommandBuffer
 		}
 		else
@@ -52,6 +55,8 @@ namespace Engine {
 			RenderCommand::Clear();
 			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
 		}
+		s_currentFrame = (s_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
 	}
 
 	void Renderer::EndScene()

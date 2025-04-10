@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "EditorLayer.h"
+
+
 #include "Engine/Core/Core.h"
 #include <imgui/imgui.h>
 
@@ -20,6 +22,9 @@
 #include <Engine/AssetManager/AssetManager.h>
 
 #include "Engine/Debug/DebugUtils.h"
+//#include <imgui/backends/imgui_impl_vulkan.h>
+
+
  
 
 namespace Engine {
@@ -58,14 +63,25 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        return;
 
         //m_checkerBoardTexture = Engine::Texture2D::Create("assets/textures/chess_board.png");
        // m_textureSpriteSheetPacked = Engine::Texture2D::Create("assets/textures/game/RPGpack_sheet_2X.png");
-        m_iconPlay = Texture2D::Create(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string());
-        m_iconStop = Texture2D::Create(AssetManager::GetAssetPath("icons/stop-button.png").string());
-        m_iconPause = Texture2D::Create(AssetManager::GetAssetPath("icons/video-pause-button.png").string());
 
+        //m_iconPlay = AssetManager::AddTexture("playButton", AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string());
+        //Ref<VulkanTexture> iconPlay = AssetManager::AddTexture("playButton", AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string());
+
+        //m_iconPlay = AssetManager::GetTexture("playButton");
+        //m_iconStop = AssetManager::GetTexture("playButton");
+        //m_iconPause = AssetManager::GetTexture("playButton");
+
+        ///ImGui_ImplVulkan_AddTexture(m_iconPlay->GetSampler(), m_iconPlay->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	    //m_iconStop = AssetManager::AddTexture("stopButton", AssetManager::GetAssetPath("icons/stop-button.png").string());
+        m_iconPlay = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string(), true);
+        m_iconStop = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/stop-button.png").string(), true);
+        m_iconPause = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/video-pause-button.png").string(), true);
+		//m_iconPause = AssetManager::AddTexture("pauseButton", AssetManager::GetAssetPath("icons/video-pause-button.png").string());
+       
         m_mapWidth = s_mapWidth;
         m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
         //m_textureMap['D'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 6, 11 }, { 128,128 });
@@ -81,10 +97,11 @@ namespace Engine {
         framebufferSpecs.Attachments = { FramebufferTextureFormat::RGBA8,FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
         framebufferSpecs.Height = 720;
         framebufferSpecs.Width = 1280;
-        m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
+        //m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
 
         m_editorCamera = EditorCamera(30.0f, 1.78f, 0.1f, 1000.0f);
-        m_framebuffer = m_editor.get()->GetGameLayer()->GetGameFramebuffer();
+
+       // m_framebuffer = m_editor.get()->GetGameLayer()->GetGameFramebuffer();
 
         class CameraController : public ScriptableEntity
         {
@@ -167,8 +184,10 @@ namespace Engine {
 
     void EditorLayer::OnImGuiRender()
     {
-        EE_PROFILE_FUNCTION();
 
+        //Renderer::DrawFrame();
+        //return;
+        EE_PROFILE_FUNCTION();
 
 
         // READ THIS !!!
@@ -326,7 +345,7 @@ namespace Engine {
             m_viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
             //uint32_t textureID = m_framebuffer->GetColorAttachmentRendererID();
-            if (m_editor)
+            if (!m_editor)
             {
                 // Ensure that GetGameLayer() does not return null
                 auto gameLayer = m_editor.get()->GetGameLayer();
@@ -360,13 +379,13 @@ namespace Engine {
             }
             else 
             {
-                uint32_t textureID = m_framebuffer->GetColorAttachmentRendererID();
+                uint32_t textureID = 0;// = m_framebuffer->GetColorAttachmentRendererID();
                 if (textureID != 0)
                 { // Assuming 0 is an invalid ID
                     // Proceed with ImGui Image rendering
                     ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
                 }
-                EE_CORE_ERROR("Editor is null.");
+                //EE_CORE_ERROR("Editor is null.");
             }
 
             ImVec2 windowSize = ImGui::GetWindowSize();
@@ -471,7 +490,7 @@ namespace Engine {
         ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
         float size = ImGui::GetWindowHeight() - 10.0f;
-        Ref<Texture2D> icon = m_sceneState == SceneState::Play ?  m_iconPause : m_iconPlay;
+        Ref<VulkanTexture> icon = m_sceneState == SceneState::Play ?  m_iconPause : m_iconPlay;
 
         // Centering the toolbar buttons
         float toolbarWidth = 2 * size;  // Adjust based on number of buttons
@@ -479,7 +498,7 @@ namespace Engine {
         ImGui::SetCursorPosX(offsetX);
 
         // Play Button
-        if (ImGui::ImageButton("##playbutton", (ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
+        if (ImGui::ImageButton("##playbutton", (ImTextureID)m_iconPlay->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
         {
             if (m_sceneState == SceneState::Pause || m_sceneState == SceneState::Edit)
             {
@@ -494,7 +513,7 @@ namespace Engine {
         ImGui::SameLine(); // Move the next item to the same row
 
         // Stop Button
-        if (ImGui::ImageButton("##stopbutton", (ImTextureID)m_iconStop->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
+        if (ImGui::ImageButton("##stopbutton", (ImTextureID)icon->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
         {
             if (m_sceneState == SceneState::Play || m_sceneState == SceneState::Pause)
             {
@@ -630,9 +649,10 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        Renderer::DrawFrame();
+        //Renderer::DrawFrame();
         return;
 
+        /*
         FramebufferSpecification spec = m_framebuffer->GetSpecification();
         if (m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
             (spec.Width != static_cast<uint32_t>(m_viewportSize.x) ||
@@ -644,6 +664,7 @@ namespace Engine {
             m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
         }
 
+        */
         if (m_viewportFocused)
         {
             m_orthoCameraController.OnUpdate(timestep);
@@ -659,12 +680,12 @@ namespace Engine {
         Engine::Renderer2D::ResetStats();
         {
             EE_PROFILE_SCOPE("render pre");
-            m_framebuffer->Bind();
+           // m_framebuffer->Bind();
             Engine::RenderCommand::SetClearColor({ 0.2f, 0, 0.2f, 1 });
             Engine::RenderCommand::Clear();
         }
 
-        m_framebuffer->ClearColorAttachment(1, -1);
+       // m_framebuffer->ClearColorAttachment(1, -1);
 
         {
             EE_PROFILE_SCOPE("render draw");
@@ -704,6 +725,7 @@ namespace Engine {
            //EE_CORE_INFO("mouseX: {0}, {1}", mouseX, mouseY);
            //EE_CORE_INFO("viewportSize: {0}, {1}", viewportSize.x, viewportSize.y);
 
+            /*
             m_mouseIsInViewPort = mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y;
             if (m_mouseIsInViewPort)
             {
@@ -718,10 +740,11 @@ namespace Engine {
 
                 }
             }
+            */
 
             OnOverlayRender();
 
-            m_framebuffer->Unbind();
+           /// m_framebuffer->Unbind();
         }
 
         

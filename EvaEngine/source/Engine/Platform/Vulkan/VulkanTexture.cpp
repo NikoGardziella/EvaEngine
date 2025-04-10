@@ -5,16 +5,22 @@
 #include <stdexcept>
 #include "VulkanUtils.h"
 #include "VulkanBuffer.h"
+#include <backends/imgui_impl_vulkan.h>
 
 
 namespace Engine {
 
-    VulkanTexture::VulkanTexture(const std::string& path)
+    VulkanTexture::VulkanTexture(const std::string& path, bool imGuiTexture)
         : m_path(path)
     {
         CreateTextureImage(path);
         CreateTextureImageView();
         CreateTextureSampler();
+
+        if (imGuiTexture)
+        {
+            m_textureDescriptor = ImGui_ImplVulkan_AddTexture(m_sampler, m_imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
     }
 
     VulkanTexture::VulkanTexture(uint32_t width, uint32_t height)

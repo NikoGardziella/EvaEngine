@@ -1,18 +1,18 @@
 #include "pch.h"
 #include "ImGuiLayer.h"
+#include <backends/imgui_impl_vulkan.h>
 
-//#include "Engine/Core.h"
-//#include "Engine/Core/Layer.h"
-//#include "glad/glad.h"
 
-#include "imgui.h"
-#include <imgui_internal.h>
+//#include "imgui.h"
+//#include <imgui_internal.h>
 
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
 
+#include "Engine/Renderer/Renderer.h"
 #include "Engine/Core/Application.h"
 #include "ImGuizmo.h"
+#include <Engine/AssetManager/AssetManager.h>
 
 
 //remove
@@ -75,24 +75,33 @@ namespace Engine {
 
 
 		{
-			const char* ImguiFont = "assets/fonts/kanit/Kanit-Bold.ttf";
+			std::string fontPath = AssetManager::GetAssetPath("fonts/kanit/Kanit-Bold.ttf").string();
+			const char* ImguiFont = fontPath.c_str();
+
 			std::ifstream file(ImguiFont);
 			if (file.good())
 			{
 				io.Fonts->AddFontFromFileTTF(ImguiFont, 18.0f);
 			}
-
+			else
+			{
+				EE_CORE_WARN("Failed to load ImGui font: {}", ImguiFont);
+			}
 		}
 
 		
 		{
-			const char* defaultImguiFont = "assets/fonts/kanit/Kanit-Regular.ttf";
+			std::string defaultfontPath = AssetManager::GetAssetPath("fonts/kanit/Kanit-Regular.ttf").string();
+			const char* defaultImguiFont = defaultfontPath.c_str();
 			std::ifstream file(defaultImguiFont);
 			if (file.good())
 			{
 				io.Fonts->AddFontFromFileTTF(defaultImguiFont, 18.0f);
 			}
-
+			else
+			{
+				EE_CORE_WARN("Failed to load ImGui font: {}", defaultImguiFont);
+			}
 		}
 		
 
@@ -102,9 +111,73 @@ namespace Engine {
 		Application& app = Application::Get();
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 
-		// Setup Platform/Renderer bindings
-		ImGui_ImplGlfw_InitForOpenGL(window, true);
-		ImGui_ImplOpenGL3_Init("#version 410");
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None:
+			EE_CORE_ASSERT(false, "RenderAPI not supported");
+			return;
+
+		case RendererAPI::API::OpenGL:
+			ImGui_ImplGlfw_InitForOpenGL(window, true);
+			ImGui_ImplOpenGL3_Init("#version 410");
+
+		case RendererAPI::API::Vulkan:
+		{
+			 
+			ImGui_ImplGlfw_InitForVulkan(window, true);
+			VulkanContext* vulkanContext = VulkanContext::Get();
+
+			ImGui_ImplVulkan_InitInfo init_info = {};
+			init_info.Instance = vulkanContext->GetVulkanInstance().GetInstance();
+			init_info.PhysicalDevice = vulkanContext->GetDeviceManager().GetPhysicalDevice();
+			init_info.Device = vulkanContext->GetDeviceManager().GetDevice();
+			init_info.Queue = vulkanContext->GetGraphicsQueue();
+			init_info.DescriptorPool = vulkanContext->GetImGuiDescriptorPool();
+			init_info.ImageCount = vulkanContext->GetVulkanSwapchain().GetSwapchainImages().size();
+			init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+			init_info.Subpass = 0;
+			init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+			init_info.RenderPass = vulkanContext->GetImGuiRenderPass();
+			init_info.MinImageCount = MAX_FRAMES_IN_FLIGHT;
+			init_info.ImageCount = MAX_FRAMES_IN_FLIGHT;
+			init_info.QueueFamily = vulkanContext->GetDeviceManager().GetGraphicsQueueFamilyIndex();
+
+			if (!ImGui_ImplVulkan_Init(&init_info))
+			{
+				EE_CORE_ASSERT(false, "Failed to initialize ImGui Vulkan");
+			}
+			else
+			{
+				EE_CORE_INFO("ImGui Vulkan initialized successfully");
+			}
+
+
+			
+			if (!ImGui_ImplVulkan_CreateFontsTexture())
+			{
+				EE_CORE_ASSERT(false, "Failed to initialize Fonts for ImGui Vulkan");
+			}
+			else
+			{
+				EE_CORE_INFO("ImGui Vulkan Fonts initialized successfully");
+			}
+			std::vector<Ref<VulkanTexture>> textures = AssetManager::GetAllTextures();
+
+			for (size_t i = 0; i < textures.size(); i++)
+			{
+				//ImGui_ImplVulkan_AddTexture(textures[i]->GetSampler(), textures[i]->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+			}
+
+			//ImGui_ImplVulkan_DestroyFontsTexture();
+
+		}
+
+			
+			//ImGui_ImplVulkan_InitMultiViewportSupport();
+
+
+		}
 
 	}
 
@@ -112,9 +185,26 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
+		switch (Renderer::GetAPI())
+		{
+			case RendererAPI::API::None:
+				EE_CORE_ASSERT(false, "RenderAPI not supported");
+				return;
+			case RendererAPI::API::OpenGL:
+			{
+				ImGui_ImplOpenGL3_Shutdown();
+				ImGui_ImplGlfw_Shutdown();
+				ImGui::DestroyContext();
+			}
+			case RendererAPI::API::Vulkan:
+			{
+				ImGui_ImplVulkan_Shutdown();
+				ImGui_ImplGlfw_Shutdown();
+				ImGui::DestroyContext();
+			}
+		}
+
+
 	}
 
 
@@ -135,11 +225,32 @@ namespace Engine {
 		
 
 		EE_PROFILE_FUNCTION();
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None:
+			EE_CORE_ASSERT(false, "RenderAPI not supported");
+			return;
+		case RendererAPI::API::OpenGL:
+		{
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+			ImGuizmo::BeginFrame();
+			break;
+		}
+		case RendererAPI::API::Vulkan:
+		{
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGuizmo::BeginFrame();
+			ImGui_ImplVulkan_NewFrame();
+			ImGui_ImplGlfw_NewFrame(); // or SDL, depending on what you use
+			ImGui::NewFrame();
+
+		
+
+			break;
+		}
+
+		}
 	}
 
 	void ImGuiLayer::End()
@@ -152,7 +263,89 @@ namespace Engine {
 
 		// Rendering
 		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		ImDrawData* drawData = ImGui::GetDrawData();
+		if (!drawData || drawData->CmdListsCount == 0)
+		{
+			// No draw data, skip rendering
+			return;
+		}
+
+		switch (Renderer::GetAPI())
+		{
+		case RendererAPI::API::None:
+			EE_CORE_ASSERT(false, "RenderAPI not supported");
+			return;
+		case RendererAPI::API::OpenGL:
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+			break;
+		case RendererAPI::API::Vulkan:
+		{
+				/*
+			VulkanContext* vulkanContext = VulkanContext::Get();
+			uint32_t currentFrame = Renderer::GetCurrentFrame();
+
+			VkCommandBuffer commandBuffer = vulkanContext->GetCommandBuffer(currentFrame);
+
+			VkCommandBufferBeginInfo beginInfo = {};
+			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+			// Begin recording command buffer
+			VkResult result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+			if (result != VK_SUCCESS) {
+				EE_CORE_ASSERT(false, "Failed to begin recording command buffer");
+				return;
+			}
+
+			// Render pass begin info
+			VkRenderPassBeginInfo renderPassBeginInfo = {};
+			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			renderPassBeginInfo.renderPass = vulkanContext->GetImGuiRenderPass();
+			renderPassBeginInfo.framebuffer = vulkanContext->GetImGuiFramebuffer(currentFrame);
+			renderPassBeginInfo.renderArea = { 0, 0, static_cast<uint32_t>(drawData->DisplaySize.x), static_cast<uint32_t>(drawData->DisplaySize.y) };
+
+			VkClearValue clearValues[2];  // Example, adjust based on your render pass
+			clearValues[0].color = { {0.0f, 0.0f, 0.0f, 0.0f} }; // Clear color for first attachment
+			clearValues[1].color = { {0.0f, 0.0f, 0.0f, 0.0f} }; // Clear color for second attachment
+
+			renderPassBeginInfo.clearValueCount = 2;  // Set this to the number of clear values
+			renderPassBeginInfo.pClearValues = clearValues;
+			// Begin the render pass
+			vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+			// Record ImGui draw data commands
+			ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
+			//Renderer::DrawFrame();
+			// End the render pass
+			vkCmdEndRenderPass(commandBuffer);
+
+			// End the command buffer
+			result = vkEndCommandBuffer(commandBuffer);
+			if (result != VK_SUCCESS) {
+				EE_CORE_ASSERT(false, "Failed to end command buffer");
+				return;
+			}
+
+			// Submit the command buffer to the Vulkan queue
+			VkSubmitInfo submitInfo = {};
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submitInfo.commandBufferCount = 1;
+			submitInfo.pCommandBuffers = &commandBuffer;
+
+			result = vkQueueSubmit(vulkanContext->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+			if (result != VK_SUCCESS)
+			{
+				EE_CORE_ASSERT(false, "Failed to submit command buffer to Vulkan queue");
+				return;
+			}
+				*/
+
+			Renderer::DrawFrame();
+
+			break;
+		}
+		}
 
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
@@ -162,6 +355,9 @@ namespace Engine {
 			glfwMakeContextCurrent(backup_current_context);
 		}
 	}
+
+
+	
 
 	void ImGuiLayer::SetDarkThemeColors()
 	{
