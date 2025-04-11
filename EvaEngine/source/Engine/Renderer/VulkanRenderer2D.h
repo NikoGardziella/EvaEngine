@@ -17,7 +17,6 @@ namespace Engine {
 
 
 
-
 	class VulkanRenderer2D
 	{
 	public:
@@ -26,11 +25,19 @@ namespace Engine {
 
 		void Init();
 		void DrawFrame(uint32_t currentFrame);
+
+
+		static void DrawQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
+		static void BeginScene(glm::mat4 viewProjectionMatrix);
+		static void EndScene();
+
 	private:
 
 		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void CreateSyncObjects();
+
+
 
 		//void UpdateDescriptorSet(VkDescriptorSet descriptorSet, const VulkanBuffer& uniformBuffer, VkImageView textureImageView, VkSampler textureSampler);
 	private:
@@ -55,7 +62,34 @@ namespace Engine {
 
 		Ref<OrthographicCamera> m_camera;
 
+
+
+		//********** Experiental **********
+		struct SceneData
+		{
+			glm::mat4 ViewProjectionMatrix;
+		};
+		static SceneData* m_sceneData;
+
+
+		static std::vector<VulkanQuadVertex> s_QuadVertices;
+		static std::vector<uint32_t> s_QuadIndices;
+
+		static glm::vec4 QuadVertexPositions[4];
 		
+		static const uint32_t MaxTextureSlots = 32;
+
+		static inline uint32_t s_TextureSlotIndex = 1;
+		static inline std::shared_ptr<VulkanTexture> s_TextureSlots[MaxTextureSlots];
+		static inline uint32_t s_QuadIndexCount = 0;
+		static inline VulkanQuadVertex* s_QuadVertexBufferPtr = nullptr;
+		static inline VkPipeline s_Pipeline;
+		static inline VkPipelineLayout s_PipelineLayout;
+		static inline VkDescriptorSet s_DescriptorSet;
+		static inline VkBuffer s_QuadVertexBuffer;
+		static inline VkBuffer s_QuadIndexBuffer;
+		static inline size_t s_QuadVertexBufferOffset = 0;
+		//static inline RendererStats s_Stats;
 
 		// Define quad vertices for a textured quad
 		const std::vector<VulkanQuadVertex> quadVertices =

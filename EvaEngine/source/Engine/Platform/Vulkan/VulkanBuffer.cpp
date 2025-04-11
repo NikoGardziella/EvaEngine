@@ -17,8 +17,9 @@ namespace Engine {
             bufferInfo.usage = usage;
             bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-            if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to create vertex buffer!");
+            if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+            {
+				EE_CORE_ASSERT(false, "Failed to create vertex buffer!");
             }
 
             VkMemoryRequirements memRequirements;
@@ -29,12 +30,12 @@ namespace Engine {
             allocInfo.allocationSize = memRequirements.size;
             allocInfo.memoryTypeIndex = context->FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-            if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to allocate vertex buffer memory!");
+            if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+            {
+				EE_CORE_ASSERT(false, "Failed to allocate vertex buffer memory!");
             }
 
             vkBindBufferMemory(device, buffer, bufferMemory, 0);
-            EE_CORE_INFO("Vulkan Vertex buffer created");
         }
 
         void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
@@ -49,7 +50,6 @@ namespace Engine {
             vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
             context->EndSingleTimeCommands(commandBuffer);
-            EE_CORE_INFO("Vulkan Vertex buffer copied");
         }
     }
 
@@ -209,8 +209,9 @@ namespace Engine {
             bufferInfo.usage = usage;
             bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-            if (vkCreateBuffer(device, &bufferInfo, nullptr, &m_buffer) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to create buffer!");
+            if (vkCreateBuffer(device, &bufferInfo, nullptr, &m_buffer) != VK_SUCCESS)
+            {
+				EE_CORE_ASSERT(false, "Failed to create buffer!");
             }
 
             // Allocate Memory
@@ -222,8 +223,9 @@ namespace Engine {
             allocInfo.allocationSize = memRequirements.size;
             allocInfo.memoryTypeIndex = FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
 
-            if (vkAllocateMemory(device, &allocInfo, nullptr, &m_memory) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to allocate buffer memory!");
+            if (vkAllocateMemory(device, &allocInfo, nullptr, &m_memory) != VK_SUCCESS)
+            {
+				EE_CORE_ASSERT(false, "Failed to allocate buffer memory!");
             }
 
             vkBindBufferMemory(device, m_buffer, m_memory, 0);
@@ -239,17 +241,9 @@ namespace Engine {
 
     void VulkanBuffer::SetData(const void* data, size_t size)
     {
-        EE_CORE_ASSERT(data, "SetData: Data pointer is null");
-        EE_CORE_ASSERT(size <= this->size, "SetData: Data size exceeds buffer capacity");
-
         void* mappedData = nullptr;
         VkResult result = vkMapMemory(m_device, m_memory, 0, size, 0, &mappedData);
-        EE_CORE_ASSERT(result == VK_SUCCESS, "Failed to map Vulkan buffer memory");
-
         std::memcpy(mappedData, data, size);
-
-        // If memory is not host-coherent, i need to flush here
-        // im using HOST_COHERENT_BIT, so this is not needed
 
         vkUnmapMemory(m_device, m_memory);
     }
@@ -266,8 +260,7 @@ namespace Engine {
                 return i;
             }
         }
-        throw std::runtime_error("Failed to find suitable memory type!");
-
+		EE_CORE_ASSERT(false, "Failed to find suitable memory type!");
     }
 
 }

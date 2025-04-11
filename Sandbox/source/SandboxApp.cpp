@@ -31,7 +31,7 @@ class ExampleGameLayer : public Engine::Layer
 		framebufferSpecs.Attachments = { Engine::FramebufferTextureFormat::RGBA8 , Engine::FramebufferTextureFormat::RED_INTEGER, Engine::FramebufferTextureFormat::Depth };
 		framebufferSpecs.Height = (uint32_t)m_viewportSize.y;
 		framebufferSpecs.Width = (uint32_t)m_viewportSize.x;
-		m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
+		//m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
 
 
 
@@ -51,13 +51,14 @@ class ExampleGameLayer : public Engine::Layer
 
 		m_activeScene->OnRunTimeStart();
 		//m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-		m_viewportRenderTexture = Engine::Texture2D::Create(m_viewportSize.x, m_viewportSize.y);
+		//m_viewportRenderTexture = Engine::Texture2D::Create(m_viewportSize.x, m_viewportSize.y);
 
 	}
 
 	void OnUpdate(Engine::Timestep timestep) override
 	{
 		
+		/*
 		Engine::FramebufferSpecification spec = m_framebuffer->GetSpecification();
 		if (m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
 			(spec.Width != static_cast<uint32_t>(m_viewportSize.x) ||
@@ -68,15 +69,16 @@ class ExampleGameLayer : public Engine::Layer
 		}
 		
 
-		m_framebuffer->Bind();
 		Engine::RenderCommand::Clear();
 		Engine::RenderCommand::SetClearColor({ 0.0f, 0, 0.2f, 1.0f });
 		
 		m_framebuffer->ClearColorAttachment(1, -1);
-		
-		m_activeScene->OnUpdateRuntime(timestep);
-
+		m_framebuffer->Bind();
 		m_framebuffer->Unbind();
+		*/
+		
+		//m_activeScene->OnUpdateRuntime(timestep);
+
 		
 
 	}
@@ -123,8 +125,8 @@ class Sandbox : public Engine::Application
 public:
 	Sandbox()
 	{
-		PushLayer(new ExampleGameLayer());
-		//PushLayer(new Sandbox2D());
+		//PushLayer(new ExampleGameLayer());
+		PushLayer(new Sandbox2D());
 	}
 	~Sandbox()
 	{

@@ -29,7 +29,7 @@ namespace Engine {
     {
        
     public:
-        VulkanGraphicsPipeline(VkDevice device, VkExtent2D swapchainExtent, VkRenderPass renderPass);
+        VulkanGraphicsPipeline(VkDevice device, VkExtent2D swapchainExtent, VkRenderPass renderPass, Ref<VulkanShader> shader);
         ~VulkanGraphicsPipeline();
 
         void CreateGraphicsPipeline(VkExtent2D swapchainExtent, VkRenderPass renderPass);

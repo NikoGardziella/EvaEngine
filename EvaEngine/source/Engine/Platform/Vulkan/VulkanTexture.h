@@ -44,6 +44,7 @@ namespace Engine {
         VkDeviceMemory m_imageMemory;
         VkImageView m_imageView;
         VkDescriptorSet m_textureDescriptor;
+        VkDeviceSize m_memorySize = 0;
 
         VkSampler m_sampler;
     };

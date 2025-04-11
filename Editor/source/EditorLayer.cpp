@@ -64,17 +64,6 @@ namespace Engine {
         EE_PROFILE_FUNCTION();
 
 
-        //m_checkerBoardTexture = Engine::Texture2D::Create("assets/textures/chess_board.png");
-       // m_textureSpriteSheetPacked = Engine::Texture2D::Create("assets/textures/game/RPGpack_sheet_2X.png");
-
-        //m_iconPlay = AssetManager::AddTexture("playButton", AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string());
-        //Ref<VulkanTexture> iconPlay = AssetManager::AddTexture("playButton", AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string());
-
-        //m_iconPlay = AssetManager::GetTexture("playButton");
-        //m_iconStop = AssetManager::GetTexture("playButton");
-        //m_iconPause = AssetManager::GetTexture("playButton");
-
-        ///ImGui_ImplVulkan_AddTexture(m_iconPlay->GetSampler(), m_iconPlay->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	    //m_iconStop = AssetManager::AddTexture("stopButton", AssetManager::GetAssetPath("icons/stop-button.png").string());
         m_iconPlay = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string(), true);
@@ -319,7 +308,7 @@ namespace Engine {
             ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
             ImGui::Text("Indicies: %d", stats.GetTotalIndexCount());
             ImGui::Text("Lines: %d", stats.LineCount);
-
+            ImGui::Text("Texture GPU memory cache: %.2f MB", AssetManager::s_totalTextureMemory / (1024.0f * 1024.0f));
             ImGui::Text("FPS: %d", m_fpsCounter.GetFPS());
 
             ImGui::End();
@@ -498,7 +487,7 @@ namespace Engine {
         ImGui::SetCursorPosX(offsetX);
 
         // Play Button
-        if (ImGui::ImageButton("##playbutton", (ImTextureID)m_iconPlay->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
+        if (ImGui::ImageButton("##playbutton", (ImTextureID)icon->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
         {
             if (m_sceneState == SceneState::Pause || m_sceneState == SceneState::Edit)
             {
@@ -513,7 +502,7 @@ namespace Engine {
         ImGui::SameLine(); // Move the next item to the same row
 
         // Stop Button
-        if (ImGui::ImageButton("##stopbutton", (ImTextureID)icon->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
+        if (ImGui::ImageButton("##stopbutton", (ImTextureID)m_iconStop->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
         {
             if (m_sceneState == SceneState::Play || m_sceneState == SceneState::Pause)
             {

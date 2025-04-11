@@ -18,17 +18,16 @@ namespace Engine {
 		: m_currentDirectory(AssetManager::GetAssetFolderPath())
 	{
 
-        m_folderIconTexture = AssetManager::AddTexture("folder", AssetManager::GetAssetPath("icons/folder_6458782.png").string());
+        m_folderIconTexture = AssetManager::AddTexture("folder", AssetManager::GetAssetPath("icons/folder_6458782.png").string(), true);
         //m_folderIconTexture = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/folder_6458782.png").string());
         //m_fileIconTexture =  std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/8725956_file_alt_icon.png").string());
-		m_fileIconTexture = AssetManager::AddTexture("file", AssetManager::GetAssetPath("icons/8725956_file_alt_icon.png").string());
+		m_fileIconTexture = AssetManager::AddTexture("file", AssetManager::GetAssetPath("icons/8725956_file_alt_icon.png").string(), true);
     }
 
     void ContentBrowserPanel::OnImGuiRender()
     {
 
 
-        return;
 
         ImGui::Begin("Content Browser");
 
@@ -63,7 +62,7 @@ namespace Engine {
             {
                 if (m_folderIconTexture)
                 {
-                    if (ImGui::ImageButton("##folder", (ImTextureID)m_folderIconTexture->GetImageView(), ImVec2(32, 32)))
+                    if (ImGui::ImageButton("##folder", (ImTextureID)m_folderIconTexture->GetTextureDescriptor(), ImVec2(32, 32)))
                     {
                         m_currentDirectory /= path.filename();
                     }
@@ -75,7 +74,7 @@ namespace Engine {
             }
             else
             {
-                if (ImGui::ImageButton("##file", (ImTextureID)m_fileIconTexture->GetImageView(), ImVec2(32, 32)))
+                if (ImGui::ImageButton("##file", (ImTextureID)m_fileIconTexture->GetTextureDescriptor(), ImVec2(32, 32)))
                 {
                     // TODO: Handle file selection
                 }

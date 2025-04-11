@@ -50,13 +50,13 @@ namespace Engine {
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-
+	//	ImGui::GetStyle().Colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f); // Dark background for ImGui windows
 		float fontSize = 18.0f;// *2.0f;
 		//io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Bold.ttf", fontSize);
 		//io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", fontSize);
 
 		// Setup Dear ImGui style
-		ImGui::StyleColorsDark();
+		//ImGui::StyleColorsDark();
 		//StyleColorsEva();
 		//ImGui::StyleColorsClassic();
 		//ImGui::StyleColorsLight();
@@ -107,6 +107,7 @@ namespace Engine {
 
 
 		//SetDarkThemeColors();
+		//StyleColorsEva();
 
 		Application& app = Application::Get();
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
@@ -240,7 +241,6 @@ namespace Engine {
 		}
 		case RendererAPI::API::Vulkan:
 		{
-
 			ImGui_ImplVulkan_NewFrame();
 			ImGui_ImplGlfw_NewFrame(); // or SDL, depending on what you use
 			ImGui::NewFrame();
@@ -263,6 +263,13 @@ namespace Engine {
 
 		// Rendering
 		ImGui::Render();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
 
 		ImDrawData* drawData = ImGui::GetDrawData();
 		if (!drawData || drawData->CmdListsCount == 0)
@@ -347,13 +354,7 @@ namespace Engine {
 		}
 		}
 
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
+		
 	}
 
 

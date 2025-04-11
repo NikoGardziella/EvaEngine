@@ -174,20 +174,6 @@ namespace Engine {
         colorAttachmentRef.attachment = 0;  // Correct index
         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-        // Second color attachment (o_EntityID)
-        VkAttachmentDescription entityIDAttachment{};
-        entityIDAttachment.format = VK_FORMAT_R32_SINT;  // Format for integer output
-        entityIDAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        entityIDAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        entityIDAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        entityIDAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        entityIDAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        entityIDAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        entityIDAttachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
-
-        VkAttachmentReference entityIDAttachmentRef{};
-        entityIDAttachmentRef.attachment = 1;  // 
-        entityIDAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         // Subpass description
         VkSubpassDescription subpass{};
@@ -220,11 +206,11 @@ namespace Engine {
         VkAttachmentDescription colorAttachment = {};
         colorAttachment.format = m_swapchain->GetSwapchainImageFormat();
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;  // We usually draw ImGui after scene
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;  
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference colorAttachmentRef = {};
@@ -295,66 +281,66 @@ namespace Engine {
 
     void VulkanContext::CreateFramebuffers()
     {
-        // Create standard scene framebuffers
-        m_swapchainFramebuffers.resize(m_swapchain->GetSwapchainImageViews().size());
-        m_imguiFramebuffers.resize(m_swapchain->GetSwapchainImageViews().size()); // Add this line
+        // Resize framebuffer vectors based on the number of swapchain images
+        size_t swapchainImageCount = m_swapchain->GetSwapchainImageViews().size();
+        m_swapchainFramebuffers.resize(swapchainImageCount);
+        m_imguiFramebuffers.resize(swapchainImageCount);
 
-        for (size_t i = 0; i < m_swapchain->GetSwapchainImageViews().size(); ++i)
+        // Create the scene framebuffers
+        for (size_t i = 0; i < swapchainImageCount; ++i)
         {
             VkImageView swapchainImageView = m_swapchain->GetSwapchainImageViews()[i];
 
             // === Scene framebuffer ===
+            VkImageView sceneAttachments[] = { swapchainImageView };
+
+            VkFramebufferCreateInfo sceneFramebufferInfo = {};
+            sceneFramebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            sceneFramebufferInfo.renderPass = m_renderPass; // Main scene render pass
+            sceneFramebufferInfo.attachmentCount = static_cast<uint32_t>(std::size(sceneAttachments));
+            sceneFramebufferInfo.pAttachments = sceneAttachments;
+            sceneFramebufferInfo.width = m_swapchain->GetSwapchainExtent().width;
+            sceneFramebufferInfo.height = m_swapchain->GetSwapchainExtent().height;
+            sceneFramebufferInfo.layers = 1;
+
+            if (vkCreateFramebuffer(m_deviceManager->GetDevice(), &sceneFramebufferInfo, nullptr, &m_swapchainFramebuffers[i]) != VK_SUCCESS)
             {
-                VkImageView attachments[] = {
-                    swapchainImageView
-                    // You can add depth or entityID views here if needed
-                };
-
-                VkFramebufferCreateInfo framebufferInfo = {};
-                framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-                framebufferInfo.renderPass = m_renderPass; // Main scene render pass
-                framebufferInfo.attachmentCount = static_cast<uint32_t>(std::size(attachments));
-                framebufferInfo.pAttachments = attachments;
-                framebufferInfo.width = m_swapchain->GetSwapchainExtent().width;
-                framebufferInfo.height = m_swapchain->GetSwapchainExtent().height;
-                framebufferInfo.layers = 1;
-
-                if (vkCreateFramebuffer(m_deviceManager->GetDevice(), &framebufferInfo, nullptr, &m_swapchainFramebuffers[i]) != VK_SUCCESS)
-                {
-                    EE_CORE_ERROR("Failed to create scene framebuffer!");
-                }
-                else
-                {
-                    EE_CORE_INFO("Scene framebuffer created");
-                }
+                EE_CORE_ERROR("Failed to create scene framebuffer!");
             }
+            else
+            {
+                EE_CORE_INFO("Scene framebuffer created");
+            }
+        }
+
+        // Create the ImGui framebuffers
+        for (size_t i = 0; i < swapchainImageCount; ++i)
+        {
+            VkImageView imguiImageView = m_swapchain->GetSwapchainImageViews()[i]; // Same swapchain image
 
             // === ImGui framebuffer ===
+            VkImageView imguiAttachments[] = { imguiImageView };
+
+            VkFramebufferCreateInfo imguiFramebufferInfo = {};
+            imguiFramebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            imguiFramebufferInfo.renderPass = m_imGuiRenderPass; // ImGui render pass
+            imguiFramebufferInfo.attachmentCount = static_cast<uint32_t>(std::size(imguiAttachments));
+            imguiFramebufferInfo.pAttachments = imguiAttachments;
+            imguiFramebufferInfo.width = m_swapchain->GetSwapchainExtent().width;
+            imguiFramebufferInfo.height = m_swapchain->GetSwapchainExtent().height;
+            imguiFramebufferInfo.layers = 1;
+
+            if (vkCreateFramebuffer(m_deviceManager->GetDevice(), &imguiFramebufferInfo, nullptr, &m_imguiFramebuffers[i]) != VK_SUCCESS)
             {
-                VkImageView attachments[] = {
-                    swapchainImageView // Only the swapchain image (no depth or entity ID)
-                };
-
-                VkFramebufferCreateInfo framebufferInfo = {};
-                framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-                framebufferInfo.renderPass = m_imGuiRenderPass; // ImGui render pass (must match ImGui_ImplVulkan_Init)
-                framebufferInfo.attachmentCount = 1;
-                framebufferInfo.pAttachments = attachments;
-                framebufferInfo.width = m_swapchain->GetSwapchainExtent().width;
-                framebufferInfo.height = m_swapchain->GetSwapchainExtent().height;
-                framebufferInfo.layers = 1;
-
-                if (vkCreateFramebuffer(m_deviceManager->GetDevice(), &framebufferInfo, nullptr, &m_imguiFramebuffers[i]) != VK_SUCCESS)
-                {
-                    EE_CORE_ERROR("Failed to create ImGui framebuffer!");
-                }
-                else
-                {
-                    EE_CORE_INFO("ImGui framebuffer created");
-                }
+                EE_CORE_ERROR("Failed to create ImGui framebuffer!");
+            }
+            else
+            {
+                EE_CORE_INFO("ImGui framebuffer created");
             }
         }
     }
+
 
 
 
@@ -427,12 +413,10 @@ namespace Engine {
         {
             if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
             {
-                EE_CORE_INFO("Vulkan memory type found at index: {}", i);
                 return i;
             }
         }
-
-        throw std::runtime_error("Failed to find a suitable memory type!");
+		EE_CORE_ASSERT(false, "Failed to find suitable memory type!");
     }
 
     VkCommandBuffer VulkanContext::BeginSingleTimeCommands()

@@ -6,21 +6,30 @@
 #include "VulkanUtils.h"
 #include "VulkanBuffer.h"
 #include <backends/imgui_impl_vulkan.h>
-
+#include "Engine/AssetManager/AssetManager.h"
 
 namespace Engine {
+
+    constexpr VkDeviceSize MAX_TEXTURE_MEMORY_BUDGET = 512 * 1024 * 1024; // 512 MB 
 
     VulkanTexture::VulkanTexture(const std::string& path, bool imGuiTexture)
         : m_path(path)
     {
+
+
+
         CreateTextureImage(path);
         CreateTextureImageView();
         CreateTextureSampler();
 
         if (imGuiTexture)
         {
+			// m_textureDescriptor is used as TextureId that Imgui uses to bind the texture before imguiDraw
+            // if there is no TextureID, imgui will crash at binding.
+            // set imGuiTexture to True when adding Imgui texture
             m_textureDescriptor = ImGui_ImplVulkan_AddTexture(m_sampler, m_imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
+        AssetManager::s_totalTextureMemory += m_memorySize;
     }
 
     VulkanTexture::VulkanTexture(uint32_t width, uint32_t height)
@@ -34,11 +43,13 @@ namespace Engine {
 
     VulkanTexture::~VulkanTexture()
     {
+        AssetManager::s_totalTextureMemory -= m_memorySize;
         VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
         vkDestroySampler(device, m_sampler, nullptr);
         vkDestroyImageView(device, m_imageView, nullptr);
         vkDestroyImage(device, m_image, nullptr);
         vkFreeMemory(device, m_imageMemory, nullptr);
+
     }
 
     void VulkanTexture::Bind(uint32_t slot) const
@@ -62,6 +73,13 @@ namespace Engine {
         m_width = texWidth;
         m_height = texHeight;
         VkDeviceSize imageSize = m_width * m_height * 4;
+
+        if (AssetManager::s_totalTextureMemory + imageSize > MAX_TEXTURE_MEMORY_BUDGET)
+        {
+			EE_CORE_ASSERT(false, "Texture memory budget exceeded!"); // Handle memory budget exceeded
+            // Trigger unloading of unused/least recently used textures
+        }
+
 
         VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
 
@@ -116,9 +134,15 @@ namespace Engine {
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(device, &viewInfo, nullptr, &m_imageView) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create texture image view!");
-        }
+        if (vkCreateImageView(device, &viewInfo, nullptr, &m_imageView) != VK_SUCCESS)
+        {
+			EE_CORE_ASSERT(false, "failed to create texture image view!");
+		}
+
+		// Save the memory size for memory usage stats
+        VkMemoryRequirements memRequirements;
+        vkGetImageMemoryRequirements(device, m_image, &memRequirements);
+        m_memorySize = memRequirements.size;
     }
 
 

@@ -38,15 +38,16 @@ void Sandbox2D::OnAttach()
 	return; 
 	EE_PROFILE_FUNCTION();
 
-	m_checkerBoardTexture = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());
-	m_textureSpriteSheetPacked = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/game/RPGpack_sheet_2X.png").string());
+	//m_checkerBoardTexture = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());
+	//m_textureSpriteSheetPacked = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/game/RPGpack_sheet_2X.png").string());
+	m_texture = std::make_shared<Engine::VulkanTexture>(Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string());
 
-	m_mapWidth = s_mapWidth;
-	m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
-	m_textureMap['D'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, {6, 11}, {128,128});
-	m_textureMap['W'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, {11, 11}, {128,128});
+	//m_mapWidth = s_mapWidth;
+	//m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
+	//m_textureMap['D'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, {6, 11}, {128,128});
+	//m_textureMap['W'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, {11, 11}, {128,128});
 
-	m_textureBarrel = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked,{ 8, 0 }, { 128,128 });
+	//m_textureBarrel = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked,{ 8, 0 }, { 128,128 });
 
 
 	m_orthoCameraController.SetZoomLevel(10.0f);
@@ -56,24 +57,15 @@ void Sandbox2D::OnAttach()
 
     framebufferSpecs.Height = 720;
     framebufferSpecs.Width = 1280;
-    m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
+    //m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
 
-
-	
-	
-	
 	Engine::SceneSerializer serializer(m_activeScene);
 	std::string scenePath = Engine::AssetManager::GetScenePath(m_activeSceneName).string();
 	if (!serializer.Deserialize(scenePath))
 	{
 		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
 	}
-	
-	
-	
-	
 
-	
 
 }
 
@@ -93,39 +85,40 @@ void Sandbox2D::OnImGuiRender()
 
 void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 {
-	return;
 
 	EE_PROFILE_FUNCTION();
     {
 	    m_orthoCameraController.OnUpdate(timestep);
     }
 
+	glm::mat4 transform = glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f });
+	glm::vec4 color = { 0.5f, 0.5f, 0.5f, 1.0f };
+
+	//const glm::mat4 viewProjection = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera.GetViewProjection();
+	const glm::mat4 viewProjection = glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f });
+
+	Engine::VulkanRenderer2D::BeginScene(viewProjection);
+	Engine::VulkanRenderer2D::DrawQuad(transform,m_texture, 1, color);
+	Engine::Renderer::DrawFrame();
+	Engine::VulkanRenderer2D::EndScene();
 
 	// ******** Render ***********
-
 	// statistics
 	Engine::Renderer2D::ResetStats();
     {
 		EE_PROFILE_SCOPE("render pre");
-        m_framebuffer->Bind();
-	    Engine::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-	    Engine::RenderCommand::Clear();
+        //m_framebuffer->Bind();
+	    //Engine::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+	    //Engine::RenderCommand::Clear();
     }
 
-
-
-
     {
-		m_framebuffer->ClearColorAttachment(1, -1);
-		
+		//m_framebuffer->ClearColorAttachment(1, -1)
 		if (m_isPlaying)
 		{
-			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
-
+			//m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
 		}
 		
-
-
 		/*
 		static float rotation = 0.0f;
 		rotation += timestep * 20.0f;
@@ -139,7 +132,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 		Engine::Renderer2D::EndScene();
 
 		*/
-        m_framebuffer->Unbind();
+        //m_framebuffer->Unbind();
 
     }
 
@@ -183,7 +176,7 @@ void Sandbox2D::OnGameStart()
 
 	
 
-	CreateTestScene();
+	//CreateTestScene();
 
 
 	m_activeScene->OnRunTimeStart();

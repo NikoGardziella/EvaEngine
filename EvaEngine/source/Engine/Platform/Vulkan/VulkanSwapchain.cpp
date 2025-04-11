@@ -78,8 +78,11 @@ namespace Engine {
     void VulkanSwapchain::CreateImageViews()
     {
         m_swapchainImageViews.resize(m_swapchainImages.size());
+        m_imguiImageViews.resize(m_swapchainImages.size());  
 
-        for (size_t i = 0; i < m_swapchainImages.size(); ++i) {
+        for (size_t i = 0; i < m_swapchainImages.size(); ++i)
+        {
+            // Create the image view for the swapchain (main render pass)
             VkImageViewCreateInfo viewCreateInfo = {};
             viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
             viewCreateInfo.image = m_swapchainImages[i];
@@ -97,10 +100,32 @@ namespace Engine {
 
             if (vkCreateImageView(m_device, &viewCreateInfo, nullptr, &m_swapchainImageViews[i]) != VK_SUCCESS)
             {
-                throw std::runtime_error("Failed to create image views for swapchain images");
+                EE_CORE_ASSERT(false, "Failed to create image views for swapchain images");
+            }
+
+            // Create the image view for ImGui rendering
+            VkImageViewCreateInfo imguiImageViewCreateInfo = {};
+            imguiImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            imguiImageViewCreateInfo.image = m_swapchainImages[i];  
+            imguiImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            imguiImageViewCreateInfo.format = m_swapchainImageFormat;
+            imguiImageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imguiImageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imguiImageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imguiImageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imguiImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            imguiImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+            imguiImageViewCreateInfo.subresourceRange.levelCount = 1;
+            imguiImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+            imguiImageViewCreateInfo.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(m_device, &imguiImageViewCreateInfo, nullptr, &m_imguiImageViews[i]) != VK_SUCCESS)
+            {
+                EE_CORE_ASSERT(false, "Failed to create Imgui image views for swapchain images");
             }
         }
     }
+
 
     VkSurfaceFormatKHR VulkanSwapchain::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
     {

@@ -11,6 +11,9 @@ namespace Engine {
     // prevent multiple threads from accessing shared resources simultaneously
     std::mutex AssetManager::s_Mutex;
     std::unordered_map<std::string, std::shared_ptr<VulkanTexture>> AssetManager::s_textureCache;
+    VkDeviceSize AssetManager::s_totalTextureMemory;
+
+
 
     void AssetManager::Initialize(int maxDepth)
     {
@@ -107,12 +110,12 @@ namespace Engine {
         return buffer;
     }
 
-    Ref<VulkanTexture> AssetManager::AddTexture(const std::string& name, const std::string& path)
+    Ref<VulkanTexture> AssetManager::AddTexture(const std::string& name, const std::string& path, bool imGuiTexture)
     {
 		std::lock_guard<std::mutex> lock(s_Mutex);
 		if (s_textureCache.find(name) == s_textureCache.end())
 		{
-            s_textureCache[name] = std::make_shared<VulkanTexture>(path);
+            s_textureCache[name] = std::make_shared<VulkanTexture>(path, imGuiTexture);
 			EE_CORE_INFO("Texture added to cache: {}", name);
 		}
 		else
