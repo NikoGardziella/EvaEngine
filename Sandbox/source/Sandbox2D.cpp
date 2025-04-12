@@ -35,12 +35,12 @@ Sandbox2D::Sandbox2D(std::string scene)
 void Sandbox2D::OnAttach()
 {
 
-	return; 
+
 	EE_PROFILE_FUNCTION();
 
 	//m_checkerBoardTexture = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());
 	//m_textureSpriteSheetPacked = Engine::Texture2D::Create(Engine::AssetManager::GetAssetPath("textures/game/RPGpack_sheet_2X.png").string());
-	m_texture = std::make_shared<Engine::VulkanTexture>(Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string());
+	m_texture = Engine::AssetManager::GetTexture("logo");
 
 	//m_mapWidth = s_mapWidth;
 	//m_mapHeight = strlen(s_mapTiles) / s_mapWidth;

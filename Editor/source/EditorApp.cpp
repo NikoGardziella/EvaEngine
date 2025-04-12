@@ -31,7 +31,7 @@ namespace Engine {
 
     Sandbox2D* Editor::GetGameLayer()
     {
-        //return m_sandboxLayerPtr;
+        return m_sandboxLayerPtr;
     }
 
 
