@@ -346,6 +346,30 @@ namespace Engine {
         vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
 
+    void VulkanGraphicsPipeline::UpdateDescriptorSets(uint32_t slotIndex, const Ref<VulkanTexture>& texture)
+    {
+        EE_CORE_ASSERT(slotIndex < 32, "Texture slot index out of bounds!");
+
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = texture->GetImageView();
+        imageInfo.sampler = texture->GetSampler();
+
+        for (size_t i = 0; i < m_descriptorSets.size(); ++i)
+        {
+            VkWriteDescriptorSet samplerWrite{};
+            samplerWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            samplerWrite.dstSet = m_descriptorSets[i];
+            samplerWrite.dstBinding = 1; // assuming all textures are at binding = 1
+            samplerWrite.dstArrayElement = slotIndex;
+            samplerWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            samplerWrite.descriptorCount = 1;
+            samplerWrite.pImageInfo = &imageInfo;
+
+            vkUpdateDescriptorSets(m_device, 1, &samplerWrite, 0, nullptr);
+        }
+    }
+
 
     void VulkanGraphicsPipeline::UpdateUniformBuffer(const glm::mat4& viewProjectionMatrix)
     {

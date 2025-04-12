@@ -38,6 +38,8 @@ namespace Engine {
 
         void UpdateDescriptorSets(size_t frameIndex);
 
+        void UpdateDescriptorSets(uint32_t slotIndex, const Ref<VulkanTexture>& texture);
+
         void UpdateUniformBuffer(const glm::mat4& viewProjectionMatrix);
         //void BindTextures(VkCommandBuffer commandBuffer);
 

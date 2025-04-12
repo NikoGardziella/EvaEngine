@@ -140,8 +140,17 @@ namespace Engine {
 
 		}
 		s_VulkanData.TextureSlots[0] = s_VulkanData.WhiteTexture;
+		s_VulkanData.TextureSlots[1] = AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string());
+		s_VulkanData.TextureSlotIndex++;
+		s_VulkanData.TextureSlots[2] = AssetManager::AddTexture("chess", Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());
+		s_VulkanData.TextureSlotIndex++;
 
+		for (uint32_t i = 0; i < s_VulkanData.TextureSlotIndex; i++)
+		{
+			m_vulkanGraphicsPipeline->UpdateDescriptorSets(i, s_VulkanData.TextureSlots[i]);
 
+		}
+		
 	}
 
 
@@ -155,7 +164,7 @@ namespace Engine {
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 		
-		m_vulkanGraphicsPipeline->UpdateDescriptorSets(currentFrame);
+		//
 
 		VkResult result = vkAcquireNextImageKHR(
 			m_device, m_swapchain, UINT64_MAX,
@@ -363,7 +372,7 @@ namespace Engine {
 	{
 		// Find texture slot index
 		float textureIndex = 1.0f;
-		/*
+		
 		for (uint32_t i = 1; i < s_VulkanData.TextureSlotIndex; i++)
 		{
 			if (*s_VulkanData.TextureSlots[i].get() == *texture.get())
@@ -386,7 +395,7 @@ namespace Engine {
 			s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = texture;
 			s_VulkanData.TextureSlotIndex++;
 		}
-		*/
+		
 
 		// Create transformed quad vertices
 		const glm::vec3 quadPositions[4] = {
