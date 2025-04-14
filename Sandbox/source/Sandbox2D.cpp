@@ -92,13 +92,22 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
     }
 
 	glm::mat4 transform = glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f });
-	glm::vec4 color = { 0.5f, 0.5f, 0.5f, 1.0f };
+	glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	//const glm::mat4 viewProjection = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera.GetViewProjection();
 	const glm::mat4 viewProjection = glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f });
 
 	Engine::VulkanRenderer2D::BeginScene(viewProjection);
-	Engine::VulkanRenderer2D::DrawQuad(transform,m_texture, 1, color);
+	glm::vec2 position = { 0.9f, 0.7f };
+	glm::vec2 size = { 0.2f, 0.3f }; // Width = 2, Height = 3
+
+	glm::mat4 transform1 = glm::translate(glm::mat4(1.0f), { position.x, position.y, 0.0f }) *
+		glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+	glm::vec4 color1 = { 1.0f, 0.2f, 0.2f, 1.0f };
+
+	Engine::VulkanRenderer2D::DrawQuad(transform1, color1);
+
+	Engine::VulkanRenderer2D::DrawTextureQuad(transform,m_texture, 1, color);
 	Engine::Renderer::DrawFrame();
 	Engine::VulkanRenderer2D::EndScene();
 

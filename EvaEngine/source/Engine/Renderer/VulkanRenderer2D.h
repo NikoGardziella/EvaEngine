@@ -25,18 +25,21 @@ namespace Engine {
 
 		void Init();
 		void DrawFrame(uint32_t currentFrame);
+		//inline VulkanGraphicsPipeline* GetGraphicsPipeline() { return m_vulkanGraphicsPipeline.get(); }
+		VkDescriptorSet GetCurrentDescriptorSet() const { return m_currentViewportGameDescriptorSet; }
+		void TransitionGameImageForShaderRead(VkCommandBuffer cmd, uint32_t imageIndex, VkImage colorAttachment);
 
-
-		static void DrawQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
+		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
+		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void BeginScene(glm::mat4 viewProjectionMatrix);
 		static void EndScene();
+		
 
 	private:
 
 		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void CreateSyncObjects();
-
 
 
 		//void UpdateDescriptorSet(VkDescriptorSet descriptorSet, const VulkanBuffer& uniformBuffer, VkImageView textureImageView, VkSampler textureSampler);
@@ -62,6 +65,8 @@ namespace Engine {
 
 		Ref<OrthographicCamera> m_camera;
 
+		VkDescriptorSet m_currentViewportGameDescriptorSet;
+		VkDescriptorSet m_imguiTextureSet;
 
 
 		//********** Experiental **********
@@ -79,16 +84,7 @@ namespace Engine {
 		
 		static const uint32_t MaxTextureSlots = 32;
 
-		static inline uint32_t s_TextureSlotIndex = 1;
-		static inline std::shared_ptr<VulkanTexture> s_TextureSlots[MaxTextureSlots];
-		static inline uint32_t s_QuadIndexCount = 0;
-		static inline VulkanQuadVertex* s_QuadVertexBufferPtr = nullptr;
-		static inline VkPipeline s_Pipeline;
-		static inline VkPipelineLayout s_PipelineLayout;
-		static inline VkDescriptorSet s_DescriptorSet;
-		static inline VkBuffer s_QuadVertexBuffer;
-		static inline VkBuffer s_QuadIndexBuffer;
-		static inline size_t s_QuadVertexBufferOffset = 0;
+		
 		//static inline RendererStats s_Stats;
 
 		// Define quad vertices for a textured quad

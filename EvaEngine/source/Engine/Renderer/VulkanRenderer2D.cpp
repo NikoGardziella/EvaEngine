@@ -44,7 +44,8 @@ namespace Engine {
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> TextureSlots;
 		uint32_t TextureSlotIndex = 1; // 0 = white texture
 
-		glm::vec4 QuadVertexPositions[4];
+		glm::vec3 QuadVertexPositions[4];
+
 
 		Renderer2D::Statistics Stats;
 
@@ -125,9 +126,27 @@ namespace Engine {
 			VulkanRenderer2DData::MaxVertices * sizeof(VulkanQuadVertex)
 		);
 
-		std::vector<uint32_t> indices = { 0, 1, 2, 2, 3, 0 }; // Two triangles forming a quad
-		s_VulkanData.QuadIndexBuffer = std::make_shared<VulkanIndexBuffer>(quadIndices.data(), quadIndices.size());
-		// Can we remove this in vulkan?
+		s_VulkanData.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f };
+		s_VulkanData.QuadVertexPositions[1] = {  0.5f, -0.5f, 0.0f };
+		s_VulkanData.QuadVertexPositions[2] = {  0.5f,  0.5f, 0.0f };
+		s_VulkanData.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f };
+
+		std::vector<uint32_t> indices;
+		indices.reserve(VulkanRenderer2DData::MaxIndices);
+
+		uint32_t offset = 0;
+		for (uint32_t i = 0; i < VulkanRenderer2DData::MaxQuads; i++)
+		{
+			indices.push_back(offset + 0);
+			indices.push_back(offset + 1);
+			indices.push_back(offset + 2);
+			indices.push_back(offset + 2);
+			indices.push_back(offset + 3);
+			indices.push_back(offset + 0);
+			offset += 4;
+		}
+		
+		s_VulkanData.QuadIndexBuffer = std::make_shared<VulkanIndexBuffer>(indices.data(), indices.size());		// Can we remove this in vulkan?
 		s_VulkanData.WhiteTexture = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("textures/white_texture.png").string());
 
 		uint32_t whiteTextureData = 0xffffffff;
@@ -159,6 +178,17 @@ namespace Engine {
 	{
 		
 		m_vulkanGraphicsPipeline->UpdateUniformBuffer(m_sceneData->ViewProjectionMatrix);
+
+		VulkanContext* vulkanContext = VulkanContext::Get();
+
+
+		
+		m_currentViewportGameDescriptorSet = ImGui_ImplVulkan_AddTexture(
+				vulkanContext->GetSampler(),
+				vulkanContext->GetVulkanSwapchain().GetGameColorAttachmentImageView(currentFrame),
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+			);
+		
 
 
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
@@ -233,7 +263,167 @@ namespace Engine {
 
 
 
+	void VulkanRenderer2D::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	{
+		VulkanContext* vulkanContext = VulkanContext::Get();
 
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+		{
+			EE_CORE_ERROR("Failed to begin recording command buffer!");
+			return;
+		}
+
+		// === [0] Transition swapchain image from PRESENT_SRC_KHR to COLOR_ATTACHMENT_OPTIMAL ===
+		VkImage swapchainImage = vulkanContext->GetVulkanSwapchain().GetSwapchainImage(imageIndex);
+
+		VkImageMemoryBarrier toColorAttachment{};
+		toColorAttachment.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		toColorAttachment.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // <-- FIXED!
+		toColorAttachment.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		toColorAttachment.srcAccessMask = 0;
+		toColorAttachment.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		toColorAttachment.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		toColorAttachment.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		toColorAttachment.image = swapchainImage;
+		toColorAttachment.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		toColorAttachment.subresourceRange.baseMipLevel = 0;
+		toColorAttachment.subresourceRange.levelCount = 1;
+		toColorAttachment.subresourceRange.baseArrayLayer = 0;
+		toColorAttachment.subresourceRange.layerCount = 1;
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // match both stages to COLOR_ATTACHMENT
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &toColorAttachment
+		);
+
+
+		// === [1] Begin GAME Render Pass ===
+		VkRenderPassBeginInfo gameRenderPassInfo{};
+		gameRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		gameRenderPassInfo.renderPass = vulkanContext->GetRenderPass();
+		gameRenderPassInfo.framebuffer = vulkanContext->GetVulkanSwapchain().GetGameFramebuffer(imageIndex);
+		gameRenderPassInfo.renderArea.offset = { 0, 0 };
+		gameRenderPassInfo.renderArea.extent = vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
+
+		VkClearValue gameClearColor = { {{0.1f, 0.1f, 0.1f, 1.0f}} };
+		gameRenderPassInfo.clearValueCount = 1;
+		gameRenderPassInfo.pClearValues = &gameClearColor;
+
+		vkCmdBeginRenderPass(commandBuffer, &gameRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		// Game drawing
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipeline());
+
+		VkViewport viewport = { 0.0f, 0.0f, static_cast<float>(m_swapchainExtent.width), static_cast<float>(m_swapchainExtent.height), 0.0f, 1.0f };
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor = { {0, 0}, m_swapchainExtent };
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetDescriptorSet(imageIndex);
+
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_vulkanGraphicsPipeline->GetPipelineLayout(), 0, 1,
+			&descriptorSet, 0, nullptr); // or whatever descriptor set your pipeline expects
+
+		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
+
+		vkCmdEndRenderPass(commandBuffer);
+
+		// === [2] Transition game image to shader-readable layout ===
+		TransitionGameImageForShaderRead(commandBuffer, imageIndex, vulkanContext->GetVulkanSwapchain().GetGameColorAttachment(imageIndex));
+		// === [3] Begin IMGUI Render Pass ===
+		VkRenderPassBeginInfo imguiRenderPassInfo{};
+		imguiRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		imguiRenderPassInfo.renderPass = vulkanContext->GetImGuiRenderPass();
+		imguiRenderPassInfo.framebuffer = vulkanContext->GetVulkanSwapchain().GetImGuiFramebuffer(imageIndex);
+		imguiRenderPassInfo.renderArea.offset = { 0, 0 };
+		imguiRenderPassInfo.renderArea.extent = vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
+
+		imguiRenderPassInfo.clearValueCount = 0;
+		imguiRenderPassInfo.pClearValues = nullptr;
+
+		vkCmdBeginRenderPass(commandBuffer, &imguiRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		ImDrawData* drawData = ImGui::GetDrawData();
+		if (drawData)
+		{
+			ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
+		}
+
+		vkCmdEndRenderPass(commandBuffer);
+
+		// === [4] Transition swapchain image back to PRESENT_SRC_KHR ===
+		VkImageMemoryBarrier toPresent{};
+		toPresent.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		toPresent.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		toPresent.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		toPresent.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		toPresent.dstAccessMask = 0;
+		toPresent.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		toPresent.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		toPresent.image = swapchainImage;
+		toPresent.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		toPresent.subresourceRange.baseMipLevel = 0;
+		toPresent.subresourceRange.levelCount = 1;
+		toPresent.subresourceRange.baseArrayLayer = 0;
+		toPresent.subresourceRange.layerCount = 1;
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &toPresent
+		);
+
+		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+		{
+			EE_CORE_ASSERT(false, "Failed to record command buffer!");
+		}
+	}
+
+
+	void VulkanRenderer2D::TransitionGameImageForShaderRead(VkCommandBuffer cmd, uint32_t imageIndex, VkImage colorAttachment)
+	{
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		barrier.image = colorAttachment;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+
+		vkCmdPipelineBarrier(
+			cmd,
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		);
+	}
 
 
 	void VulkanRenderer2D::AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool)
@@ -252,94 +442,6 @@ namespace Engine {
 		}
 
 	}
-
-	void VulkanRenderer2D::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
-	{
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-		{
-			EE_CORE_ERROR("Failed to begin recording command buffer!");
-			return;
-		}
-
-		// === Begin your main render pass ===
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = m_vulkanContext->GetRenderPass(); // your main render pass
-		renderPassInfo.framebuffer = m_vulkanContext->GetSwapchainFramebuffer(imageIndex);
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
-
-		VkClearValue clearColor = { {{0.2f, 0.2f, 0.2f, 1.0f}} };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
-
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		// === Your pipeline rendering ===
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipeline());
-
-		VkViewport viewport = {
-			0.0f, 0.0f,
-			static_cast<float>(m_swapchainExtent.width),
-			static_cast<float>(m_swapchainExtent.height),
-			0.0f, 1.0f
-		};
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-		VkRect2D scissor = { {0, 0}, m_swapchainExtent };
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
-		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetDescriptorSet(imageIndex);
-		
-	 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipelineLayout(),
-			0, 1, &descriptorSet, 0, nullptr);
-
-		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
-
-		// === End your render pass ===
-		vkCmdEndRenderPass(commandBuffer);
-
-		
-		// === Begin ImGui render pass ===
-		VkRenderPassBeginInfo imguiRenderPassInfo{};
-		imguiRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		imguiRenderPassInfo.renderPass = m_vulkanContext->GetImGuiRenderPass(); // ImGui render pass
-		imguiRenderPassInfo.framebuffer = m_vulkanContext->GetImGuiFramebuffer(imageIndex); // same framebuffer
-		imguiRenderPassInfo.renderArea.offset = { 0, 0 };
-		imguiRenderPassInfo.renderArea.extent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
-
-		VkClearValue imguiClearValue{};
-		imguiClearValue.color = { {0.0f, 0.0f, 0.0f, 0.0f} }; // usually no clear needed
-		imguiRenderPassInfo.clearValueCount = 0;
-		imguiRenderPassInfo.pClearValues = nullptr;
-
-		vkCmdBeginRenderPass(commandBuffer, &imguiRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		// === ImGui rendering ===
-		//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
-
-		// === End ImGui render pass ===
-		vkCmdEndRenderPass(commandBuffer);
-
-		// === Finish recording ===
-		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-		{
-			EE_CORE_ASSERT(false, "Failed to record command buffer!");
-		}
-	}
-
-
-
-
 
 	void VulkanRenderer2D::CreateSyncObjects()
 	{
@@ -368,8 +470,11 @@ namespace Engine {
 	}
 
 
-	void VulkanRenderer2D::DrawQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor)
+	void VulkanRenderer2D::DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor)
 	{
+		//Engine loads all the texture to AssetManger. Game layer Gets() those textures from AssetManager 
+		// map and sends Ref through Draw(texture). Draw() then finds matching texture slot here.
+
 		// Find texture slot index
 		float textureIndex = 1.0f;
 		
@@ -397,7 +502,7 @@ namespace Engine {
 		}
 		
 
-		// Create transformed quad vertices
+		// move these
 		const glm::vec3 quadPositions[4] = {
 			{-0.5f, -0.5f, 0.0f},
 			{ 0.5f, -0.5f, 0.0f},
@@ -426,17 +531,67 @@ namespace Engine {
 		s_VulkanData.QuadIndexCount += 6;
 	}
 
+	void VulkanRenderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)
+	{
+		if (s_VulkanData.QuadIndexCount >= VulkanRenderer2DData::MaxIndices)
+		{
+			EE_CORE_WARN("Quad index limit reached!");
+			return;
+		}
+
+		constexpr size_t quadVertexCount = 4;
+		constexpr glm::vec2 textureCoords[] = {
+			{ 0.0f, 0.0f },
+			{ 1.0f, 0.0f },
+			{ 1.0f, 1.0f },
+			{ 0.0f, 1.0f }
+		};
+
+		const float textureIndex = 0.0f; // White Texture
+		const float tilingFactor = 1.0f;
+
+		// Extract translation, rotation, and scale from transform
+		glm::vec3 translation = glm::vec3(transform[3]); // Last column
+		glm::vec3 scale = {
+			glm::length(glm::vec3(transform[0])),
+			glm::length(glm::vec3(transform[1])),
+			glm::length(glm::vec3(transform[2]))
+		};
+
+		// Build rotation + translation matrix (without scale)
+		glm::mat4 rotationTranslation = transform;
+		rotationTranslation[0] = glm::normalize(glm::vec4(glm::vec3(transform[0]), 0.0f));
+		rotationTranslation[1] = glm::normalize(glm::vec4(glm::vec3(transform[1]), 0.0f));
+		rotationTranslation[2] = glm::normalize(glm::vec4(glm::vec3(transform[2]), 0.0f));
+		rotationTranslation[3] = glm::vec4(translation, 1.0f);
+
+		for (size_t i = 0; i < quadVertexCount; i++)
+		{
+			glm::vec3 scaledPosition = s_VulkanData.QuadVertexPositions[i];
+			scaledPosition.x *= scale.x;
+			scaledPosition.y *= scale.y;
+
+			s_VulkanData.QuadVertexBufferPtr->Position = rotationTranslation * glm::vec4(scaledPosition, 1.0f);
+			s_VulkanData.QuadVertexBufferPtr->Color = color;
+			s_VulkanData.QuadVertexBufferPtr->TexCoord = textureCoords[i];
+			s_VulkanData.QuadVertexBufferPtr->TexIndex = textureIndex;
+			s_VulkanData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			s_VulkanData.QuadVertexBufferPtr++;
+		}
+
+		s_VulkanData.QuadIndexCount += 6;
+		s_VulkanData.Stats.QuadCount++;
+	}
+
+
 	void VulkanRenderer2D::BeginScene(glm::mat4 viewProjectionMatrix)
 	{
-
-		
 		m_sceneData->ViewProjectionMatrix = viewProjectionMatrix;
-
-
 	}
 
 	void VulkanRenderer2D::EndScene()
 	{
+
 		uint32_t dataSize = (uint32_t)((uint8_t*)s_VulkanData.QuadVertexBufferPtr - (uint8_t*)s_VulkanData.QuadVertexBufferBase);
 
 		if (dataSize > 0)

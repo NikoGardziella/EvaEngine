@@ -1,9 +1,12 @@
 #include "pch.h"
 #include "Renderer.h"
+
 #include "OrthographicCamera.h"
 #include <Engine/Platform/OpenGl/OpenGLShader.h>
 #include "Engine/Renderer/Renderer2D.h"
 #include "Engine/Renderer/VulkanRenderer2D.h"
+
+
 
 namespace Engine {
 
@@ -74,4 +77,10 @@ namespace Engine {
 		vertexArray->Bind();
 		RenderCommand::DrawIndexed(vertexArray);
 	}
+
+	VkDescriptorSet Renderer::GetCurrentDescriptorSet()
+	{
+		return s_VulkanRenderer2D->GetCurrentDescriptorSet();
+	}
+
 }

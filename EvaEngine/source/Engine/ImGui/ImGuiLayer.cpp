@@ -348,7 +348,7 @@ namespace Engine {
 			}
 				*/
 
-			Renderer::DrawFrame();
+			//Renderer::DrawFrame();
 
 			break;
 		}

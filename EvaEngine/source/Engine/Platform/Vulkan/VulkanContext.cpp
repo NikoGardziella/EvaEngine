@@ -64,19 +64,20 @@ namespace Engine {
         CreateSurface();
         SetupDevices();
 
-        CreateSwapchain();
 
+        CreateSwapchain();
         CreateGraphicsQueue();
-        CreateImageViews();
         CreateRenderPass();
         CreateImGuiRenderPass();
+        
+        CreateSwapchainFramebuffers();
 
-        CreateFramebuffers();
         CreateCommandPool();
         CreateDescriptorPool();
         CreateImGuiDescriptorPool();
 
         CreateCommandBuffers();
+        CreateSampler();
     }
 
     void VulkanContext::CreateInstance()
@@ -247,104 +248,32 @@ namespace Engine {
 
     }
 
-
-
-    void VulkanContext::CreateImageViews()
+    void VulkanContext::CreateSwapchainFramebuffers()
     {
-        //m_swapchainImageViews.resize(m_swapchainImages.size());
-        m_swapchainImageViews.resize(m_swapchain->GetSwapchainImages().size());
-
-        for (size_t i = 0; i < m_swapchain->GetSwapchainImages().size(); ++i) {
-            VkImageViewCreateInfo viewCreateInfo = {};
-            viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            viewCreateInfo.image = m_swapchain->GetSwapchainImages()[i];
-            viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            viewCreateInfo.format = m_swapchain->GetSwapchainImageFormat();
-            viewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-            viewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-            viewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-            viewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-            viewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            viewCreateInfo.subresourceRange.baseMipLevel = 0;
-            viewCreateInfo.subresourceRange.levelCount = 1;
-            viewCreateInfo.subresourceRange.baseArrayLayer = 0;
-            viewCreateInfo.subresourceRange.layerCount = 1;
-
-            if (vkCreateImageView(m_deviceManager->GetDevice(), &viewCreateInfo, nullptr, &m_swapchainImageViews[i]) != VK_SUCCESS)
-            {
-                EE_CORE_ERROR("Failed to create image views for swapchain images");
-            }
-            EE_CORE_INFO("Vulkan image views for swapchain image created");
-
-        }
-    }
-
-    void VulkanContext::CreateFramebuffers()
-    {
-        // Resize framebuffer vectors based on the number of swapchain images
-        size_t swapchainImageCount = m_swapchain->GetSwapchainImageViews().size();
-        m_swapchainFramebuffers.resize(swapchainImageCount);
-        m_imguiFramebuffers.resize(swapchainImageCount);
-
-        // Create the scene framebuffers
-        for (size_t i = 0; i < swapchainImageCount; ++i)
-        {
-            VkImageView swapchainImageView = m_swapchain->GetSwapchainImageViews()[i];
-
-            // === Scene framebuffer ===
-            VkImageView sceneAttachments[] = { swapchainImageView };
-
-            VkFramebufferCreateInfo sceneFramebufferInfo = {};
-            sceneFramebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            sceneFramebufferInfo.renderPass = m_renderPass; // Main scene render pass
-            sceneFramebufferInfo.attachmentCount = static_cast<uint32_t>(std::size(sceneAttachments));
-            sceneFramebufferInfo.pAttachments = sceneAttachments;
-            sceneFramebufferInfo.width = m_swapchain->GetSwapchainExtent().width;
-            sceneFramebufferInfo.height = m_swapchain->GetSwapchainExtent().height;
-            sceneFramebufferInfo.layers = 1;
-
-            if (vkCreateFramebuffer(m_deviceManager->GetDevice(), &sceneFramebufferInfo, nullptr, &m_swapchainFramebuffers[i]) != VK_SUCCESS)
-            {
-                EE_CORE_ERROR("Failed to create scene framebuffer!");
-            }
-            else
-            {
-                EE_CORE_INFO("Scene framebuffer created");
-            }
-        }
-
-        // Create the ImGui framebuffers
-        for (size_t i = 0; i < swapchainImageCount; ++i)
-        {
-            VkImageView imguiImageView = m_swapchain->GetSwapchainImageViews()[i]; // Same swapchain image
-
-            // === ImGui framebuffer ===
-            VkImageView imguiAttachments[] = { imguiImageView };
-
-            VkFramebufferCreateInfo imguiFramebufferInfo = {};
-            imguiFramebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            imguiFramebufferInfo.renderPass = m_imGuiRenderPass; // ImGui render pass
-            imguiFramebufferInfo.attachmentCount = static_cast<uint32_t>(std::size(imguiAttachments));
-            imguiFramebufferInfo.pAttachments = imguiAttachments;
-            imguiFramebufferInfo.width = m_swapchain->GetSwapchainExtent().width;
-            imguiFramebufferInfo.height = m_swapchain->GetSwapchainExtent().height;
-            imguiFramebufferInfo.layers = 1;
-
-            if (vkCreateFramebuffer(m_deviceManager->GetDevice(), &imguiFramebufferInfo, nullptr, &m_imguiFramebuffers[i]) != VK_SUCCESS)
-            {
-                EE_CORE_ERROR("Failed to create ImGui framebuffer!");
-            }
-            else
-            {
-                EE_CORE_INFO("ImGui framebuffer created");
-            }
-        }
+        m_swapchain->CreateFramebuffers(m_renderPass, m_imGuiRenderPass, m_deviceManager->GetDevice());
     }
 
 
+    void VulkanContext::CreateSampler()
+    {
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.anisotropyEnable = VK_FALSE;
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
+        vkCreateSampler(m_deviceManager->GetDevice(), &samplerInfo, nullptr, &m_sampler);
 
+    }
 
+    
     void VulkanContext::CreateEntityIDAttachment()
     {
         VkImageCreateInfo imageInfo{};
@@ -400,7 +329,6 @@ namespace Engine {
             EE_CORE_ERROR("Failed to create Entity ID image view!");
         }
     }
-
 
 
     uint32_t VulkanContext::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)

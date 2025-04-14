@@ -66,15 +66,11 @@ namespace Engine {
         VulkanSwapchain& GetVulkanSwapchain() { return *m_swapchain; }
         //std::vector<VkFramebuffer>& GetSwapchainFramebuffers() { return m_swapchainFramebuffers; }
 		VulkanInstance& GetVulkanInstance() { return *m_vulkanInstance; }
-        VkFramebuffer& GetSwapchainFramebuffer(uint32_t imageIndex ) { return m_swapchainFramebuffers[imageIndex]; }
-		VkFramebuffer& GetImGuiFramebuffer(uint32_t imageIndex) { return m_imguiFramebuffers[imageIndex]; }
-
        // VkCommandBuffer VulkanContext::GetCurrentCommandBuffer() { return m_commandBuffers[Renderer::GetCurrentFrame()];   }
         VkCommandBuffer& GetCommandBuffer(uint32_t imageIndex) { return m_commandBuffers[imageIndex]; }
         VkDescriptorPool GetDescriptorPool() { return m_descriptorPool->GetDescriptorPool(); }
 		VkDescriptorPool& GetImGuiDescriptorPool() { return m_imguiDescriptorPool; }
-
-
+		VkSampler& GetSampler() { return m_sampler; }
     private:
         void CreateInstance();
         void CreateSurface();
@@ -85,13 +81,14 @@ namespace Engine {
         void CreateRenderPass();
         void CreateImGuiRenderPass();
 
-        void CreateImageViews();
-        void CreateFramebuffers();
+		void CreateSwapchainFramebuffers();
+
+        void CreateSampler();
+        
         void CreateCommandPool();
         void CreateDescriptorPool();
 
         void CreateEntityIDAttachment();
-
 
 
     private:
@@ -105,8 +102,8 @@ namespace Engine {
         VkDescriptorPool m_imguiDescriptorPool;
 
         VulkanSwapchain* m_swapchain;
-        std::vector<VkImageView> m_swapchainImageViews;
-        
+        VkSampler m_sampler;
+
         std::vector<VkCommandBuffer> m_commandBuffers;
         SwapChainSupportDetails m_swapChainSupportDetails;
         VkCommandPool m_commandPool;
@@ -114,10 +111,7 @@ namespace Engine {
         VkRenderPass m_renderPass;
         VkRenderPass m_imGuiRenderPass;
 
-        std::vector<VkFramebuffer> m_swapchainFramebuffers;
-        std::vector<VkFramebuffer> m_imguiFramebuffers;
-      
-
+        
         static VulkanContext* s_instance;
 
         VkImage m_entityIDImage;
@@ -143,7 +137,7 @@ namespace Engine {
     #else
             const bool m_enableValidationLayers = true;
     #endif
-    };
+};
 
     
 }

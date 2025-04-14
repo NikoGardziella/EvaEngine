@@ -47,7 +47,7 @@ namespace Engine {
         VkPipeline GetPipeline() const { return m_graphicsPipeline; }
         VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
 		VkDescriptorSetLayout GetDescriptorSetLayout() const { return m_descriptorSetLayout; }
-        VkDescriptorSet GetDescriptorSet(size_t frameIndex) const { return m_descriptorSets[frameIndex]; }
+        VkDescriptorSet GetDescriptorSet(size_t frameIndex) { return m_descriptorSets[frameIndex]; }
     private:
 		void CreateDescriptorSetLayout();
 

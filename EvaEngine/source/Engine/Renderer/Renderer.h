@@ -35,6 +35,8 @@ namespace Engine {
 
 		static void Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform = glm::mat4(1.0f));
 
+		static VkDescriptorSet GetCurrentDescriptorSet();
+
 		static uint32_t GetCurrentFrame() { return s_currentFrame; }
 
 

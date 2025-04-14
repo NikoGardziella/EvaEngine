@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "EditorLayer.h"
 
+//#include <imgui/backends/imgui_impl_vulkan.h>
 
 #include "Engine/Core/Core.h"
 #include <imgui/imgui.h>
@@ -23,6 +24,7 @@
 
 #include "Engine/Debug/DebugUtils.h"
 //#include <imgui/backends/imgui_impl_vulkan.h>
+#include "Engine/Renderer/Renderer.h"
 
 
  
@@ -334,44 +336,32 @@ namespace Engine {
             m_viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
             //uint32_t textureID = m_framebuffer->GetColorAttachmentRendererID();
-            if (!m_editor)
+            if (m_editor)
             {
-                // Ensure that GetGameLayer() does not return null
-                auto gameLayer = m_editor.get()->GetGameLayer();
-                if (gameLayer)
-                {
-                    // Ensure that GetGameFramebuffer() does not return null
-                    auto framebuffer = gameLayer->GetGameFramebuffer();
-                    if (framebuffer)
-                    {
-                        // Ensure that GetColorAttachmentRendererID() is valid
-                        uint32_t textureID = framebuffer->GetColorAttachmentRendererID();
-                        if (textureID != 0)
-                        { // Assuming 0 is an invalid ID
-                            // Proceed with ImGui Image rendering
-                            ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
-                        }
-                        else
-                        {
-                            EE_CORE_ERROR("Invalid texture ID: {}", textureID);
-                        }
-                    }
-                    else
-                    {
-                        EE_CORE_ERROR("Framebuffer is null.");
-                    }
+				
+
+                // Ensure that GetColorAttachmentRendererID() is valid
+                ImTextureID textureID = (ImTextureID)Renderer::GetCurrentDescriptorSet();
+                if (textureID != 0)
+                { 
+                    ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,0 }, ImVec2{ 1, 1 });
                 }
                 else
                 {
-                    EE_CORE_ERROR("Game layer is null.");
+                    EE_CORE_ERROR("Invalid texture ID: {}", textureID);
                 }
+                   
             }
             else 
             {
+                
                 uint32_t textureID = 0;// = m_framebuffer->GetColorAttachmentRendererID();
                 if (textureID != 0)
                 { // Assuming 0 is an invalid ID
                     // Proceed with ImGui Image rendering
+                    
+
+
                     ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
                 }
                 //EE_CORE_ERROR("Editor is null.");

@@ -1,7 +1,7 @@
 
     project "Sandbox"
         location "."
-        kind "ConsoleApp" 
+        kind "StaticLib" 
         language "C++"
         architecture "x64"
         staticruntime "off"
