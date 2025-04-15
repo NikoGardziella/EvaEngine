@@ -91,6 +91,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 	    m_orthoCameraController.OnUpdate(timestep);
     }
 
+	/*
 	glm::mat4 transform = glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, 0.0f });
 	glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -111,9 +112,10 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 	Engine::Renderer::DrawFrame();
 	Engine::VulkanRenderer2D::EndScene();
 
+	*/
 	// ******** Render ***********
 	// statistics
-	Engine::Renderer2D::ResetStats();
+	Engine::VulkanRenderer2D::ResetStats();
     {
 		EE_PROFILE_SCOPE("render pre");
         //m_framebuffer->Bind();
@@ -125,7 +127,7 @@ void Sandbox2D::OnUpdate(Engine::Timestep timestep)
 		//m_framebuffer->ClearColorAttachment(1, -1)
 		if (m_isPlaying)
 		{
-			//m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
+			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
 		}
 		
 		/*
@@ -185,7 +187,7 @@ void Sandbox2D::OnGameStart()
 
 	
 
-	//CreateTestScene();
+	CreateTestScene();
 
 
 	m_activeScene->OnRunTimeStart();
@@ -197,7 +199,7 @@ void Sandbox2D::OnGameStop()
 	m_activeScene->ClearRegistry();
 
 	Engine::SceneSerializer serializer(m_activeScene);
-	serializer.Deserialize(Engine::AssetManager::GetAssetPath("scenes/physics2D.EE").string());
+	serializer.Deserialize(Engine::AssetManager::GetAssetPath(m_activeSceneName).string());
 }
 
 void Sandbox2D::CreateTestScene()

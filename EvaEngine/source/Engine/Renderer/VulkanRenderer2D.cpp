@@ -6,7 +6,6 @@
 
 #include "VertexArray.h"
 #include "Shader.h"
-#include "Renderer2D.h"
 #include "OrthographicCameraController.h"
 #include "Renderer.h"
 #include <backends/imgui_impl_vulkan.h>
@@ -18,7 +17,7 @@
 
 namespace Engine {
 
-	VulkanRenderer2D::SceneData* VulkanRenderer2D::m_sceneData = new SceneData();
+	//VulkanRenderer2D::SceneData* VulkanRenderer2D::m_sceneData = new SceneData();
 
 	
 	struct VulkanRenderer2DData
@@ -53,7 +52,7 @@ namespace Engine {
 		{
 			glm::mat4 ViewProjection;
 		};
-		//CameraData CameraBuffer;
+		CameraData CameraBuffer;
 		//Ref<UniformBuffer> CameraUniformBuffer;
 	};
 
@@ -179,9 +178,9 @@ namespace Engine {
 	void VulkanRenderer2D::DrawFrame(uint32_t currentFrame)
 	{
 		
+		s_VulkanData.Stats.DrawCalls++;
 
-
-		m_vulkanGraphicsPipeline->UpdateUniformBuffer(m_sceneData->ViewProjectionMatrix);
+		m_vulkanGraphicsPipeline->UpdateUniformBuffer(s_VulkanData.CameraBuffer.ViewProjection);
 
 		VulkanContext* vulkanContext = VulkanContext::Get();
 
@@ -623,9 +622,27 @@ namespace Engine {
 	}
 
 
+	void VulkanRenderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
+	{
+		EE_PROFILE_FUNCTION();
+
+		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection() * glm::inverse(transform);
+		//s_VulkanData.CameraUniformBuffer->SetData(&s_VulkanData.CameraBuffer, sizeof(VulkanRenderer2DData::CameraData));
+
+	}
+
+	void VulkanRenderer2D::BeginScene(const EditorCamera& camera)
+	{
+		EE_PROFILE_FUNCTION();
+
+		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection();
+		//s_VulkanData.CameraUniformBuffer->SetData(&s_VulkanData.CameraBuffer, sizeof(Renderer2DData::CameraData));
+
+	}
+
 	void VulkanRenderer2D::BeginScene(glm::mat4 viewProjectionMatrix)
 	{
-		m_sceneData->ViewProjectionMatrix = viewProjectionMatrix;
+		s_VulkanData.CameraBuffer.ViewProjection = viewProjectionMatrix;
 	}
 
 	void VulkanRenderer2D::EndScene()
@@ -659,6 +676,13 @@ namespace Engine {
 		}
 	}
 
-	
-	
+	Renderer2D::Statistics VulkanRenderer2D::GetStats()
+	{
+		return s_VulkanData.Stats;
+	}
+
+	void VulkanRenderer2D::ResetStats()
+	{
+		memset(&s_VulkanData.Stats, 0, sizeof(Renderer2D::Statistics));
+	}
 }

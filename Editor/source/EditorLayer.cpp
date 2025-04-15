@@ -303,7 +303,7 @@ namespace Engine {
             m_contentBrowserPanel.OnImGuiRender();
 
             ImGui::Begin("Stats");
-            auto stats = Engine::Renderer2D::GetStats();
+            auto stats = Engine::VulkanRenderer2D::GetStats();
             ImGui::Text("Renderer2D Stats:");
             ImGui::Text("Draw Calls: %d", stats.DrawCalls);
             ImGui::Text("Quads: %d", stats.QuadCount);
@@ -335,16 +335,13 @@ namespace Engine {
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             m_viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
-            //uint32_t textureID = m_framebuffer->GetColorAttachmentRendererID();
             if (m_editor)
             {
-				
-
                 // Ensure that GetColorAttachmentRendererID() is valid
                 ImTextureID textureID = (ImTextureID)Renderer::GetCurrentGameDescriptorSet();
                 if (textureID != 0)
                 { 
-                    ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,0 }, ImVec2{ 1, 1 });
+                    ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
                 }
                 else
                 {
@@ -357,14 +354,10 @@ namespace Engine {
                 
                 uint32_t textureID = 0;// = m_framebuffer->GetColorAttachmentRendererID();
                 if (textureID != 0)
-                { // Assuming 0 is an invalid ID
-                    // Proceed with ImGui Image rendering
+                { 
                     
-
-
                     ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
                 }
-                //EE_CORE_ERROR("Editor is null.");
             }
 
             ImVec2 windowSize = ImGui::GetWindowSize();
@@ -629,7 +622,7 @@ namespace Engine {
         EE_PROFILE_FUNCTION();
 
         //Renderer::DrawFrame();
-        return;
+        
 
         /*
         FramebufferSpecification spec = m_framebuffer->GetSpecification();
@@ -656,12 +649,12 @@ namespace Engine {
         // ******** Render ***********
 
          //statistics
-        Engine::Renderer2D::ResetStats();
+        Engine::VulkanRenderer2D::ResetStats();
         {
             EE_PROFILE_SCOPE("render pre");
            // m_framebuffer->Bind();
-            Engine::RenderCommand::SetClearColor({ 0.2f, 0, 0.2f, 1 });
-            Engine::RenderCommand::Clear();
+            //Engine::RenderCommand::SetClearColor({ 0.2f, 0, 0.2f, 1 });
+            //Engine::RenderCommand::Clear();
         }
 
        // m_framebuffer->ClearColorAttachment(1, -1);
@@ -721,7 +714,7 @@ namespace Engine {
             }
             */
 
-            OnOverlayRender();
+           // OnOverlayRender();
 
            /// m_framebuffer->Unbind();
         }

@@ -422,8 +422,9 @@ namespace Engine {
         if(mainCamera)
         {   
 
-            Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
-            
+            //Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
+            Engine::VulkanRenderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
+
 
             {
                 EE_PROFILE_SCOPE("Update Runtime CircleRendererComponent");
@@ -439,6 +440,15 @@ namespace Engine {
             }
             {
                 EE_PROFILE_SCOPE("Update Runtime SpriteRendererComponent");
+                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
+
+                for (auto entity : view)
+                {
+                    auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+                        
+                    Engine::VulkanRenderer2D::DrawQuad(transform.GetTransform(), quadSprite.Color);
+                }
+
                 std::vector<int> instanceTextureIDs;
                 /*
                 size_t maxInstances = 600;
@@ -466,12 +476,13 @@ namespace Engine {
                 //if (!instanceTransforms.empty())
                 {
                     // Pass all collected instance data in one call
-                    Renderer2D::DrawQuadInstanced(m_renderSOA.InstanceTransforms, m_renderSOA.Color, instanceTextureIDs);
+                   // Renderer2D::DrawQuadInstanced(m_renderSOA.InstanceTransforms, m_renderSOA.Color, instanceTextureIDs);
                 }
 
             }
 
-            Renderer2D::EndScene();
+            Engine::Renderer::DrawFrame();
+            Engine::VulkanRenderer2D::EndScene();
         }
 
 
@@ -479,7 +490,7 @@ namespace Engine {
 
     void Scene::OnUpdateEditor(Timestep timestep, EditorCamera& camera)
     {
-        Renderer2D::BeginScene(camera);
+        Engine::VulkanRenderer2D::BeginScene(camera.GetProjectionMatrix());
 
         {
             auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
@@ -488,7 +499,9 @@ namespace Engine {
             {
                 auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 
-                Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+                Engine::VulkanRenderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+
+               // Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
 
             }
         }
@@ -500,12 +513,13 @@ namespace Engine {
             {
                 auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
 
-                Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
+               // Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (int)entity);
 
             }
         }
 
-        Renderer2D::EndScene();
+        Engine::Renderer::DrawFrame();
+        Engine::VulkanRenderer2D::EndScene();
     }
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)
@@ -562,6 +576,7 @@ namespace Engine {
         return {};
     }
 
+    /*
     void Scene::UpdatePhysics(Timestep timestep)
     {
         EE_PROFILE_FUNCTION();
@@ -595,7 +610,33 @@ namespace Engine {
             }
         );
     }
+    */
+    void Scene::UpdatePhysics(Timestep timestep)
+    {
+        EE_PROFILE_FUNCTION();
+        const int32_t subStepCount = 4;
+        float physicsStep = 1.0f / 60.0f;
 
+        // update physics
+        b2World_Step(m_worldId, physicsStep, subStepCount);
+        auto view = m_registry.view<RigidBody2DComponent>();
+        for (auto e : view)
+        {
+            Entity entity = { e, this };
+            TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
+            auto& rb2dComp = entity.GetComponent<RigidBody2DComponent>();
+
+            b2BodyId bodyId = rb2dComp.RuntimeBody;
+
+            b2Vec2 position = b2Body_GetPosition(bodyId);
+            transformComp.Translation = { position.x, position.y, 0.0f };
+
+            b2Rot rotation = b2Body_GetRotation(bodyId);
+            transformComp.Rotation.z = std::atan2(rotation.s, rotation.c);
+
+        }
+
+    }
 
 
     template<typename T>

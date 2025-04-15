@@ -10,7 +10,8 @@
 #include "Engine/Platform/Vulkan/VulkanGraphicsPipeline.h"
 #include <glm/ext/matrix_float4x4.hpp>
 #include "OrthographicCameraController.h"
-
+#include "Engine/Renderer/EditorCamera.h"
+#include "Renderer2D.h"
 
 namespace Engine {
 
@@ -31,10 +32,16 @@ namespace Engine {
 
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+		static void BeginScene(const Camera& camera, const glm::mat4& transform);
+		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(glm::mat4 viewProjectionMatrix);
 		static void EndScene();
 
 		void CreateImGuiTextureDescriptors();
+
+		static Renderer2D::Statistics GetStats();
+
+		static void ResetStats();
 		
 
 	private:
@@ -77,7 +84,7 @@ namespace Engine {
 		{
 			glm::mat4 ViewProjectionMatrix;
 		};
-		static SceneData* m_sceneData;
+		//static SceneData* m_sceneData;
 
 
 		static std::vector<VulkanQuadVertex> s_QuadVertices;
@@ -91,24 +98,7 @@ namespace Engine {
 		//static inline RendererStats s_Stats;
 
 		// Define quad vertices for a textured quad
-		const std::vector<VulkanQuadVertex> quadVertices =
-		{
-			// Position              Color                   TexCoord    TexIndex  TilingFactor
-			// Bottom Left
-			{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}, 0.0f, 1.0f},
-			// Bottom Right	0
-			{{ 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, {1.0f, 0.0f}, 0.0f, 1.0f},
-			// Top Right	0
-			{{ 0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, {1.0f, 1.0f}, 0.0f, 1.0f},
-			// Top Left		0
-			{{-0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}, 0.0f, 1.0f}
-		};
-
-
-		std::vector<uint32_t> quadIndices =
-		{
-			0, 1, 2, 2, 3, 0 // Two triangles forming a quad
-		};
+		
 
 
 	};
