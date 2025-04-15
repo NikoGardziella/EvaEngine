@@ -51,7 +51,6 @@ namespace Engine {
     private:
 		void CreateDescriptorSetLayout();
 
-
     private:
         VkDevice m_device;
         VkPipeline m_graphicsPipeline;

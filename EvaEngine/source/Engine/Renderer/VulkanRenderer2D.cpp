@@ -169,7 +169,9 @@ namespace Engine {
 			m_vulkanGraphicsPipeline->UpdateDescriptorSets(i, s_VulkanData.TextureSlots[i]);
 
 		}
-		
+		CreateImGuiTextureDescriptors();
+		m_imageLayouts.resize(m_vulkanContext->GetVulkanSwapchain().GetSwapchainImages().size(), VK_IMAGE_LAYOUT_UNDEFINED);
+		m_gameColorLayouts.resize(m_vulkanContext->GetVulkanSwapchain().GetSwapchainImages().size(), VK_IMAGE_LAYOUT_UNDEFINED);
 	}
 
 
@@ -177,29 +179,22 @@ namespace Engine {
 	void VulkanRenderer2D::DrawFrame(uint32_t currentFrame)
 	{
 		
+
+
 		m_vulkanGraphicsPipeline->UpdateUniformBuffer(m_sceneData->ViewProjectionMatrix);
 
 		VulkanContext* vulkanContext = VulkanContext::Get();
 
-
-		
-		m_currentViewportGameDescriptorSet = ImGui_ImplVulkan_AddTexture(
-				vulkanContext->GetSampler(),
-				vulkanContext->GetVulkanSwapchain().GetGameColorAttachmentImageView(currentFrame),
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-			);
-		
-
-
+		// 1. Wait for the current frame to finish
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
-		
-		//
 
+		// 2. Acquire image FIRST!
+		uint32_t imageIndex;
 		VkResult result = vkAcquireNextImageKHR(
 			m_device, m_swapchain, UINT64_MAX,
 			m_imageAvailableSemaphores[currentFrame],
-			VK_NULL_HANDLE, &currentFrame
+			VK_NULL_HANDLE, &imageIndex
 		);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -212,11 +207,12 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to acquire swapchain image!");
 		}
 
+
+		// 4. Reset and record command buffer
 		vkResetCommandBuffer(m_commandBuffers[currentFrame], 0);
+		RecordCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
 
-
-		RecordCommandBuffer(m_commandBuffers[currentFrame], currentFrame);
-
+		// 5. Submit command buffer
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -225,10 +221,8 @@ namespace Engine {
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
-
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_commandBuffers[currentFrame];
-
 		VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[currentFrame] };
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
@@ -239,6 +233,9 @@ namespace Engine {
 			return;
 		}
 
+		m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		// 6. Present
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
@@ -246,7 +243,7 @@ namespace Engine {
 		VkSwapchainKHR swapChains[] = { m_swapchain };
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &currentFrame;
+		presentInfo.pImageIndices = &imageIndex;
 
 		VkResult presentResult = vkQueuePresentKHR(m_vulkanContext->GetGraphicsQueue(), &presentInfo);
 		if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
@@ -259,13 +256,13 @@ namespace Engine {
 		}
 	}
 
-
-
-
-
 	void VulkanRenderer2D::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
 		VulkanContext* vulkanContext = VulkanContext::Get();
+
+		VkImageLayout currentLayout = m_imageLayouts[imageIndex];
+		VkImage swapchainImage = vulkanContext->GetVulkanSwapchain().GetSwapchainImage(imageIndex);
+		VkImage gameColorImage = vulkanContext->GetVulkanSwapchain().GetGameImage(imageIndex);
 
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -276,36 +273,38 @@ namespace Engine {
 			return;
 		}
 
-		// === [0] Transition swapchain image from PRESENT_SRC_KHR to COLOR_ATTACHMENT_OPTIMAL ===
-		VkImage swapchainImage = vulkanContext->GetVulkanSwapchain().GetSwapchainImage(imageIndex);
+		// === [0] Transition gameColorImage to COLOR_ATTACHMENT_OPTIMAL ===
+		if (m_gameColorLayouts[imageIndex] != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		{
+			VkImageMemoryBarrier toColorAttachment{};
+			toColorAttachment.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			toColorAttachment.oldLayout = m_gameColorLayouts[imageIndex];
+			toColorAttachment.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			toColorAttachment.srcAccessMask = 0;
+			toColorAttachment.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			toColorAttachment.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			toColorAttachment.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			toColorAttachment.image = gameColorImage;
+			toColorAttachment.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			toColorAttachment.subresourceRange.baseMipLevel = 0;
+			toColorAttachment.subresourceRange.levelCount = 1;
+			toColorAttachment.subresourceRange.baseArrayLayer = 0;
+			toColorAttachment.subresourceRange.layerCount = 1;
 
-		VkImageMemoryBarrier toColorAttachment{};
-		toColorAttachment.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		toColorAttachment.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // <-- FIXED!
-		toColorAttachment.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		toColorAttachment.srcAccessMask = 0;
-		toColorAttachment.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		toColorAttachment.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		toColorAttachment.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		toColorAttachment.image = swapchainImage;
-		toColorAttachment.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		toColorAttachment.subresourceRange.baseMipLevel = 0;
-		toColorAttachment.subresourceRange.levelCount = 1;
-		toColorAttachment.subresourceRange.baseArrayLayer = 0;
-		toColorAttachment.subresourceRange.layerCount = 1;
+			vkCmdPipelineBarrier(
+				commandBuffer,
+				VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				0,
+				0, nullptr,
+				0, nullptr,
+				1, &toColorAttachment
+			);
 
-		vkCmdPipelineBarrier(
-			commandBuffer,
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // match both stages to COLOR_ATTACHMENT
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &toColorAttachment
-		);
+			m_gameColorLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		}
 
-
-		// === [1] Begin GAME Render Pass ===
+		// === [1] Begin Game Render Pass ===
 		VkRenderPassBeginInfo gameRenderPassInfo{};
 		gameRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		gameRenderPassInfo.renderPass = vulkanContext->GetRenderPass();
@@ -319,7 +318,6 @@ namespace Engine {
 
 		vkCmdBeginRenderPass(commandBuffer, &gameRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		// Game drawing
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipeline());
 
 		VkViewport viewport = { 0.0f, 0.0f, static_cast<float>(m_swapchainExtent.width), static_cast<float>(m_swapchainExtent.height), 0.0f, 1.0f };
@@ -334,63 +332,89 @@ namespace Engine {
 		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetDescriptorSet(imageIndex);
-
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_vulkanGraphicsPipeline->GetPipelineLayout(), 0, 1,
-			&descriptorSet, 0, nullptr); // or whatever descriptor set your pipeline expects
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
 
 		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
-
 		vkCmdEndRenderPass(commandBuffer);
 
-		// === [2] Transition game image to shader-readable layout ===
-		TransitionGameImageForShaderRead(commandBuffer, imageIndex, vulkanContext->GetVulkanSwapchain().GetGameColorAttachment(imageIndex));
-		// === [3] Begin IMGUI Render Pass ===
+		// === [2] Transition gameColorImage to SHADER_READ_ONLY_OPTIMAL ===
+		if (m_gameColorLayouts[imageIndex] != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		{
+			VkImageMemoryBarrier toShaderRead{};
+			toShaderRead.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			toShaderRead.oldLayout = m_gameColorLayouts[imageIndex];
+			toShaderRead.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			toShaderRead.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			toShaderRead.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			toShaderRead.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			toShaderRead.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			toShaderRead.image = gameColorImage;
+			toShaderRead.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			toShaderRead.subresourceRange.baseMipLevel = 0;
+			toShaderRead.subresourceRange.levelCount = 1;
+			toShaderRead.subresourceRange.baseArrayLayer = 0;
+			toShaderRead.subresourceRange.layerCount = 1;
+
+			vkCmdPipelineBarrier(
+				commandBuffer,
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				0,
+				0, nullptr,
+				0, nullptr,
+				1, &toShaderRead
+			);
+
+			m_gameColorLayouts[imageIndex] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		}
+
+		// === [3] ImGui Render Pass ===
 		VkRenderPassBeginInfo imguiRenderPassInfo{};
 		imguiRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		imguiRenderPassInfo.renderPass = vulkanContext->GetImGuiRenderPass();
 		imguiRenderPassInfo.framebuffer = vulkanContext->GetVulkanSwapchain().GetImGuiFramebuffer(imageIndex);
 		imguiRenderPassInfo.renderArea.offset = { 0, 0 };
 		imguiRenderPassInfo.renderArea.extent = vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
-
-		imguiRenderPassInfo.clearValueCount = 0;
-		imguiRenderPassInfo.pClearValues = nullptr;
+		imguiRenderPassInfo.clearValueCount = 1;
+		imguiRenderPassInfo.pClearValues = &gameClearColor;
 
 		vkCmdBeginRenderPass(commandBuffer, &imguiRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
 		ImDrawData* drawData = ImGui::GetDrawData();
-		if (drawData)
-		{
+		if (drawData) {
 			ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
 		}
-
 		vkCmdEndRenderPass(commandBuffer);
 
-		// === [4] Transition swapchain image back to PRESENT_SRC_KHR ===
-		VkImageMemoryBarrier toPresent{};
-		toPresent.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		toPresent.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		toPresent.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		toPresent.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		toPresent.dstAccessMask = 0;
-		toPresent.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		toPresent.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		toPresent.image = swapchainImage;
-		toPresent.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		toPresent.subresourceRange.baseMipLevel = 0;
-		toPresent.subresourceRange.levelCount = 1;
-		toPresent.subresourceRange.baseArrayLayer = 0;
-		toPresent.subresourceRange.layerCount = 1;
+		// === [4] Transition swapchain image to PRESENT_SRC_KHR ===
+		if (m_imageLayouts[imageIndex] != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+		{
+			VkImageMemoryBarrier toPresent{};
+			toPresent.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			toPresent.oldLayout = m_imageLayouts[imageIndex];
+			toPresent.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			toPresent.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			toPresent.dstAccessMask = 0;
+			toPresent.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			toPresent.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			toPresent.image = swapchainImage;
+			toPresent.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			toPresent.subresourceRange.baseMipLevel = 0;
+			toPresent.subresourceRange.levelCount = 1;
+			toPresent.subresourceRange.baseArrayLayer = 0;
+			toPresent.subresourceRange.layerCount = 1;
 
-		vkCmdPipelineBarrier(
-			commandBuffer,
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &toPresent
-		);
+			vkCmdPipelineBarrier(
+				commandBuffer,
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+				VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+				0,
+				0, nullptr,
+				0, nullptr,
+				1, &toPresent
+			);
+
+			m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		}
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 		{
@@ -399,31 +423,44 @@ namespace Engine {
 	}
 
 
-	void VulkanRenderer2D::TransitionGameImageForShaderRead(VkCommandBuffer cmd, uint32_t imageIndex, VkImage colorAttachment)
+
+
+
+	// Transition the image layout from PRESENT_SRC_KHR to SHADER_READ_ONLY_OPTIMAL
+	void VulkanRenderer2D::TransitionImageForShaderRead(VkCommandBuffer cmd, uint32_t imageIndex, VkImage image, VulkanContext* vulkanContext)
 	{
-		VkImageMemoryBarrier barrier{};
+		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		barrier.image = colorAttachment;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.oldLayout = m_imageLayouts[imageIndex];  // Previous layout, which is PRESENT_SRC_KHR
+		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;  // New layout for shader read access
+		barrier.srcAccessMask = 0;  // No source access mask required
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;  // We want to read from the image in the shader
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = image;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;  // Color aspect
 		barrier.subresourceRange.baseMipLevel = 0;
 		barrier.subresourceRange.levelCount = 1;
 		barrier.subresourceRange.baseArrayLayer = 0;
 		barrier.subresourceRange.layerCount = 1;
 
+		// Insert the barrier into the command buffer to synchronize the transition
 		vkCmdPipelineBarrier(
 			cmd,
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  // Wait for previous work to finish (may not be strictly necessary)
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,  // Ensure the image is ready for fragment shader access
 			0,
 			0, nullptr,
 			0, nullptr,
 			1, &barrier
 		);
+
+		// Update the image layout tracker
+		m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	}
+
+
+
 
 
 	void VulkanRenderer2D::AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool)
@@ -603,7 +640,22 @@ namespace Engine {
 		s_VulkanData.QuadIndexCount = 0;
 	}
 
+	void VulkanRenderer2D::CreateImGuiTextureDescriptors()
+	{
+		auto& swapchain = m_vulkanContext->GetVulkanSwapchain();
+		auto imageViews = swapchain.GetGameColorAttachmentImageViews();
 
+		m_gameViewportDescriptorSets.resize(imageViews.size());
+
+		for (size_t i = 0; i < imageViews.size(); ++i)
+		{
+			m_gameViewportDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(
+				m_vulkanContext->GetSampler(),
+				imageViews[i],
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+			);
+		}
+	}
 
 	
 	

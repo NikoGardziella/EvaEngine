@@ -36,12 +36,12 @@ namespace Engine
 		RendererAPI::SetRendererAPI(selectedAPI);
 		m_window = std::unique_ptr<Window>(WindowsWindow::Create(WindowProps(name)));
 		m_window->SetEventCallback(BIND_EVENT_FN(OnEvent));
-		Renderer::Init(selectedAPI);
 
 
 		m_imGuiLayer = new ImGuiLayer();
 		PushLayer(m_imGuiLayer);
 
+		Renderer::Init(selectedAPI);
 
 
 	}

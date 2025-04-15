@@ -108,7 +108,7 @@ namespace Engine {
         }
 
         // === Game framebuffer color attachments ===
-        m_gameColorAttachments.resize(imageCount);
+        m_gameImage.resize(imageCount);
         m_gameColorAttachmentMemories.resize(imageCount);
         m_gameColorAttachmentImageViews.resize(imageCount);
 
@@ -130,13 +130,13 @@ namespace Engine {
             imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
             imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-            if (vkCreateImage(m_device, &imageInfo, nullptr, &m_gameColorAttachments[i]) != VK_SUCCESS)
+            if (vkCreateImage(m_device, &imageInfo, nullptr, &m_gameImage[i]) != VK_SUCCESS)
             {
                 EE_CORE_ERROR("Failed to create game framebuffer color image [{}]", i);
             }
 
             VkMemoryRequirements memRequirements;
-            vkGetImageMemoryRequirements(m_device, m_gameColorAttachments[i], &memRequirements);
+            vkGetImageMemoryRequirements(m_device, m_gameImage[i], &memRequirements);
 
             VkMemoryAllocateInfo allocInfo{};
             allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -148,12 +148,12 @@ namespace Engine {
                 EE_CORE_ERROR("Failed to allocate memory for game framebuffer image [{}]", i);
             }
 
-            vkBindImageMemory(m_device, m_gameColorAttachments[i], m_gameColorAttachmentMemories[i], 0);
+            vkBindImageMemory(m_device, m_gameImage[i], m_gameColorAttachmentMemories[i], 0);
 
             // Create the image view
             VkImageViewCreateInfo viewInfo{};
             viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            viewInfo.image = m_gameColorAttachments[i];
+            viewInfo.image = m_gameImage[i];
             viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
             viewInfo.format = swapchainFormat;
             viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

@@ -39,7 +39,7 @@ namespace Engine {
 		std::vector<VkImageView> GetGameColorAttachmentImageViews() { return m_gameColorAttachmentImageViews; }
 		//std::vector<VkImageView> GetSwapchainImageViews() { return m_swapchainImageViews; }
 		std::vector<VkImageView> GetImGuiImageViews() { return m_imguiImageViews; }
-		VkImage GetGameColorAttachment(uint32_t index) { return m_gameColorAttachments[index]; }
+		VkImage GetGameImage(uint32_t index) { return m_gameImage[index]; }
 		//std::vector<VkImage> GetGameColorAttachments() { return m_gameColorAttachments; }
 		//std::vector<VkDeviceMemory> GetGameColorAttachmentMemories() { return m_gameColorAttachmentMemories; }
 		VkDeviceMemory GetGameColorAttachmentMemory(uint32_t index) { return m_gameColorAttachmentMemories[index]; }
@@ -58,6 +58,7 @@ namespace Engine {
 
         VkSwapchainKHR m_swapchain;
         std::vector<VkImage> m_swapchainImages;
+        std::vector<VkImage> m_gameImage;
 
         std::vector<VkImageView> m_swapchainImageViews;
         std::vector<VkImageView> m_imguiImageViews;
@@ -68,11 +69,9 @@ namespace Engine {
         *   [Final Output]     --> to --> [Swapchain Framebuffer] (presented on screen)
         */
 
-
         std::vector<VkFramebuffer> m_swapchainFramebuffers;
         std::vector<VkFramebuffer> m_imguiFramebuffers;
         std::vector<VkFramebuffer> m_gameFramebuffers;
-        std::vector<VkImage> m_gameColorAttachments;
         std::vector<VkDeviceMemory> m_gameColorAttachmentMemories;
 
         VkFormat m_swapchainImageFormat;

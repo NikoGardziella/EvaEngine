@@ -78,9 +78,9 @@ namespace Engine {
 		RenderCommand::DrawIndexed(vertexArray);
 	}
 
-	VkDescriptorSet Renderer::GetCurrentDescriptorSet()
+	VkDescriptorSet Renderer::GetCurrentGameDescriptorSet()
 	{
-		return s_VulkanRenderer2D->GetCurrentDescriptorSet();
+		return s_VulkanRenderer2D->GetGameDescriptorSet(s_currentFrame);
 	}
 
 }
