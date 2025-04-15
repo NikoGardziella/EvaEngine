@@ -12,6 +12,7 @@
 
 #include "Sandbox2D.h"
 
+//#include "Engine/Core/EntryPoint.h"
 
 class ExampleGameLayer : public Engine::Layer
 {

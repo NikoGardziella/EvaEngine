@@ -68,6 +68,7 @@ namespace Engine
 
 	//in client
 	Application* CreateApplication();
+	Application* CreateEditorApplication();
 }
 
 

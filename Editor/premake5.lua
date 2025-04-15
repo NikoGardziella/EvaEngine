@@ -18,7 +18,10 @@ project "Editor"
     files
     {
         "source/**.h",
-        "source/**.cpp"
+        "source/**.cpp",
+        "../Sandbox/source/Sandbox2D.cpp",
+        "../Sandbox/source/SandboxApp.cpp",
+        "../Sandbox/source/Sandbox2D.h"
     }
 
 
@@ -53,6 +56,7 @@ project "Editor"
         systemversion "latest"
         defines
         {
+            "EE_EDITOR",
             "EE_PLATFORM_WINDOWS"
         }
 

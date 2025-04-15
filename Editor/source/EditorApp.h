@@ -18,7 +18,7 @@ namespace Engine {
         EditorLayer* m_editorLayerPtr;
     };
 
-    Application* CreateApplication();
+    //Application* CreateEditorApplication();
    
 
 }

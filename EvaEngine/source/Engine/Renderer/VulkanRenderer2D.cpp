@@ -301,6 +301,8 @@ namespace Engine {
 				1, &toColorAttachment
 			);
 
+			// this might be wrong and the whoe layout tracking should be done differently
+			// this line probably just surpresses the error
 			m_gameColorLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 		}
 

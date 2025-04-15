@@ -1,7 +1,7 @@
 
     project "Sandbox"
         location "."
-        kind "StaticLib" 
+        kind "ConsoleApp" 
         language "C++"
         architecture "x64"
         staticruntime "off"
@@ -46,6 +46,7 @@
             systemversion "latest"
             defines
             {
+                "EE_SANDBOX",
                 "EE_PLATFORM_WINDOWS"
             }
 

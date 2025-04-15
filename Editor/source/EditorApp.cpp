@@ -4,7 +4,7 @@
 #include "Sandbox2D.h"
 #include "Engine.h"
 #include "EditorLayer.h"
-#include "Engine/Core/EntryPoint.h"
+//#include "Engine/Core/EntryPoint.h"
 
 
 
@@ -31,11 +31,11 @@ namespace Engine {
 
     Sandbox2D* Editor::GetGameLayer()
     {
-        return m_sandboxLayerPtr;
+       return m_sandboxLayerPtr;
     }
 
 
-    Application* CreateApplication()
+    Application* CreateEditorApplication()
     {
         return new Editor();
     }
