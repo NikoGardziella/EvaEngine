@@ -481,6 +481,22 @@ namespace Engine {
 
             }
 
+            
+            {
+                EE_PROFILE_SCOPE("Update Runtime PixelSpriteRendererComponent");
+                auto view = m_registry.view<PixelSpriteRendererComponent, TransformComponent>();
+
+                for (auto entity : view)
+                {
+                    auto [transform, quadSprite] = view.get<TransformComponent, PixelSpriteRendererComponent>(entity);
+
+                    float tiling = 1.0f;
+                    Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+                }
+
+            }
+            
+
             Engine::Renderer::DrawFrame();
             Engine::VulkanRenderer2D::EndScene();
         }
@@ -699,6 +715,12 @@ namespace Engine {
 
     template<>
     void Scene::OnComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<PixelSpriteRendererComponent>(Entity entity, PixelSpriteRendererComponent& component)
     {
 
     }

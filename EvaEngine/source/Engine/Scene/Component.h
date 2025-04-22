@@ -3,6 +3,7 @@
 #include "Engine/Core/Core.h"
 #include <Engine/Core/UUID.h>
 #include "Engine/Renderer/Texture.h"
+#include "Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h"
 #include "SceneCamera.h"
 
 #include <box2d/id.h>
@@ -98,6 +99,20 @@ namespace Engine {
             : Color(color) { }
 
         
+    };
+
+    struct PixelSpriteRendererComponent
+    {
+        glm::vec4 Color{ 1.0f };
+        Ref<VulkanPixelTexture> Texture;
+        float Tiling = 1.0f;
+        PixelSpriteRendererComponent() = default;
+        PixelSpriteRendererComponent(const PixelSpriteRendererComponent&) = default;
+        PixelSpriteRendererComponent(const glm::vec4& color)
+            : Color(color) {
+        }
+
+
     };
 
     struct CircleRendererComponent

@@ -8,11 +8,17 @@
 
 namespace Engine {
 
-    VulkanPixelTexture::VulkanPixelTexture(uint32_t width, uint32_t height)
-        : VulkanTexture(width, height)
+    VulkanPixelTexture::VulkanPixelTexture(const std::string& path)
+        : VulkanTexture(path)
     {
-        m_pixelData.resize(width * height * 4, 0); // Initialize to transparent black
+        //m_pixelData.resize(m_width * m_height * 4, 0); // Initialize to transparent black
         SetData(m_pixelData.data(), static_cast<uint32_t>(m_pixelData.size()));
+
+        for (int i = 0; i < 12; i += 4) {
+            EE_CORE_TRACE("Pixel {}: R={}, G={}, B={}, A={}", i / 4,
+                m_pixelData[i], m_pixelData[i + 1], m_pixelData[i + 2], m_pixelData[i + 3]);
+        }
+
     }
 
     void VulkanPixelTexture::SetPixel(uint32_t x, uint32_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a)

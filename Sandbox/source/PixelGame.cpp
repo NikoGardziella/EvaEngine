@@ -16,6 +16,9 @@ PixelGame::PixelGame(std::string scene)
 {
 	m_activeScene = std::make_shared<Engine::Scene>();
 
+
+
+
 }
 
 void PixelGame::OnAttach()
@@ -31,6 +34,19 @@ void PixelGame::OnAttach()
 		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
 	}
 
+
+	//m_logoTexture = Engine::AssetManager::GetTexture("logo");
+	m_pixelTexture = Engine::AssetManager::GetPixelTexture("pixel");
+	
+
+	m_cameraEntity = m_activeScene->CreateEntity("camera");
+	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
+	cameraComp.FixedAspectRatio = true;
+	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
+	cameraComp.Camera.SetPerspectiveFOV(45.0f);
+
+	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 2.0f);
 
 }
 
@@ -55,8 +71,7 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 	{
 		m_orthoCameraController.OnUpdate(timestep);
 	}
-
-
+	
 	Engine::VulkanRenderer2D::ResetStats();
 	{
 		EE_PROFILE_SCOPE("render pre");
@@ -67,7 +82,28 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 		//m_framebuffer->ClearColorAttachment(1, -1)
 		if (m_isPlaying)
 		{
+			
 			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
+
+			//Engine::SceneCamera Camera = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera;
+
+			const glm::mat4 viewProjection = m_orthoCameraController.GetCamera().GetViewProjectionMatrix();
+
+			Engine::VulkanRenderer2D::BeginScene(viewProjection);
+			glm::vec2 position = { 0.9f, 0.7f };
+			glm::vec2 size = { 1.0f, 1.0f }; // Width = 2, Height = 3
+			glm::vec4 color = { 0.5f, 0.5f, 0.5f, 1.0f };
+			glm::mat4 transform = glm::translate(glm::mat4(1.0f), { position.x, position.y, 0.0f }) *
+				glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+
+
+			//Engine::VulkanRenderer2D::DrawTextureQuad(transform, m_pixelTexture, 1, color);
+			Engine::Renderer::DrawFrame();
+			Engine::VulkanRenderer2D::EndScene();
+
+			m_pixelTexture->SetPixel(0, 1, 255, 255, 255, 0);
+			m_pixelTexture->ApplyChanges();
+
 		}
 	}
 }
@@ -81,19 +117,16 @@ void PixelGame::OnEvent(Engine::Event& event)
 void PixelGame::OnGameStart()
 {
 	
-	m_squareEntity = m_activeScene->CreateEntity("square");
-	m_squareEntity.AddComponent<Engine::TransformComponent>();
-	m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
+	//m_squareEntity = m_activeScene->CreateEntity("square");
+	//m_squareEntity.AddComponent<Engine::TransformComponent>();
+	//m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
 
+	m_logoEntity = m_activeScene->CreateEntity("pixel entity");
+	m_logoEntity.AddComponent<Engine::TransformComponent>();
+	//m_logoEntity.AddComponent<Engine::SpriteRendererComponent>();
+	auto& renderComp = m_logoEntity.AddComponent<Engine::PixelSpriteRendererComponent>();
+	renderComp.Texture = m_pixelTexture;
 
-	m_cameraEntity = m_activeScene->CreateEntity("camera");
-	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
-	cameraComp.FixedAspectRatio = true;
-	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
-	cameraComp.Camera.SetPerspectiveFOV(45.0f);
-
-	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 80.0f);
 
 	m_activeScene->OnRunTimeStart();
 

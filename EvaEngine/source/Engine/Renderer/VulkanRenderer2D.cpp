@@ -41,6 +41,7 @@ namespace Engine {
 		VulkanQuadVertex* QuadVertexBufferPtr = nullptr;
 
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> TextureSlots;
+		std::array<Ref<VulkanPixelTexture>, MaxTextureSlots> PixelTextureSlots;
 		uint32_t TextureSlotIndex = 1; // 0 = white texture
 
 		glm::vec3 QuadVertexPositions[4];
@@ -162,12 +163,16 @@ namespace Engine {
 		s_VulkanData.TextureSlotIndex++;
 		s_VulkanData.TextureSlots[2] = AssetManager::AddTexture("chess", Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());
 		s_VulkanData.TextureSlotIndex++;
+		s_VulkanData.TextureSlots[3] = AssetManager::AddPixelTexture("pixel", Engine::AssetManager::GetAssetPath("textures/pixel_texture1.png").string());
+		s_VulkanData.TextureSlotIndex++;
 
 		for (uint32_t i = 0; i < s_VulkanData.TextureSlotIndex; i++)
 		{
 			m_vulkanGraphicsPipeline->UpdateDescriptorSets(i, s_VulkanData.TextureSlots[i]);
 
 		}
+
+
 		CreateImGuiTextureDescriptors();
 		m_imageLayouts.resize(m_vulkanContext->GetVulkanSwapchain().GetSwapchainImages().size(), VK_IMAGE_LAYOUT_UNDEFINED);
 		m_gameColorLayouts.resize(m_vulkanContext->GetVulkanSwapchain().GetSwapchainImages().size(), VK_IMAGE_LAYOUT_UNDEFINED);
@@ -312,7 +317,7 @@ namespace Engine {
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
 
-		VkClearValue clearColor = { {{0.1f, 0.1f, 0.1f, 1.0f}} };
+		VkClearValue clearColor = { {{0.8f, 0.2f, 0.35f, 1.0f}} };
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 

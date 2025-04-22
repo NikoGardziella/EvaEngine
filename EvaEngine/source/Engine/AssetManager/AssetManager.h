@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <memory>
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
+#include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
 
 namespace Engine {
 
@@ -24,7 +25,9 @@ namespace Engine {
         static std::vector<char> ReadFile(const std::string& filename);
 
         static Ref<VulkanTexture> AddTexture(const std::string& name, const std::string& path, bool imGuiTexture = false);
+        static Ref<VulkanPixelTexture> AddPixelTexture(const std::string& name, const std::string& path);
 		static Ref<VulkanTexture> GetTexture(const std::string& name);
+		static Ref<VulkanPixelTexture> GetPixelTexture(const std::string& name);
         static  std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures();
         static VkDeviceSize s_totalTextureMemory;
 
@@ -33,6 +36,7 @@ namespace Engine {
         static std::mutex s_Mutex;
 
         static std::unordered_map<std::string, std::shared_ptr<VulkanTexture>> s_textureCache;
+        static std::unordered_map<std::string, std::shared_ptr<VulkanPixelTexture>> s_pixelTextureCache;
 
     };
 

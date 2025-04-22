@@ -35,11 +35,53 @@ namespace Engine {
     VulkanTexture::VulkanTexture(uint32_t width, uint32_t height)
         : m_width(width), m_height(height)
     {
-        // Create empty texture image
-        // ...
+        VulkanContext* vulkaContext = VulkanContext::Get();
+        VkDevice device = vulkaContext->GetDeviceManager().GetDevice();
+        VkPhysicalDevice physicalDevice = vulkaContext->GetDeviceManager().GetPhysicalDevice();
+
+        // 1. Create Image
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageInfo.extent.width = width;
+        imageInfo.extent.height = height;
+        imageInfo.extent.depth = 1;
+        imageInfo.mipLevels = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        if (vkCreateImage(device, &imageInfo, nullptr, &m_image) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create image!");
+        }
+
+        // 2. Allocate memory and bind
+        VkMemoryRequirements memRequirements;
+        vkGetImageMemoryRequirements(device, m_image, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = vulkaContext->FindMemoryType(
+            memRequirements.memoryTypeBits,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        );
+
+        if (vkAllocateMemory(device, &allocInfo, nullptr, &m_imageMemory) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to allocate image memory!");
+        }
+
+        vkBindImageMemory(device, m_image, m_imageMemory, 0);
+
+        // 3. Create image view and sampler
         CreateTextureImageView();
         CreateTextureSampler();
     }
+
 
     VulkanTexture::~VulkanTexture()
     {
@@ -66,8 +108,9 @@ namespace Engine {
     {
         int texWidth, texHeight, texChannels;
         stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        if (!pixels) {
-            throw std::runtime_error("Failed to load texture image!");
+        if (!pixels)
+        {
+            EE_CORE_ERROR("Failed to load texture image!");
         }
 
         m_width = texWidth;
@@ -76,8 +119,8 @@ namespace Engine {
 
         if (AssetManager::s_totalTextureMemory + imageSize > MAX_TEXTURE_MEMORY_BUDGET)
         {
-			EE_CORE_ASSERT(false, "Texture memory budget exceeded!"); // Handle memory budget exceeded
-            // Trigger unloading of unused/least recently used textures
+			EE_CORE_ASSERT(false, "Texture memory budget exceeded!");
+            // unloading of unused/least recently used textures
         }
 
 
@@ -94,6 +137,8 @@ namespace Engine {
 
         // Copy pixel data
         stagingBuffer.SetData(pixels, static_cast<size_t>(imageSize));
+        m_pixelData.resize(m_width * m_height * 4);
+        memcpy(m_pixelData.data(), pixels, m_pixelData.size());
         stbi_image_free(pixels);
 
         // Create the actual Vulkan image
@@ -152,8 +197,8 @@ namespace Engine {
 
         VkSamplerCreateInfo samplerInfo{};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_LINEAR;
-        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.magFilter = VK_FILTER_NEAREST; // for pixel graphics. VK_FILTER_LINEAR will interpolate
+        samplerInfo.minFilter = VK_FILTER_NEAREST;
         samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -168,8 +213,9 @@ namespace Engine {
         samplerInfo.minLod = 0.0f;
         samplerInfo.maxLod = 0.0f;
 
-        if (vkCreateSampler(device, &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create texture sampler!");
+        if (vkCreateSampler(device, &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS)
+        {
+            EE_CORE_ERROR("failed to create texture sampler!");
         }
     }
 

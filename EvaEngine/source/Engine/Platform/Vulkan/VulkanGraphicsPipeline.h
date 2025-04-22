@@ -7,6 +7,7 @@
 #include "VulkanTexture.h"
 #include <glm/glm.hpp>
 #include "VulkanShader.h"
+#include "Pixel/VulkanPixelTexture.h"
 
 
 namespace Engine {
@@ -63,9 +64,12 @@ namespace Engine {
         VkDescriptorSet m_playButtondescriptorSet;
 
 		Ref<VulkanTexture> m_texture;
+        Ref<VulkanPixelTexture> m_pixelTexture;
+        Ref<VulkanShader> m_pixelGameShader;
 		//std::vector<Ref<VulkanTexture>> m_textures;
 
         Ref<VulkanShader> m_circleShader;
+
         //VkImageView m_textureImageView;
         //VkSampler m_textureSampler;
 

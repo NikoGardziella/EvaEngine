@@ -34,15 +34,15 @@ namespace Engine {
 
     protected:
         VkImage m_image;
+        uint32_t m_width;
+        uint32_t m_height;
+        std::vector<uint8_t> m_pixelData; // 4 bytes per pixel (RGBA)
     private:
         void CreateTextureImage(const std::string& path);
         void CreateTextureImageView();
         void CreateTextureSampler();
 
         std::string m_path;
-        uint32_t m_width;
-        uint32_t m_height;
-
         VkDeviceMemory m_imageMemory;
         VkImageView m_imageView;
         VkDescriptorSet m_textureDescriptor;

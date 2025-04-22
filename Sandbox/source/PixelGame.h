@@ -2,6 +2,7 @@
 
 #include "Engine.h"
 #include <string>
+#include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
 
 class PixelGame : public Engine::Layer
 {
@@ -41,7 +42,13 @@ private:
 	bool m_isPlaying = false;
 	std::string m_activeSceneName;
 	Engine::OrthographicCameraController m_orthoCameraController;
-	Engine::Entity m_squareEntity;
+	Engine::Entity m_logoEntity;
+
+	Engine::Ref<Engine::VulkanPixelTexture> m_pixelTexture;
+	Engine::Ref<Engine::VulkanTexture> m_logoTexture;
+
+
+
 
 };
 

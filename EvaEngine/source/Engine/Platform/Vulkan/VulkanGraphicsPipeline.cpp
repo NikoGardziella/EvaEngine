@@ -30,7 +30,9 @@ namespace Engine {
         m_descriptorPool = vulkanContext->GetDescriptorPool();
         m_texture = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("textures/ee_logo.png").string());
 
-        
+        //m_pixelTexture = std::make_shared<VulkanPixelTexture>(2, 2);
+        m_pixelGameShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/PixelGameShader.GLSL").string());
+
         m_uniformBuffer = VulkanBuffer(
             m_device,
             vulkanContext->GetDeviceManager().GetPhysicalDevice(),
@@ -175,7 +177,7 @@ namespace Engine {
 
 
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-        colorBlendAttachment.blendEnable = VK_TRUE;  // Enable blending
+        colorBlendAttachment.blendEnable = VK_TRUE;  
         colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA; // Use alpha for source blend
         colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA; // Use inverse alpha for destination
         colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
