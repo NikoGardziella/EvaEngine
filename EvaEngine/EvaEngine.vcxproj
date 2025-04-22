@@ -177,6 +177,7 @@
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLTexture.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLUniformBuffer.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.h" />
@@ -660,6 +661,7 @@
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLTexture.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLUniformBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.cpp" />
@@ -710,6 +712,7 @@
     <None Include="..\assets\shaders\Circle_shader.glsl" />
     <None Include="..\assets\shaders\FlatColor.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
+    <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\quadshader.frag" />

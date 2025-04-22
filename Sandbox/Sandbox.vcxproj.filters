@@ -8,8 +8,10 @@
   <ItemGroup>
     <ClCompile Include="source\SandboxApp.cpp" />
     <ClCompile Include="source\Sandbox2D.cpp" />
+    <ClCompile Include="source\PixelGame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Sandbox2D.h" />
+    <ClInclude Include="source\PixelGame.h" />
   </ItemGroup>
 </Project>

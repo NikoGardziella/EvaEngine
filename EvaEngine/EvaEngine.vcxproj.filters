@@ -40,6 +40,9 @@
     <Filter Include="source\Engine\Platform\Vulkan">
       <UniqueIdentifier>{8FE228B3-FBFA-0FDD-C4A7-9F76307FA476}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Platform\Vulkan\Pixel">
+      <UniqueIdentifier>{600F18CE-CCC8-8278-5528-9D52C1E038E8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Platform\Windows">
       <UniqueIdentifier>{29216249-1547-2CB0-FE8C-B17BEA51517C}</UniqueIdentifier>
     </Filter>
@@ -188,6 +191,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h">
       <Filter>source\Engine\Platform\OpenGl</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.h">
+      <Filter>source\Engine\Platform\Vulkan\Pixel</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
@@ -1634,6 +1640,9 @@
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.cpp">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.cpp">
+      <Filter>source\Engine\Platform\Vulkan\Pixel</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClCompile>
@@ -1789,5 +1798,6 @@
     <None Include="..\assets\shaders\testShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\PixelGameShader.glsl" />
   </ItemGroup>
 </Project>

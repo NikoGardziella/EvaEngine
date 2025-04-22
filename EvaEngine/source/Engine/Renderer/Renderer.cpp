@@ -49,6 +49,8 @@ namespace Engine {
 	{
 		if (s_VulkanRenderer2D)
 		{
+			//s_VulkanRenderer2D->DrawFrame(s_currentFrame);
+			//s_VulkanRenderer2D->DrawImGuiFrame(s_currentFrame);
 			s_VulkanRenderer2D->DrawFrame(s_currentFrame);
 			// clearing done in RecordCommandBuffer
 		}

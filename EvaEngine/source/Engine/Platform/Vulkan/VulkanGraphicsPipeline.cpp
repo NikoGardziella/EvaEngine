@@ -38,8 +38,9 @@ namespace Engine {
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
-        //m_circleShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());
-        m_circleShader = shader;
+        m_circleShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());
+        //m_circleShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/PixelGameShader.GLSL").string());
+       // m_circleShader = shader;
         CreateDescriptorSetLayout();
         CreateDescriptorSet();
         CreateGraphicsPipeline(swapchainExtent, renderPass);

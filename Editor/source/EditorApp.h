@@ -1,5 +1,7 @@
 #pragma once
 #include "Sandbox2D.h"
+#include "PixelGame.h"
+
 #include "EditorLayer.h"
 #include "Engine/Core/Application.h"
 
@@ -11,10 +13,10 @@ namespace Engine {
         Editor();
         ~Editor();
 
-        Sandbox2D* GetGameLayer();
+        PixelGame* GetGameLayer();
 
     private:
-        Sandbox2D* m_sandboxLayerPtr;
+        PixelGame* m_gameLayerPtr;
         EditorLayer* m_editorLayerPtr;
     };
 

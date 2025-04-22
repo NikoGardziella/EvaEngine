@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Sandbox\source\PixelGame.h" />
     <ClInclude Include="..\Sandbox\source\Sandbox2D.h" />
     <ClInclude Include="source\EditorApp.h" />
     <ClInclude Include="source\EditorLayer.h" />
@@ -142,6 +143,7 @@
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Sandbox\source\PixelGame.cpp" />
     <ClCompile Include="..\Sandbox\source\Sandbox2D.cpp" />
     <ClCompile Include="..\Sandbox\source\SandboxApp.cpp" />
     <ClCompile Include="source\EditorApp.cpp" />

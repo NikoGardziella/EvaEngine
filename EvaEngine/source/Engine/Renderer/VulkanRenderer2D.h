@@ -26,6 +26,9 @@ namespace Engine {
 
 		void Init();
 		void DrawFrame(uint32_t currentFrame);
+		void RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void TransitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout newLayout, VkImageSubresourceRange subresourceRange);
 		//inline VulkanGraphicsPipeline* GetGraphicsPipeline() { return m_vulkanGraphicsPipeline.get(); }
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
 		void TransitionImageForShaderRead(VkCommandBuffer cmd, uint32_t imageIndex, VkImage image, VulkanContext* vulkanContext);
@@ -52,6 +55,10 @@ namespace Engine {
 		void TransitionImage(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspect);
 		void CreateSyncObjects();
 
+		void PrepareImageForRenderPass(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
+		void TransitionToPresent(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
 
 		//void UpdateDescriptorSet(VkDescriptorSet descriptorSet, const VulkanBuffer& uniformBuffer, VkImageView textureImageView, VkSampler textureSampler);
 	private:
@@ -59,6 +66,7 @@ namespace Engine {
 		Ref<VulkanGraphicsPipeline> m_vulkanGraphicsPipeline;
 
 		std::vector<VkCommandBuffer> m_commandBuffers;
+		std::vector<VkCommandBuffer> m_imGuiCommandBuffers;
 		VulkanContext* m_vulkanContext;
 		VkSwapchainKHR m_swapchain;
 		VkExtent2D m_swapchainExtent;
@@ -76,7 +84,6 @@ namespace Engine {
 		Ref<VulkanIndexBuffer> m_indexBuffer;
 
 		Ref<OrthographicCamera> m_camera;
-
 
 
 		//********** Experiental **********

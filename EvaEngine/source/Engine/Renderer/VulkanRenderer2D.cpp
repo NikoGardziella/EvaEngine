@@ -78,7 +78,7 @@ namespace Engine {
 
 	void VulkanRenderer2D::Init()
 	{
-		s_VulkanData.QuadShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());  // Add appropriate shader paths
+		//s_VulkanData.QuadShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());  // Add appropriate shader paths
 
 		m_vulkanContext = VulkanContext::Get();
 		m_swapchain = m_vulkanContext->GetVulkanSwapchain().GetSwapchain();
@@ -112,7 +112,7 @@ namespace Engine {
 		// Update the uniform buffer with the camera's view-projection matrix
 		m_vulkanGraphicsPipeline->UpdateUniformBuffer(m_camera->GetViewProjectionMatrix());
 
-		s_VulkanData.QuadShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());  // Add appropriate shader paths
+		//s_VulkanData.QuadShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());  // Add appropriate shader paths
 		//s_VulkanData.QuadVertexArray = VertexArray::Create();
 
 
@@ -171,33 +171,26 @@ namespace Engine {
 		CreateImGuiTextureDescriptors();
 		m_imageLayouts.resize(m_vulkanContext->GetVulkanSwapchain().GetSwapchainImages().size(), VK_IMAGE_LAYOUT_UNDEFINED);
 		m_gameColorLayouts.resize(m_vulkanContext->GetVulkanSwapchain().GetSwapchainImages().size(), VK_IMAGE_LAYOUT_UNDEFINED);
+	
+	
 	}
-
-
 
 	void VulkanRenderer2D::DrawFrame(uint32_t currentFrame)
 	{
-		
 		s_VulkanData.Stats.DrawCalls++;
-
 		m_vulkanGraphicsPipeline->UpdateUniformBuffer(s_VulkanData.CameraBuffer.ViewProjection);
-
 		VulkanContext* vulkanContext = VulkanContext::Get();
 
-		// 1. Wait for the current frame to finish
+		// 1. Sync
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
-		// 2. Acquire image FIRST!
+		// 2. Acquire
 		uint32_t imageIndex;
-		VkResult result = vkAcquireNextImageKHR(
-			m_device, m_swapchain, UINT64_MAX,
-			m_imageAvailableSemaphores[currentFrame],
-			VK_NULL_HANDLE, &imageIndex
-		);
+		VkResult result = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX,
+			m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-		if (result == VK_ERROR_OUT_OF_DATE_KHR)
-		{
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 			m_vulkanContext->GetVulkanSwapchain().RecreateSwapchain();
 			return;
 		}
@@ -206,36 +199,41 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to acquire swapchain image!");
 		}
 
+		// 3. Record Game Pass
+		vkResetCommandBuffer(m_commandBuffers[imageIndex], 0);
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		vkBeginCommandBuffer(m_commandBuffers[imageIndex], &beginInfo);
 
-		// 4. Reset and record command buffer
-		vkResetCommandBuffer(m_commandBuffers[currentFrame], 0);
-		RecordCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
+		RecordGameDrawCommands(m_commandBuffers[imageIndex], imageIndex);
+		RecordEditorDrawCommands(m_commandBuffers[imageIndex], imageIndex);
 
-		// 5. Submit command buffer
-		VkSubmitInfo submitInfo = {};
+		vkEndCommandBuffer(m_commandBuffers[imageIndex]);
+
+		// 4. Submit
+		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-		VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[currentFrame] };
+		VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[imageIndex] };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_commandBuffers[currentFrame];
-		VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[currentFrame] };
+		submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
+		VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[imageIndex] };
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		if (vkQueueSubmit(m_vulkanContext->GetGraphicsQueue(), 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS)
+		if (vkQueueSubmit(m_vulkanContext->GetGraphicsQueue(), 1, &submitInfo, m_inFlightFences[imageIndex]) != VK_SUCCESS)
 		{
 			EE_CORE_ASSERT(false, "Failed to submit draw command buffer!");
-			return;
 		}
 
-		m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		// 5. Present
+		//m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-		// 6. Present
-		VkPresentInfoKHR presentInfo = {};
+		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pWaitSemaphores = signalSemaphores;
@@ -254,6 +252,234 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to present swapchain image!");
 		}
 	}
+
+
+
+
+	void VulkanRenderer2D::RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	{
+		VulkanContext* context = VulkanContext::Get();
+
+		// Transition to COLOR_ATTACHMENT_OPTIMAL for ImGui rendering
+		//PrepareImageForRenderPass(commandBuffer, imageIndex);
+
+		// Begin ImGui render pass
+		VkRenderPassBeginInfo imguiRenderPassInfo{};
+		imguiRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		imguiRenderPassInfo.renderPass = context->GetImGuiRenderPass();
+		imguiRenderPassInfo.framebuffer = context->GetVulkanSwapchain().GetImGuiFramebuffer(imageIndex);
+		imguiRenderPassInfo.renderArea.offset = { 0, 0 };
+		imguiRenderPassInfo.renderArea.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
+
+		VkClearValue clearValue{};
+		clearValue.color = { {0.0f, 0.0f, 0.0f, 0.0f} };
+		imguiRenderPassInfo.clearValueCount = 1;
+		imguiRenderPassInfo.pClearValues = &clearValue;
+
+		vkCmdBeginRenderPass(commandBuffer, &imguiRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		ImDrawData* imguiDrawData = ImGui::GetDrawData();
+		if (imguiDrawData != nullptr)
+		{
+
+			ImGui_ImplVulkan_RenderDrawData(imguiDrawData, commandBuffer);
+		}
+
+		vkCmdEndRenderPass(commandBuffer);
+
+	}
+
+
+	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	{
+		VulkanContext* context = VulkanContext::Get();
+		//m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		TransitionImageLayout(
+			commandBuffer,
+			context->GetVulkanSwapchain().GetGameImage(imageIndex),
+			m_gameColorLayouts[imageIndex],
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+		);
+		m_gameColorLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+
+		// Begin game render pass
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = context->GetRenderPass();
+		renderPassInfo.framebuffer = context->GetVulkanSwapchain().GetGameFramebuffer(imageIndex);
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
+
+		VkClearValue clearColor = { {{0.1f, 0.1f, 0.1f, 1.0f}} };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().width);
+		viewport.height = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().height);
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor{};
+		scissor.offset = { 0, 0 };
+		scissor.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipeline());
+
+		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetDescriptorSet(imageIndex);
+		vkCmdBindDescriptorSets(
+			commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_vulkanGraphicsPipeline->GetPipelineLayout(),
+			0,
+			1,
+			&descriptorSet,
+			0,
+			nullptr
+		);
+
+		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
+		vkCmdEndRenderPass(commandBuffer);
+
+		TransitionImageLayout(
+			commandBuffer,
+			context->GetVulkanSwapchain().GetGameImage(imageIndex),
+			m_gameColorLayouts[imageIndex],
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+		);
+		m_gameColorLayouts[imageIndex] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+	}
+
+
+	void VulkanRenderer2D::TransitionImageLayout(VkCommandBuffer commandBuffer,	VkImage image,
+		VkImageLayout oldLayout, VkImageLayout newLayout)
+	{
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = oldLayout;
+		barrier.newLayout = newLayout;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = image;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+
+		//*********** src VkAccessFlags *****************
+		// flag indicates which types of access to the image (or buffer) are 
+		// required by the pipeline before the layout transition.
+		// defines which operations or stages (such as reading or writing) need
+		// to happen on the image before the layout change.
+		// - VK_ACCESS_SHADER_READ_BIT: The image will be read by a shader.
+		// - VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT: The image will be written to as a color attachment.
+		// - VK_ACCESS_MEMORY_READ_BIT : General memory read access(for non - shader access).
+		// - VK_ACCESS_MEMORY_WRITE_BIT : General memory write access.
+		VkAccessFlags srcAccessMask = 0;
+
+		//*********** dst VkAccessFlags *****************
+		//  indicates the type of access after the layout transition has been completed.
+		// defines the operations that will need access to the image in the new layout.
+		VkAccessFlags dstAccessMask = 0;
+
+		//************ sourceStage (VkPipelineStageFlags) *********
+		//  specifies the pipeline stage during which the source access 
+		// (specified by srcAccessMask) will occur before the layout transition.
+		// ensures that the pipeline has finished all operations that 
+		// need to occur before the transition
+		VkPipelineStageFlags sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
+		// ******** destinationStage (VkPipelineStageFlags) ********
+		// pecifies the pipeline stage after the layout transition, during which
+		// the destination access (specified by dstAccessMask) will occur.
+		// -VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT: Used when no specific stage is required.
+		// -VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT: Used when you need to output to a color attachment.
+		// -VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT : Used when you want to access the resource in a fragment shader.
+		// -VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : Used when you want to access the resource in a compute shader.
+		VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+
+		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		{
+			srcAccessMask = 0;
+			dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+		{
+			srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			dstAccessMask = 0;
+			sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) 
+		{
+			srcAccessMask = 0;
+			dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		{
+			// Transition from presentable image to shader readable
+			srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		{
+			srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		{
+			srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		}
+
+		else 
+		{
+			EE_CORE_WARN("Unsupported layout transition: {} -> {}", std::to_string(oldLayout), std::to_string(newLayout));
+		}
+
+		barrier.srcAccessMask = srcAccessMask;
+		barrier.dstAccessMask = dstAccessMask;
+
+
+		// vkCmdPipelineBarrier command ensures that the proper synchronization occurs between
+		// different stages of the Vulkan pipeline by specifying how and when the image will be used.
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			sourceStage,
+			destinationStage,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		);
+	}
+
+
 
 	void VulkanRenderer2D::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
@@ -426,7 +652,7 @@ namespace Engine {
 
 
 
-
+	/*
 	// Transition the image layout from PRESENT_SRC_KHR to SHADER_READ_ONLY_OPTIMAL
 	void VulkanRenderer2D::TransitionImageForShaderRead(VkCommandBuffer cmd, uint32_t imageIndex, VkImage image, VulkanContext* vulkanContext)
 	{
@@ -459,6 +685,7 @@ namespace Engine {
 		// Update the image layout tracker
 		m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	}
+	*/
 
 
 
@@ -467,6 +694,7 @@ namespace Engine {
 	void VulkanRenderer2D::AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool)
 	{
 		m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+		m_imGuiCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -479,7 +707,13 @@ namespace Engine {
 			EE_CORE_ERROR("Failed to allocate command buffers!");
 		}
 
+		// Allocate ImGui command buffers from the same pool
+		if (vkAllocateCommandBuffers(device, &allocInfo, m_imGuiCommandBuffers.data()) != VK_SUCCESS)
+		{
+			EE_CORE_ERROR("Failed to allocate ImGui command buffers!");
+		}
 	}
+
 
 	void VulkanRenderer2D::CreateSyncObjects()
 	{
@@ -504,6 +738,39 @@ namespace Engine {
 				EE_CORE_ASSERT(false, "Failed to create synchronization objects for a frame!");
 
 			}
+		}
+	}
+	void VulkanRenderer2D::PrepareImageForRenderPass(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	{
+		VulkanContext* context = VulkanContext::Get();
+		VkImage image = context->GetVulkanSwapchain().GetSwapchainImage(imageIndex);
+
+		if (m_imageLayouts[imageIndex] != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		{
+			TransitionImageLayout(
+				commandBuffer,
+				image,
+				m_imageLayouts[imageIndex],
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+			);
+			m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		}
+	}
+
+	void VulkanRenderer2D::TransitionToPresent(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	{
+		VulkanContext* context = VulkanContext::Get();
+		VkImage image = context->GetVulkanSwapchain().GetSwapchainImage(imageIndex);
+
+		if (m_imageLayouts[imageIndex] != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+		{
+			TransitionImageLayout(
+				commandBuffer,
+				image,
+				m_imageLayouts[imageIndex],
+				VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+			);
+			m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 		}
 	}
 

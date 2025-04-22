@@ -15,6 +15,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Sandbox\source\PixelGame.h">
+      <Filter>Sandbox\source</Filter>
+    </ClInclude>
     <ClInclude Include="..\Sandbox\source\Sandbox2D.h">
       <Filter>Sandbox\source</Filter>
     </ClInclude>
@@ -35,6 +38,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Sandbox\source\PixelGame.cpp">
+      <Filter>Sandbox\source</Filter>
+    </ClCompile>
     <ClCompile Include="..\Sandbox\source\Sandbox2D.cpp">
       <Filter>Sandbox\source</Filter>
     </ClCompile>

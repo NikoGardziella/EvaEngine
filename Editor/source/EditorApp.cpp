@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "EditorApp.h"
 #include "EditorLayer.h"
-#include "Sandbox2D.h"
+
 #include "Engine.h"
 #include "EditorLayer.h"
 //#include "Engine/Core/EntryPoint.h"
 
-
+#include "Sandbox2D.h"
+#include "PixelGame.h"
 
 namespace Engine {
 
@@ -14,8 +15,8 @@ namespace Engine {
     Editor::Editor()
         : Application("Eva Editor")
     {
-        m_sandboxLayerPtr = new Sandbox2D("physics2D");
-        PushLayer(m_sandboxLayerPtr);
+        m_gameLayerPtr = new PixelGame("physics2D");
+        PushLayer(m_gameLayerPtr);
         
         m_editorLayerPtr = new EditorLayer(this);
         PushLayer(m_editorLayerPtr);
@@ -25,13 +26,13 @@ namespace Engine {
 
     Editor::~Editor()
     {
-        PopLayer(m_sandboxLayerPtr);
+        PopLayer(m_gameLayerPtr);
         PopLayer(m_editorLayerPtr);
     }
 
-    Sandbox2D* Editor::GetGameLayer()
+    PixelGame* Editor::GetGameLayer()
     {
-       return m_sandboxLayerPtr;
+       return m_gameLayerPtr;
     }
 
 

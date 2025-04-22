@@ -32,6 +32,8 @@ namespace Engine {
             return m_imageView == vulkanOther->m_imageView;
         }
 
+    protected:
+        VkImage m_image;
     private:
         void CreateTextureImage(const std::string& path);
         void CreateTextureImageView();
@@ -40,7 +42,7 @@ namespace Engine {
         std::string m_path;
         uint32_t m_width;
         uint32_t m_height;
-        VkImage m_image;
+
         VkDeviceMemory m_imageMemory;
         VkImageView m_imageView;
         VkDescriptorSet m_textureDescriptor;

@@ -11,6 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Sandbox2D.h"
+#include "PixelGame.h"
 
 //#include "Engine/Core/EntryPoint.h"
 
@@ -127,7 +128,8 @@ public:
 	Sandbox()
 	{
 		//PushLayer(new ExampleGameLayer());
-		PushLayer(new Sandbox2D());
+		//PushLayer(new Sandbox2D());
+		PushLayer(new PixelGame());
 	}
 	~Sandbox()
 	{
