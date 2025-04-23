@@ -27,42 +27,6 @@ namespace Engine {
 
 	class Entity;
 
-
-
-	
-
-	
-
-
-
-	/*
-	void EnqueueTask(b2TaskCallback task, int itemCount, void* taskContext, void* userContext) {
-		// Define the task function that will be executed in parallel
-		TaskSetFunction taskFunction = [=](TaskSetPartition range, uint32_t threadnum) {
-			int startIndex = range.start;
-			int endIndex = range.end;
-
-			// Execute the provided task callback for the given range
-			task(startIndex, endIndex, threadnum, taskContext);
-			};
-
-		// Create a TaskSet using the function defined above
-		TaskSet taskSet(itemCount, taskFunction);
-
-		// Enqueue the task set to the scheduler
-		taskScheduler.AddTaskSetToPipe(&taskSet);
-	}
-
-	void StartTaskScheduler()
-	{
-		taskScheduler.Initialize();
-	}
-
-	void StopTaskScheduler() {
-		taskScheduler.ShutdownNow();
-	}
-	*/
-
 	class Scene
 	{
 
@@ -100,9 +64,8 @@ namespace Engine {
 		entt::registry& GetRegistry() { return m_registry;  }
 		
 
-		PhysicsTaskScheduler m_physicsTaskScheduler;
-
-
+		
+		void RegisterSystem(const std::function<void(entt::registry&, float)>& system);
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()
@@ -116,6 +79,7 @@ namespace Engine {
 		void OnComponentAdded(Entity entity, T& component);
 
 		void UpdatePhysics(Timestep timestep);
+
 
 
 	private:
@@ -134,6 +98,10 @@ namespace Engine {
 			std::vector<b2BodyId> BodyIds;
 		};
 		RenderSOA m_renderSOA;
+
+		PhysicsTaskScheduler m_physicsTaskScheduler;
+
+		std::vector<std::function<void(entt::registry&, float)>> m_gameplaySystems;
 
 		friend class Entity;
 		friend class SceneSerializer;

@@ -177,7 +177,7 @@ namespace Engine {
 
 
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-        colorBlendAttachment.blendEnable = VK_TRUE;  
+        colorBlendAttachment.blendEnable = VK_TRUE;  // for alpha channel
         colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA; // Use alpha for source blend
         colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA; // Use inverse alpha for destination
         colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;

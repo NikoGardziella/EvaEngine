@@ -1,17 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Engine">
-      <UniqueIdentifier>{DBC7D3B0-C769-FE86-B024-12DB9C6585D7}</UniqueIdentifier>
+    <Filter Include="Systems">
+      <UniqueIdentifier>{1DDE831B-89BD-02B7-92D5-8D8DFE336918}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems\Player">
+      <UniqueIdentifier>{99AC9A68-857A-8E6E-6E0E-FF945A7B6AD3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\SandboxApp.cpp" />
-    <ClCompile Include="source\Sandbox2D.cpp" />
-    <ClCompile Include="source\PixelGame.cpp" />
+    <ClInclude Include="source\PixelGame.h" />
+    <ClInclude Include="source\Sandbox2D.h" />
+    <ClInclude Include="source\Systems\Player\CharacterControllerSystem.h">
+      <Filter>Systems\Player</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Sandbox2D.h" />
-    <ClInclude Include="source\PixelGame.h" />
+    <ClCompile Include="source\PixelGame.cpp" />
+    <ClCompile Include="source\Sandbox2D.cpp" />
+    <ClCompile Include="source\SandboxApp.cpp" />
+    <ClCompile Include="source\Systems\Player\CharacterControllerSystem.cpp">
+      <Filter>Systems\Player</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

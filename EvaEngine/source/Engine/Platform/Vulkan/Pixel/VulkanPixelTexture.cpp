@@ -13,11 +13,19 @@ namespace Engine {
     {
         //m_pixelData.resize(m_width * m_height * 4, 0); // Initialize to transparent black
         SetData(m_pixelData.data(), static_cast<uint32_t>(m_pixelData.size()));
+        m_solidMask.resize(m_width * m_height, 1); 
 
-        for (int i = 0; i < 12; i += 4) {
-            EE_CORE_TRACE("Pixel {}: R={}, G={}, B={}, A={}", i / 4,
-                m_pixelData[i], m_pixelData[i + 1], m_pixelData[i + 2], m_pixelData[i + 3]);
+        for (int y = 0; y < m_height; ++y)
+        {
+            for (int x = 0; x < m_width; ++x)
+            {
+                int index = (y * m_width + x) * 4;
+                uint8_t alpha = m_pixelData[index + 3];
+                // if the pixel alpha is 0, its not solid
+                m_solidMask[y * m_width + x] = (alpha > 0) ? 1 : 0;
+            }
         }
+
 
     }
 
@@ -66,5 +74,20 @@ namespace Engine {
         stagingBuffer.Destroy();
     }
 
+    bool VulkanPixelTexture::IsPixelSolid(int x, int y) const
+    {
+        if (x < 0 || x >= m_width || y < 0 || y >= m_height)
+            return false;
 
+        return m_solidMask[y * m_width + x] != 0;
+    }
+    void VulkanPixelTexture::DestroyPixel(int x, int y)
+    {
+        if (x < 0 || x >= m_width || y < 0 || y >= m_height)
+            return;
+
+        m_solidMask[y * m_width + x] = 0;
+        m_pixelData[(y * m_width + x) * 4 + 3] = 0; // Set alpha to 0
+        
+    }
 }

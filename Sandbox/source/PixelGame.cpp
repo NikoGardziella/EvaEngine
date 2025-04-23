@@ -4,6 +4,8 @@
 #include <Engine/AssetManager/AssetManager.h>
 #include <Engine/Scene/SceneSerializer.h>
 
+#include "Systems/Player/CharacterControllerSystem.h"
+
 #include <imgui/imgui.h>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -46,7 +48,18 @@ void PixelGame::OnAttach()
 	cameraComp.Camera.SetPerspectiveFOV(45.0f);
 
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 2.0f);
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 12.0f);
+
+	m_playerEntity = m_activeScene->CreateEntity("player");
+
+	auto& transformComp = m_playerEntity.AddComponent<Engine::TransformComponent>();
+	transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
+	m_playerEntity.AddComponent<Engine::CharacterControllerComponent>();
+	
+	glm::vec4 color = { 0.2, 0.9, 0.8, 1.0f };
+	Engine::SpriteRendererComponent& spriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();
+	spriteComp.Color = color;
+
 
 }
 
@@ -83,6 +96,7 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 		if (m_isPlaying)
 		{
 			
+
 			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
 
 			//Engine::SceneCamera Camera = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera;
@@ -129,6 +143,8 @@ void PixelGame::OnGameStart()
 
 
 	m_activeScene->OnRunTimeStart();
+
+	m_activeScene->RegisterSystem(CharacterControllerSystem::UpdateCharacterControllerSystem);
 
 }
 

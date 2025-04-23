@@ -22,8 +22,8 @@ project "Editor"
         "../Sandbox/source/Sandbox2D.cpp",
         "../Sandbox/source/SandboxApp.cpp",
         "../Sandbox/source/Sandbox2D.h",
-        "../Sandbox/source/PixelGame.cpp",
-        "../Sandbox/source/PixelGame.h"
+        "../Sandbox/source/**.h",
+        "../Sandbox/source/**.cpp"
     }
 
 

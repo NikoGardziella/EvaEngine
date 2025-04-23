@@ -38,6 +38,7 @@ private:
 
 	Engine::Ref<Engine::Scene> m_activeScene;
 	Engine::Entity m_cameraEntity;
+	Engine::Entity m_playerEntity;
 
 	bool m_isPlaying = false;
 	std::string m_activeSceneName;
@@ -46,7 +47,6 @@ private:
 
 	Engine::Ref<Engine::VulkanPixelTexture> m_pixelTexture;
 	Engine::Ref<Engine::VulkanTexture> m_logoTexture;
-
 
 
 

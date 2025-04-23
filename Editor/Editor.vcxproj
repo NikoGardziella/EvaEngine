@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="..\Sandbox\source\PixelGame.h" />
     <ClInclude Include="..\Sandbox\source\Sandbox2D.h" />
+    <ClInclude Include="..\Sandbox\source\Systems\Player\CharacterControllerSystem.h" />
     <ClInclude Include="source\EditorApp.h" />
     <ClInclude Include="source\EditorLayer.h" />
     <ClInclude Include="source\FPSCounter.h" />
@@ -146,6 +147,7 @@
     <ClCompile Include="..\Sandbox\source\PixelGame.cpp" />
     <ClCompile Include="..\Sandbox\source\Sandbox2D.cpp" />
     <ClCompile Include="..\Sandbox\source\SandboxApp.cpp" />
+    <ClCompile Include="..\Sandbox\source\Systems\Player\CharacterControllerSystem.cpp" />
     <ClCompile Include="source\EditorApp.cpp" />
     <ClCompile Include="source\EditorLayer.cpp" />
     <ClCompile Include="source\Panels\ContentBrowserPanel.cpp" />

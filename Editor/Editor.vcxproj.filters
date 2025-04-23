@@ -7,6 +7,12 @@
     <Filter Include="Sandbox\source">
       <UniqueIdentifier>{94A92D79-8077-217F-690B-92A55578FDE3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sandbox\source\Systems">
+      <UniqueIdentifier>{9B53924C-874D-BB9E-70BA-51AF5C53210B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sandbox\source\Systems\Player">
+      <UniqueIdentifier>{57489A7C-C360-81A6-8C0D-1140F8E41540}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source">
       <UniqueIdentifier>{76FF3A1C-62A1-65F2-4B5C-7946379DEC42}</UniqueIdentifier>
     </Filter>
@@ -20,6 +26,9 @@
     </ClInclude>
     <ClInclude Include="..\Sandbox\source\Sandbox2D.h">
       <Filter>Sandbox\source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Sandbox\source\Systems\Player\CharacterControllerSystem.h">
+      <Filter>Sandbox\source\Systems\Player</Filter>
     </ClInclude>
     <ClInclude Include="source\EditorApp.h">
       <Filter>source</Filter>
@@ -46,6 +55,9 @@
     </ClCompile>
     <ClCompile Include="..\Sandbox\source\SandboxApp.cpp">
       <Filter>Sandbox\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sandbox\source\Systems\Player\CharacterControllerSystem.cpp">
+      <Filter>Sandbox\source\Systems\Player</Filter>
     </ClCompile>
     <ClCompile Include="source\EditorApp.cpp">
       <Filter>source</Filter>

@@ -2,15 +2,17 @@
 #include "Scene.h"
 #include "Engine.h"
 
+#include "Engine/Math/Math.h"
+#include "Component.h"
+#include "ScriptableEntity.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
-#include "Engine/Math/Math.h"
-#include "Component.h"
-#include "ScriptableEntity.h"
+
 
 #include "box2d/box2d.h"
 #include "box2d/math_functions.h"
@@ -127,6 +129,7 @@ namespace Engine {
         CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         
         return newScene;
     }
@@ -171,6 +174,7 @@ namespace Engine {
             CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         }
     }
 
@@ -351,7 +355,7 @@ namespace Engine {
         EE_PROFILE_FUNCTION();
         /*
         ╔════════════════════════════════════════════════╗
-        ║ 🚀 EVA ENGINE | ENTT                        	║
+        ║ 🚀 EVA ENGINE | ENTT                           ║
         ║                                                ║
         ╚════════════════════════════════════════════════╝
         // Full-owning group: The registry owns and tightly packs both SpriteRendererComponent and TransformComponent
@@ -372,10 +376,17 @@ namespace Engine {
 
         */
 
+        //********** Update all systems **************
+        {
+            EE_PROFILE_SCOPE("Update systems");
+            for (auto& system : m_gameplaySystems)
+            {
+                system(m_registry, timestep);
+            }
+        }
 
 
-
-        // update scripts
+        //************ update scripts ***************
         {
             m_registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
                 {
@@ -392,11 +403,13 @@ namespace Engine {
                 });
         }
 
-        // physics
+        // ******** update physics ************
         if (isPlaying)
         {
             UpdatePhysics(timestep);
         }
+
+        //*********** Render ************
 
         Camera* mainCamera = nullptr;
         glm::mat4 cameraTransform;
@@ -654,6 +667,11 @@ namespace Engine {
 
     }
 
+    void Scene::RegisterSystem(const std::function<void(entt::registry&, float)>& system)
+    {
+        m_gameplaySystems.emplace_back(system);
+        EE_CORE_INFO("System registered");
+    }
 
     template<typename T>
     inline void Scene::OnComponentAdded(Entity entity, T& component)
@@ -724,9 +742,15 @@ namespace Engine {
     {
 
     }
-
+    
     template<>
     void Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<CharacterControllerComponent>(Entity entity, CharacterControllerComponent& component)
     {
 
     }
