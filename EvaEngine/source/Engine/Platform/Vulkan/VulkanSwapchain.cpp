@@ -9,6 +9,7 @@ namespace Engine {
     {
         CreateSwapchain();
         CreateImageViews();
+
     }
 
     VulkanSwapchain::~VulkanSwapchain()
@@ -29,6 +30,7 @@ namespace Engine {
         {
             imageCount = swapChainSupport.capabilities.maxImageCount;
         }
+
 
         VkSwapchainCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -73,8 +75,126 @@ namespace Engine {
         m_swapchainImageFormat = surfaceFormat.format;
         m_swapchainExtent = extent;
 
-       
+        m_presentTrackedImages.resize(m_swapchainImages.size());
+
+        for (size_t i = 0; i < m_swapchainImages.size(); ++i)
+        {
+            VulkanTracked& tracked = m_presentTrackedImages[i];
+
+            // Manually assign it to wrap the swapchain image
+            tracked.image = m_swapchainImages[i];
+            tracked.format = m_swapchainImageFormat;
+            tracked.width = extent.width;
+            tracked.height = extent.height;
+            tracked.currentLayoutState = ImageLayoutState::Present;
+            tracked.currentLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            tracked.mipLevels = 1;
+            tracked.layers = 1;
+        }
+        
     }
+
+    
+
+    VkImage VulkanSwapchain::CreateImage(
+        VkDevice device,
+        VkPhysicalDevice physicalDevice,
+        uint32_t width,
+        uint32_t height,
+        VkFormat format,
+        VkImageUsageFlags usage,
+        VkDeviceMemory* outMemory) // optional, if you want the memory too
+    {
+        VkImageCreateInfo imageInfo{};
+        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageInfo.extent.width = width;
+        imageInfo.extent.height = height;
+        imageInfo.extent.depth = 1;
+        imageInfo.mipLevels = 1;
+        imageInfo.arrayLayers = 1;
+        imageInfo.format = format;
+        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageInfo.usage = usage;
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        VkImage image;
+        if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create image!");
+        }
+
+        // Allocate memory
+        VkMemoryRequirements memRequirements;
+        vkGetImageMemoryRequirements(device, image, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = FindMemoryType(m_physicalDevice, memRequirements.memoryTypeBits,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+        VkDeviceMemory imageMemory;
+        if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate image memory!");
+        }
+
+        vkBindImageMemory(device, image, imageMemory, 0);
+
+        if (outMemory)
+        {
+            *outMemory = imageMemory;
+        }
+
+        return image;
+    }
+
+    uint32_t VulkanSwapchain::FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+    {
+        VkPhysicalDeviceMemoryProperties memProperties;
+        vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+        {
+            if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+            {
+                return i;
+            }
+        }
+
+        throw std::runtime_error("failed to find suitable memory type!");
+    }
+
+
+    VkImageView VulkanSwapchain::CreateImageView(
+        VkDevice device,
+        VkImage image,
+        VkFormat format,
+        VkImageAspectFlags aspectFlags)
+    {
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = image;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = format;
+        viewInfo.subresourceRange.aspectMask = aspectFlags;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        VkImageView imageView;
+        if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create texture image view!");
+        }
+
+        return imageView;
+    }
+
 
     void VulkanSwapchain::CreateImageViews()
     {
@@ -111,7 +231,7 @@ namespace Engine {
         m_gameImages.resize(imageCount);
         m_gameColorAttachmentMemories.resize(imageCount);
         m_gameColorAttachmentImageViews.resize(imageCount);
-
+        m_gameTrackedImages.resize(imageCount);
         for (size_t i = 0; i < imageCount; ++i)
         {
             // Create the image
@@ -126,7 +246,10 @@ namespace Engine {
             imageInfo.format = swapchainFormat;
             imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
             imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+            //imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+            imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                VK_IMAGE_USAGE_SAMPLED_BIT; 
+
             imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
             imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -170,13 +293,51 @@ namespace Engine {
             {
                 EE_CORE_INFO("Game framebuffer image view [{}] created", i);
             }
+
+
+            VulkanTracked& tracked = m_gameTrackedImages[i];
+            tracked.image = m_gameImages[i];
+            tracked.view = m_gameColorAttachmentImageViews[i];
+            tracked.format = swapchainFormat;
+            tracked.width = extent.width;
+            tracked.height = extent.height;
+            tracked.currentLayoutState = ImageLayoutState::Undefined;
+            tracked.currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            tracked.mipLevels = 1;
+            tracked.layers = 1;
+
         }
 
+
+        for (size_t i = 0; i < m_presentTrackedImages.size(); ++i)
+        {
+            VulkanTracked& trackedImage = m_presentTrackedImages[i];
+
+            VkImageViewCreateInfo viewCreateInfo = {};
+            viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            viewCreateInfo.image = trackedImage.image; // Already set in CreateSwapchain()
+            viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            viewCreateInfo.format = trackedImage.format; // Already set
+            viewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            viewCreateInfo.subresourceRange.baseMipLevel = 0;
+            viewCreateInfo.subresourceRange.levelCount = 1;
+            viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+            viewCreateInfo.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(m_device, &viewCreateInfo, nullptr, &trackedImage.view) != VK_SUCCESS)
+            {
+                EE_CORE_ERROR("Failed to create image view for swapchain image [{}]", i);
+            }
+            else
+            {
+                EE_CORE_INFO("Swapchain VulkanTracked view [{}] created", i);
+            }
+        }
   
     }
 
 
-    void VulkanSwapchain::CreateFramebuffers(VkRenderPass renderPass, VkRenderPass imGuiRenderPass, VkDevice device)
+    void VulkanSwapchain::CreateFramebuffers(VkRenderPass renderPass, VkRenderPass imGuiRenderPass, VkRenderPass gameRenderPass, VkDevice device)
     {
         // Resize framebuffer vectors based on the number of swapchain images
         size_t swapchainImageCount = m_swapchainImageViews.size();
@@ -245,13 +406,13 @@ namespace Engine {
         // Create the game framebuffers (offscreen rendering target)
         for (size_t i = 0; i < swapchainImageCount; ++i)
         {
-            VkImageView gameColorAttachment = m_gameColorAttachmentImageViews[i];
+            
 
             VkFramebufferCreateInfo gameFramebufferInfo{};
             gameFramebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            gameFramebufferInfo.renderPass = renderPass;
+            gameFramebufferInfo.renderPass = gameRenderPass;
             gameFramebufferInfo.attachmentCount = 1;
-            gameFramebufferInfo.pAttachments = &gameColorAttachment;
+            gameFramebufferInfo.pAttachments = &m_gameTrackedImages[i].view;
             gameFramebufferInfo.width = m_swapchainExtent.width;
             gameFramebufferInfo.height = m_swapchainExtent.height;
             gameFramebufferInfo.layers = 1;
@@ -275,7 +436,8 @@ namespace Engine {
     {
         for (const auto& availableFormat : availableFormats)
         {
-            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            {
                 return availableFormat;
             }
         }

@@ -191,6 +191,7 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanShader.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanSwapchain.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTexture.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTrackedImage.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanUtils.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanVertexArray.h" />
     <ClInclude Include="source\Engine\Platform\Windows\WindowsWindow.h" />
@@ -675,6 +676,7 @@
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanShader.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanSwapchain.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTexture.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTrackedImage.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanUtils.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanVertexArray.cpp" />
     <ClCompile Include="source\Engine\Platform\Windows\WindowsInput.cpp" />
@@ -715,8 +717,8 @@
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
-    <None Include="..\assets\shaders\quadshader.frag" />
-    <None Include="..\assets\shaders\quadshader.vert" />
+    <None Include="..\assets\shaders\fullscreen_shader.glsl" />
+    <None Include="..\assets\shaders\imgui_shader.glsl" />
     <None Include="..\assets\shaders\testShader.glsl" />
   </ItemGroup>
   <ItemGroup>

@@ -75,3 +75,76 @@
 
 
 }			EE_CORE_WARN("Unsupported layout transition: {} -> {}", std::to_string(oldLayout), std::to_string(newLayout));
+
+▪️ Crater Studios - https://lnkd.in/eGjx-giK
+▪️ Wenkly Studio - https://lnkd.in/eDRu-wYH
+▪️ Room 8 Studio - https://lnkd.in/ez6-yZ8t
+▪️ DragonFly Studio - https://lnkd.in/eDnR85Hi
+▪️ Fantastic Pixel Castle - https://lnkd.in/e4Di4fkK
+▪️ Games Station Studio - https://lnkd.in/edQCcgDQ
+▪️ Escape Velocity Entertainment - https://lnkd.in/e6et2n44
+▪️ Skymap Games - https://skymap.com/careers
+▪️ Datcroft Games - https://lnkd.in/eFC93Y3X
+▪️ Belka Games - https://lnkd.in/ez6yZp28
+▪️ thatgamecompany - https://lnkd.in/eJmW_5F2
+▪️ Larian Studios - https://larian.com/careers
+▪️ Herobeat Studios - https://lnkd.in/eRxBHavz
+▪️ Rebel Wolves - https://rebel-wolves.com/
+▪️ Series Entertainment - https://lnkd.in/dG3MrF9H
+▪️ Oxalis Games - https://lnkd.in/eY82_zGZ
+▪️ Failbetter Games - https://lnkd.in/e72NH-9j
+▪️ Devoted Studios - https://lnkd.in/eHkfHrPD
+▪️ Rocket Science Group - https://lnkd.in/dDZf62fJ
+▪️ Keywords Studios -https://lnkd.in/eqbA4K7Y
+▪️ Miniclip - https://lnkd.in/ejwNQZSj
+▪️ Take-Two Interactive - https://lnkd.in/eYBSTQzy
+▪️ Nimble Giant Entertainment - https://lnkd.in/eXW7x2VF
+▪️ Ogre Head Studio (OHS) - https://lnkd.in/eithiwt4
+▪️ Whiteboard Games - https://lnkd.in/eru6yjnZ
+▪️ VOID Interactive - https://lnkd.in/eENSVpZg
+
+[ Begin Frame / Begin Command Buffer ]
+
+    ↓
+
+[ Transition SWAPCHAIN IMAGE to COLOR_ATTACHMENT_OPTIMAL ]
+  (if necessary)
+
+    ↓
+
+[ Begin Render Pass ]
+
+    ↓
+
+[ Transition TEXTURE IMAGE to SHADER_READ_ONLY_OPTIMAL ]
+    (ONLY if it's not already!)
+
+    ↓
+
+[ Bind Pipeline + Bind Descriptor Sets (texture) ]
+
+    ↓
+
+[ vkCmdDrawIndexed() — your object using the texture ]
+
+    ↓
+
+[ End Render Pass ]
+
+    ↓
+
+[ Transition SWAPCHAIN IMAGE to PRESENT_SRC_KHR ]
+    (to prepare for presenting)
+
+    ↓
+
+[ End Command Buffer ]
+[ Submit Command Buffer ]
+[ Present Frame ]
+
+
+
+02.05.2025
+{
+            Flickering was cause two times calling drawFrame() and Endscene from game.
+}

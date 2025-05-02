@@ -1,75 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Sandbox">
-      <UniqueIdentifier>{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sandbox\source">
-      <UniqueIdentifier>{94A92D79-8077-217F-690B-92A55578FDE3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sandbox\source\Systems">
-      <UniqueIdentifier>{9B53924C-874D-BB9E-70BA-51AF5C53210B}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sandbox\source\Systems\Player">
-      <UniqueIdentifier>{57489A7C-C360-81A6-8C0D-1140F8E41540}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source">
-      <UniqueIdentifier>{76FF3A1C-62A1-65F2-4B5C-7946379DEC42}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\Panels">
-      <UniqueIdentifier>{086F0534-742F-816A-3D6A-CAE7A9E9C546}</UniqueIdentifier>
+    <Filter Include="Panels">
+      <UniqueIdentifier>{A80D95C9-94AF-BF9F-7D6A-D3F369AB46F0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Sandbox\source\PixelGame.h">
-      <Filter>Sandbox\source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Sandbox\source\Sandbox2D.h">
-      <Filter>Sandbox\source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Sandbox\source\Systems\Player\CharacterControllerSystem.h">
-      <Filter>Sandbox\source\Systems\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="source\EditorApp.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\EditorLayer.h">
-      <Filter>source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\FPSCounter.h">
-      <Filter>source</Filter>
-    </ClInclude>
+    <ClInclude Include="source\EditorApp.h" />
+    <ClInclude Include="source\EditorLayer.h" />
+    <ClInclude Include="source\FPSCounter.h" />
     <ClInclude Include="source\Panels\ContentBrowserPanel.h">
-      <Filter>source\Panels</Filter>
+      <Filter>Panels</Filter>
     </ClInclude>
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h">
-      <Filter>source\Panels</Filter>
+      <Filter>Panels</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Sandbox\source\PixelGame.cpp">
-      <Filter>Sandbox\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Sandbox\source\Sandbox2D.cpp">
-      <Filter>Sandbox\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Sandbox\source\SandboxApp.cpp">
-      <Filter>Sandbox\source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Sandbox\source\Systems\Player\CharacterControllerSystem.cpp">
-      <Filter>Sandbox\source\Systems\Player</Filter>
-    </ClCompile>
-    <ClCompile Include="source\EditorApp.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\EditorLayer.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
+    <ClCompile Include="source\EditorApp.cpp" />
+    <ClCompile Include="source\EditorLayer.cpp" />
     <ClCompile Include="source\Panels\ContentBrowserPanel.cpp">
-      <Filter>source\Panels</Filter>
+      <Filter>Panels</Filter>
     </ClCompile>
     <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp">
-      <Filter>source\Panels</Filter>
+      <Filter>Panels</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

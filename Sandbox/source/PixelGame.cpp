@@ -5,13 +5,14 @@
 #include <Engine/Scene/SceneSerializer.h>
 
 #include "Systems/Player/CharacterControllerSystem.h"
+#include "Systems/Collision/PixelCollisionSystem.h"
 
 #include <imgui/imgui.h>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 
-PixelGame::PixelGame(std::string scene)
+PixelGame::PixelGame(const std::string scene)
 	: Layer("PixelGame"),
 	m_orthoCameraController(1280.0f / 720.0f, true),
 	m_activeSceneName(scene)
@@ -19,7 +20,8 @@ PixelGame::PixelGame(std::string scene)
 	m_activeScene = std::make_shared<Engine::Scene>();
 
 
-
+	m_activeScene->RegisterSystem(CharacterControllerSystem::UpdateCharacterControllerSystem);
+	m_activeScene->RegisterSystem(PixelCollisionSystem::UpdatePixelCollisionSystem);
 
 }
 
@@ -38,7 +40,6 @@ void PixelGame::OnAttach()
 
 
 	//m_logoTexture = Engine::AssetManager::GetTexture("logo");
-	m_pixelTexture = Engine::AssetManager::GetPixelTexture("pixel");
 	
 
 	m_cameraEntity = m_activeScene->CreateEntity("camera");
@@ -80,6 +81,13 @@ void PixelGame::OnImGuiRender()
 void PixelGame::OnUpdate(Engine::Timestep timestep)
 {
 
+	m_timer += timestep;
+	if (m_timer < 0.0f)
+	{
+		return;
+	}
+	m_timer = 0.0f;
+
 	EE_PROFILE_FUNCTION();
 	{
 		m_orthoCameraController.OnUpdate(timestep);
@@ -102,7 +110,8 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 			//Engine::SceneCamera Camera = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera;
 
 			const glm::mat4 viewProjection = m_orthoCameraController.GetCamera().GetViewProjectionMatrix();
-
+			/*
+			
 			Engine::VulkanRenderer2D::BeginScene(viewProjection);
 			glm::vec2 position = { 0.9f, 0.7f };
 			glm::vec2 size = { 1.0f, 1.0f }; // Width = 2, Height = 3
@@ -112,11 +121,14 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 
 
 			//Engine::VulkanRenderer2D::DrawTextureQuad(transform, m_pixelTexture, 1, color);
+			Engine::VulkanRenderer2D::DrawQuad(transform, color, -1);
 			Engine::Renderer::DrawFrame();
 			Engine::VulkanRenderer2D::EndScene();
+			*/
+			
 
-			m_pixelTexture->SetPixel(0, 1, 255, 255, 255, 0);
-			m_pixelTexture->ApplyChanges();
+			//m_pixelTexture->SetPixel(0, 1, 255, 255, 255, 0);
+			//m_pixelTexture->ApplyChanges();
 
 		}
 	}
@@ -135,17 +147,19 @@ void PixelGame::OnGameStart()
 	//m_squareEntity.AddComponent<Engine::TransformComponent>();
 	//m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
 
-	m_logoEntity = m_activeScene->CreateEntity("pixel entity");
-	m_logoEntity.AddComponent<Engine::TransformComponent>();
+	// move this to new function called LoadTextures. This is called on app creation
+	m_pixelTexture = Engine::AssetManager::GetPixelTexture("pixel");
+
+	m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
+	m_pixelEntity.AddComponent<Engine::TransformComponent>();
 	//m_logoEntity.AddComponent<Engine::SpriteRendererComponent>();
-	auto& renderComp = m_logoEntity.AddComponent<Engine::PixelSpriteRendererComponent>();
+	auto& renderComp = m_pixelEntity.AddComponent<Engine::PixelSpriteRendererComponent>();
 	renderComp.Texture = m_pixelTexture;
 
 
 	m_activeScene->OnRunTimeStart();
 
-	m_activeScene->RegisterSystem(CharacterControllerSystem::UpdateCharacterControllerSystem);
-
+	m_isPlaying = true;
 }
 
 void PixelGame::OnGameStop()

@@ -1,10 +1,10 @@
-#include "pch.h"
 
 #include "CharacterControllerSystem.h"
 #include "Engine/Core/Input.h"
 #include "Engine/Core/Core.h"
 #include "Engine/Events/KeyCode.h"
 #include "glm/glm.hpp"
+#include <Engine/Debug/Instrumentor.h>
 
 void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& registry, float deltaTime)
 {

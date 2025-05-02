@@ -1,5 +1,6 @@
 #pragma once
 #include "VulkanContext.h"
+#include <string>
 
 namespace Engine {
 
@@ -30,6 +31,8 @@ namespace Engine {
             VkImage image,
             uint32_t width,
             uint32_t height);
+
+       const std::string LayoutToString(VkImageLayout layout);
 
 	}
 

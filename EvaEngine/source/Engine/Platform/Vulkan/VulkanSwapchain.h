@@ -1,7 +1,6 @@
 #pragma once
 
-#pragma once
-
+#include "Engine/Platform/Vulkan/VulkanTrackedImage.h"
 #include <vulkan/vulkan.h>
 #include <vector>
 
@@ -14,6 +13,9 @@ namespace Engine {
         ~VulkanSwapchain();
 
         void CreateSwapchain();
+        VkImage CreateImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkDeviceMemory* outMemory = nullptr);
+        uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+        VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
         void Cleanup();
 
         void RecreateSwapchain();
@@ -40,12 +42,20 @@ namespace Engine {
 		//std::vector<VkImageView> GetSwapchainImageViews() { return m_swapchainImageViews; }
 		std::vector<VkImageView> GetImGuiImageViews() { return m_imguiImageViews; }
 		VkImage GetGameImage(uint32_t index) { return m_gameImages[index]; }
+
 		//std::vector<VkImage> GetGameColorAttachments() { return m_gameColorAttachments; }
 		//std::vector<VkDeviceMemory> GetGameColorAttachmentMemories() { return m_gameColorAttachmentMemories; }
 		VkDeviceMemory GetGameColorAttachmentMemory(uint32_t index) { return m_gameColorAttachmentMemories[index]; }
 
-        void CreateFramebuffers(VkRenderPass renderPass, VkRenderPass imGuiRenderPass, VkDevice device);
+        VulkanTracked& GetPresentTrackedImage(uint32_t imageIndex) { return m_presentTrackedImages[imageIndex]; }
+        VulkanTracked& GetGameTrackedImage(uint32_t imageIndex) { return m_gameTrackedImages[imageIndex]; }
+		std::vector<VulkanTracked>& GetGameTrackedImages() { return m_gameTrackedImages; }
+
+        const VulkanTracked& GetPresentTrackedImage(uint32_t imageIndex) const { return m_presentTrackedImages[imageIndex]; }
+
+        void CreateFramebuffers(VkRenderPass renderPass, VkRenderPass imGuiRenderPass, VkRenderPass gameRenderPass, VkDevice device);
     private:
+
         void CreateImageViews();
         VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -76,6 +86,9 @@ namespace Engine {
 
         VkFormat m_swapchainImageFormat;
         VkExtent2D m_swapchainExtent;
+
+        std::vector<VulkanTracked> m_presentTrackedImages;
+        std::vector<VulkanTracked> m_gameTrackedImages;
     };
 
 }

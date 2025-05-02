@@ -129,13 +129,18 @@ public:
 	{
 		//PushLayer(new ExampleGameLayer());
 		//PushLayer(new Sandbox2D());
-		PushLayer(new PixelGame());
+		//PushLayer(new PixelGame("physics2D"));
+
 	}
 	~Sandbox()
 	{
 
 	}
 
+	void InitApp()
+	{
+
+	}
 
 };
 
@@ -143,9 +148,24 @@ public:
 
 //#ifdef GAME_BUILD
 
+/*
+Engine::Application* Engine::CreateEditorApplication()
+{
+
+	EE_CORE_WARN("This is a test");
+	return nullptr;
+}
+*/
+
 Engine::Application* Engine::CreateApplication()
 {
-	return new Sandbox(); // Only for sandbox builds
+	auto app = new Sandbox;
+	
+	auto game = new PixelGame("");
+	game->OnGameStart();
+	app->PushLayer(game);
+	return app;
+	
 }
 //#endif
 

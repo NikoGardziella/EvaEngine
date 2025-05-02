@@ -234,6 +234,9 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTexture.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanTrackedImage.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanUtils.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClInclude>
@@ -1682,6 +1685,9 @@
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTexture.cpp">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanTrackedImage.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanUtils.cpp">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClCompile>
@@ -1792,10 +1798,10 @@
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="..\assets\shaders\quadshader.frag">
+    <None Include="..\assets\shaders\fullscreen_shader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="..\assets\shaders\quadshader.vert">
+    <None Include="..\assets\shaders\imgui_shader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\testShader.glsl">

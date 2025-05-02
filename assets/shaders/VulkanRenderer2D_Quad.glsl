@@ -56,7 +56,7 @@ struct VertexOutput
 layout (location = 0) in VertexOutput Input;
 layout (location = 3) in flat float v_TexIndex;
 
-layout (binding = 1) uniform sampler2D u_Textures[32];
+layout (set = 1,binding = 1) uniform sampler2D u_Textures[32];
 
 void main()
 {
@@ -100,7 +100,6 @@ void main()
 
 	//if (texColor.a == 0.0)
 	//	discard;
-
 	o_Color = texColor;
-	//o_Color = vec4(0.5, 0.5, 0.5, 1.0);
+	//o_Color = vec4(0.2, 0.9, 0.2, 1.0);
 }

@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "VulkanDescriptorSet.h"
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
+#include <Engine/Renderer/VulkanRenderer2D.h>
+
 
 Engine::VulkanDescriptorSet::VulkanDescriptorSet(VkDevice device, VkDescriptorPool pool, VkDescriptorSetLayout layout, VkBuffer uniformBuffer, VkImageView imageView, VkSampler sampler)
     : m_device(device) {
@@ -16,7 +18,7 @@ Engine::VulkanDescriptorSet::VulkanDescriptorSet(VkDevice device, VkDescriptorPo
         }
 
         // Write Descriptor
-        VkDescriptorBufferInfo bufferInfo{ uniformBuffer, 0, sizeof(UniformBufferObject) };
+        VkDescriptorBufferInfo bufferInfo{ uniformBuffer, 0, sizeof(glm::mat4) };
         VkDescriptorImageInfo imageInfo{ sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
 
         std::array<VkWriteDescriptorSet, 2> descriptorWrites{};

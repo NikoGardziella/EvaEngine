@@ -54,8 +54,7 @@ namespace Engine {
             m_vulkanInstance->DestroyInstance();
         }
 		m_swapchain->Cleanup();
-        vkDestroyRenderPass(m_deviceManager->GetDevice(), m_renderPass, nullptr);
-
+        vkDestroyRenderPass(m_deviceManager->GetDevice(), m_presentRenderPass, nullptr);
     }
 
     void VulkanContext::Init()
@@ -67,9 +66,11 @@ namespace Engine {
 
         CreateSwapchain();
         CreateGraphicsQueue();
-        CreateRenderPass();
+        CreatePresentRenderPass();
         CreateImGuiRenderPass();
-        
+        CreateGameRenderPass();
+        CreateOffscreenRenderPass();
+
         CreateSwapchainFramebuffers();
 
         CreateCommandPool();
@@ -78,6 +79,10 @@ namespace Engine {
 
         CreateCommandBuffers();
         CreateSampler();
+
+        uint32_t width = GetVulkanSwapchain().GetSwapchainExtent().width;
+        uint32_t height = GetVulkanSwapchain().GetSwapchainExtent().height;
+
     }
 
     void VulkanContext::CreateInstance()
@@ -158,7 +163,56 @@ namespace Engine {
 		m_swapchain = new VulkanSwapchain(m_deviceManager->GetDevice(), m_surface, m_deviceManager->GetPhysicalDevice());
     }
 
-    void VulkanContext::CreateRenderPass()
+    void VulkanContext::CreateOffscreenRenderPass()
+    {
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = m_swapchain->GetSwapchainImageFormat();
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+        VkAttachmentReference colorAttachmentRef{};
+        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachmentRef;
+
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        VkRenderPassCreateInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfo.attachmentCount = 1;
+        renderPassInfo.pAttachments = &colorAttachment;
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpass;
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
+
+        if (vkCreateRenderPass(m_deviceManager->GetDevice(), &renderPassInfo, nullptr, &m_offscreenRenderPass) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "Failed to create offscreen render pass!");
+        }
+        else
+        {
+            EE_CORE_INFO("Offscreen render pass created");
+        }
+    }
+
+
+    void VulkanContext::CreatePresentRenderPass()
     {
         // First color attachment (o_Color)
         VkAttachmentDescription colorAttachment{};
@@ -192,7 +246,18 @@ namespace Engine {
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
 
-        if (vkCreateRenderPass(m_deviceManager->GetDevice(), &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
+
+        if (vkCreateRenderPass(m_deviceManager->GetDevice(), &renderPassInfo, nullptr, &m_presentRenderPass) != VK_SUCCESS)
         {
             EE_CORE_ASSERT(false, "Failed to create render pass!");
         }
@@ -207,11 +272,11 @@ namespace Engine {
         VkAttachmentDescription colorAttachment = {};
         colorAttachment.format = m_swapchain->GetSwapchainImageFormat();
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference colorAttachmentRef = {};
@@ -251,9 +316,60 @@ namespace Engine {
 
     }
 
+    void VulkanContext::CreateGameRenderPass()
+    {
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = m_swapchain->GetSwapchainImageFormat(); // Must match the format of m_gameColorAttachmentImageViews
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+        VkAttachmentReference colorAttachmentRef{};
+        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachmentRef;
+
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        VkRenderPassCreateInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfo.attachmentCount = 1;
+        renderPassInfo.pAttachments = &colorAttachment;
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpass;
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
+
+        if (vkCreateRenderPass(m_deviceManager->GetDevice(), &renderPassInfo, nullptr, &m_gameRenderPass) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "Failed to create Game Render Pass!");
+        }
+        else
+        {
+            EE_CORE_INFO("Vulkan Game render pass created");
+        }
+    }
+
+
+
+
     void VulkanContext::CreateSwapchainFramebuffers()
     {
-        m_swapchain->CreateFramebuffers(m_renderPass, m_imGuiRenderPass, m_deviceManager->GetDevice());
+        m_swapchain->CreateFramebuffers(m_presentRenderPass, m_imGuiRenderPass,m_gameRenderPass, m_deviceManager->GetDevice());
     }
 
 
@@ -276,7 +392,8 @@ namespace Engine {
 
     }
 
-    
+
+
     void VulkanContext::CreateEntityIDAttachment()
     {
         VkImageCreateInfo imageInfo{};
@@ -501,8 +618,6 @@ namespace Engine {
     }
 
  
-
-
 
 
 }

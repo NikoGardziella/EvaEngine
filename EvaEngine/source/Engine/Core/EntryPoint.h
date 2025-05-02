@@ -4,18 +4,13 @@
 #include "Engine/Core/Application.h"
 
 //#include <Engine/Renderer/ShaderCompiler.h>
-//#include "Sandbox2D.h"
-
+#include "Sandbox2D.h"
+//#include "PixelGame.h"
 #ifdef EE_PLATFORM_WINDOWS
 
 
 
 
-#ifdef EE_EDITOR
-	extern Engine::Application* CreateEditorApplication();
-#else
-	extern Engine::Application* CreateApplication();
-#endif
 
 int main(int argc, char** argv)
 {
@@ -24,14 +19,17 @@ int main(int argc, char** argv)
 	Engine::AssetManager::Initialize(assetFolderSearchDepth);
 	
 
-
-
 	EE_PROFILE_BEGIN_SESSION("Startup", "EvaEngineProfile-startup.json");
-	#ifdef EE_EDITOR
-		auto app = Engine::CreateEditorApplication();
-	#else
-		auto app = Engine::CreateApplication(); // Sandbox by default
-	#endif
+	Engine::Application* app = nullptr;
+	if(argc > 1 && std::string(argv[1]) == "editor")
+	{
+		app = Engine::CreateEditorApplication();
+	}
+	else
+	{
+		app = Engine::CreateApplication(); // Sandbox
+		
+	}
 	EE_PROFILE_END_SESSION();
 
 

@@ -37,7 +37,13 @@ namespace Engine {
             }
         };
 
-       
+        struct OffscreenImage
+        {
+            VkImage image = VK_NULL_HANDLE;
+            VkDeviceMemory memory = VK_NULL_HANDLE;
+            VkImageView imageView = VK_NULL_HANDLE;
+        };
+
 
         virtual void Init() override;
         virtual void SwapBuffers() override {}; // No SwapBuffers in Vulkan
@@ -60,10 +66,14 @@ namespace Engine {
         void CreateDepthAttachment();
         void CreateImGuiDescriptorPool();
 
+
         VulkanDevice& GetDeviceManager() const { return *m_deviceManager; }
-        VkRenderPass& GetRenderPass() { return m_renderPass; }
+        VkRenderPass& GetPresentRenderPass() { return m_presentRenderPass; }
 		VkRenderPass& GetImGuiRenderPass() { return m_imGuiRenderPass; }
+        VkRenderPass& GetGameRenderPass() { return m_gameRenderPass;  }
+        VkRenderPass& GetOffscreenRenderPass() { return m_offscreenRenderPass;  }
         VulkanSwapchain& GetVulkanSwapchain() { return *m_swapchain; }
+
         //std::vector<VkFramebuffer>& GetSwapchainFramebuffers() { return m_swapchainFramebuffers; }
 		VulkanInstance& GetVulkanInstance() { return *m_vulkanInstance; }
        // VkCommandBuffer VulkanContext::GetCurrentCommandBuffer() { return m_commandBuffers[Renderer::GetCurrentFrame()];   }
@@ -78,12 +88,18 @@ namespace Engine {
         void CreateGraphicsQueue();
         void CreateSwapchain();
 
-        void CreateRenderPass();
+        void CreateOffscreenRenderPass();
+
+        void CreatePresentRenderPass();
         void CreateImGuiRenderPass();
+
+        void CreateGameRenderPass();
+
 
 		void CreateSwapchainFramebuffers();
 
         void CreateSampler();
+
         
         void CreateCommandPool();
         void CreateDescriptorPool();
@@ -108,9 +124,10 @@ namespace Engine {
         SwapChainSupportDetails m_swapChainSupportDetails;
         VkCommandPool m_commandPool;
         VkQueue m_graphicsQueue;
-        VkRenderPass m_renderPass;
+        VkRenderPass m_presentRenderPass;
         VkRenderPass m_imGuiRenderPass;
-
+        VkRenderPass m_gameRenderPass;
+        VkRenderPass m_offscreenRenderPass;
         
         static VulkanContext* s_instance;
 

@@ -67,6 +67,6 @@ void main()
     // Set output color
     o_Color = Input.Color;
 	o_Color.a *= circle;
-
+	o_Color = vec4(1, 0, 0, 1); // Red
 	o_EntityID = v_EntityID;
 }

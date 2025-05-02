@@ -335,6 +335,7 @@ namespace Engine {
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             m_viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
 
+            
             if (m_editor)
             {
                 // Ensure that GetColorAttachmentRendererID() is valid
@@ -359,6 +360,7 @@ namespace Engine {
                     ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
                 }
             }
+            
 
             ImVec2 windowSize = ImGui::GetWindowSize();
             ImVec2 minBound = ImGui::GetWindowPos();
@@ -513,7 +515,7 @@ namespace Engine {
 
         m_sceneState = SceneState::Play;
 
-        m_editor.get()->GetGameLayer()->SetIsPlaying(true);
+       // m_editor.get()->GetGameLayer()->SetIsPlaying(true);
          
     }
 

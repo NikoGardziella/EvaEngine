@@ -10,7 +10,7 @@ class PixelGame : public Engine::Layer
 
 public:
 
-	PixelGame(std::string scene = "");
+	PixelGame(const std::string scene = "");
 	virtual ~PixelGame() = default;
 
 	virtual void OnAttach() override;
@@ -43,12 +43,12 @@ private:
 	bool m_isPlaying = false;
 	std::string m_activeSceneName;
 	Engine::OrthographicCameraController m_orthoCameraController;
-	Engine::Entity m_logoEntity;
+	Engine::Entity m_pixelEntity;
 
 	Engine::Ref<Engine::VulkanPixelTexture> m_pixelTexture;
 	Engine::Ref<Engine::VulkanTexture> m_logoTexture;
 
-
+	float m_timer = 0.0f;
 
 };
 

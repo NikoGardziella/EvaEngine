@@ -3,6 +3,8 @@
 #include "Engine/Platform/Vulkan/VulkanContext.h"
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
 #include "Engine/AssetManager/AssetManager.h"
+#include "Engine/Platform/Vulkan/VulkanUtils.h"
+
 
 #include "VertexArray.h"
 #include "Shader.h"
@@ -85,7 +87,7 @@ namespace Engine {
 		m_swapchain = m_vulkanContext->GetVulkanSwapchain().GetSwapchain();
 		m_swapchainExtent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
 		m_vulkanGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>(m_vulkanContext->GetDeviceManager().GetDevice(),
-			m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent(), m_vulkanContext->GetRenderPass(), s_VulkanData.QuadShader);
+			m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent(), m_vulkanContext->GetOffscreenRenderPass(), m_vulkanContext->GetImGuiRenderPass(), s_VulkanData.QuadShader);
 		m_device = m_vulkanContext->GetDeviceManager().GetDevice();
 
 		// Allocate command buffers and sync objects
@@ -111,8 +113,12 @@ namespace Engine {
 		m_camera->SetPosition({ 0.0f, 0.0f, 1.0f }); // Move the camera back to see the quad
 
 		// Update the uniform buffer with the camera's view-projection matrix
-		m_vulkanGraphicsPipeline->UpdateUniformBuffer(m_camera->GetViewProjectionMatrix());
 
+
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			m_vulkanGraphicsPipeline->UpdateUniformBuffer(i, m_camera->GetViewProjectionMatrix());
+		}
 		//s_VulkanData.QuadShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());  // Add appropriate shader paths
 		//s_VulkanData.QuadVertexArray = VertexArray::Create();
 
@@ -158,18 +164,28 @@ namespace Engine {
 			samplers[i] = i;
 
 		}
+		// Fill initial texture slots
 		s_VulkanData.TextureSlots[0] = s_VulkanData.WhiteTexture;
+
 		s_VulkanData.TextureSlots[1] = AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string());
 		s_VulkanData.TextureSlotIndex++;
+
 		s_VulkanData.TextureSlots[2] = AssetManager::AddTexture("chess", Engine::AssetManager::GetAssetPath("textures/chess_board.png").string());
 		s_VulkanData.TextureSlotIndex++;
+
 		s_VulkanData.TextureSlots[3] = AssetManager::AddPixelTexture("pixel", Engine::AssetManager::GetAssetPath("textures/pixel_texture1.png").string());
 		s_VulkanData.TextureSlotIndex++;
 
-		for (uint32_t i = 0; i < s_VulkanData.TextureSlotIndex; i++)
+		// Fill the rest of the slots with pixel texture
+		for (uint32_t i = s_VulkanData.TextureSlotIndex; i < s_VulkanData.TextureSlots.size(); i++)
 		{
-			m_vulkanGraphicsPipeline->UpdateDescriptorSets(i, s_VulkanData.TextureSlots[i]);
+			s_VulkanData.TextureSlots[i] = s_VulkanData.WhiteTexture;
+			s_VulkanData.TextureSlotIndex++;
+		}
 
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			m_vulkanGraphicsPipeline->UpdateTrackedImageDescriptorSets(i, s_VulkanData.TextureSlots);
 		}
 
 
@@ -178,66 +194,83 @@ namespace Engine {
 		m_gameColorLayouts.resize(m_vulkanContext->GetVulkanSwapchain().GetSwapchainImages().size(), VK_IMAGE_LAYOUT_UNDEFINED);
 	
 	
+		
 	}
+
 
 	void VulkanRenderer2D::DrawFrame(uint32_t currentFrame)
 	{
 		s_VulkanData.Stats.DrawCalls++;
-		m_vulkanGraphicsPipeline->UpdateUniformBuffer(s_VulkanData.CameraBuffer.ViewProjection);
+
 		VulkanContext* vulkanContext = VulkanContext::Get();
 
 		// 1. Sync
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
-		// 2. Acquire
-		uint32_t imageIndex;
-		VkResult result = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX,
-			m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+		m_vulkanGraphicsPipeline->UpdateUniformBuffer(currentFrame, s_VulkanData.CameraBuffer.ViewProjection);
 
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		// 2. Acquire. Max current frame is 2 and max swapchain images is 3.
+		// set in Renderer.h 	const int MAX_FRAMES_IN_FLIGHT = 2;
+		uint32_t imageIndex;
+		VkResult result = vkAcquireNextImageKHR(
+			m_device,
+			m_swapchain,
+			UINT64_MAX,
+			m_imageAvailableSemaphores[currentFrame],
+			VK_NULL_HANDLE,
+			&imageIndex
+		);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR)
+		{
 			m_vulkanContext->GetVulkanSwapchain().RecreateSwapchain();
 			return;
 		}
-		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-		{
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			EE_CORE_ASSERT(false, "Failed to acquire swapchain image!");
 		}
 
 		// 3. Record Game Pass
-		vkResetCommandBuffer(m_commandBuffers[imageIndex], 0);
+		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
+		vkResetCommandBuffer(cmd, 0);
+
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		vkBeginCommandBuffer(m_commandBuffers[imageIndex], &beginInfo);
 
-		RecordGameDrawCommands(m_commandBuffers[imageIndex], imageIndex);
-		RecordEditorDrawCommands(m_commandBuffers[imageIndex], imageIndex);
+		vkBeginCommandBuffer(cmd, &beginInfo);
 
-		vkEndCommandBuffer(m_commandBuffers[imageIndex]);
+		RecordGameDrawCommands(cmd, imageIndex, currentFrame);  // imageIndex used to select framebuffer
+
+		
+		RecordPresentDrawCommands(cmd, imageIndex);
+		RecordEditorDrawCommands(cmd, imageIndex);
+
+		// RecordImGuiDrawCommands(cmd, imageIndex);
+		vkEndCommandBuffer(cmd);
 
 		// 4. Submit
+		VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[currentFrame] };
+		VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[currentFrame] };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[imageIndex] };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
-		VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[imageIndex] };
+		submitInfo.pCommandBuffers = &cmd;
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		if (vkQueueSubmit(m_vulkanContext->GetGraphicsQueue(), 1, &submitInfo, m_inFlightFences[imageIndex]) != VK_SUCCESS)
+		if (vkQueueSubmit(m_vulkanContext->GetGraphicsQueue(), 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS)
 		{
 			EE_CORE_ASSERT(false, "Failed to submit draw command buffer!");
 		}
 
 		// 5. Present
-		//m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
@@ -258,8 +291,120 @@ namespace Engine {
 		}
 	}
 
+	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
+	{
+		VulkanContext* context = VulkanContext::Get();
+
+		//m_vulkanGraphicsPipeline->UpdateTrackedImageDescriptorSets(currentFrame, s_VulkanData.TextureSlots);
+		//m_vulkanGraphicsPipeline->UpdateGameDescriptorSets(currentFrame);
+
+		// --- Begin render pass ---
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = context->GetGameRenderPass();
+		renderPassInfo.framebuffer = context->GetVulkanSwapchain().GetGameFramebuffer(imageIndex);
+		renderPassInfo.renderArea = { {0, 0}, context->GetVulkanSwapchain().GetSwapchainExtent() };
+
+		// Clear color for the color attachment
+		VkClearValue clearColor = { {0.8f, 0.2f, 0.35f, 1.0f} };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		// --- Set viewport and scissor ---
+		VkViewport viewport = {};
+		viewport.width = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().width);
+		viewport.height = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().height);
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor = { {0, 0}, context->GetVulkanSwapchain().GetSwapchainExtent() };
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		// --- Bind pipeline and draw ---
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetGamePipeline());
+
+		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetGameDescriptorSet(currentFrame);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetGamePipelineLayout(), 1, 1, &descriptorSet, 0, nullptr);
+
+		descriptorSet = m_vulkanGraphicsPipeline->GetCameraDescriptorSet(currentFrame);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetGamePipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
+
+		vkCmdEndRenderPass(commandBuffer);
+
+		
+	}
 
 
+
+
+
+	void VulkanRenderer2D::RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	{
+		VulkanContext* context = VulkanContext::Get();
+
+		//m_vulkanGraphicsPipeline->UpdatePresentDescriptorSet(imageIndex);
+
+
+
+		// Begin render pass to the swapchain (present) framebuffer
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = context->GetPresentRenderPass();
+		renderPassInfo.framebuffer = context->GetVulkanSwapchain().GetSwapchainFramebuffer(imageIndex); // Assuming same framebuffer for simplicity
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
+
+		VkClearValue clearColor = { {0.0f, 0.0f, 0.9f, 1.0f} };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		// Setup viewport and scissor
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().width);
+		viewport.height = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().height);  // Negative height for flip
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+
+		VkRect2D scissor{};
+		scissor.offset = { 0, 0 };
+		scissor.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		// Bind the graphics pipeline for the game scene
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetFullscreenPipeline());
+
+		//VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
+		//VkDeviceSize offsets[] = { 0 };
+		//vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		//vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetPresentDescriptorSet(imageIndex);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetFullscreenPipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
+
+		// hardcoded vertices in fullscreen_shader:
+		vkCmdDrawIndexed(commandBuffer, 3, 1, 0, 0, 0);
+
+		vkCmdEndRenderPass(commandBuffer);
+
+		
+		
+	}
 
 	void VulkanRenderer2D::RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
@@ -277,7 +422,7 @@ namespace Engine {
 		imguiRenderPassInfo.renderArea.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
 
 		VkClearValue clearValue{};
-		clearValue.color = { {0.0f, 0.0f, 0.0f, 0.0f} };
+		clearValue.color = { {0.0f, 0.9f, 0.0f, 0.0f} };
 		imguiRenderPassInfo.clearValueCount = 1;
 		imguiRenderPassInfo.pClearValues = &clearValue;
 
@@ -295,79 +440,8 @@ namespace Engine {
 	}
 
 
-	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex)
-	{
-		VulkanContext* context = VulkanContext::Get();
-		//m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-		TransitionImageLayout(
-			commandBuffer,
-			context->GetVulkanSwapchain().GetGameImage(imageIndex),
-			m_gameColorLayouts[imageIndex],
-			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-		);
-		m_gameColorLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 
-		// Begin game render pass
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = context->GetRenderPass();
-		renderPassInfo.framebuffer = context->GetVulkanSwapchain().GetGameFramebuffer(imageIndex);
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
-
-		VkClearValue clearColor = { {{0.8f, 0.2f, 0.35f, 1.0f}} };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
-
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		VkViewport viewport{};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().width);
-		viewport.height = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().height);
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-		VkRect2D scissor{};
-		scissor.offset = { 0, 0 };
-		scissor.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipeline());
-
-		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
-		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetDescriptorSet(imageIndex);
-		vkCmdBindDescriptorSets(
-			commandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_vulkanGraphicsPipeline->GetPipelineLayout(),
-			0,
-			1,
-			&descriptorSet,
-			0,
-			nullptr
-		);
-
-		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
-		vkCmdEndRenderPass(commandBuffer);
-
-		TransitionImageLayout(
-			commandBuffer,
-			context->GetVulkanSwapchain().GetGameImage(imageIndex),
-			m_gameColorLayouts[imageIndex],
-			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-		);
-		m_gameColorLayouts[imageIndex] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-	}
 
 
 	void VulkanRenderer2D::TransitionImageLayout(VkCommandBuffer commandBuffer,	VkImage image,
@@ -418,41 +492,37 @@ namespace Engine {
 		// -VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : Used when you want to access the resource in a compute shader.
 		VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 
-		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+
+
+		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 		{
-			srcAccessMask = 0;
+			dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		{
 			dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		{
+			dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		{
+			srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		}
 		else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
 		{
-			srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			dstAccessMask = 0;
+			// Transition from COLOR_ATTACHMENT_OPTIMAL to PRESENT_SRC_KHR (for presentation)
+			barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 			sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		}
-		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) 
-		{
-			srcAccessMask = 0;
-			dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		}
-		else if (oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		{
-			// Transition from presentable image to shader readable
-			srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-			dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		}
-		else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		{
-			srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		}
 		else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
 		{
@@ -461,10 +531,74 @@ namespace Engine {
 			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		}
-
-		else 
+		else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 		{
-			EE_CORE_WARN("Unsupported layout transition: {} -> {}", std::to_string(oldLayout), std::to_string(newLayout));
+			srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		{
+			srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+		{
+			// Transition from PRESENT_SRC_KHR to COLOR_ATTACHMENT_OPTIMAL
+			barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT; // Memory read during presentation
+			barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; // Write access for color attachment
+			sourceStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT; // After presentation
+			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // Before rendering
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+		{
+			srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		{
+			srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_GENERAL)
+		{
+			dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+			// Transition from COLOR_ATTACHMENT_OPTIMAL to SHADER_READ_ONLY_OPTIMAL
+			barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
+			// Transition from UNDEFINED to PRESENT_SRC_KHR (required for presenting)
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) 
+		{
+			// Transition from UNDEFINED to COLOR_ATTACHMENT_OPTIMAL (for rendering)
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		}
+		else
+		{
+			EE_CORE_ERROR("Unsupported layout transition: {} -> {}",
+				VulkanUtils::LayoutToString(oldLayout),
+				VulkanUtils::LayoutToString(newLayout));
 		}
 
 		barrier.srcAccessMask = srcAccessMask;
@@ -473,6 +607,12 @@ namespace Engine {
 
 		// vkCmdPipelineBarrier command ensures that the proper synchronization occurs between
 		// different stages of the Vulkan pipeline by specifying how and when the image will be used.
+
+		//std::string layoutold = VulkanUtils::LayoutToString(oldLayout);
+		//std::string layoutnew = VulkanUtils::LayoutToString(newLayout);
+
+		EE_CORE_INFO("Transitioning layout from {} to {}", VulkanUtils::LayoutToString(oldLayout), VulkanUtils::LayoutToString(newLayout));
+
 		vkCmdPipelineBarrier(
 			commandBuffer,
 			sourceStage,
@@ -539,7 +679,7 @@ namespace Engine {
 		// === [1] Begin Game Render Pass ===
 		VkRenderPassBeginInfo gameRenderPassInfo{};
 		gameRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		gameRenderPassInfo.renderPass = vulkanContext->GetRenderPass();
+		gameRenderPassInfo.renderPass = vulkanContext->GetPresentRenderPass();
 		gameRenderPassInfo.framebuffer = vulkanContext->GetVulkanSwapchain().GetGameFramebuffer(imageIndex);
 		gameRenderPassInfo.renderArea.offset = { 0, 0 };
 		gameRenderPassInfo.renderArea.extent = vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
@@ -550,7 +690,7 @@ namespace Engine {
 
 		vkCmdBeginRenderPass(commandBuffer, &gameRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipeline());
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetGamePipeline());
 
 		VkViewport viewport = { 0.0f, 0.0f, static_cast<float>(m_swapchainExtent.width), static_cast<float>(m_swapchainExtent.height), 0.0f, 1.0f };
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
@@ -563,8 +703,8 @@ namespace Engine {
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetDescriptorSet(imageIndex);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetGameDescriptorSet(imageIndex);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetGamePipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
 
 		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
 		vkCmdEndRenderPass(commandBuffer);
@@ -848,7 +988,6 @@ namespace Engine {
 			EE_CORE_WARN("Quad index limit reached!");
 			return;
 		}
-
 		constexpr size_t quadVertexCount = 4;
 		constexpr glm::vec2 textureCoords[] = {
 			{ 0.0f, 0.0f },
@@ -919,7 +1058,6 @@ namespace Engine {
 
 	void VulkanRenderer2D::EndScene()
 	{
-
 		uint32_t dataSize = (uint32_t)((uint8_t*)s_VulkanData.QuadVertexBufferPtr - (uint8_t*)s_VulkanData.QuadVertexBufferBase);
 
 		if (dataSize > 0)
@@ -934,7 +1072,7 @@ namespace Engine {
 	void VulkanRenderer2D::CreateImGuiTextureDescriptors()
 	{
 		auto& swapchain = m_vulkanContext->GetVulkanSwapchain();
-		auto imageViews = swapchain.GetGameColorAttachmentImageViews();
+		std::vector<VulkanTracked>& imageViews = swapchain.GetGameTrackedImages();
 
 		m_gameViewportDescriptorSets.resize(imageViews.size());
 
@@ -942,7 +1080,7 @@ namespace Engine {
 		{
 			m_gameViewportDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(
 				m_vulkanContext->GetSampler(),
-				imageViews[i],
+				imageViews[i].view,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 			);
 		}

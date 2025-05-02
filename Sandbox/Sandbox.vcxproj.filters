@@ -4,6 +4,9 @@
     <Filter Include="Systems">
       <UniqueIdentifier>{1DDE831B-89BD-02B7-92D5-8D8DFE336918}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Systems\Collision">
+      <UniqueIdentifier>{781B2B44-E431-29DA-2DA9-B4FB99FEF961}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Systems\Player">
       <UniqueIdentifier>{99AC9A68-857A-8E6E-6E0E-FF945A7B6AD3}</UniqueIdentifier>
     </Filter>
@@ -11,6 +14,9 @@
   <ItemGroup>
     <ClInclude Include="source\PixelGame.h" />
     <ClInclude Include="source\Sandbox2D.h" />
+    <ClInclude Include="source\Systems\Collision\PixelCollisionSystem.h">
+      <Filter>Systems\Collision</Filter>
+    </ClInclude>
     <ClInclude Include="source\Systems\Player\CharacterControllerSystem.h">
       <Filter>Systems\Player</Filter>
     </ClInclude>
@@ -19,6 +25,9 @@
     <ClCompile Include="source\PixelGame.cpp" />
     <ClCompile Include="source\Sandbox2D.cpp" />
     <ClCompile Include="source\SandboxApp.cpp" />
+    <ClCompile Include="source\Systems\Collision\PixelCollisionSystem.cpp">
+      <Filter>Systems\Collision</Filter>
+    </ClCompile>
     <ClCompile Include="source\Systems\Player\CharacterControllerSystem.cpp">
       <Filter>Systems\Player</Filter>
     </ClCompile>

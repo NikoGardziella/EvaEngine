@@ -165,7 +165,7 @@ namespace Engine {
         }
         else
         {
-            EE_CORE_WARN("Texture {} not found in cache!", name);
+            EE_CORE_WARN("Texture '{}' not found in cache!", name);
             return nullptr;
         }
     }

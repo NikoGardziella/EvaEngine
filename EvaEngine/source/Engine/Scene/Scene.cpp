@@ -130,7 +130,9 @@ namespace Engine {
         CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        
+
+        newScene->m_gameplaySystems = other->m_gameplaySystems;
+
         return newScene;
     }
     
@@ -192,6 +194,13 @@ namespace Engine {
 
         CopyEntities(sceneA, combinedScene, enttMap);
         CopyEntities(sceneB, combinedScene, enttMap);
+
+        combinedScene->m_gameplaySystems = sceneA->m_gameplaySystems;
+        combinedScene->m_gameplaySystems.insert(
+            combinedScene->m_gameplaySystems.end(),
+            sceneB->m_gameplaySystems.begin(),
+            sceneB->m_gameplaySystems.end()
+        );
 
         return combinedScene;
     }
@@ -378,7 +387,6 @@ namespace Engine {
 
         //********** Update all systems **************
         {
-            EE_PROFILE_SCOPE("Update systems");
             for (auto& system : m_gameplaySystems)
             {
                 system(m_registry, timestep);

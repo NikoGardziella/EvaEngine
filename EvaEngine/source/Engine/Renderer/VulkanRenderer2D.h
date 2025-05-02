@@ -12,6 +12,7 @@
 #include "OrthographicCameraController.h"
 #include "Engine/Renderer/EditorCamera.h"
 #include "Renderer2D.h"
+#include <Engine/Platform/Vulkan/VulkanTrackedImage.h>
 
 namespace Engine {
 
@@ -24,10 +25,13 @@ namespace Engine {
 		VulkanRenderer2D();
 		~VulkanRenderer2D();
 
+		
+
 		void Init();
 		void DrawFrame(uint32_t currentFrame);
 		void RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-		void RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,uint32_t currentFrame);
+		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void TransitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout newLayout, VkImageSubresourceRange subresourceRange);
 		//inline VulkanGraphicsPipeline* GetGraphicsPipeline() { return m_vulkanGraphicsPipeline.get(); }
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
@@ -75,6 +79,7 @@ namespace Engine {
 		std::vector<VkSemaphore> m_imageAvailableSemaphores;
 		std::vector<VkSemaphore> m_renderFinishedSemaphores;
 		std::vector<VkFence> m_inFlightFences;
+		std::vector<VkFence> m_imagesInFlight;
 		std::vector<VkDescriptorSet> m_gameViewportDescriptorSets;
 
 		std::vector<VkImageLayout> m_imageLayouts;
@@ -101,7 +106,6 @@ namespace Engine {
 		
 		static const uint32_t MaxTextureSlots = 32;
 
-		
 		//static inline RendererStats s_Stats;
 
 		// Define quad vertices for a textured quad

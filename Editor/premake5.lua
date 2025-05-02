@@ -19,11 +19,7 @@ project "Editor"
     {
         "source/**.h",
         "source/**.cpp",
-        "../Sandbox/source/Sandbox2D.cpp",
-        "../Sandbox/source/SandboxApp.cpp",
-        "../Sandbox/source/Sandbox2D.h",
-        "../Sandbox/source/**.h",
-        "../Sandbox/source/**.cpp"
+
     }
 
 
@@ -43,6 +39,8 @@ project "Editor"
         "%{IncludeDir.ImGui}",
 
         "%{IncludeDir.VulkanSDK}",
+        "../Sandbox/source",
+     
 
     }
 
@@ -58,7 +56,6 @@ project "Editor"
         systemversion "latest"
         defines
         {
-            "EE_EDITOR",
             "EE_PLATFORM_WINDOWS"
         }
 
