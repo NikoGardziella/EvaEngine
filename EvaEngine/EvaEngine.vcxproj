@@ -185,8 +185,6 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRenderPass.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanShader.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanSwapchain.h" />
@@ -670,8 +668,6 @@
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRenderPass.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanShader.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanSwapchain.cpp" />

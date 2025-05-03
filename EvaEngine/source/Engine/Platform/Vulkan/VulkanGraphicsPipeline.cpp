@@ -16,9 +16,7 @@
 
 
 namespace Engine {
-   // const int MAX_FRAMES_IN_FLIGHT = 3;
 
-  
 
     VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanContext& vulkanContext)
 
@@ -68,10 +66,9 @@ namespace Engine {
         vkDestroyPipeline(m_device, m_gameGraphicsPipeline, nullptr);
         vkDestroyPipelineLayout(m_device, m_gamePipelineLayout, nullptr);
         vkDestroyPipelineLayout(m_device, m_imguiPipelineLayout, nullptr);
-
     }
 
-  
+ 
     void VulkanGraphicsPipeline::CreateGameGraphicsPipeline(VkRenderPass renderPass)
     {	
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};

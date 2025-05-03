@@ -216,12 +216,6 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.h">
-      <Filter>source\Engine\Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRenderPass.h">
-      <Filter>source\Engine\Platform\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClInclude>
@@ -1665,12 +1659,6 @@
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp">
-      <Filter>source\Engine\Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanPipelineLayout.cpp">
-      <Filter>source\Engine\Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRenderPass.cpp">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp">

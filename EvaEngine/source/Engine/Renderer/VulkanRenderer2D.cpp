@@ -81,51 +81,30 @@ namespace Engine {
 
 	void VulkanRenderer2D::Init()
 	{
-		//s_VulkanData.QuadShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());  // Add appropriate shader paths
 
 		m_vulkanContext = VulkanContext::Get();
 		m_swapchain = m_vulkanContext->GetVulkanSwapchain().GetSwapchain();
 		m_swapchainExtent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
-		m_vulkanGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>(*m_vulkanContext);
+		m_vulkanGraphicsPipelines = std::make_shared<VulkanGraphicsPipeline>(*m_vulkanContext);
 		m_device = m_vulkanContext->GetDeviceManager().GetDevice();
 
 		// Allocate command buffers and sync objects
 		AllocateCommandBuffers(m_vulkanContext->GetDeviceManager().GetDevice(), m_vulkanContext->GetCommandPool());
 		CreateSyncObjects();
 
-		// Create vertex buffer - convert to float* and size (in bytes)
-		/*
-		m_vertexBuffer = std::make_shared<VertexBuffer>(
-			(float*)(quadVertices.data()), 
-			sizeof(QuadVertex) * quadVertices.size()              
-		);
-		*/
-		//m_vertexBuffer = std::make_shared<VulkanVertexBuffer>((float*)quadVertices.data(), sizeof(VulkanQuadVertex) * quadVertices.size());
-
-		//EE_CORE_INFO("Vertex buffer created with size: {}", sizeof(VulkanQuadVertex) * quadVertices.size());
-
-		
-		//m_indexBuffer = std::make_shared<VulkanIndexBuffer>(quadIndices.data(), sizeof(VulkanQuadVertex) * quadVertices.size());
-		//EE_CORE_INFO("Index buffer created with size: {}", sizeof(uint32_t) * quadVertices.size());
 
 		m_camera = std::make_shared<OrthographicCamera>(-5.0f, 5.0f, -5.0f, 5.0f);
 		m_camera->SetPosition({ 0.0f, 0.0f, 1.0f }); // Move the camera back to see the quad
 
 		// Update the uniform buffer with the camera's view-projection matrix
-
-
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			m_vulkanGraphicsPipeline->UpdateUniformBuffer(i, m_camera->GetViewProjectionMatrix());
+			m_vulkanGraphicsPipelines->UpdateUniformBuffer(i, m_camera->GetViewProjectionMatrix());
 		}
-		//s_VulkanData.QuadShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());  // Add appropriate shader paths
-		//s_VulkanData.QuadVertexArray = VertexArray::Create();
-
 
 		s_VulkanData.QuadVertexBufferBase = new VulkanQuadVertex[VulkanRenderer2DData::MaxVertices];
 		s_VulkanData.QuadVertexBufferPtr = s_VulkanData.QuadVertexBufferBase;
 
-		// Create VulkanVertexBuffer with nullptr for now
 		s_VulkanData.QuadVertexBuffer = std::make_shared<VulkanVertexBuffer>(
 			reinterpret_cast<float*>(s_VulkanData.QuadVertexBufferBase),
 			VulkanRenderer2DData::MaxVertices * sizeof(VulkanQuadVertex)
@@ -184,16 +163,11 @@ namespace Engine {
 
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			m_vulkanGraphicsPipeline->UpdateTrackedImageDescriptorSets(i, s_VulkanData.TextureSlots);
+			m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(i, s_VulkanData.TextureSlots);
 		}
 
-
-		CreateImGuiTextureDescriptors();
-		m_imageLayouts.resize(m_vulkanContext->GetVulkanSwapchain().GetSwapchainImages().size(), VK_IMAGE_LAYOUT_UNDEFINED);
-		m_gameColorLayouts.resize(m_vulkanContext->GetVulkanSwapchain().GetSwapchainImages().size(), VK_IMAGE_LAYOUT_UNDEFINED);
-	
-	
-		
+		// this is for rendering game in editor viewport
+		CreateImGuiTextureDescriptors();	
 	}
 
 
@@ -201,32 +175,24 @@ namespace Engine {
 	{
 		s_VulkanData.Stats.DrawCalls++;
 
-		VulkanContext* vulkanContext = VulkanContext::Get();
-
 		// 1. Sync
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
-		m_vulkanGraphicsPipeline->UpdateUniformBuffer(currentFrame, s_VulkanData.CameraBuffer.ViewProjection);
+		m_vulkanGraphicsPipelines->UpdateUniformBuffer(currentFrame, s_VulkanData.CameraBuffer.ViewProjection);
 
 		// 2. Acquire. Max current frame is 2 and max swapchain images is 3.
 		// set in Renderer.h 	const int MAX_FRAMES_IN_FLIGHT = 2;
 		uint32_t imageIndex;
-		VkResult result = vkAcquireNextImageKHR(
-			m_device,
-			m_swapchain,
-			UINT64_MAX,
-			m_imageAvailableSemaphores[currentFrame],
-			VK_NULL_HANDLE,
-			&imageIndex
-		);
+		VkResult result = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			m_vulkanContext->GetVulkanSwapchain().RecreateSwapchain();
 			return;
 		}
-		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+		{
 			EE_CORE_ASSERT(false, "Failed to acquire swapchain image!");
 		}
 
@@ -240,10 +206,8 @@ namespace Engine {
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
-		RecordGameDrawCommands(cmd, imageIndex, currentFrame);  // imageIndex used to select framebuffer
-
-		
-		RecordPresentDrawCommands(cmd, imageIndex);
+		RecordGameDrawCommands(cmd, imageIndex, currentFrame);
+		RecordPresentDrawCommands(cmd, imageIndex, currentFrame);
 		RecordEditorDrawCommands(cmd, imageIndex);
 
 		// RecordImGuiDrawCommands(cmd, imageIndex);
@@ -292,17 +256,13 @@ namespace Engine {
 
 	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
-		VulkanContext* context = VulkanContext::Get();
-
-		//m_vulkanGraphicsPipeline->UpdateTrackedImageDescriptorSets(currentFrame, s_VulkanData.TextureSlots);
-		//m_vulkanGraphicsPipeline->UpdateGameDescriptorSets(currentFrame);
 
 		// --- Begin render pass ---
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = context->GetGameRenderPass();
-		renderPassInfo.framebuffer = context->GetVulkanSwapchain().GetGameFramebuffer(imageIndex);
-		renderPassInfo.renderArea = { {0, 0}, context->GetVulkanSwapchain().GetSwapchainExtent() };
+		renderPassInfo.renderPass = m_vulkanContext->GetGameRenderPass();
+		renderPassInfo.framebuffer = m_vulkanContext->GetVulkanSwapchain().GetGameFramebuffer(imageIndex);
+		renderPassInfo.renderArea = { {0, 0}, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent() };
 
 		// Clear color for the color attachment
 		VkClearValue clearColor = { {0.8f, 0.2f, 0.35f, 1.0f} };
@@ -313,55 +273,45 @@ namespace Engine {
 
 		// --- Set viewport and scissor ---
 		VkViewport viewport = {};
-		viewport.width = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().width);
-		viewport.height = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().height);
+		viewport.width = static_cast<float>(m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent().width);
+		viewport.height = static_cast<float>(m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent().height);
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-		VkRect2D scissor = { {0, 0}, context->GetVulkanSwapchain().GetSwapchainExtent() };
+		VkRect2D scissor = { {0, 0}, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent() };
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		// --- Bind pipeline and draw ---
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetGamePipeline());
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetGamePipeline());
 
 		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetGameDescriptorSet(currentFrame);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetGamePipelineLayout(), 1, 1, &descriptorSet, 0, nullptr);
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetGameDescriptorSet(currentFrame);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetGamePipelineLayout(), 1, 1, &descriptorSet, 0, nullptr);
 
-		descriptorSet = m_vulkanGraphicsPipeline->GetCameraDescriptorSet(currentFrame);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetGamePipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
+		descriptorSet = m_vulkanGraphicsPipelines->GetCameraDescriptorSet(currentFrame);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetGamePipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
 
 		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffer);
-
-		
+	
 	}
 
 
-
-
-
-	void VulkanRenderer2D::RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	void VulkanRenderer2D::RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
-		VulkanContext* context = VulkanContext::Get();
-
-		//m_vulkanGraphicsPipeline->UpdatePresentDescriptorSet(imageIndex);
-
-
-
 		// Begin render pass to the swapchain (present) framebuffer
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = context->GetPresentRenderPass();
-		renderPassInfo.framebuffer = context->GetVulkanSwapchain().GetSwapchainFramebuffer(imageIndex); // Assuming same framebuffer for simplicity
+		renderPassInfo.renderPass = m_vulkanContext->GetPresentRenderPass();
+		renderPassInfo.framebuffer = m_vulkanContext->GetVulkanSwapchain().GetSwapchainFramebuffer(imageIndex); // Assuming same framebuffer for simplicity
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
+		renderPassInfo.renderArea.extent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
 
 		VkClearValue clearColor = { {0.0f, 0.0f, 0.9f, 1.0f} };
 		renderPassInfo.clearValueCount = 1;
@@ -373,52 +323,40 @@ namespace Engine {
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().width);
-		viewport.height = static_cast<float>(context->GetVulkanSwapchain().GetSwapchainExtent().height);  // Negative height for flip
+		viewport.width = static_cast<float>(m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent().width);
+		viewport.height = static_cast<float>(m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent().height);  // Negative height for flip
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
-
 		VkRect2D scissor{};
 		scissor.offset = { 0, 0 };
-		scissor.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
+		scissor.extent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		// Bind the graphics pipeline for the game scene
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPresentPipeline());
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetPresentPipeline());
 
-		//VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
-		//VkDeviceSize offsets[] = { 0 };
-		//vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		//vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetPresentDescriptorSet(imageIndex);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPresentPipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetPresentDescriptorSet(currentFrame);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetPresentPipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
 
 		// hardcoded vertices in fullscreen_shader:
 		vkCmdDrawIndexed(commandBuffer, 3, 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffer);
 
-		
-		
 	}
 
 	void VulkanRenderer2D::RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
-		VulkanContext* context = VulkanContext::Get();
-
-		// Transition to COLOR_ATTACHMENT_OPTIMAL for ImGui rendering
-		//PrepareImageForRenderPass(commandBuffer, imageIndex);
 
 		// Begin ImGui render pass
 		VkRenderPassBeginInfo imguiRenderPassInfo{};
 		imguiRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		imguiRenderPassInfo.renderPass = context->GetImGuiRenderPass();
-		imguiRenderPassInfo.framebuffer = context->GetVulkanSwapchain().GetImGuiFramebuffer(imageIndex);
+		imguiRenderPassInfo.renderPass = m_vulkanContext->GetImGuiRenderPass();
+		imguiRenderPassInfo.framebuffer = m_vulkanContext->GetVulkanSwapchain().GetImGuiFramebuffer(imageIndex);
 		imguiRenderPassInfo.renderArea.offset = { 0, 0 };
-		imguiRenderPassInfo.renderArea.extent = context->GetVulkanSwapchain().GetSwapchainExtent();
+		imguiRenderPassInfo.renderArea.extent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
 
 		VkClearValue clearValue{};
 		clearValue.color = { {0.0f, 0.9f, 0.0f, 0.0f} };
@@ -439,10 +377,7 @@ namespace Engine {
 	}
 
 
-
-
-
-
+	// Not uset for now. Maybe later
 	void VulkanRenderer2D::TransitionImageLayout(VkCommandBuffer commandBuffer,	VkImage image,
 		VkImageLayout oldLayout, VkImageLayout newLayout)
 	{
@@ -623,222 +558,9 @@ namespace Engine {
 		);
 	}
 
-
-
-	void VulkanRenderer2D::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
-	{
-		VulkanContext* vulkanContext = VulkanContext::Get();
-
-		VkImageLayout currentLayout = m_imageLayouts[imageIndex];
-		VkImage swapchainImage = vulkanContext->GetVulkanSwapchain().GetSwapchainImage(imageIndex);
-		VkImage gameColorImage = vulkanContext->GetVulkanSwapchain().GetGameImage(imageIndex);
-
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-		{
-			EE_CORE_ERROR("Failed to begin recording command buffer!");
-			return;
-		}
-
-		// === [0] Transition gameColorImage to COLOR_ATTACHMENT_OPTIMAL ===
-		if (m_gameColorLayouts[imageIndex] != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-		{
-			VkImageMemoryBarrier toColorAttachment{};
-			toColorAttachment.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			toColorAttachment.oldLayout = m_gameColorLayouts[imageIndex];
-			toColorAttachment.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			toColorAttachment.srcAccessMask = 0;
-			toColorAttachment.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			toColorAttachment.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			toColorAttachment.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			toColorAttachment.image = gameColorImage;
-			toColorAttachment.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			toColorAttachment.subresourceRange.baseMipLevel = 0;
-			toColorAttachment.subresourceRange.levelCount = 1;
-			toColorAttachment.subresourceRange.baseArrayLayer = 0;
-			toColorAttachment.subresourceRange.layerCount = 1;
-
-			vkCmdPipelineBarrier(
-				commandBuffer,
-				VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				0,
-				0, nullptr,
-				0, nullptr,
-				1, &toColorAttachment
-			);
-
-			// this might be wrong and the whoe layout tracking should be done differently
-			// this line probably just surpresses the error
-			m_gameColorLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		}
-
-		// === [1] Begin Game Render Pass ===
-		VkRenderPassBeginInfo gameRenderPassInfo{};
-		gameRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		gameRenderPassInfo.renderPass = vulkanContext->GetPresentRenderPass();
-		gameRenderPassInfo.framebuffer = vulkanContext->GetVulkanSwapchain().GetGameFramebuffer(imageIndex);
-		gameRenderPassInfo.renderArea.offset = { 0, 0 };
-		gameRenderPassInfo.renderArea.extent = vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
-
-		VkClearValue gameClearColor = { {{0.1f, 0.1f, 0.1f, 1.0f}} };
-		gameRenderPassInfo.clearValueCount = 1;
-		gameRenderPassInfo.pClearValues = &gameClearColor;
-
-		vkCmdBeginRenderPass(commandBuffer, &gameRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetGamePipeline());
-
-		VkViewport viewport = { 0.0f, 0.0f, static_cast<float>(m_swapchainExtent.width), static_cast<float>(m_swapchainExtent.height), 0.0f, 1.0f };
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-		VkRect2D scissor = { {0, 0}, m_swapchainExtent };
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
-		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetGameDescriptorSet(imageIndex);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetGamePipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
-
-		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
-		vkCmdEndRenderPass(commandBuffer);
-
-		// === [2] Transition gameColorImage to SHADER_READ_ONLY_OPTIMAL ===
-		if (m_gameColorLayouts[imageIndex] != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		{
-			VkImageMemoryBarrier toShaderRead{};
-			toShaderRead.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			toShaderRead.oldLayout = m_gameColorLayouts[imageIndex];
-			toShaderRead.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			toShaderRead.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			toShaderRead.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			toShaderRead.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			toShaderRead.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			toShaderRead.image = gameColorImage;
-			toShaderRead.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			toShaderRead.subresourceRange.baseMipLevel = 0;
-			toShaderRead.subresourceRange.levelCount = 1;
-			toShaderRead.subresourceRange.baseArrayLayer = 0;
-			toShaderRead.subresourceRange.layerCount = 1;
-
-			vkCmdPipelineBarrier(
-				commandBuffer,
-				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				0,
-				0, nullptr,
-				0, nullptr,
-				1, &toShaderRead
-			);
-
-			m_gameColorLayouts[imageIndex] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		}
-
-		// === [3] ImGui Render Pass ===
-		VkRenderPassBeginInfo imguiRenderPassInfo{};
-		imguiRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		imguiRenderPassInfo.renderPass = vulkanContext->GetImGuiRenderPass();
-		imguiRenderPassInfo.framebuffer = vulkanContext->GetVulkanSwapchain().GetImGuiFramebuffer(imageIndex);
-		imguiRenderPassInfo.renderArea.offset = { 0, 0 };
-		imguiRenderPassInfo.renderArea.extent = vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
-		imguiRenderPassInfo.clearValueCount = 1;
-		imguiRenderPassInfo.pClearValues = &gameClearColor;
-
-		vkCmdBeginRenderPass(commandBuffer, &imguiRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		ImDrawData* drawData = ImGui::GetDrawData();
-		if (drawData) {
-			ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
-		}
-		vkCmdEndRenderPass(commandBuffer);
-
-		// === [4] Transition swapchain image to PRESENT_SRC_KHR ===
-		if (m_imageLayouts[imageIndex] != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-		{
-			VkImageMemoryBarrier toPresent{};
-			toPresent.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			toPresent.oldLayout = m_imageLayouts[imageIndex];
-			toPresent.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-			toPresent.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			toPresent.dstAccessMask = 0;
-			toPresent.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			toPresent.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			toPresent.image = swapchainImage;
-			toPresent.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			toPresent.subresourceRange.baseMipLevel = 0;
-			toPresent.subresourceRange.levelCount = 1;
-			toPresent.subresourceRange.baseArrayLayer = 0;
-			toPresent.subresourceRange.layerCount = 1;
-
-			vkCmdPipelineBarrier(
-				commandBuffer,
-				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-				0,
-				0, nullptr,
-				0, nullptr,
-				1, &toPresent
-			);
-
-			m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		}
-
-		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-		{
-			EE_CORE_ASSERT(false, "Failed to record command buffer!");
-		}
-	}
-
-
-
-
-	/*
-	// Transition the image layout from PRESENT_SRC_KHR to SHADER_READ_ONLY_OPTIMAL
-	void VulkanRenderer2D::TransitionImageForShaderRead(VkCommandBuffer cmd, uint32_t imageIndex, VkImage image, VulkanContext* vulkanContext)
-	{
-		VkImageMemoryBarrier barrier = {};
-		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.oldLayout = m_imageLayouts[imageIndex];  // Previous layout, which is PRESENT_SRC_KHR
-		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;  // New layout for shader read access
-		barrier.srcAccessMask = 0;  // No source access mask required
-		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;  // We want to read from the image in the shader
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = image;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;  // Color aspect
-		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = 1;
-		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
-
-		// Insert the barrier into the command buffer to synchronize the transition
-		vkCmdPipelineBarrier(
-			cmd,
-			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  // Wait for previous work to finish (may not be strictly necessary)
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,  // Ensure the image is ready for fragment shader access
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &barrier
-		);
-
-		// Update the image layout tracker
-		m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	}
-	*/
-
-
-
-
-
 	void VulkanRenderer2D::AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool)
 	{
 		m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-		m_imGuiCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -851,13 +573,7 @@ namespace Engine {
 			EE_CORE_ERROR("Failed to allocate command buffers!");
 		}
 
-		// Allocate ImGui command buffers from the same pool
-		if (vkAllocateCommandBuffers(device, &allocInfo, m_imGuiCommandBuffers.data()) != VK_SUCCESS)
-		{
-			EE_CORE_ERROR("Failed to allocate ImGui command buffers!");
-		}
 	}
-
 
 	void VulkanRenderer2D::CreateSyncObjects()
 	{
@@ -884,40 +600,7 @@ namespace Engine {
 			}
 		}
 	}
-	void VulkanRenderer2D::PrepareImageForRenderPass(VkCommandBuffer commandBuffer, uint32_t imageIndex)
-	{
-		VulkanContext* context = VulkanContext::Get();
-		VkImage image = context->GetVulkanSwapchain().GetSwapchainImage(imageIndex);
-
-		if (m_imageLayouts[imageIndex] != VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-		{
-			TransitionImageLayout(
-				commandBuffer,
-				image,
-				m_imageLayouts[imageIndex],
-				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-			);
-			m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		}
-	}
-
-	void VulkanRenderer2D::TransitionToPresent(VkCommandBuffer commandBuffer, uint32_t imageIndex)
-	{
-		VulkanContext* context = VulkanContext::Get();
-		VkImage image = context->GetVulkanSwapchain().GetSwapchainImage(imageIndex);
-
-		if (m_imageLayouts[imageIndex] != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-		{
-			TransitionImageLayout(
-				commandBuffer,
-				image,
-				m_imageLayouts[imageIndex],
-				VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-			);
-			m_imageLayouts[imageIndex] = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		}
-	}
-
+	
 
 	void VulkanRenderer2D::DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor)
 	{
@@ -1038,7 +721,6 @@ namespace Engine {
 
 		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection() * glm::inverse(transform);
 		//s_VulkanData.CameraUniformBuffer->SetData(&s_VulkanData.CameraBuffer, sizeof(VulkanRenderer2DData::CameraData));
-
 	}
 
 	void VulkanRenderer2D::BeginScene(const EditorCamera& camera)
@@ -1047,7 +729,6 @@ namespace Engine {
 
 		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection();
 		//s_VulkanData.CameraUniformBuffer->SetData(&s_VulkanData.CameraBuffer, sizeof(Renderer2DData::CameraData));
-
 	}
 
 	void VulkanRenderer2D::BeginScene(glm::mat4 viewProjectionMatrix)
@@ -1070,6 +751,7 @@ namespace Engine {
 
 	void VulkanRenderer2D::CreateImGuiTextureDescriptors()
 	{
+		// this is for rendering game in editor viewport
 		auto& swapchain = m_vulkanContext->GetVulkanSwapchain();
 		std::vector<VulkanTracked>& imageViews = swapchain.GetGameTrackedImages();
 
