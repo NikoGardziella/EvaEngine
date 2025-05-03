@@ -20,6 +20,7 @@ public:
 	void OnUpdate(Engine::Timestep timestep) override;
 	void OnEvent(Engine::Event& event) override;
 	void OnGameStart();
+	void LoadGameAssets();
 	void OnGameStop();
 
 

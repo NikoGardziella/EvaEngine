@@ -19,13 +19,18 @@ void PixelCollisionSystem::UpdatePixelCollisionSystem(entt::registry& registry, 
             auto& pixelTransform = pixelView.get<Engine::TransformComponent>(pixelEntity);
             Engine::PixelSpriteRendererComponent& pixelTexture = pixelView.get<Engine::PixelSpriteRendererComponent>(pixelEntity);
 
-            glm::vec2 pixelOrigin = pixelTransform.Translation;
-            glm::vec2 relative = playerPos - pixelOrigin;
 
             uint32_t pixelSize = 1;
+            // World units per pixel
+            float pixelWidth = pixelTransform.Scale.x / pixelTexture.Texture->GetWidth();
+            float pixelHeight = pixelTransform.Scale.y / pixelTexture.Texture->GetHeight();
 
-            int px = static_cast<int>(relative.x / pixelSize);
-            int py = static_cast<int>(relative.y / pixelSize);
+            glm::vec2 relative = playerPos - glm::vec2(pixelTransform.Translation.x, pixelTransform.Translation.y);
+
+            int px = static_cast<int>(relative.x / pixelWidth);
+            int py = static_cast<int>(relative.y / pixelHeight);
+            py = pixelTexture.Texture->GetHeight() - 1 - py; // flip Y if needed
+
 
             if (pixelTexture.Texture != nullptr)
             {
@@ -33,7 +38,7 @@ void PixelCollisionSystem::UpdatePixelCollisionSystem(entt::registry& registry, 
                 {
                     // Destroy pixel on collision
                     pixelTexture.Texture->DestroyPixel(px, py);
-
+					pixelTexture.Texture->ApplyChanges();
                 }
             }
 

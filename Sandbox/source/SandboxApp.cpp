@@ -162,6 +162,7 @@ Engine::Application* Engine::CreateApplication()
 	auto app = new Sandbox;
 	
 	auto game = new PixelGame("");
+	game->LoadGameAssets();
 	game->OnGameStart();
 	app->PushLayer(game);
 	return app;

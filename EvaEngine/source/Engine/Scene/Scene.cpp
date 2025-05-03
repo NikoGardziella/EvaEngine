@@ -527,6 +527,8 @@ namespace Engine {
 
     void Scene::OnUpdateEditor(Timestep timestep, EditorCamera& camera)
     {
+        EE_PROFILE_FUNCTION();
+
         Engine::VulkanRenderer2D::BeginScene(camera.GetProjectionMatrix());
 
         {

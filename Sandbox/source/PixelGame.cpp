@@ -61,6 +61,7 @@ void PixelGame::OnAttach()
 	Engine::SpriteRendererComponent& spriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();
 	spriteComp.Color = color;
 
+	LoadGameAssets();
 
 }
 
@@ -148,7 +149,6 @@ void PixelGame::OnGameStart()
 	//m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
 
 	// move this to new function called LoadTextures. This is called on app creation
-	m_pixelTexture = Engine::AssetManager::GetPixelTexture("pixel");
 
 	m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
 	m_pixelEntity.AddComponent<Engine::TransformComponent>();
@@ -160,6 +160,12 @@ void PixelGame::OnGameStart()
 	m_activeScene->OnRunTimeStart();
 
 	m_isPlaying = true;
+}
+
+void PixelGame::LoadGameAssets()
+{
+	m_pixelTexture = Engine::AssetManager::GetPixelTexture("pixel");
+
 }
 
 void PixelGame::OnGameStop()

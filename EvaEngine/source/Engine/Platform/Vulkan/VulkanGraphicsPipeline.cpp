@@ -20,20 +20,15 @@ namespace Engine {
 
   
 
-    VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice device, VkExtent2D swapchainExtent, VkRenderPass gameRenderPass, VkRenderPass imGuirenderPass, Ref<VulkanShader> shader)
-        : m_device(device),
-        m_gameGraphicsPipeline(VK_NULL_HANDLE),
-        m_gamePipelineLayout(VK_NULL_HANDLE)
+    VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanContext& vulkanContext)
+
     {
-        
+		m_swapchainExtent = vulkanContext.GetVulkanSwapchain().GetSwapchainExtent();
+	
+		m_device = vulkanContext.GetDeviceManager().GetDevice();
+        m_descriptorPool = vulkanContext.GetDescriptorPool();
 
-        VulkanContext* vulkanContext = VulkanContext::Get();
-        m_descriptorPool = vulkanContext->GetDescriptorPool();
-        m_texture = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("textures/ee_logo.png").string());
-
-        //m_pixelTexture = std::make_shared<VulkanPixelTexture>(2, 2);
         m_pixelGameShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/PixelGameShader.GLSL").string());
-        m_imGuiShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/fullscreen_shader.GLSL").string());
         m_fullscreenShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/fullscreen_shader.GLSL").string());
 
         m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -41,7 +36,7 @@ namespace Engine {
         {
             m_uniformBuffers[i] = VulkanBuffer(
                 m_device,
-                vulkanContext->GetDeviceManager().GetPhysicalDevice(),
+                vulkanContext.GetDeviceManager().GetPhysicalDevice(),
                 sizeof(glm::mat4),
                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
@@ -51,45 +46,34 @@ namespace Engine {
        
         CreatePresentSampler();
 
-        //m_circleShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/PixelGameShader.GLSL").string());
-       // m_circleShader = shader;
         CreateDescriptorSetLayout();
+        CreateDescriptorSetLayouts();
         CreateCameraDescriptorSetLayout();
-        CreateImGuiDescriptorSetLayout();
-        CreateFullscreenDescriptorSetLayout();
 
-        CreateDescriptorSetLayouts(vulkanContext);
-        CreateGameGraphicsPipeline(swapchainExtent, gameRenderPass);
+        CreateGameGraphicsPipeline(vulkanContext.GetGameRenderPass());
         CreateGameDescriptorSet();
         CreateCameraDescriptorSet();
         CreatePresentDescriptorSet();
 
-        CreatePresentGameDescriptorPool(vulkanContext);
-        CreateGamePresentDescriptorSets(vulkanContext);
+        CreatePresentGameDescriptorPool();
+        CreateGameAndPresentDescriptorSets();
 
-        CreateFullscreenPipelineLayout();
-        CreateFullscreenGraphicsPipeline(vulkanContext->GetPresentRenderPass());
+        CreatePresentPipelineLayout();
+        CreatePresentGraphicsPipeline(vulkanContext.GetPresentRenderPass());
 
-        CreateImGuiPipelineLayout();
-       // CreateImGuiPipeline(imGuirenderPass);
     }
 
     VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
     {
         vkDestroyPipeline(m_device, m_gameGraphicsPipeline, nullptr);
-        vkDestroyPipeline(m_device, m_imguiPipeline, nullptr);
         vkDestroyPipelineLayout(m_device, m_gamePipelineLayout, nullptr);
         vkDestroyPipelineLayout(m_device, m_imguiPipelineLayout, nullptr);
 
     }
 
-   
-
-   
-
-    void VulkanGraphicsPipeline::CreateGameGraphicsPipeline(VkExtent2D swapchainExtent, VkRenderPass renderPass)
-    {
-		
+  
+    void VulkanGraphicsPipeline::CreateGameGraphicsPipeline(VkRenderPass renderPass)
+    {	
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -160,14 +144,14 @@ namespace Engine {
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = static_cast<float>(swapchainExtent.width);
-        viewport.height = static_cast<float>(swapchainExtent.height);
+        viewport.width = static_cast<float>(m_swapchainExtent.width);
+        viewport.height = static_cast<float>(m_swapchainExtent.height);
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
 
         VkRect2D scissor{};
         scissor.offset = { 0, 0 };
-        scissor.extent = swapchainExtent;
+        scissor.extent = m_swapchainExtent;
 
         VkPipelineViewportStateCreateInfo viewportState{};
         viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -278,134 +262,7 @@ namespace Engine {
 
     }
 
-    void VulkanGraphicsPipeline::CreateImGuiPipeline(VkRenderPass imGuiRenderPass)
-    {
-
-        VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertShaderStageInfo.module = m_imGuiShader->GetVertexShaderModule();
-        vertShaderStageInfo.pName = "main";
-
-        VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-        fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragShaderStageInfo.module = m_imGuiShader->GetFragmentShaderModule();
-        fragShaderStageInfo.pName = "main";
-
-        VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
-
-        // Vertex input bindings and attributes (match ImDrawVert)
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(ImDrawVert);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-        attributeDescriptions[0] = { 0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(ImDrawVert, pos) };  // Position
-        attributeDescriptions[1] = { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(ImDrawVert, uv) };   // UV
-        attributeDescriptions[2] = { 2, 0, VK_FORMAT_R8G8B8A8_UNORM, offsetof(ImDrawVert, col) }; // Color
-
-        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-
-        // Input assembly
-        VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
-        inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-        // Viewport and scissor (dynamic)
-        VkPipelineViewportStateCreateInfo viewportState{};
-        viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-        viewportState.viewportCount = 1;
-        viewportState.scissorCount = 1;
-
-        // Rasterizer
-        VkPipelineRasterizationStateCreateInfo rasterizer{};
-        rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-        rasterizer.depthClampEnable = VK_FALSE;
-        rasterizer.rasterizerDiscardEnable = VK_FALSE;
-        rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-        rasterizer.lineWidth = 1.0f;
-        rasterizer.cullMode = VK_CULL_MODE_NONE;
-        rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-        rasterizer.depthBiasEnable = VK_FALSE;
-
-        // Multisampling
-        VkPipelineMultisampleStateCreateInfo multisampling{};
-        multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-        multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-
-        // Color blend
-        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-        colorBlendAttachment.colorWriteMask =
-            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-            VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachment.blendEnable = VK_TRUE;
-        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-
-        VkPipelineColorBlendStateCreateInfo colorBlending{};
-        colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlending.attachmentCount = 1;
-        colorBlending.pAttachments = &colorBlendAttachment;
-
-        // Dynamic state
-        std::vector<VkDynamicState> dynamicStates = {
-            VK_DYNAMIC_STATE_VIEWPORT,
-            VK_DYNAMIC_STATE_SCISSOR
-        };
-
-        VkPipelineDynamicStateCreateInfo dynamicState{};
-        dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-        dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-        dynamicState.pDynamicStates = dynamicStates.data();
-
-        // Pipeline layout (should include ImGui's descriptor set layout)
-        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &m_imguiDescriptorSetLayout;
-
-        if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_imguiPipelineLayout) != VK_SUCCESS)
-        {
-            EE_CORE_ASSERT(false, "Failed to create ImGui pipeline layout!");
-        }
-
-        // Pipeline creation
-        VkGraphicsPipelineCreateInfo pipelineInfo{};
-        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = 2;
-        pipelineInfo.pStages = shaderStages;
-        pipelineInfo.pVertexInputState = &vertexInputInfo;
-        pipelineInfo.pInputAssemblyState = &inputAssembly;
-        pipelineInfo.pViewportState = &viewportState;
-        pipelineInfo.pRasterizationState = &rasterizer;
-        pipelineInfo.pMultisampleState = &multisampling;
-        pipelineInfo.pColorBlendState = &colorBlending;
-        pipelineInfo.pDynamicState = &dynamicState;
-        pipelineInfo.layout = m_imguiPipelineLayout;
-        pipelineInfo.renderPass = imGuiRenderPass;
-        pipelineInfo.subpass = 0;
-
-        if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_imguiPipeline) != VK_SUCCESS)
-        {
-            EE_CORE_ASSERT(false, "Failed to create ImGui graphics pipeline!");
-        }
-
-      
-    }
-
-    void VulkanGraphicsPipeline::CreateFullscreenGraphicsPipeline(VkRenderPass renderPass)
+    void VulkanGraphicsPipeline::CreatePresentGraphicsPipeline(VkRenderPass renderPass)
     {
         // Load SPIR-V
 
@@ -485,9 +342,9 @@ namespace Engine {
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &m_fullscreenDescriptorSetLayout;
+        pipelineLayoutInfo.pSetLayouts = &m_presentDescriptorSetLayout;
 
-        vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_fullscreenPipelineLayout);
+        vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_presentPipelineLayout);
 
         // Graphics Pipeline
         VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -501,84 +358,29 @@ namespace Engine {
         pipelineInfo.pMultisampleState = &multisampling;
         pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
-        pipelineInfo.layout = m_fullscreenPipelineLayout;
+        pipelineInfo.layout = m_presentPipelineLayout;
         pipelineInfo.renderPass = renderPass;  // render pass for swapchain
         pipelineInfo.subpass = 0;
 
-        vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_fullscreenPipeline);
+        vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_presentPipeline);
 
         // Cleanup shader modules
-   
-    }
-
-    void VulkanGraphicsPipeline::CreateImGuiDescriptorSetLayout()
-    {
-
-        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-        samplerLayoutBinding.binding = 0;
-        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.descriptorCount = 1;
-        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        samplerLayoutBinding.pImmutableSamplers = nullptr;
-
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = 1;
-        layoutInfo.pBindings = &samplerLayoutBinding;
-
-        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_imguiDescriptorSetLayout) != VK_SUCCESS)
-        {
-            EE_CORE_ASSERT(false, "Failed to create ImGui descriptor set layout!");
-        }
-    }
-
-    void VulkanGraphicsPipeline::CreateFullscreenDescriptorSetLayout()
-    {
-        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-        samplerLayoutBinding.binding = 0;
-        samplerLayoutBinding.descriptorCount = 1;
-        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.pImmutableSamplers = nullptr;
-        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = 1;
-        layoutInfo.pBindings = &samplerLayoutBinding;
-
-        vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_fullscreenDescriptorSetLayout);
 
     }
 
-    void VulkanGraphicsPipeline::CreateImGuiPipelineLayout()
-    {
-
-        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &m_imguiDescriptorSetLayout;
-        pipelineLayoutInfo.pushConstantRangeCount = 0;
-        pipelineLayoutInfo.pPushConstantRanges = nullptr;
-
-        if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_imguiPipelineLayout) != VK_SUCCESS)
-        {
-            EE_CORE_ASSERT(false, "Failed to create ImGui pipeline layout!");
-        }
-    }
-
-    void VulkanGraphicsPipeline::CreateFullscreenPipelineLayout()
+ 
+    void VulkanGraphicsPipeline::CreatePresentPipelineLayout()
     {
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &m_fullscreenDescriptorSetLayout;
+        pipelineLayoutInfo.pSetLayouts = &m_presentDescriptorSetLayout;
 
-        vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_fullscreenPipelineLayout);
+        vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_presentPipelineLayout);
 
     }
 
-
-    void VulkanGraphicsPipeline::CreateDescriptorSetLayouts(VulkanContext* context)
+    void VulkanGraphicsPipeline::CreateDescriptorSetLayouts()
     {
         // Two bindings: Camera UBO and Texture Sampler Array
         VkDescriptorSetLayoutBinding bindings[2] = {};
@@ -623,10 +425,7 @@ namespace Engine {
         vkCreateDescriptorSetLayout(m_device, &presentLayoutInfo, nullptr, &m_presentDescriptorSetLayout);
     }
 
-
-
-
-    void VulkanGraphicsPipeline::CreatePresentGameDescriptorPool(VulkanContext* context)
+    void VulkanGraphicsPipeline::CreatePresentGameDescriptorPool()
     {
         VkDescriptorPoolSize poolSizes[1] = {};
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
@@ -641,7 +440,7 @@ namespace Engine {
         vkCreateDescriptorPool(m_device, &poolCreateInfo, nullptr, &m_presentGamedescriptorPool);
     }
 
-    void VulkanGraphicsPipeline::CreateGamePresentDescriptorSets(VulkanContext* context)
+    void VulkanGraphicsPipeline::CreateGameAndPresentDescriptorSets()
     {
         // Allocate descriptor sets for rendering and presentation
         VkDescriptorSetAllocateInfo allocateInfo = {};
@@ -666,46 +465,6 @@ namespace Engine {
         }
     }
 
-
-    void VulkanGraphicsPipeline::UpdateGamePresentDescriptorSets(VulkanContext* context, VkImageView swapchainImageView, VkSampler sampler)
-    {
-        // Update the game descriptor set (for rendering)
-        VkDescriptorImageInfo gameImageInfo = {};
-        gameImageInfo.imageView = swapchainImageView;
-        gameImageInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;  // For rendering
-        gameImageInfo.sampler = sampler;
-
-        VkWriteDescriptorSet gameWrite = {};
-        gameWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        gameWrite.dstSet = m_gameDescriptorSet;
-        gameWrite.dstBinding = 0;
-        gameWrite.dstArrayElement = 0;
-        gameWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        gameWrite.descriptorCount = 1;
-        gameWrite.pImageInfo = &gameImageInfo;
-
-        vkUpdateDescriptorSets(m_device, 1, &gameWrite, 0, nullptr);
-
-        // Update the present descriptor set (for presentation)
-        VkDescriptorImageInfo presentImageInfo = {};
-        presentImageInfo.imageView = swapchainImageView;
-        presentImageInfo.imageLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;  // For presentation
-        presentImageInfo.sampler = sampler;
-
-        VkWriteDescriptorSet presentWrite = {};
-        presentWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        presentWrite.dstSet = m_presentDescriptorSet;
-        presentWrite.dstBinding = 0;
-        presentWrite.dstArrayElement = 0;
-        presentWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        presentWrite.descriptorCount = 1;
-        presentWrite.pImageInfo = &presentImageInfo;
-
-        vkUpdateDescriptorSets(m_device, 1, &presentWrite, 0, nullptr);
-    }
-
-
-
     void VulkanGraphicsPipeline::CreateDescriptorSetLayout()
     {
         VkDescriptorSetLayoutBinding uboBinding{};
@@ -729,7 +488,7 @@ namespace Engine {
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
         layoutInfo.pBindings = bindings.data();
 
-        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
+        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_gameDescriptorSetLayout) != VK_SUCCESS)
         {
             EE_CORE_ASSERT(false, "failed to create descriptor set layout!");
         }
@@ -745,7 +504,7 @@ namespace Engine {
     {
         m_gameDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
-        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_descriptorSetLayout);
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_gameDescriptorSetLayout);
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = m_descriptorPool;
@@ -768,7 +527,6 @@ namespace Engine {
         }
         //UpdateCameraUBODescriptorSets();
     }
-
 
     void VulkanGraphicsPipeline::CreatePresentDescriptorSet()
     {
@@ -821,29 +579,6 @@ namespace Engine {
         vkUpdateDescriptorSets(m_device, 1, &writeSet, 0, nullptr);
     }
 
-
-
-    void VulkanGraphicsPipeline::UpdateTrackedImageDescriptorSets(size_t frameIndex, VkImageView imageView)
-    {
-        VkDescriptorImageInfo imageInfo{};
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = imageView;
-        imageInfo.sampler = m_texture->GetSampler(); // (you probably have a sampler created already)
-
-        VkWriteDescriptorSet descriptorWrite{};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet = m_gameDescriptorSets[frameIndex];
-        descriptorWrite.dstBinding = 1; // Binding 1 (for textures?)
-        descriptorWrite.dstArrayElement = 4;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pImageInfo = &imageInfo;
-
-        vkUpdateDescriptorSets(m_device, 1, &descriptorWrite, 0, nullptr);
-
-
-    }
-
     void VulkanGraphicsPipeline::UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, 32>& textures)
     {
         std::array<VkDescriptorImageInfo, 32> imageInfos{};
@@ -865,8 +600,6 @@ namespace Engine {
 
         vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
     }
-
-
 
     void VulkanGraphicsPipeline::CreatePresentSampler()
     {
@@ -961,69 +694,6 @@ namespace Engine {
 
     }
 
-    void VulkanGraphicsPipeline::UpdateGameDescriptorSets(size_t frameIndex)
-    {
-      
-        VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = m_uniformBuffers[frameIndex].GetBuffer();;
-        bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(glm::mat4);
-
-        VkWriteDescriptorSet uboWrite{};
-        uboWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        uboWrite.dstSet = m_gameDescriptorSets[frameIndex];
-        uboWrite.dstBinding = 0;
-        uboWrite.dstArrayElement = 0;
-        uboWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uboWrite.descriptorCount = 1;
-        uboWrite.pBufferInfo = &bufferInfo;
-
-        std::array<VkDescriptorImageInfo, 32> imageInfos{};
-        for (size_t i = 0; i < imageInfos.size(); i++)
-        {
-            imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfos[i].imageView =  m_texture->GetImageView();
-            imageInfos[i].sampler = m_texture->GetSampler();
-        }
-
-        VkWriteDescriptorSet samplerWrite{};
-        samplerWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        samplerWrite.dstSet = m_gameDescriptorSets[frameIndex];
-        samplerWrite.dstBinding = 1;
-        samplerWrite.dstArrayElement = 0;
-        samplerWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerWrite.descriptorCount = static_cast<uint32_t>(imageInfos.size());
-        samplerWrite.pImageInfo = imageInfos.data();
-
-        std::array<VkWriteDescriptorSet, 2> descriptorWrites = { uboWrite, samplerWrite };
-        vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-    }
-
-    void VulkanGraphicsPipeline::UpdateGameDescriptorSets(uint32_t slotIndex, const Ref<VulkanTexture>& texture)
-    {
-        EE_CORE_ASSERT(slotIndex < 32, "Texture slot index out of bounds!");
-
-        VkDescriptorImageInfo imageInfo{};
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = texture->GetImageView();
-        imageInfo.sampler = texture->GetSampler();
-
-        for (size_t i = 0; i < m_gameDescriptorSets.size(); ++i)
-        {
-            VkWriteDescriptorSet samplerWrite{};
-            samplerWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            samplerWrite.dstSet = m_gameDescriptorSets[i];
-            samplerWrite.dstBinding = 1; // assuming all textures are at binding = 1
-            samplerWrite.dstArrayElement = slotIndex;
-            samplerWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            samplerWrite.descriptorCount = 1;
-            samplerWrite.pImageInfo = &imageInfo;
-
-            vkUpdateDescriptorSets(m_device, 1, &samplerWrite, 0, nullptr);
-        }
-    }
-
-
     void VulkanGraphicsPipeline::UpdateUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix)
     {
         void* data;
@@ -1031,7 +701,5 @@ namespace Engine {
         memcpy(data, &viewProjectionMatrix, sizeof(viewProjectionMatrix));
         vkUnmapMemory(m_device, m_uniformBuffers[currentFrame].GetMemory());
     }
-
-  
 
 }

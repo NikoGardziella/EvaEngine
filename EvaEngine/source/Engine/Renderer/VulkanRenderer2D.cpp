@@ -86,8 +86,7 @@ namespace Engine {
 		m_vulkanContext = VulkanContext::Get();
 		m_swapchain = m_vulkanContext->GetVulkanSwapchain().GetSwapchain();
 		m_swapchainExtent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
-		m_vulkanGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>(m_vulkanContext->GetDeviceManager().GetDevice(),
-			m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent(), m_vulkanContext->GetOffscreenRenderPass(), m_vulkanContext->GetImGuiRenderPass(), s_VulkanData.QuadShader);
+		m_vulkanGraphicsPipeline = std::make_shared<VulkanGraphicsPipeline>(*m_vulkanContext);
 		m_device = m_vulkanContext->GetDeviceManager().GetDevice();
 
 		// Allocate command buffers and sync objects
@@ -387,7 +386,7 @@ namespace Engine {
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		// Bind the graphics pipeline for the game scene
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetFullscreenPipeline());
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPresentPipeline());
 
 		//VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
 		//VkDeviceSize offsets[] = { 0 };
@@ -395,7 +394,7 @@ namespace Engine {
 		//vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipeline->GetPresentDescriptorSet(imageIndex);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetFullscreenPipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipeline->GetPresentPipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
 
 		// hardcoded vertices in fullscreen_shader:
 		vkCmdDrawIndexed(commandBuffer, 3, 1, 0, 0, 0);
