@@ -41,6 +41,7 @@ namespace Engine {
 		static void BeginScene(const Camera& camera, const glm::mat4& transform);
 		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(glm::mat4 viewProjectionMatrix);
+		static void BeginScene();
 		static void EndScene();
 		
 
@@ -77,12 +78,13 @@ namespace Engine {
 		std::vector<VkFence> m_imagesInFlight;
 		std::vector<VkDescriptorSet> m_gameViewportDescriptorSets;
 
-		Ref<VulkanVertexBuffer> m_vertexBuffer;
-		Ref<VulkanIndexBuffer> m_indexBuffer;
-
+	
 		Ref<OrthographicCamera> m_camera;
 		uint32_t m_imageIndex;
+		uint32_t m_firstIndex = 0;
+		uint32_t m_vertexOffset = 0;
 		
+
 	};
 
 

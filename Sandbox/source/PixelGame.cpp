@@ -43,28 +43,8 @@ void PixelGame::OnAttach()
 	//m_logoTexture = Engine::AssetManager::GetTexture("logo");
 	
 
-	m_cameraEntity = m_activeScene->CreateEntity("camera");
-	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
-	cameraComp.FixedAspectRatio = true;
-	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
-	cameraComp.Camera.SetPerspectiveFOV(45.0f);
-	cameraComp.Primary = true;
-
-	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 20.0f);
-
-	m_playerEntity = m_activeScene->CreateEntity("player");
-
-	auto& transformComp = m_playerEntity.AddComponent<Engine::TransformComponent>();
-	transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
-	m_playerEntity.AddComponent<Engine::CharacterControllerComponent>();
 	
-	glm::vec4 color = { 0.2, 0.9, 0.8, 1.0f };
-	Engine::SpriteRendererComponent& spriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();
-	spriteComp.Color = color;
-	spriteComp.Texture = m_playerTexture;
-
-
+	
 }
 
 void PixelGame::OnDetach()
@@ -114,20 +94,20 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 			const glm::mat4 viewProjection = m_orthoCameraController.GetCamera().GetViewProjectionMatrix();
 			
 			
-			glm::vec2 position = { 0.9f, 0.7f };
-			glm::vec2 size = { 1.0f, 1.0f }; // Width = 2, Height = 3
-			glm::vec4 color = { 0.5f, 0.5f, 0.5f, 1.0f };
+			glm::vec2 position = { 5.9f, 0.7f };
+			glm::vec2 size = { 10.0f, 4.0f }; // Width = 2, Height = 3
+			glm::vec4 color = { 0.1f, 0.9f, 0.1f, 1.0f };
 			glm::mat4 transform = glm::translate(glm::mat4(1.0f), { position.x, position.y, 0.0f }) *
 				glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
 
 			//Engine::VulkanRenderer2D::DrawTextureQuad(transform, m_pixelTexture, 1, color);
 			
-			Engine::TransformComponent& cameraTransformComp = m_cameraEntity.GetComponent<Engine::TransformComponent>();
+			//Engine::TransformComponent& cameraTransformComp = m_cameraEntity.GetComponent<Engine::TransformComponent>();
 
-			//Engine::VulkanRenderer2D::BeginScene(cameraComp.Camera.GetViewProjection(), cameraTransformComp.GetTransform());
-			//Engine::VulkanRenderer2D::DrawQuad(transform, color, -1);
-			//Engine::VulkanRenderer2D::EndScene();
+			Engine::VulkanRenderer2D::BeginScene();
+			Engine::VulkanRenderer2D::DrawQuad(transform, color, -1);
+			Engine::VulkanRenderer2D::EndScene();
 			
 			
 			
@@ -163,7 +143,28 @@ void PixelGame::OnGameStart()
 
 
 	m_activeScene->OnRunTimeStart();
-	//Engine::SceneCamera Camera = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera;
+	m_cameraEntity = m_activeScene->CreateEntity("camera");
+	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
+	cameraComp.FixedAspectRatio = true;
+	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
+	cameraComp.Camera.SetPerspectiveFOV(45.0f);
+	cameraComp.Primary = true;
+
+	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 20.0f);
+
+	m_playerEntity = m_activeScene->CreateEntity("player");
+
+	auto& transformComp = m_playerEntity.AddComponent<Engine::TransformComponent>();
+	transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
+	m_playerEntity.AddComponent<Engine::CharacterControllerComponent>();
+
+	glm::vec4 color = { 0.2, 0.9, 0.8, 1.0f };
+	Engine::SpriteRendererComponent& spriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();
+	spriteComp.Color = color;
+	spriteComp.Texture = m_playerTexture;
+
+	Engine::SceneCamera Camera = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera;
 
 	m_isPlaying = true;
 }

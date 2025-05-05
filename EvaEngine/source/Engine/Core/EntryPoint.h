@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 
 	EE_PROFILE_BEGIN_SESSION("Startup", "EvaEngineProfile-startup.json");
 	Engine::Application* app = nullptr;
-	if(argc > 1 && std::string(argv[1]) == "editor")
+	if(argc > 1 && (std::string(argv[1]) == "editor" || std::string(argv[1]) == "Editor"))
 	{
 		app = Engine::CreateEditorApplication();
 	}

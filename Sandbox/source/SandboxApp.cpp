@@ -165,6 +165,7 @@ Engine::Application* Engine::CreateApplication()
 	game->LoadGameAssets();
 	game->OnGameStart();
 	app->PushLayer(game);
+	app->GetWindow().GetHeight();
 	return app;
 	
 }
