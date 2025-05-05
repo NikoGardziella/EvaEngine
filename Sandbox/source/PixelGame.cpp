@@ -151,7 +151,7 @@ void PixelGame::OnGameStart()
 	cameraComp.Primary = true;
 
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 20.0f);
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 30.0f);
 
 	m_playerEntity = m_activeScene->CreateEntity("player");
 
