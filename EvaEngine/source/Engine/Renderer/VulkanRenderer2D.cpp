@@ -800,6 +800,11 @@ namespace Engine {
 		StartBatch();
 	}
 
+	void VulkanRenderer2D::BeginScene()
+	{
+		StartBatch();
+	}
+
 	void VulkanRenderer2D::EndScene()
 	{
 		EE_PROFILE_FUNCTION();
