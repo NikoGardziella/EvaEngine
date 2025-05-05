@@ -781,12 +781,18 @@ namespace Engine {
 
 		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection();
 		//s_VulkanData.CameraUniformBuffer->SetData(&s_VulkanData.CameraBuffer, sizeof(Renderer2DData::CameraData));
-		
+		StartBatch();
 	}
 
 	void VulkanRenderer2D::BeginScene(glm::mat4 viewProjectionMatrix)
 	{
-		//s_VulkanData.CameraBuffer.ViewProjection = viewProjectionMatrix;
+		s_VulkanData.CameraBuffer.ViewProjection = viewProjectionMatrix;
+		StartBatch();
+	}
+
+	void VulkanRenderer2D::BeginScene()
+	{
+		StartBatch();
 	}
 
 	void VulkanRenderer2D::BeginScene()
