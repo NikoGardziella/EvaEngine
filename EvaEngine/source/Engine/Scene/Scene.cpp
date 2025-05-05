@@ -545,7 +545,7 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        Engine::VulkanRenderer2D::BeginScene(camera.GetProjectionMatrix());
+        Engine::VulkanRenderer2D::BeginScene(camera);
 
         {
             auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
