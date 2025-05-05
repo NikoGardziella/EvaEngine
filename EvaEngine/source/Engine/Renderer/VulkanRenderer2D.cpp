@@ -29,9 +29,6 @@ namespace Engine {
 		static const uint32_t MaxIndices = MaxQuads * 6;
 		static const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
 
-
-	
-
 		Ref<VertexArray> QuadVertexArray;
 		Ref<VulkanVertexBuffer> QuadVertexBuffer;
 		Ref<VulkanIndexBuffer> QuadIndexBuffer;
@@ -170,11 +167,10 @@ namespace Engine {
 		CreateImGuiTextureDescriptors();	
 	}
 
-
-	void VulkanRenderer2D::DrawFrame(uint32_t currentFrame)
+	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
 	{
-		s_VulkanData.Stats.DrawCalls++;
-
+		
+		
 		// 1. Sync
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
@@ -183,8 +179,8 @@ namespace Engine {
 
 		// 2. Acquire. Max current frame is 2 and max swapchain images is 3.
 		// set in Renderer.h 	const int MAX_FRAMES_IN_FLIGHT = 2;
-		uint32_t imageIndex;
-		VkResult result = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+		
+		VkResult result = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &m_imageIndex);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
@@ -205,11 +201,12 @@ namespace Engine {
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
+	}
 
-		RecordGameDrawCommands(cmd, imageIndex, currentFrame);
-		RecordPresentDrawCommands(cmd, imageIndex, currentFrame);
-		RecordEditorDrawCommands(cmd, imageIndex);
-
+	void VulkanRenderer2D::EndFrame(uint32_t currentFrame)
+	{
+		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
+	
 		// RecordImGuiDrawCommands(cmd, imageIndex);
 		vkEndCommandBuffer(cmd);
 
@@ -241,7 +238,7 @@ namespace Engine {
 		VkSwapchainKHR swapChains[] = { m_swapchain };
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &imageIndex;
+		presentInfo.pImageIndices = &m_imageIndex;
 
 		VkResult presentResult = vkQueuePresentKHR(m_vulkanContext->GetGraphicsQueue(), &presentInfo);
 		if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
@@ -252,10 +249,44 @@ namespace Engine {
 		{
 			EE_CORE_ASSERT(false, "Failed to present swapchain image!");
 		}
+
+		
+
+	}
+
+	void VulkanRenderer2D::StartBatch()
+	{
+		s_VulkanData.QuadVertexBufferPtr = s_VulkanData.QuadVertexBufferBase;
+		s_VulkanData.QuadIndexCount = 0;
+	}
+
+	void VulkanRenderer2D::NextBatch()
+	{
+		StartBatch();
+		Flush();
+	}
+
+	void VulkanRenderer2D::Flush()
+	{
+		Renderer::DrawFrame();
+	}
+
+	void VulkanRenderer2D::DrawFrame(uint32_t currentFrame)
+	{
+
+	
+		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
+		RecordGameDrawCommands(cmd, m_imageIndex, currentFrame);
+		RecordPresentDrawCommands(cmd, m_imageIndex, currentFrame);
+		RecordEditorDrawCommands(cmd, m_imageIndex);
+
+		s_VulkanData.Stats.DrawCalls++;
+
 	}
 
 	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
+		EE_PROFILE_FUNCTION();
 
 		// --- Begin render pass ---
 		VkRenderPassBeginInfo renderPassInfo{};
@@ -299,12 +330,14 @@ namespace Engine {
 		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffer);
-	
+
 	}
 
 
 	void VulkanRenderer2D::RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
+		EE_PROFILE_FUNCTION();
+
 		// Begin render pass to the swapchain (present) framebuffer
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -349,6 +382,7 @@ namespace Engine {
 
 	void VulkanRenderer2D::RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
+		EE_PROFILE_FUNCTION();
 
 		// Begin ImGui render pass
 		VkRenderPassBeginInfo imguiRenderPassInfo{};
@@ -607,6 +641,16 @@ namespace Engine {
 		//Engine loads all the texture to AssetManger. Game layer Gets() those textures from AssetManager 
 		// map and sends Ref through Draw(texture). Draw() then finds matching texture slot here.
 
+		if (s_VulkanData.QuadIndexCount >= VulkanRenderer2DData::MaxIndices)
+		{
+			// I did not know how to handle this the way it happened in openGL
+			// RecordGameDrawCommands() overwrites previous data. I tried to remove clear
+			// but then the old data will be drawn as well.
+			// Possible solution is to create new dataBuffer and draw all the dataBufers 
+			// at the same time. Didnt want to implement it yet
+			EE_CORE_ASSERT(false, "Quad index count exceeded maximum limit!");
+
+		}
 		// Find texture slot index
 		float textureIndex = 1.0f;
 		
@@ -667,8 +711,7 @@ namespace Engine {
 	{
 		if (s_VulkanData.QuadIndexCount >= VulkanRenderer2DData::MaxIndices)
 		{
-			EE_CORE_WARN("Quad index limit reached!");
-			return;
+			NextBatch();
 		}
 		constexpr size_t quadVertexCount = 4;
 		constexpr glm::vec2 textureCoords[] = {
@@ -718,9 +761,11 @@ namespace Engine {
 	void VulkanRenderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
 	{
 		EE_PROFILE_FUNCTION();
-
+		//StartBatch();
 		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection() * glm::inverse(transform);
-		//s_VulkanData.CameraUniformBuffer->SetData(&s_VulkanData.CameraBuffer, sizeof(VulkanRenderer2DData::CameraData));
+		//s_VulkanData.CameraBuffer.SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
+		StartBatch();
+
 	}
 
 	void VulkanRenderer2D::BeginScene(const EditorCamera& camera)
@@ -729,26 +774,28 @@ namespace Engine {
 
 		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection();
 		//s_VulkanData.CameraUniformBuffer->SetData(&s_VulkanData.CameraBuffer, sizeof(Renderer2DData::CameraData));
+		
 	}
 
 	void VulkanRenderer2D::BeginScene(glm::mat4 viewProjectionMatrix)
 	{
-		s_VulkanData.CameraBuffer.ViewProjection = viewProjectionMatrix;
+		//s_VulkanData.CameraBuffer.ViewProjection = viewProjectionMatrix;
 	}
 
 	void VulkanRenderer2D::EndScene()
 	{
+		EE_PROFILE_FUNCTION();
+		// Flush the batch
 		uint32_t dataSize = (uint32_t)((uint8_t*)s_VulkanData.QuadVertexBufferPtr - (uint8_t*)s_VulkanData.QuadVertexBufferBase);
-
 		if (dataSize > 0)
 		{
 			s_VulkanData.QuadVertexBuffer->SetData(s_VulkanData.QuadVertexBufferBase, dataSize);
+			Flush();
 		}
-
-		s_VulkanData.QuadVertexBufferPtr = s_VulkanData.QuadVertexBufferBase;
-		s_VulkanData.QuadIndexCount = 0;
+		
 	}
 
+	
 	void VulkanRenderer2D::CreateImGuiTextureDescriptors()
 	{
 		// this is for rendering game in editor viewport

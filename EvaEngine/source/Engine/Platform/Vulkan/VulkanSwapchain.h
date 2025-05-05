@@ -29,19 +29,12 @@ namespace Engine {
 		VkFramebuffer GetGameFramebuffer(uint32_t index) const { return m_gameFramebuffers[index]; }
 		VkFramebuffer GetImGuiFramebuffer(uint32_t index) const { return m_imguiFramebuffers[index]; }
 
-		std::vector<VkImageView> GetImGuiImageViews() { return m_imguiImageViews; }
-		VkImage GetGameImage(uint32_t index) { return m_gameImages[index]; }
-
-		VkDeviceMemory GetGameColorAttachmentMemory(uint32_t index) { return m_gameColorAttachmentMemories[index]; }
-
-        VulkanTracked& GetPresentTrackedImage(uint32_t imageIndex) { return m_presentTrackedImages[imageIndex]; }
         VulkanTracked& GetGameTrackedImage(uint32_t imageIndex) { return m_gameTrackedImages[imageIndex]; }
 		std::vector<VulkanTracked>& GetGameTrackedImages() { return m_gameTrackedImages; }
-        const VulkanTracked& GetPresentTrackedImage(uint32_t imageIndex) const { return m_presentTrackedImages[imageIndex]; }
 
     private:
-        void CreateSwapchain();
 
+        void CreateSwapchain();
         void CreateImageViews();
         VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -59,11 +52,6 @@ namespace Engine {
         std::vector<VkImageView> m_swapchainImageViews;
         std::vector<VkImageView> m_imguiImageViews;
         std::vector<VkImageView> m_gameColorAttachmentImageViews;
-        /*
-        *   [Render Game]      --> to --> [Game Framebuffer] (offscreen, sampled by ImGui or post-process)
-        *   [Render ImGui]     --> to --> [ImGui Framebuffer] (if using its own)
-        *   [Final Output]     --> to --> [Swapchain Framebuffer] (presented on screen)
-        */
 
         std::vector<VkFramebuffer> m_swapchainFramebuffers;
         std::vector<VkFramebuffer> m_imguiFramebuffers;

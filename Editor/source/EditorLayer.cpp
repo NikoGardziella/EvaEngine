@@ -651,7 +651,7 @@ namespace Engine {
         // ******** Render ***********
 
          //statistics
-        Engine::VulkanRenderer2D::ResetStats();
+        //Engine::VulkanRenderer2D::ResetStats();
         {
             EE_PROFILE_SCOPE("render pre");
            // m_framebuffer->Bind();

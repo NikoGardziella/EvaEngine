@@ -47,12 +47,13 @@ namespace Engine {
 
 	void Renderer::DrawFrame()
 	{
+		EE_PROFILE_FUNCTION();
+
 		if (s_VulkanRenderer2D)
 		{
-			//s_VulkanRenderer2D->DrawFrame(s_currentFrame);
-			//s_VulkanRenderer2D->DrawImGuiFrame(s_currentFrame);
+			//s_VulkanRenderer2D->BeginFrame(s_currentFrame);
 			s_VulkanRenderer2D->DrawFrame(s_currentFrame);
-			// clearing done in RecordCommandBuffer
+			//s_VulkanRenderer2D->EndFrame(s_currentFrame);
 		}
 		else
 		{
@@ -60,13 +61,29 @@ namespace Engine {
 			RenderCommand::Clear();
 			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
 		}
-		s_currentFrame = (s_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+	}
+
+	void Renderer::StartFrame()
+	{
+		EE_PROFILE_FUNCTION();
+		s_VulkanRenderer2D->BeginFrame(s_currentFrame);
 
 	}
 
 	void Renderer::EndScene()
 	{
 
+	}
+
+	void Renderer::EndFrame()
+	{
+		EE_PROFILE_FUNCTION();
+		s_VulkanRenderer2D->EndFrame(s_currentFrame);
+
+		Engine::VulkanRenderer2D::ResetStats();
+		s_currentFrame = (s_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+		
 	}
 
 	void Renderer::Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform)

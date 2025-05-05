@@ -623,7 +623,7 @@ namespace Engine {
                         const wchar_t* path = (const wchar_t*)payload->Data;
                         std::filesystem::path texturePath = std::filesystem::path(AssetManager::GetAssetFolderPath()) / path;
 
-                        component.Texture = Texture2D::Create(texturePath.string());
+                        component.Texture = AssetManager::AddTexture(texturePath.string(), texturePath.string());
                     }
                     ImGui::EndDragDropTarget();
                 }

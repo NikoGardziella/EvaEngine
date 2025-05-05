@@ -94,10 +94,7 @@ namespace Engine {
         
     }
 
-    
-
-
-
+ 
     void VulkanSwapchain::CreateImageViews()
     {
         m_swapchainImageViews.resize(m_swapchainImages.size());
@@ -309,7 +306,6 @@ namespace Engine {
         for (size_t i = 0; i < swapchainImageCount; ++i)
         {
             
-
             VkFramebufferCreateInfo gameFramebufferInfo{};
             gameFramebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             gameFramebufferInfo.renderPass = gameRenderPass;

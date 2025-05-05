@@ -48,7 +48,7 @@ namespace Engine {
 
 	void OpenGLContext::SwapBuffers()
 	{
-		glfwSwapBuffers(m_windowHandle);
+		//glfwSwapBuffers(m_windowHandle);
 
 	}
 

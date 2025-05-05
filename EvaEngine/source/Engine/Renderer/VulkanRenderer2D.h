@@ -26,7 +26,13 @@ namespace Engine {
 	
 		void Init();
 		void DrawFrame(uint32_t currentFrame);
-		
+		void BeginFrame(uint32_t currentFrame);
+		void EndFrame(uint32_t currentFrame);
+
+		static void StartBatch();
+		static void NextBatch();
+		static void Flush();
+
 		// for rendering game in Editor
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
 
@@ -36,6 +42,7 @@ namespace Engine {
 		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(glm::mat4 viewProjectionMatrix);
 		static void EndScene();
+		
 
 		static Renderer2D::Statistics GetStats();
 		static void ResetStats();
@@ -74,8 +81,10 @@ namespace Engine {
 		Ref<VulkanIndexBuffer> m_indexBuffer;
 
 		Ref<OrthographicCamera> m_camera;
-
+		uint32_t m_imageIndex;
+		
 	};
+
 
 
 }

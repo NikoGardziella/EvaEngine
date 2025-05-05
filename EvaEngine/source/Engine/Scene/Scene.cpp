@@ -447,6 +447,7 @@ namespace Engine {
             Engine::VulkanRenderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
 
 
+
             {
                 EE_PROFILE_SCOPE("Update Runtime CircleRendererComponent");
 
@@ -516,10 +517,25 @@ namespace Engine {
                 }
 
             }
-            
 
-            Engine::Renderer::DrawFrame();
+            {
+                EE_PROFILE_SCOPE("Update Runtime PixelSpriteRendererComponent");
+                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
+
+                for (auto entity : view)
+                {
+                    auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+
+                    float tiling = 1.0f;
+                    Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+                }
+
+            }
+
+            //Engine::Renderer::DrawFrame();
             Engine::VulkanRenderer2D::EndScene();
+
+
         }
 
 
@@ -557,7 +573,26 @@ namespace Engine {
             }
         }
 
-        Engine::Renderer::DrawFrame();
+		{
+			auto view = m_registry.view<PixelSpriteRendererComponent, TransformComponent>();
+			for (auto entity : view)
+			{
+				auto [transform, quadSprite] = view.get<TransformComponent, PixelSpriteRendererComponent>(entity);
+				float tiling = 1.0f;
+				Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+			}
+		}
+		{
+			auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
+			for (auto entity : view)
+			{
+				auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+				float tiling = 1.0f;
+				Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+			}
+		}
+
+        //Engine::Renderer::DrawFrame();
         Engine::VulkanRenderer2D::EndScene();
     }
 

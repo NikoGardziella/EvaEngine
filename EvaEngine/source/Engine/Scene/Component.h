@@ -91,7 +91,7 @@ namespace Engine {
     struct SpriteRendererComponent
     {
         glm::vec4 Color{ 1.0f };
-        Ref<Texture2D> Texture;
+        Ref<VulkanTexture> Texture;
         float Tiling = 1.0f;
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const SpriteRendererComponent&) = default;

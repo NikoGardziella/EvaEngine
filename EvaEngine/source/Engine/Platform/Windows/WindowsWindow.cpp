@@ -205,6 +205,9 @@ namespace Engine {
 		glfwPollEvents();
 
 		m_Context->SwapBuffers();
+
+		//Go to next frame
+
 	}
 
 	void WindowsWindow::SetVSync(bool enabled)

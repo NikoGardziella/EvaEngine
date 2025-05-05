@@ -92,6 +92,9 @@ namespace Engine
 			Timestep timestep = time - m_lastFrameTime;
 			m_lastFrameTime = time;
 			
+			Renderer::StartFrame();
+
+
 			if (!m_minimized)
 			{
 
@@ -120,6 +123,8 @@ namespace Engine
 			
 
 			m_window->OnUpdate();
+
+			Renderer::EndFrame();
 		}	
 	}
 

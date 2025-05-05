@@ -28,6 +28,7 @@ PixelGame::PixelGame(const std::string scene)
 void PixelGame::OnAttach()
 {
 	EE_PROFILE_FUNCTION();
+	LoadGameAssets();
 
 	m_orthoCameraController.SetZoomLevel(10.0f);
 
@@ -47,9 +48,10 @@ void PixelGame::OnAttach()
 	cameraComp.FixedAspectRatio = true;
 	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
 	cameraComp.Camera.SetPerspectiveFOV(45.0f);
+	cameraComp.Primary = true;
 
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 12.0f);
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 20.0f);
 
 	m_playerEntity = m_activeScene->CreateEntity("player");
 
@@ -60,8 +62,8 @@ void PixelGame::OnAttach()
 	glm::vec4 color = { 0.2, 0.9, 0.8, 1.0f };
 	Engine::SpriteRendererComponent& spriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();
 	spriteComp.Color = color;
+	spriteComp.Texture = m_playerTexture;
 
-	LoadGameAssets();
 
 }
 
@@ -94,7 +96,7 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 		m_orthoCameraController.OnUpdate(timestep);
 	}
 	
-	Engine::VulkanRenderer2D::ResetStats();
+	//Engine::VulkanRenderer2D::ResetStats();
 	{
 		EE_PROFILE_SCOPE("render pre");
 
@@ -108,12 +110,10 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 
 			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
 
-			//Engine::SceneCamera Camera = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera;
 
 			const glm::mat4 viewProjection = m_orthoCameraController.GetCamera().GetViewProjectionMatrix();
-			/*
 			
-			Engine::VulkanRenderer2D::BeginScene(viewProjection);
+			
 			glm::vec2 position = { 0.9f, 0.7f };
 			glm::vec2 size = { 1.0f, 1.0f }; // Width = 2, Height = 3
 			glm::vec4 color = { 0.5f, 0.5f, 0.5f, 1.0f };
@@ -122,10 +122,14 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 
 
 			//Engine::VulkanRenderer2D::DrawTextureQuad(transform, m_pixelTexture, 1, color);
-			Engine::VulkanRenderer2D::DrawQuad(transform, color, -1);
-			Engine::Renderer::DrawFrame();
-			Engine::VulkanRenderer2D::EndScene();
-			*/
+			
+			Engine::TransformComponent& cameraTransformComp = m_cameraEntity.GetComponent<Engine::TransformComponent>();
+
+			//Engine::VulkanRenderer2D::BeginScene(cameraComp.Camera.GetViewProjection(), cameraTransformComp.GetTransform());
+			//Engine::VulkanRenderer2D::DrawQuad(transform, color, -1);
+			//Engine::VulkanRenderer2D::EndScene();
+			
+			
 			
 
 			//m_pixelTexture->SetPixel(0, 1, 255, 255, 255, 0);
@@ -143,7 +147,7 @@ void PixelGame::OnEvent(Engine::Event& event)
 
 void PixelGame::OnGameStart()
 {
-	
+
 	//m_squareEntity = m_activeScene->CreateEntity("square");
 	//m_squareEntity.AddComponent<Engine::TransformComponent>();
 	//m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
@@ -152,12 +156,14 @@ void PixelGame::OnGameStart()
 
 	m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
 	m_pixelEntity.AddComponent<Engine::TransformComponent>();
+
 	//m_logoEntity.AddComponent<Engine::SpriteRendererComponent>();
 	auto& renderComp = m_pixelEntity.AddComponent<Engine::PixelSpriteRendererComponent>();
 	renderComp.Texture = m_pixelTexture;
 
 
 	m_activeScene->OnRunTimeStart();
+	//Engine::SceneCamera Camera = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera;
 
 	m_isPlaying = true;
 }
@@ -165,7 +171,7 @@ void PixelGame::OnGameStart()
 void PixelGame::LoadGameAssets()
 {
 	m_pixelTexture = Engine::AssetManager::GetPixelTexture("pixel");
-
+	m_playerTexture = Engine::AssetManager::GetTexture("chess");
 }
 
 void PixelGame::OnGameStop()

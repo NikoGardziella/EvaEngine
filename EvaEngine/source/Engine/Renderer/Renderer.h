@@ -8,7 +8,7 @@
 
 namespace Engine {
 
-	const int MAX_FRAMES_IN_FLIGHT = 3;
+	const int MAX_FRAMES_IN_FLIGHT = 2;
 
 
 	class Renderer
@@ -31,7 +31,9 @@ namespace Engine {
 
 		static void DrawFrame();
 
+		static void StartFrame();
 		static void EndScene();
+		static void EndFrame();
 
 		static void Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform = glm::mat4(1.0f));
 
