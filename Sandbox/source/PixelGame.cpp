@@ -123,11 +123,11 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 
 			//Engine::VulkanRenderer2D::DrawTextureQuad(transform, m_pixelTexture, 1, color);
 			
-			Engine::TransformComponent& cameraTransformComp = m_cameraEntity.GetComponent<Engine::TransformComponent>();
+			//Engine::TransformComponent& cameraTransformComp = m_cameraEntity.GetComponent<Engine::TransformComponent>();
 
-			//Engine::VulkanRenderer2D::BeginScene(cameraComp.Camera.GetViewProjection(), cameraTransformComp.GetTransform());
-			//Engine::VulkanRenderer2D::DrawQuad(transform, color, -1);
-			//Engine::VulkanRenderer2D::EndScene();
+			Engine::VulkanRenderer2D::BeginScene();
+			Engine::VulkanRenderer2D::DrawQuad(transform, color, -1);
+			Engine::VulkanRenderer2D::EndScene();
 			
 			
 			

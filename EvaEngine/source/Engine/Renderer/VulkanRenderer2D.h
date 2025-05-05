@@ -41,6 +41,7 @@ namespace Engine {
 		static void BeginScene(const Camera& camera, const glm::mat4& transform);
 		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(glm::mat4 viewProjectionMatrix);
+		static void BeginScene();
 		static void EndScene();
 		
 
