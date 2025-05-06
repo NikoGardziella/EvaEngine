@@ -86,6 +86,11 @@ namespace Engine {
 		
 	}
 
+	void Renderer::DeviceWaitIdle()
+	{
+		s_VulkanRenderer2D->DeviceWaitIdle();
+	}
+
 	void Renderer::Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform)
 	{
 		shader->Bind();

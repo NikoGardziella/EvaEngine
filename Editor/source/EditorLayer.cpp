@@ -521,6 +521,7 @@ namespace Engine {
 
     void EditorLayer::OnSceneStop()
     {      
+
         m_sceneState = SceneState::Edit;
         //m_activeScene = m_editorScene;
 
@@ -672,6 +673,7 @@ namespace Engine {
 
                     m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateEditor(timestep, m_editorCamera);
                     break;
+
                 }
                 case Engine::EditorLayer::SceneState::Play:
                 {

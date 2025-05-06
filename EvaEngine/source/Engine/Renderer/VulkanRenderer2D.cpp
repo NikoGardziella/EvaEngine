@@ -204,6 +204,36 @@ namespace Engine {
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
 
+		//From RecordGameCommand()
+
+		// --- Begin render pass ---
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = m_vulkanContext->GetGameRenderPass();
+		renderPassInfo.framebuffer = m_vulkanContext->GetVulkanSwapchain().GetGameFramebuffer(m_imageIndex);
+		renderPassInfo.renderArea = { {0, 0}, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent() };
+
+		// Clear color for the color attachment
+		VkClearValue clearColor = { {0.8f, 0.2f, 0.35f, 1.0f} };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		// --- Set viewport and scissor ---
+		VkViewport viewport = {};
+		viewport.width = static_cast<float>(m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent().width);
+		viewport.height = static_cast<float>(m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent().height);
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+		VkRect2D scissor = { {0, 0}, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent() };
+		vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+		// --- Bind pipeline and draw ---
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetGamePipeline());
+
 
 	}
 
@@ -213,6 +243,11 @@ namespace Engine {
 		m_vertexOffset = 0;
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 		// End RecordGameDrawCommands render pass
+		vkCmdEndRenderPass(cmd);
+
+
+		RecordPresentDrawCommands(cmd, m_imageIndex, currentFrame);
+
 		RecordEditorDrawCommands(cmd, m_imageIndex);
 
 		
@@ -261,6 +296,12 @@ namespace Engine {
 
 		
 
+
+	}
+
+	void VulkanRenderer2D::DeviceWaitIdle()
+	{
+		vkDeviceWaitIdle(m_device);
 	}
 
 	void VulkanRenderer2D::StartBatch()
@@ -285,7 +326,6 @@ namespace Engine {
 		//this can be called multiple times per frame
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 		RecordGameDrawCommands(cmd, m_imageIndex, currentFrame);
-		RecordPresentDrawCommands(cmd, m_imageIndex, currentFrame);
 
 		s_VulkanData.Stats.DrawCalls++;
 
@@ -295,34 +335,6 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-
-		// --- Begin render pass ---
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = m_vulkanContext->GetGameRenderPass();
-		renderPassInfo.framebuffer = m_vulkanContext->GetVulkanSwapchain().GetGameFramebuffer(m_imageIndex);
-		renderPassInfo.renderArea = { {0, 0}, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent() };
-
-		// Clear color for the color attachment
-		VkClearValue clearColor = { {0.8f, 0.2f, 0.35f, 1.0f} };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
-
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		// --- Set viewport and scissor ---
-		VkViewport viewport = {};
-		viewport.width = static_cast<float>(m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent().width);
-		viewport.height = static_cast<float>(m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent().height);
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-		VkRect2D scissor = { {0, 0}, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent() };
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		// --- Bind pipeline and draw ---
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetGamePipeline());
 
 		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
 		VkDeviceSize offsets[] = { 0 };
@@ -339,7 +351,6 @@ namespace Engine {
 
 		m_firstIndex += s_VulkanData.QuadIndexCount;
 		m_vertexOffset += (s_VulkanData.QuadIndexCount / 6) * 4;
-		vkCmdEndRenderPass(commandBuffer);
 
 	}
 
@@ -384,7 +395,7 @@ namespace Engine {
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetPresentPipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
 
 		// hardcoded vertices in fullscreen_shader:
-		vkCmdDrawIndexed(commandBuffer, 3, 1, 0, 0, 0);
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -393,6 +404,8 @@ namespace Engine {
 	void VulkanRenderer2D::RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex)
 	{
 		EE_PROFILE_FUNCTION();
+
+
 
 		// Begin ImGui render pass
 		VkRenderPassBeginInfo imguiRenderPassInfo{};

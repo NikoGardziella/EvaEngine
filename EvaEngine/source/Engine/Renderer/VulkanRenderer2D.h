@@ -28,6 +28,7 @@ namespace Engine {
 		void DrawFrame(uint32_t currentFrame);
 		void BeginFrame(uint32_t currentFrame);
 		void EndFrame(uint32_t currentFrame);
+		void DeviceWaitIdle();
 
 		static void StartBatch();
 		static void NextBatch();

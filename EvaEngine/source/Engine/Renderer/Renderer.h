@@ -34,6 +34,7 @@ namespace Engine {
 		static void StartFrame();
 		static void EndScene();
 		static void EndFrame();
+		static void DeviceWaitIdle();
 
 		static void Submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform = glm::mat4(1.0f));
 
