@@ -7,6 +7,7 @@
 #include <Engine/Debug/Instrumentor.h>
 
 #include <glm/glm.hpp>
+#include <Engine/AssetManager/AssetManager.h>
 
 
 
@@ -43,6 +44,15 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
         auto& playerTransformComp = view.get<Engine::TransformComponent>(entity);
         auto& controllerComp = view.get<Engine::CharacterControllerComponent>(entity);
 
+      
+        // rotate player toward mouse pos
+        glm::vec2 direction = glm::normalize(glm::vec2(mouseWorldPosition) - glm::vec2(playerTransformComp.Translation));
+        float angle = std::atan2(direction.y, direction.x);
+        playerTransformComp.Rotation.z = angle - 65.0f;
+
+
+		controllerComp.lastFireTime += deltaTime;
+
         glm::vec2 input = { 0.0f, 0.0f };
 
         if (Engine::Input::IsKeyPressed(Engine::Key::A)) input.x -= 1.0f;
@@ -51,17 +61,29 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
         if (Engine::Input::IsKeyPressed(Engine::Key::S)) input.y -= 1.0f;
         if (Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0))
         {
-			//EE_INFO("Mouse Button0 Pressed, spawn projectile");
+            if (controllerComp.lastFireTime > controllerComp.fireRate)
+            {
+                ShootProjectile(registry, entity, playerTransformComp.Translation, direction);
+				controllerComp.lastFireTime = 0.0f;
+            }
 
         }
+
 
         controllerComp.velocity = input * controllerComp.speed;
         playerTransformComp.Translation += glm::vec3(controllerComp.velocity * deltaTime, 0.0f);
 
-        glm::vec2 direction = glm::normalize(glm::vec2(mouseWorldPosition) - glm::vec2(playerTransformComp.Translation));
-        float angle = std::atan2(direction.y, direction.x);
-
-        playerTransformComp.Rotation.z = angle - 65.0f;
-
     }
+}
+
+void CharacterControllerSystem::ShootProjectile(entt::registry& registry, entt::entity entity, const glm::vec2& position, const glm::vec2& direction)
+{
+	const auto& projectileEntity = registry.create();
+	auto& transformComp = registry.emplace<Engine::TransformComponent>(projectileEntity);
+	auto& projectileComp = registry.emplace<Engine::ProjectileComponent>(projectileEntity, direction, 5.0f);
+	auto& spriteComp = registry.emplace<Engine::SpriteRendererComponent>(projectileEntity);
+    spriteComp.Texture = Engine::AssetManager::GetTexture("bullet");
+	transformComp.Translation = glm::vec3(position, 0.0f);
+	transformComp.Rotation.z = std::atan2(direction.y, direction.x);
+	// Add other components as needed
 }

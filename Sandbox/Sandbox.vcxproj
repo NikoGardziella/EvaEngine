@@ -131,12 +131,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Systems\Combat\ProjectileSystem.h" />
     <ClInclude Include="source\PixelGame.h" />
     <ClInclude Include="source\Sandbox2D.h" />
     <ClInclude Include="source\Systems\Collision\PixelCollisionSystem.h" />
     <ClInclude Include="source\Systems\Player\CharacterControllerSystem.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Systems\Combat\ProjectileSystem.cpp" />
     <ClCompile Include="source\PixelGame.cpp" />
     <ClCompile Include="source\Sandbox2D.cpp" />
     <ClCompile Include="source\SandboxApp.cpp" />

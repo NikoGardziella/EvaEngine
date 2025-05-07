@@ -131,6 +131,7 @@ namespace Engine {
         CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<ProjectileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
 
         newScene->m_gameplaySystems = other->m_gameplaySystems;
 
@@ -178,6 +179,7 @@ namespace Engine {
             CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            CopyComponent<ProjectileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         }
     }
 
@@ -801,6 +803,12 @@ namespace Engine {
 
     template<>
     void Scene::OnComponentAdded<CharacterControllerComponent>(Entity entity, CharacterControllerComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<ProjectileComponent>(Entity entity, ProjectileComponent& component)
     {
 
     }
