@@ -64,8 +64,7 @@ namespace Engine {
     void EditorLayer::OnAttach()
     {
         EE_PROFILE_FUNCTION();
-
-
+       
 
 	    //m_iconStop = AssetManager::AddTexture("stopButton", AssetManager::GetAssetPath("icons/stop-button.png").string());
         m_iconPlay = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string(), true);
@@ -156,6 +155,8 @@ namespace Engine {
         m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
         m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
         m_sceneHierarchyPanel.SetNewComponentsContext(m_editorScene); // remove this and only use new components?
+
+       
 
        //m_sceneHierarchyPanel.SetContext(Scene::Combine(m_editorScene, m_editor.get()->GetGameLayer()->GetActiveGameScene()));
         //m_sceneHierarchyPanel.SetContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
@@ -324,8 +325,13 @@ namespace Engine {
             //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 
             ImGui::Begin("Viewport");
+
             ImVec2 viewportOffset = ImGui::GetCursorPos();
 
+            ImVec2 p = ImGui::GetCursorScreenPos();
+            ImGui::Text("viewport pos %.1f %.1f", p.x, p.y);
+
+			
 
             m_viewportFocused = ImGui::IsWindowFocused();
             m_viewportHovered = ImGui::IsWindowHovered();
@@ -333,7 +339,29 @@ namespace Engine {
 
 
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-            m_viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+
+            ImVec2 windowSize = ImGui::GetWindowSize();
+            ImVec2 minBound = ImGui::GetWindowPos();
+            minBound.x += viewportOffset.x;
+            minBound.y += viewportOffset.y;
+
+
+            ImVec2 viewportOrigin = ImGui::GetCursorScreenPos();
+			m_viewportOrigin.x = viewportOrigin.x;
+			m_viewportOrigin.y = viewportOrigin.y;
+
+            ImVec2 maxBound = { minBound.x + viewportPanelSize.x, minBound.y + viewportPanelSize.y };
+            m_viewportBounds[0] = { minBound.x ,minBound.y };
+            m_viewportBounds[1] = { maxBound.x ,maxBound.y };
+
+                m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportOrigin);
+            if (m_viewportSize.x == 0.0f || m_viewportSize.y == 0.0f ||
+                m_viewportSize.x != viewportPanelSize.x || m_viewportSize.y != viewportPanelSize.y)
+            {
+                m_viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+
+            }
+
 
             
             if (m_editor)
@@ -362,14 +390,7 @@ namespace Engine {
             }
             
 
-            ImVec2 windowSize = ImGui::GetWindowSize();
-            ImVec2 minBound = ImGui::GetWindowPos();
-            minBound.x += viewportOffset.x;
-            minBound.y += viewportOffset.y;
-
-            ImVec2 maxBound = { minBound.x + viewportPanelSize.x, minBound.y + viewportPanelSize.y };
-            m_viewportBounds[0] = { minBound.x ,minBound.y };
-            m_viewportBounds[1] = { maxBound.x ,maxBound.y };
+           
 
             if (ImGui::BeginDragDropTarget())
             {
@@ -503,6 +524,7 @@ namespace Engine {
 
     void EditorLayer::OnScenePlay()
     {
+        m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportOrigin);
 
         m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetNewComponentsContext(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
        // m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStart();
@@ -837,7 +859,7 @@ namespace Engine {
     void EditorLayer::NewScene()
     {
         m_activeScene = std::make_shared<Scene>();
-        m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+        m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportOrigin); // min only for 
         m_sceneHierarchyPanel.SetEditorContext(m_activeScene);
         m_currentScenePath = std::filesystem::path();
     }
@@ -865,7 +887,7 @@ namespace Engine {
         }
 
         m_editorScene = std::make_shared<Scene>();
-        m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
+        m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportOrigin);
         m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
 
         SceneSerializer serializer(m_editorScene);

@@ -14,6 +14,7 @@ namespace Engine{
 
 		static bool IsMouseButtonPressed(MouseCode button);
 		static glm::vec2 GetMousePosition();
+		static glm::vec2 GetMouseScreenPosition();
 		static float GetMouseX();
 		static float GetMouseY();
 	

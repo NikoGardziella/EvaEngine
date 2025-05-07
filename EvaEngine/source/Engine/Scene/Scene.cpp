@@ -105,6 +105,7 @@ namespace Engine {
 
         newScene->m_viewportWidth = other->m_viewportWidth;
         newScene->m_viewportHeight = other->m_viewportHeight;
+		newScene->m_viewportBounds[0] = other->m_viewportBounds[0];
 
         std::unordered_map<UUID, entt::entity> enttMap;
 
@@ -189,6 +190,7 @@ namespace Engine {
 
         combinedScene->m_viewportWidth = sceneA->m_viewportWidth;
         combinedScene->m_viewportHeight = sceneA->m_viewportHeight;
+        combinedScene->m_viewportBounds[0] = sceneA->m_viewportBounds[0];
 
         std::unordered_map<UUID, entt::entity> enttMap;
 
@@ -468,7 +470,7 @@ namespace Engine {
                 {
                     auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
                         
-                    Engine::VulkanRenderer2D::DrawQuad(transform.GetTransform(), quadSprite.Color);
+                    //Engine::VulkanRenderer2D::DrawQuad(transform.GetTransform(), quadSprite.Color);
                 }
 
                 std::vector<int> instanceTextureIDs;
@@ -596,10 +598,11 @@ namespace Engine {
         Engine::VulkanRenderer2D::EndScene();
     }
 
-    void Scene::OnViewportResize(uint32_t width, uint32_t height)
+    void Scene::OnViewportResize(uint32_t width, uint32_t height, glm::vec2 viewportBounds)
     {
         m_viewportHeight = height;
         m_viewportWidth = width;
+		m_viewportBounds[0] = viewportBounds; // min only for now
 
         auto view = m_registry.view<CameraComponent>();
 
@@ -609,6 +612,8 @@ namespace Engine {
             if (!cameraComp.FixedAspectRatio)
             {
                 cameraComp.Camera.SetViewportSize(width, height);
+                cameraComp.Camera.SetViewportBounds(viewportBounds);
+
             }
 
         }

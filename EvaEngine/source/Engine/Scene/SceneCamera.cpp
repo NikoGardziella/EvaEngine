@@ -41,8 +41,19 @@ namespace Engine {
 		if (height == 0) return; // Prevent division by zero
 		m_aspectRatio = (float)width / (float)height;
 		RecalculateProjection();
+		m_viewportSize = { (float)width, (float)height };
 
+	}
 
+	void SceneCamera::SetViewportBounds(glm::vec2 minBounds)
+	{
+		m_viewportBounds[0] = minBounds;
+		/*
+		m_viewportBounds[1] = { minBounds.x + m_viewportSize.x, minBounds.y + m_viewportSize.y };
+		m_aspectRatio = (m_viewportBounds[1].x - m_viewportBounds[0].x) / (m_viewportBounds[1].y - m_viewportBounds[0].y);
+		RecalculateProjection();
+		m_viewportSize = { m_viewportBounds[1].x - m_viewportBounds[0].x, m_viewportBounds[1].y - m_viewportBounds[0].y };
+		*/
 	}
 
 

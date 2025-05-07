@@ -53,7 +53,7 @@ namespace Engine {
 
 		void OnUpdateRuntime(Timestep timestep, bool isPlaying = true);
 		void OnUpdateEditor(Timestep timestep, EditorCamera& camera);
-		void OnViewportResize(uint32_t width, uint32_t height);
+		void OnViewportResize(uint32_t width, uint32_t height, glm::vec2 viewportBounds);
 
 		void DuplicateEntity(Entity entity);
 
@@ -64,7 +64,7 @@ namespace Engine {
 		entt::registry& GetRegistry() { return m_registry;  }
 		
 
-		
+		glm::vec2 GetViewportMinBounds() const { return m_viewportBounds[0]; }
 		void RegisterSystem(const std::function<void(entt::registry&, float)>& system);
 
 		template<typename... Components>
@@ -87,6 +87,7 @@ namespace Engine {
 		entt::registry m_registry;
 		uint32_t m_viewportWidth = 0;
 		uint32_t m_viewportHeight = 0;
+		glm::vec2 m_viewportBounds[2] = { { 0.0f, 0.0f }, { 1.0f, 1.0f } };
 
 
 		b2WorldId m_worldId;

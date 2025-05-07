@@ -151,6 +151,8 @@ namespace Engine {
 		s_VulkanData.TextureSlots[3] = AssetManager::AddPixelTexture("pixel", Engine::AssetManager::GetAssetPath("textures/pixel_texture1.png").string());
 		s_VulkanData.TextureSlotIndex++;
 
+		s_VulkanData.TextureSlots[4] = AssetManager::AddTexture("player", Engine::AssetManager::GetAssetPath("textures/Idle_gun_000.png").string());
+		s_VulkanData.TextureSlotIndex++;
 		// Fill the rest of the slots with pixel texture
 		for (uint32_t i = s_VulkanData.TextureSlotIndex; i < s_VulkanData.TextureSlots.size(); i++)
 		{

@@ -28,6 +28,20 @@ namespace Engine {
 		return state == GLFW_PRESS;
 	}
 
+
+	glm::vec2 Input::GetMouseScreenPosition()
+	{
+		glm::vec2 client = GetMousePosition();
+
+		auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+		int wx, wy;
+		glfwGetWindowPos(window, &wx, &wy);
+
+		return { client.x + (float)wx,
+					client.y + (float)wy };
+	}
+
+
 	glm::vec2 Input::GetMousePosition()
 	{
 		auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
@@ -37,7 +51,7 @@ namespace Engine {
 		return { (float)xpos, (float)ypos };
 	}
 
-
+	
 	
 
 	float Input::GetMouseX()

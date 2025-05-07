@@ -43,7 +43,7 @@ void PixelGame::OnAttach()
 	//m_logoTexture = Engine::AssetManager::GetTexture("logo");
 	
 
-	
+
 	
 }
 
@@ -105,9 +105,9 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 			
 			//Engine::TransformComponent& cameraTransformComp = m_cameraEntity.GetComponent<Engine::TransformComponent>();
 
-			Engine::VulkanRenderer2D::BeginScene();
-			Engine::VulkanRenderer2D::DrawQuad(transform, color, -1);
-			Engine::VulkanRenderer2D::EndScene();
+			//Engine::VulkanRenderer2D::BeginScene();
+			//Engine::VulkanRenderer2D::DrawQuad(transform, color, -1);
+			//Engine::VulkanRenderer2D::EndScene();
 			
 			
 			
@@ -132,7 +132,21 @@ void PixelGame::OnGameStart()
 	//m_squareEntity.AddComponent<Engine::TransformComponent>();
 	//m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
 
-	// move this to new function called LoadTextures. This is called on app creation
+
+
+	m_cameraEntity = m_activeScene->CreateEntity("camera");
+	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
+	cameraComp.FixedAspectRatio = true;
+	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
+	cameraComp.Camera.SetPerspectiveFOV(45.0f);
+	cameraComp.Primary = true;
+	cameraComp.Camera.SetViewportBounds(m_activeScene->GetViewportMinBounds());
+
+	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 30.0f);
+
+
+
 
 	m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
 	m_pixelEntity.AddComponent<Engine::TransformComponent>();
@@ -143,28 +157,19 @@ void PixelGame::OnGameStart()
 
 
 	m_activeScene->OnRunTimeStart();
-	m_cameraEntity = m_activeScene->CreateEntity("camera");
-	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
-	cameraComp.FixedAspectRatio = true;
-	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
-	cameraComp.Camera.SetPerspectiveFOV(45.0f);
-	cameraComp.Primary = true;
-
-	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 30.0f);
-
+	
 	m_playerEntity = m_activeScene->CreateEntity("player");
 
 	auto& transformComp = m_playerEntity.AddComponent<Engine::TransformComponent>();
 	transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
 	m_playerEntity.AddComponent<Engine::CharacterControllerComponent>();
 
-	glm::vec4 color = { 0.2, 0.9, 0.8, 1.0f };
+	glm::vec4 color = { 1.0, 1.0, 1.0, 1.0f };
 	Engine::SpriteRendererComponent& spriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();
 	spriteComp.Color = color;
 	spriteComp.Texture = m_playerTexture;
 
-	Engine::SceneCamera Camera = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera;
+	//Engine::SceneCamera Camera = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera;
 
 	m_isPlaying = true;
 }
@@ -172,7 +177,7 @@ void PixelGame::OnGameStart()
 void PixelGame::LoadGameAssets()
 {
 	m_pixelTexture = Engine::AssetManager::GetPixelTexture("pixel");
-	m_playerTexture = Engine::AssetManager::GetTexture("chess");
+	m_playerTexture = Engine::AssetManager::GetTexture("player");
 }
 
 void PixelGame::OnGameStop()
