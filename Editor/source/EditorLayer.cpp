@@ -1,4 +1,5 @@
 #include "pch.h"
+
 #include "EditorLayer.h"
 
 //#include <imgui/backends/imgui_impl_vulkan.h>
@@ -23,11 +24,22 @@
 #include <Engine/AssetManager/AssetManager.h>
 
 #include "Engine/Debug/DebugUtils.h"
-//#include <imgui/backends/imgui_impl_vulkan.h>
 #include "Engine/Renderer/Renderer.h"
 
 
- 
+
+//*************** AI *****************
+
+
+//using nlohmann::json;
+static char g_PromptBuffer[1024] = "";
+static bool  g_ShouldGenerate = false;
+static Engine::AI::OpenAIClient g_AIClient([] {
+    const char* key = std::getenv("OPENAI_API_KEY");
+    return key ? std::string(key) : std::string();
+    }());
+
+//*************************************
 
 namespace Engine {
 
@@ -56,9 +68,9 @@ namespace Engine {
     EditorLayer::EditorLayer(Editor* editor)
         : Layer("EditorLayer"),
         m_orthoCameraController(1280.0f / 720.0f, true),
-        m_editor(editor)
+        m_editor(editor),
+		m_activeSceneRegistry(m_editor->GetGameLayer()->GetActiveGameScene()->GetRegistry())
     {
-
     }
 
     void EditorLayer::OnAttach()
@@ -260,6 +272,8 @@ namespace Engine {
 
         style.WindowMinSize.x = 32.0f;
 
+
+
         if (ImGui::BeginMenuBar())
         {
             if (ImGui::BeginMenu("File"))
@@ -320,18 +334,15 @@ namespace Engine {
 
             ImGui::Begin("Settings");
             ImGui::Checkbox("Show colliders", &m_showColliders);
-            ImGui::End();
-
+			ImGui::End();
             //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+
 
             ImGui::Begin("Viewport");
 
             ImVec2 viewportOffset = ImGui::GetCursorPos();
 
-            ImVec2 p = ImGui::GetCursorScreenPos();
-            ImGui::Text("viewport pos %.1f %.1f", p.x, p.y);
-
-			
+    
 
             m_viewportFocused = ImGui::IsWindowFocused();
             m_viewportHovered = ImGui::IsWindowHovered();
@@ -471,8 +482,10 @@ namespace Engine {
         }
 
         UI_Toolbar();
+        DrawAIPromptPanel();
 
         ImGui::End();
+
 
     }
 
@@ -576,6 +589,190 @@ namespace Engine {
             m_editorScene->DuplicateEntity(selectedEntity);
         }
     }
+
+    void EditorLayer::DrawAIPromptPanel()
+    {
+        ImGui::Begin("AI Gameplay Generator");
+
+        ImGui::TextWrapped("Enter gameplay description:");
+        ImVec2 size = ImVec2(0.0f, 100.0f);
+        ImGui::InputTextMultiline("##prompt", g_PromptBuffer, sizeof(g_PromptBuffer), size);
+
+        if (ImGui::Button("Generate Entities"))
+        {
+            g_ShouldGenerate = true;
+        }
+
+        if (g_ShouldGenerate)
+        {
+            g_ShouldGenerate = false;
+           // std::string userText = std::string(g_PromptBuffer);
+
+           
+            std::string responseText = g_AIClient.CreateGameplayJSON(g_PromptBuffer);
+           
+            if (responseText.empty() || responseText.find_first_not_of(" \t\n\r") == std::string::npos)
+            {
+                ImGui::End();
+                return;
+            }
+
+            try
+            {
+                nlohmann::json& j = nlohmann::json::parse(responseText);
+                
+                SpawnFromJSON(m_activeSceneRegistry, j);
+            }
+            catch (const std::exception& e)
+            {
+                // Show error popup
+                ImGui::OpenPopup("AI Error");
+                if (ImGui::BeginPopupModal("AI Error", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+                {
+                    ImGui::TextWrapped("Failed to parse AI response:\n%s", e.what());
+                    if (ImGui::Button("OK"))
+                    {
+                        ImGui::CloseCurrentPopup();
+
+                    }
+                    ImGui::EndPopup();
+                }
+            }
+        }
+
+        ImGui::End();
+    }
+
+    void EditorLayer::SpawnFromJSON(entt::registry& reg, const nlohmann::json& j)
+    {
+        for (const auto& e : j["entities"])
+        {
+            std::string name = "Entity";
+
+            // Try to get name from TagComponent if it exists
+            for (const auto& comp : e["components"])
+            {
+                if (comp["type"] == "TagComponent" && comp.contains("tag"))
+                {
+                    name = comp["tag"];
+                    break;
+                }
+            }
+
+            Entity entity = m_editor->GetGameLayer()->GetActiveGameScene()->CreateEntity(name);
+
+            for (const auto& compData : e["components"])
+            {
+                std::string compName = compData["type"];
+
+                if (compName == "TransformComponent")
+                {
+                    TransformComponent& tc = entity.AddComponent<TransformComponent>();
+
+                    tc.Translation = glm::vec3(
+                        compData["Translation"][0],
+                        compData["Translation"][1],
+                        compData["Translation"][2]
+                    );
+                    tc.Rotation = glm::vec3(
+                        compData["Rotation"][0],
+                        compData["Rotation"][1],
+                        compData["Rotation"][2]
+                    );
+                    tc.Scale = glm::vec3(
+                        compData["Scale"][0],
+                        compData["Scale"][1],
+                        compData["Scale"][2]
+                    );
+                }
+                else if (compName == "SpriteRendererComponent")
+                {
+                    SpriteRendererComponent& src = entity.AddComponent<SpriteRendererComponent>();
+
+                   /*
+                    src.Color = glm::vec4(
+                        compData["Color"][0].get<float>(),
+                        compData["Color"][1].get<float>(),
+                        compData["Color"][2].get<float>(),
+                        compData["Color"][3].get<float>()
+                    );
+
+                   */
+                    if (compData.contains("Texture") && !compData["Texture"].is_null())
+                    {
+                        std::string textureName = compData["Texture"];
+                        src.Texture = Engine::AssetManager::GetTexture(textureName);; // You must implement LoadTexture
+                    }
+
+                    if (compData.contains("Tiling"))
+                        src.Tiling = compData["Tiling"];
+
+                }
+                else if (compName == "CameraComponent")
+                {
+                    CameraComponent& cc = entity.AddComponent<CameraComponent>();
+
+                    cc.Primary = compData["Primary"];
+                    cc.FixedAspectRatio = compData["FixedAspectRatio"];
+                }
+                else if (compName == "TagComponent")
+                {
+                    entity.AddComponent<CameraComponent>();
+
+                }
+                else if (compName == "CharacterControllerComponent")
+                {
+                    CharacterControllerComponent& cc = entity.AddComponent<CharacterControllerComponent>();
+
+                    cc.speed = compData["speed"];
+                    cc.velocity = glm::vec2(compData["velocity"][0], compData["velocity"][1]);
+                    cc.onGround = compData["onGround"];
+                    cc.fireRate = compData["fireRate"];
+                    cc.lastFireTime = compData["lastFireTime"];
+                }
+                else if (compName == "ProjectileComponent")
+                {
+                    ProjectileComponent& pc = entity.AddComponent<ProjectileComponent>();
+
+                    pc.Velocity = glm::vec2(compData["Velocity"][0], compData["Velocity"][1]);
+                    pc.LifeTime = compData["LifeTime"];
+                }
+                else if (compName == "RigidBody2DComponent")
+                {
+                    RigidBody2DComponent& rb = entity.AddComponent<RigidBody2DComponent>();
+
+                    rb.Type = static_cast<RigidBody2DComponent::BodyType>(compData["Type"]);
+                    rb.FixedRotation = compData["FixedRotation"];
+
+                }
+                else if (compName == "BoxCollider2DComponent")
+                {
+                    BoxCollider2DComponent& bc = entity.AddComponent<BoxCollider2DComponent>();
+
+                    bc.Offset = glm::vec2(compData["Offset"][0], compData["Offset"][1]);
+                    bc.Size = glm::vec2(compData["Size"][0], compData["Size"][1]);
+                    bc.Density = compData["Density"];
+                    bc.Friction = compData["Friction"];
+                    bc.Restitution = compData["Restitution"];
+                    bc.RestitutionThershold = compData["RestitutionThershold"];
+                }
+                else if (compName == "CircleCollider2DComponent")
+                {
+                    CircleCollider2DComponent& cc  = entity.AddComponent<CircleCollider2DComponent>();
+
+                    cc.Offset = glm::vec2(compData["Offset"][0], compData["Offset"][1]);
+                    cc.Radius = compData["Radius"];
+                    cc.Density = compData["Density"];
+                    cc.Friction = compData["Friction"];
+                    cc.Restitution = compData["Restitution"];
+                    cc.RestitutionThershold = compData["RestitutionThershold"];
+                }
+
+            }
+        }
+    }
+
+
 
     void EditorLayer::OnOverlayRender()
     {

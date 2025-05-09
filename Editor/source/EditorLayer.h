@@ -13,6 +13,8 @@
 
 #include "Sandbox2D.h"
 #include "FPSCounter.h"
+#include "AI/json.hpp"
+#include "AI/OpenAIClient.h" 
 
 namespace Engine {
 
@@ -59,6 +61,9 @@ namespace Engine {
 
 
 		void OnDuplicateEntity();
+
+		void DrawAIPromptPanel();
+		void SpawnFromJSON(entt::registry& reg, const nlohmann::json& j);
 
 		void OnOverlayRender();
 
@@ -126,6 +131,8 @@ namespace Engine {
 
 		FPSCounter m_fpsCounter;
 
+		// AI panel
+		entt::registry& m_activeSceneRegistry;
 	};
 
 }

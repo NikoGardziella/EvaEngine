@@ -34,6 +34,7 @@ project "Editor"
         "../EvaEngine/vendor/Box2D/include",
         "../EvaEngine/vendor/enkiTS/src",
         "../EvaEngine/vendor/GLFW/include",
+        "../EvaEngine/vendor/vcpkg/x64-windows/include",
         "../Sandbox/source", 
         "../Sandbox/vendor",
         "%{IncludeDir.ImGui}",

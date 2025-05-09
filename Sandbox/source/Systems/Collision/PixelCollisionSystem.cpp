@@ -6,12 +6,12 @@
 void PixelCollisionSystem::UpdatePixelCollisionSystem(entt::registry& registry, float deltaTime)
 {
     EE_PROFILE_FUNCTION();
-    auto playerView = registry.view<Engine::TransformComponent, Engine::CharacterControllerComponent>();
+    auto projectileView = registry.view<Engine::TransformComponent, Engine::ProjectileComponent>();
     auto pixelView = registry.view<Engine::TransformComponent, Engine::PixelSpriteRendererComponent>();
 
-    for (auto playerEntity : playerView)
+    for (auto projectileEntity : projectileView)
     {
-        auto& playerTransform = playerView.get<Engine::TransformComponent>(playerEntity);
+        auto& playerTransform = projectileView.get<Engine::TransformComponent>(projectileEntity);
         glm::vec2 playerPos = glm::vec2(playerTransform.Translation.x, playerTransform.Translation.y);
 
         for (auto pixelEntity : pixelView)
@@ -39,6 +39,8 @@ void PixelCollisionSystem::UpdatePixelCollisionSystem(entt::registry& registry, 
                     // Destroy pixel on collision
                     pixelTexture.Texture->DestroyPixel(px, py);
 					pixelTexture.Texture->ApplyChanges();
+
+                    registry.destroy(projectileEntity);
                 }
             }
 

@@ -72,8 +72,10 @@ project "EvaEngine"
     {
         "EvaEngine/source",
         "EvaEngine/vendor/spdlog/include",  -- Include path for the spdlog logging library
+        "EvaEngine/vendor/vcpkg/x64-windows/include",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.GLAD}",
+        "%{IncludeDir.json}",
         "%{IncludeDir.Box2D}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.glm}",
@@ -90,7 +92,8 @@ project "EvaEngine"
     libdirs
     {
         "%{LibraryDir.VulkanSDK}",
-        "%{LibraryDir.Box2D}"
+        "%{LibraryDir.Box2D}",
+        "EvaEngine/vendor/vcpkg/x64-windows/lib"
 
     }
 
@@ -126,6 +129,7 @@ project "EvaEngine"
             "%{Library.spirv_tools_Debug}",
             "%{Library.Vulkan}",
             "%{Library.Box2D}",
+            "libcurl"
         }
 
     -- Settings specific to the Release configuration

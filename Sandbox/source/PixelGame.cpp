@@ -11,6 +11,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Systems/Combat/ProjectileSystem.h"
+#include "Systems/Collision/PlayerCollisionSystem.h"
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -24,6 +25,7 @@ PixelGame::PixelGame(const std::string scene)
 	m_activeScene->RegisterSystem(CharacterControllerSystem::UpdateCharacterControllerSystem);
 	m_activeScene->RegisterSystem(PixelCollisionSystem::UpdatePixelCollisionSystem);
 	m_activeScene->RegisterSystem(ProjectileSystem::UpdateProjectileSystem);
+	m_activeScene->RegisterSystem(PlayerCollisionSystem::UpdatePlayerCollision);
 
 }
 

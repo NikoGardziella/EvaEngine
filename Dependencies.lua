@@ -5,6 +5,8 @@ ROOT_DIR = path.getabsolute(os.getcwd())
 IncludeDir = {}
 IncludeDir["GLFW"] = "EvaEngine/vendor/GLFW/include"
 IncludeDir["GLAD"] = "EvaEngine/vendor/GLAD/include"
+IncludeDir["curl"] = "EvaEngine/vendor/curl/include"
+IncludeDir["json"] = "EvaEngine/vendor/nlohmannjson/include"
 IncludeDir["ImGui"] = "EvaEngine/vendor/imgui"
 IncludeDir["glm"] = "EvaEngine/vendor/glm"
 IncludeDir["entt"] = "EvaEngine/vendor/entt/include"
@@ -28,6 +30,8 @@ Library = {}
 -- Common libraries
 Library["GLFW"] = "GLFW"
 Library["GLAD"] = "GLAD"
+Library["curl"] = "curl"
+
 Library["ImGui"] = "imgui"
 Library["yaml_cpp"] = "yaml-cpp"
 Library["OpenGL"] = "opengl32.lib"

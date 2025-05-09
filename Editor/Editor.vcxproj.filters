@@ -1,11 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="AI">
+      <UniqueIdentifier>{EF725900-DBFE-870B-44AD-880B3058880B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Panels">
       <UniqueIdentifier>{A80D95C9-94AF-BF9F-7D6A-D3F369AB46F0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\AI\OpenAIClient.h">
+      <Filter>AI</Filter>
+    </ClInclude>
     <ClInclude Include="source\EditorApp.h" />
     <ClInclude Include="source\EditorLayer.h" />
     <ClInclude Include="source\FPSCounter.h" />
@@ -15,8 +21,12 @@
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h">
       <Filter>Panels</Filter>
     </ClInclude>
+    <ClInclude Include="source\AI\OpenAICostTracker.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\AI\OpenAIClient.cpp">
+      <Filter>AI</Filter>
+    </ClCompile>
     <ClCompile Include="source\EditorApp.cpp" />
     <ClCompile Include="source\EditorLayer.cpp" />
     <ClCompile Include="source\Panels\ContentBrowserPanel.cpp">
@@ -25,5 +35,6 @@
     <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp">
       <Filter>Panels</Filter>
     </ClCompile>
+    <ClCompile Include="source\AI\OpenAICostTracker.cpp" />
   </ItemGroup>
 </Project>

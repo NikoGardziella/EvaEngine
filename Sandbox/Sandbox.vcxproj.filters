@@ -7,6 +7,9 @@
     <Filter Include="Systems\Collision">
       <UniqueIdentifier>{781B2B44-E431-29DA-2DA9-B4FB99FEF961}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Systems\Combat">
+      <UniqueIdentifier>{2218844A-0EE6-7750-F779-E876E3E653B5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Systems\Player">
       <UniqueIdentifier>{99AC9A68-857A-8E6E-6E0E-FF945A7B6AD3}</UniqueIdentifier>
     </Filter>
@@ -17,10 +20,15 @@
     <ClInclude Include="source\Systems\Collision\PixelCollisionSystem.h">
       <Filter>Systems\Collision</Filter>
     </ClInclude>
+    <ClInclude Include="source\Systems\Collision\PlayerCollisionSystem.h">
+      <Filter>Systems\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Systems\Combat\ProjectileSystem.h">
+      <Filter>Systems\Combat</Filter>
+    </ClInclude>
     <ClInclude Include="source\Systems\Player\CharacterControllerSystem.h">
       <Filter>Systems\Player</Filter>
     </ClInclude>
-    <ClInclude Include="source\Systems\Combat\ProjectileSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -29,9 +37,14 @@
     <ClCompile Include="source\Systems\Collision\PixelCollisionSystem.cpp">
       <Filter>Systems\Collision</Filter>
     </ClCompile>
+    <ClCompile Include="source\Systems\Collision\PlayerCollisionSystem.cpp">
+      <Filter>Systems\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Systems\Combat\ProjectileSystem.cpp">
+      <Filter>Systems\Combat</Filter>
+    </ClCompile>
     <ClCompile Include="source\Systems\Player\CharacterControllerSystem.cpp">
       <Filter>Systems\Player</Filter>
     </ClCompile>
-    <ClCompile Include="source\Systems\Combat\ProjectileSystem.cpp" />
   </ItemGroup>
 </Project>

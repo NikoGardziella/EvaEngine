@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;..\Sandbox\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\EvaEngine\vendor\vcpkg\x64-windows\include;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;..\Sandbox\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -96,7 +96,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;..\Sandbox\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\EvaEngine\vendor\vcpkg\x64-windows\include;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;..\Sandbox\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -117,7 +117,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;..\Sandbox\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\EvaEngine\vendor\vcpkg\x64-windows\include;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;..\Sandbox\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -134,6 +134,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\AI\OpenAICostTracker.h" />
+    <ClInclude Include="source\AI\OpenAIClient.h" />
     <ClInclude Include="source\EditorApp.h" />
     <ClInclude Include="source\EditorLayer.h" />
     <ClInclude Include="source\FPSCounter.h" />
@@ -141,6 +143,8 @@
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\AI\OpenAICostTracker.cpp" />
+    <ClCompile Include="source\AI\OpenAIClient.cpp" />
     <ClCompile Include="source\EditorApp.cpp" />
     <ClCompile Include="source\EditorLayer.cpp" />
     <ClCompile Include="source\Panels\ContentBrowserPanel.cpp" />
