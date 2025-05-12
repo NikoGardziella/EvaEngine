@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Systems/Combat/ProjectileSystem.h"
 #include "Systems/Collision/PlayerCollisionSystem.h"
+#include "Systems/Combat/HealthSystem.h"
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -26,6 +27,7 @@ PixelGame::PixelGame(const std::string scene)
 	m_activeScene->RegisterSystem(PixelCollisionSystem::UpdatePixelCollisionSystem);
 	m_activeScene->RegisterSystem(ProjectileSystem::UpdateProjectileSystem);
 	m_activeScene->RegisterSystem(PlayerCollisionSystem::UpdatePlayerCollision);
+	m_activeScene->RegisterSystem(HealthSystem::UpdateHealthSystem);
 
 }
 
@@ -195,7 +197,7 @@ void PixelGame::OnGameStop()
 		
 	}
 	Engine::SceneSerializer serializer(m_activeScene);
-	serializer.Deserialize(Engine::AssetManager::GetAssetPath(m_activeSceneName).string());
+	serializer.Deserialize(Engine::AssetManager::GetScenePath(m_activeSceneName).string());
 }
 
 

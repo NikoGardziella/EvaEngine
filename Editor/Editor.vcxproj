@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\AI\ParseUtils.h" />
     <ClInclude Include="source\AI\OpenAICostTracker.h" />
     <ClInclude Include="source\AI\OpenAIClient.h" />
     <ClInclude Include="source\EditorApp.h" />
@@ -143,6 +144,7 @@
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\AI\ParseUtils.cpp" />
     <ClCompile Include="source\AI\OpenAICostTracker.cpp" />
     <ClCompile Include="source\AI\OpenAIClient.cpp" />
     <ClCompile Include="source\EditorApp.cpp" />

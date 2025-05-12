@@ -29,6 +29,7 @@
     <ClInclude Include="source\Systems\Player\CharacterControllerSystem.h">
       <Filter>Systems\Player</Filter>
     </ClInclude>
+    <ClInclude Include="source\Systems\Combat\HealthSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -46,5 +47,6 @@
     <ClCompile Include="source\Systems\Player\CharacterControllerSystem.cpp">
       <Filter>Systems\Player</Filter>
     </ClCompile>
+    <ClCompile Include="source\Systems\Combat\HealthSystem.cpp" />
   </ItemGroup>
 </Project>

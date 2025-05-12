@@ -9,6 +9,7 @@
 #include "imgui/imgui.h"
 #include <imgui/imgui_internal.h>
 #include "ImGuizmo/ImGuizmo.h"
+#include <Engine/Scene/Components/Combat/HealthComponent.h>
 
 //#include "entt.hpp"
 
@@ -502,10 +503,42 @@ namespace Engine {
 
                 }
             }
+            if (ImGui::MenuItem("Health Component"))
+            {
+                m_selectionContext.AddComponent<HealthComponent>();
+                ImGui::CloseCurrentPopup();
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<HealthComponent>().Current), m_newComponentsContext.get() };
+                if (entity)
+                {
+                    m_newComponentsContext->GetRegistry().emplace<HealthComponent>(entity);
+
+                }
+            }
             ImGui::EndPopup();
         }
         ImGui::PopItemWidth();
 
+        DrawComponent<HealthComponent>("Health", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
+            {
+                ImGui::DragFloat("Health", &component.Current, 0.1f, 0.0f, 100.0f);
+
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID),
+                 m_newComponentsContext.get()
+                };
+
+                if (newEntity)
+                {
+                    if (!newEntity.HasComponent<HealthComponent>())
+                    {
+                        newEntity.AddComponent<HealthComponent>();
+                    }
+
+                    newEntity.GetComponent<HealthComponent>() = component;
+                }
+
+
+            });
 
         DrawComponent<TransformComponent>("Transform", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {

@@ -25,6 +25,7 @@
 
 #include "Engine/Debug/DebugUtils.h"
 #include "Engine/Renderer/Renderer.h"
+#include "AI/ParseUtils.h"
 
 
 
@@ -639,7 +640,7 @@ namespace Engine {
             {
                 nlohmann::json& j = nlohmann::json::parse(responseText);
                 
-                SpawnFromJSON(m_activeSceneRegistry, j);
+                SpawnFromJSON(j);
             }
             catch (const std::exception& e)
             {
@@ -661,8 +662,9 @@ namespace Engine {
         ImGui::End();
     }
 
-    void EditorLayer::SpawnFromJSON(entt::registry& reg, const nlohmann::json& j)
+    void EditorLayer::SpawnFromJSON(const nlohmann::json& j)
     {
+        EE_PROFILE_FUNCTION();
 
         // create a map of existing entities in scene
         std::unordered_map<UUID, Entity> existingEntities;
@@ -700,129 +702,26 @@ namespace Engine {
             }
 		
 
-            for (const auto& compData : e["components"])
+            for (const nlohmann::json& compData : e["components"])
             {
                 std::string compName = compData["type"];
 
-                if (compName == "TransformComponent")
+                if (compName == "TagComponent")
                 {
-                    TransformComponent& tc = entity.HasComponent<TransformComponent>()
-                        ? entity.GetComponent<TransformComponent>()
-                        : entity.AddComponent<TransformComponent>();
-
-
-
-                    tc.Translation = glm::vec3(
-                        compData["Translation"][0],
-                        compData["Translation"][1],
-                        compData["Translation"][2]
-                    );
-                    tc.Rotation = glm::vec3(
-                        compData["Rotation"][0],
-                        compData["Rotation"][1],
-                        compData["Rotation"][2]
-                    );
-                    tc.Scale = glm::vec3(
-                        compData["Scale"][0],
-                        compData["Scale"][1],
-                        compData["Scale"][2]
-                    );
-                }
-                else if (compName == "SpriteRendererComponent")
-                {
-                    SpriteRendererComponent& src = entity.HasComponent<SpriteRendererComponent>()
-                        ? entity.GetComponent<SpriteRendererComponent>()
-                        : entity.AddComponent<SpriteRendererComponent>();
-
-
-
-                   /*
-                    src.Color = glm::vec4(
-                        compData["Color"][0].get<float>(),
-                        compData["Color"][1].get<float>(),
-                        compData["Color"][2].get<float>(),
-                        compData["Color"][3].get<float>()
-                    );
-
-                   */
-                    if (compData.contains("Texture") && !compData["Texture"].is_null())
+                    if (entity.HasComponent<Engine::TagComponent>())
                     {
-                        std::string textureName = compData["Texture"];
-                        src.Texture = Engine::AssetManager::GetTexture(textureName);; // You must implement LoadTexture
-                    }
-
-                    if (compData.contains("Tiling"))
-                    {
-                        src.Tiling = compData["Tiling"];
-                    }
-
-                }
-                else if (compName == "CameraComponent")
-                {
-                    CameraComponent& cc = entity.AddComponent<CameraComponent>();
-
-                    cc.Primary = compData["Primary"];
-                    cc.FixedAspectRatio = compData["FixedAspectRatio"];
-                }
-                else if (compName == "TagComponent")
-                {
-                    if (entity.HasComponent<TagComponent>())
-                    {
-                        TagComponent& src = entity.GetComponent<TagComponent>();
-						src.Tag = name;
+                        Engine::TagComponent& src = entity.GetComponent<Engine::TagComponent>();
+                        src.Tag = name;
 
                     }
                     else
                     {
-                        entity.AddComponent<TagComponent>(name);
+                        entity.AddComponent<Engine::TagComponent>(name);
                     }
                 }
-                else if (compName == "CharacterControllerComponent")
+                else
                 {
-                    CharacterControllerComponent& cc = entity.AddComponent<CharacterControllerComponent>();
-
-                    cc.speed = compData["speed"];
-                    cc.velocity = glm::vec2(compData["velocity"][0], compData["velocity"][1]);
-                    cc.onGround = compData["onGround"];
-                    cc.fireRate = compData["fireRate"];
-                    cc.lastFireTime = compData["lastFireTime"];
-                }
-                else if (compName == "ProjectileComponent")
-                {
-                    ProjectileComponent& pc = entity.AddComponent<ProjectileComponent>();
-
-                    pc.Velocity = glm::vec2(compData["Velocity"][0], compData["Velocity"][1]);
-                    pc.LifeTime = compData["LifeTime"];
-                }
-                else if (compName == "RigidBody2DComponent")
-                {
-                    RigidBody2DComponent& rb = entity.AddComponent<RigidBody2DComponent>();
-
-                    rb.Type = static_cast<RigidBody2DComponent::BodyType>(compData["Type"]);
-                    rb.FixedRotation = compData["FixedRotation"];
-
-                }
-                else if (compName == "BoxCollider2DComponent")
-                {
-                    BoxCollider2DComponent& bc = entity.AddComponent<BoxCollider2DComponent>();
-
-                    bc.Offset = glm::vec2(compData["Offset"][0], compData["Offset"][1]);
-                    bc.Size = glm::vec2(compData["Size"][0], compData["Size"][1]);
-                    bc.Density = compData["Density"];
-                    bc.Friction = compData["Friction"];
-                    bc.Restitution = compData["Restitution"];
-                    bc.RestitutionThershold = compData["RestitutionThershold"];
-                }
-                else if (compName == "CircleCollider2DComponent")
-                {
-                    CircleCollider2DComponent& cc  = entity.AddComponent<CircleCollider2DComponent>();
-
-                    cc.Offset = glm::vec2(compData["Offset"][0], compData["Offset"][1]);
-                    cc.Radius = compData["Radius"];
-                    cc.Density = compData["Density"];
-                    cc.Friction = compData["Friction"];
-                    cc.Restitution = compData["Restitution"];
-                    cc.RestitutionThershold = compData["RestitutionThershold"];
+                    ParseUtils::ParseComponent(compName, entity, compData);
                 }
 
             }

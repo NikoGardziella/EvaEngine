@@ -4,6 +4,7 @@
 
 #include "Engine/Math/Math.h"
 #include "Component.h"
+#include "Engine/Scene/Components/Combat/HealthComponent.h"
 #include "ScriptableEntity.h"
 
 #include <glm/glm.hpp>
@@ -132,6 +133,8 @@ namespace Engine {
         CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<ProjectileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<HealthComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+
 
         newScene->m_gameplaySystems = other->m_gameplaySystems;
 
@@ -179,6 +182,7 @@ namespace Engine {
             CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            CopyComponent<HealthComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<ProjectileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         }
     }
@@ -809,6 +813,11 @@ namespace Engine {
 
     template<>
     void Scene::OnComponentAdded<ProjectileComponent>(Entity entity, ProjectileComponent& component)
+    {
+
+    }
+    template<>
+    void Scene::OnComponentAdded<HealthComponent>(Entity entity, HealthComponent& component)
     {
 
     }

@@ -22,6 +22,7 @@
       <Filter>Panels</Filter>
     </ClInclude>
     <ClInclude Include="source\AI\OpenAICostTracker.h" />
+    <ClInclude Include="source\AI\ParseUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\AI\OpenAIClient.cpp">
@@ -36,5 +37,6 @@
       <Filter>Panels</Filter>
     </ClCompile>
     <ClCompile Include="source\AI\OpenAICostTracker.cpp" />
+    <ClCompile Include="source\AI\ParseUtils.cpp" />
   </ItemGroup>
 </Project>

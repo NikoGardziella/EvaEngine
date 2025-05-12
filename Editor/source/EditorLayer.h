@@ -63,7 +63,7 @@ namespace Engine {
 		void OnDuplicateEntity();
 
 		void DrawAIPromptPanel();
-		void SpawnFromJSON(entt::registry& reg, const nlohmann::json& j);
+		void SpawnFromJSON(const nlohmann::json& j);
 
 		void OnOverlayRender();
 

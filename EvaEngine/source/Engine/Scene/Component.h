@@ -40,6 +40,7 @@ namespace Engine {
     struct ProjectileComponent {
         glm::vec2 Velocity;   // units per second
         float      LifeTime;   // seconds remaining
+        float      Damage = 10.0f;
 
         ProjectileComponent() = default;
         ProjectileComponent(const glm::vec2& velocity, float lifeTime)

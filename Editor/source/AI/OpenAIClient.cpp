@@ -3,6 +3,7 @@
 #include <Engine/Core/Log.h>
 
 #include <sstream>
+#include <Engine/Debug/Instrumentor.h>
 
 using json = nlohmann::json;
 
@@ -79,7 +80,8 @@ namespace Engine
 
         std::string OpenAIClient::CreateGameplayJSON(const std::string& prompt, nlohmann::json existingEntitie)
         {
-           
+            EE_PROFILE_FUNCTION();
+
 
             json req;
             
@@ -92,6 +94,7 @@ namespace Engine
                         "Each entity must be an object with a 'components' array.Each component must be an object with a 'type' field(e.g., 'TransformComponent') and all relevant fields for that component."
                         "Do not use component types as top - level keys inside each entity."
                         "Supported components : TagComponent(string: Tag, add name for the entity), TransformComponent(Use this for most entities. vec3: Translation, Rotation, Scale), SpriteRendererComponent(Texture), CameraComponent, CharacterControllerComponent, ProjectileComponent, RigidBody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent."
+                        " HealthComponent(float: 'Health')"
                         "The 'SpriteRendererComponent'Texture must be one of : 'wall', 'enemy', 'player'"
                         "Dont create IDs for new entities. Use ID if modifing existing entity"
                     }},
