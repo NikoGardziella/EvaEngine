@@ -1,0 +1,5 @@
+Scene: My Scene
+Entities:
+  - ID: 1579678764629101439
+    TagComponent:
+      Tag: Empty entity

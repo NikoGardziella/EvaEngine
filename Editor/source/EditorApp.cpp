@@ -15,7 +15,7 @@ namespace Engine {
     Editor::Editor()
         : Application("Eva Editor")
     {
-        m_gameLayerPtr = new PixelGame("physics2D");
+        m_gameLayerPtr = new PixelGame("currentScene");
         PushLayer(m_gameLayerPtr);
         
         m_editorLayerPtr = new EditorLayer(this);

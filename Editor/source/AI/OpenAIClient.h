@@ -16,7 +16,7 @@ namespace Engine {
             std::string ChatCompletion(const nlohmann::json& requestBody);
 
             // High?level helper: send gameplay prompt and return parsed JSON
-            std::string CreateGameplayJSON(const std::string& prompt);
+            std::string CreateGameplayJSON(const std::string& prompt, nlohmann::json existingEntitie);
 
         private:
             std::string m_apiKey;

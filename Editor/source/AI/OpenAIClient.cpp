@@ -2,6 +2,8 @@
 #include "curl/curl.h"
 #include <Engine/Core/Log.h>
 
+#include <sstream>
+
 using json = nlohmann::json;
 
 namespace Engine
@@ -75,25 +77,39 @@ namespace Engine
             return readBuffer;
         }
 
-        std::string OpenAIClient::CreateGameplayJSON(const std::string& prompt)
+        std::string OpenAIClient::CreateGameplayJSON(const std::string& prompt, nlohmann::json existingEntitie)
         {
-            json req = {
+           
+
+            json req;
+            
+            req = {
                 {"model", "gpt-3.5-turbo"},
                 {"messages", json::array({
-                    {{"role", "system"}, {"content", "You are an ECS game engine assistant. Output ONLY valid JSON describing entities and their components. Do not explain or include any other text. Supported components include: TagComponent, TransformComponent, SpriteRendererComponent, CameraComponent, CharacterControllerComponent, ProjectileComponent, RigidBody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent. SpriteRendererComponent textures must be one of: \"wall\", \"enemy\", \"player\"."}},
                     {{"role", "system"}, {"content",
                         "You are an ECS game engine assistant. Output ONLY valid JSON describing entities and their components."
-                        "Output a top-level 'entities' array."
+                        "Output a top-level 'entities' array Each entity must have a top - level 'id' field representing a 64 - bit unsigned integer UUID."
                         "Each entity must be an object with a 'components' array.Each component must be an object with a 'type' field(e.g., 'TransformComponent') and all relevant fields for that component."
                         "Do not use component types as top - level keys inside each entity."
-                        "Supported components : TagComponent, TransformComponent(vec3: Translation, Rotation, Scale), SpriteRendererComponent(Texture), CameraComponent, CharacterControllerComponent, ProjectileComponent, RigidBody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent."
-                        "The 0'SpriteRendererComponent'texture must be one of : 'wall', 'enemy', 'player'"
+                        "Supported components : TagComponent(string: Tag, add name for the entity), TransformComponent(Use this for most entities. vec3: Translation, Rotation, Scale), SpriteRendererComponent(Texture), CameraComponent, CharacterControllerComponent, ProjectileComponent, RigidBody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent."
+                        "The 'SpriteRendererComponent'Texture must be one of : 'wall', 'enemy', 'player'"
+                        "Dont create IDs for new entities. Use ID if modifing existing entity"
                     }},
                 })},
                 {"temperature", 0.7},
                 {"max_tokens", 1000}
             };
 
+            req["messages"].push_back({
+                {"role", "user"},
+                {"content", prompt}
+                });
+
+            req["messages"].push_back({
+                {"role", "user"},
+                {"content", existingEntitie.dump()} // Convert the JSON to a string
+                });
+           
             std::string resp;
             try
             {

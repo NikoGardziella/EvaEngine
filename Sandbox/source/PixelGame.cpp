@@ -151,13 +151,14 @@ void PixelGame::OnGameStart()
 
 
 
-
+	/*
 	m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
 	m_pixelEntity.AddComponent<Engine::TransformComponent>();
 
 	//m_logoEntity.AddComponent<Engine::SpriteRendererComponent>();
 	auto& renderComp = m_pixelEntity.AddComponent<Engine::PixelSpriteRendererComponent>();
 	renderComp.Texture = m_pixelTexture;
+	*/
 
 
 	m_activeScene->OnRunTimeStart();
@@ -188,6 +189,11 @@ void PixelGame::OnGameStop()
 {
 	m_activeScene->ClearRegistry();
 
+	if (m_activeSceneName.empty())
+	{
+		m_activeSceneName = "currentScene";
+		
+	}
 	Engine::SceneSerializer serializer(m_activeScene);
 	serializer.Deserialize(Engine::AssetManager::GetAssetPath(m_activeSceneName).string());
 }

@@ -84,7 +84,7 @@ namespace Engine {
 
 		Ref<Scene> m_activeScene;
 		Ref<Scene> m_editorScene;
-		Ref<Scene> m_runtimeScene;
+		//Ref<Scene> m_runtimeScene;
 		Entity m_squareEntity;
 
 		std::filesystem::path m_currentScenePath;

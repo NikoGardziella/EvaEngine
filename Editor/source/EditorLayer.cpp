@@ -69,8 +69,9 @@ namespace Engine {
         : Layer("EditorLayer"),
         m_orthoCameraController(1280.0f / 720.0f, true),
         m_editor(editor),
-		m_activeSceneRegistry(m_editor->GetGameLayer()->GetActiveGameScene()->GetRegistry())
+		m_activeSceneRegistry(m_editorScene->GetRegistry())
     {
+
     }
 
     void EditorLayer::OnAttach()
@@ -562,6 +563,9 @@ namespace Engine {
 
         m_editor.get()->GetGameLayer()->SetIsPlaying(false);
         m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStop();
+
+        //SaveScene();
+
         m_editor.get()->GetGameLayer()->OnGameStop();
         //m_editor.get()->GetGameLayer()->SetActiveScene(m_activeScene);
 
@@ -608,8 +612,22 @@ namespace Engine {
             g_ShouldGenerate = false;
            // std::string userText = std::string(g_PromptBuffer);
 
-           
-            std::string responseText = g_AIClient.CreateGameplayJSON(g_PromptBuffer);
+            nlohmann::json existingEntitie;
+            existingEntitie["existing_entities"] = nlohmann::json::array();
+
+           // auto scene = m_editor->GetGameLayer()->GetActiveGameScene();
+            auto scene = m_editorScene;
+            for (auto entity : scene->GetAllEntitiesWith<TagComponent>())
+            {
+				Entity e = Entity{ entity, scene.get()};
+
+                std::string& tag = e.GetComponent<TagComponent>().Tag;
+                UUID& ID = e.GetComponent<IDComponent>().ID;
+                existingEntitie["existing_entities"].push_back(tag);
+                existingEntitie["existing_entities"].push_back((uint64_t)ID);
+            }
+
+            std::string responseText = g_AIClient.CreateGameplayJSON(g_PromptBuffer, existingEntitie);
            
             if (responseText.empty() || responseText.find_first_not_of(" \t\n\r") == std::string::npos)
             {
@@ -645,6 +663,19 @@ namespace Engine {
 
     void EditorLayer::SpawnFromJSON(entt::registry& reg, const nlohmann::json& j)
     {
+
+        // create a map of existing entities in scene
+        std::unordered_map<UUID, Entity> existingEntities;
+        for (auto ent : m_editorScene->GetAllEntitiesWith<IDComponent>())
+        {
+			Entity e = Entity{ ent, m_editorScene.get() };
+
+            UUID ID = e.GetComponent<IDComponent>().ID;
+            existingEntities[ID] = e;
+        }
+
+
+
         for (const auto& e : j["entities"])
         {
             std::string name = "Entity";
@@ -652,14 +683,22 @@ namespace Engine {
             // Try to get name from TagComponent if it exists
             for (const auto& comp : e["components"])
             {
-                if (comp["type"] == "TagComponent" && comp.contains("tag"))
+                if (comp["type"] == "TagComponent" && comp.contains("Tag"))
                 {
-                    name = comp["tag"];
+                    name = comp["Tag"];
                     break;
                 }
             }
 
-            Entity entity = m_editor->GetGameLayer()->GetActiveGameScene()->CreateEntity(name);
+            UUID id = e.contains("id") ? UUID(e["id"].get<uint64_t>()) : UUID();
+            Entity entity;
+       
+            entity = existingEntities[id]; // Modify existing
+            if (!entity)
+            {
+                entity = m_editorScene->CreateEntity(name);
+            }
+		
 
             for (const auto& compData : e["components"])
             {
@@ -667,7 +706,11 @@ namespace Engine {
 
                 if (compName == "TransformComponent")
                 {
-                    TransformComponent& tc = entity.AddComponent<TransformComponent>();
+                    TransformComponent& tc = entity.HasComponent<TransformComponent>()
+                        ? entity.GetComponent<TransformComponent>()
+                        : entity.AddComponent<TransformComponent>();
+
+
 
                     tc.Translation = glm::vec3(
                         compData["Translation"][0],
@@ -687,7 +730,11 @@ namespace Engine {
                 }
                 else if (compName == "SpriteRendererComponent")
                 {
-                    SpriteRendererComponent& src = entity.AddComponent<SpriteRendererComponent>();
+                    SpriteRendererComponent& src = entity.HasComponent<SpriteRendererComponent>()
+                        ? entity.GetComponent<SpriteRendererComponent>()
+                        : entity.AddComponent<SpriteRendererComponent>();
+
+
 
                    /*
                     src.Color = glm::vec4(
@@ -705,7 +752,9 @@ namespace Engine {
                     }
 
                     if (compData.contains("Tiling"))
+                    {
                         src.Tiling = compData["Tiling"];
+                    }
 
                 }
                 else if (compName == "CameraComponent")
@@ -717,8 +766,16 @@ namespace Engine {
                 }
                 else if (compName == "TagComponent")
                 {
-                    entity.AddComponent<CameraComponent>();
+                    if (entity.HasComponent<TagComponent>())
+                    {
+                        TagComponent& src = entity.GetComponent<TagComponent>();
+						src.Tag = name;
 
+                    }
+                    else
+                    {
+                        entity.AddComponent<TagComponent>(name);
+                    }
                 }
                 else if (compName == "CharacterControllerComponent")
                 {
@@ -1120,8 +1177,12 @@ namespace Engine {
 
             // Serialize the current editor scene without reloading it
             serializer.Serialize(m_currentScenePath.string());
-
         }
+		else
+		{
+            
+        }
+		
     }
 
 
