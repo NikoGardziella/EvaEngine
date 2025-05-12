@@ -40,6 +40,8 @@ namespace Engine {
 		virtual void OnDetach() override;
 		virtual void OnImGuiRender() override;
 
+		void ProcessMainThreadTasks();
+
 		void OnUpdate(Timestep timestep) override;
 		void OnEvent(Event& event) override;
 	private:
@@ -124,6 +126,7 @@ namespace Engine {
 		Ref<VulkanTexture> m_iconPlay;
 		Ref<VulkanTexture> m_iconStop;
 		Ref<VulkanTexture> m_iconPause;
+		Ref<VulkanTexture> m_iconLoading;
 
 		bool m_showColliders = false;
 

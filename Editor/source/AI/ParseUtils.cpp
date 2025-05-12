@@ -37,6 +37,21 @@ bool ParseUtils::SafeGetVec2(const nlohmann::json& j, const std::string& key, gl
     return false;
 }
 
+bool ParseUtils::SafeGetVec3(const nlohmann::json& j, const std::string& key, glm::vec3& out)
+{
+    if (j.contains(key) && j[key].is_array() && j[key].size() >= 3)
+    {
+        try
+        {
+            out = glm::vec3(j[key][0].get<float>(), j[key][1].get<float>(), j[key][2].get<float>());
+            return true;
+        }
+        catch (...) { return false; }
+    }
+    return false;
+}
+
+
 bool ParseUtils::ParseComponent(std::string compName, Engine::Entity entity, const nlohmann::json& compData)
 {
 
@@ -47,7 +62,10 @@ bool ParseUtils::ParseComponent(std::string compName, Engine::Entity entity, con
             : entity.AddComponent< Engine::TransformComponent>();
 
 
-
+        SafeGetVec3(compData, "Translation", tc.Translation);
+        SafeGetVec3(compData, "Rotation", tc.Rotation);
+        SafeGetVec3(compData, "Scale", tc.Scale);
+        /*
         tc.Translation = glm::vec3(
             compData["Translation"][0],
             compData["Translation"][1],
@@ -63,6 +81,7 @@ bool ParseUtils::ParseComponent(std::string compName, Engine::Entity entity, con
             compData["Scale"][1],
             compData["Scale"][2]
         );
+        */
     }
     else if (compName == "SpriteRendererComponent")
     {
@@ -158,8 +177,8 @@ bool ParseUtils::ParseComponent(std::string compName, Engine::Entity entity, con
             ? entity.GetComponent<Engine::HealthComponent>()
             : entity.AddComponent<Engine::HealthComponent>();
 
-		healthComp.Current = compData["Health"];
-        //SafeGet(compData, "Health", healthComp.Max);
+		//healthComp.Current = compData["Health"];
+        SafeGet(compData, "Health", healthComp.Max);
     }
     return true;
 }

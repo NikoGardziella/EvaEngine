@@ -30,8 +30,9 @@
 
 
 //*************** AI *****************
-
-
+std::mutex g_TaskMutex;
+std::queue<std::function<void()>> g_MainThreadTasks;
+std::atomic<bool> g_IsGeneratingAI = false;
 //using nlohmann::json;
 static char g_PromptBuffer[1024] = "";
 static bool  g_ShouldGenerate = false;
@@ -84,6 +85,7 @@ namespace Engine {
         m_iconPlay = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string(), true);
         m_iconStop = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/stop-button.png").string(), true);
         m_iconPause = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/video-pause-button.png").string(), true);
+        m_iconLoading = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/loading.png").string(), true);
 		//m_iconPause = AssetManager::AddTexture("pauseButton", AssetManager::GetAssetPath("icons/video-pause-button.png").string());
        
         m_mapWidth = s_mapWidth;
@@ -195,7 +197,7 @@ namespace Engine {
         //return;
         EE_PROFILE_FUNCTION();
 
-
+        ProcessMainThreadTasks();
         // READ THIS !!!
         // TL;DR; this demo is more complicated than what most users you would normally use.
         // If we remove all options we are showcasing, this demo would become:
@@ -491,6 +493,17 @@ namespace Engine {
 
     }
 
+    void EditorLayer::ProcessMainThreadTasks()
+    {
+        std::lock_guard<std::mutex> lock(g_TaskMutex);
+        while (!g_MainThreadTasks.empty())
+        {
+            g_MainThreadTasks.front()();
+            g_MainThreadTasks.pop();
+        }
+    }
+
+
     void EditorLayer::UI_Toolbar()
     {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
@@ -500,7 +513,6 @@ namespace Engine {
         ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
         float size = ImGui::GetWindowHeight() - 10.0f;
-        Ref<VulkanTexture> icon = m_sceneState == SceneState::Play ?  m_iconPause : m_iconPlay;
 
         // Centering the toolbar buttons
         float toolbarWidth = 2 * size;  // Adjust based on number of buttons
@@ -508,9 +520,23 @@ namespace Engine {
         ImGui::SetCursorPosX(offsetX);
 
         // Play Button
+        Ref<VulkanTexture> icon;
+        if (g_IsGeneratingAI)
+        {
+			icon = m_iconLoading;
+        }
+        else
+        {
+            icon = m_sceneState == SceneState::Play ? m_iconPause : m_iconPlay;
+
+        }
         if (ImGui::ImageButton("##playbutton", (ImTextureID)icon->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
         {
-            if (m_sceneState == SceneState::Pause || m_sceneState == SceneState::Edit)
+            if (g_IsGeneratingAI)
+            {
+				EE_CORE_INFO("AI is generating, please wait...");
+            }
+            else if (m_sceneState == SceneState::Pause || m_sceneState == SceneState::Edit)
             {
                 OnScenePlay();
             }
@@ -611,53 +637,62 @@ namespace Engine {
         if (g_ShouldGenerate)
         {
             g_ShouldGenerate = false;
-           // std::string userText = std::string(g_PromptBuffer);
+            g_IsGeneratingAI = true;
+
+            // Capture prompt & existing entities now (to be used in thread)
+            std::string prompt = std::string(g_PromptBuffer);
 
             nlohmann::json existingEntitie;
             existingEntitie["existing_entities"] = nlohmann::json::array();
 
-           // auto scene = m_editor->GetGameLayer()->GetActiveGameScene();
             auto scene = m_editorScene;
             for (auto entity : scene->GetAllEntitiesWith<TagComponent>())
             {
-				Entity e = Entity{ entity, scene.get()};
-
+                Entity e{ entity, scene.get() };
                 std::string& tag = e.GetComponent<TagComponent>().Tag;
                 UUID& ID = e.GetComponent<IDComponent>().ID;
                 existingEntitie["existing_entities"].push_back(tag);
                 existingEntitie["existing_entities"].push_back((uint64_t)ID);
             }
 
-            std::string responseText = g_AIClient.CreateGameplayJSON(g_PromptBuffer, existingEntitie);
-           
-            if (responseText.empty() || responseText.find_first_not_of(" \t\n\r") == std::string::npos)
-            {
-                ImGui::End();
-                return;
-            }
+            // Launch background thread
+            std::thread([prompt, existingEntitie, this]() {
+                std::string responseText = g_AIClient.CreateGameplayJSON(prompt, existingEntitie);
 
-            try
-            {
-                nlohmann::json& j = nlohmann::json::parse(responseText);
-                
-                SpawnFromJSON(j);
-            }
-            catch (const std::exception& e)
-            {
-                // Show error popup
-                ImGui::OpenPopup("AI Error");
-                if (ImGui::BeginPopupModal("AI Error", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-                {
-                    ImGui::TextWrapped("Failed to parse AI response:\n%s", e.what());
-                    if (ImGui::Button("OK"))
-                    {
-                        ImGui::CloseCurrentPopup();
+                if (responseText.empty() || responseText.find_first_not_of(" \t\n\r") == std::string::npos)
+                    return;
 
-                    }
-                    ImGui::EndPopup();
+                try {
+                    nlohmann::json j = nlohmann::json::parse(responseText);
+
+                    // Queue up task for main thread
+                    std::lock_guard<std::mutex> lock(g_TaskMutex);
+                    g_MainThreadTasks.push([j, this]()
+                        {
+                        SpawnFromJSON(j);
+                        g_IsGeneratingAI = false;
+                        });
                 }
-            }
+                catch (const std::exception& e)
+                {
+                    // Capture error string
+                    std::string errorMsg = e.what();
+
+                    std::lock_guard<std::mutex> lock(g_TaskMutex);
+                    g_MainThreadTasks.push([errorMsg]() {
+                        ImGui::OpenPopup("AI Error");
+                        if (ImGui::BeginPopupModal("AI Error", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+                        {
+                            ImGui::TextWrapped("Failed to parse AI response:\n%s", errorMsg.c_str());
+                            if (ImGui::Button("OK"))
+                                ImGui::CloseCurrentPopup();
+                            ImGui::EndPopup();
+                        }
+                        });
+                }
+                }).detach(); // Detach the thread to run in background
         }
+
 
         ImGui::End();
     }

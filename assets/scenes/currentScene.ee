@@ -1,5 +1,3 @@
 Scene: My Scene
 Entities:
-  - ID: 376590396
-    TagComponent:
-      Tag: Empty entity
+  []
