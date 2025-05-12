@@ -15,6 +15,7 @@
 #include "FPSCounter.h"
 #include "AI/json.hpp"
 #include "AI/OpenAIClient.h" 
+#include <imgui/imgui.h>
 
 namespace Engine {
 
@@ -57,6 +58,7 @@ namespace Engine {
 
 		// UI panel
 		void UI_Toolbar();
+		bool DrawRotatedImageButton(ImTextureID texture, const ImVec2& size, float angleRad, const char* id);
 		void OnScenePlay();
 		void OnSceneStop();
 		void OnScenePause();

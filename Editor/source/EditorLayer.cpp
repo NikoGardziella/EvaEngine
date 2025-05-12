@@ -5,7 +5,6 @@
 //#include <imgui/backends/imgui_impl_vulkan.h>
 
 #include "Engine/Core/Core.h"
-#include <imgui/imgui.h>
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -524,27 +523,31 @@ namespace Engine {
         if (g_IsGeneratingAI)
         {
 			icon = m_iconLoading;
+            if (DrawRotatedImageButton((ImTextureID)icon->GetTextureDescriptor(), ImVec2(size, size), ImGui::GetTime(), "##play"))
+            {
+                EE_CORE_INFO("AI is generating, please wait...");
+            }
         }
         else
         {
             icon = m_sceneState == SceneState::Play ? m_iconPause : m_iconPlay;
+            if (ImGui::ImageButton("##playbutton", (ImTextureID)icon->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
+            {
+                if (g_IsGeneratingAI)
+                {
+                }
+                else if (m_sceneState == SceneState::Pause || m_sceneState == SceneState::Edit)
+                {
+                    OnScenePlay();
+                }
+                else if (m_sceneState == SceneState::Play)
+                {
+                    OnScenePause();
+                }
+            }
+        }
 
-        }
-        if (ImGui::ImageButton("##playbutton", (ImTextureID)icon->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
-        {
-            if (g_IsGeneratingAI)
-            {
-				EE_CORE_INFO("AI is generating, please wait...");
-            }
-            else if (m_sceneState == SceneState::Pause || m_sceneState == SceneState::Edit)
-            {
-                OnScenePlay();
-            }
-            else if (m_sceneState == SceneState::Play)
-            {
-                OnScenePause();
-            }
-        }
+        
 
         ImGui::SameLine(); // Move the next item to the same row
 
@@ -561,6 +564,44 @@ namespace Engine {
         ImGui::PopStyleVar(2);
         ImGui::End();
     }
+
+    bool EditorLayer::DrawRotatedImageButton(ImTextureID texture, const ImVec2& size, float angleRad, const char* id)
+    {
+        ImVec2 pos = ImGui::GetCursorScreenPos();
+        ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
+
+        float s = sinf(angleRad);
+        float c = cosf(angleRad);
+        float hsx = size.x * 0.5f;
+        float hsy = size.y * 0.5f;
+
+        ImVec2 offset[] = {
+            ImVec2(-hsx, -hsy),
+            ImVec2(hsx, -hsy),
+            ImVec2(hsx,  hsy),
+            ImVec2(-hsx,  hsy),
+        };
+
+        ImVec2 rotated[4];
+        for (int i = 0; i < 4; i++)
+        {
+            rotated[i] = ImVec2(
+                center.x + offset[i].x * c - offset[i].y * s,
+                center.y + offset[i].x * s + offset[i].y * c
+            );
+        }
+
+        ImGui::GetWindowDrawList()->AddImageQuad(
+            texture,
+            rotated[0], rotated[1], rotated[2], rotated[3],
+            ImVec2(0, 0), ImVec2(1, 0), ImVec2(1, 1), ImVec2(0, 1)
+        );
+
+        ImGui::SetCursorScreenPos(pos); // Restore cursor
+        ImGui::InvisibleButton(id, size);
+        return ImGui::IsItemClicked();
+    }
+
 
 
     void EditorLayer::OnScenePlay()

@@ -71,3 +71,4 @@ EvaEngine/Editor/trace/
 EvaEngine/EvaEngine/trace/
 EvaEngine/Sandbox/trace/
 
+*.enc
