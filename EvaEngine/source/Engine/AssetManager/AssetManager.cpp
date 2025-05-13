@@ -117,7 +117,7 @@ namespace Engine {
 		std::lock_guard<std::mutex> lock(s_Mutex);
 		if (s_textureCache.find(name) == s_textureCache.end())
 		{
-            s_textureCache[name] = std::make_shared<VulkanTexture>(path, imGuiTexture);
+            s_textureCache[name] = std::make_shared<VulkanTexture>(path, name, imGuiTexture);
 			EE_CORE_INFO("Texture added to cache: {}", name);
 		}
 		else

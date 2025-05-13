@@ -81,10 +81,10 @@ namespace Engine {
        
 
 	    //m_iconStop = AssetManager::AddTexture("stopButton", AssetManager::GetAssetPath("icons/stop-button.png").string());
-        m_iconPlay = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string(), true);
-        m_iconStop = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/stop-button.png").string(), true);
-        m_iconPause = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/video-pause-button.png").string(), true);
-        m_iconLoading = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/loading.png").string(), true);
+        m_iconPlay = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string(),"iconPlay", true);
+        m_iconStop = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/stop-button.png").string(),"iconStop", true);
+        m_iconPause = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/video-pause-button.png").string(),"iconPause", true);
+        m_iconLoading = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/loading.png").string(),"iconLoading", true);
 		//m_iconPause = AssetManager::AddTexture("pauseButton", AssetManager::GetAssetPath("icons/video-pause-button.png").string());
        
         m_mapWidth = s_mapWidth;

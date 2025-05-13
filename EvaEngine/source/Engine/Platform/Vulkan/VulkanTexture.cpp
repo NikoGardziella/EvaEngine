@@ -12,8 +12,8 @@ namespace Engine {
 
     constexpr VkDeviceSize MAX_TEXTURE_MEMORY_BUDGET = 512 * 1024 * 1024; // 512 MB 
 
-    VulkanTexture::VulkanTexture(const std::string& path, bool imGuiTexture)
-        : m_path(path)
+    VulkanTexture::VulkanTexture(const std::string& path, const std::string& name, bool imGuiTexture)
+		: m_path(path), m_name(name)
     {
 
 

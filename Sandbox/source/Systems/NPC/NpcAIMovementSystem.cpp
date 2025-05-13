@@ -61,12 +61,17 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(entt::registry& registry, fl
 
             float currentAngle = NPCTransformComp.Rotation.z;
             float targetAngle = std::atan2(direction.y, direction.x);
-            float rotationSpeed = 5.0f; // Radians per second
+            float rotationFix = glm::radians(90.0f); // convert degrees to radians
+            targetAngle -= rotationFix;
 
-            // Interpolate angle
-            float rotationFix = 55; // consider rotation the texture
-            float newAngle = glm::mix(currentAngle, targetAngle + rotationFix, glm::clamp(rotationSpeed * deltaTime, 0.0f, 1.0f));
-            NPCTransformComp.Rotation.z = newAngle;
+            float delta = targetAngle - currentAngle;
+            delta = std::atan2(std::sin(delta), std::cos(delta)); 
+
+            float rotationSpeed = 5.0f; // radians per second
+            float maxStep = rotationSpeed * deltaTime;
+            delta = glm::clamp(delta, -maxStep, maxStep);
+
+            NPCTransformComp.Rotation.z = currentAngle + delta;
 
 
             if (glm::distance2(NPCpos, aiComp.TargetPosition) < 0.05f)

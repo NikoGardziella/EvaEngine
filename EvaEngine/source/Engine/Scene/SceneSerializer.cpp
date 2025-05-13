@@ -1,12 +1,16 @@
 #include "pch.h"
 #include "SceneSerializer.h"
-
 #include "Entity.h"     
 #include "Component.h" 
 
-#include <yaml-cpp/yaml.h>
-#include <fstream>
+#include "Components/Combat/HealthComponent.h"
+#include "Components/NPC/NpcAIComponent.h"
+#include "Engine/AssetManager/AssetManager.h"
+
 #include <filesystem>
+#include <fstream>
+#include <yaml-cpp/yaml.h>
+
 
 namespace Engine {
 
@@ -82,19 +86,15 @@ namespace Engine {
             out << YAML::Key << "SpriteRendererComponent" << YAML::Value;
             out << YAML::BeginMap;
 
-            // Serialize color
             out << YAML::Key << "Color" << YAML::Value << YAML::Flow
                 << std::vector<float>{ sprite.Color.r, sprite.Color.g, sprite.Color.b, sprite.Color.a };
 
-            // Serialize texture (if it exists)
-            /* MAke asset manager
             if (sprite.Texture)
-                out << YAML::Key << "Texture" << YAML::Value << sprite.Texture->GetPath();
+                out << YAML::Key << "Texture" << YAML::Value << sprite.Texture->GetName();
             else
-                out << YAML::Key << "Texture" << YAML::Value << ""; // Empty string if no texture
+                out << YAML::Key << "Texture" << YAML::Value << "";
 
-            */
-            // Serialize tiling
+            
             out << YAML::Key << "Tiling" << YAML::Value << sprite.Tiling;
 
             out << YAML::EndMap;
@@ -169,6 +169,63 @@ namespace Engine {
             out << YAML::EndMap;
         }
 
+        inline void SerializeHealthComponent(Entity entity, YAML::Emitter& out)
+        {
+            HealthComponent& healthComp = entity.GetComponent<HealthComponent>();
+
+            out << YAML::Key << "HealthComponent";
+            out << YAML::BeginMap;
+
+
+            out << YAML::Key << "Current" << YAML::Value << healthComp.Current;
+            out << YAML::Key << "Max" << YAML::Value << healthComp.Max;
+
+            out << YAML::EndMap;
+        }
+        inline void SerializeNPCAIMovementComponent(Entity entity, YAML::Emitter& out)
+        {
+            const NPCAIMovementComponent& comp = entity.GetComponent<NPCAIMovementComponent>();
+
+            out << YAML::Key << "NPCAIMovementComponent";
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "CurrentState" << YAML::Value << static_cast<int>(comp.CurrentState);
+
+            out << YAML::Key << "PatrolPoints" << YAML::Value << YAML::BeginSeq;
+            for (const auto& point : comp.PatrolPoints)
+            {
+                out << YAML::Flow << YAML::BeginSeq << point.x << point.y << point.z << YAML::EndSeq;
+            }
+            out << YAML::EndSeq;
+
+            out << YAML::Key << "CurrentPatrolIndex" << YAML::Value << comp.CurrentPatrolIndex;
+            out << YAML::Key << "IdleDuration" << YAML::Value << comp.IdleDuration;
+            out << YAML::Key << "IdleTimer" << YAML::Value << comp.IdleTimer;
+
+            out << YAML::Key << "TargetPosition" << YAML::Value
+                << YAML::Flow << YAML::BeginSeq << comp.TargetPosition.x << comp.TargetPosition.y << comp.TargetPosition.z << YAML::EndSeq;
+
+            out << YAML::Key << "MoveSpeed" << YAML::Value << comp.MoveSpeed;
+
+            out << YAML::EndMap;
+        }
+
+        inline void SerializeNPCAIVisionComponent(Entity entity, YAML::Emitter& out)
+        {
+            const NPCAIVisionComponent& comp = entity.GetComponent<NPCAIVisionComponent>();
+
+            out << YAML::Key << "NPCAIVisionComponent";
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "ViewRadius" << YAML::Value << comp.ViewRadius;
+            out << YAML::Key << "ViewAngle" << YAML::Value << comp.ViewAngle;
+            out << YAML::Key << "HasLineOfSight" << YAML::Value << comp.HasLineOfSight;
+
+            out << YAML::EndMap;
+        }
+
+
+
         // Serializes an individual entity by checking for each component.
         void SerializeEntity(Entity entity, YAML::Emitter& out)
         {
@@ -197,11 +254,102 @@ namespace Engine {
                 SerializeCircleRendererComponent(entity, out);
             if (entity.HasComponent<CircleCollider2DComponent>())
                 SerializeCircleCollider2DComponent(entity, out);
+            if (entity.HasComponent<HealthComponent>())
+                SerializeHealthComponent(entity, out);
+            if (entity.HasComponent<NPCAIMovementComponent>())
+                SerializeNPCAIMovementComponent(entity, out);
+            if (entity.HasComponent<NPCAIVisionComponent>())
+                SerializeNPCAIVisionComponent(entity, out);
+
+
+
             out << YAML::EndMap;
         }
 
 
         //************************* Deserialize ****************************************
+
+        inline void DeserializeHealthComponent(Entity entity, const YAML::Node& entityNode)
+        {
+            if (entityNode["HealthComponent"])
+            {
+                HealthComponent& healthComp = entity.AddComponent<HealthComponent>();
+                float maxHealth = entityNode["HealthComponent"]["Max"].as<float>();
+                float currentHealth = entityNode["HealthComponent"]["Current"].as<float>();
+                
+                healthComp.Max = maxHealth;
+                healthComp.Current = currentHealth;
+               
+            }
+        }
+
+        inline void DeserializeNPCAIMovementComponent(Entity entity, const YAML::Node& entityNode)
+        {
+            if (entityNode["NPCAIMovementComponent"])
+            {
+                NPCAIMovementComponent& comp = entity.AddComponent<NPCAIMovementComponent>();
+                const auto& node = entityNode["NPCAIMovementComponent"];
+
+                if (node["CurrentState"])
+                    comp.CurrentState = static_cast<AIState>(node["CurrentState"].as<int>());
+
+                if (node["PatrolPoints"])
+                {
+                    for (const auto& point : node["PatrolPoints"])
+                    {
+                        glm::vec3 patrolPoint;
+                        patrolPoint.x = point[0].as<float>();
+                        patrolPoint.y = point[1].as<float>();
+                        patrolPoint.z = point[2].as<float>();
+                        comp.PatrolPoints.push_back(patrolPoint);
+                    }
+                }
+
+                if (node["CurrentPatrolIndex"])
+                    comp.CurrentPatrolIndex = node["CurrentPatrolIndex"].as<int>();
+
+                if (node["IdleDuration"])
+                    comp.IdleDuration = node["IdleDuration"].as<float>();
+
+                if (node["IdleTimer"])
+                    comp.IdleTimer = node["IdleTimer"].as<float>();
+
+                if (node["TargetPosition"])
+                {
+                    const auto& tp = node["TargetPosition"];
+                    comp.TargetPosition = {
+                        tp[0].as<float>(),
+                        tp[1].as<float>(),
+                        tp[2].as<float>()
+                    };
+                }
+
+                if (node["MoveSpeed"])
+                    comp.MoveSpeed = node["MoveSpeed"].as<float>();
+            }
+        }
+
+        inline void DeserializeNPCAIVisionComponent(Entity entity, const YAML::Node& entityNode)
+        {
+            if (entityNode["NPCAIVisionComponent"])
+            {
+                NPCAIVisionComponent& comp = entity.AddComponent<NPCAIVisionComponent>();
+                const auto& node = entityNode["NPCAIVisionComponent"];
+
+                if (node["ViewRadius"])
+                    comp.ViewRadius = node["ViewRadius"].as<float>();
+
+                if (node["ViewAngle"])
+                    comp.ViewAngle = node["ViewAngle"].as<float>();
+
+                if (node["HasLineOfSight"])
+                    comp.HasLineOfSight = node["HasLineOfSight"].as<bool>();
+
+                // VisibleTarget is runtime/internal, not deserialized
+                comp.VisibleTarget = entt::null;
+            }
+        }
+
 
         inline void DeserializeTagComponent(Entity entity, const YAML::Node& entityNode)
         {
@@ -268,9 +416,11 @@ namespace Engine {
         {
             if (entityNode["SpriteRendererComponent"])
             {
-                auto& sprite = entity.AddComponent<SpriteRendererComponent>();
+                SpriteRendererComponent& sprite = entity.AddComponent<SpriteRendererComponent>();
                 auto color = entityNode["SpriteRendererComponent"]["Color"].as<std::vector<float>>();
                 sprite.Color = { color[0], color[1], color[2], color[3] };
+
+				sprite.Texture = AssetManager::GetTexture(entityNode["SpriteRendererComponent"]["Texture"].as<std::string>());
             }
         }
 
@@ -366,6 +516,9 @@ namespace Engine {
             DeserializeRigidBody2DComponent(entity, entityNode);
             DeserializeCircleRendererComponent(entity, entityNode);
             DeserializeCircleCollider2DComponent(entity, entityNode);
+			DeserializeHealthComponent(entity, entityNode);
+			DeserializeNPCAIMovementComponent(entity, entityNode);
+			DeserializeNPCAIVisionComponent(entity, entityNode);
         }
 
 

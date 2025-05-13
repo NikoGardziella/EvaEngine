@@ -33,7 +33,7 @@ struct NPCAIMovementComponent
 struct NPCAIVisionComponent
 {
     float ViewRadius = 10.0f;    
-    float ViewAngle = 360.0f;    
+    float ViewAngle = 180.0f;    
     bool HasLineOfSight = false;
 
     // Internally set target

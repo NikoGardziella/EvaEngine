@@ -9,7 +9,7 @@ namespace Engine {
     class VulkanTexture : public Texture2D
     {
     public:
-        VulkanTexture(const std::string& path, bool imGuiTexture = false);
+        VulkanTexture(const std::string& path, const std::string& name = "", bool imGuiTexture = false);
         VulkanTexture(uint32_t width, uint32_t height);
 
         virtual ~VulkanTexture();
@@ -21,6 +21,8 @@ namespace Engine {
 		VkImageView GetImageView() const { return m_imageView; }
 		VkSampler GetSampler() const { return m_sampler; }
 		VkDescriptorSet GetTextureDescriptor() const { return m_textureDescriptor; }
+		const std::string GetPath() const { return m_path; }
+		const std::string GetName() const { return m_name; }
 
         virtual void SetData(void* data, uint32_t size) override;
 
@@ -43,6 +45,7 @@ namespace Engine {
         void CreateTextureSampler();
 
         std::string m_path;
+        const std::string m_name;
         VkDeviceMemory m_imageMemory;
         VkImageView m_imageView;
         VkDescriptorSet m_textureDescriptor;
