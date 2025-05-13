@@ -69,10 +69,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
             }
 
         }
-
-
-        controllerComp.velocity = input * controllerComp.speed;
-        playerTransformComp.Translation += glm::vec3(controllerComp.velocity * deltaTime, 0.0f);
+        controllerComp.velocity = input;
 
     }
 }
@@ -83,6 +80,7 @@ void CharacterControllerSystem::ShootProjectile(entt::registry& registry, entt::
 	auto& transformComp = registry.emplace<Engine::TransformComponent>(projectileEntity);
 	auto& projectileComp = registry.emplace<Engine::ProjectileComponent>(projectileEntity, direction, 5.0f);
 	auto& spriteComp = registry.emplace<Engine::SpriteRendererComponent>(projectileEntity);
+	projectileComp.Owner = entity;
     spriteComp.Texture = Engine::AssetManager::GetTexture("bullet");
 	transformComp.Translation = glm::vec3(position, 0.0f);
 	transformComp.Rotation.z = std::atan2(direction.y, direction.x);

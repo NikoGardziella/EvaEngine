@@ -1,122 +1,20 @@
 Scene: My Scene
 Entities:
-  - ID: 7695140434227162970
+  - ID: 8102832720461370524
     TagComponent:
-      Tag: Enemy
-    TransformComponent:
-      Translation: [-0.62309164, 10.703128, 0]
-      Rotation: [0, 0, 1.0601908]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      Texture: enemy
-      Tiling: 1
-    NPCAIMovementComponent:
-      CurrentState: 2
-      PatrolPoints:
-        []
-      CurrentPatrolIndex: 0
-      IdleDuration: 2
-      IdleTimer: 0
-      TargetPosition: [-0.6311035, 10.707207, 0]
-      MoveSpeed: 2
-    NPCAIVisionComponent:
-      ViewRadius: 10
-      ViewAngle: 180
-      HasLineOfSight: false
-  - ID: 9652985863978953215
-    TagComponent:
-      Tag: Enemy
+      Tag: Entity
     TransformComponent:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
-      Texture: enemy
+      Texture: wall
       Tiling: 1
-    NPCAIMovementComponent:
-      CurrentState: 0
-      PatrolPoints:
-        []
-      CurrentPatrolIndex: 0
-      IdleDuration: 2
-      IdleTimer: 0
-      TargetPosition: [0, 0, 0]
-      MoveSpeed: 2
-    NPCAIVisionComponent:
-      ViewRadius: 10
-      ViewAngle: 180
-      HasLineOfSight: false
-  - ID: 9516849464361176573
-    TagComponent:
-      Tag: Enemy
-    TransformComponent:
-      Translation: [-0.6230887, 10.70314, 0]
-      Rotation: [0, 0, 1.0601908]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      Texture: enemy
-      Tiling: 1
-    NPCAIMovementComponent:
-      CurrentState: 2
-      PatrolPoints:
-        []
-      CurrentPatrolIndex: 0
-      IdleDuration: 2
-      IdleTimer: 0
-      TargetPosition: [-0.6311035, 10.707207, 0]
-      MoveSpeed: 2
-    NPCAIVisionComponent:
-      ViewRadius: 10
-      ViewAngle: 180
-      HasLineOfSight: false
-  - ID: 5217600502786334322
-    TagComponent:
-      Tag: Enemy
-    TransformComponent:
-      Translation: [3.5429077, 3.8774912, 0]
-      Rotation: [0, 0, 6.842165]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      Texture: enemy
-      Tiling: 1
-    NPCAIMovementComponent:
-      CurrentState: 2
-      PatrolPoints:
-        []
-      CurrentPatrolIndex: 0
-      IdleDuration: 2
-      IdleTimer: 0
-      TargetPosition: [1.1899948, 7.6389694, 0]
-      MoveSpeed: 2
-    NPCAIVisionComponent:
-      ViewRadius: 10
-      ViewAngle: 180
-      HasLineOfSight: false
-  - ID: 7520792648732319818
-    TagComponent:
-      Tag: Enemy
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      Texture: enemy
-      Tiling: 1
-    NPCAIMovementComponent:
-      CurrentState: 0
-      PatrolPoints:
-        []
-      CurrentPatrolIndex: 0
-      IdleDuration: 2
-      IdleTimer: 0
-      TargetPosition: [0, 0, 0]
-      MoveSpeed: 2
-    NPCAIVisionComponent:
-      ViewRadius: 10
-      ViewAngle: 180
-      HasLineOfSight: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5

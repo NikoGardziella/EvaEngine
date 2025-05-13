@@ -33,6 +33,9 @@ void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float de
             if (targetEntity == projectileEntity)
                 continue;
 
+			if (targetEntity == projectile.Owner)
+				continue;
+
             const auto& targetTransform = targetView.get<Engine::TransformComponent>(targetEntity);
             glm::vec2 targetPos = {
                 targetTransform.Translation.x,

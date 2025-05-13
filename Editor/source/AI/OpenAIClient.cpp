@@ -98,7 +98,7 @@ namespace Engine
                         "Supported components : TagComponent(string: Tag, add name for the entity), TransformComponent(Use this for most entities. vec3: Translation, Rotation, Scale), SpriteRendererComponent(Texture),"
                         "ProjectileComponent, BoxCollider2DComponent, CircleCollider2DComponent. NPCAIMovementComponent, NPCAIVisionComponent"
                         "HealthComponent(float: 'Health')"
-                        "The 'SpriteRendererComponent'Texture must be one of : 'wall', 'enemy', 'player'"
+                        "The 'SpriteRendererComponent'Texture must be one of : wall, enemy, enemy, 'player'"
                     }},
                 })},
                 {"temperature", 0.7},
