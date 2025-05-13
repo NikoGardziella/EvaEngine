@@ -8,6 +8,7 @@
 
 #include <glm/glm.hpp>
 #include <Engine/AssetManager/AssetManager.h>
+#include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
 
 
@@ -37,12 +38,12 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
     }
 
 
-    auto view = registry.view<Engine::TransformComponent, Engine::CharacterControllerComponent>();
+    auto view = registry.view<Engine::TransformComponent, CharacterControllerComponent>();
 
     for (auto entity : view)
     {
         auto& playerTransformComp = view.get<Engine::TransformComponent>(entity);
-        auto& controllerComp = view.get<Engine::CharacterControllerComponent>(entity);
+        auto& controllerComp = view.get<CharacterControllerComponent>(entity);
 
       
         // rotate player toward mouse pos

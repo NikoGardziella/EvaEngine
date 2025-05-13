@@ -131,6 +131,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Systems\NPC\NPCAIVisionSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NpcAIMovementSystem.h" />
     <ClInclude Include="source\Systems\Combat\HealthSystem.h" />
     <ClInclude Include="source\PixelGame.h" />
     <ClInclude Include="source\Sandbox2D.h" />
@@ -140,6 +142,8 @@
     <ClInclude Include="source\Systems\Player\CharacterControllerSystem.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Systems\NPC\NPCAIVisionSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NpcAIMovementSystem.cpp" />
     <ClCompile Include="source\Systems\Combat\HealthSystem.cpp" />
     <ClCompile Include="source\PixelGame.cpp" />
     <ClCompile Include="source\Sandbox2D.cpp" />

@@ -1,6 +1,7 @@
 #include "ParseUtils.h"
 #include <Engine/AssetManager/AssetManager.h>
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
+#include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
 template<typename T>
 bool ParseUtils::SafeGet(const nlohmann::json& j, const std::string& key, T& out)
@@ -122,7 +123,7 @@ bool ParseUtils::ParseComponent(std::string compName, Engine::Entity entity, con
  
     else if (compName == "CharacterControllerComponent")
     {
-        Engine::CharacterControllerComponent& cc = entity.AddComponent<Engine::CharacterControllerComponent>();
+        CharacterControllerComponent& cc = entity.AddComponent<CharacterControllerComponent>();
 
         cc.speed = compData["speed"];
         cc.velocity = glm::vec2(compData["velocity"][0], compData["velocity"][1]);

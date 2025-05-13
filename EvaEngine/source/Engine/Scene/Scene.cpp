@@ -5,6 +5,8 @@
 #include "Engine/Math/Math.h"
 #include "Component.h"
 #include "Engine/Scene/Components/Combat/HealthComponent.h"
+#include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+
 #include "ScriptableEntity.h"
 
 #include <glm/glm.hpp>
@@ -17,6 +19,7 @@
 
 #include "box2d/box2d.h"
 #include "box2d/math_functions.h"
+#include "Components/NPC/NpcAIComponent.h"
 
 
 
@@ -123,6 +126,8 @@ namespace Engine {
 
         }
         
+        CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
+        /*
         CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
@@ -135,6 +140,7 @@ namespace Engine {
         CopyComponent<ProjectileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<HealthComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
 
+        */
 
         newScene->m_gameplaySystems = other->m_gameplaySystems;
 
@@ -173,6 +179,8 @@ namespace Engine {
             UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
             entt::entity dstEnttID = enttMap.at(uuid); // Now guaranteed to exist
 
+            CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
+            /*
             CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
@@ -184,6 +192,7 @@ namespace Engine {
             CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<HealthComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
             CopyComponent<ProjectileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+            */
         }
     }
 
@@ -214,6 +223,22 @@ namespace Engine {
     }
 
 
+    void Scene::CopyAllComponents(entt::registry& dstSceneRegistry, entt::registry& srcSceneRegistry, const std::unordered_map<UUID, entt::entity>& enttMap)
+    {
+        CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<RigidBody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<HealthComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<ProjectileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<NPCAIMovementComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<NPCAIVisionComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+    }
 
     Entity Scene::CreateEntity(const std::string& name)
     {
@@ -818,6 +843,18 @@ namespace Engine {
     }
     template<>
     void Scene::OnComponentAdded<HealthComponent>(Entity entity, HealthComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<NPCAIMovementComponent>(Entity entity, NPCAIMovementComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<NPCAIVisionComponent>(Entity entity, NPCAIVisionComponent& component)
     {
 
     }

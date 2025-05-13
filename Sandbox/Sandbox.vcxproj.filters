@@ -30,6 +30,8 @@
       <Filter>Systems\Player</Filter>
     </ClInclude>
     <ClInclude Include="source\Systems\Combat\HealthSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NpcAIMovementSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NPCAIVisionSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -48,5 +50,7 @@
       <Filter>Systems\Player</Filter>
     </ClCompile>
     <ClCompile Include="source\Systems\Combat\HealthSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NpcAIMovementSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NPCAIVisionSystem.cpp" />
   </ItemGroup>
 </Project>

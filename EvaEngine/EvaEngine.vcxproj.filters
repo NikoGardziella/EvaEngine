@@ -1579,6 +1579,8 @@
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">

@@ -212,6 +212,8 @@
     <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h" />
     <ClInclude Include="source\Engine\Scene\Component.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\Entity.h" />
     <ClInclude Include="source\Engine\Scene\Scene.h" />
     <ClInclude Include="source\Engine\Scene\SceneCamera.h" />

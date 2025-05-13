@@ -5,6 +5,8 @@
 #include <Engine/Scene/SceneSerializer.h>
 
 #include "Systems/Player/CharacterControllerSystem.h"
+#include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+
 #include "Systems/Collision/PixelCollisionSystem.h"
 
 #include <imgui/imgui.h>
@@ -13,6 +15,8 @@
 #include "Systems/Combat/ProjectileSystem.h"
 #include "Systems/Collision/PlayerCollisionSystem.h"
 #include "Systems/Combat/HealthSystem.h"
+#include "Systems/NPC/NpcAIMovementSystem.h"
+#include "Systems/NPC/NPCAIVisionSystem.h"
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -28,6 +32,8 @@ PixelGame::PixelGame(const std::string scene)
 	m_activeScene->RegisterSystem(ProjectileSystem::UpdateProjectileSystem);
 	m_activeScene->RegisterSystem(PlayerCollisionSystem::UpdatePlayerCollision);
 	m_activeScene->RegisterSystem(HealthSystem::UpdateHealthSystem);
+	m_activeScene->RegisterSystem(NpcAIMovementSystem::UpdateNPCAIMovementSystem);
+	m_activeScene->RegisterSystem(NPCAIVisionSystem::UpdateNPCAIVisionSystem);
 
 }
 
@@ -169,7 +175,7 @@ void PixelGame::OnGameStart()
 
 	auto& transformComp = m_playerEntity.AddComponent<Engine::TransformComponent>();
 	transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
-	m_playerEntity.AddComponent<Engine::CharacterControllerComponent>();
+	m_playerEntity.AddComponent<CharacterControllerComponent>();
 
 	glm::vec4 color = { 1.0, 1.0, 1.0, 1.0f };
 	Engine::SpriteRendererComponent& spriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();

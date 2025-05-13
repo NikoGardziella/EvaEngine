@@ -10,6 +10,7 @@
 #include <imgui/imgui_internal.h>
 #include "ImGuizmo/ImGuizmo.h"
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
+#include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 
 //#include "entt.hpp"
 
@@ -507,10 +508,32 @@ namespace Engine {
             {
                 m_selectionContext.AddComponent<HealthComponent>();
                 ImGui::CloseCurrentPopup();
-                Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<HealthComponent>().Current), m_newComponentsContext.get() };
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
                 if (entity)
                 {
                     m_newComponentsContext->GetRegistry().emplace<HealthComponent>(entity);
+
+                }
+            }
+            if (ImGui::MenuItem("NPC movement Component"))
+            {
+                m_selectionContext.AddComponent<NPCAIMovementComponent>();
+                ImGui::CloseCurrentPopup();
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (entity)
+                {
+                    m_newComponentsContext->GetRegistry().emplace<NPCAIMovementComponent>(entity);
+
+                }
+            }
+            if (ImGui::MenuItem("NPC vision Component"))
+            {
+                m_selectionContext.AddComponent<NPCAIVisionComponent>();
+                ImGui::CloseCurrentPopup();
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (entity)
+                {
+                    m_newComponentsContext->GetRegistry().emplace<NPCAIVisionComponent>(entity);
 
                 }
             }
@@ -752,6 +775,34 @@ namespace Engine {
                 if (newEntity)
                 {
                     m_newComponentsContext->GetRegistry().get<BoxCollider2DComponent>(newEntity) = component;
+                }
+
+            });
+        DrawComponent<NPCAIMovementComponent>("NPC movement", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
+            {
+
+                ImGui::DragFloat("Speed", &component.MoveSpeed, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("IdleTimer", &component.IdleTimer, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat3("Target Position", glm::value_ptr(component.TargetPosition));
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<NPCAIMovementComponent>(newEntity) = component;
+                }
+
+            });
+
+        DrawComponent<NPCAIVisionComponent>("NPC vision", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
+            {
+
+                ImGui::DragFloat("View Radius", &component.ViewRadius, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("View Angle", &component.ViewAngle, 0.01, 0.0f, 1.0f);
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<NPCAIVisionComponent>(newEntity) = component;
                 }
 
             });
