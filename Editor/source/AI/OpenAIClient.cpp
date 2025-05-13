@@ -96,7 +96,7 @@ namespace Engine
                         "Each entity must be an object with a 'components' array.Each component must be an object with a 'type' field(e.g., 'TransformComponent') and all relevant fields for that component."
                         "Do not use component types as top - level keys inside each entity."
                         "Supported components : TagComponent(string: Tag, add name for the entity), TransformComponent(Use this for most entities. vec3: Translation, Rotation, Scale), SpriteRendererComponent(Texture),"
-                        "ProjectileComponent, BoxCollider2DComponent, CircleCollider2DComponent."
+                        "ProjectileComponent, BoxCollider2DComponent, CircleCollider2DComponent. NPCAIMovementComponent, NPCAIVisionComponent"
                         "HealthComponent(float: 'Health')"
                         "The 'SpriteRendererComponent'Texture must be one of : 'wall', 'enemy', 'player'"
                     }},

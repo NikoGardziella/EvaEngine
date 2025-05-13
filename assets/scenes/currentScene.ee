@@ -1,3 +1,12 @@
 Scene: My Scene
 Entities:
-  []
+  - ID: 16713557981652303412
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Tiling: 1

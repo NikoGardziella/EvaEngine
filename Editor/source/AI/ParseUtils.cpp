@@ -2,6 +2,7 @@
 #include <Engine/AssetManager/AssetManager.h>
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+#include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 
 template<typename T>
 bool ParseUtils::SafeGet(const nlohmann::json& j, const std::string& key, T& out)
@@ -180,6 +181,20 @@ bool ParseUtils::ParseComponent(std::string compName, Engine::Entity entity, con
 
 		//healthComp.Current = compData["Health"];
         SafeGet(compData, "Health", healthComp.Max);
+    }
+    else if (compName == "NPCAIVisionComponent")
+    {
+        NPCAIVisionComponent& aiVisionComp = entity.HasComponent<NPCAIVisionComponent>()
+            ? entity.GetComponent<NPCAIVisionComponent>()
+            : entity.AddComponent<NPCAIVisionComponent>();
+
+    }
+    else if (compName == "NPCAIMovementComponent")
+    {
+        NPCAIMovementComponent& npcMovementComp = entity.HasComponent<NPCAIMovementComponent>()
+            ? entity.GetComponent<NPCAIMovementComponent>()
+            : entity.AddComponent<NPCAIMovementComponent>();
+
     }
     return true;
 }
