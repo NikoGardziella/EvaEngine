@@ -38,16 +38,17 @@ namespace Engine {
 
     };
 
+    //class Entity;
     struct ProjectileComponent
     {
         glm::vec2 Velocity;   // units per second
-        float      LifeTime;   // seconds remaining
+        float      LifeTime;   // range
         float      Damage = 10.0f;
         entt::entity   Owner;
 
         ProjectileComponent() = default;
         ProjectileComponent(const glm::vec2& velocity, float lifeTime)
-            : Velocity(velocity), LifeTime(lifeTime) {
+            : Velocity(velocity), LifeTime(lifeTime)  {
         }
     };
 

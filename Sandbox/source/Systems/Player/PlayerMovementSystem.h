@@ -5,6 +5,6 @@
 class PlayerMovementSystem
 {
 public:
-	static void MovementSystem(entt::registry& registry, float deltaTime);
+	static void MovementSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
 };
 

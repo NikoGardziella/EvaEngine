@@ -6,7 +6,7 @@ class PixelCollisionSystem
 {
 
 public:
-	static void UpdatePixelCollisionSystem(entt::registry& registry, float deltaTime);
+	static void UpdatePixelCollisionSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
 
 };
 

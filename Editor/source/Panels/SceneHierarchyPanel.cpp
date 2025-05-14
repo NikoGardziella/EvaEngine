@@ -232,15 +232,17 @@ namespace Engine {
         
         ImGui::PushID((void*)m_gameContext.get()); // Push scene ID to make entity IDs unique
 
-        m_gameContext->m_registry.view<TagComponent>().each([&](auto entityID, TagComponent& tagComp)
-            {
-                Entity entity{ entityID, m_gameContext.get() };
-                // EE_CORE_INFO("Entity: {0} ", entity.GetComponent<IDComponent>().ID);
+        auto view = m_gameContext->m_registry.view<TagComponent>();
+        std::vector<entt::entity> entityList(view.begin(), view.end());
+        std::reverse(entityList.begin(), entityList.end());
 
-                ImGui::PushID(entity.GetComponent<IDComponent>().ID);
-                DrawEntityNode(entity);
-                ImGui::PopID();
-            });
+        for (auto entityID : entityList)
+        {
+            Entity entity{ entityID, m_gameContext.get() };
+            ImGui::PushID(entity.GetComponent<IDComponent>().ID);
+            DrawEntityNode(entity);
+            ImGui::PopID();
+        }
         ImGui::PopID();
         
        
@@ -806,6 +808,21 @@ namespace Engine {
                 }
 
             });
+
+        DrawComponent<ProjectileComponent>("Projectile", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
+            {
+                ImGui::DragFloat2("Velocity", glm::value_ptr(component.Velocity));
+                ImGui::DragFloat("Life time", &component.LifeTime, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("Damage", &component.Damage, 0.01, 0.0f, 1.0f);
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<ProjectileComponent>(newEntity) = component;
+                }
+
+            });
+
         // Add checks for other components here...
     }
 

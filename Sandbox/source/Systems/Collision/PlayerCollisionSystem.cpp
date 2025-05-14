@@ -1,7 +1,9 @@
 #include "PlayerCollisionSystem.h"
 #include "Engine/Scene/Scene.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
-void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, float deltaTime)
+
+
+void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     auto staticView = registry.view<Engine::TransformComponent, Engine::BoxCollider2DComponent>();
     auto playerView = registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent>();

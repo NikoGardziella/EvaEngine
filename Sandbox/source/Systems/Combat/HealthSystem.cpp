@@ -3,7 +3,7 @@
 #include <Engine/Debug/Instrumentor.h>
 
 
-void HealthSystem::UpdateHealthSystem(entt::registry& registry, float deltaTime)
+void HealthSystem::UpdateHealthSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 

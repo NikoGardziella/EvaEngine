@@ -67,7 +67,7 @@ namespace Engine {
 		
 
 		glm::vec2 GetViewportMinBounds() const { return m_viewportBounds[0]; }
-		void RegisterSystem(const std::function<void(entt::registry&, float)>& system);
+		void RegisterSystem(const std::function<void(entt::registry&, float, Scene*)>& system);
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()
@@ -104,7 +104,7 @@ namespace Engine {
 
 		PhysicsTaskScheduler m_physicsTaskScheduler;
 
-		std::vector<std::function<void(entt::registry&, float)>> m_gameplaySystems;
+		std::vector<std::function<void(entt::registry&, float, Scene*)>> m_gameplaySystems;
 
 		friend class Entity;
 		friend class SceneSerializer;

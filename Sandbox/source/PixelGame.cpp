@@ -38,6 +38,7 @@ PixelGame::PixelGame(const std::string scene)
 	m_activeScene->RegisterSystem(NpcAIMovementSystem::UpdateNPCAIMovementSystem);
 	m_activeScene->RegisterSystem(NPCAIVisionSystem::UpdateNPCAIVisionSystem);
 
+	
 }
 
 void PixelGame::OnAttach()

@@ -422,7 +422,7 @@ namespace Engine {
         {
             for (auto& system : m_gameplaySystems)
             {
-                system(m_registry, timestep);
+                system(m_registry, timestep, this);
             }
         }
 
@@ -748,7 +748,7 @@ namespace Engine {
 
     }
 
-    void Scene::RegisterSystem(const std::function<void(entt::registry&, float)>& system)
+    void Scene::RegisterSystem(const std::function<void(entt::registry&, float, Scene* scene)>& system)
     {
         m_gameplaySystems.emplace_back(system);
         EE_CORE_INFO("System registered");
@@ -757,8 +757,7 @@ namespace Engine {
     template<typename T>
     inline void Scene::OnComponentAdded(Entity entity, T& component)
     {
-        //  fails at compile-time if there’s no explicit specialization for a given component type.
-       static_assert(false);
+        
 
     }
 

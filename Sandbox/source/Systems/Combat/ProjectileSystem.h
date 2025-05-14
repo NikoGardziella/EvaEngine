@@ -5,6 +5,6 @@
 class ProjectileSystem
 {
 	public: 
-		static void UpdateProjectileSystem(entt::registry& registry, float deltaTime);
+		static void UpdateProjectileSystem(entt::registry& registry, float deltaTime, Engine::Scene* scen);
 };
 

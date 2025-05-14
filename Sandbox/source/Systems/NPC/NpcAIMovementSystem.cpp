@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
 
-void NpcAIMovementSystem::UpdateNPCAIMovementSystem(entt::registry& registry, float deltaTime)
+void NpcAIMovementSystem::UpdateNPCAIMovementSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     auto view = registry.view<NPCAIMovementComponent, Engine::TransformComponent>();
 

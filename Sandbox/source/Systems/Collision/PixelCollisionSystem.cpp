@@ -3,7 +3,7 @@
 #include <Engine/Debug/Instrumentor.h>
 
 
-void PixelCollisionSystem::UpdatePixelCollisionSystem(entt::registry& registry, float deltaTime)
+void PixelCollisionSystem::UpdatePixelCollisionSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
     auto projectileView = registry.view<Engine::TransformComponent, Engine::ProjectileComponent>();

@@ -1,7 +1,7 @@
 #include "PlayerMovementSystem.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
-void PlayerMovementSystem::MovementSystem(entt::registry& registry, float deltaTime)
+void PlayerMovementSystem::MovementSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     auto view = registry.view<Engine::TransformComponent, CharacterControllerComponent>();
 

@@ -1,7 +1,6 @@
 
 #include "CharacterControllerSystem.h"
 #include "Engine/Core/Input.h"
-#include "Engine/Core/Core.h"
 #include "Engine/Events/KeyCode.h"
 #include "Engine/Events/MouseCodes.h"
 #include <Engine/Debug/Instrumentor.h>
@@ -10,13 +9,13 @@
 #include <Engine/AssetManager/AssetManager.h>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
+#include "Engine/Scene/Entity.h"
 
-
-void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& registry, float deltaTime)
+void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-
+    
     glm::vec2 mouseScreen = Engine::Input::GetMouseScreenPosition();
     glm::vec2 mouseWorldPosition = glm::vec2(0.0f, 0.0f);
     {
@@ -64,7 +63,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
         {
             if (controllerComp.lastFireTime > controllerComp.fireRate)
             {
-                ShootProjectile(registry, entity, playerTransformComp.Translation, direction);
+                ShootProjectile(registry, entity, playerTransformComp.Translation, direction, scene);
 				controllerComp.lastFireTime = 0.0f;
             }
 
@@ -74,13 +73,16 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
     }
 }
 
-void CharacterControllerSystem::ShootProjectile(entt::registry& registry, entt::entity entity, const glm::vec2& position, const glm::vec2& direction)
+void CharacterControllerSystem::ShootProjectile(entt::registry& registry, entt::entity entity, const glm::vec2& position, const glm::vec2& direction, Engine::Scene* scene)
 {
-	const auto& projectileEntity = registry.create();
-	auto& transformComp = registry.emplace<Engine::TransformComponent>(projectileEntity);
-	auto& projectileComp = registry.emplace<Engine::ProjectileComponent>(projectileEntity, direction, 5.0f);
-	auto& spriteComp = registry.emplace<Engine::SpriteRendererComponent>(projectileEntity);
-	projectileComp.Owner = entity;
+	Engine::Entity& projectileEntity = scene->CreateEntity("Projectile");
+
+    Engine::TransformComponent& transformComp = projectileEntity.AddComponent<Engine::TransformComponent>();
+    Engine::ProjectileComponent& projectileComp = projectileEntity.AddComponent<Engine::ProjectileComponent>(direction, 5.0f);
+    Engine::SpriteRendererComponent& spriteComp = projectileEntity.AddComponent<Engine::SpriteRendererComponent>();
+
+    projectileComp.Owner = entity;
+
     spriteComp.Texture = Engine::AssetManager::GetTexture("bullet");
 	transformComp.Translation = glm::vec3(position, 0.0f);
 	transformComp.Rotation.z = std::atan2(direction.y, direction.x);

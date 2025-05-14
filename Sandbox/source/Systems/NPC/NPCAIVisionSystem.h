@@ -6,6 +6,6 @@ class NPCAIVisionSystem
 {
 public:
 
-	static void UpdateNPCAIVisionSystem(entt::registry& registry, float deltaTime);
+	static void UpdateNPCAIVisionSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
 };
 

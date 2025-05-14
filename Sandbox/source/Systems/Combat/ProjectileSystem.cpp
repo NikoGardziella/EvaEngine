@@ -3,7 +3,7 @@
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
 
 
-void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float deltaTime)
+void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 

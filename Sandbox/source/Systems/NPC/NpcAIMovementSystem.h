@@ -7,6 +7,6 @@ class NpcAIMovementSystem
 {
 public:
 
-	static void UpdateNPCAIMovementSystem(entt::registry& registry, float deltaTime);
+	static void UpdateNPCAIMovementSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
 };
 

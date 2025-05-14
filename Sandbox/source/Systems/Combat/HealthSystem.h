@@ -8,6 +8,6 @@
 class HealthSystem
 {
 public:
-	static void UpdateHealthSystem(entt::registry& registry, float deltaTime);
+	static void UpdateHealthSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
 };
 

@@ -6,7 +6,7 @@
 #include <glm/gtx/norm.hpp>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
-void NPCAIVisionSystem::UpdateNPCAIVisionSystem(entt::registry& registry, float deltaTime)
+void NPCAIVisionSystem::UpdateNPCAIVisionSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     auto npcs = registry.view<NPCAIVisionComponent, NPCAIMovementComponent, Engine::TransformComponent>();
 

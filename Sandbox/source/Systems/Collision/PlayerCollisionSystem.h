@@ -13,7 +13,7 @@ class PlayerCollisionSystem
     };
 
 public:
-	static void UpdatePlayerCollision(entt::registry& registry, float deltaTime);
+	static void UpdatePlayerCollision(entt::registry& registry, float deltaTime, Engine::Scene* scene);
 
 
 private:
