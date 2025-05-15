@@ -28,6 +28,7 @@ namespace Engine {
 
         m_pixelGameShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/PixelGameShader.GLSL").string());
         m_fullscreenShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/fullscreen_shader.GLSL").string());
+        m_lineShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Line_shader.GLSL").string());
 
         m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
@@ -48,10 +49,13 @@ namespace Engine {
         CreateDescriptorSetLayouts();
         CreateCameraDescriptorSetLayout();
 
+        CreateLineGraphicsPipeline(vulkanContext.GetGameRenderPass());
+
         CreateGameGraphicsPipeline(vulkanContext.GetGameRenderPass());
         CreateGameDescriptorSet();
         CreateCameraDescriptorSet();
         CreatePresentDescriptorSet();
+        CreateLineDescriptorSet();
 
         CreatePresentGameDescriptorPool();
         CreateGameAndPresentDescriptorSets();
@@ -250,12 +254,152 @@ namespace Engine {
        
         if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_gameGraphicsPipeline) != VK_SUCCESS)
         {
-			EE_CORE_ASSERT(false, "failed to create graphics pipeline!");
+			EE_CORE_ASSERT(false, "failed to create game  graphics pipeline!");
         }
         else
         {
-			EE_CORE_INFO("Vulkan graphics pipeline created");
+			EE_CORE_INFO("Vulkan game  graphics pipeline created");
         }
+
+    }
+
+    void VulkanGraphicsPipeline::CreateLineGraphicsPipeline(VkRenderPass renderPass)
+    {
+
+        // Shader Stages
+        VkPipelineShaderStageCreateInfo vertStage{};
+        vertStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertStage.module = m_lineShader->GetVertexShaderModule();
+        vertStage.pName = "main";
+
+        VkPipelineShaderStageCreateInfo fragStage{};
+        fragStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragStage.module = m_lineShader->GetFragmentShaderModule();
+        fragStage.pName = "main";
+
+        VkPipelineShaderStageCreateInfo shaderStages[] = { vertStage, fragStage };
+
+        VkVertexInputBindingDescription bindingDescription{};
+        bindingDescription.binding = 0;
+        bindingDescription.stride = sizeof(VulkanLineVertex);
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[0].offset = offsetof(VulkanLineVertex, Position);
+
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(VulkanLineVertex, Color);
+
+        
+
+        // Vertex Input (none for fullscreen triangle)
+        VkPipelineVertexInputStateCreateInfo vertexInput{};
+        vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertexInput.pNext = nullptr;
+        vertexInput.flags = 0;
+        vertexInput.vertexBindingDescriptionCount = 1;
+        vertexInput.pVertexBindingDescriptions = &bindingDescription;
+        vertexInput.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInput.pVertexAttributeDescriptions = attributeDescriptions.data();
+
+
+        VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+        inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST; // Important for lines
+        inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+        VkPipelineRasterizationStateCreateInfo rasterizer{};
+        rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+        rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizer.lineWidth = 1.0f;
+        rasterizer.cullMode = VK_CULL_MODE_NONE;
+        rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+
+        // Viewport and Scissor (dynamic preferred)
+        VkPipelineViewportStateCreateInfo viewportState{};
+        viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        viewportState.viewportCount = 1;
+        viewportState.scissorCount = 1;
+
+
+        // Multisampling
+        VkPipelineMultisampleStateCreateInfo multisampling{};
+        multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+        // Color Blending
+        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+        colorBlendAttachment.blendEnable = VK_TRUE;
+        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT |
+            VK_COLOR_COMPONENT_G_BIT |
+            VK_COLOR_COMPONENT_B_BIT |
+            VK_COLOR_COMPONENT_A_BIT;
+
+        VkPipelineColorBlendStateCreateInfo colorBlending{};
+        colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        colorBlending.attachmentCount = 1;
+        colorBlending.pAttachments = &colorBlendAttachment;
+
+        std::vector<VkDynamicState> dynamicStates = {
+            VK_DYNAMIC_STATE_VIEWPORT,
+            VK_DYNAMIC_STATE_SCISSOR,
+            VK_DYNAMIC_STATE_LINE_WIDTH,
+        };
+        VkPipelineDynamicStateCreateInfo dynamicState{};
+        dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+        dynamicState.pDynamicStates = dynamicStates.data();
+
+        // Pipeline Layout (with your descriptor set layout)
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutInfo.setLayoutCount = 1;
+        pipelineLayoutInfo.pSetLayouts = &m_lineDescriptorSetLayout;
+
+
+        VkResult result = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_linePipelineLayout);
+        if (result != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "failed to create line  pipeline layout!");
+        }
+
+        // Graphics Pipeline
+        VkGraphicsPipelineCreateInfo pipelineInfo{};
+        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        pipelineInfo.stageCount = 2;
+        pipelineInfo.pStages = shaderStages;
+        pipelineInfo.pVertexInputState = &vertexInput;
+        pipelineInfo.pInputAssemblyState = &inputAssembly;
+        pipelineInfo.pViewportState = &viewportState;
+        pipelineInfo.pRasterizationState = &rasterizer;
+        pipelineInfo.pMultisampleState = &multisampling;
+        pipelineInfo.pColorBlendState = &colorBlending;
+        pipelineInfo.pDynamicState = &dynamicState;
+        pipelineInfo.layout = m_linePipelineLayout;
+
+        pipelineInfo.renderPass = renderPass;  // render pass for swapchain
+        pipelineInfo.subpass = 0;
+
+       
+        if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_linePipeline) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "failed to create line graphics pipeline!");
+        }
+        else
+        {
+            EE_CORE_INFO("Vulkan line graphics pipeline created");
+        }
+
 
     }
 
@@ -359,9 +503,15 @@ namespace Engine {
         pipelineInfo.renderPass = renderPass;  // render pass for swapchain
         pipelineInfo.subpass = 0;
 
-        vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_presentPipeline);
-
-        // Cleanup shader modules
+        
+        if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_presentPipeline) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "failed to create present graphics pipeline!");
+        }
+        else
+        {
+            EE_CORE_INFO("Vulkan present graphics pipeline created");
+        }
 
     }
 
@@ -403,10 +553,10 @@ namespace Engine {
 
         if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_gameDescriptorSetLayout) != VK_SUCCESS)
         {
-            // Handle error
+            EE_CORE_ASSERT(false, "failed to create DescriptorSet Layout!");
+
         }
 
-        // Now create the present descriptor set layout if needed
         VkDescriptorSetLayoutBinding presentBindings[1] = {};
         presentBindings[0].binding = 0;
         presentBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -419,7 +569,31 @@ namespace Engine {
         presentLayoutInfo.bindingCount = 1;
         presentLayoutInfo.pBindings = presentBindings;
 
-        vkCreateDescriptorSetLayout(m_device, &presentLayoutInfo, nullptr, &m_presentDescriptorSetLayout);
+        VkResult result = vkCreateDescriptorSetLayout(m_device, &presentLayoutInfo, nullptr, &m_presentDescriptorSetLayout);
+        if (result != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "Failed to create present descriptor set layout!");
+        }
+
+        VkDescriptorSetLayoutBinding lineLayoutBinding{};
+        lineLayoutBinding.binding = 0;
+        lineLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        lineLayoutBinding.descriptorCount = 1;
+        lineLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT; // Used only in vertex shader
+        lineLayoutBinding.pImmutableSamplers = nullptr;
+
+        VkDescriptorSetLayoutCreateInfo lineLayoutInfo{};
+        lineLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        lineLayoutInfo.bindingCount = 1;
+        lineLayoutInfo.pBindings = &lineLayoutBinding;
+
+        result = vkCreateDescriptorSetLayout(m_device, &lineLayoutInfo, nullptr, &m_lineDescriptorSetLayout);
+        if (result != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "Failed to create line descriptor set layout!");
+        }
+
+
     }
 
     void VulkanGraphicsPipeline::CreatePresentGameDescriptorPool()
@@ -523,6 +697,37 @@ namespace Engine {
            // UpdateGameDescriptorSets(i);
         }
         //UpdateCameraUBODescriptorSets();
+    }
+    void VulkanGraphicsPipeline::CreateLineDescriptorSet()
+    {
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = m_descriptorPool; // your existing pool
+        allocInfo.descriptorSetCount = 1;
+        allocInfo.pSetLayouts = &m_lineDescriptorSetLayout;
+
+        if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_lineDescriptorSet) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to allocate line descriptor set!");
+        }
+
+        // Update the Descriptor Set with Camera UBO
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = m_uniformBuffers[0].GetBuffer();
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(glm::mat4);
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = m_lineDescriptorSet;
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+
+        vkUpdateDescriptorSets(m_device, 1, &descriptorWrite, 0, nullptr);
+
     }
 
     void VulkanGraphicsPipeline::CreatePresentDescriptorSet()

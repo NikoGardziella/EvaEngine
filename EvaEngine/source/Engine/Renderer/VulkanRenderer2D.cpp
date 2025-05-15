@@ -29,6 +29,16 @@ namespace Engine {
 		static const uint32_t MaxIndices = MaxQuads * 6;
 		static const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
 
+		static const uint32_t MaxLines = 10000;
+		static const uint32_t MaxLineVertices = MaxLines * 2;
+
+		Ref<VulkanBuffer> LineStagingBuffer;
+		VulkanLineVertex* LineVertexBufferBase = nullptr;
+		VulkanLineVertex* LineVertexBufferPtr = nullptr;
+		uint32_t LineVertexCount = 0;
+		Ref<VulkanBuffer> LineVertexBuffer;
+		Ref<VertexArray> LineVertexArray;
+
 		Ref<VertexArray> QuadVertexArray;
 		Ref<VulkanVertexBuffer> QuadVertexBuffer;
 		Ref<VulkanIndexBuffer> QuadIndexBuffer;
@@ -98,6 +108,34 @@ namespace Engine {
 		{
 			m_vulkanGraphicsPipelines->UpdateUniformBuffer(i, m_camera->GetViewProjectionMatrix());
 		}
+
+		s_VulkanData.LineVertexBufferBase = new VulkanLineVertex[VulkanRenderer2DData::MaxLineVertices];
+
+		s_VulkanData.LineStagingBuffer = std::make_shared<VulkanBuffer>(
+			m_device,
+			m_vulkanContext->GetDeviceManager().GetPhysicalDevice(),
+			sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		);
+
+		s_VulkanData.LineStagingBuffer->SetData(s_VulkanData.LineVertexBufferBase, sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices);
+
+		s_VulkanData.LineVertexBuffer = std::make_shared<VulkanBuffer>(
+			m_device,
+			m_vulkanContext->GetDeviceManager().GetPhysicalDevice(),
+			sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices,
+			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		);
+		s_VulkanData.LineVertexBuffer->SetData(s_VulkanData.LineVertexBufferBase, sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices);
+
+
+
+
+		s_VulkanData.LineVertexBufferPtr = s_VulkanData.LineVertexBufferBase;
+		
+
 
 		s_VulkanData.QuadVertexBufferBase = new VulkanQuadVertex[VulkanRenderer2DData::MaxVertices];
 		s_VulkanData.QuadVertexBufferPtr = s_VulkanData.QuadVertexBufferBase;
@@ -257,13 +295,41 @@ namespace Engine {
 		m_firstIndex = 0;
 		m_vertexOffset = 0;
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
+
+
+
+		// 2. Re-bind your pipeline
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetLinePipeline());
+
+
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetLineDescriptorSet();
+		vkCmdBindDescriptorSets(
+			cmd,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_vulkanGraphicsPipelines->GetLinePipelineLayout(),
+			0, 1,
+			&descriptorSet,
+			0, nullptr
+		);
+
+		// 4. Re-bind vertex buffer
+		VkBuffer vertexBuffers[] = { s_VulkanData.LineVertexBuffer->GetBuffer() };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
+
+		vkCmdSetLineWidth(cmd, 3.0f);
+		// 6. Draw your lines
+		vkCmdDraw(cmd, s_VulkanData.LineVertexCount, 1, 0, 0);
+
+
+
 		// End RecordGameDrawCommands render pass
 		vkCmdEndRenderPass(cmd);
 
 
 		RecordPresentDrawCommands(cmd, m_imageIndex, currentFrame);
 
-		RecordEditorDrawCommands(cmd, m_imageIndex);
+		RecordEditorDrawCommands(cmd, m_imageIndex, currentFrame);
 
 		
 		// RecordImGuiDrawCommands(cmd, imageIndex);
@@ -323,16 +389,44 @@ namespace Engine {
 	{
 		s_VulkanData.QuadVertexBufferPtr = s_VulkanData.QuadVertexBufferBase;
 		s_VulkanData.QuadIndexCount = 0;
+
+		s_VulkanData.LineVertexBufferPtr = s_VulkanData.LineVertexBufferBase;
+		s_VulkanData.LineVertexCount = 0;
+		
+
 	}
+
+	/*
+	void VulkanRenderer2D::FlushLines()
+	{
+		if (s_VulkanData.LineVertexCount == 0)
+			return;
+
+		// Copy CPU-side data to staging buffer
+		void* data = s_VulkanData.LineStagingBuffer->Map();
+		memcpy(data, s_VulkanData.LineVertexBufferBase, s_VulkanData.LineVertexCount * sizeof(VulkanLineVertex));
+		s_VulkanData.LineStagingBuffer->Unmap();
+
+		// Upload to GPU
+		VulkanUtils::CopyBuffer(
+			s_VulkanData.LineStagingBuffer->GetBuffer(),
+			s_VulkanData.LineVertexBuffer->GetBuffer(),
+			s_VulkanData.LineVertexCount * sizeof(VulkanLineVertex)
+		);
+	}
+	*/
+
 
 	void VulkanRenderer2D::NextBatch()
 	{
 		StartBatch();
-		Flush();
+		Draw();
 	}
 
-	void VulkanRenderer2D::Flush()
+	void VulkanRenderer2D::Draw()
 	{
+		
+
 		Renderer::DrawFrame();
 	}
 
@@ -416,7 +510,7 @@ namespace Engine {
 
 	}
 
-	void VulkanRenderer2D::RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+	void VulkanRenderer2D::RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
 
@@ -438,11 +532,13 @@ namespace Engine {
 		vkCmdBeginRenderPass(commandBuffer, &imguiRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		ImDrawData* imguiDrawData = ImGui::GetDrawData();
+		
+		// 1. Draw ImGui
 		if (imguiDrawData != nullptr)
 		{
-
 			ImGui_ImplVulkan_RenderDrawData(imguiDrawData, commandBuffer);
 		}
+	
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -795,6 +891,40 @@ namespace Engine {
 		s_VulkanData.Stats.QuadCount++;
 	}
 
+	void VulkanRenderer2D::DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID)
+	{
+		for (size_t i = 0; i < 4; i++)
+		{
+			glm::vec3 p0 = glm::vec3(transform * glm::vec4(s_VulkanData.QuadVertexPositions[i], 1.0f));
+			glm::vec3 p1 = glm::vec3(transform * glm::vec4(s_VulkanData.QuadVertexPositions[(i + 1) % 4], 1.0f));
+			DrawLine(p0, p1, color, entityID);
+		}
+	}
+
+
+	void VulkanRenderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID)
+	{
+		if (s_VulkanData.LineVertexCount >= VulkanRenderer2DData::MaxLineVertices)
+		{
+			NextBatch(); // flush and start new batch
+		}
+
+		s_VulkanData.LineVertexBufferPtr->Position = p0;
+		s_VulkanData.LineVertexBufferPtr->Color = color;
+		//s_VulkanData.LineVertexBufferPtr->EntityID = entityID;
+		s_VulkanData.LineVertexBufferPtr++;
+
+		s_VulkanData.LineVertexBufferPtr->Position = p1;
+		s_VulkanData.LineVertexBufferPtr->Color = color;
+		//s_VulkanData.LineVertexBufferPtr->EntityID = entityID;
+		s_VulkanData.LineVertexBufferPtr++;
+
+		s_VulkanData.LineVertexCount += 2;
+		s_VulkanData.Stats.LineCount++;
+
+	}
+
+
 
 	void VulkanRenderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
 	{
@@ -811,7 +941,7 @@ namespace Engine {
 		EE_PROFILE_FUNCTION();
 
 		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection();
-		//s_VulkanData.CameraUniformBuffer->SetData(&s_VulkanData.CameraBuffer, sizeof(Renderer2DData::CameraData));
+		//s_VulkanData.CameraBuffer.SetData(&s_VulkanData.CameraBuffer, sizeof(Renderer2DData::CameraData));
 		StartBatch();
 	}
 
@@ -836,8 +966,13 @@ namespace Engine {
 		if (dataSize > 0)
 		{
 			s_VulkanData.QuadVertexBuffer->SetData(s_VulkanData.QuadVertexBufferBase, dataSize);
-			Flush();
 		}
+
+		if (s_VulkanData.LineVertexCount > 0)
+		{
+			s_VulkanData.LineVertexBuffer->SetData(s_VulkanData.LineVertexBufferBase, s_VulkanData.LineVertexCount * sizeof(VulkanLineVertex));
+		}
+		Draw();
 		
 	}
 

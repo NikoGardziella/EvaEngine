@@ -31,14 +31,17 @@ namespace Engine {
 		void DeviceWaitIdle();
 
 		static void StartBatch();
+		static void FlushLines();
 		static void NextBatch();
-		static void Flush();
+		static void Draw();
 
 		// for rendering game in Editor
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
 
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID);
+		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID);
 		static void BeginScene(const Camera& camera, const glm::mat4& transform);
 		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(glm::mat4 viewProjectionMatrix);
@@ -52,7 +55,7 @@ namespace Engine {
 	private:
 
 		void CreateImGuiTextureDescriptors();
-		void RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 

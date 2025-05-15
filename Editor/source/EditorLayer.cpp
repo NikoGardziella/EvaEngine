@@ -815,13 +815,13 @@ namespace Engine {
             {
                 return;
             }
+            Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera.GetViewProjection(), camera.GetComponent<TransformComponent>().GetTransform());
 
-            Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
         }
         else
         {
+            Engine::VulkanRenderer2D::BeginScene(m_editorCamera);
 
-            Renderer2D::BeginScene(m_editorCamera);
         }
         
         if (m_showColliders)
@@ -842,7 +842,7 @@ namespace Engine {
 
 
 
-                    Renderer2D::DrawCircle(transform, glm::vec4(0.0f, 0.9f, 0.0f, 1.0f), 0.1f);
+                   // Renderer2D::DrawCircle(transform, glm::vec4(0.0f, 0.9f, 0.0f, 1.0f), 0.1f);
                 }
             }
 
@@ -861,13 +861,15 @@ namespace Engine {
                         * glm::rotate(glm::mat4(1.0f),transformComp.Rotation.z , glm::vec3(0.0f, 0.0f, 1.0f))
                         * glm::scale(glm::mat4(1.0f), scale);
 
-                    Renderer2D::DrawRect(transform, glm::vec4(0.0f, 0.9f, 0.0f, 1.0f), 0.1f);
+
+					Engine::VulkanRenderer2D::DrawLineRect(transform, glm::vec4(0.1f, 0.9f, 0.1f, 1.0f), -1);
+                    //Renderer2D::DrawRect(transform, glm::vec4(0.0f, 0.9f, 0.0f, 1.0f), 0.1f);
                 }
 
             }
         }
        
-        Renderer2D::EndScene();
+        Engine::VulkanRenderer2D::EndScene();
     }
 
 
@@ -969,7 +971,7 @@ namespace Engine {
             }
             */
 
-           // OnOverlayRender();
+            OnOverlayRender();
 
            /// m_framebuffer->Unbind();
         }

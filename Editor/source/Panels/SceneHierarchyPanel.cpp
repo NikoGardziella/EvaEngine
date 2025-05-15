@@ -234,8 +234,8 @@ namespace Engine {
 
         auto view = m_gameContext->m_registry.view<TagComponent>();
         std::vector<entt::entity> entityList(view.begin(), view.end());
+		// I want new entities to be at the bottom of the list
         std::reverse(entityList.begin(), entityList.end());
-
         for (auto entityID : entityList)
         {
             Entity entity{ entityID, m_gameContext.get() };
