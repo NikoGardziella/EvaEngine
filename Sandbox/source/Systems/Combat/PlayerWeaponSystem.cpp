@@ -36,21 +36,16 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(entt::registry& registry, floa
         auto& transform = view.get<Engine::TransformComponent>(entity);
         auto& weapon = view.get<WeaponComponent>(entity);
 
-        // Decrease cooldown every frame
         if (weapon.Cooldown > 0.0f)
             weapon.Cooldown -= deltaTime;
 
-        // Only process input if the weapon is ready
         if (Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0) && weapon.Cooldown <= 0.0f)
         {
-            // Calculate shooting direction
             glm::vec2 playerPos = glm::vec2(transform.Translation);
             glm::vec2 direction = glm::normalize(mouseWorldPosition - playerPos);
 
-            // Fire weapon
             ShootProjectile(registry, entity, transform.Translation, direction, scene, weapon.Damage);
 
-            // Reset cooldown
             weapon.Cooldown = weapon.FireRate;
         }
     }
@@ -70,5 +65,4 @@ void PlayerWeaponSystem::ShootProjectile(entt::registry& registry, entt::entity 
     spriteComp.Texture = Engine::AssetManager::GetTexture("bullet");
     transformComp.Translation = glm::vec3(position, 0.0f);
     transformComp.Rotation.z = std::atan2(direction.y, direction.x);
-    // Add other components as needed
 }

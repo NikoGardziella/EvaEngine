@@ -12,6 +12,7 @@
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 #include <Engine/Scene/Components/Combat/WeaponComponent.h>
+#include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
 //#include "entt.hpp"
 
@@ -551,10 +552,42 @@ namespace Engine {
 
                 }
             }
+            if (ImGui::MenuItem("Character Controller Component"))
+            {
+                m_selectionContext.AddComponent<CharacterControllerComponent>();
+                ImGui::CloseCurrentPopup();
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (entity)
+                {
+                    m_newComponentsContext->GetRegistry().emplace<CharacterControllerComponent>(entity);
+
+                }
+            }
             ImGui::EndPopup();
         }
         ImGui::PopItemWidth();
 
+        DrawComponent<CharacterControllerComponent>("Character controller", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
+            {
+                ImGui::DragFloat("speed", &component.speed, 0.1f, 0.0f, 100.0f);
+                ImGui::DragFloat2("velocity", glm::value_ptr(component.velocity));
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID),
+                 m_newComponentsContext.get()
+                };
+
+                if (newEntity)
+                {
+                    if (!newEntity.HasComponent<CharacterControllerComponent>())
+                    {
+                        newEntity.AddComponent<CharacterControllerComponent>();
+                    }
+
+                    newEntity.GetComponent<CharacterControllerComponent>() = component;
+                }
+
+
+            });
 
         DrawComponent<WeaponComponent>("Weapon", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {

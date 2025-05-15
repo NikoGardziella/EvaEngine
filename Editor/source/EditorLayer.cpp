@@ -697,6 +697,9 @@ namespace Engine {
                 existingEntitie["existing_entities"].push_back(tag);
                 existingEntitie["existing_entities"].push_back((uint64_t)ID);
             }
+
+            /*
+            m_editor->GetGameLayer()->CreateGameEntities();
             scene = m_editor->GetGameLayer()->GetActiveGameScene();
             for (auto entity : scene->GetAllEntitiesWith<TagComponent>())
             {
@@ -706,6 +709,7 @@ namespace Engine {
                 existingEntitie["existing_entities"].push_back(tag);
                 existingEntitie["existing_entities"].push_back((uint64_t)ID);
             }
+            */
             // Launch background thread
             std::thread([prompt, existingEntitie, this]() {
                 std::string responseText = g_AIClient.CreateGameplayJSON(prompt, existingEntitie);

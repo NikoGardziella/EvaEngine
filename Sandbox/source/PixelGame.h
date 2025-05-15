@@ -22,6 +22,7 @@ public:
 	void OnGameStart();
 	void LoadGameAssets();
 	void OnGameStop();
+	void CreateGameEntities();
 
 
 	Engine::Ref<Engine::Scene>& GetActiveGameScene() { return m_activeScene; }

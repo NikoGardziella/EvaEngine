@@ -441,6 +441,8 @@ namespace Engine {
 
 	void VulkanRenderer2D::DrawFrame(uint32_t currentFrame)
 	{
+		EE_PROFILE_FUNCTION();
+
 		//this can be called multiple times per frame
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 		RecordGameDrawCommands(cmd, m_imageIndex, currentFrame);
@@ -974,11 +976,14 @@ namespace Engine {
 		uint32_t dataSize = (uint32_t)((uint8_t*)s_VulkanData.QuadVertexBufferPtr - (uint8_t*)s_VulkanData.QuadVertexBufferBase);
 		if (dataSize > 0)
 		{
+			EE_PROFILE_SCOPE("VulkanRenderer2D::EndScene - Flush Quad Data");
 			s_VulkanData.QuadVertexBuffer->SetData(s_VulkanData.QuadVertexBufferBase, dataSize);
 		}
 
 		if (s_VulkanData.LineVertexCount > 0)
 		{
+			EE_PROFILE_SCOPE("VulkanRenderer2D::EndScene - Flush line Data");
+
 			s_VulkanData.LineVertexBuffer->SetData(s_VulkanData.LineVertexBufferBase, s_VulkanData.LineVertexCount * sizeof(VulkanLineVertex));
 		}
 		Draw();

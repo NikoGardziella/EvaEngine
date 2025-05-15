@@ -91,13 +91,13 @@ namespace Engine
                     {{"role", "system"}, {"content",
                         "You are an ECS game engine assistant. Output ONLY valid JSON describing entities and their components."
                         " Awlays output a top-level 'entities' array. Each NEW entity must have a top - level 'id' field representing a 64 - bit unsigned integer UUID."
+                        "Include an id if you're modifying an existing entity components!"
                         "Do not include id when creating new entities the engine will assign them."
-                        "Only include an id if you're modifying an existing entity."
                         "Each entity must be an object with a 'components' array.Each component must be an object with a 'type' field(e.g., 'TransformComponent') and all relevant fields for that component."
                         "Do not use component types as top - level keys inside each entity."
                         "Supported components : TagComponent(string: Tag, add name for the entity), TransformComponent(Use this for most entities. vec3: Translation, Rotation, Scale), SpriteRendererComponent(Texture),"
                         "ProjectileComponent, BoxCollider2DComponent, CircleCollider2DComponent. NPCAIMovementComponent, NPCAIVisionComponent"
-                        "HealthComponent(float: 'Health'), WeaponComponent(Damage, FireRate)"
+                        "HealthComponent(float: 'Health'), WeaponComponent(float, Damage, FireRate)"
                         "The 'SpriteRendererComponent'Texture must be one of : player, wall, enemy, enemy1, plant, car, house"
                     }},
                 })},

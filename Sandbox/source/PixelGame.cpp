@@ -147,34 +147,9 @@ void PixelGame::OnEvent(Engine::Event& event)
 
 void PixelGame::OnGameStart()
 {
-
 	//m_squareEntity = m_activeScene->CreateEntity("square");
 	//m_squareEntity.AddComponent<Engine::TransformComponent>();
 	//m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
-
-	m_playerEntity = m_activeScene->CreateEntity("player");
-	auto& transformComp = m_playerEntity.AddComponent<Engine::TransformComponent>();
-	transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
-	m_playerEntity.AddComponent<CharacterControllerComponent>();
-	m_playerEntity.AddComponent<WeaponComponent>();
-	m_playerEntity.AddComponent<Engine::CircleCollider2DComponent>();
-	glm::vec4 color = { 1.0, 1.0, 1.0, 1.0f };
-	Engine::SpriteRendererComponent& spriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();
-	spriteComp.Color = color;
-	spriteComp.Texture = m_playerTexture;
-
-
-	m_cameraEntity = m_activeScene->CreateEntity("camera");
-	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
-	cameraComp.FixedAspectRatio = true;
-	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
-	cameraComp.Camera.SetPerspectiveFOV(45.0f);
-	cameraComp.Primary = true;
-	cameraComp.Camera.SetViewportBounds(m_activeScene->GetViewportMinBounds());
-
-	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 30.0f);
-
 
 
 	/*
@@ -186,7 +161,7 @@ void PixelGame::OnGameStart()
 	renderComp.Texture = m_pixelTexture;
 	*/
 
-
+	CreateGameEntities();
 	m_activeScene->OnRunTimeStart();
 	
 
@@ -205,7 +180,6 @@ void PixelGame::LoadGameAssets()
 
 void PixelGame::OnGameStop()
 {
-	m_activeScene->ClearRegistry();
 
 	if (m_activeSceneName.empty())
 	{
@@ -214,6 +188,43 @@ void PixelGame::OnGameStop()
 	}
 	Engine::SceneSerializer serializer(m_activeScene);
 	serializer.Deserialize(Engine::AssetManager::GetScenePath(m_activeSceneName).string());
+
+	m_activeScene->ClearRegistry();
+}
+
+void PixelGame::CreateGameEntities()
+{
+	/*
+	if (!m_playerEntity)
+	{
+		m_playerEntity = m_activeScene->CreateEntity("player");
+		auto& transformComp = m_playerEntity.AddComponent<Engine::TransformComponent>();
+		transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
+		m_playerEntity.AddComponent<CharacterControllerComponent>();
+		m_playerEntity.AddComponent<WeaponComponent>();
+		m_playerEntity.AddComponent<Engine::CircleCollider2DComponent>();
+		glm::vec4 color = { 1.0, 1.0, 1.0, 1.0f };
+		Engine::SpriteRendererComponent& spriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();
+		spriteComp.Color = color;
+		spriteComp.Texture = m_playerTexture;
+
+	}
+	*/
+	
+	m_cameraEntity = m_activeScene->CreateEntity("camera");
+	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
+	cameraComp.FixedAspectRatio = true;
+	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
+	cameraComp.Camera.SetPerspectiveFOV(45.0f);
+	cameraComp.Primary = true;
+	cameraComp.Camera.SetViewportBounds(m_activeScene->GetViewportMinBounds());
+
+	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 30.0f);
+
+	
+
+
 }
 
 

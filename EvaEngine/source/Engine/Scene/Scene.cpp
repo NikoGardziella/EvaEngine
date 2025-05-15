@@ -239,6 +239,7 @@ namespace Engine {
         CopyComponent<ProjectileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<NPCAIMovementComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<NPCAIVisionComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<WeaponComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
     }
 
     Entity Scene::CreateEntity(const std::string& name)

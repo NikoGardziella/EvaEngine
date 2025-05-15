@@ -1,3 +1,24 @@
 Scene: My Scene
 Entities:
-  []
+  - ID: 3342535701
+    TagComponent:
+      Tag: player
+    TransformComponent:
+      Translation: [-8.190384, -8.311253, 0]
+      Rotation: [0, 0, -62.11985]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Texture: player
+      Tiling: 1
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+    CharacterControllerComponent:
+      Speed: 5
+      Velocity: [0, 0]
+      OnGround: false

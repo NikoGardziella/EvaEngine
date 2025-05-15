@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <yaml-cpp/yaml.h>
+#include "Components/Player/CharacterControllerComponent.h"
 
 
 namespace Engine {
@@ -224,6 +225,22 @@ namespace Engine {
             out << YAML::EndMap;
         }
 
+        inline void SerializeCharacterControllerComponent(Entity entity, YAML::Emitter& out)
+        {
+            if (!entity.HasComponent<CharacterControllerComponent>())
+                return;
+
+            const auto& comp = entity.GetComponent<CharacterControllerComponent>();
+
+            out << YAML::Key << "CharacterControllerComponent" << YAML::Value;
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "Speed" << YAML::Value << comp.speed;
+            out << YAML::Key << "Velocity" << YAML::Value << YAML::Flow << YAML::BeginSeq << comp.velocity.x << comp.velocity.y << YAML::EndSeq;
+            out << YAML::Key << "OnGround" << YAML::Value << comp.onGround;
+
+            out << YAML::EndMap;
+        }
 
 
         // Serializes an individual entity by checking for each component.
@@ -260,6 +277,8 @@ namespace Engine {
                 SerializeNPCAIMovementComponent(entity, out);
             if (entity.HasComponent<NPCAIVisionComponent>())
                 SerializeNPCAIVisionComponent(entity, out);
+            if (entity.HasComponent<CharacterControllerComponent>())
+                SerializeCharacterControllerComponent(entity, out);
 
 
 
@@ -504,6 +523,28 @@ namespace Engine {
                 circleComp.Fade = node["CircleRendererComponent"]["Fade"].as<float>();
         }
 
+        inline void DeserializeCharacterControllerComponent(Entity entity, const YAML::Node& entityNode)
+        {
+            if (entityNode["CharacterControllerComponent"])
+            {
+                CharacterControllerComponent& comp = entity.AddComponent<CharacterControllerComponent>();
+                const auto& node = entityNode["CharacterControllerComponent"];
+
+                if (node["Speed"])
+                    comp.speed = node["Speed"].as<float>();
+
+                if (node["Velocity"])
+                {
+                    auto velocityNode = node["Velocity"];
+                    comp.velocity.x = velocityNode[0].as<float>();
+                    comp.velocity.y = velocityNode[1].as<float>();
+                }
+
+                if (node["OnGround"])
+                    comp.onGround = node["OnGround"].as<bool>();
+            }
+        }
+
 
         inline void DeserializeEntity(Entity entity, const YAML::Node& entityNode)
         {
@@ -519,6 +560,7 @@ namespace Engine {
 			DeserializeHealthComponent(entity, entityNode);
 			DeserializeNPCAIMovementComponent(entity, entityNode);
 			DeserializeNPCAIVisionComponent(entity, entityNode);
+			DeserializeCharacterControllerComponent(entity, entityNode);
         }
 
 
