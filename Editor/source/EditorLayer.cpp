@@ -863,7 +863,6 @@ namespace Engine {
 
 
 					Engine::VulkanRenderer2D::DrawLineRect(transform, glm::vec4(0.1f, 0.9f, 0.1f, 1.0f), -1);
-                    //Renderer2D::DrawRect(transform, glm::vec4(0.0f, 0.9f, 0.0f, 1.0f), 0.1f);
                 }
 
             }
