@@ -306,6 +306,8 @@ namespace Engine {
 
                 if (ImGui::MenuItem("Exit"))
                 {
+                    
+                    //vkDeviceWaitIdle(VulkanContext::Get()->GetDeviceManager().GetDevice());
                     Engine::Application::Get().Close();
                 }
 
@@ -695,7 +697,15 @@ namespace Engine {
                 existingEntitie["existing_entities"].push_back(tag);
                 existingEntitie["existing_entities"].push_back((uint64_t)ID);
             }
-
+            scene = m_editor->GetGameLayer()->GetActiveGameScene();
+            for (auto entity : scene->GetAllEntitiesWith<TagComponent>())
+            {
+                Entity e{ entity, scene.get() };
+                std::string& tag = e.GetComponent<TagComponent>().Tag;
+                UUID& ID = e.GetComponent<IDComponent>().ID;
+                existingEntitie["existing_entities"].push_back(tag);
+                existingEntitie["existing_entities"].push_back((uint64_t)ID);
+            }
             // Launch background thread
             std::thread([prompt, existingEntitie, this]() {
                 std::string responseText = g_AIClient.CreateGameplayJSON(prompt, existingEntitie);

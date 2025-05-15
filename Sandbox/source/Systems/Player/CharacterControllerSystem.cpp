@@ -10,6 +10,7 @@
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
 #include "Engine/Scene/Entity.h"
+#include <Engine/Scene/Components/Combat/WeaponComponent.h>
 
 void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
@@ -36,7 +37,6 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
         }
     }
 
-
     auto view = registry.view<Engine::TransformComponent, CharacterControllerComponent>();
 
     for (auto entity : view)
@@ -50,41 +50,15 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
         float angle = std::atan2(direction.y, direction.x);
         playerTransformComp.Rotation.z = angle - 65.0f;
 
-
-		controllerComp.lastFireTime += deltaTime;
-
         glm::vec2 input = { 0.0f, 0.0f };
 
         if (Engine::Input::IsKeyPressed(Engine::Key::A)) input.x -= 1.0f;
         if (Engine::Input::IsKeyPressed(Engine::Key::D)) input.x += 1.0f;
         if (Engine::Input::IsKeyPressed(Engine::Key::W)) input.y += 1.0f;
         if (Engine::Input::IsKeyPressed(Engine::Key::S)) input.y -= 1.0f;
-        if (Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0))
-        {
-            if (controllerComp.lastFireTime > controllerComp.fireRate)
-            {
-                ShootProjectile(registry, entity, playerTransformComp.Translation, direction, scene);
-				controllerComp.lastFireTime = 0.0f;
-            }
-
-        }
+        
         controllerComp.velocity = input;
 
     }
 }
 
-void CharacterControllerSystem::ShootProjectile(entt::registry& registry, entt::entity entity, const glm::vec2& position, const glm::vec2& direction, Engine::Scene* scene)
-{
-	Engine::Entity& projectileEntity = scene->CreateEntity("Projectile");
-
-    Engine::TransformComponent& transformComp = projectileEntity.AddComponent<Engine::TransformComponent>();
-    Engine::ProjectileComponent& projectileComp = projectileEntity.AddComponent<Engine::ProjectileComponent>(direction, 5.0f);
-    Engine::SpriteRendererComponent& spriteComp = projectileEntity.AddComponent<Engine::SpriteRendererComponent>();
-
-    projectileComp.Owner = entity;
-
-    spriteComp.Texture = Engine::AssetManager::GetTexture("bullet");
-	transformComp.Translation = glm::vec3(position, 0.0f);
-	transformComp.Rotation.z = std::atan2(direction.y, direction.x);
-	// Add other components as needed
-}

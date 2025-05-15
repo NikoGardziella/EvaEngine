@@ -34,6 +34,7 @@ namespace Engine {
 
         VkBuffer m_buffer;
         VkDeviceMemory m_bufferMemory;
+        VkDevice m_device;
 
         uint32_t m_size;
     };
@@ -59,6 +60,8 @@ namespace Engine {
         VkBuffer m_indexBuffer;
         VkDeviceMemory m_indexBufferMemory;
         uint32_t m_count;
+        VkDevice m_device;
+
         std::vector<uint32_t> m_data;
     };
 

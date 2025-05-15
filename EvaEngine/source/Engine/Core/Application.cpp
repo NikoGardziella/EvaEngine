@@ -50,6 +50,7 @@ namespace Engine
 	{
 		PopLayer(m_imGuiLayer);
 
+		//VulkanContext::Get()->Shutdown();
 	}
 
 	void Application::PushLayer(Layer* layer)

@@ -3,6 +3,7 @@
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
+#include <Engine/Scene/Components/Combat/WeaponComponent.h>
 
 template<typename T>
 bool ParseUtils::SafeGet(const nlohmann::json& j, const std::string& key, T& out)
@@ -129,8 +130,7 @@ bool ParseUtils::ParseComponent(std::string compName, Engine::Entity entity, con
         cc.speed = compData["speed"];
         cc.velocity = glm::vec2(compData["velocity"][0], compData["velocity"][1]);
         cc.onGround = compData["onGround"];
-        cc.fireRate = compData["fireRate"];
-        cc.lastFireTime = compData["lastFireTime"];
+
     }
     else if (compName == "ProjectileComponent")
     {
@@ -181,6 +181,16 @@ bool ParseUtils::ParseComponent(std::string compName, Engine::Entity entity, con
 
 		//healthComp.Current = compData["Health"];
         SafeGet(compData, "Health", healthComp.Max);
+    }
+    else if (compName == "WeaponComponent")
+    {
+        WeaponComponent& weaponComp = entity.HasComponent<WeaponComponent>()
+            ? entity.GetComponent<WeaponComponent>()
+            : entity.AddComponent<WeaponComponent>();
+
+        //healthComp.Current = compData["Health"];
+        SafeGet(compData, "Damage", weaponComp.Damage);
+        SafeGet(compData, "FireRate", weaponComp.FireRate);
     }
     else if (compName == "NPCAIVisionComponent")
     {

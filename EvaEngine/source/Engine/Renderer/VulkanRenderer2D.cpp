@@ -204,6 +204,15 @@ namespace Engine {
 		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("enemy1", Engine::AssetManager::GetAssetPath("textures/zombie_walk_000.png").string());
 		s_VulkanData.TextureSlotIndex++;
 
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("plant", Engine::AssetManager::GetAssetPath("textures/objects_house_0054_Layer-55.png").string());
+		s_VulkanData.TextureSlotIndex++;
+
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("car", Engine::AssetManager::GetAssetPath("textures/car_0001_Layer-2.png").string());
+		s_VulkanData.TextureSlotIndex++;
+
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("house", Engine::AssetManager::GetAssetPath("textures/house.png").string());
+		s_VulkanData.TextureSlotIndex++;
+
 		// Fill the rest of the slots with pixel texture
 		for (uint32_t i = s_VulkanData.TextureSlotIndex; i < s_VulkanData.TextureSlots.size(); i++)
 		{

@@ -19,6 +19,8 @@ namespace Engine {
         VulkanContext(GLFWwindow* windowHandle);
         ~VulkanContext();
 
+        void Shutdown();
+
         struct SwapChainSupportDetails
         {
             VkSurfaceCapabilitiesKHR capabilities;

@@ -49,12 +49,20 @@ namespace Engine {
         {
             vkDestroySurfaceKHR(m_vulkanInstance->GetInstance(), m_surface, nullptr);
         }
+        
+		m_swapchain->Cleanup();
+        vkDestroyRenderPass(m_deviceManager->GetDevice(), m_presentRenderPass, nullptr);
+
         if (m_vulkanInstance->GetInstance() != VK_NULL_HANDLE)
         {
             m_vulkanInstance->DestroyInstance();
         }
-		m_swapchain->Cleanup();
-        vkDestroyRenderPass(m_deviceManager->GetDevice(), m_presentRenderPass, nullptr);
+    }
+
+    void VulkanContext::Shutdown()
+    {
+        delete s_instance;
+        s_instance = nullptr;
     }
 
     void VulkanContext::Init()

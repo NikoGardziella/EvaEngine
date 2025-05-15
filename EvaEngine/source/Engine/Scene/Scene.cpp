@@ -5,6 +5,7 @@
 #include "Engine/Math/Math.h"
 #include "Component.h"
 #include "Engine/Scene/Components/Combat/HealthComponent.h"
+#include "Engine/Scene/Components/Combat/WeaponComponent.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
 #include "ScriptableEntity.h"
@@ -854,6 +855,12 @@ namespace Engine {
 
     template<>
     void Scene::OnComponentAdded<NPCAIVisionComponent>(Entity entity, NPCAIVisionComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::OnComponentAdded<WeaponComponent>(Entity entity, WeaponComponent& component)
     {
 
     }

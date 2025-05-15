@@ -3,9 +3,12 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
+#include <Engine/Debug/Instrumentor.h>
 
 void NpcAIMovementSystem::UpdateNPCAIMovementSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
+    EE_PROFILE_FUNCTION();
+
     auto view = registry.view<NPCAIMovementComponent, Engine::TransformComponent>();
 
     for (auto entity : view)
@@ -54,14 +57,19 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(entt::registry& registry, fl
 
         case AIState::MoveToTarget:
         {
-
+            if (glm::distance2(NPCpos, aiComp.TargetPosition) < 1.1f)
+            {
+                aiComp.CurrentState = AIState::Idle;
+                aiComp.IdleTimer = 0.0f;
+                break;
+            }
 
             glm::vec3 direction = glm::normalize(aiComp.TargetPosition - NPCpos);
             NPCpos += direction * aiComp.MoveSpeed * deltaTime;
 
             float currentAngle = NPCTransformComp.Rotation.z;
             float targetAngle = std::atan2(direction.y, direction.x);
-            float rotationFix = glm::radians(90.0f); // convert degrees to radians
+            float rotationFix = glm::radians(90.0f);
             targetAngle -= rotationFix;
 
             float delta = targetAngle - currentAngle;
@@ -74,11 +82,7 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(entt::registry& registry, fl
             NPCTransformComp.Rotation.z = currentAngle + delta;
 
 
-            if (glm::distance2(NPCpos, aiComp.TargetPosition) < 0.05f)
-            {
-                aiComp.CurrentState = AIState::Idle;
-                aiComp.IdleTimer = 0.0f;
-            }
+            
             break;
         }
         }

@@ -1,8 +1,11 @@
 #include "PlayerMovementSystem.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+#include <Engine/Debug/Instrumentor.h>
 
 void PlayerMovementSystem::MovementSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
+    EE_PROFILE_FUNCTION();
+
     auto view = registry.view<Engine::TransformComponent, CharacterControllerComponent>();
 
     for (auto entity : view)

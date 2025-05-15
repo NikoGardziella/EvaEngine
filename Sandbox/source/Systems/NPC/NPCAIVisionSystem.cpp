@@ -5,9 +5,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+#include <Engine/Debug/Instrumentor.h>
 
 void NPCAIVisionSystem::UpdateNPCAIVisionSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
+    EE_PROFILE_FUNCTION();
+
     auto npcs = registry.view<NPCAIVisionComponent, NPCAIMovementComponent, Engine::TransformComponent>();
 
     for (auto npcEntity : npcs)
@@ -31,12 +34,12 @@ void NPCAIVisionSystem::UpdateNPCAIVisionSystem(entt::registry& registry, float 
 
             if (distSq > visionComp.ViewRadius * visionComp.ViewRadius)
                 continue;
-
+            
 
             //  check view angle
             if (visionComp.ViewAngle < 360.0f)
             {
-                glm::vec3 forward = glm::vec3(0, 0, 1); // Replace with NPC's actual forward if needed
+                glm::vec3 forward = glm::vec3(0, 0, 1);
                 float dot = glm::dot(glm::normalize(toPlayer), forward);
                 float angle = glm::degrees(glm::acos(dot));
                 if (angle > visionComp.ViewAngle * 0.5f)

@@ -1,10 +1,13 @@
 #include "PlayerCollisionSystem.h"
 #include "Engine/Scene/Scene.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+#include <Engine/Debug/Instrumentor.h>
 
 
 void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
+    EE_PROFILE_FUNCTION();
+
     auto staticView = registry.view<Engine::TransformComponent, Engine::BoxCollider2DComponent>();
     auto playerView = registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent>();
 
@@ -31,8 +34,9 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
                     auto& otherTransform = staticView.get<Engine::TransformComponent>(otherEntity);
                     auto& otherBox = staticView.get<Engine::BoxCollider2DComponent>(otherEntity);
 
-                    glm::vec2 boxCenter = glm::vec2(otherTransform.Translation) + otherBox.Offset;
-                    glm::vec2 boxHalfSize = otherBox.Size * 0.5f;
+                    glm::vec2 boxScale = glm::vec2(otherTransform.Scale);
+                    glm::vec2 boxCenter = glm::vec2(otherTransform.Translation) + otherBox.Offset * boxScale;
+                    glm::vec2 boxHalfSize = (otherBox.Size * boxScale);
 
                     glm::vec2 minB = boxCenter - boxHalfSize;
                     glm::vec2 maxB = boxCenter + boxHalfSize;

@@ -41,7 +41,6 @@ namespace Engine {
         void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
         {
             VulkanContext* context = VulkanContext::Get();
-            VkDevice device = context->GetDeviceManager().GetDevice();
 
             VkCommandBuffer commandBuffer = context->BeginSingleTimeCommands();
 
@@ -57,7 +56,7 @@ namespace Engine {
         : m_size(size)
     {
         VulkanContext* context = VulkanContext::Get();
-        VkDevice device = context->GetDeviceManager().GetDevice();
+        m_device = context->GetDeviceManager().GetDevice();
 
         // Create GPU-only vertex buffer
         BufferUtils::CreateBuffer(size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -72,23 +71,24 @@ namespace Engine {
 
         // Copy vertex data to staging buffer
         void* mappedData;
-        vkMapMemory(device, stagingBufferMemory, 0, size, 0, &mappedData);
+        vkMapMemory(m_device, stagingBufferMemory, 0, size, 0, &mappedData);
         memcpy(mappedData, vertices, size);
-        vkUnmapMemory(device, stagingBufferMemory);
+        vkUnmapMemory(m_device, stagingBufferMemory);
 
         // Copy data from staging buffer to GPU buffer
         BufferUtils::CopyBuffer(stagingBuffer, m_buffer, size);
 
         // Cleanup staging buffer
-        vkDestroyBuffer(device, stagingBuffer, nullptr);
-        vkFreeMemory(device, stagingBufferMemory, nullptr);
+        vkDestroyBuffer(m_device, stagingBuffer, nullptr);
+        vkFreeMemory(m_device, stagingBufferMemory, nullptr);
     }
 
     VulkanVertexBuffer::~VulkanVertexBuffer()
     {
-        VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
-        vkDestroyBuffer(device, m_buffer, nullptr);
-        vkFreeMemory(device, m_bufferMemory, nullptr);
+        vkDeviceWaitIdle(m_device);
+
+        vkDestroyBuffer(m_device, m_buffer, nullptr);
+        vkFreeMemory(m_device, m_bufferMemory, nullptr);
     }
 
     
@@ -118,7 +118,6 @@ namespace Engine {
     void VulkanVertexBuffer::SetData(const void* data, uint32_t size)
     {
         VulkanContext* context = VulkanContext::Get();
-        VkDevice device = context->GetDeviceManager().GetDevice();
 
         // Use a staging buffer instead of direct memory mapping
         VkBuffer stagingBuffer;
@@ -128,14 +127,14 @@ namespace Engine {
             stagingBuffer, stagingBufferMemory);
 
         void* mappedData;
-        vkMapMemory(device, stagingBufferMemory, 0, size, 0, &mappedData);
+        vkMapMemory(m_device, stagingBufferMemory, 0, size, 0, &mappedData);
         memcpy(mappedData, data, size);
-        vkUnmapMemory(device, stagingBufferMemory);
+        vkUnmapMemory(m_device, stagingBufferMemory);
 
         BufferUtils::CopyBuffer(stagingBuffer, m_buffer, size);
 
-        vkDestroyBuffer(device, stagingBuffer, nullptr);
-        vkFreeMemory(device, stagingBufferMemory, nullptr);
+        vkDestroyBuffer(m_device, stagingBuffer, nullptr);
+        vkFreeMemory(m_device, stagingBufferMemory, nullptr);
     }
 
     void VulkanVertexBuffer::SetMat4InstanceAttribute(uint32_t location)
@@ -145,7 +144,7 @@ namespace Engine {
     VulkanIndexBuffer::VulkanIndexBuffer(uint32_t* indices, uint32_t count)
     {
         VulkanContext* context = VulkanContext::Get();
-        VkDevice device = context->GetDeviceManager().GetDevice();
+        m_device = context->GetDeviceManager().GetDevice();
         VkDeviceSize bufferSize = sizeof(uint32_t) * count;
 
         // Create GPU-only index buffer
@@ -161,29 +160,30 @@ namespace Engine {
 
         // Copy data to staging buffer
         void* mappedData;
-        vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &mappedData);
+        vkMapMemory(m_device, stagingBufferMemory, 0, bufferSize, 0, &mappedData);
         memcpy(mappedData, indices, (size_t)bufferSize);
-        vkUnmapMemory(device, stagingBufferMemory);
+        vkUnmapMemory(m_device, stagingBufferMemory);
 
         // Copy to GPU buffer
         BufferUtils::CopyBuffer(stagingBuffer, m_indexBuffer, bufferSize);
 
-        vkDestroyBuffer(device, stagingBuffer, nullptr);
-        vkFreeMemory(device, stagingBufferMemory, nullptr);
+        vkDestroyBuffer(m_device, stagingBuffer, nullptr);
+        vkFreeMemory(m_device, stagingBufferMemory, nullptr);
     }
 
     VulkanIndexBuffer::~VulkanIndexBuffer()
     {
-        VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
+        vkDeviceWaitIdle(m_device);
 
         if (m_indexBuffer != VK_NULL_HANDLE)
         {
-            vkDestroyBuffer(device, m_indexBuffer, nullptr); 
+
+            vkDestroyBuffer(m_device, m_indexBuffer, nullptr);
         }
 
         if (m_indexBufferMemory != VK_NULL_HANDLE) 
         {
-            vkFreeMemory(device, m_indexBufferMemory, nullptr);
+            vkFreeMemory(m_device, m_indexBufferMemory, nullptr);
         }
     }
 
@@ -234,6 +234,8 @@ namespace Engine {
 
     void VulkanBuffer::Destroy()
     {
+        vkDeviceWaitIdle(m_device);
+
         vkDestroyBuffer(m_device, m_buffer, nullptr);
         vkFreeMemory(m_device, m_memory, nullptr);
         

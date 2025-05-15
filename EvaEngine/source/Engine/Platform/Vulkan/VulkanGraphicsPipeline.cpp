@@ -70,6 +70,7 @@ namespace Engine {
         vkDestroyPipeline(m_device, m_gameGraphicsPipeline, nullptr);
         vkDestroyPipelineLayout(m_device, m_gamePipelineLayout, nullptr);
         vkDestroyPipelineLayout(m_device, m_imguiPipelineLayout, nullptr);
+        vkDestroyPipelineLayout(m_device, m_linePipelineLayout, nullptr);
     }
 
  

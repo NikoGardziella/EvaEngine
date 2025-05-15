@@ -11,6 +11,7 @@
 #include "ImGuizmo/ImGuizmo.h"
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
+#include <Engine/Scene/Components/Combat/WeaponComponent.h>
 
 //#include "entt.hpp"
 
@@ -517,6 +518,17 @@ namespace Engine {
 
                 }
             }
+            if (ImGui::MenuItem("Weapon Component"))
+            {
+                m_selectionContext.AddComponent<WeaponComponent>();
+                ImGui::CloseCurrentPopup();
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (entity)
+                {
+                    m_newComponentsContext->GetRegistry().emplace<WeaponComponent>(entity);
+
+                }
+            }
             if (ImGui::MenuItem("NPC movement Component"))
             {
                 m_selectionContext.AddComponent<NPCAIMovementComponent>();
@@ -542,6 +554,31 @@ namespace Engine {
             ImGui::EndPopup();
         }
         ImGui::PopItemWidth();
+
+
+        DrawComponent<WeaponComponent>("Weapon", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
+            {
+                ImGui::DragFloat("Damage", &component.Damage, 0.1f, 0.0f, 100.0f);
+                ImGui::DragFloat("Fire Rate", &component.FireRate, 0.1f, 0.0f, 100.0f);
+                ImGui::DragFloat("Cooldown", &component.Cooldown, 0.1f, 0.0f, 100.0f);
+
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID),
+                 m_newComponentsContext.get()
+                };
+
+                if (newEntity)
+                {
+                    if (!newEntity.HasComponent<WeaponComponent>())
+                    {
+                        newEntity.AddComponent<WeaponComponent>();
+                    }
+
+                    newEntity.GetComponent<WeaponComponent>() = component;
+                }
+
+
+            });
 
         DrawComponent<HealthComponent>("Health", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {

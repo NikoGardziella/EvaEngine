@@ -382,6 +382,7 @@ namespace Engine {
 
     void VulkanSwapchain::Cleanup()
     {
+        vkDeviceWaitIdle(m_device);
         for (auto imageView : m_swapchainImageViews)
         {
             vkDestroyImageView(m_device, imageView, nullptr);

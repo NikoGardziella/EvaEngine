@@ -33,6 +33,8 @@
     <ClInclude Include="source\Systems\NPC\NpcAIMovementSystem.h" />
     <ClInclude Include="source\Systems\NPC\NPCAIVisionSystem.h" />
     <ClInclude Include="source\Systems\Player\PlayerMovementSystem.h" />
+    <ClInclude Include="source\Systems\Player\Camera\PlayerCameraSystem.h" />
+    <ClInclude Include="source\Systems\Combat\PlayerWeaponSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -54,5 +56,7 @@
     <ClCompile Include="source\Systems\NPC\NpcAIMovementSystem.cpp" />
     <ClCompile Include="source\Systems\NPC\NPCAIVisionSystem.cpp" />
     <ClCompile Include="source\Systems\Player\PlayerMovementSystem.cpp" />
+    <ClCompile Include="source\Systems\Player\Camera\PlayerCameraSystem.cpp" />
+    <ClCompile Include="source\Systems\Combat\PlayerWeaponSystem.cpp" />
   </ItemGroup>
 </Project>
