@@ -195,19 +195,19 @@ namespace Engine {
 		s_VulkanData.TextureSlots[5] = AssetManager::AddTexture("bullet", Engine::AssetManager::GetAssetPath("textures/Fire_small_asset.png").string());
 		s_VulkanData.TextureSlotIndex++;
 
-		s_VulkanData.TextureSlots[6] = AssetManager::AddTexture("enemy", Engine::AssetManager::GetAssetPath("textures/walk_000.png").string());
+		s_VulkanData.TextureSlots[6] = AssetManager::AddTexture("zombie1_walk_000", Engine::AssetManager::GetAssetPath("textures/zombie1_walk_000.png").string());
 		s_VulkanData.TextureSlotIndex++;
 
-		s_VulkanData.TextureSlots[7] = AssetManager::AddTexture("wall", Engine::AssetManager::GetAssetPath("textures/walls_0019_Layer-20.png").string());
+		s_VulkanData.TextureSlots[7] = AssetManager::AddTexture("wall_0019", Engine::AssetManager::GetAssetPath("textures/wall_0019.png").string());
 		s_VulkanData.TextureSlotIndex++;
 
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("enemy1", Engine::AssetManager::GetAssetPath("textures/zombie_walk_000.png").string());
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("zombie_walk_000", Engine::AssetManager::GetAssetPath("textures/zombie_walk_000.png").string());
 		s_VulkanData.TextureSlotIndex++;
 
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("plant", Engine::AssetManager::GetAssetPath("textures/objects_house_0054_Layer-55.png").string());
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("objects_plant", Engine::AssetManager::GetAssetPath("textures/objects_plant.png").string());
 		s_VulkanData.TextureSlotIndex++;
 
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("car", Engine::AssetManager::GetAssetPath("textures/car_0001_Layer-2.png").string());
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("car_0001", Engine::AssetManager::GetAssetPath("textures/car_0001.png").string());
 		s_VulkanData.TextureSlotIndex++;
 
 		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("house", Engine::AssetManager::GetAssetPath("textures/house.png").string());
@@ -235,13 +235,13 @@ namespace Engine {
 
 
 		
-		// 1. Sync
+		// Sync
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
 		m_vulkanGraphicsPipelines->UpdateUniformBuffer(currentFrame, s_VulkanData.CameraBuffer.ViewProjection);
 
-		// 2. Acquire. Max current frame is 2 and max swapchain images is 3.
+		// Acquire. Max current frame is 2 and max swapchain images is 3.
 		// set in Renderer.h 	const int MAX_FRAMES_IN_FLIGHT = 2;
 		
 		VkResult result = vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &m_imageIndex);
@@ -249,6 +249,9 @@ namespace Engine {
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			m_vulkanContext->GetVulkanSwapchain().RecreateSwapchain();
+			CreateSyncObjects();
+			m_swapchain = m_vulkanContext->GetVulkanSwapchain().GetSwapchain();
+			m_swapchainExtent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
 			return;
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -256,7 +259,7 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to acquire swapchain image!");
 		}
 
-		// 3. Record Game Pass
+		// Record Game Pass
 		vkResetCommandBuffer(cmd, 0);
 
 		VkCommandBufferBeginInfo beginInfo{};
@@ -264,9 +267,6 @@ namespace Engine {
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
-
-
-		//From RecordGameCommand()
 
 		// --- Begin render pass ---
 		VkRenderPassBeginInfo renderPassInfo{};
@@ -305,11 +305,7 @@ namespace Engine {
 		m_vertexOffset = 0;
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 
-
-
-		// 2. Re-bind your pipeline
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetLinePipeline());
-
 
 		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetLineDescriptorSet();
 		vkCmdBindDescriptorSets(
@@ -321,16 +317,13 @@ namespace Engine {
 			0, nullptr
 		);
 
-		// 4. Re-bind vertex buffer
 		VkBuffer vertexBuffers[] = { s_VulkanData.LineVertexBuffer->GetBuffer() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
 
 		vkCmdSetLineWidth(cmd, 3.0f);
-		// 6. Draw your lines
+
 		vkCmdDraw(cmd, s_VulkanData.LineVertexCount, 1, 0, 0);
-
-
 
 		// End RecordGameDrawCommands render pass
 		vkCmdEndRenderPass(cmd);
@@ -340,11 +333,9 @@ namespace Engine {
 
 		RecordEditorDrawCommands(cmd, m_imageIndex, currentFrame);
 
-		
-		// RecordImGuiDrawCommands(cmd, imageIndex);
 		vkEndCommandBuffer(cmd);
 
-		// 4. Submit
+		// Submit
 		VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[currentFrame] };
 		VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[currentFrame] };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -364,7 +355,7 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to submit draw command buffer!");
 		}
 
-		// 5. Present
+		// Present
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
@@ -378,14 +369,15 @@ namespace Engine {
 		if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
 		{
 			m_vulkanContext->GetVulkanSwapchain().RecreateSwapchain();
+			CreateSyncObjects();
+			m_swapchain = m_vulkanContext->GetVulkanSwapchain().GetSwapchain();
+			m_swapchainExtent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
+			return;
 		}
 		else if (presentResult != VK_SUCCESS)
 		{
 			EE_CORE_ASSERT(false, "Failed to present swapchain image!");
 		}
-
-		
-
 
 	}
 
@@ -401,7 +393,7 @@ namespace Engine {
 
 		s_VulkanData.LineVertexBufferPtr = s_VulkanData.LineVertexBufferBase;
 		s_VulkanData.LineVertexCount = 0;
-		
+	
 
 	}
 
@@ -971,18 +963,18 @@ namespace Engine {
 
 	void VulkanRenderer2D::EndScene()
 	{
-		EE_PROFILE_FUNCTION();
+		//EE_PROFILE_FUNCTION();
 		// Flush the batch
 		uint32_t dataSize = (uint32_t)((uint8_t*)s_VulkanData.QuadVertexBufferPtr - (uint8_t*)s_VulkanData.QuadVertexBufferBase);
 		if (dataSize > 0)
 		{
-			EE_PROFILE_SCOPE("VulkanRenderer2D::EndScene - Flush Quad Data");
+			EE_PROFILE_SCOPE("Flush Quad");
 			s_VulkanData.QuadVertexBuffer->SetData(s_VulkanData.QuadVertexBufferBase, dataSize);
 		}
 
 		if (s_VulkanData.LineVertexCount > 0)
 		{
-			EE_PROFILE_SCOPE("VulkanRenderer2D::EndScene - Flush line Data");
+			EE_PROFILE_SCOPE("Flush line");
 
 			s_VulkanData.LineVertexBuffer->SetData(s_VulkanData.LineVertexBufferBase, s_VulkanData.LineVertexCount * sizeof(VulkanLineVertex));
 		}

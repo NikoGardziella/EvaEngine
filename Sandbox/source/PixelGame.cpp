@@ -59,12 +59,7 @@ void PixelGame::OnAttach()
 	{
 		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
 	}
-
-
-	//m_logoTexture = Engine::AssetManager::GetTexture("logo");
 	
-
-
 }
 
 void PixelGame::OnDetach()
@@ -83,24 +78,12 @@ void PixelGame::OnImGuiRender()
 
 void PixelGame::OnUpdate(Engine::Timestep timestep)
 {
-
-	m_timer += timestep;
-	if (m_timer < 0.0f)
-	{
-		return;
-	}
-	m_timer = 0.0f;
-
 	EE_PROFILE_FUNCTION();
+
 	{
 		m_orthoCameraController.OnUpdate(timestep);
 	}
 	
-	//Engine::VulkanRenderer2D::ResetStats();
-	{
-		EE_PROFILE_SCOPE("render pre");
-
-	}
 
 	{
 		//m_framebuffer->ClearColorAttachment(1, -1)
@@ -112,8 +95,7 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 
 
 			const glm::mat4 viewProjection = m_orthoCameraController.GetCamera().GetViewProjectionMatrix();
-			
-			
+					
 			glm::vec2 position = { 5.9f, 0.7f };
 			glm::vec2 size = { 10.0f, 4.0f }; // Width = 2, Height = 3
 			glm::vec4 color = { 0.1f, 0.9f, 0.1f, 1.0f };
@@ -121,19 +103,6 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 				glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
 
 
-			//Engine::VulkanRenderer2D::DrawTextureQuad(transform, m_pixelTexture, 1, color);
-			
-			//Engine::TransformComponent& cameraTransformComp = m_cameraEntity.GetComponent<Engine::TransformComponent>();
-
-			//Engine::VulkanRenderer2D::BeginScene();
-			//Engine::VulkanRenderer2D::DrawQuad(transform, color, -1);
-			//Engine::VulkanRenderer2D::EndScene();
-			
-			
-			
-
-			//m_pixelTexture->SetPixel(0, 1, 255, 255, 255, 0);
-			//m_pixelTexture->ApplyChanges();
 
 		}
 	}
@@ -147,28 +116,10 @@ void PixelGame::OnEvent(Engine::Event& event)
 
 void PixelGame::OnGameStart()
 {
-	//m_squareEntity = m_activeScene->CreateEntity("square");
-	//m_squareEntity.AddComponent<Engine::TransformComponent>();
-	//m_squareEntity.AddComponent<Engine::SpriteRendererComponent>();
-
-
-	/*
-	m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
-	m_pixelEntity.AddComponent<Engine::TransformComponent>();
-
-	//m_logoEntity.AddComponent<Engine::SpriteRendererComponent>();
-	auto& renderComp = m_pixelEntity.AddComponent<Engine::PixelSpriteRendererComponent>();
-	renderComp.Texture = m_pixelTexture;
-	*/
 
 	CreateGameEntities();
 	m_activeScene->OnRunTimeStart();
 	
-
-	
-
-	//Engine::SceneCamera Camera = m_cameraEntity.GetComponent<Engine::CameraComponent>().Camera;
-
 	m_isPlaying = true;
 }
 

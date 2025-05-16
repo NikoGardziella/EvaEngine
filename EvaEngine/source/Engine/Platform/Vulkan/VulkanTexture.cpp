@@ -55,8 +55,9 @@ namespace Engine {
         imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        if (vkCreateImage(device, &imageInfo, nullptr, &m_image) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create image!");
+        if (vkCreateImage(device, &imageInfo, nullptr, &m_image) != VK_SUCCESS)
+        {
+			EE_CORE_ASSERT(false, "Failed to create image!");
         }
 
         // 2. Allocate memory and bind
@@ -71,8 +72,9 @@ namespace Engine {
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         );
 
-        if (vkAllocateMemory(device, &allocInfo, nullptr, &m_imageMemory) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to allocate image memory!");
+        if (vkAllocateMemory(device, &allocInfo, nullptr, &m_imageMemory) != VK_SUCCESS)
+        {
+			EE_CORE_ASSERT(false, "Failed to allocate image memory!");
         }
 
         vkBindImageMemory(device, m_image, m_imageMemory, 0);
@@ -107,6 +109,7 @@ namespace Engine {
     void VulkanTexture::CreateTextureImage(const std::string& path)
     {
         int texWidth, texHeight, texChannels;
+        stbi_set_flip_vertically_on_load(true);
         stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         if (!pixels)
         {

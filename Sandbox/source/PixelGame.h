@@ -51,7 +51,6 @@ private:
 	Engine::Ref<Engine::VulkanTexture> m_logoTexture;
 	Engine::Ref<Engine::VulkanTexture> m_playerTexture;
 
-	float m_timer = 0.0f;
 
 };
 

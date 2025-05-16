@@ -11,6 +11,7 @@
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include "Components/Player/CharacterControllerComponent.h"
+#include "Components/Combat/WeaponComponent.h"
 
 
 namespace Engine {
@@ -242,6 +243,25 @@ namespace Engine {
             out << YAML::EndMap;
         }
 
+        inline void SerializeWeaponComponent(Entity entity,YAML::Emitter& out)
+        {
+            if (!entity.HasComponent<WeaponComponent>())
+                return;
+
+            const WeaponComponent& comp = entity.GetComponent<WeaponComponent>();
+
+            out << YAML::Key << "WeaponComponent";
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "Damage" << YAML::Value << comp.Damage;
+            out << YAML::Key << "FireRate" << YAML::Value << comp.FireRate;
+            // Cooldown and IsFiring are runtime values, usually not serialized
+            // out << YAML::Key << "Cooldown"  << YAML::Value << comp.Cooldown;
+            // out << YAML::Key << "IsFiring"  << YAML::Value << comp.IsFiring;
+
+            out << YAML::EndMap;
+        }
+
 
         // Serializes an individual entity by checking for each component.
         void SerializeEntity(Entity entity, YAML::Emitter& out)
@@ -279,6 +299,9 @@ namespace Engine {
                 SerializeNPCAIVisionComponent(entity, out);
             if (entity.HasComponent<CharacterControllerComponent>())
                 SerializeCharacterControllerComponent(entity, out);
+            if (entity.HasComponent<WeaponComponent>())
+                SerializeWeaponComponent(entity, out);
+
 
 
 
@@ -287,6 +310,27 @@ namespace Engine {
 
 
         //************************* Deserialize ****************************************
+
+        inline void DeserializeWeaponComponent(Entity entity, const YAML::Node& entityNode)
+        {
+            if (entityNode["WeaponComponent"])
+            {
+                WeaponComponent& comp = entity.AddComponent<WeaponComponent>();
+                const auto& node = entityNode["WeaponComponent"];
+
+                if (node["Damage"])
+                    comp.Damage = node["Damage"].as<float>();
+
+                if (node["FireRate"])
+                    comp.FireRate = node["FireRate"].as<float>();
+
+                // Cooldown and IsFiring are runtime values; reset to default
+                comp.Cooldown = 0.0f;
+                comp.IsFiring = false;
+            }
+        }
+
+
 
         inline void DeserializeHealthComponent(Entity entity, const YAML::Node& entityNode)
         {
@@ -561,6 +605,7 @@ namespace Engine {
 			DeserializeNPCAIMovementComponent(entity, entityNode);
 			DeserializeNPCAIVisionComponent(entity, entityNode);
 			DeserializeCharacterControllerComponent(entity, entityNode);
+			DeserializeWeaponComponent(entity, entityNode);
         }
 
 

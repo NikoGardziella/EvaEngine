@@ -4,7 +4,7 @@ Entities:
     TagComponent:
       Tag: player
     TransformComponent:
-      Translation: [-8.190384, -8.311253, 0]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, -62.11985]
       Scale: [1, 1, 1]
     SpriteRendererComponent:

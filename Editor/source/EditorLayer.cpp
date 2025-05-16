@@ -104,7 +104,7 @@ namespace Engine {
         framebufferSpecs.Width = 1280;
         //m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
 
-        m_editorCamera = EditorCamera(30.0f, 1.78f, 0.1f, 1000.0f);
+        m_editorCamera = EditorCamera(45.0f, 1.78f, 0.1f, 1000.0f);
 
        // m_framebuffer = m_editor.get()->GetGameLayer()->GetGameFramebuffer();
 
@@ -332,6 +332,7 @@ namespace Engine {
             ImGui::Text("Lines: %d", stats.LineCount);
             ImGui::Text("Texture GPU memory cache: %.2f MB", AssetManager::s_totalTextureMemory / (1024.0f * 1024.0f));
             ImGui::Text("FPS: %d", m_fpsCounter.GetFPS());
+            ImGui::Text("Entity count: %d", m_sceneHierarchyPanel.GetEntityCount());
 
             ImGui::End();
 
@@ -794,6 +795,12 @@ namespace Engine {
 
             for (const nlohmann::json& compData : e["components"])
             {
+                if (!compData.contains("type") || !compData["type"].is_string())
+                {
+                    EE_CORE_WARN("Component is missing 'type' or it's not a string:\n{}", compData.dump(4));
+                    continue;
+                }
+
                 std::string compName = compData["type"];
 
                 if (compName == "TagComponent")
@@ -943,7 +950,7 @@ namespace Engine {
                 }
                 case Engine::EditorLayer::SceneState::Play:
                 {
-                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateRuntime(timestep);
+                    //m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateRuntime(timestep);
                     break;
                 }
                 case Engine::EditorLayer::SceneState::Pause:

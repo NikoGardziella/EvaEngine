@@ -236,6 +236,7 @@ namespace Engine {
 
         auto view = m_gameContext->m_registry.view<TagComponent>();
         std::vector<entt::entity> entityList(view.begin(), view.end());
+		m_entityCount = (int)entityList.size();
 		// I want new entities to be at the bottom of the list
         std::reverse(entityList.begin(), entityList.end());
         for (auto entityID : entityList)
@@ -742,7 +743,11 @@ namespace Engine {
             {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
 
-                ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+                const char* textureButtonText = component.Texture
+                    ? component.Texture->GetName().c_str()
+                    : "Add Texture";
+
+                ImGui::Button(textureButtonText, ImVec2(100.0f, 0.0f));
 
                 if (ImGui::BeginDragDropTarget())
                 {
@@ -750,8 +755,14 @@ namespace Engine {
                     {
                         const wchar_t* path = (const wchar_t*)payload->Data;
                         std::filesystem::path texturePath = std::filesystem::path(AssetManager::GetAssetFolderPath()) / path;
+                        std::string textureName = texturePath.stem().string();
 
-                        component.Texture = AssetManager::AddTexture(texturePath.string(), texturePath.string());
+						component.Texture = AssetManager::GetTexture(textureName);
+						if (!component.Texture)
+						{
+							component.Texture = AssetManager::AddTexture(textureName, texturePath.string());
+						}
+						
                     }
                     ImGui::EndDragDropTarget();
                 }

@@ -238,6 +238,10 @@ namespace Engine {
 
     void VulkanSwapchain::CreateFramebuffers(VkRenderPass renderPass, VkRenderPass imGuiRenderPass, VkRenderPass gameRenderPass, VkDevice device)
     {
+        m_renderPass = renderPass;
+        m_imGuiRenderPass = imGuiRenderPass;
+        m_gameRenderPass = gameRenderPass;
+
         // Resize framebuffer vectors based on the number of swapchain images
         size_t swapchainImageCount = m_swapchainImageViews.size();
         m_swapchainFramebuffers.resize(swapchainImageCount);
@@ -383,6 +387,25 @@ namespace Engine {
     void VulkanSwapchain::Cleanup()
     {
         vkDeviceWaitIdle(m_device);
+
+        for (auto framebuffer : m_swapchainFramebuffers)
+        {
+            vkDestroyFramebuffer(m_device, framebuffer, nullptr);
+        }
+        m_swapchainFramebuffers.clear();
+
+        for (auto framebuffer : m_imguiFramebuffers)
+        {
+            vkDestroyFramebuffer(m_device, framebuffer, nullptr);
+        }
+        m_imguiFramebuffers.clear();
+
+        for (auto framebuffer : m_gameFramebuffers)
+        {
+            vkDestroyFramebuffer(m_device, framebuffer, nullptr);
+        }
+        m_gameFramebuffers.clear();
+
         for (auto imageView : m_swapchainImageViews)
         {
             vkDestroyImageView(m_device, imageView, nullptr);
@@ -396,13 +419,19 @@ namespace Engine {
 
     void VulkanSwapchain::RecreateSwapchain()
     {
-        vkDeviceWaitIdle(m_device); // Ensure no resources are in use before recreating
+        vkDeviceWaitIdle(m_device);
 
-        Cleanup(); // Destroy old swapchain resources
+        Cleanup(); 
 
-        CreateSwapchain(); // Recreate the swapchain
+        CreateSwapchain(); 
         CreateImageViews();
+        RecreateFrambuffers();
     }
+
+	void VulkanSwapchain::RecreateFrambuffers()
+	{
+        CreateFramebuffers(m_renderPass, m_imGuiRenderPass, m_gameRenderPass, m_device);       
+	}
 
     uint32_t VulkanSwapchain::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
     {

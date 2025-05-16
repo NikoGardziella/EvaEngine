@@ -1,9 +1,11 @@
 #include "PlayerCameraSystem.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+#include <Engine/Debug/Instrumentor.h>
 
 void PlayerCameraSystem::UpdatePlayerCameraSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
-    // Find player (first entity with CharacterControllerComponent)
+    EE_PROFILE_FUNCTION();
+
     auto view = registry.view<Engine::TransformComponent, CharacterControllerComponent>();
 
     for (auto entity : view)

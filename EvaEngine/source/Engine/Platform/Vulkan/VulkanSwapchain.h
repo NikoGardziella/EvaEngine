@@ -13,6 +13,7 @@ namespace Engine {
         ~VulkanSwapchain();
 
         void RecreateSwapchain();
+        void RecreateFrambuffers();
         void CreateFramebuffers(VkRenderPass renderPass, VkRenderPass imGuiRenderPass, VkRenderPass gameRenderPass, VkDevice device);
         void Cleanup();
 
@@ -63,6 +64,10 @@ namespace Engine {
 
         std::vector<VulkanTracked> m_presentTrackedImages;
         std::vector<VulkanTracked> m_gameTrackedImages;
+
+        VkRenderPass m_renderPass;
+        VkRenderPass m_imGuiRenderPass;
+        VkRenderPass m_gameRenderPass;
     };
 
 }

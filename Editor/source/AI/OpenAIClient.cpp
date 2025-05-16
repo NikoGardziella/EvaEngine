@@ -95,14 +95,15 @@ namespace Engine
                         "Do not include id when creating new entities the engine will assign them."
                         "Each entity must be an object with a 'components' array.Each component must be an object with a 'type' field(e.g., 'TransformComponent') and all relevant fields for that component."
                         "Do not use component types as top - level keys inside each entity."
-                        "Supported components : TagComponent(string: Tag, add name for the entity), TransformComponent(Use this for most entities. vec3: Translation, Rotation, Scale), SpriteRendererComponent(Texture),"
+                        "Supported components : TagComponent(string: Tag, add name for the entity), TransformComponent(Use this for most entities. vec3: Translation(always z = 0), Rotation, Scale),"
+                        "SpriteRendererComponent(Texture),"
                         "ProjectileComponent, BoxCollider2DComponent, CircleCollider2DComponent. NPCAIMovementComponent, NPCAIVisionComponent"
                         "HealthComponent(float: 'Health'), WeaponComponent(float, Damage, FireRate)"
-                        "The 'SpriteRendererComponent'Texture must be one of : player, wall, enemy, enemy1, plant, car, house"
+                        "The 'SpriteRendererComponent'Texture must be one of : player, wall_0019, zombie1_walk_000, zombie_walk_000, objects_plant, car_0001, house"
                     }},
                 })},
                 {"temperature", 0.7},
-                {"max_tokens", 1000}
+                {"max_tokens", 2000}
             };
 
             req["messages"].push_back({
@@ -126,66 +127,64 @@ namespace Engine
                 return {};
             }
 
-            json parsedResp = json::parse(resp);
-
-            EE_CORE_TRACE("OpenAI raw response:\n{}", parsedResp.dump(4));
-
-            if (!parsedResp.contains("choices") || !parsedResp["choices"].is_array() || parsedResp["choices"].empty())
+            json parsedResp;
+            try {
+                parsedResp = json::parse(resp);
+            }
+            catch (const std::exception& e)
             {
-                EE_CORE_WARN("Response is missing 'choices' or it's invalid:\n{}", parsedResp.dump(4));
+                EE_CORE_ERROR("Failed to parse OpenAI response JSON: {}", e.what());
                 return {};
             }
 
-            const auto& message = parsedResp["choices"][0]["message"];
+            EE_CORE_TRACE("OpenAI raw response:\n{}", parsedResp.dump(4));
+
+            // Validate 'choices'
+            const auto choicesIt = parsedResp.find("choices");
+            if (choicesIt == parsedResp.end() || !choicesIt->is_array() || choicesIt->empty())
+            {
+                EE_CORE_WARN("Response is missing 'choices' or it's not a non-empty array.");
+                return {};
+            }
+
+            const auto& message = (*choicesIt)[0]["message"];
+
+            // Validate 'content'
             if (!message.contains("content") || !message["content"].is_string())
             {
                 EE_CORE_WARN("'message.content' is missing or not a string.");
                 return {};
             }
 
-            std::string content = message["content"].get<std::string>();
+            const std::string& content = message["content"].get<std::string>();
 
-            if (content.empty() || content.find_first_not_of(" \t\n\r") == std::string::npos)
+            if (content.find_first_not_of(" \t\n\r") == std::string::npos)
             {
-                EE_CORE_WARN("Response content is empty or whitespace.");
+                EE_CORE_WARN("Response content is empty or only whitespace.");
                 return {};
             }
 
-            // Try parsing the content as JSON
+            // Parse 'content' as JSON
+            json parsedContent;
             try
             {
-                json parsed = json::parse(content); // << key line
-                if (!parsed.is_object() && !parsed.is_array())
-                {
-                    EE_CORE_WARN("Parsed JSON is not an object or array.");
-                    return {};
-                }
-
-                // You could validate here that "entities" exists or "components" are arrays, etc.
+                parsedContent = json::parse(content);
             }
             catch (const std::exception& e)
             {
-                EE_CORE_ERROR("Failed to parse content as JSON:\n{}\nError: {}", content, e.what());
+                EE_CORE_ERROR("Failed to parse 'message.content' as JSON: {}\nRaw content:\n{}", e.what(), content);
                 return {};
             }
 
-            try
+            // Validate structure
+            if (!parsedContent.contains("entities") || !parsedContent["entities"].is_array())
             {
-                json parsed = json::parse(content);
-
-                if (!parsed.contains("entities") || !parsed["entities"].is_array())
-                {
-                    EE_CORE_WARN("Parsed content does not contain a valid 'entities' array:\n{}", parsed.dump(4));
-                    return {};
-                }
-            }
-            catch (const std::exception& e)
-            {
-                EE_CORE_WARN("Failed to parse content as JSON: {}\nRaw content:\n{}", e.what(), content);
+                EE_CORE_WARN("Parsed content does not contain a valid 'entities' array:\n{}", parsedContent.dump(4));
                 return {};
             }
 
             return content;
+
         }
 
 

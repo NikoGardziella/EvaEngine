@@ -69,7 +69,7 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(entt::registry& registry, fl
 
             float currentAngle = NPCTransformComp.Rotation.z;
             float targetAngle = std::atan2(direction.y, direction.x);
-            float rotationFix = glm::radians(90.0f);
+            float rotationFix = glm::radians(-90.0f);
             targetAngle -= rotationFix;
 
             float delta = targetAngle - currentAngle;
