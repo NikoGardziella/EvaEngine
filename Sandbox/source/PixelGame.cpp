@@ -137,10 +137,11 @@ void PixelGame::OnGameStop()
 		m_activeSceneName = "currentScene";
 		
 	}
+	m_activeScene->ClearRegistry();
+	
 	Engine::SceneSerializer serializer(m_activeScene);
 	serializer.Deserialize(Engine::AssetManager::GetScenePath(m_activeSceneName).string());
 
-	m_activeScene->ClearRegistry();
 }
 
 void PixelGame::CreateGameEntities()

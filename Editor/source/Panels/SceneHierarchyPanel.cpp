@@ -28,7 +28,6 @@ namespace Engine {
 
 	void SceneHierarchyPanel::SetEditorContext(const Ref<Scene>& context)
 	{
-        m_editorContext = context;
         m_selectionContext = {};
 
 	}

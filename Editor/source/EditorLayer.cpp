@@ -69,8 +69,7 @@ namespace Engine {
     EditorLayer::EditorLayer(Editor* editor)
         : Layer("EditorLayer"),
         m_orthoCameraController(1280.0f / 720.0f, true),
-        m_editor(editor),
-		m_activeSceneRegistry(m_editorScene->GetRegistry())
+        m_editor(editor)
     {
 
     }
@@ -636,9 +635,11 @@ namespace Engine {
         m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStop();
 
         //SaveScene();
+        m_sceneHierarchyPanel.SetGameContext(m_editorScene);
+        //m_editor.get()->GetGameLayer()->SetActiveScene(m_editorScene);
 
         m_editor.get()->GetGameLayer()->OnGameStop();
-        //m_editor.get()->GetGameLayer()->SetActiveScene(m_activeScene);
+       // m_editor.get()->GetGameLayer()->SetActiveScene(m_activeScene);
 
     }
 
@@ -759,9 +760,9 @@ namespace Engine {
 
         // create a map of existing entities in scene
         std::unordered_map<UUID, Entity> existingEntities;
-        for (auto ent : m_editorScene->GetAllEntitiesWith<IDComponent>())
+        for (auto ent : m_sceneHierarchyPanel.GetNewComponentsContext()->GetAllEntitiesWith<IDComponent>())
         {
-			Entity e = Entity{ ent, m_editorScene.get() };
+			Entity e = Entity{ ent, m_sceneHierarchyPanel.GetNewComponentsContext().get() };
 
             UUID ID = e.GetComponent<IDComponent>().ID;
             existingEntities[ID] = e;

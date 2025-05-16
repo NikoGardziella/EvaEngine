@@ -40,12 +40,9 @@ namespace Engine {
 
 	private:
 
-		// remove thus
-		Ref<Scene> m_editorContext;
 		Ref<Scene> m_gameContext;
-
-		// change this to registry only?
 		Ref<Scene> m_newComponentsContext;
+
 		Entity m_selectionContext;
 		Entity m_editorSelectionContext;
 		int m_guizmoType = -1;

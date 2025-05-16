@@ -136,8 +136,7 @@ namespace Engine {
 
 		FPSCounter m_fpsCounter;
 
-		// AI panel
-		entt::registry& m_activeSceneRegistry;
+		
 	};
 
 }
