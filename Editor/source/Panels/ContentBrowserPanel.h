@@ -1,8 +1,5 @@
 #pragma once
 #include "filesystem"
-#include <gl/GL.h>
-#include <Engine/Platform/OpenGl/OpenGLTexture.h>
-
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 
 namespace Engine {

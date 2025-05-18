@@ -2,15 +2,12 @@
 #include "CharacterControllerSystem.h"
 #include "Engine/Core/Input.h"
 #include "Engine/Events/KeyCode.h"
-#include "Engine/Events/MouseCodes.h"
 #include <Engine/Debug/Instrumentor.h>
 
 #include <glm/glm.hpp>
-#include <Engine/AssetManager/AssetManager.h>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
 #include "Engine/Scene/Entity.h"
-#include <Engine/Scene/Components/Combat/WeaponComponent.h>
 
 void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {

@@ -3,7 +3,6 @@
 #include "VulkanBuffer.h"
 #include "VulkanShader.h"
 #include "VulkanTexture.h"
-#include "Engine/Renderer/Texture.h"
 #include "Engine/Platform/Vulkan/VulkanContext.h"
 #include "Pixel/VulkanPixelTexture.h"
 

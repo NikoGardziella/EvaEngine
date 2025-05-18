@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "WindowsWindow.h"
 
-#include "Engine/Core/Core.h"
-
 #include "Engine/Events/ApplicationEvent.h"
 #include "Engine/Events/MouseEvent.h"
 #include "Engine/Events/KeyEvent.h"
@@ -11,7 +9,6 @@
 
 #include "Engine/Platform/OpenGl/OpenGLContext.h"
 #include "Engine/Platform/Vulkan/VulkanContext.h"
-#include <backends/imgui_impl_opengl3_loader.h>
 
 namespace Engine {
 

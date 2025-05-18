@@ -2,7 +2,6 @@
 #include "curl/curl.h"
 #include <Engine/Core/Log.h>
 
-#include <sstream>
 #include <Engine/Debug/Instrumentor.h>
 
 using json = nlohmann::json;
@@ -96,14 +95,14 @@ namespace Engine
                         "Each entity must be an object with a 'components' array.Each component must be an object with a 'type' field(e.g., 'TransformComponent') and all relevant fields for that component."
                         "Do not use component types as top - level keys inside each entity."
                         "Supported components : TagComponent(string: Tag, add name for the entity), TransformComponent(Use this for most entities. vec3: Translation(always z = 0), Rotation, Scale),"
-                        "SpriteRendererComponent(Texture),"
+                        "SpriteRendererComponent(Texture)"
                         "ProjectileComponent, BoxCollider2DComponent, CircleCollider2DComponent. NPCAIMovementComponent, NPCAIVisionComponent"
                         "HealthComponent(float: 'Health'), WeaponComponent(float, Damage, FireRate)"
                         "The 'SpriteRendererComponent'Texture must be one of : player, wall_0019, zombie1_walk_000, zombie_walk_000, objects_plant, car_0001, house"
                     }},
                 })},
                 {"temperature", 0.7},
-                {"max_tokens", 2000}
+                {"max_tokens", 5000}
             };
 
             req["messages"].push_back({

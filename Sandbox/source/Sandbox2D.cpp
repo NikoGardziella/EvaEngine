@@ -3,9 +3,6 @@
 #include <Engine/AssetManager/AssetManager.h>
 #include <Engine/Scene/SceneSerializer.h>
 
-#include <imgui/imgui.h>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 static const uint32_t s_mapWidth = 26;
 static const char* s_mapTiles =

@@ -3,16 +3,8 @@
 
 #include "Engine/Events/Event.h"
 #include "Engine/Events/ApplicationEvent.h"
-#include "Engine/Core/Log.h"
-#include "Engine/Events/KeyEvent.h"
-
 #include "Engine/Platform/Windows/WindowsWindow.h"
-
-#include "Engine/Core/Input.h"
-
 #include "Engine/Renderer/Renderer.h"
-
-#include "Engine/Renderer/OrthographicCamera.h"
 
 #include "GLFW/glfw3.h" // remove
 

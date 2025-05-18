@@ -5,7 +5,6 @@
 #include <Engine/Scene/SceneSerializer.h>
 
 #include "Systems/Player/CharacterControllerSystem.h"
-#include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
 #include "Systems/Collision/PixelCollisionSystem.h"
 
@@ -19,7 +18,6 @@
 #include "Systems/NPC/NPCAIVisionSystem.h"
 #include "Systems/Player/PlayerMovementSystem.h"
 #include "Systems/Player/Camera/PlayerCameraSystem.h"
-#include <Engine/Scene/Components/Combat/WeaponComponent.h>
 #include "Systems/Combat/PlayerWeaponSystem.h"
 
 

@@ -8,7 +8,6 @@
 #include <GLFW/glfw3native.h>
 
 #include <vulkan/vulkan_win32.h>
-#include <set>
 
 #include "VulkanUtils.h"
 #include <Engine/Renderer/Renderer.h>

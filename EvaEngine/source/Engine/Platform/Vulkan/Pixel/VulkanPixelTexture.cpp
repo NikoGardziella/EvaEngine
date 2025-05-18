@@ -3,7 +3,6 @@
 #include "VulkanPixelTexture.h"
 #include "Engine/Platform/Vulkan/VulkanContext.h"
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
-#include <cstring>
 #include <Engine/Platform/Vulkan/VulkanBuffer.h>
 
 namespace Engine {

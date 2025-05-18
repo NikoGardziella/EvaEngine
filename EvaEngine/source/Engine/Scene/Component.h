@@ -2,7 +2,6 @@
 
 #include "Engine/Core/Core.h"
 #include <Engine/Core/UUID.h>
-#include "Engine/Renderer/Texture.h"
 #include "Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h"
 #include "SceneCamera.h"
 

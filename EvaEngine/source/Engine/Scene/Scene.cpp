@@ -2,22 +2,12 @@
 #include "Scene.h"
 #include "Engine.h"
 
-#include "Engine/Math/Math.h"
 #include "Component.h"
 #include "Engine/Scene/Components/Combat/HealthComponent.h"
 #include "Engine/Scene/Components/Combat/WeaponComponent.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 
-#include "ScriptableEntity.h"
-
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-
-
-
 #include "box2d/box2d.h"
 #include "box2d/math_functions.h"
 #include "Components/NPC/NpcAIComponent.h"

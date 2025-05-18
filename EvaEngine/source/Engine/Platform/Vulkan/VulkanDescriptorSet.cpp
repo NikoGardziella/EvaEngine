@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "VulkanDescriptorSet.h"
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
-#include <Engine/Renderer/VulkanRenderer2D.h>
 
 
 Engine::VulkanDescriptorSet::VulkanDescriptorSet(VkDevice device, VkDescriptorPool pool, VkDescriptorSetLayout layout, VkBuffer uniformBuffer, VkImageView imageView, VkSampler sampler)

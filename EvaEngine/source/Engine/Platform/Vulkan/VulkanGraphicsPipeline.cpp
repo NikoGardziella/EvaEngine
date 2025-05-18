@@ -3,16 +3,12 @@
 #include "Engine/AssetManager/AssetManager.h"
 #include "VulkanBuffer.h"
 
-#include <fstream>
 #include <stdexcept>
 #include <vector>
 #include <Engine/Renderer/Shader.h>
 #include "VulkanContext.h"
-#include <Engine/Renderer/VulkanRenderer2D.h>
 #include <Engine/Renderer/Renderer.h>
-#include <backends/imgui_impl_vulkan.h>
-#include <backends/imgui_impl_glfw.h>
-#include <Engine/Core/Application.h>
+
 
 
 namespace Engine {

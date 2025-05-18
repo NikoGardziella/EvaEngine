@@ -2,23 +2,12 @@
 #include "Engine/Core/Timestep.h"
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Core/UUID.h"
-#include "Engine/Scene/Component.h"
 
-#include <box2d/box2d.h>
 #include "box2d/id.h"
 #include "entt.hpp"
-#include "TaskScheduler.h"
-#include <LockLessMultiReadPipe.h>
 
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 #include <functional>
-#include <atomic>
-#include <box2d/types.h>
-#include <future>
 
-#include <box2d/box2d.h>
 #include "TaskManager/PhysicsTaskScheduler.h"
 
 

@@ -1,19 +1,13 @@
 #pragma once
 
 #include "Renderer2D.h"
-#include "OrthographicCameraController.h"
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Platform/Vulkan/VulkanContext.h"
-#include "Engine/Platform/Vulkan/VulkanDevice.h"
-#include "Engine/Platform/Vulkan/VulkanBuffer.h"
-#include "Engine/Platform/Vulkan/VulkanContext.h"
+
 #include "Engine/Platform/Vulkan/VulkanTexture.h"
-#include "Engine/Platform/Vulkan/VulkanContext.h"
 #include "Engine/Platform/Vulkan/VulkanGraphicsPipeline.h"
-#include <Engine/Platform/Vulkan/VulkanTrackedImage.h>
 
 #include "vulkan/vulkan.h"
-#include <glm/ext/matrix_float4x4.hpp>
 
 namespace Engine {
 

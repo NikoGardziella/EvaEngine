@@ -14,10 +14,8 @@
 #include "Engine/Utils/PlatformUtils.h"
 
 #include "ImGuizmo/ImGuizmo.h"
-#include <glm/gtx/string_cast.hpp>
 #include "Engine/Math/Math.h"
 
-#include "Sandbox2D.h"
 
 #include "EditorApp.h"
 #include <Engine/AssetManager/AssetManager.h>
@@ -26,6 +24,7 @@
 #include "Engine/Renderer/Renderer.h"
 #include "AI/ParseUtils.h"
 
+#include "AI/OpenAIClient.h"
 
 
 //*************** AI *****************
@@ -674,7 +673,7 @@ namespace Engine {
         ImVec2 size = ImVec2(0.0f, 100.0f);
         ImGui::InputTextMultiline("##prompt", g_PromptBuffer, sizeof(g_PromptBuffer), size);
 
-        if (ImGui::Button("Generate Entities"))
+        if (ImGui::Button("Generate "))
         {
             g_ShouldGenerate = true;
         }

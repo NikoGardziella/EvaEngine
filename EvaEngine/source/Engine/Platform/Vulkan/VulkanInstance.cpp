@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "VulkanInstance.h"
-#include <stdexcept>
 #include <vector>
 #include <cstring>
 #include <GLFW/glfw3.h>

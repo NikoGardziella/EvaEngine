@@ -6,7 +6,6 @@
 
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/ContentBrowserPanel.h"
-#include "Engine/Scene/SceneSerializer.h"
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Platform/Vulkan/VulkanTexture.h"
 
@@ -14,7 +13,6 @@
 #include "Sandbox2D.h"
 #include "FPSCounter.h"
 #include "AI/json.hpp"
-#include "AI/OpenAIClient.h" 
 #include <imgui/imgui.h>
 
 namespace Engine {

@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "AssetManager.h"
 #include <iostream>
-#include <optional>
 #include <mutex>
 #include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
 

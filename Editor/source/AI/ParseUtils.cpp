@@ -206,5 +206,13 @@ bool ParseUtils::ParseComponent(std::string compName, Engine::Entity entity, con
             : entity.AddComponent<NPCAIMovementComponent>();
 
     }
+    else if (compName == "CharacterControllerComponent")
+    {
+        CharacterControllerComponent& characterControllerComp = entity.HasComponent<CharacterControllerComponent>()
+            ? entity.GetComponent<CharacterControllerComponent>()
+            : entity.AddComponent<CharacterControllerComponent>();
+
+    }
+    
     return true;
 }

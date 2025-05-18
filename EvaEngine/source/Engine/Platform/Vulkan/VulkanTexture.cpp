@@ -2,7 +2,6 @@
 #include "VulkanTexture.h"
 #include "Engine/Platform/Vulkan/VulkanContext.h"
 #include "stb_image.h"
-#include <stdexcept>
 #include "VulkanUtils.h"
 #include "VulkanBuffer.h"
 #include <backends/imgui_impl_vulkan.h>
