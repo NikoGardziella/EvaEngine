@@ -21,6 +21,7 @@ void PlayerCameraSystem::UpdatePlayerCameraSystem(entt::registry& registry, floa
         glm::vec3 playerPos = playerTransform.Translation;
         cameraTransform.Translation.x = glm::mix(cameraTransform.Translation.x, playerPos.x, 5.0f * deltaTime);
         cameraTransform.Translation.y = glm::mix(cameraTransform.Translation.y, playerPos.y, 5.0f * deltaTime);
+       // cameraTransform.Translation.z = 30.0f;
 
     }
    

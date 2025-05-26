@@ -6,7 +6,6 @@
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 
 
-#include "VertexArray.h"
 #include "Renderer.h"
 #include <backends/imgui_impl_vulkan.h>
 
@@ -14,54 +13,9 @@
 namespace Engine {
 
 	//VulkanRenderer2D::SceneData* VulkanRenderer2D::m_sceneData = new SceneData();
-
+	Engine::VulkanRenderer2DData Engine::VulkanRenderer2D::s_VulkanData;
+	CollisionData Engine::VulkanRenderer2D::s_CollisionData;
 	
-	struct VulkanRenderer2DData
-	{
-		static const uint32_t MaxQuads = 20000;
-		static const uint32_t MaxVertices = MaxQuads * 4;
-		static const uint32_t MaxIndices = MaxQuads * 6;
-		static const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
-
-		static const uint32_t MaxLines = 10000;
-		static const uint32_t MaxLineVertices = MaxLines * 2;
-
-		Ref<VulkanBuffer> LineStagingBuffer;
-		VulkanLineVertex* LineVertexBufferBase = nullptr;
-		VulkanLineVertex* LineVertexBufferPtr = nullptr;
-		uint32_t LineVertexCount = 0;
-		Ref<VulkanBuffer> LineVertexBuffer;
-		Ref<VertexArray> LineVertexArray;
-
-		Ref<VertexArray> QuadVertexArray;
-		Ref<VulkanVertexBuffer> QuadVertexBuffer;
-		Ref<VulkanIndexBuffer> QuadIndexBuffer;
-		Ref<VulkanShader> QuadShader;
-		Ref<VulkanTexture> WhiteTexture;
-
-		uint32_t QuadIndexCount = 0;
-		VulkanQuadVertex* QuadVertexBufferBase = nullptr;
-		VulkanQuadVertex* QuadVertexBufferPtr = nullptr;
-
-		std::array<Ref<VulkanTexture>, MaxTextureSlots> TextureSlots;
-		std::array<Ref<VulkanPixelTexture>, MaxTextureSlots> PixelTextureSlots;
-		uint32_t TextureSlotIndex = 1; // 0 = white texture
-
-		glm::vec3 QuadVertexPositions[4];
-
-
-		Renderer2D::Statistics Stats;
-
-		struct CameraData
-		{
-			glm::mat4 ViewProjection;
-		};
-		CameraData CameraBuffer;
-		//Ref<UniformBuffer> CameraUniformBuffer;
-	};
-
-	static VulkanRenderer2DData s_VulkanData;
-
 
 	VulkanRenderer2D::VulkanRenderer2D()
 	{
@@ -219,6 +173,10 @@ namespace Engine {
 			m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(i, s_VulkanData.TextureSlots);
 		}
 
+		m_vulkanGraphicsPipelines->UpdateComputeArrayDescriptorSets(0, s_VulkanData.TextureSlots);
+
+
+
 		// this is for rendering game in editor viewport
 		CreateImGuiTextureDescriptors();	
 	}
@@ -227,13 +185,18 @@ namespace Engine {
 	{
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 
-
 		
+
 		// Sync
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
 		m_vulkanGraphicsPipelines->UpdateUniformBuffer(currentFrame, s_VulkanData.CameraBuffer.ViewProjection);
+
+		std::vector<glm::vec2> bulletPositions;
+
+		m_vulkanGraphicsPipelines->UpdateBulletUniformBuffer(currentFrame, bulletPositions);
+		m_vulkanGraphicsPipelines->UpdateTextureUniformBuffer(currentFrame, glm::ivec2{512, 512});
 
 		// Acquire. Max current frame is 2 and max swapchain images is 3.
 		// set in Renderer.h 	const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -270,7 +233,7 @@ namespace Engine {
 		renderPassInfo.renderArea = { {0, 0}, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent() };
 
 		// Clear color for the color attachment
-		VkClearValue clearColor = { {0.8f, 0.2f, 0.35f, 1.0f} };
+		VkClearValue clearColor = { {0.2f, 0.2f, 0.35f, 1.0f} };
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
@@ -299,32 +262,15 @@ namespace Engine {
 		m_vertexOffset = 0;
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 
-		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetLinePipeline());
-
-		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetLineDescriptorSet();
-		vkCmdBindDescriptorSets(
-			cmd,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_vulkanGraphicsPipelines->GetLinePipelineLayout(),
-			0, 1,
-			&descriptorSet,
-			0, nullptr
-		);
-
-		VkBuffer vertexBuffers[] = { s_VulkanData.LineVertexBuffer->GetBuffer() };
-		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
-
-		vkCmdSetLineWidth(cmd, 3.0f);
-
-		vkCmdDraw(cmd, s_VulkanData.LineVertexCount, 1, 0, 0);
-
+		//RecordLineCommanedBuffer(cmd);
 		// End RecordGameDrawCommands render pass
 		vkCmdEndRenderPass(cmd);
 
 
-		RecordPresentDrawCommands(cmd, m_imageIndex, currentFrame);
+		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame);
 
+		RecordPresentDrawCommands(cmd, m_imageIndex, currentFrame);
+		
 		RecordEditorDrawCommands(cmd, m_imageIndex, currentFrame);
 
 		vkEndCommandBuffer(cmd);
@@ -343,6 +289,9 @@ namespace Engine {
 		submitInfo.pCommandBuffers = &cmd;
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
+
+
+
 
 		if (vkQueueSubmit(m_vulkanContext->GetGraphicsQueue(), 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS)
 		{
@@ -373,6 +322,22 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to present swapchain image!");
 		}
 
+		void* data;
+		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, sizeof(uint32_t), 0, &data);
+		uint32_t result = *reinterpret_cast<uint32_t*>(data);
+		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
+
+		if (result == 1)
+		{
+			EE_CORE_INFO("collision. {}", result);
+			
+		}
+		else if (result > 1)
+		{
+			EE_CORE_INFO("collision {}", result);
+		}
+		
+
 	}
 
 	void VulkanRenderer2D::DeviceWaitIdle()
@@ -389,6 +354,8 @@ namespace Engine {
 		s_VulkanData.LineVertexCount = 0;
 	
 
+		// collisions
+		// do this at end?
 	}
 
 	/*
@@ -420,8 +387,6 @@ namespace Engine {
 
 	void VulkanRenderer2D::Draw()
 	{
-		
-
 		Renderer::DrawFrame();
 	}
 
@@ -443,8 +408,12 @@ namespace Engine {
 
 
 		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
+
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+		//vkCmdBindVertexBuffers(commandBuffer, 2, 1, BulletBuffers, &offsets[1]);
+
 		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetGameDescriptorSet(currentFrame);
@@ -455,6 +424,7 @@ namespace Engine {
 
 		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
 
+		// remove
 		m_firstIndex += s_VulkanData.QuadIndexCount;
 		m_vertexOffset += (s_VulkanData.QuadIndexCount / 6) * 4;
 
@@ -497,7 +467,9 @@ namespace Engine {
 		// Bind the graphics pipeline for the game scene
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetPresentPipeline());
 
+
 		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetPresentDescriptorSet(currentFrame);
+
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetPresentPipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
 
 		// hardcoded vertices in fullscreen_shader:
@@ -505,6 +477,104 @@ namespace Engine {
 
 		vkCmdEndRenderPass(commandBuffer);
 
+	}
+
+	void VulkanRenderer2D::RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
+	{
+		
+		// Clear collision result buffer to 0 (no collision)
+		vkCmdFillBuffer(commandBuffer, m_vulkanGraphicsPipelines->GetGPUCollisionBuffer(), 0, sizeof(uint32_t), 0);
+
+		// Barrier so compute shader sees the cleared value // is this useless?
+		VkBufferMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.buffer = m_vulkanGraphicsPipelines->GetGPUCollisionBuffer();
+		barrier.offset = 0;
+		barrier.size = sizeof(uint32_t);
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_TRANSFER_BIT,
+			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+			0,
+			0, nullptr,
+			1, &barrier,
+			0, nullptr
+		);
+
+		
+
+
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_vulkanGraphicsPipelines->GetComputePipeline());
+		
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetComputeDescriptorSet();
+
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_vulkanGraphicsPipelines->GetComputePipelineLayout(),
+			0, 1, &descriptorSet, 0, nullptr);
+
+		struct PushConstants {
+			glm::vec2 PlayerPos;
+			float Radius;
+
+			glm::vec2 TextureOrigin;
+			float PixelSize;
+		};
+
+		for (size_t i = 0; i < s_CollisionData.TextureSlotIndex; i++)
+		{
+			PushConstants pushconstant = {
+				s_CollisionData.playerPos,
+				s_CollisionData.radius,
+				s_CollisionData.Textures[i],
+				s_CollisionData.PixelSize
+			};
+
+			vkCmdPushConstants(commandBuffer, m_vulkanGraphicsPipelines->GetComputePipelineLayout(),
+				VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PushConstants), &pushconstant);
+
+			uint32_t textureWidth = 512;
+			uint32_t textureHeight = 512;
+			uint32_t dispatchX = (textureWidth + 15) / 16;
+			uint32_t dispatchY = (textureHeight + 15) / 16;
+			vkCmdDispatch(commandBuffer, dispatchX, dispatchY, 1);
+
+		}
+		s_CollisionData.TextureSlotIndex = 0;
+
+	
+	}
+
+	void VulkanRenderer2D::RecordLineCommanedBuffer(VkCommandBuffer commandBuffer)
+	{
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetLinePipeline());
+
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetLineDescriptorSet();
+		vkCmdBindDescriptorSets(
+			commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_vulkanGraphicsPipelines->GetLinePipelineLayout(),
+			0, 1,
+			&descriptorSet,
+			0, nullptr
+		);
+
+		VkBuffer vertexBuffers[] = { s_VulkanData.LineVertexBuffer->GetBuffer() };
+
+		VkDeviceSize offsets[] = { 0, 0, 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, &offsets[0]);
+
+
+		vkCmdSetLineWidth(commandBuffer, 3.0f);
+
+
+
+		vkCmdDraw(commandBuffer, s_VulkanData.LineVertexCount, 1, 0, 0);
 	}
 
 	void VulkanRenderer2D::RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
@@ -608,6 +678,14 @@ namespace Engine {
 			dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 			destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_GENERAL)
+		{
+			srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
 		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 		{
 			srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -629,6 +707,13 @@ namespace Engine {
 			dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_GENERAL)
+		{
+			srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 		}
 		else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 		{
@@ -710,7 +795,7 @@ namespace Engine {
 		//std::string layoutold = VulkanUtils::LayoutToString(oldLayout);
 		//std::string layoutnew = VulkanUtils::LayoutToString(newLayout);
 
-		EE_CORE_INFO("Transitioning layout from {} to {}", VulkanUtils::LayoutToString(oldLayout), VulkanUtils::LayoutToString(newLayout));
+		//EE_CORE_INFO("Transitioning layout from {} to {}", VulkanUtils::LayoutToString(oldLayout), VulkanUtils::LayoutToString(newLayout));
 
 		vkCmdPipelineBarrier(
 			commandBuffer,
@@ -764,8 +849,20 @@ namespace Engine {
 
 			}
 		}
+
+		
 	}
 	
+
+	void VulkanRenderer2D::CalculateCollision(glm::vec2& textureOrigin, const float pixelSize, const glm::vec2& playerPos, const float radius)
+	{
+
+		s_CollisionData.playerPos = playerPos;
+		s_CollisionData.radius = radius;
+		s_CollisionData.PixelSize = pixelSize;
+		s_CollisionData.Textures[s_CollisionData.TextureSlotIndex] = textureOrigin;
+		s_CollisionData.TextureSlotIndex++;
+	}
 
 	void VulkanRenderer2D::DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor)
 	{

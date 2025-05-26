@@ -84,6 +84,9 @@ namespace Engine {
 		Engine::VulkanRenderer2D::ResetStats();
 		s_currentFrame = (s_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 		
+
+
+
 	}
 
 	void Renderer::DeviceWaitIdle()

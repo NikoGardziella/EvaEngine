@@ -31,6 +31,7 @@ namespace Engine {
         virtual const std::string& GetName() const override { return m_Name; }
 		VkShaderModule GetVertexShaderModule() const { return m_VertexShaderModule; }
 		VkShaderModule GetFragmentShaderModule() const { return m_FragmentShaderModule; }
+        VkShaderModule GetComputeshaderModule() const { return m_ComputeShaderModule; }
     private:
 
         std::string ReadFile(const std::string& filepath);
@@ -48,6 +49,8 @@ namespace Engine {
         VkPipelineShaderStageCreateInfo m_ShaderStages[2];
         VkShaderModule m_VertexShaderModule;
         VkShaderModule m_FragmentShaderModule;
+        VkShaderModule m_ComputeShaderModule;
+
         std::unordered_map<std::string, VkDescriptorSetLayoutBinding> m_UniformLocations;
 
     };

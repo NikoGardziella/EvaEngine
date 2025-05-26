@@ -1,6 +1,7 @@
 #pragma once
 #include "VulkanContext.h"
 #include <string>
+#include "VulkanGraphicsPipeline.h"
 
 namespace Engine {
 
@@ -33,6 +34,8 @@ namespace Engine {
             uint32_t height);
 
        const std::string LayoutToString(VkImageLayout layout);
+
+       void CopyBufferToImage(StorageImage image, VkBuffer buffer);
 
 	}
 

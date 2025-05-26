@@ -19,6 +19,7 @@ namespace Engine {
         virtual void Bind(uint32_t slot = 0) const override;
         virtual uint32_t GetRendererID() const override { return 0; }
 		VkImageView GetImageView() const { return m_imageView; }
+        VkImage GetImage() const { return m_image;  }
 		VkSampler GetSampler() const { return m_sampler; }
 		VkDescriptorSet GetTextureDescriptor() const { return m_textureDescriptor; }
 		const std::string GetPath() const { return m_path; }

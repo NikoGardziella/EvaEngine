@@ -127,9 +127,7 @@ class Sandbox : public Engine::Application
 public:
 	Sandbox()
 	{
-		//PushLayer(new ExampleGameLayer());
-		//PushLayer(new Sandbox2D());
-		//PushLayer(new PixelGame("physics2D"));
+		
 
 	}
 	~Sandbox()
@@ -161,11 +159,13 @@ Engine::Application* Engine::CreateApplication()
 {
 	auto app = new Sandbox;
 	
-	auto game = new PixelGame("");
+	auto game = new PixelGame("currentScene");
+	game->SetViewportSize(app->GetWindow().GetWidth(), app->GetWindow().GetHeight());
 	game->LoadGameAssets();
 	game->OnGameStart();
 	app->PushLayer(game);
-	app->GetWindow().GetHeight();
+	
+
 	return app;
 	
 }

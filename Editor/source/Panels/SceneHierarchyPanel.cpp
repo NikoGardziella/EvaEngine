@@ -263,7 +263,7 @@ namespace Engine {
                 // m_newComponentsContext is used to save the scene and avoid any of the entities created in game scene 
                 // through code to be inclued in the saved scene file
                 Entity newEntity = m_newComponentsContext->CreateEntity("Empty entity");
-                m_gameContext->CreateEntityWithUUID(newEntity.GetUUID(), "Empty Entity");
+                m_gameContext->CreateEntityWithUUID(newEntity.GetUUID(), "empty Entity");
 
             }
             ImGui::EndPopup();

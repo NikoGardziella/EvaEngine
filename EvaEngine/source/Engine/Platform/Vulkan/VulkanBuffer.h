@@ -74,6 +74,7 @@ namespace Engine {
         VulkanBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
             
 		VkBuffer GetBuffer() const { return m_buffer; }
+		//VkBuffer GetBuffer() { return m_buffer; }
 		VkDeviceMemory GetMemory() const { return m_memory; }
         void Destroy();
 

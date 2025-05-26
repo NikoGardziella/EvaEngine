@@ -12,6 +12,17 @@
 
 namespace Engine {
 
+    struct BulletData
+    {
+        glm::vec2 Position;
+    };
+
+    struct TextureInfo
+    {
+        glm::ivec2 TextureSize;
+    };
+
+
     struct VulkanQuadVertex
     {
         glm::vec3 Position;  // Vertex position (x, y, z)
@@ -25,41 +36,20 @@ namespace Engine {
     {
         glm::vec3 Position;
         glm::vec4 Color;
-        //int EntityID; // 4 bytes, aligns fine after vec4 (16 bytes)
-        /*
-        static VkVertexInputBindingDescription GetBindingDescription()
-        {
-            VkVertexInputBindingDescription bindingDesc{};
-            bindingDesc.binding = 0;
-            bindingDesc.stride = sizeof(VulkanLineVertex);
-            bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            return bindingDesc;
-        }
-
-        static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
-        {
-            std::array<VkVertexInputAttributeDescription, 3> attributeDescs{};
-
-            attributeDescs[0].binding = 0;
-            attributeDescs[0].location = 0;
-            attributeDescs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            attributeDescs[0].offset = offsetof(VulkanLineVertex, Position);
-
-            attributeDescs[1].binding = 0;
-            attributeDescs[1].location = 1;
-            attributeDescs[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-            attributeDescs[1].offset = offsetof(VulkanLineVertex, Color);
-
-            attributeDescs[2].binding = 0;
-            attributeDescs[2].location = 2;
-            attributeDescs[2].format = VK_FORMAT_R32_SINT;
-            attributeDescs[2].offset = offsetof(VulkanLineVertex, EntityID);
-
-            return attributeDescs;
-        }
-        */
+        
     };
 
+    struct StorageImage
+    {
+        VkImage Image;
+        VkDeviceMemory Memory;
+        VkImageView ImageView;
+        uint32_t    Width;
+        uint32_t    Height;
+
+    };
+
+  
 
     class VulkanGraphicsPipeline
     {
@@ -69,32 +59,58 @@ namespace Engine {
         ~VulkanGraphicsPipeline();
 
         void UpdatePresentDescriptorSet(uint32_t imageIndex);
+        void UpdateDescriptorSet(uint32_t imageIndex, VkDescriptorSet descriptorset, VkImageView image); // remove?
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, 32>& textures);
+        void UpdateComputeArrayDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, 32>& textures);
+
         void UpdateCameraUBODescriptorSets();
+        void UpdateBulletUBODescriptorSets();
+        void UpdateTextureInfoDescriptorSets();
+        void UpdateStorageImageDescriptorSets();
         void UpdateUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix);
+
+        void UpdateBulletUniformBuffer(uint32_t currentFrame, const std::vector<glm::vec2>& bulletPositions);
+
+        void UpdateTextureUniformBuffer(uint32_t currentFrame, const glm::ivec2& textureSize);
+
+
 
         VkPipeline GetGamePipeline() const { return m_gameGraphicsPipeline; }
         VkPipeline GetPresentPipeline() const { return m_presentPipeline; }
 		VkPipeline GetLinePipeline() const { return m_linePipeline; }
+		VkPipeline GetComputePipeline() const { return m_computePipeline; }
         VkPipelineLayout GetGamePipelineLayout() const { return m_gamePipelineLayout; }
         VkPipelineLayout GetPresentPipelineLayout() const { return m_presentPipelineLayout; }
 		VkPipelineLayout GetLinePipelineLayout() const { return m_linePipelineLayout; }
+		VkPipelineLayout GetComputePipelineLayout() const { return m_computePipelineLayout; }
         VkDescriptorSet GetGameDescriptorSet(size_t frameIndex) { return m_gameDescriptorSets[frameIndex]; }
         VkDescriptorSet GetCameraDescriptorSet(size_t frameIndex) { return m_cameraDescriptorSets[frameIndex]; }
         VkDescriptorSet GetPresentDescriptorSet(size_t frameIndex) { return m_presentDescriptorSets[frameIndex]; }
 		VkDescriptorSet GetLineDescriptorSet() { return m_lineDescriptorSet; }
+		VkDescriptorSet GetComputeDescriptorSet() { return m_computeDescriptorSet; }
 
         VkSampler& GetPresentSampler() { return m_presentSampler; }
+
+        VulkanBuffer GetBulletUniformBuffer(uint32_t imageIndex) { return m_bulletUniformBuffers[imageIndex]; }
+        VulkanBuffer GetTextureInfoUniformBuffer(uint32_t imageIndex) { return m_textureUniformBuffers[imageIndex]; }
+
+        VkBuffer GetGPUCollisionBuffer() const { return m_GPUCollisionresultBufferBuffer; }
+        VkDeviceMemory GetGPUCollisionMemory() const { return m_GPUCollisionresultBufferMemory; }
+
+
+       // StorageImage GetOutputImage() { return m_outputTextureImage; }
 
     private:
 
         void CreateGameGraphicsPipeline(VkRenderPass renderPass);
         void CreateLineGraphicsPipeline(VkRenderPass renderPass);
+        void CreateComputeGraphicsPipeline(VkRenderPass renderPass);
         void CreatePresentGraphicsPipeline(VkRenderPass renderPass);
         void CreatePresentPipelineLayout();
         void CreateDescriptorSetLayouts();
+        void CreateComputeDescriptorSetLayout();
+        void CreateComputeArrayDescriptorSetLayout();
         void CreatePresentGameDescriptorPool();
-        void CreateGameAndPresentDescriptorSets();
         void CreateGameDescriptorSet();
         void CreateLineDescriptorSet();
         void CreatePresentDescriptorSet();
@@ -102,6 +118,9 @@ namespace Engine {
         void CreatePresentSampler();
         void CreateCameraDescriptorSetLayout();
         void CreateCameraDescriptorSet();
+        void CreateComputeDescriptorSet();
+        void CreateGPUCollisionResultBuffer();
+        StorageImage CreateStorageImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkFormat format, VkCommandPool commandPool, VkQueue graphicsQueue);
 
     private:
 
@@ -110,30 +129,38 @@ namespace Engine {
         VkPipeline m_gameGraphicsPipeline;
         VkPipeline m_presentPipeline;
         VkPipeline m_linePipeline;
+        VkPipeline m_computePipeline;
         VkPipelineLayout m_gamePipelineLayout;
         VkPipelineLayout m_linePipelineLayout;
         VkPipelineLayout m_imguiPipelineLayout;
         VkPipelineLayout m_presentPipelineLayout;
+        VkPipelineLayout m_computePipelineLayout;
 
         VkDescriptorSetLayout m_gameDescriptorSetLayout;
         VkDescriptorSetLayout m_presentDescriptorSetLayout;
         VkDescriptorSetLayout m_lineDescriptorSetLayout;
         VkDescriptorSetLayout m_cameraDescriptorSetLayout;
+        VkDescriptorSetLayout m_computeDescriptorSetLayout;
+        VkDescriptorSetLayout m_computeArrayDescriptorSetLayout;
+
         VkDescriptorPool m_presentGamedescriptorPool;
-        VkDescriptorSet m_gameDescriptorSet;
-        VkDescriptorSet m_presentDescriptorSet;
         VkDescriptorSet m_lineDescriptorSet;
+        VkDescriptorSet m_computeDescriptorSet;
 
         std::vector<VkDescriptorSet> m_gameDescriptorSets;
         std::vector<VkDescriptorSet> m_cameraDescriptorSets;
         std::vector<VkDescriptorSet> m_presentDescriptorSets;
         VkDescriptorPool m_descriptorPool;
         std::vector<VulkanBuffer> m_uniformBuffers;
+        std::vector<VulkanBuffer> m_bulletUniformBuffers;
+        std::vector<VulkanBuffer> m_textureUniformBuffers;
+        VulkanBuffer m_pixelStagingBuffers;
 
         Ref<VulkanShader> m_pixelGameShader;
         Ref<VulkanShader> m_fullscreenShader;
         Ref<VulkanShader> m_lineShader;
         Ref<VulkanShader> m_vulkanRenderShader;
+        Ref<VulkanShader> m_computeShader;
         VkSampler m_presentSampler;
 
         std::vector<VkDynamicState> m_dynamicStates =
@@ -142,6 +169,14 @@ namespace Engine {
             VK_DYNAMIC_STATE_SCISSOR
         };
 
+        std::vector<BulletData> bullets;
+        StorageImage m_storageImage;
+        StorageImage  m_pixelTextureImage;
+        StorageImage  m_outputTextureImage;
+
+
+        VkBuffer m_GPUCollisionresultBufferBuffer;
+        VkDeviceMemory  m_GPUCollisionresultBufferMemory;
     };
 
 }

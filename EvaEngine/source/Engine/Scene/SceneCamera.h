@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Renderer/Camera.h"
 #include "glm/glm.hpp"
+#include "Engine/Core/Input.h"
 
 namespace Engine {
 
@@ -92,17 +93,32 @@ namespace Engine {
 			}
 		}
 
-		glm::vec2 ScreenToWorld(const glm::vec2& screenPos, glm::mat4 cameraTransform)
+		glm::vec2 ScreenToWorld(glm::mat4 cameraTransform)
 		{
-			
+			glm::vec2 mouseScreen;
+			// there is better way to do this. consider setting bounds to client
+			if (m_viewportBounds[0].x > 0.0f)
+			{
+
+				// for editor
+				mouseScreen = Engine::Input::GetMouseScreenPosition();
+			}
+			else
+			{
+				// for client onyl
+				mouseScreen = Engine::Input::GetMousePosition();
+
+			}
+			 
 
 			if (m_projectionType == ProjectionType::Orthographic)
 			{
+				// this is not tested
 
 				glm::mat4 view = glm::inverse(cameraTransform);
 
-				float x = (2.0f * screenPos.x) / m_viewportSize.x - 1.0f;
-				float y = 1.0f - (2.0f * screenPos.y) / m_viewportSize.y; // Invert Y for Vulkan (origin top-left)
+				float x = (2.0f * mouseScreen.x) / m_viewportSize.x - 1.0f;
+				float y = 1.0f - (2.0f * mouseScreen.y) / m_viewportSize.y; // Invert Y for Vulkan (origin top-left)
 				glm::vec4 ndc = glm::vec4(x, y, 0.0f, 1.0f);
 
 				glm::mat4 invVP = glm::inverse(m_projection * view);
@@ -117,7 +133,7 @@ namespace Engine {
 			}
 			else if(m_projectionType == ProjectionType::Perspective)
 			{
-				glm::vec2 mouseInViewport = screenPos - m_viewportBounds[0];
+				glm::vec2 mouseInViewport = mouseScreen - m_viewportBounds[0];
 
 				float x = (2.0f * mouseInViewport.x) / m_viewportSize.x - 1.0f;
 				float y = 1.0f - (2.0f * mouseInViewport.y) / m_viewportSize.y;

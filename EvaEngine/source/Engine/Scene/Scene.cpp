@@ -442,6 +442,41 @@ namespace Engine {
             UpdatePhysics(timestep);
         }
 
+
+        //*********** GPU COLLISIONS ***********
+        {
+
+            auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent>();
+            glm::vec2 playerPos; 
+            for (auto playerEntity : playerView)
+            {
+                auto& playerTransform = playerView.get<Engine::TransformComponent>(playerEntity);
+			    playerPos.x = playerTransform.Translation.x;
+			    playerPos.y = playerTransform.Translation.y;
+            
+            }
+
+            auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
+
+            for (auto entity : view)
+            {
+
+                if (m_registry.any_of<CharacterControllerComponent>(entity))
+                    continue; // skip entities with CharacterControllerComponent
+
+                auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+
+                float radius = 1.0f;
+                float pixelSize = 1.0f;
+                glm::vec2 textureOrigin;
+                textureOrigin.x = transform.Translation.x;
+                textureOrigin.y = transform.Translation.y;
+                Engine::VulkanRenderer2D::CalculateCollision(textureOrigin, pixelSize, playerPos, radius);
+            }
+
+        }
+
+
         //*********** Render ************
 
         Camera* mainCamera = nullptr;

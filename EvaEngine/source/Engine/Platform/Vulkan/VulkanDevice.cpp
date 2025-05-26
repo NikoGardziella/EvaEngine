@@ -109,7 +109,22 @@ namespace Engine {
             swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
         }
 
-		m_deviceFeatures.wideLines = VK_TRUE;
+        if (!m_deviceFeatures.wideLines)
+        {
+            m_deviceFeatures.wideLines = VK_TRUE;
+        }
+        else
+        {
+            EE_CORE_WARN("wideLines not supported on this GPU!");
+        }
+        if (!m_deviceFeatures.fragmentStoresAndAtomics) 
+        {
+            m_deviceFeatures.fragmentStoresAndAtomics = VK_TRUE;
+        }
+        else
+        {
+            EE_CORE_WARN("fragmentStoresAndAtomics not supported on this GPU!");
+        }
 
         
         return indices.isComplete() && extensionsSupported && swapChainAdequate;
@@ -130,6 +145,7 @@ namespace Engine {
         for (const auto& extension : availableExtensions)
         {
             requiredExtensions.erase(extension.extensionName);
+            //EE_CORE_INFO("extension: {}", extension.extensionName);
         }
 
         return requiredExtensions.empty();

@@ -32,6 +32,7 @@ public:
 
 	std::string GetActiveSceneName() { return m_activeSceneName; }
 
+	void SetViewportSize(uint32_t width, uint32_t height) { m_viewportHeight = height, m_viewportWidth = width;  }
 
 public:
 
@@ -51,7 +52,8 @@ private:
 	Engine::Ref<Engine::VulkanTexture> m_logoTexture;
 	Engine::Ref<Engine::VulkanTexture> m_playerTexture;
 
-
+	uint32_t m_viewportWidth;
+	uint32_t m_viewportHeight;
 };
 
 

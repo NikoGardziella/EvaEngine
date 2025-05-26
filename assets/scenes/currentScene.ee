@@ -22,3 +22,17 @@ Entities:
       Speed: 5
       Velocity: [0, 0]
       OnGround: false
+    WeaponComponent:
+      Damage: 10
+      FireRate: 1
+  - ID: 6471202605863680358
+    TagComponent:
+      Tag: Empty entity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Texture: ""
+      Tiling: 1

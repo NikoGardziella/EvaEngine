@@ -11,7 +11,7 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(entt::registry& registry, floa
 
     auto view = registry.view<Engine::TransformComponent, CharacterControllerComponent, WeaponComponent>();
 
-    glm::vec2 mouseScreen = Engine::Input::GetMouseScreenPosition();
+    //glm::vec2 mouseScreen = Engine::Input::GetMouseScreenPosition();
     glm::vec2 mouseWorldPosition = glm::vec2(0.0f, 0.0f);
     {
 
@@ -23,7 +23,7 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(entt::registry& registry, floa
 
                 if (cameraComp.Primary)
                 {
-                    mouseWorldPosition = cameraComp.Camera.ScreenToWorld(mouseScreen, cameraTransformComp.GetTransform());
+                    mouseWorldPosition = cameraComp.Camera.ScreenToWorld(cameraTransformComp.GetTransform());
                     break;
                 }
             }

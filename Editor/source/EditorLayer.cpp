@@ -374,7 +374,7 @@ namespace Engine {
                 m_viewportSize.x != viewportPanelSize.x || m_viewportSize.y != viewportPanelSize.y)
             {
                 m_viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-
+                m_editor->GetGameLayer()->SetViewportSize(m_viewportSize.x, m_viewportSize.y);
             }
 
 
@@ -486,7 +486,7 @@ namespace Engine {
         }
 
         UI_Toolbar();
-        DrawAIPromptPanel();
+        //DrawAIPromptPanel();
 
         ImGui::End();
 

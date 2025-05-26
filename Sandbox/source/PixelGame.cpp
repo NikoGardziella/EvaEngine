@@ -8,9 +8,7 @@
 
 #include "Systems/Collision/PixelCollisionSystem.h"
 
-#include <imgui/imgui.h>
 #include <glm/ext/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include "Systems/Combat/ProjectileSystem.h"
 #include "Systems/Collision/PlayerCollisionSystem.h"
 #include "Systems/Combat/HealthSystem.h"
@@ -19,6 +17,8 @@
 #include "Systems/Player/PlayerMovementSystem.h"
 #include "Systems/Player/Camera/PlayerCameraSystem.h"
 #include "Systems/Combat/PlayerWeaponSystem.h"
+#include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+#include <Engine/Scene/Components/Combat/WeaponComponent.h>
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -28,8 +28,9 @@ PixelGame::PixelGame(const std::string scene)
 {
 	m_activeScene = std::make_shared<Engine::Scene>();
 
-
+	
 	m_activeScene->RegisterSystem(CharacterControllerSystem::UpdateCharacterControllerSystem);
+	
 	m_activeScene->RegisterSystem(PlayerCollisionSystem::UpdatePlayerCollision);
 	m_activeScene->RegisterSystem(PlayerMovementSystem::MovementSystem);
 	m_activeScene->RegisterSystem(PlayerCameraSystem::UpdatePlayerCameraSystem);
@@ -47,6 +48,8 @@ PixelGame::PixelGame(const std::string scene)
 void PixelGame::OnAttach()
 {
 	EE_PROFILE_FUNCTION();
+
+
 	LoadGameAssets();
 
 	m_orthoCameraController.SetZoomLevel(10.0f);
@@ -144,23 +147,34 @@ void PixelGame::OnGameStop()
 
 void PixelGame::CreateGameEntities()
 {
+	
 	/*
-	if (!m_playerEntity)
-	{
 		m_playerEntity = m_activeScene->CreateEntity("player");
-		auto& transformComp = m_playerEntity.AddComponent<Engine::TransformComponent>();
-		transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
+		auto& playerTransformComp = m_playerEntity.AddComponent<Engine::TransformComponent>();
+		playerTransformComp.Translation += glm::vec3(0.0f, 0.0f, 0.0f);
 		m_playerEntity.AddComponent<CharacterControllerComponent>();
 		m_playerEntity.AddComponent<WeaponComponent>();
 		m_playerEntity.AddComponent<Engine::CircleCollider2DComponent>();
-		glm::vec4 color = { 1.0, 1.0, 1.0, 1.0f };
-		Engine::SpriteRendererComponent& spriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();
-		spriteComp.Color = color;
-		spriteComp.Texture = m_playerTexture;
+		//glm::vec4 color = { 1.0, 1.0, 1.0, 1.0f };
+		Engine::SpriteRendererComponent& playerSpriteComp = m_playerEntity.AddComponent<Engine::SpriteRendererComponent>();
+		//playerSpriteComp.Color = color;
+		playerSpriteComp.Texture = m_playerTexture;
 
-	}
+	
+	
+	
+
+	
+	m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
+	auto& transformComp = m_pixelEntity.AddComponent<Engine::TransformComponent>();
+	transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
+	Engine::SpriteRendererComponent& spriteComp = m_pixelEntity.AddComponent<Engine::SpriteRendererComponent>();
+	spriteComp.Texture = m_pixelTexture;
+	
+
 	*/
 	
+
 	m_cameraEntity = m_activeScene->CreateEntity("camera");
 	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
 	cameraComp.FixedAspectRatio = true;
@@ -169,6 +183,9 @@ void PixelGame::CreateGameEntities()
 	cameraComp.Primary = true;
 	cameraComp.Camera.SetViewportBounds(m_activeScene->GetViewportMinBounds());
 
+
+	cameraComp.Camera.SetViewportSize(m_viewportWidth, m_viewportHeight);
+	
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
 	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 30.0f);
 
