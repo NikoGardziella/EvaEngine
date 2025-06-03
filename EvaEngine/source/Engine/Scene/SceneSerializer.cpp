@@ -483,7 +483,7 @@ namespace Engine {
                 auto color = entityNode["SpriteRendererComponent"]["Color"].as<std::vector<float>>();
                 sprite.Color = { color[0], color[1], color[2], color[3] };
 
-				sprite.Texture = AssetManager::GetTexture(entityNode["SpriteRendererComponent"]["Texture"].as<std::string>());
+				sprite.Texture = AssetManager::CloneTexture(entityNode["SpriteRendererComponent"]["Texture"].as<std::string>());
             }
         }
 

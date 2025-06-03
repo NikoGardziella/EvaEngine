@@ -1,47 +1,57 @@
 #type compute
 #version 450
+
 layout(local_size_x = 16, local_size_y = 16) in;
 
-// One input and one output texture per dispatch
-layout(binding = 0, rgba8) uniform image2D u_InputTexture;
-layout(binding = 1, rgba8) uniform image2D u_OutputTexture;
+layout(binding = 0, rgba8) uniform image2D u_InputTexture[32];
+layout(binding = 1, rgba8) uniform image2D u_OutputTexture[32];
 
-// Result buffer to store collision flag
 layout(binding = 2) buffer ResultBuffer {
     uint collisionDetected;
 };
 
-// Push constants
-layout(push_constant) uniform PushConstants {
-    vec2 PlayerPos;       // Player position in world space
-    float Radius;         // Radius of collision in world units
+layout(std430, binding = 3) readonly buffer Projectiles
+{
+    vec4 data[]; // xy = position, z = radius
+};
 
-    vec2 TextureOrigin;   // World-space origin of this texture (bottom-left corner)
-    float PixelSize;      // World size of one pixel
+layout(push_constant) uniform PushConstants {
+    vec2 PlayerPos;
+    float Radius;
+    float pad0;
+
+    vec2 TextureOrigin;
+    float PixelSize;
+    uint TextureIndex;
+    uint NumProjectiles;
 } pc;
 
 void main() {
     ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
-    
-    // Load pixel from input
-    vec4 pixel = imageLoad(u_InputTexture, pixelCoord);
 
-    // Convert to world-space position
+    // Bounds check
+    ivec2 textureSize = imageSize(u_InputTexture[pc.TextureIndex]);
+    if (pixelCoord.x >= textureSize.x || pixelCoord.y >= textureSize.y)
+        return;
+
+    // Load pixel from input
+    vec4 pixel = imageLoad(u_InputTexture[pc.TextureIndex], pixelCoord);
+
+    // Convert to world position
     vec2 worldPos = pc.TextureOrigin + vec2(pixelCoord) * pc.PixelSize;
 
-    float dist = distance(worldPos, pc.PlayerPos);
-    int intDistance = int(dist);
+    // Check against all projectiles
+    for (uint i = 0; i < pc.NumProjectiles; ++i)
+    {
+        vec2 projectilePos = data[i].xy;
+        float radius = data[i].z;
 
-    if (dist < pc.Radius)
-    {
-        // Collision: clear pixel and set flag
-        imageStore(u_OutputTexture, pixelCoord, vec4(0.0));
-        atomicOr(collisionDetected, 1);
-    }
-    else
-    {
-        // No collision: preserve original
-        atomicOr(collisionDetected, intDistance);
-        imageStore(u_OutputTexture, pixelCoord, pixel);
+        float dist = distance(worldPos, projectilePos);
+        if (dist < radius)
+        {
+            imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0, 0, 0, 0));
+            atomicOr(collisionDetected, 1);
+            break;
+        }
     }
 }

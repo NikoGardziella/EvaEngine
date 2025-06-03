@@ -106,7 +106,7 @@ bool ParseUtils::ParseComponent(std::string compName, Engine::Entity entity, con
         if (compData.contains("Texture") && !compData["Texture"].is_null())
         {
             std::string textureName = compData["Texture"];
-            src.Texture = Engine::AssetManager::GetTexture(textureName);; // You must implement LoadTexture
+            src.Texture = Engine::AssetManager::GetTexture(textureName);
         }
 
         if (compData.contains("Tiling"))

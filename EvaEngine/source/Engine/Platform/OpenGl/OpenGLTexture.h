@@ -41,6 +41,7 @@ namespace Engine {
 		uint32_t m_rendererID;
 		GLenum m_dataFormat;
 		GLenum m_internalFormat;
+
 	};
 
 }

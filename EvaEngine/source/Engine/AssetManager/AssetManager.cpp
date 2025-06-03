@@ -111,12 +111,12 @@ namespace Engine {
         return buffer;
     }
 
-    Ref<VulkanTexture> AssetManager::AddTexture(const std::string& name, const std::string& path, bool imGuiTexture)
+    Ref<VulkanTexture> AssetManager::AddTexture(const std::string& name, const std::string& path, bool imGuiTexture, uint32_t textureID)
     {
-		std::lock_guard<std::mutex> lock(s_Mutex);
+		//std::lock_guard<std::mutex> lock(s_Mutex);
 		if (s_textureCache.find(name) == s_textureCache.end())
 		{
-            s_textureCache[name] = std::make_shared<VulkanTexture>(path, name, imGuiTexture);
+            s_textureCache[name] = std::make_shared<VulkanTexture>(path, name, imGuiTexture, textureID);
 			EE_CORE_INFO("Texture added to cache: {}", name);
 		}
 		else
@@ -161,6 +161,22 @@ namespace Engine {
         if (it != s_textureCache.end())
         {
             return it->second; // Return the shared_ptr directly
+        }
+        else
+        {
+            EE_CORE_WARN("Texture '{}' not found in cache!", name);
+            return nullptr;
+        }
+    }
+
+    Ref<VulkanTexture> AssetManager::CloneTexture(const std::string& name)
+    {
+        // std::lock_guard<std::mutex> lock(s_Mutex);
+
+        auto it = s_textureCache.find(name);
+        if (it != s_textureCache.end())
+        {
+            return it->second->Clone();
         }
         else
         {

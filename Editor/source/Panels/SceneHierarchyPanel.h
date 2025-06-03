@@ -32,6 +32,7 @@ namespace Engine {
 		void SetSelectedEntity(Entity entity);
 
 		int GetEntityCount() const { return m_entityCount; }
+		int GetProjectileCount() const { return m_projectileCount; }
 
 	private:
 
@@ -47,6 +48,8 @@ namespace Engine {
 		Entity m_editorSelectionContext;
 		int m_guizmoType = -1;
 		int m_entityCount = 0;
+		int m_projectileCount = 0;
+
 		friend class Scene;
 	};
 

@@ -236,6 +236,7 @@ namespace Engine {
         auto view = m_gameContext->m_registry.view<TagComponent>();
         std::vector<entt::entity> entityList(view.begin(), view.end());
 		m_entityCount = (int)entityList.size();
+        m_projectileCount = 0;
 		// I want new entities to be at the bottom of the list
         std::reverse(entityList.begin(), entityList.end());
         for (auto entityID : entityList)
@@ -244,6 +245,11 @@ namespace Engine {
             ImGui::PushID(entity.GetComponent<IDComponent>().ID);
             DrawEntityNode(entity);
             ImGui::PopID();
+            if (entity.HasComponent<ProjectileComponent>())
+            {
+                m_projectileCount++;
+            }
+
         }
         ImGui::PopID();
         

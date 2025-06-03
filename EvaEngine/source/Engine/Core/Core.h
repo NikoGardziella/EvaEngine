@@ -81,6 +81,8 @@
 
 #define BIT(x) (1 << x)
 
+//#define MAX_TEXTURES = 512
+
 //#include "Engine/Core/Log.h"
 
 namespace Engine {

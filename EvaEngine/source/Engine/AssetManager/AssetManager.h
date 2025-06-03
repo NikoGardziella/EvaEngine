@@ -24,9 +24,10 @@ namespace Engine {
         static void CreateCacheDirectoryIfNeeded();
         static std::vector<char> ReadFile(const std::string& filename);
 
-        static Ref<VulkanTexture> AddTexture(const std::string& name, const std::string& path, bool imGuiTexture = false);
+        static Ref<VulkanTexture> AddTexture(const std::string& name, const std::string& path, bool imGuiTexture = false, uint32_t textureID = 0);
         static Ref<VulkanPixelTexture> AddPixelTexture(const std::string& name, const std::string& path);
 		static Ref<VulkanTexture> GetTexture(const std::string& name);
+        static Ref<VulkanTexture> CloneTexture(const std::string& name);
 		static Ref<VulkanPixelTexture> GetPixelTexture(const std::string& name);
         static  std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures();
         static VkDeviceSize s_totalTextureMemory;

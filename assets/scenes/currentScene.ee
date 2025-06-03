@@ -24,15 +24,26 @@ Entities:
       OnGround: false
     WeaponComponent:
       Damage: 10
-      FireRate: 1
-  - ID: 6471202605863680358
+      FireRate: 0.3
+  - ID: 4027988326
     TagComponent:
-      Tag: Empty entity
+      Tag: Target
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [-5.9, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
-      Texture: ""
+      Texture: zombie1_walk_000
+      Tiling: 1
+  - ID: 3413337602
+    TagComponent:
+      Tag: Empty entity
+    TransformComponent:
+      Translation: [-3.9, -2.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Texture: zombie1_walk_000
       Tiling: 1

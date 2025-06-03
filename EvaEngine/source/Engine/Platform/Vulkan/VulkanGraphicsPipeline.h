@@ -12,6 +12,15 @@
 
 namespace Engine {
 
+    const int MAX_TEXTURE_DESCRIPTORS = 512;
+
+    struct ProjectileGPU
+    {
+        glm::vec2 Position;
+        float Radius;
+        float padding; // for alignment
+    };
+
     struct BulletData
     {
         glm::vec2 Position;
@@ -60,16 +69,18 @@ namespace Engine {
 
         void UpdatePresentDescriptorSet(uint32_t imageIndex);
         void UpdateDescriptorSet(uint32_t imageIndex, VkDescriptorSet descriptorset, VkImageView image); // remove?
+        void UpdateComputeDescriptorSet(uint32_t frameIndex, std::vector<Ref<VulkanTexture>> input, std::vector<Ref<VulkanTexture>> output);
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, 32>& textures);
+        void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::vector<Ref<VulkanTexture>>& textures);
         void UpdateComputeArrayDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, 32>& textures);
 
         void UpdateCameraUBODescriptorSets();
         void UpdateBulletUBODescriptorSets();
         void UpdateTextureInfoDescriptorSets();
         void UpdateStorageImageDescriptorSets();
-        void UpdateUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix);
+        void UpdateCameraUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix);
 
-        void UpdateBulletUniformBuffer(uint32_t currentFrame, const std::vector<glm::vec2>& bulletPositions);
+        void UpdateBulletUniformBuffer(uint32_t currentFrame, const std::array<ProjectileGPU, 32> bulletPositions);
 
         void UpdateTextureUniformBuffer(uint32_t currentFrame, const glm::ivec2& textureSize);
 
@@ -86,8 +97,9 @@ namespace Engine {
         VkDescriptorSet GetGameDescriptorSet(size_t frameIndex) { return m_gameDescriptorSets[frameIndex]; }
         VkDescriptorSet GetCameraDescriptorSet(size_t frameIndex) { return m_cameraDescriptorSets[frameIndex]; }
         VkDescriptorSet GetPresentDescriptorSet(size_t frameIndex) { return m_presentDescriptorSets[frameIndex]; }
-		VkDescriptorSet GetLineDescriptorSet() { return m_lineDescriptorSet; }
-		VkDescriptorSet GetComputeDescriptorSet() { return m_computeDescriptorSet; }
+		VkDescriptorSet GetComputeDescriptorSet(size_t frameIndex) { return m_computeDescriptorSet[frameIndex]; }
+		
+        VkDescriptorSet GetLineDescriptorSet() { return m_lineDescriptorSet; }
 
         VkSampler& GetPresentSampler() { return m_presentSampler; }
 
@@ -145,8 +157,8 @@ namespace Engine {
 
         VkDescriptorPool m_presentGamedescriptorPool;
         VkDescriptorSet m_lineDescriptorSet;
-        VkDescriptorSet m_computeDescriptorSet;
 
+        std::vector<VkDescriptorSet> m_computeDescriptorSet;
         std::vector<VkDescriptorSet> m_gameDescriptorSets;
         std::vector<VkDescriptorSet> m_cameraDescriptorSets;
         std::vector<VkDescriptorSet> m_presentDescriptorSets;

@@ -12,6 +12,7 @@
 
 namespace Engine {
 
+
 	struct VulkanRenderer2DData
 	{
 		static const uint32_t MaxQuads = 20000;
@@ -39,6 +40,7 @@ namespace Engine {
 		VulkanQuadVertex* QuadVertexBufferBase = nullptr;
 		VulkanQuadVertex* QuadVertexBufferPtr = nullptr;
 
+		std::unordered_map<VulkanTexture*, uint32_t> TextureToSlotMap;
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> TextureSlots;
 		std::array<Ref<VulkanPixelTexture>, MaxTextureSlots> PixelTextureSlots;
 		uint32_t TextureSlotIndex = 1; // 0 = white texture
@@ -54,18 +56,53 @@ namespace Engine {
 		};
 		CameraData CameraBuffer;
 		//Ref<UniformBuffer> CameraUniformBuffer;
+		uint32_t CurrentFrame = 0;
+
 	};
 
 
 	struct CollisionData
 	{
 		static const uint32_t MaxTextures = 32;
-		glm::vec2 playerPos;
+		static const uint32_t MaxProjectiles = 32;
+
+		glm::vec2 projectileRadius;
 		float radius;
-		std::array<glm::vec2, MaxTextures> Textures;
-		float PixelSize;
-		uint32_t TextureSlotIndex = 0;
+		float _pad0 = 0.0f;
+		//std::array<glm::vec2, MaxTextures> TexturesPos;                    
+
+		float PixelSize = 1.0f;
+		uint32_t ProjectileSlotIndex = 0;
+
+		std::array<ProjectileGPU, MaxProjectiles> Projectiles;
 	};
+
+
+	struct PushConstants
+	{
+		glm::vec2 PlayerPos;       // 8 bytes
+		float Radius;              // 4 bytes
+		float _pad0;               // 4 bytes
+
+		glm::vec2 TextureOrigin;   // 8 bytes
+		float PixelSize;           // 4 bytes
+		uint32_t textureIndex;     // 4 bytes
+		uint32_t NumProjectiles;
+	
+	};
+
+	struct PerFrameGarbage
+	{
+		std::vector<std::shared_ptr<VulkanTexture>> OldTextures;
+	};
+
+	
+
+	struct CollisionTexture
+	{
+		Ref<VulkanTexture> Textures[2]; // Ping-pong images
+	};
+
 
 	class VulkanRenderer2D
 	{
@@ -80,14 +117,14 @@ namespace Engine {
 		void DeviceWaitIdle();
 
 		static void StartBatch();
-		static void FlushLines();
+		//static void FlushLines();
 		static void NextBatch();
 		static void Draw();
 
 		// for rendering game in Editor
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
 
-		static void CalculateCollision(glm::vec2& textureOrigin, const float pixelSize, const glm::vec2& playerPos, const float radius);
+		static void CalculateCollision(glm::vec2& textureOrigin, const float pixelSize, const glm::vec2& projectilePos, const float projectileRadius, Ref<VulkanTexture> texture);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID);
@@ -144,8 +181,15 @@ namespace Engine {
 		uint32_t m_firstIndex = 0;
 		uint32_t m_vertexOffset = 0;
 		
+		uint32_t inputIndex = 0;
+		uint32_t outputIndex = 0;
 		static VulkanRenderer2DData s_VulkanData;
 		static CollisionData s_CollisionData;
+
+		//static const uint32_t MaxTextures = 10;
+		//std::array<CollisionTexture, MaxTextures> s_CollisionTextures;
+		//CollisionTexture s_CollisionTextures;
+		std::vector<Ref<VulkanTexture>> m_IOTextures[2];
 
 	};
 

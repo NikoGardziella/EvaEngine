@@ -330,7 +330,22 @@ namespace Engine {
             ImGui::Text("Lines: %d", stats.LineCount);
             ImGui::Text("Texture GPU memory cache: %.2f MB", AssetManager::s_totalTextureMemory / (1024.0f * 1024.0f));
             ImGui::Text("FPS: %d", m_fpsCounter.GetFPS());
-            ImGui::Text("Entity count: %d", m_sceneHierarchyPanel.GetEntityCount());
+
+
+            ImGuiTreeNodeFlags flags =   ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_OpenOnArrow;
+            flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+            flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+
+            bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)1, flags, "Entities: %d", m_sceneHierarchyPanel.GetEntityCount());
+            if (opened)
+            {
+               // ImGui::Text("Total Entity count: %d", m_sceneHierarchyPanel.GetEntityCount());
+                ImGui::Text("Projectile count: %d", m_sceneHierarchyPanel.GetProjectileCount());
+          
+                ImGui::TreePop();
+            }
+            
+
 
             ImGui::End();
 
