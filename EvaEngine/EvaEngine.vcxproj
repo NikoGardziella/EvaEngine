@@ -166,6 +166,7 @@
     <ClInclude Include="source\Engine\Events\KeyEvent.h" />
     <ClInclude Include="source\Engine\Events\MouseCodes.h" />
     <ClInclude Include="source\Engine\Events\MouseEvent.h" />
+    <ClInclude Include="source\Engine\Events\Public\CollisionEvents.h" />
     <ClInclude Include="source\Engine\Events\TouchEvent.h" />
     <ClInclude Include="source\Engine\ImGui\ImGuiLayer.h" />
     <ClInclude Include="source\Engine\Math\Math.h" />

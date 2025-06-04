@@ -441,8 +441,10 @@ namespace Engine {
                     Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
                     if (entity)
                     {
-                        m_newComponentsContext->GetRegistry().emplace<SpriteRendererComponent>(entity);
+                        SpriteRendererComponent& spriteComp = entity.AddComponent<SpriteRendererComponent>();
+                        spriteComp.Texture = AssetManager::CloneTexture("logo");
 
+                        EE_CORE_INFO("new texture");
                     }
                 }
             }
@@ -748,12 +750,18 @@ namespace Engine {
             {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
 
+                // Label
+                ImGui::Text("Texture");
+                ImGui::SameLine();
+
+                // Button with texture name or "Add"
                 const char* textureButtonText = component.Texture
                     ? component.Texture->GetName().c_str()
-                    : "Add Texture";
+                    : "Add";
 
-                ImGui::Button(textureButtonText, ImVec2(100.0f, 0.0f));
+                ImGui::Button(textureButtonText, ImVec2(150.0f, 0.0f)); // Wider to fit longer names
 
+                // Drag & Drop Handling
                 if (ImGui::BeginDragDropTarget())
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -762,22 +770,28 @@ namespace Engine {
                         std::filesystem::path texturePath = std::filesystem::path(AssetManager::GetAssetFolderPath()) / path;
                         std::string textureName = texturePath.stem().string();
 
-						component.Texture = AssetManager::GetTexture(textureName);
-						if (!component.Texture)
-						{
-							component.Texture = AssetManager::AddTexture(textureName, texturePath.string());
-						}
-						
+                        component.Texture = AssetManager::GetTexture(textureName);
+                        if (!component.Texture)
+                        {
+                            component.Texture = AssetManager::AddTexture(textureName, texturePath.string());
+                        }
+                        if (!component.Texture)
+                        {
+                            component.Texture = AssetManager::GetTexture("logo");
+                        }
                     }
                     ImGui::EndDragDropTarget();
                 }
 
                 ImGui::DragFloat("Tiling", &component.Tiling, 0.1f, 0.0f, 100.0f);
+
+                // Update entity in new context
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
                 if (newEntity)
                 {
                     m_newComponentsContext->GetRegistry().get<SpriteRendererComponent>(newEntity) = component;
                 }
+
             });
 
         DrawComponent<CircleRendererComponent>("Circle  renderer", entity, m_newComponentsContext.get(), [this, &entity](auto& component)

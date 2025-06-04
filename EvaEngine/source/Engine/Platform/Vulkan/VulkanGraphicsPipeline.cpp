@@ -1243,7 +1243,7 @@ namespace Engine {
             VkDescriptorBufferInfo resultBufferInfo{};
             resultBufferInfo.buffer = m_GPUCollisionresultBufferBuffer;
             resultBufferInfo.offset = 0;
-            resultBufferInfo.range = sizeof(uint32_t);
+            resultBufferInfo.range = sizeof(CollisionResult);
 
             VkDescriptorBufferInfo bulletBufferInfo{};
             bulletBufferInfo.buffer = m_bulletUniformBuffers[i].GetBuffer(); // Make sure this is set up correctly
@@ -1297,7 +1297,7 @@ namespace Engine {
     {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size = sizeof(uint32_t);
+        bufferInfo.size = sizeof(CollisionResult);
         bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 

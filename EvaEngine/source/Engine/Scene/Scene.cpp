@@ -490,7 +490,7 @@ namespace Engine {
                 }
 
                 auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
-                auto projectileView = m_registry.view<ProjectileComponent, TransformComponent>();
+                auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent>();
 
                 for (auto entity : view)
                 {
@@ -521,17 +521,17 @@ namespace Engine {
                     textureOrigin.y = transform.Translation.y - transform.Scale.y * 0.5f; // to bottom left
                     quadSprite.Texture->SetCheckCollision(true);
 					quadSprite.Texture->SetTextureOrigin(textureOrigin);
+					quadSprite.Texture->SetPixelSize(pixelSize);
 
                     for (auto projectileEntity : projectileView)
                     {
 
-                        auto [projectileTransform, projectile] = projectileView.get<TransformComponent, ProjectileComponent>(projectileEntity);
+                        auto [projectileTransform, projectile, IDComp] = projectileView.get<TransformComponent, ProjectileComponent, IDComponent>(projectileEntity);
                         glm::vec2 projectilePos;
                         projectilePos.x = projectileTransform.Translation.x;
                         projectilePos.y = projectileTransform.Translation.y;
 
-
-                        Engine::VulkanRenderer2D::CalculateCollision(textureOrigin, pixelSize, projectilePos, bulletRadius, quadSprite.Texture);
+                        Engine::VulkanRenderer2D::CalculateCollision(projectilePos, bulletRadius, IDComp.ID);
 
                     }
 
@@ -684,6 +684,11 @@ namespace Engine {
 			{
 				auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
 				float tiling = 1.0f;
+                if (quadSprite.Texture == nullptr)
+                {
+                    continue;
+                }
+
 				Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
 			}
 		}

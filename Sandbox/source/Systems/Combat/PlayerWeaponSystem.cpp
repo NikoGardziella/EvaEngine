@@ -60,7 +60,6 @@ void PlayerWeaponSystem::ShootProjectile(entt::registry& registry, entt::entity 
     Engine::ProjectileComponent& projectileComp = projectileEntity.AddComponent<Engine::ProjectileComponent>(direction * projectileSpeed, 1.0f);
     projectileComp.Damage = damage;
     Engine::SpriteRendererComponent& spriteComp = projectileEntity.AddComponent<Engine::SpriteRendererComponent>();
-
     projectileComp.Owner = entity;
 
     spriteComp.Texture = Engine::AssetManager::GetTexture("bullet");

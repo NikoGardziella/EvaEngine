@@ -14,12 +14,30 @@ namespace Engine {
 
     const int MAX_TEXTURE_DESCRIPTORS = 512;
 
-    struct ProjectileGPU
+    struct CollisionResult
     {
-        glm::vec2 Position;
-        float Radius;
-        float padding; // for alignment
+        uint32_t collisionDetected = 0;
+        uint32_t hitProjectileID_Low;
+        uint32_t hitProjectileID_High;
+        uint32_t padding = 0;
+
+        uint64_t GetProjectileID() const
+        {
+            return (uint64_t(hitProjectileID_High) << 32) | hitProjectileID_Low;
+        }
     };
+    static_assert(sizeof(CollisionResult) == 16, "CollisionResult must be 16 bytes (std140 alignment)");
+
+    struct ProjectileGPU {
+        glm::vec2 Position;         // 8 bytes
+        float Radius;               // 4 bytes
+        float padding0;             // 4 bytes (to align next field to 16)
+        uint32_t ID_Low;            // 4 bytes
+        uint32_t ID_High;           // 4 bytes
+        uint32_t padding1[2];       // 8 bytes to align to 32-byte stride
+    };
+    static_assert(sizeof(ProjectileGPU) == 32, "ProjectileGPU must be 32 bytes (std140 alignment)");
+
 
     struct BulletData
     {

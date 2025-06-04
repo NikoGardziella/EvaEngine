@@ -66,10 +66,8 @@ namespace Engine {
 		static const uint32_t MaxTextures = 32;
 		static const uint32_t MaxProjectiles = 32;
 
-		glm::vec2 projectileRadius;
 		float radius;
 		float _pad0 = 0.0f;
-		//std::array<glm::vec2, MaxTextures> TexturesPos;                    
 
 		float PixelSize = 1.0f;
 		uint32_t ProjectileSlotIndex = 0;
@@ -124,7 +122,7 @@ namespace Engine {
 		// for rendering game in Editor
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
 
-		static void CalculateCollision(glm::vec2& textureOrigin, const float pixelSize, const glm::vec2& projectilePos, const float projectileRadius, Ref<VulkanTexture> texture);
+		static void CalculateCollision(const glm::vec2& projectilePos, const float radius, uint64_t projectileID);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID);

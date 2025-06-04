@@ -8,11 +8,22 @@ layout(binding = 1, rgba8) uniform image2D u_OutputTexture[32];
 
 layout(binding = 2) buffer ResultBuffer {
     uint collisionDetected;
+    uint hitProjectileID_Low;
+    uint hitProjectileID_High;
 };
 
-layout(std430, binding = 3) readonly buffer Projectiles
+struct ProjectileGPU {
+    vec2 Position;
+    float Radius;
+    float _pad;
+    uint ID_Low;
+    uint ID_High;
+};
+
+
+layout(std140, set = 0, binding = 3) readonly buffer Projectiles
 {
-    vec4 data[]; // xy = position, z = radius
+    ProjectileGPU data[];
 };
 
 layout(push_constant) uniform PushConstants {
@@ -36,22 +47,28 @@ void main() {
 
     // Load pixel from input
     vec4 pixel = imageLoad(u_InputTexture[pc.TextureIndex], pixelCoord);
+    if (pixel.a == 0.0)
+    return;
 
     // Convert to world position
     vec2 worldPos = pc.TextureOrigin + vec2(pixelCoord) * pc.PixelSize;
 
-    // Check against all projectiles
     for (uint i = 0; i < pc.NumProjectiles; ++i)
     {
-        vec2 projectilePos = data[i].xy;
-        float radius = data[i].z;
+        vec2 projectilePos = data[i].Position;
+        float radius = data[i].Radius;
 
         float dist = distance(worldPos, projectilePos);
         if (dist < radius)
         {
             imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0, 0, 0, 0));
+
+            //uint low  = uint(data[i].ID & 0xFFFFFFFFul);
+            //uint high = uint(data[i].ID >> 32);
+
             atomicOr(collisionDetected, 1);
-            break;
+            atomicExchange(hitProjectileID_Low, data[i].ID_Low);
+            atomicExchange(hitProjectileID_High, data[i].ID_High);
         }
     }
 }

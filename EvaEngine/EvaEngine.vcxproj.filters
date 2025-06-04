@@ -1582,6 +1582,7 @@
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h" />
+    <ClInclude Include="source\Engine\Events\Public\CollisionEvents.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">

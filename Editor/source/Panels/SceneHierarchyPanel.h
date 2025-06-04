@@ -47,8 +47,11 @@ namespace Engine {
 		Entity m_selectionContext;
 		Entity m_editorSelectionContext;
 		int m_guizmoType = -1;
+
+		// stats
 		int m_entityCount = 0;
 		int m_projectileCount = 0;
+		// ****
 
 		friend class Scene;
 	};

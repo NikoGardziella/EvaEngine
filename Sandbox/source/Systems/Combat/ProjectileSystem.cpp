@@ -1,18 +1,33 @@
 #include "ProjectileSystem.h"
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
+#include <Engine/Events/Public/CollisionEvents.h>
 
 
 void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto projectileView = registry.view<Engine::TransformComponent, Engine::ProjectileComponent>();
+    auto projectileView = registry.view<Engine::TransformComponent, Engine::ProjectileComponent, Engine::IDComponent>();
+
+   
 
     for (auto projectileEntity : projectileView)
     {
         auto& projectileTransform = projectileView.get<Engine::TransformComponent>(projectileEntity);
         auto& projectile = projectileView.get<Engine::ProjectileComponent>(projectileEntity);
+        auto& IDComp = projectileView.get<Engine::IDComponent>(projectileEntity);
+
+        if (Engine::CollisionResults::Latest.GetProjectileID() > 0)
+        {
+            if (IDComp.ID == Engine::CollisionResults::Latest.GetProjectileID())
+            {
+                registry.destroy(projectileEntity);
+                continue;
+            }
+
+        }
+        
 
         const float projectileSpeed = 10.0f;
 

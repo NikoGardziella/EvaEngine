@@ -26,7 +26,7 @@ namespace Engine {
 		VkDescriptorSet GetTextureDescriptor() const { return m_textureDescriptor; }
 		const std::string GetPath() const { return m_path; }
 
-		const std::string GetName() const { return m_name; }
+		const std::string& GetName() const { return m_name; }
 		void SetName(std::string name) { m_name = name; }
 
 		
@@ -36,12 +36,17 @@ namespace Engine {
         virtual void SetData(void* data, uint32_t size) override;
         Ref<VulkanTexture> Clone() const;
 
-        //move to new class?
+        //**** move to new class? *****
         void SetCheckCollision(bool checkCollision) { m_checkCollision = checkCollision; }
         bool GetCheckCollision() const { return m_checkCollision; }
 
 		void SetTextureOrigin(const glm::vec2& origin) { m_texureOrigin = origin; }
         glm::vec2 GetTextureOrigin() { return m_texureOrigin; }
+
+		void SetPixelSize(float pixelSize) { m_pixelSize = pixelSize; }
+		float GetPixelSize() const { return m_pixelSize; }
+
+        //****************************
 
         virtual bool operator==(const Texture& other) const override
         {
@@ -73,6 +78,8 @@ namespace Engine {
         VkSampler m_sampler;
         bool m_checkCollision = false;
         glm::vec2 m_texureOrigin;
+		float m_pixelSize = 1.0f;
+
     };
 
 }

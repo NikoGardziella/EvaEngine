@@ -4,6 +4,7 @@
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
 #include "Engine/AssetManager/AssetManager.h"
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
+#include <Engine/Events/Public/CollisionEvents.h>
 
 
 #include "Renderer.h"
@@ -213,18 +214,8 @@ namespace Engine {
 
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 
-		
-
-	
-
-		//VkCommandBuffer cmd = m_commandBuffers[currentFrame];
-
-
 		m_vulkanGraphicsPipelines->UpdateCameraUniformBuffer(currentFrame, s_VulkanData.CameraBuffer.ViewProjection);
-
 		m_vulkanGraphicsPipelines->UpdateBulletUniformBuffer(currentFrame, s_CollisionData.Projectiles);
-
-		//m_vulkanGraphicsPipelines->UpdateTextureUniformBuffer(currentFrame, glm::ivec2{512, 512});
 
 		// Acquire. Max current frame is 2 and max swapchain images is 3.
 		// set in Renderer.h 	const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -262,28 +253,14 @@ namespace Engine {
 
 		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame);
 
-		if (!m_IOTextures[outputIndex].empty())
-		{
-			//m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(currentFrame, s_VulkanData.TextureSlots);
-		}
-		else
-		{
-			std::vector<std::shared_ptr<VulkanTexture>> emptyTextures;
-
-
-			for (size_t i = 0; i < s_VulkanData.TextureSlotIndex; i++)
-			{
-				emptyTextures.push_back(s_VulkanData.TextureSlots[i]);
-			}
-
-		}
+		
 		m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(currentFrame, s_VulkanData.TextureSlots);
 		
+		//move somewhere
 		s_CollisionData.ProjectileSlotIndex = 0;
-		s_VulkanData.TextureSlotIndex = 0; // slot 0 = white texture
+		s_VulkanData.TextureSlotIndex = 0; 
 		s_VulkanData.TextureToSlotMap.clear();
 		s_CollisionData.ProjectileSlotIndex = 0;
-		//move somewhere
 		
 		// --- Begin render pass ---
 		VkRenderPassBeginInfo renderPassInfo{};
@@ -382,20 +359,21 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to present swapchain image!");
 		}
 
+		CollisionResult result = {};
 		void* data;
-		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, sizeof(uint32_t), 0, &data);
-		uint32_t result = *reinterpret_cast<uint32_t*>(data);
+		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, sizeof(result), 0, &data);
+
+		memcpy(&result, data, sizeof(result));
+
 		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
 
-		if (result == 1)
+		if (result.collisionDetected == 1)
 		{
-			//collision
+			CollisionResults::Latest.ProjectileID = result.GetProjectileID();
 			
 		}
-		if (result > 1)
-		{
-			EE_CORE_INFO("distance on GPU: {}", result);
-		}
+
+		
 		
 
 
@@ -567,8 +545,14 @@ namespace Engine {
 		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,
 			m_IOTextures[0], m_IOTextures[1]);
 
-		// 1. Clear collision result buffer
-		vkCmdFillBuffer(commandBuffer, m_vulkanGraphicsPipelines->GetGPUCollisionBuffer(), 0, sizeof(uint32_t), 0);
+		// reset collision data
+		CollisionResult* resultPtr = nullptr;
+		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, sizeof(CollisionResult), 0, (void**)&resultPtr);
+		resultPtr->collisionDetected = 0;
+		resultPtr->hitProjectileID_Low = 0;
+		resultPtr->hitProjectileID_High = 0;
+		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
+
 
 		// 2. Bind compute pipeline
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_vulkanGraphicsPipelines->GetComputePipeline());
@@ -597,14 +581,12 @@ namespace Engine {
 
 			// Push constants
 			PushConstants pushconstant{};
-			pushconstant.PlayerPos = s_CollisionData.projectileRadius;
 			pushconstant.Radius = s_CollisionData.radius;
 			pushconstant.TextureOrigin = m_IOTextures[inputIndex][i]->GetTextureOrigin();
-			pushconstant.PixelSize = s_CollisionData.PixelSize;
+			pushconstant.PixelSize = m_IOTextures[inputIndex][i]->GetPixelSize();
 			pushconstant.textureIndex = descriptorIndex; // index into descriptor array
 			pushconstant.NumProjectiles = s_CollisionData.Projectiles.size();
 			descriptorIndex++;
-
 
 			//float distance = glm::distance(pushconstant.PlayerPos, pushconstant.TextureOrigin);
 			///EE_CORE_INFO("CPU distance: {}", distance);
@@ -634,7 +616,6 @@ namespace Engine {
 
 			// Store output as next input
 			s_VulkanData.TextureSlots[originalIndices[i]] = outputTex;
-			//m_IOTextures[outputIndex][i] = s_VulkanData.WhiteTexture;
 		}
 
 	}
@@ -955,7 +936,7 @@ namespace Engine {
 	}
 	
 
-	void VulkanRenderer2D::CalculateCollision(glm::vec2& textureOrigin, const float pixelSize, const glm::vec2& projectilePos, const float radius, Ref<VulkanTexture> texture)
+	void VulkanRenderer2D::CalculateCollision(const glm::vec2& projectilePos, const float radius, uint64_t projectileID)
 	{
 		uint32_t index = s_CollisionData.ProjectileSlotIndex;
 		if (index >= CollisionData::MaxTextures)
@@ -964,13 +945,12 @@ namespace Engine {
 			return;
 		}
 
-		s_CollisionData.projectileRadius = projectilePos;
 		s_CollisionData.radius = radius;
-		s_CollisionData.PixelSize = pixelSize;
-
-		
+	
 		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].Position = projectilePos;
 		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].Radius = radius;
+		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].ID_Low = static_cast<uint32_t>(projectileID & 0xFFFFFFFF);
+		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].ID_High = static_cast<uint32_t>(projectileID >> 32);
 		s_CollisionData.ProjectileSlotIndex++;
 	}
 
