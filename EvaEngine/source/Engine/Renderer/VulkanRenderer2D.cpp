@@ -261,7 +261,7 @@ namespace Engine {
 		s_VulkanData.TextureSlotIndex = 0; 
 		s_VulkanData.TextureToSlotMap.clear();
 		s_CollisionData.ProjectileSlotIndex = 0;
-		
+
 		// --- Begin render pass ---
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -370,6 +370,7 @@ namespace Engine {
 		if (result.collisionDetected == 1)
 		{
 			CollisionResults::Latest.ProjectileID = result.GetProjectileID();
+			CollisionResults::Latest.HitPosition = result.CollisionPosition;
 			
 		}
 
@@ -551,6 +552,7 @@ namespace Engine {
 		resultPtr->collisionDetected = 0;
 		resultPtr->hitProjectileID_Low = 0;
 		resultPtr->hitProjectileID_High = 0;
+		resultPtr->CollisionPosition = glm::vec2(0.0f, 0.0f);
 		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
 
 
@@ -936,7 +938,7 @@ namespace Engine {
 	}
 	
 
-	void VulkanRenderer2D::CalculateCollision(const glm::vec2& projectilePos, const float radius, uint64_t projectileID)
+	void VulkanRenderer2D::CalculateCollision(const glm::vec2& colliderPos, const float radius, uint64_t entityID, eCollisionType collisionType)
 	{
 		uint32_t index = s_CollisionData.ProjectileSlotIndex;
 		if (index >= CollisionData::MaxTextures)
@@ -946,11 +948,11 @@ namespace Engine {
 		}
 
 		s_CollisionData.radius = radius;
-	
-		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].Position = projectilePos;
+		s_CollisionData.Projectiles[index].Type = (uint32_t)collisionType;
+		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].Position = colliderPos;
 		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].Radius = radius;
-		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].ID_Low = static_cast<uint32_t>(projectileID & 0xFFFFFFFF);
-		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].ID_High = static_cast<uint32_t>(projectileID >> 32);
+		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
+		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
 		s_CollisionData.ProjectileSlotIndex++;
 	}
 

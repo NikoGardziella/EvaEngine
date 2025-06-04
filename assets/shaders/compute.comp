@@ -10,12 +10,16 @@ layout(binding = 2) buffer ResultBuffer {
     uint collisionDetected;
     uint hitProjectileID_Low;
     uint hitProjectileID_High;
+    uint _padding0;
+
+    vec2 CollisionPosition;
+    vec2 _padding1;
 };
 
 struct ProjectileGPU {
     vec2 Position;
     float Radius;
-    float _pad;
+    uint Type;      // 0 = projectile, 1 = player
     uint ID_Low;
     uint ID_High;
 };
@@ -27,8 +31,8 @@ layout(std140, set = 0, binding = 3) readonly buffer Projectiles
 };
 
 layout(push_constant) uniform PushConstants {
-    vec2 PlayerPos;
-    float Radius;
+    vec2 Remove1;
+    float Remove;
     float pad0;
 
     vec2 TextureOrigin;
@@ -57,18 +61,22 @@ void main() {
     {
         vec2 projectilePos = data[i].Position;
         float radius = data[i].Radius;
+        uint type = data[i].Type;
 
         float dist = distance(worldPos, projectilePos);
         if (dist < radius)
         {
-            imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0, 0, 0, 0));
+            if (type == 0) // Only destroy pixels for actual projectiles
+            {
+                imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0, 0, 0, 0));
+            }
 
-            //uint low  = uint(data[i].ID & 0xFFFFFFFFul);
-            //uint high = uint(data[i].ID >> 32);
-
-            atomicOr(collisionDetected, 1);
-            atomicExchange(hitProjectileID_Low, data[i].ID_Low);
-            atomicExchange(hitProjectileID_High, data[i].ID_High);
+            if (atomicCompSwap(collisionDetected, 0u, 1u) == 0u)
+            {
+                CollisionPosition = worldPos;
+                atomicExchange(hitProjectileID_Low, data[i].ID_Low);
+                atomicExchange(hitProjectileID_High, data[i].ID_High);
+            }
         }
     }
 }

@@ -12,6 +12,11 @@
 
 namespace Engine {
 
+	enum eCollisionType {
+		PROJECTILE = 0,
+		PLAYER = 1,
+		ELSE  = 2,
+	};;
 
 	struct VulkanRenderer2DData
 	{
@@ -122,7 +127,7 @@ namespace Engine {
 		// for rendering game in Editor
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
 
-		static void CalculateCollision(const glm::vec2& projectilePos, const float radius, uint64_t projectileID);
+		static void CalculateCollision(const glm::vec2& colliderPos, const float radius, uint64_t entityID, eCollisionType collisionType);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID);

@@ -23,8 +23,12 @@ namespace Engine
 		}
 		uint64_t GetProjectileID() const { return ProjectileID; }
 	};
+
+	// Supports only one collision result at a time
+	// todo add vector of collisions
     struct CollisionResults
     {
+
         static inline Collision Latest;
     };
 }

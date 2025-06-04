@@ -19,19 +19,23 @@ namespace Engine {
         uint32_t collisionDetected = 0;
         uint32_t hitProjectileID_Low;
         uint32_t hitProjectileID_High;
-        uint32_t padding = 0;
+
+        uint32_t _padding0 = 0; // Pad to 16-byte boundary
+        glm::vec2 CollisionPosition = glm::vec2(0.0f);
+        glm::vec2 _padding1 = glm::vec2(0.0f);
 
         uint64_t GetProjectileID() const
         {
             return (uint64_t(hitProjectileID_High) << 32) | hitProjectileID_Low;
         }
     };
-    static_assert(sizeof(CollisionResult) == 16, "CollisionResult must be 16 bytes (std140 alignment)");
+
+    static_assert(sizeof(CollisionResult) == 32, "CollisionResult must be 32 bytes (std140 alignment)");
 
     struct ProjectileGPU {
         glm::vec2 Position;         // 8 bytes
         float Radius;               // 4 bytes
-        float padding0;             // 4 bytes (to align next field to 16)
+        uint32_t Type;              //  4 bytes. 0 = projectile, 1 = player
         uint32_t ID_Low;            // 4 bytes
         uint32_t ID_High;           // 4 bytes
         uint32_t padding1[2];       // 8 bytes to align to 32-byte stride

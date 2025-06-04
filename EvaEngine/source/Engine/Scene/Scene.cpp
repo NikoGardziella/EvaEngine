@@ -479,13 +479,18 @@ namespace Engine {
             {
                 EE_PROFILE_SCOPE("GPU collision");
 
-                auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent>();
+                auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent>();
                 glm::vec2 playerPos;
+                uint64_t playerID = 0;
+
                 for (auto playerEntity : playerView)
                 {
                     auto& playerTransform = playerView.get<Engine::TransformComponent>(playerEntity);
                     playerPos.x = playerTransform.Translation.x;
                     playerPos.y = playerTransform.Translation.y;
+
+                    auto& playerIDComp = playerView.get<Engine::IDComponent>(playerEntity);
+					playerID = playerIDComp.ID;
 
                 }
 
@@ -531,11 +536,11 @@ namespace Engine {
                         projectilePos.x = projectileTransform.Translation.x;
                         projectilePos.y = projectileTransform.Translation.y;
 
-                        Engine::VulkanRenderer2D::CalculateCollision(projectilePos, bulletRadius, IDComp.ID);
+                        Engine::VulkanRenderer2D::CalculateCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE);
 
                     }
 
-                    //Engine::VulkanRenderer2D::CalculateCollision(textureOrigin, pixelSize, playerPos, playerRadius, quadSprite.Texture);
+                    Engine::VulkanRenderer2D::CalculateCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
 
                 }
 
