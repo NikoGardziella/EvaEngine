@@ -56,8 +56,9 @@ void PlayerWeaponSystem::ShootProjectile(entt::registry& registry, entt::entity 
     Engine::Entity& projectileEntity = scene->CreateEntity("Projectile");
 
     Engine::TransformComponent& transformComp = projectileEntity.AddComponent<Engine::TransformComponent>();
-    float projectileSpeed = 1.0f;
-    Engine::ProjectileComponent& projectileComp = projectileEntity.AddComponent<Engine::ProjectileComponent>(direction * projectileSpeed, 1.0f);
+    float projectileSpeed = 2.0f;
+	float lifeTime = 1.0f;
+    Engine::ProjectileComponent& projectileComp = projectileEntity.AddComponent<Engine::ProjectileComponent>(direction * projectileSpeed, lifeTime);
     projectileComp.Damage = damage;
     Engine::SpriteRendererComponent& spriteComp = projectileEntity.AddComponent<Engine::SpriteRendererComponent>();
     projectileComp.Owner = entity;

@@ -42,6 +42,7 @@ namespace Engine {
 		void ProcessMainThreadTasks();
 
 		void OnUpdate(Timestep timestep) override;
+		void OnUpdateECS(Timestep timestep) override;
 		void OnEvent(Event& event) override;
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);

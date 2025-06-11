@@ -1,19 +1,23 @@
 #type compute
 #version 450
 
+#define MAX_TEXTURES 32
+#define MAX_COLLISION_ENTITIES 64
+
 layout(local_size_x = 16, local_size_y = 16) in;
 
-layout(binding = 0, rgba8) uniform image2D u_InputTexture[32];
-layout(binding = 1, rgba8) uniform image2D u_OutputTexture[32];
+layout(binding = 0, rgba8) uniform image2D u_InputTexture[MAX_TEXTURES];
+layout(binding = 1, rgba8) uniform image2D u_OutputTexture[MAX_TEXTURES];
 
-layout(binding = 2) buffer ResultBuffer {
+struct CollisionResult {
     uint collisionDetected;
     uint hitProjectileID_Low;
     uint hitProjectileID_High;
-    uint _padding0;
-
+    uint _padding1;
     vec2 CollisionPosition;
-    vec2 _padding1;
+    uint _padding2;
+    uint _padding3;
+
 };
 
 struct ProjectileGPU {
@@ -22,23 +26,32 @@ struct ProjectileGPU {
     uint Type;      // 0 = projectile, 1 = player
     uint ID_Low;
     uint ID_High;
+    uint _padding0; 
+    uint _padding1; 
 };
 
+// Results SSBO
+layout(std430, binding = 2) buffer ResultBuffer {
+    uint collisionCount;
+    uint _padding0; 
+    uint _padding1; 
+    uint _padding2; 
+    CollisionResult results[MAX_COLLISION_ENTITIES];
+};
 
-layout(std140, set = 0, binding = 3) readonly buffer Projectiles
-{
+// Projectiles SSBO
+layout(std140, set = 0, binding = 3) readonly buffer Projectiles {
     ProjectileGPU data[];
 };
 
-layout(push_constant) uniform PushConstants {
-    vec2 Remove1;
-    float Remove;
-    float pad0;
-
+// Push constants
+layout(push_constant) uniform PushConstants
+{
     vec2 TextureOrigin;
     float PixelSize;
     uint TextureIndex;
     uint NumProjectiles;
+    uint mode; // 0 = Detect, 1 = Destroy
 } pc;
 
 void main() {
@@ -49,12 +62,13 @@ void main() {
     if (pixelCoord.x >= textureSize.x || pixelCoord.y >= textureSize.y)
         return;
 
-    // Load pixel from input
     vec4 pixel = imageLoad(u_InputTexture[pc.TextureIndex], pixelCoord);
     if (pixel.a == 0.0)
-    return;
+        return;
 
-    // Convert to world position
+   
+
+
     vec2 worldPos = pc.TextureOrigin + vec2(pixelCoord) * pc.PixelSize;
 
     for (uint i = 0; i < pc.NumProjectiles; ++i)
@@ -63,20 +77,29 @@ void main() {
         float radius = data[i].Radius;
         uint type = data[i].Type;
 
+
+        float collisionRadius = radius / 10.0f;
         float dist = distance(worldPos, projectilePos);
         if (dist < radius)
         {
-            if (type == 0) // Only destroy pixels for actual projectiles
+
+           
+            if (type == 0)
             {
                 imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0, 0, 0, 0));
             }
 
-            if (atomicCompSwap(collisionDetected, 0u, 1u) == 0u)
+            //if(dist < collisionRadius)
             {
-                CollisionPosition = worldPos;
-                atomicExchange(hitProjectileID_Low, data[i].ID_Low);
-                atomicExchange(hitProjectileID_High, data[i].ID_High);
+                
+                uint index = atomicAdd(collisionCount, 1);
+                results[index].collisionDetected = 1;
+                results[index].hitProjectileID_Low = data[i].ID_Low;
+                results[index].hitProjectileID_High = data[i].ID_High;
+                results[index].CollisionPosition = worldPos;
+                
             }
+           
         }
     }
 }

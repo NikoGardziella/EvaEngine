@@ -20,105 +20,98 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
         auto& playerIDComp = playerView.get<Engine::IDComponent>(playerEntity);
 
         glm::vec2 startPos = glm::vec2(playerTransform.Translation);
-        glm::vec2 velocity = controller.velocity;
-        glm::vec2 attemptedMove = velocity * deltaTime * controller.speed;
+        glm::vec2 desiredMove = controller.velocity * deltaTime * controller.speed;
         glm::vec2 offset = playerCollider.Offset;
         float radius = playerCollider.Radius;
 
-        // Check static collision (same as before)
-        auto IsCollidingWithStatic = [&](glm::vec2 testPos) -> bool
-            {
-                glm::vec2 minA = testPos + offset - glm::vec2(radius);
-                glm::vec2 maxA = testPos + offset + glm::vec2(radius);
+        const int steps = 20;  // Number of incremental movement steps
+        glm::vec2 stepMove = desiredMove / static_cast<float>(steps);
+        glm::vec2 currentPos = startPos;
 
-                for (auto otherEntity : staticView)
-                {
-                    auto& otherTransform = staticView.get<Engine::TransformComponent>(otherEntity);
-                    auto& otherBox = staticView.get<Engine::BoxCollider2DComponent>(otherEntity);
+        bool blocked = false;
 
-                    glm::vec2 boxScale = glm::vec2(otherTransform.Scale);
-                    glm::vec2 boxCenter = glm::vec2(otherTransform.Translation) + otherBox.Offset * boxScale;
-                    glm::vec2 boxHalfSize = (otherBox.Size * boxScale);
-
-                    glm::vec2 minB = boxCenter - boxHalfSize;
-                    glm::vec2 maxB = boxCenter + boxHalfSize;
-
-                    bool overlapX = maxA.x > minB.x && minA.x < maxB.x;
-                    bool overlapY = maxA.y > minB.y && minA.y < maxB.y;
-
-                    if (overlapX && overlapY)
-                        return true;
-                }
-                return false;
-            };
-
-        // First try full movement
-        glm::vec2 newPos = startPos + attemptedMove;
-
-        // Check collision with static colliders first
-        if (IsCollidingWithStatic(newPos))
+        for (int i = 0; i < steps; i++)
         {
-            // Slide along static colliders same as before
-            glm::vec2 xMove = startPos + glm::vec2(attemptedMove.x, 0.0f);
-            glm::vec2 yMove = startPos + glm::vec2(0.0f, attemptedMove.y);
+            glm::vec2 testPos = currentPos + stepMove;
+            glm::vec2 playerCenter = testPos + offset;
 
-            bool xFree = !IsCollidingWithStatic(xMove);
-            bool yFree = !IsCollidingWithStatic(yMove);
+            bool collides = false;
 
-            if (xFree) playerTransform.Translation.x = xMove.x; else controller.velocity.x = 0.0f;
-            if (yFree) playerTransform.Translation.y = yMove.y; else controller.velocity.y = 0.0f;
-
-            // No pixel texture collision correction needed here, because player stuck on static
-            continue;
-        }
-
-        // If no static collision, check pixel texture collision
-        if (playerIDComp.ID == Engine::CollisionResults::Latest.GetProjectileID())
-        {
-            glm::vec2 collisionPos = Engine::CollisionResults::Latest.HitPosition;
-            glm::vec2 playerCenter = newPos + offset;
-
-            float dist = glm::distance(playerCenter, collisionPos);
-
-            if (dist < radius)
+            // Check collisions at the test position
+            for (const auto& collision : Engine::CollisionResultsCPU::Latest)
             {
-                // Player overlapping pixel texture — push player OUT from collision point
-                glm::vec2 pushDir = glm::normalize(playerCenter - collisionPos);
+                if (playerIDComp.ID != collision.GetProjectileID())
+                    continue;
 
-                if (glm::length(pushDir) < 0.0001f)
+                glm::vec2 collisionPos = collision.HitPosition;
+
+                float dist = glm::distance(playerCenter, collisionPos);
+
+                if (dist < radius)
                 {
-                    // If pushDir is zero length (perfect overlap), push up by default
-                    pushDir = glm::vec2(0.0f, 1.0f);
+                    collides = true;
+                    break;
                 }
+            }
 
-                // New position is collisionPos + radius along pushDir minus offset
-                glm::vec2 correctedPos = collisionPos + pushDir * radius - offset;
-
-                // Update player position smoothly towards correctedPos (slide)
-                // For smooth sliding, lerp current position a bit towards correctedPos
-                playerTransform.Translation.x = correctedPos.x;
-                playerTransform.Translation.y = correctedPos.y;
-
-                // Zero velocity along push direction (to avoid pushing into collision again)
-                // Project velocity onto pushDir and zero that component
-                float velAlongPush = glm::dot(controller.velocity, pushDir);
-                if (velAlongPush < 0) // Only zero if velocity pushes into collision
-                {
-                    controller.velocity -= pushDir * velAlongPush;
-                }
-                Engine::CollisionResults::Latest.Reset();
+            if (collides)
+            {
+                blocked = true;
+                break;  // Stop moving forward, collision ahead
             }
             else
             {
-                // No pixel texture collision: safe to move fully
-                playerTransform.Translation = glm::vec3(newPos, playerTransform.Translation.z);
+                currentPos = testPos;  // Safe to move forward
             }
         }
-        else
+
+        // Set position to last safe position after stepping
+        playerTransform.Translation = glm::vec3(currentPos, playerTransform.Translation.z);
+
+        // After stepping, do pushback correction if needed
+        glm::vec2 totalPush(0.0f);
+        int pushCount = 0;
+        glm::vec2 playerCenter = glm::vec2(playerTransform.Translation) + offset;
+        for (const auto& collision : Engine::CollisionResultsCPU::Latest)
         {
-            playerTransform.Translation = glm::vec3(newPos, playerTransform.Translation.z);
+            if (playerIDComp.ID != collision.GetProjectileID())
+                continue;
+
+            glm::vec2 collisionPos = collision.HitPosition;
+            float dist = glm::distance(playerCenter, collisionPos);
+
+            if (dist < radius && dist > 0.0001f)
+            {
+                glm::vec2 pushDir = glm::normalize(playerCenter - collisionPos);
+                float penetration = radius - dist;
+
+                totalPush += pushDir * penetration;
+                pushCount++;
+
+                // If player is moving into the collision, cancel velocity in that direction
+                glm::vec2 velocityDir = glm::length(controller.velocity) > 0.001f
+                    ? glm::normalize(controller.velocity) : glm::vec2(0.0f);
+                float dot = glm::dot(pushDir, velocityDir);
+                if (dot > 0.0f) // Moving toward the collision
+                {
+                    float velIntoWall = glm::dot(controller.velocity, pushDir);
+                    if (velIntoWall < 0.0f)
+                        controller.velocity -= pushDir * velIntoWall;
+                }
+            }
         }
+
+        if (pushCount > 0)
+        {
+            float pushbackStrength = 0.8f; // You can adjust this if needed
+            glm::vec2 avgPush = (totalPush / static_cast<float>(pushCount)) * pushbackStrength;
+
+            // Apply pushback correction
+            playerTransform.Translation += glm::vec3(avgPush, 0.0f);
+        }
+
     }
+
 }
 
 

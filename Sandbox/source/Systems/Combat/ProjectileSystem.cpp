@@ -10,7 +10,9 @@ void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float de
 
     auto projectileView = registry.view<Engine::TransformComponent, Engine::ProjectileComponent, Engine::IDComponent>();
 
-   
+    // Cache and clear collision results before loop
+    const auto collisions = Engine::CollisionResultsCPU::Latest;
+    //Engine::CollisionResultsCPU::Latest.clear();
 
     for (auto projectileEntity : projectileView)
     {
@@ -18,16 +20,21 @@ void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float de
         auto& projectile = projectileView.get<Engine::ProjectileComponent>(projectileEntity);
         auto& IDComp = projectileView.get<Engine::IDComponent>(projectileEntity);
 
-        if (Engine::CollisionResults::Latest.GetProjectileID() > 0)
+        // Check GPU-reported collisions
+        bool destroyedByCollision = false;
+        for (const auto& col : collisions)
         {
-            if (IDComp.ID == Engine::CollisionResults::Latest.GetProjectileID())
+            if (IDComp.ID  == col.GetProjectileID())
             {
+				EE_INFO("Projectile collided");
                 registry.destroy(projectileEntity);
-                continue;
+                destroyedByCollision = true;
+                break;
             }
-
         }
-        
+
+        if (destroyedByCollision)
+            continue;
 
         const float projectileSpeed = 10.0f;
 
@@ -40,7 +47,7 @@ void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float de
             projectileTransform.Translation.y
         };
 
-        // Check collisions
+        // Check collisions with entities
         auto targetView = registry.view<Engine::TransformComponent>();
 
         for (auto targetEntity : targetView)
@@ -48,8 +55,8 @@ void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float de
             if (targetEntity == projectileEntity)
                 continue;
 
-			if (targetEntity == projectile.Owner)
-				continue;
+            if (targetEntity == projectile.Owner)
+                continue;
 
             const auto& targetTransform = targetView.get<Engine::TransformComponent>(targetEntity);
             glm::vec2 targetPos = {

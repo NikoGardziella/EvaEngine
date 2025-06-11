@@ -43,6 +43,7 @@ namespace Engine {
 		void ResumeRuntime();
 
 		void OnUpdateRuntime(Timestep timestep, bool isPlaying = true);
+		void OnUpdateECSRuntime(Timestep timestep);
 		void OnUpdateEditor(Timestep timestep, EditorCamera& camera);
 		void OnViewportResize(uint32_t width, uint32_t height, glm::vec2 viewportBounds);
 

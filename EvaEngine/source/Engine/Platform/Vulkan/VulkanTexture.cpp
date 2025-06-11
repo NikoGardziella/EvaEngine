@@ -167,6 +167,9 @@ namespace Engine {
 
         VulkanUtils::TransitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_UNORM,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        m_CurrentLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
     }
 
 
@@ -231,8 +234,11 @@ namespace Engine {
         clone->CopyFrom(*this);
         clone->SetTextureID(this->GetTextureID());
         clone->SetName(this->GetName());
+        clone->SetCheckCollision(this->GetCheckCollision());
+		clone->SetCurrentLayout(this->GetCurrentLayout());
         return clone;
     }
+
 
     void VulkanTexture::CopyFrom(const VulkanTexture& src)
     {
@@ -316,7 +322,7 @@ namespace Engine {
             VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
             barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
             barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
             barrier.image = m_image;
             barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
@@ -330,6 +336,8 @@ namespace Engine {
                 0, nullptr,
                 1, &barrier
             );
+
+
         }
 
         // 6) Transition src back to its original layout (if needed)
@@ -351,6 +359,8 @@ namespace Engine {
                 0, nullptr,
                 1, &barrier
             );
+
+
         }
 
         // 7) End & submit, then wait
@@ -363,6 +373,8 @@ namespace Engine {
         vkQueueWaitIdle(transferQueue);
 
         vkFreeCommandBuffers(device, transferPool, 1, &cmd);
+
     }
+
 
 }

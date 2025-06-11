@@ -9,6 +9,7 @@
 #include "Engine/Platform/Vulkan/VulkanGraphicsPipeline.h"
 
 #include "vulkan/vulkan.h"
+#include <Engine/Events/Public/CollisionEvents.h>
 
 namespace Engine {
 
@@ -17,13 +18,17 @@ namespace Engine {
 		PLAYER = 1,
 		ELSE  = 2,
 	};;
+	enum eComputeMode : uint32_t {
+		DetectOnly = 0,
+		Destroy = 1
+	};
 
 	struct VulkanRenderer2DData
 	{
 		static const uint32_t MaxQuads = 20000;
 		static const uint32_t MaxVertices = MaxQuads * 4;
 		static const uint32_t MaxIndices = MaxQuads * 6;
-		static const uint32_t MaxTextureSlots = 32; // TODO: RenderCaps
+		static const uint32_t MaxTextureSlots = MAX_TEXTURES; // TODO: RenderCaps
 
 		static const uint32_t MaxLines = 10000;
 		static const uint32_t MaxLineVertices = MaxLines * 2;
@@ -68,29 +73,20 @@ namespace Engine {
 
 	struct CollisionData
 	{
-		static const uint32_t MaxTextures = 32;
-		static const uint32_t MaxProjectiles = 32;
 
-		float radius;
-		float _pad0 = 0.0f;
+		uint32_t EntitySlotIndex = 0;
 
-		float PixelSize = 1.0f;
-		uint32_t ProjectileSlotIndex = 0;
-
-		std::array<ProjectileGPU, MaxProjectiles> Projectiles;
+		std::array<CollisionEntitiesGPU, MAX_COLLISION_ENTITIES> CollisionEntities;
 	};
 
 
 	struct PushConstants
 	{
-		glm::vec2 PlayerPos;       // 8 bytes
-		float Radius;              // 4 bytes
-		float _pad0;               // 4 bytes
-
 		glm::vec2 TextureOrigin;   // 8 bytes
 		float PixelSize;           // 4 bytes
 		uint32_t textureIndex;     // 4 bytes
 		uint32_t NumProjectiles;
+		uint32_t mode; // 0 = Detect, 1 = Destroy
 	
 	};
 
@@ -112,11 +108,12 @@ namespace Engine {
 	public:
 		VulkanRenderer2D();
 		~VulkanRenderer2D();
-	
+
 		void Init();
 		void DrawFrame(uint32_t currentFrame);
 		void BeginFrame(uint32_t currentFrame);
 		void EndFrame(uint32_t currentFrame);
+		void CalculateCollisionFrame(uint32_t currentFrame);
 		void DeviceWaitIdle();
 
 		static void StartBatch();
@@ -137,7 +134,7 @@ namespace Engine {
 		static void BeginScene(glm::mat4 viewProjectionMatrix);
 		static void BeginScene();
 		static void EndScene();
-		
+
 
 		static Renderer2D::Statistics GetStats();
 		static void ResetStats();
@@ -178,12 +175,12 @@ namespace Engine {
 
 		std::vector<VkDescriptorSet> m_gameViewportDescriptorSets;
 
-	
+
 		Ref<OrthographicCamera> m_camera;
 		uint32_t m_imageIndex;
 		uint32_t m_firstIndex = 0;
 		uint32_t m_vertexOffset = 0;
-		
+
 		uint32_t inputIndex = 0;
 		uint32_t outputIndex = 0;
 		static VulkanRenderer2DData s_VulkanData;
@@ -192,8 +189,10 @@ namespace Engine {
 		//static const uint32_t MaxTextures = 10;
 		//std::array<CollisionTexture, MaxTextures> s_CollisionTextures;
 		//CollisionTexture s_CollisionTextures;
-		std::vector<Ref<VulkanTexture>> m_IOTextures[2];
+		std::array<Ref<VulkanTexture>, MAX_TEXTURES> m_IOTextures[2];
+		Ref<VulkanTexture> m_dummyTexture;
 
+			
 	};
 
 

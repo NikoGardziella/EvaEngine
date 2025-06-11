@@ -83,7 +83,9 @@
 
 //#define MAX_TEXTURES = 512
 
-//#include "Engine/Core/Log.h"
+constexpr size_t MAX_TEXTURES = 32;
+constexpr size_t MAX_COLLISION_ENTITIES = 32; // projectiles and player
+constexpr size_t MAX_COLLISION_RESULTS = 64; // projectiles and player
 
 namespace Engine {
 

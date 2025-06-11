@@ -18,6 +18,7 @@ public:
 	virtual void OnImGuiRender() override;
 
 	void OnUpdate(Engine::Timestep timestep) override;
+	void OnUpdateECS(Engine::Timestep timestep) override;
 	void OnEvent(Engine::Event& event) override;
 	void OnGameStart();
 	void LoadGameAssets();

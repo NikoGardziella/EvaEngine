@@ -42,14 +42,13 @@ namespace Engine {
         }
 
 
-        const uint32_t MaxBulletCount = 32;
         m_bulletUniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
         {
             m_bulletUniformBuffers[i] = VulkanBuffer(
                 m_device,
                 vulkanContext.GetDeviceManager().GetPhysicalDevice(),
-                sizeof(ProjectileGPU) * MaxBulletCount,
+                sizeof(CollisionEntitiesGPU) * MAX_COLLISION_ENTITIES,
                 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
             );
@@ -136,31 +135,13 @@ namespace Engine {
             width, height, VK_FORMAT_R8G8B8A8_UNORM, vulkanContext.GetCommandPool(), vulkanContext.GetGraphicsQueue());
 
 
-        
-        
-        
-        
-
-            // output image - written to by the compute shader and may be sampled later.
-
-
-
-      
-
-        //----------
-
-
-
-
-
-
+ 
         CreateComputeDescriptorSet();
         //UpdateStorageImageDescriptorSets();
         //UpdateBulletUBODescriptorSets();
+        AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
 
-
-
-        
+        m_whiteTexture = AssetManager::GetTexture("logo");
     }
 
     VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
@@ -779,14 +760,14 @@ namespace Engine {
         // Binding 0: input textures
         bindings[0].binding = 0;
         bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        bindings[0].descriptorCount = MAX_TEXTURE_DESCRIPTORS;
+        bindings[0].descriptorCount = MAX_TEXTURES;
         bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         bindings[0].pImmutableSamplers = nullptr;
 
         // Binding 1: output textures
         bindings[1].binding = 1;
         bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        bindings[1].descriptorCount = MAX_TEXTURE_DESCRIPTORS;
+        bindings[1].descriptorCount = MAX_TEXTURES;
         bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         bindings[1].pImmutableSamplers = nullptr;
 
@@ -994,26 +975,23 @@ namespace Engine {
 
     }
 
-    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::vector<Ref<VulkanTexture>> inputTextures, std::vector<Ref<VulkanTexture>> outputTextures)
+    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES>  inputTextures, std::array<Ref<VulkanTexture>, MAX_TEXTURES>  outputTextures)
     {
-
-        if (inputTextures.empty())
-        {
-            return;
-        }
 
         std::vector<VkDescriptorImageInfo> inputImageInfos(inputTextures.size());
         std::vector<VkDescriptorImageInfo> outputImageInfos(outputTextures.size());
 
-
-
-        for (size_t i = 0; i < inputTextures.size(); ++i) {
-            inputImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        for (size_t i = 0; i < inputTextures.size(); ++i)
+        {
+            // images are VK_DESCRIPTOR_TYPE_STORAGE_IMAGEso even input
+            // images must in VK_IMAGE_LAYOUT_GENERAL
+            inputImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL; 
             inputImageInfos[i].imageView = inputTextures[i]->GetImageView();
             inputImageInfos[i].sampler = VK_NULL_HANDLE;
         }
 
-        for (size_t i = 0; i < outputTextures.size(); ++i) {
+        for (size_t i = 0; i < outputTextures.size(); ++i)
+        {
             outputImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
             outputImageInfos[i].imageView = outputTextures[i]->GetImageView();
             outputImageInfos[i].sampler = VK_NULL_HANDLE;
@@ -1042,19 +1020,17 @@ namespace Engine {
     }
 
 
-    void VulkanGraphicsPipeline::UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, 32>& textures)
+    void VulkanGraphicsPipeline::UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures)
     {
-        std::array<VkDescriptorImageInfo, 32> imageInfos{};
-        for (uint32_t i = 0; i < 32; ++i)
+        std::array<VkDescriptorImageInfo, MAX_TEXTURES> imageInfos{};
+        for (uint32_t i = 0; i < MAX_TEXTURES; ++i)
         {
-			if (textures[i] == nullptr)
-			{
-				continue; // Skip if texture is not valid
-			}
             imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfos[i].imageView = textures[i]->GetImageView();
             imageInfos[i].sampler = textures[i]->GetSampler();
+
         }
+
 
         VkWriteDescriptorSet write{};
         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1099,12 +1075,13 @@ namespace Engine {
     }
 
 
+    #include "Engine/Core/Core.h"
 
-    void VulkanGraphicsPipeline::UpdateComputeArrayDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, 32>& textures)
+    void VulkanGraphicsPipeline::UpdateComputeArrayDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures)
     {
         // -- INPUT IMAGES --
-        std::array<VkDescriptorImageInfo, MAX_TEXTURE_DESCRIPTORS> inputImageInfos{};
-        for (uint32_t i = 0; i < MAX_TEXTURE_DESCRIPTORS; ++i)
+        std::array<VkDescriptorImageInfo, MAX_TEXTURES> inputImageInfos{};
+        for (uint32_t i = 0; i < MAX_TEXTURES; ++i)
         {
             inputImageInfos[i].imageView = m_pixelTextureImage.ImageView;
             inputImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -1112,8 +1089,8 @@ namespace Engine {
         }
 
         // -- OUTPUT IMAGES --
-        std::array<VkDescriptorImageInfo, MAX_TEXTURE_DESCRIPTORS> outputImageInfos{};
-        for (uint32_t i = 0; i < MAX_TEXTURE_DESCRIPTORS; ++i)
+        std::array<VkDescriptorImageInfo, MAX_TEXTURES> outputImageInfos{};
+        for (uint32_t i = 0; i < MAX_TEXTURES; ++i)
         {
             outputImageInfos[i].imageView = m_outputTextureImage.ImageView;
             outputImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -1213,6 +1190,7 @@ namespace Engine {
        
         UpdateCameraUBODescriptorSets();
     }
+
     void VulkanGraphicsPipeline::CreateComputeDescriptorSet()
     {
         m_computeDescriptorSet.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1243,12 +1221,12 @@ namespace Engine {
             VkDescriptorBufferInfo resultBufferInfo{};
             resultBufferInfo.buffer = m_GPUCollisionresultBufferBuffer;
             resultBufferInfo.offset = 0;
-            resultBufferInfo.range = sizeof(CollisionResult);
+            resultBufferInfo.range = sizeof(CollisionResultBuffer);
 
             VkDescriptorBufferInfo bulletBufferInfo{};
             bulletBufferInfo.buffer = m_bulletUniformBuffers[i].GetBuffer(); // Make sure this is set up correctly
             bulletBufferInfo.offset = 0;
-            bulletBufferInfo.range = sizeof(ProjectileGPU) * 32;
+            bulletBufferInfo.range = sizeof(CollisionEntitiesGPU) * MAX_COLLISION_ENTITIES;
 
             std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
 
@@ -1297,7 +1275,7 @@ namespace Engine {
     {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size = sizeof(CollisionResult);
+        bufferInfo.size = sizeof(CollisionResultBuffer);
         bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -1497,11 +1475,11 @@ namespace Engine {
         vkUnmapMemory(m_device, m_uniformBuffers[currentFrame].GetMemory());
     }
 
-    void VulkanGraphicsPipeline::UpdateBulletUniformBuffer(uint32_t currentFrame, const std::array<ProjectileGPU, 32> bulletPositions)
+    void VulkanGraphicsPipeline::UpdateCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionEntitiesGPU,MAX_COLLISION_ENTITIES> bulletPositions)
     {
         void* data;
-        VkDeviceSize size = sizeof(ProjectileGPU) * bulletPositions.size();
-        if (size <= 0)
+        VkDeviceSize size = sizeof(CollisionEntitiesGPU) * bulletPositions.size();
+        if (size <= 0) // this probably does not work
         {
             return;
         }

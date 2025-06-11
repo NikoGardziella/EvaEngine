@@ -6,6 +6,7 @@
 #include "Engine/Scene/Components/Combat/HealthComponent.h"
 #include "Engine/Scene/Components/Combat/WeaponComponent.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+#include "Engine/AssetManager/AssetManager.h"
 
 #include <glm/glm.hpp>
 #include "box2d/box2d.h"
@@ -410,14 +411,7 @@ namespace Engine {
 
         */
 
-        //********** Update all systems **************
-        {
-            for (auto& system : m_gameplaySystems)
-            {
-                system(m_registry, timestep, this);
-            }
-        }
-
+      
 
         //************ update scripts ***************
         {
@@ -439,6 +433,7 @@ namespace Engine {
         // ******** update physics ************
         if (isPlaying)
         {
+            // Remove Box 2d physics
             UpdatePhysics(timestep);
         }
 
@@ -495,7 +490,6 @@ namespace Engine {
                 }
 
                 auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
-                auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent>();
 
                 for (auto entity : view)
                 {
@@ -516,8 +510,6 @@ namespace Engine {
                         continue; // skip entities with ProjectileComponent
 
 					
-                    float playerRadius = 0.5f;
-                    float bulletRadius = 0.1f;
                     float pixelSize = transform.Scale.x / quadSprite.Texture->GetWidth();
 
                     glm::vec2 textureOrigin;
@@ -528,21 +520,25 @@ namespace Engine {
 					quadSprite.Texture->SetTextureOrigin(textureOrigin);
 					quadSprite.Texture->SetPixelSize(pixelSize);
 
-                    for (auto projectileEntity : projectileView)
-                    {
+                   
+                }
+                auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent>();
 
-                        auto [projectileTransform, projectile, IDComp] = projectileView.get<TransformComponent, ProjectileComponent, IDComponent>(projectileEntity);
-                        glm::vec2 projectilePos;
-                        projectilePos.x = projectileTransform.Translation.x;
-                        projectilePos.y = projectileTransform.Translation.y;
+                float playerRadius = 0.5f;
+                float bulletRadius = 0.05f;
+                for (auto projectileEntity : projectileView)
+                {
 
-                        Engine::VulkanRenderer2D::CalculateCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE);
+                    auto [projectileTransform, projectile, IDComp] = projectileView.get<TransformComponent, ProjectileComponent, IDComponent>(projectileEntity);
+                    glm::vec2 projectilePos;
+                    projectilePos.x = projectileTransform.Translation.x;
+                    projectilePos.y = projectileTransform.Translation.y;
 
-                    }
-
-                    Engine::VulkanRenderer2D::CalculateCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
+                    Engine::VulkanRenderer2D::CalculateCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE);
 
                 }
+
+               Engine::VulkanRenderer2D::CalculateCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
 
             }
 
@@ -642,6 +638,21 @@ namespace Engine {
 
     }
 
+    void Scene::OnUpdateECSRuntime(Timestep timestep)
+    {
+        EE_PROFILE_FUNCTION();
+
+        //********** Update all systems **************
+        {
+            for (auto& system : m_gameplaySystems)
+            {
+                system(m_registry, timestep, this);
+            }
+        }
+
+    }
+
+
     void Scene::OnUpdateEditor(Timestep timestep, EditorCamera& camera)
     {
         EE_PROFILE_FUNCTION();
@@ -730,13 +741,19 @@ namespace Engine {
         Entity newEntity = CreateEntity(entity.GetName());
 
         CopyComponentIfExists<TransformComponent>(newEntity, entity);
-        CopyComponentIfExists<SpriteRendererComponent>(newEntity, entity);
+        //CopyComponentIfExists<SpriteRendererComponent>(newEntity, entity);
         CopyComponentIfExists<CameraComponent>(newEntity, entity);
         CopyComponentIfExists<BoxCollider2DComponent>(newEntity, entity);
         CopyComponentIfExists<RigidBody2DComponent>(newEntity, entity);
         CopyComponentIfExists<NativeScriptComponent>(newEntity, entity);
         CopyComponentIfExists<CircleRendererComponent>(newEntity, entity);
         CopyComponentIfExists<CircleCollider2DComponent>(newEntity, entity);
+
+        if (entity.HasComponent<SpriteRendererComponent>())
+        {
+            SpriteRendererComponent& spriteComp =  newEntity.AddComponent<SpriteRendererComponent>();
+            spriteComp.Texture = AssetManager::CloneTexture(entity.GetComponent<SpriteRendererComponent>().Texture->GetName());
+        }
 
     }
 

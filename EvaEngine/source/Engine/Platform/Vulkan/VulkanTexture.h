@@ -46,6 +46,8 @@ namespace Engine {
 		void SetPixelSize(float pixelSize) { m_pixelSize = pixelSize; }
 		float GetPixelSize() const { return m_pixelSize; }
 
+        VkImageLayout GetCurrentLayout() const { return m_CurrentLayout; }
+        void SetCurrentLayout(VkImageLayout layout) { m_CurrentLayout = layout; }
         //****************************
 
         virtual bool operator==(const Texture& other) const override
@@ -76,9 +78,13 @@ namespace Engine {
         VkDeviceSize m_memorySize = 0;
         uint32_t m_TextureID;
         VkSampler m_sampler;
+
+
         bool m_checkCollision = false;
         glm::vec2 m_texureOrigin;
 		float m_pixelSize = 1.0f;
+        VkImageLayout m_CurrentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
 
     };
 

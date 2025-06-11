@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Engine/Core/Core.h"
 #include "VulkanBuffer.h"
 #include "VulkanShader.h"
 #include "VulkanTexture.h"
@@ -10,38 +10,49 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+
 namespace Engine {
 
-    const int MAX_TEXTURE_DESCRIPTORS = 512;
 
     struct CollisionResult
     {
         uint32_t collisionDetected = 0;
         uint32_t hitProjectileID_Low;
         uint32_t hitProjectileID_High;
-
         uint32_t _padding0 = 0; // Pad to 16-byte boundary
-        glm::vec2 CollisionPosition = glm::vec2(0.0f);
-        glm::vec2 _padding1 = glm::vec2(0.0f);
+
+        glm::vec2 CollisionPosition;
+        glm::vec2 _padding1;
 
         uint64_t GetProjectileID() const
         {
             return (uint64_t(hitProjectileID_High) << 32) | hitProjectileID_Low;
         }
     };
-
     static_assert(sizeof(CollisionResult) == 32, "CollisionResult must be 32 bytes (std140 alignment)");
+    
+    struct CollisionResultBuffer
+    {
+        uint32_t collisionCount;
+        uint32_t _padding;
+        uint32_t _padding1;
+        uint32_t _padding3;
+        CollisionResult results[MAX_COLLISION_RESULTS];
+    };
 
-    struct ProjectileGPU {
+
+    struct CollisionEntitiesGPU {
         glm::vec2 Position;         // 8 bytes
         float Radius;               // 4 bytes
         uint32_t Type;              //  4 bytes. 0 = projectile, 1 = player
         uint32_t ID_Low;            // 4 bytes
         uint32_t ID_High;           // 4 bytes
-        uint32_t padding1[2];       // 8 bytes to align to 32-byte stride
+        uint32_t padding1;       // 
+		uint32_t padding2;       // 
     };
-    static_assert(sizeof(ProjectileGPU) == 32, "ProjectileGPU must be 32 bytes (std140 alignment)");
+    static_assert(sizeof(CollisionEntitiesGPU) == 32, "ProjectileGPU must be 32 bytes (std140 alignment)");
 
+   
 
     struct BulletData
     {
@@ -91,10 +102,10 @@ namespace Engine {
 
         void UpdatePresentDescriptorSet(uint32_t imageIndex);
         void UpdateDescriptorSet(uint32_t imageIndex, VkDescriptorSet descriptorset, VkImageView image); // remove?
-        void UpdateComputeDescriptorSet(uint32_t frameIndex, std::vector<Ref<VulkanTexture>> input, std::vector<Ref<VulkanTexture>> output);
-        void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, 32>& textures);
+        void UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES>  input, std::array<Ref<VulkanTexture>, MAX_TEXTURES>  output);
+        void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::vector<Ref<VulkanTexture>>& textures);
-        void UpdateComputeArrayDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, 32>& textures);
+        void UpdateComputeArrayDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
 
         void UpdateCameraUBODescriptorSets();
         void UpdateBulletUBODescriptorSets();
@@ -102,7 +113,7 @@ namespace Engine {
         void UpdateStorageImageDescriptorSets();
         void UpdateCameraUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix);
 
-        void UpdateBulletUniformBuffer(uint32_t currentFrame, const std::array<ProjectileGPU, 32> bulletPositions);
+        void UpdateCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionEntitiesGPU, MAX_COLLISION_ENTITIES> bulletPositions);
 
         void UpdateTextureUniformBuffer(uint32_t currentFrame, const glm::ivec2& textureSize);
 
@@ -211,6 +222,9 @@ namespace Engine {
 
         VkBuffer m_GPUCollisionresultBufferBuffer;
         VkDeviceMemory  m_GPUCollisionresultBufferMemory;
+
+        Ref<VulkanTexture> m_whiteTexture;
+
     };
 
 }

@@ -103,44 +103,7 @@
 ▪️ Whiteboard Games - https://lnkd.in/eru6yjnZ
 ▪️ VOID Interactive - https://lnkd.in/eENSVpZg
 
-[ Begin Frame / Begin Command Buffer ]
 
-    ↓
-
-[ Transition SWAPCHAIN IMAGE to COLOR_ATTACHMENT_OPTIMAL ]
-  (if necessary)
-
-    ↓
-
-[ Begin Render Pass ]
-
-    ↓
-
-[ Transition TEXTURE IMAGE to SHADER_READ_ONLY_OPTIMAL ]
-    (ONLY if it's not already!)
-
-    ↓
-
-[ Bind Pipeline + Bind Descriptor Sets (texture) ]
-
-    ↓
-
-[ vkCmdDrawIndexed() — your object using the texture ]
-
-    ↓
-
-[ End Render Pass ]
-
-    ↓
-
-[ Transition SWAPCHAIN IMAGE to PRESENT_SRC_KHR ]
-    (to prepare for presenting)
-
-    ↓
-
-[ End Command Buffer ]
-[ Submit Command Buffer ]
-[ Present Frame ]
 
 
 
@@ -153,4 +116,10 @@
 {
         rebuild took : 02:14,101 minutes
 
+}
+
+
+10.6.2025
+{
+    this time flickering was because UpdateTrackedImageDescriptorSets() was called in the beginning of the frame. I moved it to DrawFrame() to fix it.
 }

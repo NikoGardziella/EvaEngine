@@ -15,6 +15,7 @@ namespace Engine {
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}
 		virtual void OnUpdate(Timestep timestep) {}
+		virtual void OnUpdateECS(Timestep timestep) {}
 		virtual void OnImGuiRender() {}
 		virtual void OnEvent(Event& event) {}
 

@@ -132,39 +132,35 @@ namespace Engine {
 		/*
 		*/
 		s_VulkanData.TextureSlots[0] = s_VulkanData.WhiteTexture;
+		// Clone "logo" texture to slot 1 after loading it once
+		// Load original textures (not inserted into slots)
+		//AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
+		AssetManager::AddTexture("chess", Engine::AssetManager::GetAssetPath("textures/chess_board.png").string(), false);
+		AssetManager::AddPixelTexture("pixel", Engine::AssetManager::GetAssetPath("textures/pixel_texture1.png").string());
+		AssetManager::AddTexture("player", Engine::AssetManager::GetAssetPath("textures/Idle_gun_000.png").string(), false);
+		AssetManager::AddTexture("bullet", Engine::AssetManager::GetAssetPath("textures/Fire_small_asset.png").string(), false);
+		AssetManager::AddTexture("zombie1_walk_000", Engine::AssetManager::GetAssetPath("textures/zombie1_walk_000.png").string(), false);
+		AssetManager::AddTexture("wall_0019", Engine::AssetManager::GetAssetPath("textures/wall_0019.png").string(), false);
+		AssetManager::AddTexture("zombie_walk_000", Engine::AssetManager::GetAssetPath("textures/zombie_walk_000.png").string(), false);
+		AssetManager::AddTexture("objects_plant", Engine::AssetManager::GetAssetPath("textures/objects_plant.png").string(), false);
+		AssetManager::AddTexture("car_0001", Engine::AssetManager::GetAssetPath("textures/car_0001.png").string(), false);
+		AssetManager::AddTexture("house", Engine::AssetManager::GetAssetPath("textures/house.png").string(), false);
 
-		s_VulkanData.TextureSlots[1] = AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(),false, s_VulkanData.TextureSlotIndex);
-		s_VulkanData.TextureSlotIndex++;
+		// Clone each into a texture slot
+		/*
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("logo");
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("chess");
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("player");
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("bullet");
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("zombie1_walk_000");
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("wall_0019");
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("zombie_walk_000");
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("objects_plant");
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("car_0001");
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("house");
 
-		s_VulkanData.TextureSlots[2] = AssetManager::AddTexture("chess", Engine::AssetManager::GetAssetPath("textures/chess_board.png").string(), false, s_VulkanData.TextureSlotIndex);
-		s_VulkanData.TextureSlotIndex++;
+		*/
 
-		s_VulkanData.TextureSlots[3] = AssetManager::AddPixelTexture("pixel", Engine::AssetManager::GetAssetPath("textures/pixel_texture1.png").string());
-		s_VulkanData.TextureSlotIndex++;
-
-		s_VulkanData.TextureSlots[4] = AssetManager::AddTexture("player", Engine::AssetManager::GetAssetPath("textures/Idle_gun_000.png").string(), false, s_VulkanData.TextureSlotIndex);
-		s_VulkanData.TextureSlotIndex++;
-
-		s_VulkanData.TextureSlots[5] = AssetManager::AddTexture("bullet", Engine::AssetManager::GetAssetPath("textures/Fire_small_asset.png").string(), false, s_VulkanData.TextureSlotIndex);
-		s_VulkanData.TextureSlotIndex++;
-
-		s_VulkanData.TextureSlots[6] = AssetManager::AddTexture("zombie1_walk_000", Engine::AssetManager::GetAssetPath("textures/zombie1_walk_000.png").string(), false, s_VulkanData.TextureSlotIndex);
-		s_VulkanData.TextureSlotIndex++;
-
-		s_VulkanData.TextureSlots[7] = AssetManager::AddTexture("wall_0019", Engine::AssetManager::GetAssetPath("textures/wall_0019.png").string(), false, s_VulkanData.TextureSlotIndex);
-		s_VulkanData.TextureSlotIndex++;
-
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("zombie_walk_000", Engine::AssetManager::GetAssetPath("textures/zombie_walk_000.png").string(), false, s_VulkanData.TextureSlotIndex);
-		s_VulkanData.TextureSlotIndex++;
-
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("objects_plant", Engine::AssetManager::GetAssetPath("textures/objects_plant.png").string(), false, s_VulkanData.TextureSlotIndex);
-		s_VulkanData.TextureSlotIndex++;
-
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("car_0001", Engine::AssetManager::GetAssetPath("textures/car_0001.png").string(), false, s_VulkanData.TextureSlotIndex);
-		s_VulkanData.TextureSlotIndex++;
-
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::AddTexture("house", Engine::AssetManager::GetAssetPath("textures/house.png").string(), false, s_VulkanData.TextureSlotIndex);
-		s_VulkanData.TextureSlotIndex++;
 
 		// Fill the rest of the slots with pixel texture
 		for (uint32_t i = s_VulkanData.TextureSlotIndex; i < s_VulkanData.MaxTextureSlots; i++)
@@ -177,45 +173,58 @@ namespace Engine {
 		{
 			m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(i, s_VulkanData.TextureSlots);
 		}
-		s_VulkanData.TextureSlotIndex = 0;
+		s_VulkanData.TextureSlotIndex = 1;
 		//m_vulkanGraphicsPipelines->UpdateComputeArrayDescriptorSets(0, s_VulkanData.TextureSlots);
-
 
 
 		// this is for rendering game in editor viewport
 		CreateImGuiTextureDescriptors();
 		//m_IOTextures[0] = AssetManager::GetTexture("logo");
+		// 
 		//VulkanUtils::TransitionImageLayout(m_IOTextures[0]->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
 		//	VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
 
 
 		//m_IOTextures[1] = AssetManager::GetTexture("logo");
-		//VulkanUtils::TransitionImageLayout(m_IOTextures[1]->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
-		//	VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
-		m_IOTextures[0].reserve(CollisionData::MaxTextures);
-		m_IOTextures[1].reserve(CollisionData::MaxTextures);
-
+		
 
 		g_PerFrameGarbage.resize(MAX_FRAMES_IN_FLIGHT);
+
+		//CollisionResultsCPU::Latest.resize(MAX_COLLISION_RESULTS);
+
+		// just to fill the arrays
+		 m_dummyTexture = AssetManager::GetTexture("logo");
+		 m_dummyTexture->SetCheckCollision(false);
+		// VulkanUtils::TransitionImageLayout(m_dummyTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
+		//	 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+
+		for (uint32_t i = 0; i < MAX_TEXTURES; i++)
+		{
+			//m_IOTextures[0][i] = s_VulkanData.TextureSlots[i];
+			//m_IOTextures[1][i] = s_VulkanData.TextureSlots[i];
+
+			m_IOTextures[0][i] = m_dummyTexture;
+			m_IOTextures[1][i] = m_dummyTexture;
+
+		}
+
 	}
 
 	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
-
 		// clear old textures when GPU is done with them
 		
 		// Sync
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
+		CalculateCollisionFrame(currentFrame);
 		s_VulkanData.CurrentFrame = currentFrame;
-		g_PerFrameGarbage[s_VulkanData.CurrentFrame].OldTextures.clear();
 
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 
 		m_vulkanGraphicsPipelines->UpdateCameraUniformBuffer(currentFrame, s_VulkanData.CameraBuffer.ViewProjection);
-		m_vulkanGraphicsPipelines->UpdateBulletUniformBuffer(currentFrame, s_CollisionData.Projectiles);
 
 		// Acquire. Max current frame is 2 and max swapchain images is 3.
 		// set in Renderer.h 	const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -240,27 +249,18 @@ namespace Engine {
 		// Record Game Pass
 		vkResetCommandBuffer(cmd, 0);
 
-		//m_vulkanGraphicsPipelines->UpdateComputeArrayDescriptorSets(0, s_VulkanData.TextureSlots);
-		
-
-
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
-
-		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame);
-
-		
-		m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(currentFrame, s_VulkanData.TextureSlots);
-		
 		//move somewhere
-		s_CollisionData.ProjectileSlotIndex = 0;
-		s_VulkanData.TextureSlotIndex = 0; 
+		s_CollisionData.EntitySlotIndex = 0;
+		s_VulkanData.TextureSlotIndex = 1;
 		s_VulkanData.TextureToSlotMap.clear();
-		s_CollisionData.ProjectileSlotIndex = 0;
+		g_PerFrameGarbage[s_VulkanData.CurrentFrame].OldTextures.clear();
+
 
 		// --- Begin render pass ---
 		VkRenderPassBeginInfo renderPassInfo{};
@@ -307,9 +307,7 @@ namespace Engine {
 		// End RecordGameDrawCommands render pass
 		vkCmdEndRenderPass(cmd);
 
-
 		RecordPresentDrawCommands(cmd, m_imageIndex, currentFrame);
-		
 		RecordEditorDrawCommands(cmd, m_imageIndex, currentFrame);
 
 		vkEndCommandBuffer(cmd);
@@ -318,6 +316,9 @@ namespace Engine {
 		VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[currentFrame] };
 		VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[currentFrame] };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+
+
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -359,26 +360,90 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to present swapchain image!");
 		}
 
-		CollisionResult result = {};
-		void* data;
+	
+		
+	}
+
+	void VulkanRenderer2D::CalculateCollisionFrame(uint32_t currentFrame)
+	{
+		EE_PROFILE_FUNCTION();
+
+		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
+		m_vulkanGraphicsPipelines->UpdateCollisionUniformBuffer(currentFrame, s_CollisionData.CollisionEntities);
+
+		vkResetCommandBuffer(cmd, 0);
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkBeginCommandBuffer(cmd, &beginInfo);
+
+		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame); // only compute dispatch
+		//m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(currentFrame, m_IOTextures[outputIndex], s_VulkanData.TextureSlotIndex);
+
+		
+		vkEndCommandBuffer(cmd);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &cmd;
+
+		if (vkQueueSubmit(m_vulkanContext->GetGraphicsQueue(), 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS)
+		{
+			EE_CORE_ASSERT(false, "Failed to submit compute command buffer!");
+		}
+
+		// Wait for compute to finish before reading buffer (optional, or use fence wait elsewhere)
+		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
+
+		// Read back collision results
+		CollisionResultsCPU::Latest.clear();
+		CollisionResultBuffer result = {};
+
+		/*
+		*/
+		void* data = nullptr;
 		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, sizeof(result), 0, &data);
-
 		memcpy(&result, data, sizeof(result));
-
 		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
 
-		if (result.collisionDetected == 1)
+		if (result.collisionCount > 0)
 		{
-			CollisionResults::Latest.ProjectileID = result.GetProjectileID();
-			CollisionResults::Latest.HitPosition = result.CollisionPosition;
+			CollisionResultsCPU::Latest.reserve(result.collisionCount);
+			for (uint32_t i = 0; i < result.collisionCount && i < MAX_COLLISION_RESULTS; ++i)
+			{
+				const auto& r = result.results[i];
+				if (r.collisionDetected == 0)
+					continue;
+
+
+				if (i >= MAX_COLLISION_RESULTS)
+					break;
+
+				result.results[i].collisionDetected = r.collisionDetected;
+
+				CollisionResultsCPU::Latest.push_back({});
+				CollisionResultsCPU::Latest[i].ProjectileID = r.GetProjectileID();
+				CollisionResultsCPU::Latest[i].HitPosition = r.CollisionPosition;
+
+			}
+
 			
+		}
+		{
+			void* data = nullptr;
+			VkDeviceSize size = sizeof(CollisionResultBuffer);
+			vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
+			std::memset(data, 0, size);
+			vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
 		}
 
 		
-		
-
-
 	}
+
 
 	void VulkanRenderer2D::DeviceWaitIdle()
 	{
@@ -439,6 +504,7 @@ namespace Engine {
 		//this can be called multiple times per frame
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 
+		m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(currentFrame, s_VulkanData.TextureSlots);
 
 		RecordGameDrawCommands(cmd, m_imageIndex, currentFrame);
 
@@ -449,7 +515,6 @@ namespace Engine {
 	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
-
 
 
 		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
@@ -523,104 +588,123 @@ namespace Engine {
 
 	void VulkanRenderer2D::RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
-
 		EE_PROFILE_FUNCTION();
+
+		if (CollisionResultsCPU::Latest.size() > 0)
+		{
+			// let CPU handle the results before new compute pass
+			// because GPU results come at the end of the frame.
+			// then ECS handles them "mid frame" so the GPU results
+			// are handeled 1 frame later. There us probably better
+			// way to do this, but this works for now. Fences etc.
+			return;
+		}
+		
 		inputIndex = currentFrame % 2;
 		outputIndex = (currentFrame + 1) % 2;
 
-		m_IOTextures[0].clear();
-		m_IOTextures[1].clear();
-		std::vector<uint32_t> originalIndices;
-		for (uint32_t i = 0; i < s_VulkanData.TextureSlotIndex; i++)
-		{
-			if (!s_VulkanData.TextureSlots[i]->GetCheckCollision())
-			{
-				continue;
-			}
-			m_IOTextures[0].push_back(s_VulkanData.TextureSlots[i]);
-			m_IOTextures[1].push_back(s_VulkanData.TextureSlots[i]);
-			originalIndices.push_back(i);
 
+		m_IOTextures[inputIndex] = s_VulkanData.TextureSlots;
+		m_IOTextures[outputIndex] = s_VulkanData.TextureSlots;
+
+		// Prepare descriptor sets with input/output textures
+		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,
+			m_IOTextures[inputIndex], m_IOTextures[outputIndex]);
+
+		
+
+		// Transition all input textures to GENERAL layout for compute shader read/write
+		for (size_t i = 0; i < MAX_TEXTURES; i++)
+		{
+			VulkanTexture& inputTex = *m_IOTextures[inputIndex][i];
+
+			if (inputTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
+			{
+				TransitionImageLayout(commandBuffer,
+					inputTex.GetImage(),
+					inputTex.GetCurrentLayout(),
+					VK_IMAGE_LAYOUT_GENERAL);
+				inputTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
+			}
 		}
 
-		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,
-			m_IOTextures[0], m_IOTextures[1]);
+		// Transition all output textures to GENERAL layout for compute shader read/write
+		for (size_t i = 0; i < MAX_TEXTURES; i++)
+		{
+			VulkanTexture& outputTex = *m_IOTextures[outputIndex][i];
 
-		// reset collision data
-		CollisionResult* resultPtr = nullptr;
-		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, sizeof(CollisionResult), 0, (void**)&resultPtr);
-		resultPtr->collisionDetected = 0;
-		resultPtr->hitProjectileID_Low = 0;
-		resultPtr->hitProjectileID_High = 0;
-		resultPtr->CollisionPosition = glm::vec2(0.0f, 0.0f);
-		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
+			if (outputTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
+			{
+				TransitionImageLayout(commandBuffer,
+					outputTex.GetImage(),
+					outputTex.GetCurrentLayout(),
+					VK_IMAGE_LAYOUT_GENERAL);
+				outputTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
+			}
+		}
 
-
-		// 2. Bind compute pipeline
+		// Bind compute pipeline & descriptor set
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_vulkanGraphicsPipelines->GetComputePipeline());
 
-		// 3. Bind shared descriptor set (with descriptor arrays already bound)
 		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetComputeDescriptorSet(currentFrame);
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
 			m_vulkanGraphicsPipelines->GetComputePipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
-		
-		uint32_t descriptorIndex = 0;
-		for (size_t i = 0; i < m_IOTextures[0].size(); i++)
+
+
+		// Dispatch compute for each texture
+		for (size_t i = 0; i < MAX_TEXTURES; i++)
 		{
-			
-			// Transition input and output textures to GENERAL
-			auto inputTex = m_IOTextures[inputIndex][i];
-			auto outputTex = m_IOTextures[outputIndex][i];
 
-			TransitionImageLayout(commandBuffer, inputTex->GetImage(),
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+			VulkanTexture& inputTex = *m_IOTextures[inputIndex][i];
+			//VulkanTexture& outputTex = *m_IOTextures[outputIndex][i];
 
-			if (outputTex->GetImage() != inputTex->GetImage())
+			if (!inputTex.GetCheckCollision())
 			{
-				TransitionImageLayout(commandBuffer, outputTex->GetImage(),
-					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+				continue;
 			}
-
-			// Push constants
+			
+			// Set push constants (adjust to your struct and values)
 			PushConstants pushconstant{};
-			pushconstant.Radius = s_CollisionData.radius;
-			pushconstant.TextureOrigin = m_IOTextures[inputIndex][i]->GetTextureOrigin();
-			pushconstant.PixelSize = m_IOTextures[inputIndex][i]->GetPixelSize();
-			pushconstant.textureIndex = descriptorIndex; // index into descriptor array
-			pushconstant.NumProjectiles = s_CollisionData.Projectiles.size();
-			descriptorIndex++;
+			pushconstant.TextureOrigin = inputTex.GetTextureOrigin();
+			pushconstant.PixelSize = inputTex.GetPixelSize();
+			pushconstant.textureIndex = static_cast<uint32_t>(i); 
+			pushconstant.NumProjectiles = s_CollisionData.EntitySlotIndex;
+			
 
-			//float distance = glm::distance(pushconstant.PlayerPos, pushconstant.TextureOrigin);
-			///EE_CORE_INFO("CPU distance: {}", distance);
+			//EE_CORE_INFO("pushconstant.NumProjectiles: {}", pushconstant.NumProjectiles);
 
 			vkCmdPushConstants(commandBuffer,
 				m_vulkanGraphicsPipelines->GetComputePipelineLayout(),
 				VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PushConstants), &pushconstant);
 
-			// Dispatch
 			uint32_t groupSizeX = 16;
 			uint32_t groupSizeY = 16;
 
-			uint32_t dispatchX = (inputTex->GetWidth() + groupSizeX - 1) / groupSizeX;
-			uint32_t dispatchY = (inputTex->GetHeight() + groupSizeY - 1) / groupSizeY;
+			uint32_t dispatchX = (inputTex.GetWidth() + groupSizeX - 1) / groupSizeX;
+			uint32_t dispatchY = (inputTex.GetHeight() + groupSizeY - 1) / groupSizeY;
 
 			vkCmdDispatch(commandBuffer, dispatchX, dispatchY, 1);
-
-			// Transition back to SHADER_READ_ONLY_OPTIMAL
-			TransitionImageLayout(commandBuffer, inputTex->GetImage(),
-				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-			if (outputTex->GetImage() != inputTex->GetImage())
-			{
-				TransitionImageLayout(commandBuffer, outputTex->GetImage(),
-					VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			}
-
-			// Store output as next input
-			s_VulkanData.TextureSlots[originalIndices[i]] = outputTex;
 		}
 
+		// After compute dispatch, transition output textures back to SHADER_READ_ONLY_OPTIMAL for graphics shader sampling
+		for (size_t i = 0; i < MAX_TEXTURES; i++)
+		{
+			VulkanTexture& outputTex = *m_IOTextures[outputIndex][i];
+
+			if (outputTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			{
+				TransitionImageLayout(commandBuffer,
+					outputTex.GetImage(),
+					outputTex.GetCurrentLayout(),
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				outputTex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			}
+		}
+
+
+		
 	}
+
 
 
 
@@ -693,6 +777,14 @@ namespace Engine {
 	void VulkanRenderer2D::TransitionImageLayout(VkCommandBuffer commandBuffer,	VkImage image,
 		VkImageLayout oldLayout, VkImageLayout newLayout)
 	{
+		EE_PROFILE_FUNCTION();
+
+		if (oldLayout == newLayout)
+		{
+			return;
+
+		}
+
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		barrier.oldLayout = oldLayout;
@@ -876,8 +968,7 @@ namespace Engine {
 		// vkCmdPipelineBarrier command ensures that the proper synchronization occurs between
 		// different stages of the Vulkan pipeline by specifying how and when the image will be used.
 
-		//std::string layoutold = VulkanUtils::LayoutToString(oldLayout);
-		//std::string layoutnew = VulkanUtils::LayoutToString(newLayout);
+
 
 		//EE_CORE_INFO("Transitioning layout from {} to {}", VulkanUtils::LayoutToString(oldLayout), VulkanUtils::LayoutToString(newLayout));
 
@@ -940,20 +1031,21 @@ namespace Engine {
 
 	void VulkanRenderer2D::CalculateCollision(const glm::vec2& colliderPos, const float radius, uint64_t entityID, eCollisionType collisionType)
 	{
-		uint32_t index = s_CollisionData.ProjectileSlotIndex;
-		if (index >= CollisionData::MaxTextures)
+		EE_PROFILE_FUNCTION();
+
+		uint32_t index = s_CollisionData.EntitySlotIndex;
+		if (index >= MAX_TEXTURES)
 		{
-			EE_CORE_WARN("Max collision texture slots reached!");
+			EE_CORE_WARN("Max projectile slots reached!");
 			return;
 		}
 
-		s_CollisionData.radius = radius;
-		s_CollisionData.Projectiles[index].Type = (uint32_t)collisionType;
-		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].Position = colliderPos;
-		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].Radius = radius;
-		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
-		s_CollisionData.Projectiles[s_CollisionData.ProjectileSlotIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
-		s_CollisionData.ProjectileSlotIndex++;
+		s_CollisionData.CollisionEntities[index].Type = (uint32_t)collisionType;
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].Position = colliderPos;
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].Radius = radius;
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
+		s_CollisionData.EntitySlotIndex++;
 	}
 
 	void VulkanRenderer2D::DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor)
@@ -967,37 +1059,10 @@ namespace Engine {
 
 		// Try to get texture slot from map
 		float textureIndex = 0.0f;
-		auto it = s_VulkanData.TextureToSlotMap.find(texture.get());
+		s_VulkanData.TextureSlotIndex++;
+		textureIndex = static_cast<float>(s_VulkanData.TextureSlotIndex);
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = texture;
 
-		if (it != s_VulkanData.TextureToSlotMap.end())
-		{
-			// Reuse existing texture slot
-			textureIndex = static_cast<float>(it->second);
-		}
-		else
-		{
-			// If no free slot, check capacity
-			if (s_VulkanData.TextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
-			{
-				EE_CORE_WARN("Texture slot limit reached! Consider flushing the batch.");
-				return;
-			}
-
-			uint32_t slot = s_VulkanData.TextureSlotIndex;
-
-			// If something is already in the slot and it’s a different texture, track it for deferred deletion
-			auto& existing = s_VulkanData.TextureSlots[slot];
-			if (existing && existing != texture)
-			{
-				g_PerFrameGarbage[s_VulkanData.CurrentFrame].OldTextures.push_back(existing);
-			}
-
-			// Assign new texture
-			s_VulkanData.TextureSlots[slot] = texture;
-			s_VulkanData.TextureToSlotMap[texture.get()] = slot;
-			textureIndex = static_cast<float>(slot);
-			s_VulkanData.TextureSlotIndex++;
-		}
 
 		// Quad vertex data
 		const glm::vec3 quadPositions[4] = {
@@ -1120,6 +1185,8 @@ namespace Engine {
 	void VulkanRenderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
 	{
 		EE_PROFILE_FUNCTION();
+
+		
 		//StartBatch();
 		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection() * glm::inverse(transform);
 		//s_VulkanData.CameraBuffer.SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
@@ -1151,7 +1218,8 @@ namespace Engine {
 
 	void VulkanRenderer2D::EndScene()
 	{
-		//EE_PROFILE_FUNCTION();
+		
+		EE_PROFILE_FUNCTION();
 		// Flush the batch
 		uint32_t dataSize = (uint32_t)((uint8_t*)s_VulkanData.QuadVertexBufferPtr - (uint8_t*)s_VulkanData.QuadVertexBufferBase);
 		if (dataSize > 0)

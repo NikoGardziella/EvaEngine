@@ -109,6 +109,11 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 	}
 }
 
+void PixelGame::OnUpdateECS(Engine::Timestep timestep)
+{
+	m_activeScene->OnUpdateECSRuntime(timestep);
+}
+
 void PixelGame::OnEvent(Engine::Event& event)
 {
 	m_orthoCameraController.OnEvent(event);

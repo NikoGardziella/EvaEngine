@@ -26,9 +26,9 @@ namespace Engine
 
 	// Supports only one collision result at a time
 	// todo add vector of collisions
-    struct CollisionResults
+    struct CollisionResultsCPU
     {
 
-        static inline Collision Latest;
+        static inline std::vector<Collision> Latest;
     };
 }

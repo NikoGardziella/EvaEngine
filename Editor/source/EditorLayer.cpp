@@ -676,7 +676,7 @@ namespace Engine {
         Entity selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity)
         {
-            m_editorScene->DuplicateEntity(selectedEntity);
+            m_sceneHierarchyPanel.GetNewComponentsContext()->DuplicateEntity(selectedEntity);
         }
     }
 
@@ -1006,13 +1006,18 @@ namespace Engine {
             }
             */
 
-            OnOverlayRender();
+           // OnOverlayRender();
 
            /// m_framebuffer->Unbind();
         }
 
         
 
+    }
+
+    void EditorLayer::OnUpdateECS(Timestep timestep)
+    {
+		EE_PROFILE_FUNCTION();
     }
 
     void EditorLayer::OnEvent(Engine::Event& event)
