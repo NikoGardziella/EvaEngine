@@ -24,7 +24,7 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
         glm::vec2 offset = playerCollider.Offset;
         float radius = playerCollider.Radius;
 
-        const int steps = 20;  // Number of incremental movement steps
+        const int steps = 5;  // Number of incremental movement steps
         glm::vec2 stepMove = desiredMove / static_cast<float>(steps);
         glm::vec2 currentPos = startPos;
 
@@ -103,10 +103,9 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
 
         if (pushCount > 0)
         {
-            float pushbackStrength = 0.8f; // You can adjust this if needed
+            float pushbackStrength = 1.0f;
             glm::vec2 avgPush = (totalPush / static_cast<float>(pushCount)) * pushbackStrength;
 
-            // Apply pushback correction
             playerTransform.Translation += glm::vec3(avgPush, 0.0f);
         }
 
