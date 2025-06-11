@@ -400,7 +400,6 @@ namespace Engine {
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
 		// Read back collision results
-		CollisionResultsCPU::Latest.clear();
 		CollisionResultBuffer result = {};
 
 		/*
@@ -412,7 +411,10 @@ namespace Engine {
 
 		if (result.collisionCount > 0)
 		{
-			CollisionResultsCPU::Latest.reserve(result.collisionCount);
+			CollisionResultsCPU::LatestProjectiles.clear();
+
+			CollisionResultsCPU::LatestProjectiles.reserve(result.collisionCount);
+			CollisionResultsCPU::LatestProjectiles.reserve(MAX_COLLISION_RESULTS);
 			for (uint32_t i = 0; i < result.collisionCount && i < MAX_COLLISION_RESULTS; ++i)
 			{
 				const auto& r = result.results[i];
@@ -425,14 +427,17 @@ namespace Engine {
 
 				result.results[i].collisionDetected = r.collisionDetected;
 
-				CollisionResultsCPU::Latest.push_back({});
-				CollisionResultsCPU::Latest[i].ProjectileID = r.GetProjectileID();
-				CollisionResultsCPU::Latest[i].HitPosition = r.CollisionPosition;
-
+				CollisionResultsCPU::LatestProjectiles.push_back({});
+				CollisionResultsCPU::LatestProjectiles[i].ProjectileID = r.GetProjectileID();
+				CollisionResultsCPU::LatestProjectiles[i].HitPosition = r.CollisionPosition;
 			}
-
 			
 		}
+		else
+		{
+			m_CPUCollisionsHandeled = true;
+		}
+		
 		{
 			void* data = nullptr;
 			VkDeviceSize size = sizeof(CollisionResultBuffer);
@@ -590,7 +595,7 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-		if (CollisionResultsCPU::Latest.size() > 0)
+		if (!m_CPUCollisionsHandeled)
 		{
 			// let CPU handle the results before new compute pass
 			// because GPU results come at the end of the frame.
@@ -602,7 +607,7 @@ namespace Engine {
 		
 		inputIndex = currentFrame % 2;
 		outputIndex = (currentFrame + 1) % 2;
-
+		m_CPUCollisionsHandeled = false;
 
 		m_IOTextures[inputIndex] = s_VulkanData.TextureSlots;
 		m_IOTextures[outputIndex] = s_VulkanData.TextureSlots;

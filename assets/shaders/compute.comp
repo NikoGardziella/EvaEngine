@@ -67,8 +67,6 @@ void main() {
         return;
 
    
-
-
     vec2 worldPos = pc.TextureOrigin + vec2(pixelCoord) * pc.PixelSize;
 
     for (uint i = 0; i < pc.NumProjectiles; ++i)
@@ -76,7 +74,6 @@ void main() {
         vec2 projectilePos = data[i].Position;
         float radius = data[i].Radius;
         uint type = data[i].Type;
-
 
         float collisionRadius = radius / 10.0f;
         float dist = distance(worldPos, projectilePos);
@@ -87,6 +84,11 @@ void main() {
             if (type == 0)
             {
                 imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0, 0, 0, 0));
+            }
+            if(type == 1)
+            {
+                // debug
+               // imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0.9f, 0.1f, 0.1f, 1));
             }
 
             //if(dist < collisionRadius)

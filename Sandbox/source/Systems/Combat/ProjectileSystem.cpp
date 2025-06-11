@@ -11,7 +11,7 @@ void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float de
     auto projectileView = registry.view<Engine::TransformComponent, Engine::ProjectileComponent, Engine::IDComponent>();
 
     // Cache and clear collision results before loop
-    const auto collisions = Engine::CollisionResultsCPU::Latest;
+    const auto collisions = Engine::CollisionResultsCPU::LatestProjectiles;
     //Engine::CollisionResultsCPU::Latest.clear();
 
     for (auto projectileEntity : projectileView)

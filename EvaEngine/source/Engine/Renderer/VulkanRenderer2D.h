@@ -192,6 +192,7 @@ namespace Engine {
 		std::array<Ref<VulkanTexture>, MAX_TEXTURES> m_IOTextures[2];
 		Ref<VulkanTexture> m_dummyTexture;
 
+		bool m_CPUCollisionsHandeled = false;
 			
 	};
 

@@ -4,7 +4,6 @@
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Events/Public/CollisionEvents.h>
 
-
 void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
@@ -24,55 +23,104 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
         glm::vec2 offset = playerCollider.Offset;
         float radius = playerCollider.Radius;
 
-        const int steps = 5;  // Number of incremental movement steps
+        const int steps = 5;
         glm::vec2 stepMove = desiredMove / static_cast<float>(steps);
         glm::vec2 currentPos = startPos;
-
-        bool blocked = false;
-
         for (int i = 0; i < steps; i++)
         {
             glm::vec2 testPos = currentPos + stepMove;
             glm::vec2 playerCenter = testPos + offset;
 
             bool collides = false;
+            glm::vec2 firstCollisionPos;
 
-            // Check collisions at the test position
-            for (const auto& collision : Engine::CollisionResultsCPU::Latest)
+            // Check initial move collision
+            for (const auto& collision : Engine::CollisionResultsCPU::LatestProjectiles)
             {
                 if (playerIDComp.ID != collision.GetProjectileID())
                     continue;
 
                 glm::vec2 collisionPos = collision.HitPosition;
-
                 float dist = glm::distance(playerCenter, collisionPos);
 
                 if (dist < radius)
                 {
                     collides = true;
+                    firstCollisionPos = collisionPos;
                     break;
                 }
             }
 
             if (collides)
             {
-                blocked = true;
-                break;  // Stop moving forward, collision ahead
+                glm::vec2 velocityDir = glm::length(stepMove) > 0.001f ? glm::normalize(stepMove) : glm::vec2(0.0f);
+                glm::vec2 pushDir = glm::normalize(playerCenter - firstCollisionPos);
+
+                // Compute slide vector: original minus projection onto obstacle normal
+                glm::vec2 slideDir = velocityDir - glm::dot(velocityDir, pushDir) * pushDir;
+
+                // Try sliding in both directions
+                glm::vec2 slideDirs[2] = {
+                    slideDir,
+                    -slideDir
+                };
+
+                bool slideSucceeded = false;
+
+                for (int dirIndex = 0; dirIndex < 2; ++dirIndex)
+                {
+                    glm::vec2 trySlideDir = slideDirs[dirIndex];
+                    if (glm::length(trySlideDir) < 0.001f)
+                        continue;
+
+                    trySlideDir = glm::normalize(trySlideDir);
+                    glm::vec2 slideMove = trySlideDir * glm::length(stepMove) * 0.9f; // Slightly shorter step to avoid edge snagging
+
+                    glm::vec2 slideTestPos = currentPos + slideMove;
+                    glm::vec2 slideCenter = slideTestPos + offset;
+
+                    bool slideCollides = false;
+                    for (const auto& collision : Engine::CollisionResultsCPU::LatestProjectiles)
+                    {
+                        if (playerIDComp.ID != collision.GetProjectileID())
+                            continue;
+
+                        glm::vec2 collisionPos = collision.HitPosition;
+                        float dist = glm::distance(slideCenter, collisionPos);
+
+                        if (dist < radius)
+                        {
+                            slideCollides = true;
+                            break;
+                        }
+                    }
+
+                    if (!slideCollides)
+                    {
+                        currentPos += slideMove;
+                        slideSucceeded = true;
+                        break;
+                    }
+                }
+
+                if (!slideSucceeded)
+                    break; // Neither slide direction worked
             }
             else
             {
-                currentPos = testPos;  // Safe to move forward
+                currentPos = testPos; // No collision, normal step
             }
         }
 
-        // Set position to last safe position after stepping
+
+        // Apply final position
         playerTransform.Translation = glm::vec3(currentPos, playerTransform.Translation.z);
 
-        // After stepping, do pushback correction if needed
+        // Pushback correction (as in your original code)
         glm::vec2 totalPush(0.0f);
         int pushCount = 0;
         glm::vec2 playerCenter = glm::vec2(playerTransform.Translation) + offset;
-        for (const auto& collision : Engine::CollisionResultsCPU::Latest)
+        for (const auto& collision : Engine::CollisionResultsCPU::LatestProjectiles)
         {
             if (playerIDComp.ID != collision.GetProjectileID())
                 continue;
@@ -88,11 +136,10 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
                 totalPush += pushDir * penetration;
                 pushCount++;
 
-                // If player is moving into the collision, cancel velocity in that direction
-                glm::vec2 velocityDir = glm::length(controller.velocity) > 0.001f
-                    ? glm::normalize(controller.velocity) : glm::vec2(0.0f);
+                // Cancel velocity toward collision
+                glm::vec2 velocityDir = glm::length(controller.velocity) > 0.001f ? glm::normalize(controller.velocity) : glm::vec2(0.0f);
                 float dot = glm::dot(pushDir, velocityDir);
-                if (dot > 0.0f) // Moving toward the collision
+                if (dot > 0.0f)
                 {
                     float velIntoWall = glm::dot(controller.velocity, pushDir);
                     if (velIntoWall < 0.0f)
@@ -105,13 +152,11 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
         {
             float pushbackStrength = 1.0f;
             glm::vec2 avgPush = (totalPush / static_cast<float>(pushCount)) * pushbackStrength;
-
             playerTransform.Translation += glm::vec3(avgPush, 0.0f);
         }
-
     }
-
 }
+
 
 
 
