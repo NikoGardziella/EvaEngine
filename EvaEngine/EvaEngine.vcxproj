@@ -146,6 +146,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Debug\DebugInterface.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h" />
     <ClInclude Include="source\Engine\Core\Application.h" />
@@ -169,6 +170,8 @@
     <ClInclude Include="source\Engine\Events\Public\CollisionEvents.h" />
     <ClInclude Include="source\Engine\Events\TouchEvent.h" />
     <ClInclude Include="source\Engine\ImGui\ImGuiLayer.h" />
+    <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h" />
+    <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h" />
     <ClInclude Include="source\Engine\Math\Math.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLBuffer.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLContext.h" />
@@ -646,6 +649,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Debug\DebugInterface.cpp" />
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp" />
     <ClCompile Include="source\Engine\Core\Application.cpp" />
     <ClCompile Include="source\Engine\Core\Layer.cpp" />
@@ -656,6 +660,7 @@
     <ClCompile Include="source\Engine\Debug\DebugUtils.cpp" />
     <ClCompile Include="source\Engine\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="source\Engine\ImGui\imGuiBuild.cpp" />
+    <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp" />
     <ClCompile Include="source\Engine\Math\Math.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLContext.cpp" />
@@ -713,12 +718,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl" />
-    <None Include="..\assets\shaders\compute.comp" />
     <None Include="..\assets\shaders\FlatColor.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
+    <None Include="..\assets\shaders\compute.comp" />
     <None Include="..\assets\shaders\fullscreen_shader.glsl" />
     <None Include="..\assets\shaders\imgui_shader.glsl" />
     <None Include="..\assets\shaders\testShader.glsl" />

@@ -17,8 +17,6 @@
 #include "Systems/Player/PlayerMovementSystem.h"
 #include "Systems/Player/Camera/PlayerCameraSystem.h"
 #include "Systems/Combat/PlayerWeaponSystem.h"
-#include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
-#include <Engine/Scene/Components/Combat/WeaponComponent.h>
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -42,7 +40,6 @@ PixelGame::PixelGame(const std::string scene)
 	m_activeScene->RegisterSystem(NpcAIMovementSystem::UpdateNPCAIMovementSystem);
 	m_activeScene->RegisterSystem(NPCAIVisionSystem::UpdateNPCAIVisionSystem);
 
-	
 }
 
 void PixelGame::OnAttach()
@@ -127,12 +124,15 @@ void PixelGame::OnGameStart()
 	m_activeScene->OnRunTimeStart();
 	
 	m_isPlaying = true;
+	auto& cameraComp = m_cameraEntity.GetComponent<Engine::CameraComponent>();
+	cameraComp.Camera.SetPerspectiveFOV(45.0f);
+
 }
 
 void PixelGame::LoadGameAssets()
 {
 	m_pixelTexture = Engine::AssetManager::GetPixelTexture("pixel");
-	m_playerTexture = Engine::AssetManager::GetTexture("player");
+	//m_playerTexture = Engine::AssetManager::GetTexture("player");
 }
 
 void PixelGame::OnGameStop()
@@ -186,6 +186,7 @@ void PixelGame::CreateGameEntities()
 	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
 	cameraComp.Camera.SetPerspectiveFOV(45.0f);
 	cameraComp.Primary = true;
+	cameraComp.FreeCamera = false;
 	cameraComp.Camera.SetViewportBounds(m_activeScene->GetViewportMinBounds());
 
 

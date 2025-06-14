@@ -31,6 +31,7 @@ namespace Engine {
         SceneCamera Camera;
         bool Primary = true;
         bool FixedAspectRatio = false;
+		bool FreeCamera = false;
 
         CameraComponent() = default;
         CameraComponent(const CameraComponent&) = default;

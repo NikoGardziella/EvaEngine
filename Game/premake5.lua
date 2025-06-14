@@ -1,5 +1,5 @@
 
-    project "Sandbox"
+    project "Game"
         location "."
         kind "StaticLib" 
         language "C++"

@@ -483,7 +483,9 @@ namespace Engine {
                 auto color = entityNode["SpriteRendererComponent"]["Color"].as<std::vector<float>>();
                 sprite.Color = { color[0], color[1], color[2], color[3] };
 
-				sprite.Texture = AssetManager::CloneTexture(entityNode["SpriteRendererComponent"]["Texture"].as<std::string>());
+				//sprite.Texture = AssetManager::CloneTexture(entityNode["SpriteRendererComponent"]["Texture"].as<std::string>());
+                
+
             }
         }
 
@@ -686,6 +688,43 @@ namespace Engine {
                 Entity entity = m_scene->CreateEntityWithUUID(entityID);
 
                 SerializeUtils::DeserializeEntity(entity, entityNode);
+
+
+                // For Texture Streaming. Move somewhere
+                if (entity.HasComponent<SpriteRendererComponent>())
+                {
+                    bool isStatic = true;
+
+                    if (entity.HasComponent<CharacterControllerComponent>())
+                    {
+						isStatic = false; // CharacterControllerComponent implies dynamic entity
+					}
+					
+                    if (isStatic)
+                    {
+                        std::vector<uint8_t> pixelData;
+                        int width, height;
+					    std::string TextureName = entityNode["SpriteRendererComponent"]["Texture"].as<std::string>();
+                        if (AssetManager::GetTexturePixelData(TextureName,pixelData, width, height))
+                        {
+                        
+                            m_scene->GetTextureStreamingSystem().UploadToChunkFromTexture(
+                                entity.GetComponent<TransformComponent>().Translation,
+                                entity.GetComponent<IDComponent>().ID, TextureName,
+                                pixelData, width, height);
+                        }
+                    }
+                    else
+                    {
+                        SpriteRendererComponent& renderComp = entity.GetComponent<SpriteRendererComponent>();
+                        renderComp.Texture = AssetManager::CloneTexture(entityNode["SpriteRendererComponent"]["Texture"].as<std::string>());
+                        
+                        auto color = entityNode["SpriteRendererComponent"]["Color"].as<std::vector<float>>();
+                        renderComp.Color = { color[0], color[1], color[2], color[3] };
+                        
+
+                    }
+                }
             }
         }
 

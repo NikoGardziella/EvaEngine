@@ -3,13 +3,8 @@
 #include "Engine/AssetManager/AssetManager.h"
 #include "Engine/Core/Application.h"
 
-//#include <Engine/Renderer/ShaderCompiler.h>
-#include "Sandbox2D.h"
-//#include "PixelGame.h"
+
 #ifdef EE_PLATFORM_WINDOWS
-
-
-
 
 
 int main(int argc, char** argv)

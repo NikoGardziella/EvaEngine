@@ -103,15 +103,61 @@ namespace Engine {
         // Binding logic here
     }
 
+
     void VulkanTexture::SetData(void* data, uint32_t size)
     {
-        // Set texture data logic here
+        VulkanContext* vulkaContext = VulkanContext::Get();
+
+        VkDevice device = vulkaContext->GetDeviceManager().GetDevice();
+        VkQueue& graphicsQueue = vulkaContext->GetGraphicsQueue();
+        VkCommandPool& cmdPool = vulkaContext->GetCommandPool();
+
+        VulkanBuffer stagingBuffer(
+            device,
+            VulkanContext::Get()->GetDeviceManager().GetPhysicalDevice(),
+            size,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        );
+
+
+        void* mapped;
+        vkMapMemory(device, stagingBuffer.GetMemory(), 0, size, 0, &mapped);
+        std::memcpy(mapped, data, size);
+        vkUnmapMemory(device, stagingBuffer.GetMemory());
+
+
+        VulkanUtils::TransitionImageLayout(
+            m_image, VK_FORMAT_R8G8B8A8_UNORM,
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL 
+        );
+
+        // Copy buffer
+        VkBufferImageCopy region{};
+        region.bufferOffset = 0;
+        region.bufferRowLength = 0; // tightly packed
+        region.bufferImageHeight = 0;
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = 1;
+        region.imageOffset = { 0, 0, 0 };
+        region.imageExtent = { m_width, m_height, 1 };
+  
+
+        VulkanUtils::CopyBufferToImage(stagingBuffer.GetBuffer(), m_image, m_width, m_height);
+
+        VulkanUtils::TransitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_UNORM,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
     }
+
 
     void VulkanTexture::CreateTextureImage(const std::string& path)
     {
         int texWidth, texHeight, texChannels;
-        stbi_set_flip_vertically_on_load(true);
+        //stbi_set_flip_vertically_on_load(true);
         stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         if (!pixels)
         {
@@ -236,8 +282,13 @@ namespace Engine {
         clone->SetName(this->GetName());
         clone->SetCheckCollision(this->GetCheckCollision());
 		clone->SetCurrentLayout(this->GetCurrentLayout());
+        clone->SetHeight(this->GetHeight());
+		clone->SetWidth(this->GetWidth());
+
         return clone;
     }
+
+   
 
 
     void VulkanTexture::CopyFrom(const VulkanTexture& src)

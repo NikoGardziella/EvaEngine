@@ -25,6 +25,9 @@
     <Filter Include="source\Engine\Events">
       <UniqueIdentifier>{BFC47D10-AB53-07DA-5472-1BD540E01780}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Events\Public">
+      <UniqueIdentifier>{0DBB0193-79C8-2F79-02AF-2B646EBBFB2F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\ImGui">
       <UniqueIdentifier>{A55EB3C2-11C0-90D0-9A2D-D782068EC78F}</UniqueIdentifier>
     </Filter>
@@ -51,6 +54,18 @@
     </Filter>
     <Filter Include="source\Engine\Scene">
       <UniqueIdentifier>{985663C3-04B8-40D1-8D25-8783F9857790}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Components">
+      <UniqueIdentifier>{ADEC8D2E-9912-5895-8258-DD606E1D7D61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Components\Combat">
+      <UniqueIdentifier>{B224FACC-1EE9-F8BC-E74E-298753D294F2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Components\NPC">
+      <UniqueIdentifier>{5D97F967-49D3-FCD1-B2E5-14C99E40A5EC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Components\Player">
+      <UniqueIdentifier>{29B910EB-957D-0FDB-5EE3-3FA5CA66AB10}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\Engine\Scene\TaskManager">
       <UniqueIdentifier>{957A8D69-015E-9CA9-0A61-CAE576C362FA}</UniqueIdentifier>
@@ -158,6 +173,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Events\MouseEvent.h">
       <Filter>source\Engine\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Events\Public\CollisionEvents.h">
+      <Filter>source\Engine\Events\Public</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Events\TouchEvent.h">
       <Filter>source\Engine\Events</Filter>
@@ -293,6 +311,18 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Component.h">
       <Filter>source\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h">
+      <Filter>source\Engine\Scene\Components\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h">
+      <Filter>source\Engine\Scene\Components\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h">
+      <Filter>source\Engine\Scene\Components\NPC</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h">
+      <Filter>source\Engine\Scene\Components\Player</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Entity.h">
       <Filter>source\Engine\Scene</Filter>
@@ -1578,11 +1608,9 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h" />
-    <ClInclude Include="source\Engine\Events\Public\CollisionEvents.h" />
+    <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h" />
+    <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h" />
+    <ClInclude Include="source\Engine\Debug\DebugInterface.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1771,6 +1799,8 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp" />
+    <ClCompile Include="source\Engine\Debug\DebugInterface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">
@@ -1791,6 +1821,9 @@
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\compute.comp">
+      <Filter>assets\shaders</Filter>
+    </None>
     <None Include="..\assets\shaders\fullscreen_shader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
@@ -1800,6 +1833,5 @@
     <None Include="..\assets\shaders\testShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="..\assets\shaders\compute.comp" />
   </ItemGroup>
 </Project>

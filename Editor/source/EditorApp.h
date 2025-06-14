@@ -1,9 +1,11 @@
 #pragma once
-#include "Sandbox2D.h"
-#include "PixelGame.h"
+
 
 #include "EditorLayer.h"
 #include "Engine/Core/Application.h"
+
+#include "../../Game/source/PixelGame.h"
+
 
 namespace Engine {
 

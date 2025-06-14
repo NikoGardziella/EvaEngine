@@ -9,6 +9,7 @@
 #include <functional>
 
 #include "TaskManager/PhysicsTaskScheduler.h"
+#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 
 
 
@@ -50,6 +51,15 @@ namespace Engine {
 		void DuplicateEntity(Entity entity);
 
 		Entity GetPrimaryCameraEntity();
+		TextureStreamingSystem& GetTextureStreamingSystem() { return *m_textureStreamingSystem; }
+		void SetTextureStreamingSystem(Engine::Scope<TextureStreamingSystem> textureStreamingSystem)
+		{
+			m_textureStreamingSystem = std::move(textureStreamingSystem);
+		}
+		Engine::Scope<TextureStreamingSystem> ReleaseTextureStreamingSystem()
+		{
+			return std::move(m_textureStreamingSystem);
+		}
 
 		void ClearRegistry() { m_registry.clear(); };
 
@@ -95,6 +105,9 @@ namespace Engine {
 		PhysicsTaskScheduler m_physicsTaskScheduler;
 
 		std::vector<std::function<void(entt::registry&, float, Scene*)>> m_gameplaySystems;
+
+		Engine::Scope<TextureStreamingSystem> m_textureStreamingSystem;
+
 
 		friend class Entity;
 		friend class SceneSerializer;

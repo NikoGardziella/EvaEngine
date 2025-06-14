@@ -6,8 +6,7 @@
 #include "EditorLayer.h"
 //#include "Engine/Core/EntryPoint.h"
 
-#include "Sandbox2D.h"
-#include "PixelGame.h"
+
 
 namespace Engine {
 

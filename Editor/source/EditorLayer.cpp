@@ -169,7 +169,7 @@ namespace Engine {
         m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
         m_sceneHierarchyPanel.SetNewComponentsContext(m_editorScene); // remove this and only use new components?
 
-       
+        m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
        //m_sceneHierarchyPanel.SetContext(Scene::Combine(m_editorScene, m_editor.get()->GetGameLayer()->GetActiveGameScene()));
         //m_sceneHierarchyPanel.SetContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
@@ -315,6 +315,7 @@ namespace Engine {
                 ImGui::EndMenu();
             }
 
+			m_debugPanel.OnImGuiRender();
 
             m_sceneHierarchyPanel.OnImGuiRender();
 
@@ -629,6 +630,8 @@ namespace Engine {
         
         if (m_sceneState != SceneState::Pause)
         {
+            m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+
             m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
             m_editor.get()->GetGameLayer()->OnGameStart();
         }
@@ -647,6 +650,7 @@ namespace Engine {
 
         m_editor.get()->GetGameLayer()->SetIsPlaying(false);
         m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStop();
+        m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
         //SaveScene();
         m_sceneHierarchyPanel.SetGameContext(m_editorScene);
@@ -654,6 +658,7 @@ namespace Engine {
 
         m_editor.get()->GetGameLayer()->OnGameStop();
        // m_editor.get()->GetGameLayer()->SetActiveScene(m_activeScene);
+
 
     }
 

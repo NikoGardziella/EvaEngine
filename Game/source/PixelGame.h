@@ -42,7 +42,7 @@ private:
 
 	Engine::Ref<Engine::Scene> m_activeScene;
 	Engine::Entity m_cameraEntity;
-	Engine::Entity m_playerEntity;
+	//Engine::Entity m_playerEntity;
 
 	bool m_isPlaying = false;
 	std::string m_activeSceneName;
@@ -51,10 +51,14 @@ private:
 
 	Engine::Ref<Engine::VulkanPixelTexture> m_pixelTexture;
 	Engine::Ref<Engine::VulkanTexture> m_logoTexture;
-	Engine::Ref<Engine::VulkanTexture> m_playerTexture;
+	//Engine::Ref<Engine::VulkanTexture> m_playerTexture;
 
 	uint32_t m_viewportWidth;
 	uint32_t m_viewportHeight;
+
+	// Map
+
+
 };
 
 

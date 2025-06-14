@@ -44,7 +44,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
         // rotate player toward mouse pos
         glm::vec2 direction = glm::normalize(glm::vec2(mouseWorldPosition) - glm::vec2(playerTransformComp.Translation));
         float angle = std::atan2(direction.y, direction.x);
-        playerTransformComp.Rotation.z = angle + 115;
+        playerTransformComp.Rotation.z = angle + 130;
        
 
         glm::vec2 input = { 0.0f, 0.0f };

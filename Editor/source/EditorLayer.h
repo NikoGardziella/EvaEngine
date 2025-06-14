@@ -10,10 +10,10 @@
 #include "Engine/Platform/Vulkan/VulkanTexture.h"
 
 
-#include "Sandbox2D.h"
 #include "FPSCounter.h"
 #include "AI/json.hpp"
 #include <imgui/imgui.h>
+#include "Panels/DebugPanel.h"
 
 namespace Engine {
 
@@ -117,6 +117,7 @@ namespace Engine {
 		//panels
 		SceneHierarchyPanel m_sceneHierarchyPanel;
 		ContentBrowserPanel m_contentBrowserPanel;
+		DebugPanel m_debugPanel;
 
 		//int m_gizmoType = -1;
 

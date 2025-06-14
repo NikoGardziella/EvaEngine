@@ -3,6 +3,7 @@
 #include <iostream>
 #include <mutex>
 #include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
+#include <stb_image.h>
 
 namespace Engine {
 
@@ -18,6 +19,8 @@ namespace Engine {
 
     void AssetManager::Initialize(int maxDepth)
     {
+
+        //stbi_set_flip_vertically_on_load(true);
         std::lock_guard<std::mutex> lock(s_Mutex); // Ensure thread safety
 
         std::filesystem::path currentPath = std::filesystem::current_path();
@@ -38,6 +41,9 @@ namespace Engine {
         {
             EE_CORE_WARN("Could not find asset folder within {} parent levels!", maxDepth);
         }
+
+
+
     }
 
     std::filesystem::path AssetManager::GetAssetPath(const std::string& subPath)
@@ -197,6 +203,41 @@ namespace Engine {
             EE_CORE_WARN("Pixel Texture {} not found in cache!", name);
             return nullptr;
         }
+    }
+
+
+    bool AssetManager::GetTexturePixelData(const std::string& textureName, std::vector<uint8_t>& outPixels, int& outWidth, int& outHeight)
+    {
+
+		if (textureName.empty())
+		{
+			EE_CORE_ERROR("Texture file does not exist: {}", textureName);
+			return false;
+		}
+        
+        std::string texturePath = ResolveTexturePath(textureName);
+
+        int channels;
+        //stbi_set_flip_vertically_on_load(true);
+        unsigned char* data = stbi_load(texturePath.c_str(), &outWidth, &outHeight, &channels, STBI_rgb_alpha);
+        if (!data)
+        {
+            EE_CORE_ERROR("Failed to load texture: {}", texturePath);
+            return false;
+        }
+
+        size_t pixelCount = outWidth * outHeight;
+        outPixels.resize(pixelCount * 4); // RGBA8 = 4 bytes per pixel
+        std::memcpy(outPixels.data(), data, outPixels.size());
+
+        stbi_image_free(data);
+        return true;
+    }
+
+    // Optional: Simple name-to-path resolver
+    std::string AssetManager::ResolveTexturePath(const std::string& textureName)
+    {
+        return GetAssetFolderPath().string() + "/textures/" + textureName + ".png"; // Adjust this path logic as needed
     }
 
 }

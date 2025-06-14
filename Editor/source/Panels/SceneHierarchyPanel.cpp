@@ -670,6 +670,7 @@ namespace Engine {
                 auto& camera = component.Camera;
 
                 ImGui::Checkbox("Primary", &cameraComp.Primary);
+                ImGui::Checkbox("Free camera", &cameraComp.FreeCamera);
 
                 const char* projectionTypeStrings[] = { " Perspective", " Orthographic" };
                 const char* currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];

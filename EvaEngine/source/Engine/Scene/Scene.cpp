@@ -12,6 +12,7 @@
 #include "box2d/box2d.h"
 #include "box2d/math_functions.h"
 #include "Components/NPC/NpcAIComponent.h"
+#include "Engine/Debug/DebugInterface.h"
 
 
 
@@ -59,6 +60,9 @@ namespace Engine {
     {
 
         m_registry = entt::registry();
+        m_textureStreamingSystem = std::make_unique<TextureStreamingSystem>();
+        DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
+
     }
 
 
@@ -102,6 +106,8 @@ namespace Engine {
         newScene->m_viewportWidth = other->m_viewportWidth;
         newScene->m_viewportHeight = other->m_viewportHeight;
 		newScene->m_viewportBounds[0] = other->m_viewportBounds[0];
+
+		newScene->SetTextureStreamingSystem(other->ReleaseTextureStreamingSystem());
 
         std::unordered_map<UUID, entt::entity> enttMap;
 
@@ -194,6 +200,11 @@ namespace Engine {
     Ref<Scene> Scene::Combine(Ref<Scene> sceneA, Ref<Scene> sceneB)
     {
         Ref<Scene> combinedScene = std::make_shared<Scene>();
+
+        // usually sceneB is the Game scene that has the TextureStreaming
+        combinedScene->SetTextureStreamingSystem(sceneB->ReleaseTextureStreamingSystem());
+
+
 
         combinedScene->m_viewportWidth = sceneA->m_viewportWidth;
         combinedScene->m_viewportHeight = sceneA->m_viewportHeight;
@@ -359,6 +370,7 @@ namespace Engine {
             index++;
         }
 
+        DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
 
     }
 
@@ -390,7 +402,7 @@ namespace Engine {
         EE_PROFILE_FUNCTION();
         /*
         ╔════════════════════════════════════════════════╗
-        ║ 🚀 EVA ENGINE | ENTT                           ║
+        ║  EVA ENGINE | ENTT                             ║
         ║                                                ║
         ╚════════════════════════════════════════════════╝
         // Full-owning group: The registry owns and tightly packs both SpriteRendererComponent and TransformComponent
@@ -411,7 +423,23 @@ namespace Engine {
 
         */
 
-      
+        // get player info
+        auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent>();
+        glm::vec2 playerPos;
+        uint64_t playerID = 0;
+
+        for (auto playerEntity : playerView)
+        {
+            auto& playerTransform = playerView.get<Engine::TransformComponent>(playerEntity);
+            playerPos.x = playerTransform.Translation.x;
+            playerPos.y = playerTransform.Translation.y;
+
+            auto& playerIDComp = playerView.get<Engine::IDComponent>(playerEntity);
+            playerID = playerIDComp.ID;
+
+        }
+
+
 
         //************ update scripts ***************
         {
@@ -472,22 +500,7 @@ namespace Engine {
 
             //*********** GPU COLLISIONS ***********
             {
-                EE_PROFILE_SCOPE("GPU collision");
-
-                auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent>();
-                glm::vec2 playerPos;
-                uint64_t playerID = 0;
-
-                for (auto playerEntity : playerView)
-                {
-                    auto& playerTransform = playerView.get<Engine::TransformComponent>(playerEntity);
-                    playerPos.x = playerTransform.Translation.x;
-                    playerPos.y = playerTransform.Translation.y;
-
-                    auto& playerIDComp = playerView.get<Engine::IDComponent>(playerEntity);
-					playerID = playerIDComp.ID;
-
-                }
+                
 
                 auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
 
@@ -496,7 +509,7 @@ namespace Engine {
                     auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
                     if (!quadSprite.Texture)
                     {
-                        return;
+                        continue;
                     }
 
                     float tiling = 1.0f;
@@ -634,7 +647,7 @@ namespace Engine {
 
 
         }
-
+        m_textureStreamingSystem->Update(playerPos, m_registry);
 
     }
 
@@ -658,6 +671,24 @@ namespace Engine {
         EE_PROFILE_FUNCTION();
 
         Engine::VulkanRenderer2D::BeginScene(camera);
+
+
+        {
+
+            auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent>();
+            glm::vec2 playerPos;
+
+            for (auto playerEntity : playerView)
+            {
+                auto& playerTransform = playerView.get<Engine::TransformComponent>(playerEntity);
+                playerPos.x = playerTransform.Translation.x;
+                playerPos.y = playerTransform.Translation.y;
+
+            }
+
+            m_textureStreamingSystem->Update(playerPos, m_registry);
+        }
+
 
         {
             auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
@@ -752,7 +783,18 @@ namespace Engine {
         if (entity.HasComponent<SpriteRendererComponent>())
         {
             SpriteRendererComponent& spriteComp =  newEntity.AddComponent<SpriteRendererComponent>();
-            spriteComp.Texture = AssetManager::CloneTexture(entity.GetComponent<SpriteRendererComponent>().Texture->GetName());
+            //spriteComp.Texture = AssetManager::CloneTexture(entity.GetComponent<SpriteRendererComponent>().Texture->GetName());
+            std::vector<uint8_t> pixelData;
+            int width, height;
+
+            if (AssetManager::GetTexturePixelData(entity.GetComponent<SpriteRendererComponent>().Texture->GetName(), pixelData, width, height))
+            {
+				m_textureStreamingSystem->UploadToChunkFromTexture(
+					entity.GetComponent<TransformComponent>().Translation,
+					entity.GetComponent<IDComponent>().ID,
+                    entity.GetComponent<SpriteRendererComponent>().Texture->GetName(),
+					pixelData, width, height);
+            }
         }
 
     }

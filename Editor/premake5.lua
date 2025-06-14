@@ -49,7 +49,7 @@ project "Editor"
     links
     {
         "EvaEngine",
-        "Sandbox"
+        "Game"
         
     }
 

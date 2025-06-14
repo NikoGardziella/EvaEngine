@@ -20,7 +20,7 @@ include "EvaEngine/vendor/GLAD"
 include "EvaEngine/vendor/imgui"
 include "EvaEngine/vendor/yaml-cpp"
 include "EvaEngine/vendor/Box2D"
-include "Sandbox"
+include "Game"
 include "Editor"
 
 -- Define the "EvaEngine" project

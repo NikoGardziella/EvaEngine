@@ -17,7 +17,10 @@ namespace Engine {
         virtual ~VulkanTexture();
 
         virtual uint32_t GetWidth() const override { return m_width; }
+        void SetWidth(uint32_t width) { m_width = width; }
         virtual uint32_t GetHeight() const override { return m_height; }
+        void SetHeight(uint32_t height) { m_height = height; }
+
         virtual void Bind(uint32_t slot = 0) const override;
         virtual uint32_t GetRendererID() const override { return 0; }
 		VkImageView GetImageView() const { return m_imageView; }
@@ -37,6 +40,8 @@ namespace Engine {
         Ref<VulkanTexture> Clone() const;
 
         //**** move to new class? *****
+
+
         void SetCheckCollision(bool checkCollision) { m_checkCollision = checkCollision; }
         bool GetCheckCollision() const { return m_checkCollision; }
 

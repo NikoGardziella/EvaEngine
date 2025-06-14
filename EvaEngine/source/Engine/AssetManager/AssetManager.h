@@ -30,7 +30,13 @@ namespace Engine {
         static Ref<VulkanTexture> CloneTexture(const std::string& name);
 		static Ref<VulkanPixelTexture> GetPixelTexture(const std::string& name);
         static  std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures();
+
         static VkDeviceSize s_totalTextureMemory;
+
+        // Texture streaming system
+        static bool GetTexturePixelData(const std::string& textureName, std::vector<uint8_t>& outPixels, int& outWidth, int& outHeight);
+        static std::string ResolveTexturePath(const std::string& textureName);
+        
 
     private:
         static std::filesystem::path s_AssetPath;
