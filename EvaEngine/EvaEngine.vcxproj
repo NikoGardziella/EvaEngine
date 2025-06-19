@@ -689,6 +689,7 @@
     <ClCompile Include="source\Engine\Platform\Windows\WindowsPlatformUtils.cpp" />
     <ClCompile Include="source\Engine\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="source\Engine\Renderer\Buffer.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Camera.cpp" />
     <ClCompile Include="source\Engine\Renderer\EditorCamera.cpp" />
     <ClCompile Include="source\Engine\Renderer\Framebuffer.cpp" />
     <ClCompile Include="source\Engine\Renderer\OrthographicCamera.cpp" />
@@ -722,6 +723,7 @@
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
+    <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\compute.comp" />
     <None Include="..\assets\shaders\fullscreen_shader.glsl" />

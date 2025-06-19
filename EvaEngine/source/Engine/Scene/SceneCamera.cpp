@@ -45,15 +45,10 @@ namespace Engine {
 
 	}
 
-	void SceneCamera::SetViewportBounds(glm::vec2 minBounds)
+	void SceneCamera::SetViewportBounds(const std::array<glm::vec2, 2>& bounds)
 	{
-		m_viewportBounds[0] = minBounds;
-		/*
-		m_viewportBounds[1] = { minBounds.x + m_viewportSize.x, minBounds.y + m_viewportSize.y };
-		m_aspectRatio = (m_viewportBounds[1].x - m_viewportBounds[0].x) / (m_viewportBounds[1].y - m_viewportBounds[0].y);
-		RecalculateProjection();
-		m_viewportSize = { m_viewportBounds[1].x - m_viewportBounds[0].x, m_viewportBounds[1].y - m_viewportBounds[0].y };
-		*/
+		m_viewportBounds = bounds;
+		
 	}
 
 

@@ -18,9 +18,7 @@ namespace Engine {
 		virtual ~Camera() = default;
 		const glm::mat4& GetViewProjection() const { return m_projection; }
 
-
 		
-
 	// let derived Cameras acess
 	protected:
 

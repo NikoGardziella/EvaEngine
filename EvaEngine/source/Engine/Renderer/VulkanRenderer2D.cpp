@@ -15,6 +15,8 @@ namespace Engine {
 
 	//VulkanRenderer2D::SceneData* VulkanRenderer2D::m_sceneData = new SceneData();
 	Engine::VulkanRenderer2DData Engine::VulkanRenderer2D::s_VulkanData;
+	Engine::VulkanRenderer2DProjectileData Engine::VulkanRenderer2D::s_VulkanProjectileData;
+
 	CollisionData Engine::VulkanRenderer2D::s_CollisionData;
 	std::vector<PerFrameGarbage> g_PerFrameGarbage;
 
@@ -79,9 +81,6 @@ namespace Engine {
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		);
 		s_VulkanData.LineVertexBuffer->SetData(s_VulkanData.LineVertexBufferBase, sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices);
-
-
-
 
 		s_VulkanData.LineVertexBufferPtr = s_VulkanData.LineVertexBufferBase;
 		
@@ -208,16 +207,76 @@ namespace Engine {
 
 		}
 
+
+		// *********** PROJECTILES **************
+		s_VulkanProjectileData.QuadVertexBufferBase = new VulkanProjectileVertex[VulkanRenderer2DProjectileData::MaxProjectiles];
+		s_VulkanProjectileData.QuadVertexBufferPtr = s_VulkanProjectileData.QuadVertexBufferBase;
+
+
+	
+		s_VulkanProjectileData.QuadVertexBuffer = std::make_shared<VulkanVertexBuffer>(
+			reinterpret_cast<float*>(s_VulkanProjectileData.QuadVertexBufferBase),
+			VulkanRenderer2DProjectileData::MaxProjectiles * sizeof(VulkanProjectileVertex)
+		);
+
+		std::vector<uint32_t> projectileIndices;
+		projectileIndices.reserve(VulkanRenderer2DProjectileData::MaxProjectiles * 6);
+
+		offset = 0;
+		for (uint32_t i = 0; i < VulkanRenderer2DProjectileData::MaxProjectiles; i++) {
+			projectileIndices.push_back(offset + 0);
+			projectileIndices.push_back(offset + 1);
+			projectileIndices.push_back(offset + 2);
+			projectileIndices.push_back(offset + 2);
+			projectileIndices.push_back(offset + 3);
+			projectileIndices.push_back(offset + 0);
+			offset += 4;
+		}
+		s_VulkanProjectileData.QuadIndexBuffer = std::make_shared<VulkanIndexBuffer>(
+			projectileIndices.data(),
+			projectileIndices.size()
+		);
+
+		//s_VulkanProjectileData.QuadIndexCount = static_cast<uint32_t>(projectileIndices.size());
+
+		s_VulkanProjectileData.WhiteTexture = std::make_shared<VulkanTexture>(
+			AssetManager::GetAssetPath("textures/white_texture.png").string()
+		);
+		uint32_t whiteTexData = 0xffffffff;
+		s_VulkanProjectileData.WhiteTexture->SetData(&whiteTexData, sizeof(uint32_t));
+
+		s_VulkanProjectileData.TextureSlots[0] = s_VulkanProjectileData.WhiteTexture;
+
+		s_VulkanProjectileData.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f };
+		s_VulkanProjectileData.QuadVertexPositions[1] = { 0.5f, -0.5f, 0.0f };
+		s_VulkanProjectileData.QuadVertexPositions[2] = { 0.5f,  0.5f, 0.0f };
+		s_VulkanProjectileData.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f };
+
+		// You can optionally update descriptors here if needed
+		s_VulkanProjectileData.TextureSlotIndex = 0;
+		s_VulkanProjectileData.TextureSlots[s_VulkanProjectileData.TextureSlotIndex++] = AssetManager::GetTexture("Idle_gun_000");
+		s_VulkanProjectileData.TextureSlots[s_VulkanProjectileData.TextureSlotIndex++] = AssetManager::GetTexture("bullet");
+		for (uint32_t i = s_VulkanProjectileData.TextureSlotIndex; i < s_VulkanProjectileData.MaxProjectiles; i++)
+		{
+			s_VulkanProjectileData.TextureSlots[i] = s_VulkanProjectileData.WhiteTexture;
+			s_VulkanProjectileData.TextureSlotIndex++;
+		}
+
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			m_vulkanGraphicsPipelines->UpdateProjectileDescriptorSets(i, s_VulkanProjectileData.TextureSlots);
+		}
 	}
 
 	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
 		// clear old textures when GPU is done with them
-		
 		// Sync
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
+
+		StartBatch();
 
 		CalculateCollisionFrame(currentFrame);
 		s_VulkanData.CurrentFrame = currentFrame;
@@ -258,6 +317,7 @@ namespace Engine {
 		//move somewhere
 		s_CollisionData.EntitySlotIndex = 0;
 		s_VulkanData.TextureSlotIndex = 1;
+		s_VulkanProjectileData.TextureSlotIndex = 1;
 		s_VulkanData.TextureToSlotMap.clear();
 		g_PerFrameGarbage[s_VulkanData.CurrentFrame].OldTextures.clear();
 
@@ -300,9 +360,35 @@ namespace Engine {
 		m_firstIndex = 0;
 		m_vertexOffset = 0;
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
+		uint32_t dataSize = (uint32_t)((uint8_t*)s_VulkanData.QuadVertexBufferPtr - (uint8_t*)s_VulkanData.QuadVertexBufferBase);
+		if (dataSize > 0)
+		{
+			EE_PROFILE_SCOPE("Flush Quad");
+			s_VulkanData.QuadVertexBuffer->SetData(s_VulkanData.QuadVertexBufferBase, dataSize);
+		}
 
+		if (s_VulkanData.LineVertexCount > 0)
+		{
+			EE_PROFILE_SCOPE("Flush line");
+
+			s_VulkanData.LineVertexBuffer->SetData(s_VulkanData.LineVertexBufferBase, s_VulkanData.LineVertexCount * sizeof(VulkanLineVertex));
+		}
+
+		dataSize = (uint32_t)((uint8_t*)s_VulkanProjectileData.QuadVertexBufferPtr - (uint8_t*)s_VulkanProjectileData.QuadVertexBufferBase);
+		if (dataSize > 0)
+		{
+			//auto* v = s_VulkanProjectileData.QuadVertexBufferBase;
+			//EE_CORE_INFO("Projectile Vertex[0] Pos: ({}, {}, {})", v[0].Position.x, v[0].Position.y, v[0].Position.z);
+			//EE_CORE_INFO("TexCoord: ({}, {}), TexIndex: {}", v[0].TexCoord.x, v[0].TexCoord.y, v[0].TexIndex);
+			EE_PROFILE_SCOPE("Flush projectile");
+			s_VulkanProjectileData.QuadVertexBuffer->SetData(s_VulkanProjectileData.QuadVertexBufferBase, dataSize);
+			
+
+		}
 		
-		RecordLineCommanedBuffer(cmd);
+
+		Draw();
+		
 
 		// End RecordGameDrawCommands render pass
 		vkCmdEndRenderPass(cmd);
@@ -462,7 +548,10 @@ namespace Engine {
 
 		s_VulkanData.LineVertexBufferPtr = s_VulkanData.LineVertexBufferBase;
 		s_VulkanData.LineVertexCount = 0;
-	
+
+		s_VulkanProjectileData.QuadVertexBufferPtr = s_VulkanProjectileData.QuadVertexBufferBase;
+		s_VulkanProjectileData.QuadIndexCount = 0;
+
 
 		// collisions
 		// do this at end?
@@ -494,7 +583,7 @@ namespace Engine {
 	void VulkanRenderer2D::NextBatch()
 	{
 		StartBatch();
-		Draw();
+		//Draw();
 	}
 
 	void VulkanRenderer2D::Draw()
@@ -510,10 +599,12 @@ namespace Engine {
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 
 		m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(currentFrame, s_VulkanData.TextureSlots);
+		m_vulkanGraphicsPipelines->UpdateProjectileDescriptorSets(currentFrame, s_VulkanProjectileData.TextureSlots);
 
 		RecordGameDrawCommands(cmd, m_imageIndex, currentFrame);
+		RecordProjectileDrawCommands(cmd, currentFrame, currentFrame);
+		RecordLineCommanedBuffer(cmd, m_imageIndex, currentFrame);
 
-		s_VulkanData.Stats.DrawCalls++;
 
 	}
 
@@ -539,7 +630,39 @@ namespace Engine {
 
 		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
 
-		
+		s_VulkanData.Stats.DrawCalls++;
+
+	}
+
+	void VulkanRenderer2D::RecordProjectileDrawCommands(VkCommandBuffer cmd, uint32_t frameIndex, uint32_t currentFrame)
+	{
+		if (s_VulkanProjectileData.QuadIndexCount == 0)
+			return;
+
+		// Bind pipeline
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetProjectilePipeline());
+
+		// Bind descriptor set (for textures)
+		VkDescriptorSet descriptorSets[] = {
+			m_vulkanGraphicsPipelines->GetCameraDescriptorSet(currentFrame),     // set = 0
+			m_vulkanGraphicsPipelines->GetProjectileDescriptorSet(frameIndex)    // set = 1
+				};
+
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetProjectilePipelineLayout(), 0, 2, descriptorSets, 0, nullptr);
+
+		// Update GPU buffer if needed
+
+		// Bind buffers
+		VkBuffer vertexBuffers[] = { s_VulkanProjectileData.QuadVertexBuffer->GetBuffer() };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(cmd, s_VulkanProjectileData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		// Draw
+		vkCmdDrawIndexed(cmd, s_VulkanProjectileData.QuadIndexCount, 1, 0, 0, 0);
+
+		s_VulkanData.Stats.DrawCalls++;
+
 	}
 
 
@@ -714,13 +837,14 @@ namespace Engine {
 
 
 
-	void VulkanRenderer2D::RecordLineCommanedBuffer(VkCommandBuffer commandBuffer)
+	void VulkanRenderer2D::RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
-
+		if (s_VulkanData.LineVertexCount <= 0)
+			return;
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetLinePipeline());
 
-		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetLineDescriptorSet();
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetLineDescriptorSet(currentFrame);
 		vkCmdBindDescriptorSets(
 			commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -738,9 +862,10 @@ namespace Engine {
 
 		vkCmdSetLineWidth(commandBuffer, 3.0f);
 
-
-
 		vkCmdDraw(commandBuffer, s_VulkanData.LineVertexCount, 1, 0, 0);
+
+		s_VulkanData.Stats.DrawCalls++;
+
 	}
 
 	void VulkanRenderer2D::RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
@@ -1104,6 +1229,56 @@ namespace Engine {
 		s_VulkanData.QuadIndexCount += 6;
 	}
 
+	void VulkanRenderer2D::DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const glm::vec4& tintColor)
+	{
+		EE_PROFILE_FUNCTION();
+
+		if (s_VulkanProjectileData.QuadIndexCount >= VulkanRenderer2DData::MaxIndices)
+		{
+			EE_CORE_ASSERT(false, "Quad index count exceeded maximum limit!");
+		}
+
+		if (s_VulkanProjectileData.TextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
+		{
+			EE_CORE_ASSERT(false, "Texture slot index exceeded maximum limit!");
+		}
+
+		// Try to get texture slot from map
+		float textureIndex = 0.0f;
+		textureIndex = static_cast<float>(s_VulkanProjectileData.TextureSlotIndex);
+		s_VulkanProjectileData.TextureSlots[s_VulkanProjectileData.TextureSlotIndex] = texture;
+
+		s_VulkanProjectileData.TextureSlotIndex++;
+
+		// Quad vertex data
+		const glm::vec3 quadPositions[4] = {
+			{-0.5f, -0.5f, 0.0f},
+			{ 0.5f, -0.5f, 0.0f},
+			{ 0.5f,  0.5f, 0.0f},
+			{-0.5f,  0.5f, 0.0f}
+		};
+
+		const glm::vec2 texCoords[4] = {
+			{0.0f, 0.0f},
+			{1.0f, 0.0f},
+			{1.0f, 1.0f},
+			{0.0f, 1.0f}
+		};
+
+		// Write 4 vertices
+		for (size_t i = 0; i < 4; i++)
+		{
+			glm::vec4 transformed = transform * glm::vec4(quadPositions[i], 1.0f);
+			s_VulkanProjectileData.QuadVertexBufferPtr->Position = glm::vec3(transformed);
+			s_VulkanProjectileData.QuadVertexBufferPtr->Color = tintColor;
+			s_VulkanProjectileData.QuadVertexBufferPtr->TexCoord = texCoords[i];
+			s_VulkanProjectileData.QuadVertexBufferPtr->TexIndex = 1.0f; // CHANGE
+			s_VulkanProjectileData.QuadVertexBufferPtr++;
+		}
+
+		s_VulkanProjectileData.QuadIndexCount += 6;
+	}
+
 
 	void VulkanRenderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)
 	{
@@ -1200,7 +1375,7 @@ namespace Engine {
 		//StartBatch();
 		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection() * glm::inverse(transform);
 		//s_VulkanData.CameraBuffer.SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
-		StartBatch();
+		//StartBatch();
 
 	}
 
@@ -1210,18 +1385,18 @@ namespace Engine {
 
 		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection();
 		//s_VulkanData.CameraBuffer.SetData(&s_VulkanData.CameraBuffer, sizeof(Renderer2DData::CameraData));
-		StartBatch();
+		//StartBatch();
 	}
 
 	void VulkanRenderer2D::BeginScene(glm::mat4 viewProjectionMatrix)
 	{
 		s_VulkanData.CameraBuffer.ViewProjection = viewProjectionMatrix;
-		StartBatch();
+		//StartBatch();
 	}
 
 	void VulkanRenderer2D::BeginScene()
 	{
-		StartBatch();
+		//StartBatch();
 	}
 
 	
@@ -1231,20 +1406,7 @@ namespace Engine {
 		
 		EE_PROFILE_FUNCTION();
 		// Flush the batch
-		uint32_t dataSize = (uint32_t)((uint8_t*)s_VulkanData.QuadVertexBufferPtr - (uint8_t*)s_VulkanData.QuadVertexBufferBase);
-		if (dataSize > 0)
-		{
-			EE_PROFILE_SCOPE("Flush Quad");
-			s_VulkanData.QuadVertexBuffer->SetData(s_VulkanData.QuadVertexBufferBase, dataSize);
-		}
-
-		if (s_VulkanData.LineVertexCount > 0)
-		{
-			EE_PROFILE_SCOPE("Flush line");
-
-			s_VulkanData.LineVertexBuffer->SetData(s_VulkanData.LineVertexBufferBase, s_VulkanData.LineVertexCount * sizeof(VulkanLineVertex));
-		}
-		Draw();
+		
 		
 	}
 

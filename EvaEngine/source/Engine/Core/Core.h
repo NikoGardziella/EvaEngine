@@ -84,6 +84,7 @@
 //#define MAX_TEXTURES = 512
 
 constexpr size_t MAX_TEXTURES = 32;
+constexpr size_t MAX_PROJECTILES = 32;
 constexpr size_t MAX_COLLISION_ENTITIES = 32; // projectiles and player
 constexpr size_t MAX_COLLISION_RESULTS = 64; // projectiles and player
 

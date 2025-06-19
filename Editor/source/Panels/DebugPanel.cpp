@@ -4,7 +4,9 @@
 #include "Engine/Debug/DebugInterface.h"
 #include "imgui/imgui.h"
 #include <imgui/imgui_internal.h>
-
+#include <Engine/Renderer/VulkanRenderer2D.h>
+#include <Engine/Scene/Component.h>
+#include "Engine/Scene/Entity.h"
 
 namespace Engine {
    
@@ -24,6 +26,8 @@ namespace Engine {
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 
+         
+
         if (ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)1, flags, "Textures:"))
         {
             if (boldFont)
@@ -34,14 +38,39 @@ namespace Engine {
                 DebugInterface::ResetAllTextures(m_gameContext->GetRegistry());
             }
 
+
+            ImGui::Checkbox("Show Chunks", &m_showChunks);
+
             if (boldFont)
                 ImGui::PopFont();
 
             ImGui::TreePop();
         }
-       
-        // Optional style pop if styles were pushed
-        // ImGui::PopStyleColor(3);
+
+		if (m_showChunks)
+		{	
+            
+            Entity camera = m_gameContext->GetPrimaryCameraEntity();
+            if (camera)
+            {
+                Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera.GetViewProjection(), camera.GetComponent<TransformComponent>().GetTransform());
+
+            }
+            else
+            {
+               // Engine::VulkanRenderer2D::BeginScene(m_editorCamera);
+
+            }
+
+            
+            
+
+            DebugInterface::DebugDrawChunkOutlines(m_gameContext->GetRegistry());
+            Engine::VulkanRenderer2D::EndScene();
+
+		}
+
+        
 
         ImGui::End();
     }

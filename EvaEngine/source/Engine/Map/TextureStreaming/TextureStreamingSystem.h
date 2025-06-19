@@ -10,7 +10,7 @@ namespace Engine{
 
     const int CHUNK_SIZE = 256;
     const int LOAD_RADIUS = 2; // Load a 5×5 chunk area (2 chunks in all directions)
-    const int UNLOAD_RADIUS = 2; // Unload anything outside a 7×7 chunk area
+    const int UNLOAD_RADIUS = 2; 
 
     struct TextureChunk {
         //std::string ID; // Unique ID or path
@@ -51,6 +51,7 @@ namespace Engine{
         
         //debug
         void ResetAllChunks(entt::registry& gameRegistry);
+        void DebugDrawChunkOutlines(entt::registry& gameRegistry);
     private:
         void LoadChunkToGPU(TextureChunk& chunk, entt::registry& gameRegistry);
 

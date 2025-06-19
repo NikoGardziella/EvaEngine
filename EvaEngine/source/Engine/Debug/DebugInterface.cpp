@@ -11,4 +11,9 @@ namespace Engine {
 		if (s_textureSystem)
 			s_textureSystem->ResetAllChunks(gameRegistry);
 	}
+	void Engine::DebugInterface::DebugDrawChunkOutlines(entt::registry& gameRegistr)
+	{
+		if (s_textureSystem)
+			s_textureSystem->DebugDrawChunkOutlines(gameRegistr);
+	}
 }

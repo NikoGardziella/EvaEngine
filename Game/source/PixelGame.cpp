@@ -165,16 +165,11 @@ void PixelGame::CreateGameEntities()
 		//playerSpriteComp.Color = color;
 		playerSpriteComp.Texture = m_playerTexture;
 
-	
-	
-	
-
-	
-	m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
-	auto& transformComp = m_pixelEntity.AddComponent<Engine::TransformComponent>();
-	transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
-	Engine::SpriteRendererComponent& spriteComp = m_pixelEntity.AddComponent<Engine::SpriteRendererComponent>();
-	spriteComp.Texture = m_pixelTexture;
+		m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
+		auto& transformComp = m_pixelEntity.AddComponent<Engine::TransformComponent>();
+		transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
+		Engine::SpriteRendererComponent& spriteComp = m_pixelEntity.AddComponent<Engine::SpriteRendererComponent>();
+		spriteComp.Texture = m_pixelTexture;
 	
 
 	*/
@@ -187,17 +182,55 @@ void PixelGame::CreateGameEntities()
 	cameraComp.Camera.SetPerspectiveFOV(45.0f);
 	cameraComp.Primary = true;
 	cameraComp.FreeCamera = false;
-	cameraComp.Camera.SetViewportBounds(m_activeScene->GetViewportMinBounds());
+	cameraComp.Camera.SetViewportBounds(m_activeScene->GetViewportBounds());
 
 
-	cameraComp.Camera.SetViewportSize(m_viewportWidth, m_viewportHeight);
+	cameraComp.Camera.SetViewportSize(m_activeScene->GetViewportWidth(), m_activeScene->GetViewortHeight());
 	
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
 	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 10.0f);
 
-	
+	//SpawnChunkGridSprites();
+
+}
 
 
+// In your DebugPanel or wherever you want to trigger it:
+
+void PixelGame::SpawnChunkGridSprites()
+{
+	// Optional: clean up previous debug sprites by tag
+
+	constexpr int mapWidth = 4096;   // total world size in pixels
+	constexpr int mapHeight = 4096;
+	constexpr int chunkSize = 256;    // size of each cell
+
+	const int cols = mapWidth / chunkSize;  // 16
+	const int rows = mapHeight / chunkSize;  // 16
+
+	for (int cy = 0; cy < rows; cy++)
+	{
+		for (int cx = 0; cx < cols; cx++)
+		{
+			// world-space origin of this chunk cell
+			glm::vec2 origin = {
+				float(cx * chunkSize),
+				float(cy * chunkSize)
+			};
+
+			// Create and tag the debug entity
+			auto e = m_activeScene->CreateEntity("ChunkDebug");
+
+			// Place the sprite at the cell origin
+			auto& tf = e.AddComponent<Engine::TransformComponent>();
+			tf.Translation = glm::vec3(origin, 0.0f);
+
+			// Give it a tiny 16×16 sprite so you can spot it
+			auto& spr = e.AddComponent<Engine::SpriteRendererComponent>();
+			spr.Texture = Engine::AssetManager::GetTexture("wall_0019");
+
+		}
+	}
 }
 
 

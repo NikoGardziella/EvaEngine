@@ -23,12 +23,34 @@ namespace Engine {
 		Destroy = 1
 	};
 
+	struct VulkanRenderer2DProjectileData
+	{
+		static const uint32_t MaxProjectiles = MAX_PROJECTILES;
+
+		Ref<VertexArray> QuadVertexArray;
+		Ref<VulkanVertexBuffer> QuadVertexBuffer;
+		Ref<VulkanIndexBuffer> QuadIndexBuffer;
+		Ref<VulkanShader> QuadShader;
+		Ref<VulkanTexture> WhiteTexture;
+
+		uint32_t QuadIndexCount = 0;
+		VulkanProjectileVertex* QuadVertexBufferBase = nullptr;
+		VulkanProjectileVertex* QuadVertexBufferPtr = nullptr;
+
+		std::unordered_map<VulkanTexture*, uint32_t> TextureToSlotMap;
+		std::array<Ref<VulkanTexture>, MaxProjectiles> TextureSlots;
+		uint32_t TextureSlotIndex = 0;
+
+		glm::vec3 QuadVertexPositions[4];
+	};
+
+
 	struct VulkanRenderer2DData
 	{
 		static const uint32_t MaxQuads = 20000;
 		static const uint32_t MaxVertices = MaxQuads * 4;
 		static const uint32_t MaxIndices = MaxQuads * 6;
-		static const uint32_t MaxTextureSlots = MAX_TEXTURES; // TODO: RenderCaps
+		static const uint32_t MaxTextureSlots = MAX_TEXTURES;
 
 		static const uint32_t MaxLines = 10000;
 		static const uint32_t MaxLineVertices = MaxLines * 2;
@@ -112,7 +134,11 @@ namespace Engine {
 		void Init();
 		void DrawFrame(uint32_t currentFrame);
 		void BeginFrame(uint32_t currentFrame);
+		void BeginPass(VkCommandBuffer cmd, uint32_t currentFrame);
 		void EndFrame(uint32_t currentFrame);
+		void SubmitFrame(VkCommandBuffer commandBuffer, uint32_t currentFrame);
+		void BindBatchState(VkCommandBuffer cmd, uint32_t currentFrame);
+		void SubmitFrame(uint32_t currentFrame);
 		void CalculateCollisionFrame(uint32_t currentFrame);
 		void DeviceWaitIdle();
 
@@ -126,6 +152,7 @@ namespace Engine {
 
 		static void CalculateCollision(const glm::vec2& colliderPos, const float radius, uint64_t entityID, eCollisionType collisionType);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
+		static void DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID);
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID);
@@ -144,9 +171,10 @@ namespace Engine {
 		void CreateImGuiTextureDescriptors();
 		void RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
+		void RecordProjectileDrawCommands(VkCommandBuffer cmd, uint32_t frameIndex, uint32_t currentFrame);
 		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
-		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer);
+		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 
 		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
 		void CreateSyncObjects();
@@ -160,6 +188,7 @@ namespace Engine {
 		Ref<VulkanGraphicsPipeline> m_vulkanGraphicsPipelines;
 
 		std::vector<VkCommandBuffer> m_commandBuffers;
+		std::vector<VkCommandBuffer> m_endFrameCommandBuffers;
 		VulkanContext* m_vulkanContext;
 		VkSwapchainKHR m_swapchain;
 		VkExtent2D m_swapchainExtent;
@@ -184,6 +213,7 @@ namespace Engine {
 		uint32_t inputIndex = 0;
 		uint32_t outputIndex = 0;
 		static VulkanRenderer2DData s_VulkanData;
+		static VulkanRenderer2DProjectileData s_VulkanProjectileData;
 		static CollisionData s_CollisionData;
 
 		//static const uint32_t MaxTextures = 10;
@@ -193,7 +223,9 @@ namespace Engine {
 		Ref<VulkanTexture> m_dummyTexture;
 
 		bool m_CPUCollisionsHandeled = false;
-			
+		bool m_startedFirstBatch = false;
+		bool m_frameStarted = true;
+		bool m_renderPassActive = true;
 	};
 
 

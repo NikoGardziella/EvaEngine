@@ -1801,6 +1801,7 @@
     </ClCompile>
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp" />
     <ClCompile Include="source\Engine\Debug\DebugInterface.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">
@@ -1833,5 +1834,6 @@
     <None Include="..\assets\shaders\testShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />
   </ItemGroup>
 </Project>

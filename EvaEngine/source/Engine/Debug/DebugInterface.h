@@ -9,6 +9,8 @@ namespace Engine {
     public:
         static void SetTextureStreamingSystem(TextureStreamingSystem* system) { s_textureSystem = system; }
         static void ResetAllTextures(entt::registry& gameRegistry);
+
+        static void DebugDrawChunkOutlines(entt::registry& gameRegistr);
         
 
     private:

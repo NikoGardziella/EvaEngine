@@ -1,7 +1,9 @@
 #pragma once
 #include "Engine/Renderer/Camera.h"
-#include "glm/glm.hpp"
 #include "Engine/Core/Input.h"
+#include "Engine/Debug/Instrumentor.h"
+
+#include "glm/glm.hpp"
 
 namespace Engine {
 
@@ -25,7 +27,7 @@ namespace Engine {
 		void SetPerspective(float verticalFOV, float nearClip, float farClip);
 
 		void SetViewportSize(uint32_t width, uint32_t height);
-		void SetViewportBounds(glm::vec2 minBounds);
+		void SetViewportBounds(const std::array<glm::vec2, 2>& bounds);
 
 		ProjectionType GetProjectionType() const { return m_projectionType; }
 		void SetProjectionType(ProjectionType type) { m_projectionType = type; }
@@ -91,6 +93,17 @@ namespace Engine {
 				m_perspectiveFar = farClip;
 				RecalculateProjection();
 			}
+		}
+
+		bool IsAABBVisible(const glm::vec2& min, const glm::vec2& max) const
+		{
+			EE_PROFILE_FUNCTION();
+
+			const glm::vec2& viewMin = m_viewportBounds[0];
+			const glm::vec2& viewMax = m_viewportBounds[1];
+
+			return !(max.x < viewMin.x || min.x > viewMax.x ||
+				max.y < viewMin.y || min.y > viewMax.y);
 		}
 
 		glm::vec2 ScreenToWorld(glm::mat4 cameraTransform)
@@ -160,6 +173,30 @@ namespace Engine {
 			
 		}
 
+		glm::vec2 SceneCamera::WorldToScreen(const glm::vec3& worldPosition, const glm::mat4& cameraTransform) const
+		{
+			EE_PROFILE_FUNCTION();
+
+
+			glm::mat4 viewMatrix = glm::inverse(cameraTransform);
+			glm::mat4 viewProj = m_projection * viewMatrix;
+
+			glm::vec4 clipSpacePos = viewProj * glm::vec4(worldPosition, 1.0f);
+
+			// Perspective divide
+			glm::vec3 ndc = glm::vec3(clipSpacePos) / clipSpacePos.w;
+
+			// Convert NDC (-1 to 1) to screen space (0 to viewportSize)
+			glm::vec2 screenSpace;
+			screenSpace.x = ((ndc.x + 1.0f) / 2.0f) * m_viewportSize.x;
+			screenSpace.y = ((1.0f - ndc.y) / 2.0f) * m_viewportSize.y; // Flip Y axis
+
+			// Offset to match full screen space (ImGui global position)
+			screenSpace += m_viewportBounds[0];
+
+			return screenSpace;
+		}
+
 
 
 	private:
@@ -181,7 +218,9 @@ namespace Engine {
 
 		float m_aspectRatio = 2.0f;
 		glm::vec2 m_viewportSize = { 0.0f, 0.0f };
-		glm::vec2 m_viewportBounds[2] = { { 0.0f, 0.0f }, { 1.0f, 1.0f } };
+		std::array<glm::vec2, 2> m_viewportBounds = { glm::vec2(0, 0), glm::vec2(1, 1) };
+
+		
 	};
 
 }

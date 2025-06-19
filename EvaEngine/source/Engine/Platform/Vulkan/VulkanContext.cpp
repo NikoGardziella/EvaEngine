@@ -150,12 +150,14 @@ namespace Engine {
 
     void VulkanContext::CreateDescriptorPool()
     {
+        EE_CORE_WARN("descriptor pool size not optimized, YET");
         // Adjust the numbers as needed to ensure the pool is large enough for both normal rendering and ImGui
         uint32_t maxSets = 200; // Total number of descriptor sets
         uint32_t maxUniformBuffers = 100; // Number of uniform buffers
         uint32_t maxCombinedImageSamplers = 100; // Number of combined image samplers
 
         m_descriptorPool = std::make_shared<VulkanDescriptorPool>(m_deviceManager->GetDevice(), maxSets, maxUniformBuffers, maxCombinedImageSamplers);
+		m_lineDescriptorPool = std::make_shared<VulkanDescriptorPool>(m_deviceManager->GetDevice(), maxSets, maxUniformBuffers, maxCombinedImageSamplers);
     }
 
 

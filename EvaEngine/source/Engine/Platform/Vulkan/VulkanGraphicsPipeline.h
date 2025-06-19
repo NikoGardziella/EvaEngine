@@ -74,6 +74,23 @@ namespace Engine {
         float TilingFactor;  // Tiling factor for the texture
     };
 
+    struct VulkanProjectileVertex
+    {
+        glm::vec3 Position;
+        float _padding0;        // Align vec4
+
+        glm::vec4 Color;
+
+        glm::vec2 TexCoord;
+        glm::vec2 _padding1;    // Align to vec4
+
+        float TexIndex;
+        float _padding2[3];     // pad to multiple of 16
+
+        // Total size: 16 + 16 + 16 + 16 = 64 bytes
+    };
+
+
     struct VulkanLineVertex
     {
         glm::vec3 Position;
@@ -101,9 +118,9 @@ namespace Engine {
         ~VulkanGraphicsPipeline();
 
         void UpdatePresentDescriptorSet(uint32_t imageIndex);
-        void UpdateDescriptorSet(uint32_t imageIndex, VkDescriptorSet descriptorset, VkImageView image); // remove?
         void UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES>  input, std::array<Ref<VulkanTexture>, MAX_TEXTURES>  output);
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
+        void UpdateProjectileDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_PROJECTILES>& textures);
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::vector<Ref<VulkanTexture>>& textures);
         void UpdateComputeArrayDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
 
@@ -123,16 +140,20 @@ namespace Engine {
         VkPipeline GetPresentPipeline() const { return m_presentPipeline; }
 		VkPipeline GetLinePipeline() const { return m_linePipeline; }
 		VkPipeline GetComputePipeline() const { return m_computePipeline; }
+		VkPipeline GetProjectilePipeline() const { return m_projectilePipeline; }
+
         VkPipelineLayout GetGamePipelineLayout() const { return m_gamePipelineLayout; }
         VkPipelineLayout GetPresentPipelineLayout() const { return m_presentPipelineLayout; }
 		VkPipelineLayout GetLinePipelineLayout() const { return m_linePipelineLayout; }
 		VkPipelineLayout GetComputePipelineLayout() const { return m_computePipelineLayout; }
+		VkPipelineLayout GetProjectilePipelineLayout() const { return m_projectilePipelineLayout; }
+        
         VkDescriptorSet GetGameDescriptorSet(size_t frameIndex) { return m_gameDescriptorSets[frameIndex]; }
         VkDescriptorSet GetCameraDescriptorSet(size_t frameIndex) { return m_cameraDescriptorSets[frameIndex]; }
         VkDescriptorSet GetPresentDescriptorSet(size_t frameIndex) { return m_presentDescriptorSets[frameIndex]; }
 		VkDescriptorSet GetComputeDescriptorSet(size_t frameIndex) { return m_computeDescriptorSet[frameIndex]; }
-		
-        VkDescriptorSet GetLineDescriptorSet() { return m_lineDescriptorSet; }
+		VkDescriptorSet GetProjectileDescriptorSet(size_t frameIndex) { return m_projectileDescriptorSet[frameIndex]; }
+        VkDescriptorSet GetLineDescriptorSet(size_t frameIndex) { return m_lineDescriptorSet[frameIndex]; }
 
         VkSampler& GetPresentSampler() { return m_presentSampler; }
 
@@ -151,15 +172,17 @@ namespace Engine {
         void CreateLineGraphicsPipeline(VkRenderPass renderPass);
         void CreateComputeGraphicsPipeline(VkRenderPass renderPass);
         void CreatePresentGraphicsPipeline(VkRenderPass renderPass);
+        void CreateProjectileGraphicsPipeline(VkRenderPass renderPass);
         void CreatePresentPipelineLayout();
         void CreateDescriptorSetLayouts();
         void CreateComputeDescriptorSetLayout();
         void CreateComputeArrayDescriptorSetLayout();
+        void CreateProjectileDescriptorSetLayout();
         void CreatePresentGameDescriptorPool();
         void CreateGameDescriptorSet();
+        void CreateProjectileDescriptorSet();
         void CreateLineDescriptorSet();
         void CreatePresentDescriptorSet();
-		void CreateDescriptorSetLayout();
         void CreatePresentSampler();
         void CreateCameraDescriptorSetLayout();
         void CreateCameraDescriptorSet();
@@ -175,7 +198,9 @@ namespace Engine {
         VkPipeline m_presentPipeline;
         VkPipeline m_linePipeline;
         VkPipeline m_computePipeline;
+        VkPipeline m_projectilePipeline;
         VkPipelineLayout m_gamePipelineLayout;
+        VkPipelineLayout m_projectilePipelineLayout;
         VkPipelineLayout m_linePipelineLayout;
         VkPipelineLayout m_imguiPipelineLayout;
         VkPipelineLayout m_presentPipelineLayout;
@@ -184,18 +209,21 @@ namespace Engine {
         VkDescriptorSetLayout m_gameDescriptorSetLayout;
         VkDescriptorSetLayout m_presentDescriptorSetLayout;
         VkDescriptorSetLayout m_lineDescriptorSetLayout;
+        VkDescriptorSetLayout m_projectileDescriptorSetLayout;
         VkDescriptorSetLayout m_cameraDescriptorSetLayout;
         VkDescriptorSetLayout m_computeDescriptorSetLayout;
         VkDescriptorSetLayout m_computeArrayDescriptorSetLayout;
 
         VkDescriptorPool m_presentGamedescriptorPool;
-        VkDescriptorSet m_lineDescriptorSet;
 
+        std::vector<VkDescriptorSet> m_lineDescriptorSet;
+        std::vector<VkDescriptorSet> m_projectileDescriptorSet;
         std::vector<VkDescriptorSet> m_computeDescriptorSet;
         std::vector<VkDescriptorSet> m_gameDescriptorSets;
         std::vector<VkDescriptorSet> m_cameraDescriptorSets;
         std::vector<VkDescriptorSet> m_presentDescriptorSets;
         VkDescriptorPool m_descriptorPool;
+		VkDescriptorPool m_lineDescriptorPool;
         std::vector<VulkanBuffer> m_uniformBuffers;
         std::vector<VulkanBuffer> m_bulletUniformBuffers;
         std::vector<VulkanBuffer> m_textureUniformBuffers;
@@ -205,6 +233,7 @@ namespace Engine {
         Ref<VulkanShader> m_fullscreenShader;
         Ref<VulkanShader> m_lineShader;
         Ref<VulkanShader> m_vulkanRenderShader;
+        Ref<VulkanShader> m_vulkanProjectileRenderShader;
         Ref<VulkanShader> m_computeShader;
         VkSampler m_presentSampler;
 

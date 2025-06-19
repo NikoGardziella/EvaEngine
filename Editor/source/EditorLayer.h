@@ -79,7 +79,7 @@ namespace Engine {
 
 		Ref<Framebuffer> m_framebuffer;
 		glm::vec2 m_viewportSize = { 0.0f, 0.0f};
-		glm::vec2 m_viewportBounds[2];
+		std::array<glm::vec2, 2> m_viewportBounds = { glm::vec2(0, 0), glm::vec2(1, 1) };
 		glm::vec2 m_viewportOrigin;
 
 		bool m_viewportFocused = false;

@@ -25,6 +25,8 @@ public:
 	void OnGameStop();
 	void CreateGameEntities();
 
+	void SpawnChunkGridSprites();
+
 
 	Engine::Ref<Engine::Scene>& GetActiveGameScene() { return m_activeScene; }
 

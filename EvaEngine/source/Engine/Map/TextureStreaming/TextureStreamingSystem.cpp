@@ -3,6 +3,8 @@
 #include <glm/geometric.hpp>
 #include "Engine/AssetManager/AssetManager.h"
 #include <Engine/Scene/Component.h>
+#include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+#include <Engine/Renderer/VulkanRenderer2D.h>
 
 namespace Engine {
 
@@ -182,5 +184,66 @@ namespace Engine {
             UnloadChunkFromGPU(it->second, gameRegistry);
         }
     }
+
+    void TextureStreamingSystem::DebugDrawChunkOutlines(entt::registry& gameRegistry)
+    {
+        // 1) Find the player's position
+        glm::vec2 playerPos{ 0.0f };
+        auto playerView = gameRegistry.view<TransformComponent, CharacterControllerComponent>();
+        for (auto entity : playerView)
+        {
+            auto& xf = playerView.get<TransformComponent>(entity);
+            playerPos = { xf.Translation.x, xf.Translation.y };
+            break; // Assume only one player
+        }
+
+        constexpr float cs = float(CHUNK_SIZE);
+        constexpr int DEBUG_RADIUS = 2;
+        glm::ivec2 playerChunk = glm::floor(playerPos / cs);
+
+        std::unordered_set<glm::ivec2, IVec2Hasher> loadedCoords;
+        for (const auto& [coord, chunk] : m_chunkMap)
+        {
+            if (chunk.IsLoaded)
+            {
+                glm::ivec2 chunkCoords = chunk.ChunkCoords;  
+                loadedCoords.insert(chunkCoords);
+
+                // Only draw if near player
+                glm::ivec2 delta = chunkCoords - playerChunk;
+                if (abs(delta.x) > DEBUG_RADIUS || abs(delta.y) > DEBUG_RADIUS)
+                    continue;
+
+                glm::vec2 origin = glm::vec2(coord) * cs;
+                glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(origin, 0.0f)) *
+                    glm::scale(glm::mat4(1.0f), glm::vec3(cs, cs, 1.0f));
+
+                glm::vec4 color = glm::vec4(0, 1, 0, 1); // Green = loaded
+                Engine::VulkanRenderer2D::DrawLineRect(transform, color, -1);
+            }
+        }
+
+        // 2) Draw nearby unloaded chunks in red
+        for (int dy = -DEBUG_RADIUS; dy <= DEBUG_RADIUS; ++dy)
+        {
+            for (int dx = -DEBUG_RADIUS; dx <= DEBUG_RADIUS; ++dx)
+            {
+                glm::ivec2 coords = playerChunk + glm::ivec2(dx, dy);
+
+                // Skip if this chunk was already drawn (i.e., is loaded)
+                if (loadedCoords.count(coords) > 0)
+                    continue;
+
+                glm::vec2 origin = glm::vec2(coords) * cs;
+                glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(origin, 0.0f)) *
+                    glm::scale(glm::mat4(1.0f), glm::vec3(cs, cs, 1.0f));
+
+                glm::vec4 color = glm::vec4(1, 0, 0, 1); // Red = not loaded
+                Engine::VulkanRenderer2D::DrawLineRect(transform, color, -1);
+            }
+        }
+    }
+
+
 
 }

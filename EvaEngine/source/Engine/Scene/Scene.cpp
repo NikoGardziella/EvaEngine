@@ -106,6 +106,7 @@ namespace Engine {
         newScene->m_viewportWidth = other->m_viewportWidth;
         newScene->m_viewportHeight = other->m_viewportHeight;
 		newScene->m_viewportBounds[0] = other->m_viewportBounds[0];
+		newScene->m_viewportBounds[1] = other->m_viewportBounds[1];
 
 		newScene->SetTextureStreamingSystem(other->ReleaseTextureStreamingSystem());
 
@@ -209,6 +210,7 @@ namespace Engine {
         combinedScene->m_viewportWidth = sceneA->m_viewportWidth;
         combinedScene->m_viewportHeight = sceneA->m_viewportHeight;
         combinedScene->m_viewportBounds[0] = sceneA->m_viewportBounds[0];
+        combinedScene->m_viewportBounds[1] = sceneA->m_viewportBounds[1];
 
         std::unordered_map<UUID, entt::entity> enttMap;
 
@@ -471,6 +473,7 @@ namespace Engine {
 
 
         Camera* mainCamera = nullptr;
+        CameraComponent& mainCameraComp = CameraComponent{};
         glm::mat4 cameraTransform;
         {
             EE_PROFILE_SCOPE("Get Update Runtime Camera");
@@ -485,6 +488,7 @@ namespace Engine {
                     {
                         mainCamera = &camera.Camera;
                         cameraTransform = transform.GetTransform();
+						mainCameraComp = camera;
                         break;
                     }
                 }
@@ -512,15 +516,32 @@ namespace Engine {
                         continue;
                     }
 
+                    glm::vec3 position = transform.Translation;
+                    glm::vec2 screenPos = mainCameraComp.Camera.WorldToScreen(position, cameraTransform);
+
+					
+
+                    glm::vec2 scale = glm::vec2(transform.Scale.x, transform.Scale.y); // ignore Z
+                    glm::vec2 min = glm::vec2(screenPos.x, screenPos.y) - scale * 0.5f;
+                    glm::vec2 max = glm::vec2(screenPos.x, screenPos.y) + scale * 0.5f;
+                    // Cull if not visible
+                    if (!mainCameraComp.Camera.IsAABBVisible(min, max))
+                    {
+                        continue;
+                    }
+
+
                     float tiling = 1.0f;
-                    Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
-
-
-                    if (m_registry.any_of<CharacterControllerComponent>(entity))
-                        continue; // skip entities with CharacterControllerComponent
 
                     if (m_registry.any_of<ProjectileComponent>(entity))
                         continue; // skip entities with ProjectileComponent
+
+                    Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+
+                   
+                    if (m_registry.any_of<CharacterControllerComponent>(entity))
+                        continue; // skip entities with CharacterControllerComponent
+
 
 					
                     float pixelSize = transform.Scale.x / quadSprite.Texture->GetWidth();
@@ -535,19 +556,21 @@ namespace Engine {
 
                    
                 }
-                auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent>();
+                auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent, SpriteRendererComponent>();
 
                 float playerRadius = 0.5f;
                 float bulletRadius = 0.05f;
                 for (auto projectileEntity : projectileView)
                 {
 
-                    auto [projectileTransform, projectile, IDComp] = projectileView.get<TransformComponent, ProjectileComponent, IDComponent>(projectileEntity);
+                    auto [projectileTransform, projectile, IDComp, spriteComp] = projectileView.get<TransformComponent, ProjectileComponent, IDComponent, SpriteRendererComponent>(projectileEntity);
                     glm::vec2 projectilePos;
                     projectilePos.x = projectileTransform.Translation.x;
                     projectilePos.y = projectileTransform.Translation.y;
 
+                    projectileTransform.Translation.z = 0.1f;
                     Engine::VulkanRenderer2D::CalculateCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE);
+                    Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
 
                 }
 
@@ -744,11 +767,12 @@ namespace Engine {
         Engine::VulkanRenderer2D::EndScene();
     }
 
-    void Scene::OnViewportResize(uint32_t width, uint32_t height, glm::vec2 viewportBounds)
+    void Scene::OnViewportResize(uint32_t width, uint32_t height, std::array<glm::vec2, 2> viewportBounds)
     {
         m_viewportHeight = height;
         m_viewportWidth = width;
-		m_viewportBounds[0] = viewportBounds; // min only for now
+		m_viewportBounds[0] = viewportBounds[0]; 
+		m_viewportBounds[1] = viewportBounds[1]; 
 
         auto view = m_registry.view<CameraComponent>();
 

@@ -4,8 +4,8 @@ Entities:
     TagComponent:
       Tag: player
     TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, .nan]
+      Translation: [2, 0, 0]
+      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
@@ -40,7 +40,7 @@ Entities:
     TagComponent:
       Tag: Empty entity
     TransformComponent:
-      Translation: [2.7, -2.9, 0]
+      Translation: [-802.7, -2.9, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -51,7 +51,7 @@ Entities:
     TagComponent:
       Tag: Empty entity
     TransformComponent:
-      Translation: [-3.4, 1.9, 0]
+      Translation: [-3.4, 800.9, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -62,7 +62,7 @@ Entities:
     TagComponent:
       Tag: empty Entity
     TransformComponent:
-      Translation: [-2.4, 1.9, 0]
+      Translation: [-2.4, -801.9, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -227,7 +227,7 @@ Entities:
     TagComponent:
       Tag: Target
     TransformComponent:
-      Translation: [-5.6, -3.8, 0]
+      Translation: [300, -3.8, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -238,7 +238,7 @@ Entities:
     TagComponent:
       Tag: Target
     TransformComponent:
-      Translation: [7.9, 0, 0]
+      Translation: [-300, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -249,7 +249,7 @@ Entities:
     TagComponent:
       Tag: Target
     TransformComponent:
-      Translation: [5, 4.6, 0]
+      Translation: [5, 100, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -260,9 +260,9 @@ Entities:
     TagComponent:
       Tag: Target
     TransformComponent:
-      Translation: [-12.8, 0, 0]
+      Translation: [-12.8, -200, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [10, 10, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       Texture: zombie1_walk_000
