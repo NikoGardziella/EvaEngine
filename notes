@@ -123,3 +123,11 @@
 {
     this time flickering was because UpdateTrackedImageDescriptorSets() was called in the beginning of the frame. I moved it to DrawFrame() to fix it.
 }
+
+
+19.06.2025
+{
+
+    wall time 16 ms to render test scene - SpawnChunkGridSprites(). 250 entities. 
+    tried with "view.each([&](auto entity, auto& quadSprite, auto& transform)". wall time 18ms
+}

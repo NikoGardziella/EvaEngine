@@ -545,6 +545,7 @@ namespace Engine {
 	{
 		s_VulkanData.QuadVertexBufferPtr = s_VulkanData.QuadVertexBufferBase;
 		s_VulkanData.QuadIndexCount = 0;
+		
 
 		s_VulkanData.LineVertexBufferPtr = s_VulkanData.LineVertexBufferBase;
 		s_VulkanData.LineVertexCount = 0;
@@ -1189,14 +1190,16 @@ namespace Engine {
 
 		if (s_VulkanData.TextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
 		{
-			EE_CORE_ASSERT(false, "Texture slot index exceeded maximum limit!");
+			//EE_CORE_ASSERT(false, "Texture slot index exceeded maximum limit!");
+			return;
 		}
+
 
 		// Try to get texture slot from map
 		float textureIndex = 0.0f;
-		s_VulkanData.TextureSlotIndex++;
 		textureIndex = static_cast<float>(s_VulkanData.TextureSlotIndex);
 		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = texture;
+		s_VulkanData.TextureSlotIndex++;
 
 
 		// Quad vertex data
@@ -1227,6 +1230,8 @@ namespace Engine {
 		}
 
 		s_VulkanData.QuadIndexCount += 6;
+
+		s_VulkanData.Stats.QuadCount++;
 	}
 
 	void VulkanRenderer2D::DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const glm::vec4& tintColor)

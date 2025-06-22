@@ -190,7 +190,7 @@ void PixelGame::CreateGameEntities()
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
 	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 10.0f);
 
-	//SpawnChunkGridSprites();
+	SpawnChunkGridSprites();
 
 }
 
@@ -201,9 +201,9 @@ void PixelGame::SpawnChunkGridSprites()
 {
 	// Optional: clean up previous debug sprites by tag
 
-	constexpr int mapWidth = 4096;   // total world size in pixels
-	constexpr int mapHeight = 4096;
-	constexpr int chunkSize = 256;    // size of each cell
+	constexpr int mapWidth = 2048;   // total world size in pixels
+	constexpr int mapHeight = 2048;
+	constexpr int chunkSize = 64;    // size of each cell
 
 	const int cols = mapWidth / chunkSize;  // 16
 	const int rows = mapHeight / chunkSize;  // 16

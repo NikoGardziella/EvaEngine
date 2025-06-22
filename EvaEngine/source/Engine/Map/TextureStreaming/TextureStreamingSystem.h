@@ -8,9 +8,9 @@
 
 namespace Engine{
 
-    const int CHUNK_SIZE = 256;
-    const int LOAD_RADIUS = 2; // Load a 5×5 chunk area (2 chunks in all directions)
-    const int UNLOAD_RADIUS = 2; 
+    const int CHUNK_SIZE = 128;
+    const int LOAD_RADIUS = 1; // Load a 5×5 chunk area (2 chunks in all directions)
+    const int UNLOAD_RADIUS = 1; 
 
     struct TextureChunk {
         //std::string ID; // Unique ID or path

@@ -205,6 +205,8 @@ namespace Engine {
 
     void SceneHierarchyPanel::DrawContext()
     {
+        EE_PROFILE_FUNCTION();
+
         ImGui::Begin("Scene Hierarchy");
 
         bool clickedOnEmptySpace = true;  // Track if no entity was clicked

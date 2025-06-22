@@ -12,6 +12,9 @@ namespace Engine {
    
     void DebugPanel::OnImGuiRender()
     {
+        EE_PROFILE_FUNCTION();
+
+
         ImGui::Begin("Debug panel");
         ImGuiIO& io = ImGui::GetIO();
 

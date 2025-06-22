@@ -196,8 +196,12 @@ namespace Engine {
 
 			return screenSpace;
 		}
+		//struct CameraComponent;
+		//struct TransformComponent;
 
 
+		glm::vec4 CalculateCameraWorldBounds(const SceneCamera& Camera, const glm::mat4& cameraTransform);
+		
 
 	private:
 		void RecalculateProjection();

@@ -18,6 +18,7 @@
 
 namespace Engine {
 
+	uint32_t PROFILING = 0;
 
     entt::entity Scene::GetEntityByUUID(entt::registry& registry, Engine::UUID uuid) 
     {
@@ -506,75 +507,120 @@ namespace Engine {
             {
                 
 
-                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
-
-                for (auto entity : view)
                 {
-                    auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-                    if (!quadSprite.Texture)
+                    
+                    EE_PROFILE_SCOPE("Texture update");
+
+
+                    entt::basic_view view = m_registry.view<SpriteRendererComponent, TransformComponent>();
+                    glm::vec4 cameraBounds = mainCameraComp.Camera.CalculateCameraWorldBounds(mainCameraComp.Camera, cameraTransform);
+                    glm::vec2 camMin = glm::vec2(cameraBounds.x, cameraBounds.y);
+                    glm::vec2 camMax = camMin + glm::vec2(cameraBounds.z, cameraBounds.w);
+                    for (auto entity : view)
                     {
-                        continue;
+                        auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+                        {
+                            {
+
+
+                               // EE_PROFILE_SCOPE("Texture culling");
+
+                                {
+
+                                 //   EE_PROFILE_SCOPE("Remove projectiles");
+                                    if (m_registry.any_of<ProjectileComponent>(entity))
+                                        continue; // skip entities with ProjectileComponent
+                                }
+                                {
+                                   // EE_PROFILE_SCOPE("Remove empty textures");
+                                    if (!quadSprite.Texture)
+                                    {
+                                        continue;
+                                    }
+
+                                }
+
+                                {
+                                  //  EE_PROFILE_SCOPE("Final culling");
+                                  
+                                    /*
+                                    */
+
+                                    glm::mat4 view = glm::inverse(cameraTransform);
+                                    glm::mat4 proj = mainCamera->GetViewProjection();
+                                    
+                                    glm::vec2 entityPos = glm::vec2(transform.Translation.x, transform.Translation.y);
+                                    glm::vec2 entityHalfSize = glm::vec2(transform.Scale.x, transform.Scale.y) * 0.5f;
+
+                                    glm::vec2 entityMin = entityPos - entityHalfSize;
+                                    glm::vec2 entityMax = entityPos + entityHalfSize;
+
+                                    // Fast AABB vs AABB test
+                                    bool visible =
+                                        entityMax.x >= camMin.x && entityMin.x <= camMax.x &&
+                                        entityMax.y >= camMin.y && entityMin.y <= camMax.y;
+
+                                    if (!visible)
+                                        continue;
+                              
+                                }
+                            }
+                        }
+
+                        {
+                            //EE_PROFILE_SCOPE("DrawTextureQuad");
+
+                            float tiling = 1.0f;
+                            Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+
+                        }
+
+                        
+                        {
+                          //  EE_PROFILE_SCOPE("Set texture stuff");
+
+
+                            if (m_registry.any_of<CharacterControllerComponent>(entity))
+                                continue; // skip entities with CharacterControllerComponent
+                            float pixelSize = transform.Scale.x / quadSprite.Texture->GetWidth();
+
+                            glm::vec2 textureOrigin;
+                            textureOrigin.x = transform.Translation.x - transform.Scale.x * 0.5f; // to bottom left
+
+                            textureOrigin.y = transform.Translation.y - transform.Scale.y * 0.5f; // to bottom left
+                            quadSprite.Texture->SetCheckCollision(true);
+                            quadSprite.Texture->SetTextureOrigin(textureOrigin);
+                            quadSprite.Texture->SetPixelSize(pixelSize);
+
+                        }
+                        
+                   
                     }
 
-                    glm::vec3 position = transform.Translation;
-                    glm::vec2 screenPos = mainCameraComp.Camera.WorldToScreen(position, cameraTransform);
+                }
+                {
+                    //EE_PROFILE_SCOPE("Projectiles and Player");
 
-					
+                    auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent, SpriteRendererComponent>();
 
-                    glm::vec2 scale = glm::vec2(transform.Scale.x, transform.Scale.y); // ignore Z
-                    glm::vec2 min = glm::vec2(screenPos.x, screenPos.y) - scale * 0.5f;
-                    glm::vec2 max = glm::vec2(screenPos.x, screenPos.y) + scale * 0.5f;
-                    // Cull if not visible
-                    if (!mainCameraComp.Camera.IsAABBVisible(min, max))
+                    float playerRadius = 0.5f;
+                    float bulletRadius = 0.05f;
+                    for (auto projectileEntity : projectileView)
                     {
-                        continue;
+
+                        auto [projectileTransform, projectile, IDComp, spriteComp] = projectileView.get<TransformComponent, ProjectileComponent, IDComponent, SpriteRendererComponent>(projectileEntity);
+                        glm::vec2 projectilePos;
+                        projectilePos.x = projectileTransform.Translation.x;
+                        projectilePos.y = projectileTransform.Translation.y;
+
+                      //  projectileTransform.Translation.z = 0.1f;
+                        Engine::VulkanRenderer2D::CalculateCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE);
+                        Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
+
                     }
 
-
-                    float tiling = 1.0f;
-
-                    if (m_registry.any_of<ProjectileComponent>(entity))
-                        continue; // skip entities with ProjectileComponent
-
-                    Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
-
-                   
-                    if (m_registry.any_of<CharacterControllerComponent>(entity))
-                        continue; // skip entities with CharacterControllerComponent
-
-
-					
-                    float pixelSize = transform.Scale.x / quadSprite.Texture->GetWidth();
-
-                    glm::vec2 textureOrigin;
-                    textureOrigin.x = transform.Translation.x - transform.Scale.x * 0.5f; // to bottom left
-
-                    textureOrigin.y = transform.Translation.y - transform.Scale.y * 0.5f; // to bottom left
-                    quadSprite.Texture->SetCheckCollision(true);
-					quadSprite.Texture->SetTextureOrigin(textureOrigin);
-					quadSprite.Texture->SetPixelSize(pixelSize);
-
-                   
+                   Engine::VulkanRenderer2D::CalculateCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
                 }
-                auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent, SpriteRendererComponent>();
-
-                float playerRadius = 0.5f;
-                float bulletRadius = 0.05f;
-                for (auto projectileEntity : projectileView)
-                {
-
-                    auto [projectileTransform, projectile, IDComp, spriteComp] = projectileView.get<TransformComponent, ProjectileComponent, IDComponent, SpriteRendererComponent>(projectileEntity);
-                    glm::vec2 projectilePos;
-                    projectilePos.x = projectileTransform.Translation.x;
-                    projectilePos.y = projectileTransform.Translation.y;
-
-                    projectileTransform.Translation.z = 0.1f;
-                    Engine::VulkanRenderer2D::CalculateCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE);
-                    Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
-
-                }
-
-               Engine::VulkanRenderer2D::CalculateCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
 
             }
 

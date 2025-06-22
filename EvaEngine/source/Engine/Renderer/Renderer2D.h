@@ -72,7 +72,10 @@ namespace Engine {
 			uint32_t DrawCalls = 0;
 			uint32_t QuadCount = 0;
 			uint32_t LineCount = 0;
+			//uint32_t RenderedEntities = 0;
 
+			//uint32_t GetRenderedQuadCount() { return QuadCount; }
+			uint32_t GetQuadCount() { return QuadCount; }
 			uint32_t GetTotalVertexCount() { return QuadCount * 4; }
 			uint32_t GetTotalIndexCount() { return QuadCount * 6; }
 		};

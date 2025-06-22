@@ -408,7 +408,8 @@ namespace Engine {
                 uint32_t textureID = 0;// = m_framebuffer->GetColorAttachmentRendererID();
                 if (textureID != 0)
                 { 
-                    
+                    EE_PROFILE_SCOPE("Imgui Render viewport");
+
                     ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
                 }
             }
@@ -436,7 +437,8 @@ namespace Engine {
             if (selectedEntity && selectedEntity.HasComponent<TransformComponent>() &&
                   m_sceneHierarchyPanel.GetGuizmoType() != -1)
             {
-                
+                EE_PROFILE_SCOPE("Guizmo");
+
                 ImGuizmo::SetOrthographic(false);
                 ImGuizmo::SetDrawlist();
                 float windowWidth = (float)ImGui::GetWindowWidth();

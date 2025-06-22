@@ -25,7 +25,7 @@ namespace Engine {
 
     void ContentBrowserPanel::OnImGuiRender()
     {
-
+        EE_PROFILE_FUNCTION();
 
 
         ImGui::Begin("Content Browser");
