@@ -119,16 +119,7 @@ namespace Engine
 
 			Renderer::EndFrame();
 
-			if (!m_minimized)
-			{
-				// Update ECS after Render to get GPU results
-				EE_PROFILE_SCOPE("Application::Run() - Layer ECS updates");
-				for (Layer* layer : m_LayerStack)
-				{
-					layer->OnUpdateECS(timestep);
-				}
-
-			}
+			
 		}	
 	}
 

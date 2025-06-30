@@ -82,8 +82,8 @@ namespace Engine {
 
 	private:
 
-		template<typename T>
-		void OnComponentAdded(Entity entity, T& component);
+		//template<typename T>
+		//void OnComponentAdded(Entity entity, T& component);
 
 		void UpdatePhysics(Timestep timestep);
 

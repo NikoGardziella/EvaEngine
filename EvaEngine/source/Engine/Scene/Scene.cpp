@@ -8,12 +8,14 @@
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include "Engine/AssetManager/AssetManager.h"
 
+#include "glm/gtc/matrix_transform.hpp"
 #include <glm/glm.hpp>
 #include "box2d/box2d.h"
 #include "box2d/math_functions.h"
 #include "Components/NPC/NpcAIComponent.h"
 #include "Engine/Debug/DebugInterface.h"
-
+#include "Components/Render/TileComponent.h"
+#include "Components/Render/ChunkRendererComponent.h"
 
 
 namespace Engine {
@@ -245,6 +247,7 @@ namespace Engine {
         CopyComponent<NPCAIMovementComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<NPCAIVisionComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<WeaponComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<TileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
     }
 
     Entity Scene::CreateEntity(const std::string& name)
@@ -373,8 +376,15 @@ namespace Engine {
             index++;
         }
 
+
+
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
 
+        // makes sure textures are reloaded to the right registry
+        // editor to game
+        m_textureStreamingSystem->ResetAllChunks(m_registry);
+        m_textureStreamingSystem->BakeTilesIntoChunks();
+		m_textureStreamingSystem->AddChunkEntitiesToRegistry(m_registry);
     }
 
 
@@ -503,9 +513,44 @@ namespace Engine {
             Engine::VulkanRenderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
 
 
-            //*********** GPU COLLISIONS ***********
+            //*********** GPU COLLISIONS & RENDER ***********
             {
-                
+                {
+                    EE_PROFILE_SCOPE("chunk render");
+
+                    entt::basic_view view = m_registry.view<ChunkRendererComponent, TransformComponent>();
+                    glm::vec4 cameraBounds = mainCameraComp.Camera.CalculateCameraWorldBounds(mainCameraComp.Camera, cameraTransform);
+                    glm::vec2 camMin = glm::vec2(cameraBounds.x, cameraBounds.y);
+                    glm::vec2 camMax = camMin + glm::vec2(cameraBounds.z, cameraBounds.w);
+                    for (auto entity : view)
+                    {
+                        auto [transform, chunkSprite] = view.get<TransformComponent, ChunkRendererComponent>(entity);
+                        {
+                            if (!chunkSprite.IsLoaded)
+                                continue;
+
+                            float tiling = 1.0f;
+                            glm::vec4 color = glm::vec4(1);
+
+                            float worldWidth = CHUNK_SIZE;
+                            float worldHeight = CHUNK_SIZE;
+
+                            float halfW = worldWidth * 0.5f;  // 200
+                            float halfH = worldHeight * 0.5f;  // 200
+
+                            // Build model: 
+                            glm::mat4 model =
+                                glm::translate(glm::mat4(1.0f),
+                                    glm::vec3(transform.Translation.x + halfW,
+                                        transform.Translation.y + halfH,
+                                        0.0f))
+                                * glm::scale(glm::mat4(1.0f),
+                                    glm::vec3(worldWidth, worldHeight, 1.0f));
+                            Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkSprite.Texture, tiling, color);
+
+                        }
+                    }
+                }
 
                 {
                     
@@ -562,7 +607,7 @@ namespace Engine {
 
                                     if (!visible)
                                         continue;
-                              
+
                                 }
                             }
                         }
@@ -571,7 +616,12 @@ namespace Engine {
                             //EE_PROFILE_SCOPE("DrawTextureQuad");
 
                             float tiling = 1.0f;
-                            Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+                            if (m_registry.any_of<CharacterControllerComponent>(entity))
+                            {
+                                // only render player from here for now
+                                Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+
+                            }
 
                         }
 
@@ -808,7 +858,20 @@ namespace Engine {
 				Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
 			}
 		}
-
+        {
+            auto view = m_registry.view<TileComponent, TransformComponent>();
+            for (auto entity : view)
+            {
+                auto [transform, quadSprite] = view.get<TransformComponent, TileComponent>(entity);
+                float tiling = 1.0f;
+                if (quadSprite.Texture == nullptr)
+                {
+                    continue;
+                }
+				glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+                Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, color);
+            }
+        }
         //Engine::Renderer::DrawFrame();
         Engine::VulkanRenderer2D::EndScene();
     }
@@ -956,6 +1019,8 @@ namespace Engine {
         EE_CORE_INFO("System registered");
     }
 
+    /*
+   
     template<typename T>
     inline void Scene::OnComponentAdded(Entity entity, T& component)
     {
@@ -1065,4 +1130,6 @@ namespace Engine {
     {
 
     }
+
+     */
 }

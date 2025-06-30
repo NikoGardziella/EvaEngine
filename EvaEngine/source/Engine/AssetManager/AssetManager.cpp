@@ -234,7 +234,6 @@ namespace Engine {
         return true;
     }
 
-    // Optional: Simple name-to-path resolver
     std::string AssetManager::ResolveTexturePath(const std::string& textureName)
     {
         return GetAssetFolderPath().string() + "/textures/" + textureName + ".png"; // Adjust this path logic as needed

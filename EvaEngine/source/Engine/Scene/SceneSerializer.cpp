@@ -12,6 +12,8 @@
 #include <yaml-cpp/yaml.h>
 #include "Components/Player/CharacterControllerComponent.h"
 #include "Components/Combat/WeaponComponent.h"
+#include "Components/Render/TileComponent.h"
+#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 
 
 namespace Engine {
@@ -262,6 +264,29 @@ namespace Engine {
             out << YAML::EndMap;
         }
 
+        inline void SerializeTileComponent(Entity entity, YAML::Emitter& out)
+        {
+            const auto& comp = entity.GetComponent<TileComponent>();
+
+            out << YAML::Key << "TileComponent";
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "TileID" << YAML::Value << comp.TileID;
+
+            out << YAML::Key << "GridPos" << YAML::Value << YAML::Flow
+                << std::vector<float>{ comp.GridPos.x, comp.GridPos.y };
+
+            out << YAML::Key << "IsDestructible" << YAML::Value << comp.IsDestructible;
+
+            // Serialize texture as path or UUID
+            if (comp.Texture)
+                out << YAML::Key << "Texture" << YAML::Value << comp.Texture->GetName();
+            else
+                out << YAML::Key << "Texture" << YAML::Value << "";
+
+            out << YAML::EndMap;
+        }
+
 
         // Serializes an individual entity by checking for each component.
         void SerializeEntity(Entity entity, YAML::Emitter& out)
@@ -301,6 +326,8 @@ namespace Engine {
                 SerializeCharacterControllerComponent(entity, out);
             if (entity.HasComponent<WeaponComponent>())
                 SerializeWeaponComponent(entity, out);
+            if (entity.HasComponent<TileComponent>())
+                SerializeTileComponent(entity, out);
 
 
 
@@ -329,8 +356,38 @@ namespace Engine {
                 comp.IsFiring = false;
             }
         }
+        
+        inline void DeserializeTileComponent(Entity entity, const YAML::Node& entityNode, Ref<Scene> scene)
+        {
+            if (!entityNode["TileComponent"])
+                return;
 
+            TileComponent& comp = entity.AddComponent<TileComponent>();
+            const auto& node = entityNode["TileComponent"];
 
+            DeserializedTile tile{};
+           // tile.TileUUID = entityNode["Entity"].as<uint64_t>();
+            const auto& tc = entityNode["TileComponent"];
+
+            tile.TileID = tc["TileID"].as<uint32_t>();
+            tile.GridPos = glm::vec2(tc["GridPos"][0].as<float>(), tc["GridPos"][1].as<float>());
+            tile.IsDestructible = tc["IsDestructible"].as<bool>();
+            tile.WorldPos = entity.GetComponent<TransformComponent>().Translation;
+            tile.TextureName = tc["Texture"].as<std::string>();
+			if (!tile.TextureName.empty())
+			{
+                comp.Texture = AssetManager::GetTexture(tile.TextureName);
+				
+			}
+			else
+			{
+                comp.Texture = nullptr; // No texture specified
+			}
+
+			scene->GetTextureStreamingSystem().AddDeserializedTile(tile);
+        }
+
+        
 
         inline void DeserializeHealthComponent(Entity entity, const YAML::Node& entityNode)
         {
@@ -474,8 +531,8 @@ namespace Engine {
                 }
             }
         }
-
-        inline void DeserializeSpriteRendererComponent(Entity entity, const YAML::Node& entityNode)
+        
+        inline void DeserializeSpriteRendererComponent(Entity entity, const YAML::Node& entityNode, Ref<Scene> scene)
         {
             if (entityNode["SpriteRendererComponent"])
             {
@@ -484,10 +541,44 @@ namespace Engine {
                 sprite.Color = { color[0], color[1], color[2], color[3] };
 
 				//sprite.Texture = AssetManager::CloneTexture(entityNode["SpriteRendererComponent"]["Texture"].as<std::string>());
-                
+                if (entity.HasComponent<SpriteRendererComponent>())
+                {
+                    bool isStatic = true;
+
+                    if (entity.HasComponent<CharacterControllerComponent>())
+                    {
+                        isStatic = false; // CharacterControllerComponent dynamic entity
+                    }
+                    //isStatic = false;
+                    if (isStatic)
+                    {
+                        std::vector<uint8_t> pixelData;
+                        int width, height;
+                        std::string TextureName = entityNode["SpriteRendererComponent"]["Texture"].as<std::string>();
+                        if (AssetManager::GetTexturePixelData(TextureName, pixelData, width, height))
+                        {
+                            
+                               scene->GetTextureStreamingSystem().UploadToChunkFromTexture(
+                                entity.GetComponent<TransformComponent>().Translation,
+                                entity.GetComponent<IDComponent>().ID, TextureName,
+                                pixelData, width, height);
+                        }
+                    }
+                    else
+                    {
+                        SpriteRendererComponent& renderComp = entity.GetComponent<SpriteRendererComponent>();
+                        renderComp.Texture = AssetManager::CloneTexture(entityNode["SpriteRendererComponent"]["Texture"].as<std::string>());
+
+                        auto color = entityNode["SpriteRendererComponent"]["Color"].as<std::vector<float>>();
+                        renderComp.Color = { color[0], color[1], color[2], color[3] };
+
+
+                    }
+                }
 
             }
         }
+        
 
         inline void DeserializeNativeScriptComponent(Entity entity, const YAML::Node& entityNode)
         {
@@ -592,12 +683,11 @@ namespace Engine {
         }
 
 
-        inline void DeserializeEntity(Entity entity, const YAML::Node& entityNode)
+        inline void DeserializeEntity(Entity entity, const YAML::Node& entityNode, Ref<Scene> scene)
         {
             DeserializeTagComponent(entity, entityNode);
             DeserializeTransformComponent(entity, entityNode);
             DeserializeCameraComponent(entity, entityNode);
-            DeserializeSpriteRendererComponent(entity, entityNode);
             DeserializeNativeScriptComponent(entity, entityNode);
             DeserializeBoxCollider2DComponent(entity, entityNode);
             DeserializeRigidBody2DComponent(entity, entityNode);
@@ -608,6 +698,9 @@ namespace Engine {
 			DeserializeNPCAIVisionComponent(entity, entityNode);
 			DeserializeCharacterControllerComponent(entity, entityNode);
 			DeserializeWeaponComponent(entity, entityNode);
+			DeserializeTileComponent(entity, entityNode, scene);
+
+            DeserializeSpriteRendererComponent(entity, entityNode, scene);
         }
 
 
@@ -628,7 +721,6 @@ namespace Engine {
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
         // Iterate over all entities that have a TagComponent.
-        // If every entity has a TagComponent, this iterates over all entities.
         auto view = m_scene->m_registry.view<TagComponent>();
         for (auto entityID : view)
         {
@@ -687,44 +779,11 @@ namespace Engine {
                 uint32_t entityID = entityNode["ID"].as<uint64_t>();
                 Entity entity = m_scene->CreateEntityWithUUID(entityID);
 
-                SerializeUtils::DeserializeEntity(entity, entityNode);
+                SerializeUtils::DeserializeEntity(entity, entityNode, m_scene);
 
 
                 // For Texture Streaming. Move somewhere
-                if (entity.HasComponent<SpriteRendererComponent>())
-                {
-                    bool isStatic = true;
-
-                    if (entity.HasComponent<CharacterControllerComponent>())
-                    {
-						isStatic = false; // CharacterControllerComponent implies dynamic entity
-					}
-					
-                    if (isStatic)
-                    {
-                        std::vector<uint8_t> pixelData;
-                        int width, height;
-					    std::string TextureName = entityNode["SpriteRendererComponent"]["Texture"].as<std::string>();
-                        if (AssetManager::GetTexturePixelData(TextureName,pixelData, width, height))
-                        {
-                        
-                            m_scene->GetTextureStreamingSystem().UploadToChunkFromTexture(
-                                entity.GetComponent<TransformComponent>().Translation,
-                                entity.GetComponent<IDComponent>().ID, TextureName,
-                                pixelData, width, height);
-                        }
-                    }
-                    else
-                    {
-                        SpriteRendererComponent& renderComp = entity.GetComponent<SpriteRendererComponent>();
-                        renderComp.Texture = AssetManager::CloneTexture(entityNode["SpriteRendererComponent"]["Texture"].as<std::string>());
-                        
-                        auto color = entityNode["SpriteRendererComponent"]["Color"].as<std::vector<float>>();
-                        renderComp.Color = { color[0], color[1], color[2], color[3] };
-                        
-
-                    }
-                }
+               
             }
         }
 

@@ -13,6 +13,7 @@
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 #include <Engine/Scene/Components/Combat/WeaponComponent.h>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 //#include "entt.hpp"
 
@@ -237,22 +238,35 @@ namespace Engine {
 
         auto view = m_gameContext->m_registry.view<TagComponent>();
         std::vector<entt::entity> entityList(view.begin(), view.end());
-		m_entityCount = (int)entityList.size();
-        m_projectileCount = 0;
-		// I want new entities to be at the bottom of the list
         std::reverse(entityList.begin(), entityList.end());
-        for (auto entityID : entityList)
-        {
-            Entity entity{ entityID, m_gameContext.get() };
-            ImGui::PushID(entity.GetComponent<IDComponent>().ID);
-            DrawEntityNode(entity);
-            ImGui::PopID();
-            if (entity.HasComponent<ProjectileComponent>())
-            {
-                m_projectileCount++;
-            }
 
+        ImGui::PushID((void*)m_gameContext.get());
+
+        ImGuiListClipper clipper;
+        clipper.Begin(static_cast<int>(entityList.size()));
+
+        m_entityCount = (int)entityList.size();
+        m_projectileCount = 0;
+
+        while (clipper.Step())
+        {
+            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+            {
+                entt::entity entityID = entityList[i];
+                Entity entity{ entityID, m_gameContext.get() };
+
+                ImGui::PushID((uint32_t)entityID);
+                DrawEntityNode(entity);
+                ImGui::PopID();
+
+                if (entity.HasComponent<ProjectileComponent>())
+                {
+                    m_projectileCount++;
+                }
+            }
         }
+
+        ImGui::PopID();
         ImGui::PopID();
         
        
@@ -450,6 +464,22 @@ namespace Engine {
                     }
                 }
             }
+            if (!m_selectionContext.HasComponent<TileComponent>())
+            {
+                if (ImGui::MenuItem("Tile "))
+                {
+                    m_selectionContext.AddComponent<TileComponent>();
+                    ImGui::CloseCurrentPopup();
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                    if (entity)
+                    {
+                        TileComponent& tileComp = entity.AddComponent<TileComponent>();
+                        tileComp.Texture = AssetManager::CloneTexture("logo");
+
+                        EE_CORE_INFO("new tile");
+                    }
+                }
+            }
             if (!m_selectionContext.HasComponent<CircleRendererComponent>())
             {
                 if (ImGui::MenuItem("Circle renderer"))
@@ -573,6 +603,18 @@ namespace Engine {
 
                 }
             }
+            if (ImGui::MenuItem("Tile Component"))
+            {
+                m_selectionContext.AddComponent<TileComponent>();
+                ImGui::CloseCurrentPopup();
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (entity)
+                {
+                    m_newComponentsContext->GetRegistry().emplace<TileComponent>(entity);
+
+                }
+            }
+
             ImGui::EndPopup();
         }
         ImGui::PopItemWidth();
@@ -796,6 +838,54 @@ namespace Engine {
                 }
 
             });
+
+
+        DrawComponent<TileComponent>("Tile", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
+            {
+                ImGui::Text("Grid Pos");
+                ImGui::DragFloat2("##GridPos", glm::value_ptr(component.GridPos), 1.0f);
+
+                ImGui::Checkbox("Destructible", &component.IsDestructible);
+
+                ImGui::SeparatorText("Texture");
+                const char* textureButtonText = component.Texture
+                    ? component.Texture->GetName().c_str()
+                    : "Add";
+
+                if (ImGui::Button(textureButtonText, ImVec2(150.0f, 0.0f)))
+                {
+                    // Optional: open file dialog or asset browser popup
+                }
+
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                    {
+                        const wchar_t* path = (const wchar_t*)payload->Data;
+                        std::filesystem::path texturePath = std::filesystem::path(AssetManager::GetAssetFolderPath()) / path;
+                        std::string textureName = texturePath.stem().string();
+
+                        component.Texture = AssetManager::GetTexture(textureName);
+                        if (!component.Texture)
+                        {
+                            component.Texture = AssetManager::AddTexture(textureName, texturePath.string());
+                        }
+                        if (!component.Texture)
+                        {
+                            component.Texture = AssetManager::GetTexture("logo"); // fallback
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+
+                // Apply to new context
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
+                if (newEntity)
+                {
+                    m_newComponentsContext->GetRegistry().get<TileComponent>(newEntity) = component;
+                }
+            });
+
 
         DrawComponent<CircleRendererComponent>("Circle  renderer", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {

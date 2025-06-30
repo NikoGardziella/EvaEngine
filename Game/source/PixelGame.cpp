@@ -90,7 +90,7 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 			
 
 			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
-
+			m_activeScene->OnUpdateECSRuntime(timestep);
 
 			const glm::mat4 viewProjection = m_orthoCameraController.GetCamera().GetViewProjectionMatrix();
 					
@@ -190,7 +190,7 @@ void PixelGame::CreateGameEntities()
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
 	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 10.0f);
 
-	SpawnChunkGridSprites();
+	//SpawnChunkGridSprites();
 
 }
 

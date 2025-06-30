@@ -1611,6 +1611,8 @@
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h" />
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h" />
     <ClInclude Include="source\Engine\Debug\DebugInterface.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\TileComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\ChunkRendererComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">

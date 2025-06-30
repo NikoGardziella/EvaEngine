@@ -27,11 +27,15 @@ namespace Engine {
             VkImageLayout oldLayout,
             VkImageLayout newLayout);
 
+        void TransitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+
         void CopyBufferToImage(
             VkBuffer buffer,
             VkImage image,
             uint32_t width,
             uint32_t height);
+
+        void CopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
        const std::string LayoutToString(VkImageLayout layout);
 

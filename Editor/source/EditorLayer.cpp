@@ -1189,8 +1189,8 @@ namespace Engine {
             SceneSerializer serializer(Scene::Combine(m_editorScene, m_sceneHierarchyPanel.GetNewComponentsContext()));
 
             // Log before saving to check what exists in the scene
-            DebugUtils::LogAllEntitiesWithComponents(m_editorScene);
-            DebugUtils::LogAllEntitiesWithComponents(m_sceneHierarchyPanel.GetNewComponentsContext());
+            //DebugUtils::LogAllEntitiesWithComponents(m_editorScene);
+            //DebugUtils::LogAllEntitiesWithComponents(m_sceneHierarchyPanel.GetNewComponentsContext());
 
             // Serialize the current editor scene without reloading it
             serializer.Serialize(m_currentScenePath.string());

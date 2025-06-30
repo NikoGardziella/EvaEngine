@@ -117,9 +117,7 @@ namespace Engine {
 		s_VulkanData.QuadIndexBuffer = std::make_shared<VulkanIndexBuffer>(indices.data(), indices.size());		// Can we remove this in vulkan?
 		s_VulkanData.WhiteTexture = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("textures/white_texture.png").string());
 
-		uint32_t whiteTextureData = 0xffffffff;
-		s_VulkanData.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
-
+		
 		int32_t samplers[s_VulkanData.MaxTextureSlots];
 		for (uint32_t i = 0; i < s_VulkanData.MaxTextureSlots; i++)
 		{
@@ -242,9 +240,7 @@ namespace Engine {
 		s_VulkanProjectileData.WhiteTexture = std::make_shared<VulkanTexture>(
 			AssetManager::GetAssetPath("textures/white_texture.png").string()
 		);
-		uint32_t whiteTexData = 0xffffffff;
-		s_VulkanProjectileData.WhiteTexture->SetData(&whiteTexData, sizeof(uint32_t));
-
+		
 		s_VulkanProjectileData.TextureSlots[0] = s_VulkanProjectileData.WhiteTexture;
 
 		s_VulkanProjectileData.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f };
@@ -1277,7 +1273,7 @@ namespace Engine {
 			s_VulkanProjectileData.QuadVertexBufferPtr->Position = glm::vec3(transformed);
 			s_VulkanProjectileData.QuadVertexBufferPtr->Color = tintColor;
 			s_VulkanProjectileData.QuadVertexBufferPtr->TexCoord = texCoords[i];
-			s_VulkanProjectileData.QuadVertexBufferPtr->TexIndex = 1.0f; // CHANGE
+			s_VulkanProjectileData.QuadVertexBufferPtr->TexIndex = textureIndex; // CHANGE
 			s_VulkanProjectileData.QuadVertexBufferPtr++;
 		}
 

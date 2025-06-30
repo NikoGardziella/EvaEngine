@@ -38,6 +38,10 @@ namespace Engine {
         VkDevice device = vulkaContext->GetDeviceManager().GetDevice();
         VkPhysicalDevice physicalDevice = vulkaContext->GetDeviceManager().GetPhysicalDevice();
 
+     
+
+       
+
         // 1. Create Image
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -84,6 +88,8 @@ namespace Engine {
         // 3. Create image view and sampler
         CreateTextureImageView();
         CreateTextureSampler();
+        AssetManager::s_totalTextureMemory += m_memorySize;
+
     }
 
 
@@ -106,6 +112,13 @@ namespace Engine {
 
     void VulkanTexture::SetData(void* data, uint32_t size)
     {
+
+        
+
+        EE_CORE_ASSERT(data, "SetData called with null data");
+      
+        EE_CORE_ASSERT(size == m_width * m_height * 4, "Staging buffer size mismatch");
+
         VulkanContext* vulkaContext = VulkanContext::Get();
 
         VkDevice device = vulkaContext->GetDeviceManager().GetDevice();
@@ -119,37 +132,36 @@ namespace Engine {
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
+        uint8_t* src = reinterpret_cast<uint8_t*>(data);
+
+       
 
 
         void* mapped;
         vkMapMemory(device, stagingBuffer.GetMemory(), 0, size, 0, &mapped);
         std::memcpy(mapped, data, size);
         vkUnmapMemory(device, stagingBuffer.GetMemory());
+        
+        
+        VkCommandBuffer cmd = vulkaContext->BeginSingleTimeCommands();
+        EE_CORE_ASSERT(cmd != VK_NULL_HANDLE, "Command buffer is null");
 
-
-        VulkanUtils::TransitionImageLayout(
+        VulkanUtils::TransitionImageLayout(cmd,
             m_image, VK_FORMAT_R8G8B8A8_UNORM,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL 
-        );
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-        // Copy buffer
-        VkBufferImageCopy region{};
-        region.bufferOffset = 0;
-        region.bufferRowLength = 0; // tightly packed
-        region.bufferImageHeight = 0;
-        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        region.imageSubresource.mipLevel = 0;
-        region.imageSubresource.baseArrayLayer = 0;
-        region.imageSubresource.layerCount = 1;
-        region.imageOffset = { 0, 0, 0 };
-        region.imageExtent = { m_width, m_height, 1 };
-  
 
-        VulkanUtils::CopyBufferToImage(stagingBuffer.GetBuffer(), m_image, m_width, m_height);
+        EE_CORE_ASSERT(stagingBuffer.GetBuffer() != VK_NULL_HANDLE, "Staging buffer is null");
 
-        VulkanUtils::TransitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_UNORM,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        VulkanUtils::CopyBufferToImage(cmd,
+            stagingBuffer.GetBuffer(), m_image, m_width, m_height);
+
+        VulkanUtils::TransitionImageLayout( cmd,
+            m_image, VK_FORMAT_R8G8B8A8_UNORM,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        vulkaContext->EndSingleTimeCommands(cmd);
 
     }
 

@@ -10,20 +10,7 @@ namespace Engine {
     VulkanPixelTexture::VulkanPixelTexture(const std::string& path)
         : VulkanTexture(path)
     {
-        //m_pixelData.resize(m_width * m_height * 4, 0); // Initialize to transparent black
-        SetData(m_pixelData.data(), static_cast<uint32_t>(m_pixelData.size()));
-        m_solidMask.resize(m_width * m_height, 1); 
-
-        for (int y = 0; y < m_height; ++y)
-        {
-            for (int x = 0; x < m_width; ++x)
-            {
-                int index = (y * m_width + x) * 4;
-                uint8_t alpha = m_pixelData[index + 3];
-                // if the pixel alpha is 0, its not solid
-                m_solidMask[y * m_width + x] = (alpha > 0) ? 1 : 0;
-            }
-        }
+       
 
 
     }

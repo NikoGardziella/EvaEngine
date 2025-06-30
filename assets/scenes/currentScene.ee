@@ -25,14 +25,29 @@ Entities:
     WeaponComponent:
       Damage: 10
       FireRate: 0.6
-  - ID: 4027988326
+
+  - ID: 1096474028
     TagComponent:
-      Tag: Target
+      Tag: Empty entity
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [5.0, 5.0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
+    TileComponent:
+      TileID: 0
+      GridPos: [0, 0]
+      IsDestructible: false
+      Texture: house
+
+  - ID: 2465060406
+    TagComponent:
+      Tag: Empty entity
+    TransformComponent:
+      Translation: [0.0, 5.0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      GridPos: [0, 0]
+      IsDestructible: false
       Texture: wall_0019
-      Tiling: 1
