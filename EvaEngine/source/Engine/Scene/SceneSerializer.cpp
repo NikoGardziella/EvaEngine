@@ -14,6 +14,7 @@
 #include "Components/Combat/WeaponComponent.h"
 #include "Components/Render/TileComponent.h"
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
+#include <string>
 
 
 namespace Engine {
@@ -273,14 +274,17 @@ namespace Engine {
 
             out << YAML::Key << "TileID" << YAML::Value << comp.TileID;
 
-            out << YAML::Key << "GridPos" << YAML::Value << YAML::Flow
-                << std::vector<float>{ comp.GridPos.x, comp.GridPos.y };
+            out << YAML::Key << "WorldPos" << YAML::Value << YAML::Flow
+                << std::vector<float>{ comp.WorldPos.x, comp.WorldPos.y };
 
+            out << YAML::Key << "UV" << YAML::Value << YAML::Flow
+                << std::vector<float>{ comp.UV.x, comp.UV.y, comp.UV.z , comp.UV.w};
+           
             out << YAML::Key << "IsDestructible" << YAML::Value << comp.IsDestructible;
 
             // Serialize texture as path or UUID
-            if (comp.Texture)
-                out << YAML::Key << "Texture" << YAML::Value << comp.Texture->GetName();
+            if (comp.TextureName != "")
+                out << YAML::Key << "Texture" << YAML::Value << comp.TextureName;
             else
                 out << YAML::Key << "Texture" << YAML::Value << "";
 
@@ -362,7 +366,6 @@ namespace Engine {
             if (!entityNode["TileComponent"])
                 return;
 
-            TileComponent& comp = entity.AddComponent<TileComponent>();
             const auto& node = entityNode["TileComponent"];
 
             DeserializedTile tile{};
@@ -370,18 +373,31 @@ namespace Engine {
             const auto& tc = entityNode["TileComponent"];
 
             tile.TileID = tc["TileID"].as<uint32_t>();
-            tile.GridPos = glm::vec2(tc["GridPos"][0].as<float>(), tc["GridPos"][1].as<float>());
+            tile.WorldPos = glm::vec2(tc["WorldPos"][0].as<float>(), tc["WorldPos"][1].as<float>());
             tile.IsDestructible = tc["IsDestructible"].as<bool>();
-            tile.WorldPos = entity.GetComponent<TransformComponent>().Translation;
+            //tile.WorldPos = entity.GetComponent<TransformComponent>().Translation;
             tile.TextureName = tc["Texture"].as<std::string>();
+			tile.UV = tc["UV"] ? glm::vec4(
+				tc["UV"][0].as<float>(),
+				tc["UV"][1].as<float>(),
+				tc["UV"][2].as<float>(),
+				tc["UV"][3].as<float>()
+			) : glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+
+            TileComponent& tileComp = entity.AddComponent<TileComponent>();
+			tileComp.TileID = tile.TileID;
+			tileComp.WorldPos = tile.WorldPos;
+			tileComp.IsDestructible = tile.IsDestructible;
+			tileComp.UV = tile.UV;
+
 			if (!tile.TextureName.empty())
 			{
-                comp.Texture = AssetManager::GetTexture(tile.TextureName);
-				
+                //tileComp.Texture = AssetManager::GetTexture(tile.TextureName);
+				tileComp.TextureName = tile.TextureName;
 			}
 			else
 			{
-                comp.Texture = nullptr; // No texture specified
+                tileComp.Texture = nullptr; // No texture specified
 			}
 
 			scene->GetTextureStreamingSystem().AddDeserializedTile(tile);

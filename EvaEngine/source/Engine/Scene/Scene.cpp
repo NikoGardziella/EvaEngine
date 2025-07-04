@@ -61,7 +61,7 @@ namespace Engine {
 
     Scene::Scene()
     {
-
+		EE_CORE_INFO("Creating new Scene");
         m_registry = entt::registry();
         m_textureStreamingSystem = std::make_unique<TextureStreamingSystem>();
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
@@ -182,19 +182,7 @@ namespace Engine {
             entt::entity dstEnttID = enttMap.at(uuid); // Now guaranteed to exist
 
             CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
-            /*
-            CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            CopyComponent<RigidBody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            CopyComponent<HealthComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            CopyComponent<ProjectileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-            */
+            
         }
     }
 
@@ -539,6 +527,7 @@ namespace Engine {
                             float halfH = worldHeight * 0.5f;  // 200
 
                             // Build model: 
+                            /*
                             glm::mat4 model =
                                 glm::translate(glm::mat4(1.0f),
                                     glm::vec3(transform.Translation.x + halfW,
@@ -546,6 +535,21 @@ namespace Engine {
                                         0.0f))
                                 * glm::scale(glm::mat4(1.0f),
                                     glm::vec3(worldWidth, worldHeight, 1.0f));
+                            */
+                            
+                            /*
+                            */
+                            glm::ivec2 chunkCoords = chunkSprite.ChunkCoords;
+
+                            glm::vec2 worldPos = glm::vec2(chunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
+
+                            glm::mat4 model =
+                                glm::translate(glm::mat4(1.0f),
+                                    glm::vec3(worldPos.x, worldPos.y, 0.0f))
+                                * glm::scale(glm::mat4(1.0f),
+                                    glm::vec3(CHUNK_SIZE, CHUNK_SIZE, 1.0f));
+							//EE_CORE_INFO("chunkpos: {}, {}", worldPos.x, worldPos.y);
+
                             Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkSprite.Texture, tiling, color);
 
                         }
@@ -872,6 +876,23 @@ namespace Engine {
                 Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, color);
             }
         }
+        {
+            
+            auto view = m_registry.view<TileComponent>();
+            for (auto entity : view)
+            {
+                auto& tileComponent = view.get<TileComponent>(entity); 
+                
+                glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+                float flippedV0 = tileComponent.UV.w; // original v1 (bottom)
+                float flippedV1 = tileComponent.UV.y; // original v0 (top)
+                glm::vec4 flippedUV = glm::vec4(tileComponent.UV.x, flippedV0, tileComponent.UV.z, flippedV1);
+
+                // Use flippedUV for rendering, don't overwrite original UV
+                Engine::VulkanRenderer2D::DrawTile(tileComponent.WorldPos, flippedUV, color);
+            }
+            
+        }
         //Engine::Renderer::DrawFrame();
         Engine::VulkanRenderer2D::EndScene();
     }
@@ -912,6 +933,7 @@ namespace Engine {
         CopyComponentIfExists<NativeScriptComponent>(newEntity, entity);
         CopyComponentIfExists<CircleRendererComponent>(newEntity, entity);
         CopyComponentIfExists<CircleCollider2DComponent>(newEntity, entity);
+        CopyComponentIfExists<TileComponent>(newEntity, entity);
 
         if (entity.HasComponent<SpriteRendererComponent>())
         {

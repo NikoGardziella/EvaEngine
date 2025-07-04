@@ -132,6 +132,33 @@ namespace Engine {
         return GetTexture(name);
     }
 
+
+    
+    Ref<VulkanTexture> AssetManager::AddTextureToCache(const std::string& name, Ref<VulkanTexture> texture)
+    {
+
+        if (!texture)
+        {
+            EE_CORE_WARN("Attempted to add null texture '{}' to cache", name);
+            return nullptr;
+        }
+
+        auto it = s_textureCache.find(name);
+        if (it == s_textureCache.end())
+        {
+            s_textureCache[name] = texture;
+            EE_CORE_INFO("Texture '{}' added to cache", name);
+        }
+        else
+        {
+            EE_CORE_WARN("Texture '{}' already exists in cache, skipping", name);
+        }
+
+        return s_textureCache[name];
+    }
+    
+
+
     Ref<VulkanPixelTexture> AssetManager::AddPixelTexture(const std::string& name, const std::string& path)
     {
         std::lock_guard<std::mutex> lock(s_Mutex);
@@ -205,6 +232,56 @@ namespace Engine {
         }
     }
 
+    bool AssetManager::ExtractPixelsFromTilePallette(const glm::vec4& uv, std::vector<uint8_t>& outPixelData,
+        int& outWidth, int& outHeight)
+    {
+
+		Ref<VulkanTexture> texture = GetTexture("tilePalette");
+
+        const std::vector<uint8_t>& pixelData = texture->GetPixelData();
+        if (pixelData.empty()) 
+        {
+            EE_CORE_ERROR("Texture  has no CPU-side pixel data!");
+            return false;
+        }
+
+        uint32_t texWidth = texture->GetWidth();
+        uint32_t texHeight = texture->GetHeight();
+        constexpr uint32_t channels = 4; // Assuming RGBA8 format
+
+        // Convert normalized UV to absolute pixel coordinates
+        uint32_t x0 = static_cast<uint32_t>(uv.x * texWidth);
+        uint32_t y0 = static_cast<uint32_t>(uv.y * texHeight);
+        uint32_t x1 = static_cast<uint32_t>(uv.z * texWidth);
+        uint32_t y1 = static_cast<uint32_t>(uv.w * texHeight);
+
+        // Sanity check
+        if (x1 <= x0 || y1 <= y0 || x1 > texWidth || y1 > texHeight)
+        {
+            EE_CORE_ERROR("Invalid UV bounds for extraction: ({}, {}, {}, {})", uv.x, uv.y, uv.z, uv.w);
+            return false;
+        }
+
+        outWidth = x1 - x0;
+        outHeight = y1 - y0;
+        outPixelData.resize(outWidth * outHeight * channels);
+
+		// flip the extracted region horizontally and vertically
+        for (uint32_t y = 0; y < outHeight; ++y) {
+            for (uint32_t x = 0; x < outWidth; ++x) {
+                size_t srcX = x1 - 1 - x; // flip X
+                size_t srcY = y1 - 1 - y; // flip Y
+                size_t srcIndex = (srcY * texWidth + srcX) * channels;
+
+                size_t dstIndex = (y * outWidth + x) * channels;
+                memcpy(&outPixelData[dstIndex], &pixelData[srcIndex], channels);
+            }
+        }
+
+        return true;
+    }
+
+
 
     bool AssetManager::GetTexturePixelData(const std::string& textureName, std::vector<uint8_t>& outPixels, int& outWidth, int& outHeight)
     {
@@ -236,7 +313,30 @@ namespace Engine {
 
     std::string AssetManager::ResolveTexturePath(const std::string& textureName)
     {
-        return GetAssetFolderPath().string() + "/textures/" + textureName + ".png"; // Adjust this path logic as needed
+        namespace fs = std::filesystem;
+        fs::path base = GetAssetFolderPath() / "textures";
+
+        // 1. Check base folder
+        fs::path directPath = base / (textureName + ".png");
+        if (fs::exists(directPath))
+            return directPath.string();
+
+        // 2. Check in 'tiles' subfolder
+        fs::path tilePath = base / "tiles" / (textureName + ".png");
+        if (fs::exists(tilePath))
+            return tilePath.string();
+
+        // 3. (Optional) Search recursively in all subfolders of textures/
+        for (auto& p : fs::recursive_directory_iterator(base))
+        {
+            if (p.path().filename() == textureName + ".png")
+                return p.path().string();
+        }
+
+        // 4. Not found
+        EE_CORE_WARN("Texture not found: {}", textureName);
+        return ""; // or return some fallback path
     }
+
 
 }

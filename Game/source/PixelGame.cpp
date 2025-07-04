@@ -49,7 +49,7 @@ void PixelGame::OnAttach()
 
 	LoadGameAssets();
 
-	m_orthoCameraController.SetZoomLevel(10.0f);
+	m_orthoCameraController.SetZoomLevel(30.0f);
 
 	Engine::SceneSerializer serializer(m_activeScene);
 	std::string scenePath = Engine::AssetManager::GetScenePath(m_activeSceneName).string();
@@ -188,7 +188,7 @@ void PixelGame::CreateGameEntities()
 	cameraComp.Camera.SetViewportSize(m_activeScene->GetViewportWidth(), m_activeScene->GetViewortHeight());
 	
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 10.0f);
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 30.0f);
 
 	//SpawnChunkGridSprites();
 

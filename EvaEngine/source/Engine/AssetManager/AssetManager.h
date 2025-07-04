@@ -25,10 +25,12 @@ namespace Engine {
         static std::vector<char> ReadFile(const std::string& filename);
 
         static Ref<VulkanTexture> AddTexture(const std::string& name, const std::string& path, bool imGuiTexture = false, uint32_t textureID = 0);
+        static Ref<VulkanTexture> AddTextureToCache(const std::string& name, Ref<VulkanTexture> texture);
         static Ref<VulkanPixelTexture> AddPixelTexture(const std::string& name, const std::string& path);
 		static Ref<VulkanTexture> GetTexture(const std::string& name);
         static Ref<VulkanTexture> CloneTexture(const std::string& name);
 		static Ref<VulkanPixelTexture> GetPixelTexture(const std::string& name);
+        static bool ExtractPixelsFromTilePallette(const glm::vec4& uv, std::vector<uint8_t>& outPixelData, int& outWidth, int& outHeight);
         static  std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures();
 
         static VkDeviceSize s_totalTextureMemory;
@@ -44,6 +46,7 @@ namespace Engine {
 
         static std::unordered_map<std::string, std::shared_ptr<VulkanTexture>> s_textureCache;
         static std::unordered_map<std::string, std::shared_ptr<VulkanPixelTexture>> s_pixelTextureCache;
+        static Scope<VulkanTexture> s_tileTextureIconAtlas;
 
     };
 

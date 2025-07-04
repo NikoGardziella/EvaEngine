@@ -143,6 +143,7 @@
     <ClInclude Include="source\FPSCounter.h" />
     <ClInclude Include="source\Panels\ContentBrowserPanel.h" />
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
+    <ClInclude Include="source\Panels\TileEditorPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Panels\DebugPanel.cpp" />
@@ -153,6 +154,7 @@
     <ClCompile Include="source\EditorLayer.cpp" />
     <ClCompile Include="source\Panels\ContentBrowserPanel.cpp" />
     <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp" />
+    <ClCompile Include="source\Panels\TileEditorPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EvaEngine\EvaEngine.vcxproj">

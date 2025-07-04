@@ -39,7 +39,7 @@ namespace Engine {
         {
             if (chunk.IsLoaded)
                 continue;
-
+           
             //if (!chunk.IsDirty)
             //   continue;
 
@@ -47,7 +47,11 @@ namespace Engine {
             int dist = glm::abs(chunkCoords.x - playerChunk.x) + glm::abs(chunkCoords.y - playerChunk.y);
             if (dist <= LOAD_RADIUS)
             {
+                EE_CORE_INFO("Chunks currently being loaded:");
+                EE_CORE_INFO(" - Chunk at coords: ({}, {})", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
                 LoadChunkToGPU(chunk, gameRegistry);
+
+				EE_CORE_INFO("chunk count: {}", m_chunkMap.size());
             }
         }
 
@@ -56,6 +60,9 @@ namespace Engine {
         {
             if (!chunk.IsLoaded)
                 continue;
+
+            //EE_CORE_INFO("Chunks currently loaded:");
+            //EE_CORE_INFO(" - Chunk at coords: ({}, {})", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
 
             glm::ivec2 chunkCoords = chunk.ChunkCoords;
             int dist = glm::abs(chunkCoords.x - playerChunk.x) + glm::abs(chunkCoords.y - playerChunk.y);
@@ -68,27 +75,30 @@ namespace Engine {
     }
 
     void TextureStreamingSystem::UploadToChunkFromTexture(
-        const glm::vec3& worldPosition, UUID ID, std::string name,
+        const glm::vec2& worldPosition, UUID ID, std::string name,
         const std::vector<uint8_t>& textureData,
         uint32_t textureWidth, uint32_t textureHeight)
     {
         constexpr uint32_t chunkPixelSize = CHUNK_SIZE * PIXELS_IN_TILE;
 
         glm::ivec2 chunkCoords = glm::floor(glm::vec2(worldPosition) / float(CHUNK_SIZE));
+        EE_CORE_INFO("Forcing tile into chunk at {}, {}", chunkCoords.x, chunkCoords.y);
         glm::ivec2 chunkOrigin = chunkCoords * (int)CHUNK_SIZE;
-        glm::ivec2 offsetInChunkTiles = glm::ivec2(worldPosition) - chunkOrigin;
+        glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOrigin;
         glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)PIXELS_IN_TILE;
-        EE_CORE_INFO(
-            "Tile '{}' at worldPos = ({:.1f}, {:.1f}), "
-            "offsetInChunkTiles = ({}, {}), offsetInChunkPixels = ({}, {})",
-            name.c_str(),
-            worldPosition.x, worldPosition.y,
-            offsetInChunkTiles.x, offsetInChunkTiles.y,
-            offsetInChunk.x, offsetInChunk.y
-        );
+
+        EE_CORE_INFO("worldPosition: {}, {}", worldPosition.x, worldPosition.y);
+        EE_CORE_INFO("chunkCoords: {}, {}", chunkCoords.x, chunkCoords.y);
+        EE_CORE_INFO("chunkOrigin: {}, {}", chunkOrigin.x, chunkOrigin.y);
+        EE_CORE_INFO("offsetInChunkTiles: {}, {}", offsetInChunkTiles.x, offsetInChunkTiles.y);
+        EE_CORE_INFO("offsetInChunk (pixels): {}, {}", offsetInChunk.x, offsetInChunk.y);
 
         // Resize CPU buffer if needed
         TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
+        EE_CORE_INFO("Chunk ID: {}, Coord: ({}, {}), TexCount: {}",
+            (uint64_t)chunk.ID, chunkCoords.x, chunkCoords.y, chunk.TextureCount);
+
+
         chunk.TextureCount += 1;
         if (chunk.PixelData.empty())
         {
@@ -100,6 +110,9 @@ namespace Engine {
             chunk.Name = "Chunk_" + std::to_string(chunkCoords.x) + "_" + std::to_string(chunkCoords.y);
             chunk.AssetName = name;
             chunk.ID = HashCoords(chunkCoords);
+			chunk.ChunkCoords = chunkCoords;
+            EE_CORE_INFO("Adding chunk with ID: {}", (uint64_t)chunk.ID);
+
         }
         // Clamp to chunk pixel bounds
         uint32_t copyWidth = std::min(textureWidth, chunkPixelSize - offsetInChunk.x);
@@ -112,7 +125,6 @@ namespace Engine {
             return;
         }
 
-        int copied = 0;
         for (uint32_t y = 0; y < copyHeight; ++y)
         {
             for (uint32_t x = 0; x < copyWidth; ++x)
@@ -122,14 +134,18 @@ namespace Engine {
 
                 size_t dstIndex = (dstY * chunkPixelSize + dstX) * 4;
                 size_t srcIndex = (y * textureWidth + x) * 4;
+
                 EE_CORE_ASSERT(dstIndex + 3 < chunk.PixelData.size(), "OOB dst");
                 EE_CORE_ASSERT(srcIndex + 3 < textureData.size(), "OOB src");
 
-                std::memcpy(&chunk.PixelData[dstIndex],
-                    &textureData[srcIndex], 4);
-                ++copied;
+                
+               
+               std::memcpy(&chunk.PixelData[dstIndex], &textureData[srcIndex], 4);
+                
             }
         }
+
+
 
         chunk.IsDirty = true;
     }
@@ -137,12 +153,50 @@ namespace Engine {
     
     uint64_t TextureStreamingSystem::HashCoords(const glm::ivec2& coords)
     {
-        // Offset to support negative coordinates
-        // change this when texture is rendered in same position?
-        int64_t x = static_cast<int64_t>(coords.x) + static_cast<int64_t>(1) << 31;
-        int64_t y = static_cast<int64_t>(coords.y) + static_cast<int64_t>(1) << 31;
+        constexpr int64_t OFFSET = int64_t(1) << 31;
+
+        int64_t x = static_cast<int64_t>(coords.x) + OFFSET;
+        int64_t y = static_cast<int64_t>(coords.y) + OFFSET;
 
         return (static_cast<uint64_t>(x) << 32) | static_cast<uint64_t>(y);
+    }
+
+    void TextureStreamingSystem::FlipChunkHorizontally(TextureChunk& chunk)
+    {
+        uint32_t rowSize = chunk.Width * 4;
+        std::vector<uint8_t> tempPixel(4);
+
+        for (uint32_t y = 0; y < chunk.Height; ++y)
+        {
+            uint8_t* row = &chunk.PixelData[y * rowSize];
+
+            for (uint32_t x = 0; x < chunk.Width / 2; ++x)
+            {
+                uint8_t* leftPixel = &row[x * 4];
+                uint8_t* rightPixel = &row[(chunk.Width - 1 - x) * 4];
+
+                // Swap left and right pixels
+                std::memcpy(tempPixel.data(), leftPixel, 4);
+                std::memcpy(leftPixel, rightPixel, 4);
+                std::memcpy(rightPixel, tempPixel.data(), 4);
+            }
+        }
+    }
+
+    void TextureStreamingSystem::FlipChunkVertically(TextureChunk& chunk)
+    {
+        uint32_t rowSize = chunk.Width * 4; // 4 bytes per pixel
+        std::vector<uint8_t> tempRow(rowSize);
+
+        for (uint32_t y = 0; y < chunk.Height / 2; ++y)
+        {
+            uint8_t* rowTop = &chunk.PixelData[y * rowSize];
+            uint8_t* rowBottom = &chunk.PixelData[(chunk.Height - 1 - y) * rowSize];
+
+            std::memcpy(tempRow.data(), rowTop, rowSize);
+            std::memcpy(rowTop, rowBottom, rowSize);
+            std::memcpy(rowBottom, tempRow.data(), rowSize);
+        }
     }
 
 
@@ -195,7 +249,7 @@ namespace Engine {
         {
 
             auto [IDComp, chunkRendComp] = chynkentityView.get<IDComponent, ChunkRendererComponent>(entity);
-            if (IDComp.ID == chunk.ID)
+            if (chunkRendComp.ChunkCoords == chunk.ChunkCoords)
             {
                 chunkRendComp.Texture = chunk.GPUTexture;
                 chunkRendComp.IsLoaded = true;
@@ -361,16 +415,20 @@ namespace Engine {
 
             std::vector<uint8_t> pixelData;
             int width, height;
-            if (AssetManager::GetTexturePixelData(tile.TextureName, pixelData, width, height))
+
+
+            if (AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, width, height))
             {
                 if (pixelData.empty())
                 {
                     continue;
                 }
+			    EE_CORE_INFO("Baking tile '{}' at worldPos = ({:.1f}, {:.1f})",
+				    tile.TextureName.c_str(), tile.WorldPos.x, tile.WorldPos.y);
+                UploadToChunkFromTexture(tile.WorldPos, tile.TileID, tile.TextureName, pixelData, width, height);
             }
-            
-            UploadToChunkFromTexture(tile.WorldPos, tile.TileID, tile.TextureName, pixelData, width, height);
         }
+        DebugMarkChunks();
     }
 
     void TextureStreamingSystem::AddChunkEntitiesToRegistry(entt::registry& registry)
@@ -384,9 +442,12 @@ namespace Engine {
             transformComp.Translation.x = chunk.WorldPosition.x;
             transformComp.Translation.y = chunk.WorldPosition.y;
 
+			EE_CORE_INFO("Creating chunk entity at position: ({}, {})",
+				transformComp.Translation.x, transformComp.Translation.y);
+
             IDComponent id;
             id.ID = HashCoords(chunk.ChunkCoords);
-
+			EE_CORE_INFO("Adding chunk entity with ID: {}", (uint64_t)id.ID);
             IDComponent& idComp = registry.emplace<IDComponent>(entity);
             idComp = id;
 
@@ -394,11 +455,54 @@ namespace Engine {
             chunkRenderer.ChunkCoords = chunk.ChunkCoords;
             chunkRenderer.ChunkSize = CHUNK_SIZE;
 			chunkRenderer.IsLoaded = false;
+            //FlipChunkHorizontally(chunk);
+           // FlipChunkVertically(chunk);
 
         }
+		EE_CORE_INFO("Added {} chunk entities to registry", m_chunkMap.size());
     }
 
 
+    void TextureStreamingSystem::DebugMarkChunks()
+    {
+        constexpr uint32_t markerSize = 30; // Size of the red/green square in pixels
+
+        for (auto& [chunkID, chunk] : m_chunkMap)
+        {
+            if (chunk.PixelData.empty())
+                continue;
+
+            uint32_t chunkW = chunk.Width;
+            uint32_t chunkH = chunk.Height;
+
+            for (uint32_t y = 0; y < chunkH; ++y)
+            {
+                for (uint32_t x = 0; x < chunkW; ++x)
+                {
+                    size_t index = (y * chunkW + x) * 4;
+
+                    // Top-left red square
+                    if (x < markerSize && y < markerSize)
+                    {
+                        chunk.PixelData[index + 0] = 255; // R
+                        chunk.PixelData[index + 1] = 0;   // G
+                        chunk.PixelData[index + 2] = 0;   // B
+                        chunk.PixelData[index + 3] = 255; // A
+                    }
+                    // Bottom-right green square
+                    else if (x >= chunkW - markerSize && y >= chunkH - markerSize)
+                    {
+                        chunk.PixelData[index + 0] = 0;   // R
+                        chunk.PixelData[index + 1] = 255; // G
+                        chunk.PixelData[index + 2] = 0;   // B
+                        chunk.PixelData[index + 3] = 255; // A
+                    }
+                }
+            }
+
+            chunk.IsDirty = true; // Mark as dirty so it will be uploaded
+        }
+    }
 
 
 

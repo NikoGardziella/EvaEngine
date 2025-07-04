@@ -12,7 +12,7 @@ namespace Engine {
     {
     public:
         VulkanTexture(const std::string& path, const std::string& name = "", bool imGuiTexture = false, uint32_t textureID = 0);
-        VulkanTexture(uint32_t width, uint32_t height);
+        VulkanTexture(uint32_t width, uint32_t height, bool imGuiTexture = false, uint32_t textureID = 0);
 
         virtual ~VulkanTexture();
 
@@ -39,8 +39,8 @@ namespace Engine {
         virtual void SetData(void* data, uint32_t size) override;
         Ref<VulkanTexture> Clone() const;
 
-        //**** move to new class? *****
-
+        const std::vector<uint8_t>& GetPixelData() const { return m_pixelData; }
+		void SetPixelData(const std::vector<uint8_t>& pixelData) { m_pixelData = pixelData; }
 
         void SetCheckCollision(bool checkCollision) { m_checkCollision = checkCollision; }
         bool GetCheckCollision() const { return m_checkCollision; }

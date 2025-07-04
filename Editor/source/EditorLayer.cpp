@@ -20,11 +20,11 @@
 #include "EditorApp.h"
 #include <Engine/AssetManager/AssetManager.h>
 
-#include "Engine/Debug/DebugUtils.h"
 #include "Engine/Renderer/Renderer.h"
 #include "AI/ParseUtils.h"
 
 #include "AI/OpenAIClient.h"
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 
 //*************** AI *****************
@@ -67,7 +67,6 @@ namespace Engine {
 
     EditorLayer::EditorLayer(Editor* editor)
         : Layer("EditorLayer"),
-        m_orthoCameraController(1280.0f / 720.0f, true),
         m_editor(editor)
     {
 
@@ -85,8 +84,6 @@ namespace Engine {
         m_iconLoading = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/loading.png").string(),"iconLoading", true);
 		//m_iconPause = AssetManager::AddTexture("pauseButton", AssetManager::GetAssetPath("icons/video-pause-button.png").string());
        
-        m_mapWidth = s_mapWidth;
-        m_mapHeight = strlen(s_mapTiles) / s_mapWidth;
         //m_textureMap['D'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 6, 11 }, { 128,128 });
         //m_textureMap['W'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 11, 11 }, { 128,128 });
 
@@ -102,7 +99,7 @@ namespace Engine {
         framebufferSpecs.Width = 1280;
         //m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
 
-        m_editorCamera = EditorCamera(45.0f, 1.78f, 0.1f, 1000.0f);
+        m_editorCamera = EditorCamera(55.0f, 1.78f, 0.1f, 1000.0f);
 
        // m_framebuffer = m_editor.get()->GetGameLayer()->GetGameFramebuffer();
 
@@ -141,7 +138,7 @@ namespace Engine {
 
         };        
 
-        m_activeScene = std::make_shared<Scene>();
+        //m_activeScene = std::make_shared<Scene>();
         //m_activeScene = m_editor.get()->GetGameLayer()->GetActiveGameScene();
 
 
@@ -317,7 +314,7 @@ namespace Engine {
 			m_debugPanel.OnImGuiRender();
 
             m_sceneHierarchyPanel.OnImGuiRender();
-
+            m_tileEditorPanel.OnImGuiRender();
             m_contentBrowserPanel.OnImGuiRender();
 
             ImGui::Begin("Stats");
@@ -359,6 +356,11 @@ namespace Engine {
 
             ImGui::Begin("Viewport");
 
+
+            ImVec2 imagePos = ImGui::GetCursorScreenPos(); // Where the actual scene is drawn
+            ImVec2 mousePos = ImGui::GetMousePos();
+            m_localMousePosInViewport = ImVec2(mousePos.x - imagePos.x, mousePos.y - imagePos.y);
+			
             // Inside ImGui::Begin("Viewport") ...
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail(); // Area available for image
             ImVec2 viewportOrigin = ImGui::GetCursorScreenPos();       // Top-left of Image in screen coords
@@ -371,7 +373,6 @@ namespace Engine {
             };
 
             // Optional debug log
-            ImVec2 mousePos = ImGui::GetMousePos();
            
             // Make sure viewport size is correct as well
             m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds);
@@ -650,8 +651,8 @@ namespace Engine {
         //SaveScene();
         m_sceneHierarchyPanel.SetGameContext(m_editorScene);
         //m_editor.get()->GetGameLayer()->SetActiveScene(m_editorScene);
-
         m_editor.get()->GetGameLayer()->OnGameStop();
+        m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetNewComponentsContext(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
        // m_editor.get()->GetGameLayer()->SetActiveScene(m_activeScene);
 
 
@@ -678,6 +679,61 @@ namespace Engine {
         {
             m_sceneHierarchyPanel.GetNewComponentsContext()->DuplicateEntity(selectedEntity);
         }
+    }
+
+    void EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV)
+    {
+        Entity entity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
+
+        TileComponent& tileComp = entity.AddComponent<TileComponent>(); 
+        //comp.Texture = AssetManager::GetTexture(selectedTileName);
+        float flippedU0 = UV.z; // original u1 (right edge)
+        float flippedU1 = UV.x; // original u0 (left edge)
+
+      //  tileComp.UV = glm::vec4(flippedU0, UV.y, flippedU1, UV.w);
+        tileComp.UV = UV;
+
+		tileComp.TextureName = selectedTileName;
+        glm::vec2 ndc;
+        ndc.x = (m_localMousePosInViewport.x / m_viewportSize.x) * 2.0f - 1.0f;
+        ndc.y = 1.0f - (m_localMousePosInViewport.y / m_viewportSize.y) * 2.0f;
+
+        glm::vec4 clipNear(ndc.x, ndc.y, -1.0f, 1.0f);
+        glm::vec4 clipFar(ndc.x, ndc.y, 1.0f, 1.0f); 
+
+        glm::mat4 invViewProj = glm::inverse(m_editorCamera.GetViewProjection());
+        glm::vec4 worldNear = invViewProj * clipNear;
+        glm::vec4 worldFar = invViewProj * clipFar;
+        worldNear /= worldNear.w;
+        worldFar /= worldFar.w;
+
+        glm::vec3 rayOrigin = glm::vec3(worldNear);
+        glm::vec3 rayDir = glm::normalize(glm::vec3(worldFar - worldNear));
+        float t = -rayOrigin.z / rayDir.z; // When Z = 0
+        glm::vec3 hitPoint = rayOrigin + t * rayDir;
+		glm::vec2 finalWorldPos = glm::vec2(hitPoint.x, hitPoint.y);
+
+        glm::vec2 snapped;
+        snapped.x = std::round(finalWorldPos.x);
+        snapped.y = std::round(finalWorldPos.y);
+
+		tileComp.WorldPos = snapped;
+
+        DeserializedTile tile{};
+		tile.TextureName = selectedTileName;
+		tile.WorldPos = snapped;
+		tile.UV = UV;
+        m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTextureStreamingSystem().AddDeserializedTile(tile);
+
+
+        Entity editorEntity = m_sceneHierarchyPanel.GetNewComponentsContext()->CreateEntity();
+        TileComponent& editorTileComp = editorEntity.AddComponent<TileComponent>();
+        editorTileComp.UV = UV;
+
+        editorTileComp.WorldPos = snapped;
+        editorTileComp.TextureName = selectedTileName;
+        EE_CORE_INFO("snapped {} {}", snapped.x, snapped.y);
+
     }
 
     void EditorLayer::DrawAIPromptPanel()
@@ -912,43 +968,14 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        //Renderer::DrawFrame();
-        
+    
 
-        /*
-        FramebufferSpecification spec = m_framebuffer->GetSpecification();
-        if (m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
-            (spec.Width != static_cast<uint32_t>(m_viewportSize.x) ||
-                spec.Height != static_cast<uint32_t>(m_viewportSize.y)))
-        {
-            m_framebuffer->Resize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
-            m_orthoCameraController.OnResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
-            m_editorCamera.SetViewportSize(m_viewportSize.x, m_viewportSize.y);
-            m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
-        }
-
-        */
-        if (m_viewportFocused)
-        {
-            m_orthoCameraController.OnUpdate(timestep);
-        }
-
-        m_editorCamera.OnUpdate(timestep);
+        m_controlPressed = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
+        m_editorCamera.OnUpdate(timestep, m_controlPressed);
 
         m_fpsCounter.Update(timestep);
 
         // ******** Render ***********
-
-         //statistics
-        //Engine::VulkanRenderer2D::ResetStats();
-        {
-            EE_PROFILE_SCOPE("render pre");
-           // m_framebuffer->Bind();
-            //Engine::RenderCommand::SetClearColor({ 0.2f, 0, 0.2f, 1 });
-            //Engine::RenderCommand::Clear();
-        }
-
-       // m_framebuffer->ClearColorAttachment(1, -1);
 
         {
             EE_PROFILE_SCOPE("render draw");
@@ -989,8 +1016,9 @@ namespace Engine {
            //EE_CORE_INFO("mouseX: {0}, {1}", mouseX, mouseY);
            //EE_CORE_INFO("viewportSize: {0}, {1}", viewportSize.x, viewportSize.y);
 
-            /*
+            
             m_mouseIsInViewPort = mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y;
+            /*
             if (m_mouseIsInViewPort)
             {
                 int pixelData = m_framebuffer->ReadPixel(1, mouseX, mouseY);
@@ -1005,6 +1033,7 @@ namespace Engine {
                 }
             }
             */
+            
 
            OnOverlayRender();
 
@@ -1022,7 +1051,7 @@ namespace Engine {
 
     void EditorLayer::OnEvent(Engine::Event& event)
     {
-        m_orthoCameraController.OnEvent(event);
+        //m_orthoCameraController.OnEvent(event);
         m_editorCamera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
@@ -1047,6 +1076,23 @@ namespace Engine {
                 //m_sceneHierarchyPanel.SetSelectedEntity({}); 
                 //return true;
             }
+            std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
+            if (m_mouseIsInViewPort && selectedTile != "")
+            {
+                if (m_sceneState != SceneState::Edit)
+                {
+                    return false;
+                }
+
+                EE_CORE_INFO("Selected tile: {}", selectedTile);
+				OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile));
+            }
+
+        }
+        else if (e.GetMouseButton() == Mouse::Button1)
+        {
+            // Deselect
+			m_tileEditorPanel.SetSelectedTile(UINT_MAX, "");
         }
         return false;
     }
@@ -1060,13 +1106,12 @@ namespace Engine {
         }
 
         bool shiftPressed = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift);
-        bool controlPressed = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
 
         switch (e.GetKeyCode())
         {
         case Key::N:
         {
-            if (controlPressed)
+            if (m_controlPressed)
             {
                 NewScene();
             }
@@ -1074,11 +1119,11 @@ namespace Engine {
         }
         case Key::S:
         {
-            if (controlPressed && shiftPressed)
+            if (m_controlPressed && shiftPressed)
             {
                 SaveSceneAs();
             }
-            else if (controlPressed)
+            else if (m_controlPressed)
             {
                 SaveScene();
             }
@@ -1086,7 +1131,7 @@ namespace Engine {
         }
         case Key::O:
         {
-            if (controlPressed)
+            if (m_controlPressed)
             {
                 OpenScene();
             }
@@ -1094,7 +1139,7 @@ namespace Engine {
         }
         case Key::D:
         {
-            if (controlPressed)
+            if (m_controlPressed)
             {
                 OnDuplicateEntity();
             }
@@ -1129,9 +1174,9 @@ namespace Engine {
 
     void EditorLayer::NewScene()
     {
-        m_activeScene = std::make_shared<Scene>();
-        m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds); // min only for 
-        m_sceneHierarchyPanel.SetEditorContext(m_activeScene);
+        //m_activeScene = std::make_shared<Scene>();
+        //m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds); // min only for 
+        m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
         m_currentScenePath = std::filesystem::path();
     }
 
@@ -1164,7 +1209,7 @@ namespace Engine {
         SceneSerializer serializer(m_editorScene);
         serializer.Deserialize(path.string());
 
-        m_activeScene = m_editorScene;
+        //m_activeScene = m_editorScene;
         m_currentScenePath = path;
     }
 
@@ -1173,7 +1218,7 @@ namespace Engine {
         std::string filepath = FileDialogs::SaveFile("Engine scene (*.ee)\0*.ee\0");
         if (!filepath.empty())
         {
-            SceneSerializer serializer(m_activeScene);
+            SceneSerializer serializer(m_editorScene);
             serializer.Serialize(filepath);
             m_currentScenePath = filepath;
         }

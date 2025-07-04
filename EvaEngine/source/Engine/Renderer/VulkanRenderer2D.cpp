@@ -125,9 +125,7 @@ namespace Engine {
 			samplers[i] = i;
 
 		}
-		// Fill initial texture slots
-		/*
-		*/
+		
 		s_VulkanData.TextureSlots[0] = s_VulkanData.WhiteTexture;
 		// Clone "logo" texture to slot 1 after loading it once
 		// Load original textures (not inserted into slots)
@@ -143,21 +141,7 @@ namespace Engine {
 		AssetManager::AddTexture("car_0001", Engine::AssetManager::GetAssetPath("textures/car_0001.png").string(), false);
 		AssetManager::AddTexture("house", Engine::AssetManager::GetAssetPath("textures/house.png").string(), false);
 
-		// Clone each into a texture slot
-		/*
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("logo");
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("chess");
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("player");
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("bullet");
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("zombie1_walk_000");
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("wall_0019");
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("zombie_walk_000");
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("objects_plant");
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("car_0001");
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex++] = AssetManager::CloneTexture("house");
-
-		*/
-
+	
 
 		// Fill the rest of the slots with pixel texture
 		for (uint32_t i = s_VulkanData.TextureSlotIndex; i < s_VulkanData.MaxTextureSlots; i++)
@@ -176,6 +160,7 @@ namespace Engine {
 
 		// this is for rendering game in editor viewport
 		CreateImGuiTextureDescriptors();
+
 		//m_IOTextures[0] = AssetManager::GetTexture("logo");
 		// 
 		//VulkanUtils::TransitionImageLayout(m_IOTextures[0]->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
@@ -1366,6 +1351,63 @@ namespace Engine {
 
 	}
 
+	
+	void VulkanRenderer2D::DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color)
+	{
+		float tileSize = 1.0f; // or TILE_SIZE if defined elsewhere
+
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos, 0.0f))
+			* glm::scale(glm::mat4(1.0f), glm::vec3(tileSize, tileSize, 1.0f));
+
+		// Assuming you already have a texture atlas bound (e.g., m_tileTextureAtlas)
+		float textureIndex = 0.0f;
+
+		for (uint32_t i = 0; i < s_VulkanData.TextureSlotIndex; i++)
+		{
+			if (s_VulkanData.TextureSlots[i] == AssetManager::GetTexture("tilePalette"))
+			{
+				textureIndex = (float)i;
+				break;
+			}
+		}
+
+		// Not yet bound? Add it
+		if (textureIndex == 0.0f)
+		{
+			textureIndex = (float)s_VulkanData.TextureSlotIndex;
+			s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::GetTexture("tilePalette");
+			s_VulkanData.TextureSlotIndex++;
+		}
+		// Vertex data (inside DrawQuad or similar):
+		const glm::vec3 quadPositions[4] = {
+			{-0.5f, -0.5f, 0.0f},
+			{ 0.5f, -0.5f, 0.0f},
+			{ 0.5f,  0.5f, 0.0f},
+			{-0.5f,  0.5f, 0.0f}
+		};
+
+		const glm::vec2 texCoords[4] = {
+			{uv.x, uv.y},   // top-left
+			{uv.z, uv.y},   // top-right
+			{uv.z, uv.w},   // bottom-right
+			{uv.x, uv.w}    // bottom-left
+		};
+
+		for (int i = 0; i < 4; ++i)
+		{
+			glm::vec4 transformed = transform * glm::vec4(quadPositions[i], 1.0f);
+			s_VulkanData.QuadVertexBufferPtr->Position = glm::vec3(transformed);
+			s_VulkanData.QuadVertexBufferPtr->Color = color;
+			s_VulkanData.QuadVertexBufferPtr->TexCoord = texCoords[i];
+			s_VulkanData.QuadVertexBufferPtr->TexIndex = textureIndex;
+			s_VulkanData.QuadVertexBufferPtr->TilingFactor = 1.0f;
+			s_VulkanData.QuadVertexBufferPtr++;
+		}
+
+		s_VulkanData.QuadIndexCount += 6;
+	}
+
+	
 
 
 	void VulkanRenderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)

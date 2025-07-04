@@ -843,7 +843,7 @@ namespace Engine {
         DrawComponent<TileComponent>("Tile", entity, m_newComponentsContext.get(), [this, &entity](auto& component)
             {
                 ImGui::Text("Grid Pos");
-                ImGui::DragFloat2("##GridPos", glm::value_ptr(component.GridPos), 1.0f);
+                ImGui::DragFloat2("##Position", glm::value_ptr(component.WorldPos), 1.0f);
 
                 ImGui::Checkbox("Destructible", &component.IsDestructible);
 

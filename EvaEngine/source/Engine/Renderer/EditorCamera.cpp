@@ -37,8 +37,10 @@ namespace Engine {
         m_viewMatrix = glm::lookAt(m_position, m_position + front, up);
     }
 
-    void EditorCamera::OnUpdate(Timestep timestep)
+    void EditorCamera::OnUpdate(Timestep timestep, bool controlPressed)
     {
+		m_controlPressed = controlPressed;
+
         if (Input::IsKeyPressed(Key::LeftAlt))
         {
             const glm::vec2 mouse{ Input::GetMouseX(), Input::GetMouseY() };
@@ -87,7 +89,14 @@ namespace Engine {
 
     bool EditorCamera::OnMouseScroll(MouseScrolledEvent& event)
     {
-        float delta = event.GetYOffset() * 1.1f;
+		float scrollSpeed = 3.0f;
+		if (m_controlPressed)
+		{
+			scrollSpeed = 10.0f;
+		}
+
+
+        float delta = event.GetYOffset() * scrollSpeed;
         OnMouseZoom(delta);
         UpdateView();
         return true;

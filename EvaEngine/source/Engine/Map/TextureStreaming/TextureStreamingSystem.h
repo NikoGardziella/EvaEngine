@@ -8,9 +8,8 @@
 
 namespace Engine{
 
-    constexpr uint32_t PIXELS_IN_TILE = 100;
     const uint32_t CHUNK_SIZE = 32;
-    const int LOAD_RADIUS = 1; // Load a 3×3 chunk area (1 chunks in all directions)
+    const int LOAD_RADIUS = 2; // Load a 3×3 chunk area (1 chunks in all directions)
     const int UNLOAD_RADIUS = 2; 
 
     struct TextureChunk {
@@ -36,7 +35,8 @@ namespace Engine{
         glm::vec2 GridPos;
         std::string TextureName;
         bool IsDestructible;
-        glm::vec3 WorldPos;
+        glm::vec2 WorldPos;
+        glm::vec4 UV;
     };
 
 
@@ -60,7 +60,7 @@ namespace Engine{
 
         void TextureStreamingSystem::Update(const glm::vec2& playerPos, entt::registry& gameRegistry);
       
-		void TextureStreamingSystem::UploadToChunkFromTexture(const glm::vec3& worldPosition, UUID ID,
+		void TextureStreamingSystem::UploadToChunkFromTexture(const glm::vec2& worldPosition, UUID ID,
             std::string name, const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
         
 		std::vector<DeserializedTile>& GetDeserializedTiles() { return m_tiles; }
@@ -70,11 +70,14 @@ namespace Engine{
         void AddDeserializedTile(const DeserializedTile& tile);
         void BakeTilesIntoChunks();
         void AddChunkEntitiesToRegistry(entt::registry& registry);
+        void DebugMarkChunks();
         //debug
         void ResetAllChunks(entt::registry& gameRegistry);
         void DebugDrawChunkOutlines(entt::registry& gameRegistry);
     private:
         uint64_t HashCoords(const glm::ivec2& coords);
+        void FlipChunkHorizontally(TextureChunk& chunk);
+        void FlipChunkVertically(TextureChunk& chunk);
         void LoadChunkToGPU(TextureChunk& chunk, entt::registry& gameRegistry);
 
         void UnloadChunkFromGPU(TextureChunk& chunk, entt::registry& gameRegistry);

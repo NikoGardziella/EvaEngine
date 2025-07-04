@@ -14,6 +14,7 @@
 #include "AI/json.hpp"
 #include <imgui/imgui.h>
 #include "Panels/DebugPanel.h"
+#include "Panels/TileEditorPanel.h"
 
 namespace Engine {
 
@@ -64,7 +65,7 @@ namespace Engine {
 
 
 		void OnDuplicateEntity();
-
+		void OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV);
 		void DrawAIPromptPanel();
 		void SpawnFromJSON(const nlohmann::json& j);
 
@@ -72,7 +73,6 @@ namespace Engine {
 
 	private:
 
-		OrthographicCameraController m_orthoCameraController;
 		Ref<Shader> m_flatColorShader;
 		glm::vec4 m_squareColor = { 0.2f, 0.3f, 0.8f, 1.0f };
 
@@ -85,7 +85,7 @@ namespace Engine {
 		bool m_viewportFocused = false;
 		bool m_viewportHovered = false;
 
-		Ref<Scene> m_activeScene;
+		//Ref<Scene> m_activeScene;
 		Ref<Scene> m_editorScene;
 		//Ref<Scene> m_runtimeScene;
 		Entity m_squareEntity;
@@ -96,7 +96,7 @@ namespace Engine {
 		bool m_primaryCamera;
 		EditorCamera m_editorCamera;
 		bool m_mouseIsInViewPort = false;
-
+		ImVec2 m_localMousePosInViewport;
 		Entity m_hoveredEntity;
 
 		Ref<Texture2D> m_checkerBoardTexture;
@@ -107,19 +107,14 @@ namespace Engine {
 		Ref<SubTexture2D> m_textureBarrel;
 
 
-		uint32_t m_mapWidth;
-		uint32_t m_mapHeight;
-
-
 		std::unordered_map<char, Ref<SubTexture2D>> m_textureMap;
 
 
 		//panels
 		SceneHierarchyPanel m_sceneHierarchyPanel;
 		ContentBrowserPanel m_contentBrowserPanel;
+		TileEditorPanel m_tileEditorPanel;
 		DebugPanel m_debugPanel;
-
-		//int m_gizmoType = -1;
 
 
 
@@ -136,6 +131,10 @@ namespace Engine {
 
 		FPSCounter m_fpsCounter;
 
+
+		// key shortcuts
+
+		bool m_controlPressed = false;
 		
 	};
 

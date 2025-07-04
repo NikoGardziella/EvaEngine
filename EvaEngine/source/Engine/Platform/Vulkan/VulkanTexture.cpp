@@ -31,8 +31,8 @@ namespace Engine {
         AssetManager::s_totalTextureMemory += m_memorySize;
     }
 
-    VulkanTexture::VulkanTexture(uint32_t width, uint32_t height)
-        : m_width(width), m_height(height)
+    VulkanTexture::VulkanTexture(uint32_t width, uint32_t height, bool imGuiTexture, uint32_t textureID)
+		: m_width(width), m_height(height), m_TextureID(textureID)
     {
         VulkanContext* vulkaContext = VulkanContext::Get();
         VkDevice device = vulkaContext->GetDeviceManager().GetDevice();
@@ -88,8 +88,14 @@ namespace Engine {
         // 3. Create image view and sampler
         CreateTextureImageView();
         CreateTextureSampler();
+        if (imGuiTexture)
+        {
+            // m_textureDescriptor is used as TextureId that Imgui uses to bind the texture before imguiDraw
+            // if there is no TextureID, imgui will crash at binding.
+            // set imGuiTexture to True when adding Imgui texture
+            m_textureDescriptor = ImGui_ImplVulkan_AddTexture(m_sampler, m_imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
         AssetManager::s_totalTextureMemory += m_memorySize;
-
     }
 
 
