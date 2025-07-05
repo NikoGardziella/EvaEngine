@@ -40,7 +40,6 @@ namespace Engine {
 		virtual void OnDetach() override;
 		virtual void OnImGuiRender() override;
 
-		void ProcessMainThreadTasks();
 
 		void OnUpdate(Timestep timestep) override;
 		void OnUpdateECS(Timestep timestep) override;
@@ -66,8 +65,6 @@ namespace Engine {
 
 		void OnDuplicateEntity();
 		void OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV);
-		void DrawAIPromptPanel();
-		void SpawnFromJSON(const nlohmann::json& j);
 
 		void OnOverlayRender();
 

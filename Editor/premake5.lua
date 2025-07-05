@@ -3,6 +3,7 @@
  --IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
 
 -- Setup the Editor application project
+
 project "Editor"
     location "."
     kind "ConsoleApp"
@@ -13,6 +14,9 @@ project "Editor"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-obj/" .. outputdir .. "/%{prj.name}")
+
+    --YAMLCppDir = "../EvaEngine/vendor/yaml-cpp" 
+    --IncludeDir["yaml_cpp"] = "%{YAMLCppDir}/include"
 
 
     files
@@ -34,13 +38,14 @@ project "Editor"
         "../EvaEngine/vendor/Box2D/include",
         "../EvaEngine/vendor/enkiTS/src",
         "../EvaEngine/vendor/GLFW/include",
-        "../EvaEngine/vendor/vcpkg/x64-windows/include",
+       -- "../EvaEngine/vendor/vcpkg/x64-windows/include",
+        "../EvaEngine/vendor/yaml-cpp/include",
         "../Sandbox/source", 
         "../Sandbox/vendor",
         "%{IncludeDir.ImGui}",
+       -- "%{IncludeDir.yaml_cpp}",
 
         "%{IncludeDir.VulkanSDK}",
-        "../Sandbox/source",
      
 
     }
@@ -49,15 +54,18 @@ project "Editor"
     links
     {
         "EvaEngine",
-        "Game"
+        "Game",
+        "yaml-cpp"
         
     }
 
+    
     filter "system:windows"
         systemversion "latest"
         defines
         {
-            "EE_PLATFORM_WINDOWS"
+            "EE_PLATFORM_WINDOWS",
+            "YAML_CPP_STATIC_DEFINE" 
         }
 
     filter "configurations:Debug"

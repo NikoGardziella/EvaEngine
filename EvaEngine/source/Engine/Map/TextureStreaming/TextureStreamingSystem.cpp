@@ -428,7 +428,7 @@ namespace Engine {
                 UploadToChunkFromTexture(tile.WorldPos, tile.TileID, tile.TextureName, pixelData, width, height);
             }
         }
-        DebugMarkChunks();
+       // DebugMarkChunks();
     }
 
     void TextureStreamingSystem::AddChunkEntitiesToRegistry(entt::registry& registry)

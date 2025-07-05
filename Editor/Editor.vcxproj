@@ -78,8 +78,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\EvaEngine\vendor\vcpkg\x64-windows\include;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;..\Sandbox\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;YAML_CPP_STATIC_DEFINE;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\EvaEngine\vendor\yaml-cpp\include;..\Sandbox\source;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -95,8 +95,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\EvaEngine\vendor\vcpkg\x64-windows\include;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;..\Sandbox\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;YAML_CPP_STATIC_DEFINE;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\EvaEngine\vendor\yaml-cpp\include;..\Sandbox\source;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -116,8 +116,8 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\EvaEngine\vendor\vcpkg\x64-windows\include;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;..\Sandbox\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EE_PLATFORM_WINDOWS;YAML_CPP_STATIC_DEFINE;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\EvaEngine\vendor\spdlog\include;..\EvaEngine\source;..\EvaEngine\vendor;..\EvaEngine\vendor\glm;..\EvaEngine\vendor\entt\include;..\EvaEngine\vendor\Box2D\include;..\EvaEngine\vendor\enkiTS\src;..\EvaEngine\vendor\GLFW\include;..\EvaEngine\vendor\yaml-cpp\include;..\Sandbox\source;..\Sandbox\vendor;EvaEngine\vendor\imgui;C:\VulkanSDK\1.4.304.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -134,27 +134,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\Panels\DebugPanel.h" />
-    <ClInclude Include="source\AI\OpenAIClient.h" />
-    <ClInclude Include="source\AI\OpenAICostTracker.h" />
-    <ClInclude Include="source\AI\ParseUtils.h" />
     <ClInclude Include="source\EditorApp.h" />
     <ClInclude Include="source\EditorLayer.h" />
     <ClInclude Include="source\FPSCounter.h" />
     <ClInclude Include="source\Panels\ContentBrowserPanel.h" />
+    <ClInclude Include="source\Panels\DebugPanel.h" />
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
     <ClInclude Include="source\Panels\TileEditorPanel.h" />
+    <ClInclude Include="source\Panels\Utils\TilePaletteSerializer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Panels\DebugPanel.cpp" />
-    <ClCompile Include="source\AI\OpenAIClient.cpp" />
-    <ClCompile Include="source\AI\OpenAICostTracker.cpp" />
-    <ClCompile Include="source\AI\ParseUtils.cpp" />
     <ClCompile Include="source\EditorApp.cpp" />
     <ClCompile Include="source\EditorLayer.cpp" />
     <ClCompile Include="source\Panels\ContentBrowserPanel.cpp" />
+    <ClCompile Include="source\Panels\DebugPanel.cpp" />
     <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp" />
     <ClCompile Include="source\Panels\TileEditorPanel.cpp" />
+    <ClCompile Include="source\Panels\Utils\TilePaletteSerializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EvaEngine\EvaEngine.vcxproj">
@@ -162,6 +158,9 @@
     </ProjectReference>
     <ProjectReference Include="..\Game\Game.vcxproj">
       <Project>{7FA9857C-6BE0-860D-14CD-6C1000E3020F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\EvaEngine\vendor\yaml-cpp\yaml-cpp.vcxproj">
+      <Project>{88F1A057-74BE-FB62-9DD7-E90A890331F1}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

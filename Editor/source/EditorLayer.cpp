@@ -21,47 +21,15 @@
 #include <Engine/AssetManager/AssetManager.h>
 
 #include "Engine/Renderer/Renderer.h"
-#include "AI/ParseUtils.h"
 
-#include "AI/OpenAIClient.h"
 #include <Engine/Scene/Components/Render/TileComponent.h>
 
 
-//*************** AI *****************
-std::mutex g_TaskMutex;
-std::queue<std::function<void()>> g_MainThreadTasks;
-std::atomic<bool> g_IsGeneratingAI = false;
-//using nlohmann::json;
-static char g_PromptBuffer[1024] = "";
-static bool  g_ShouldGenerate = false;
-static Engine::AI::OpenAIClient g_AIClient([] {
-    const char* key = std::getenv("OPENAI_API_KEY");
-    return key ? std::string(key) : std::string();
-    }());
-
-//*************************************
 
 namespace Engine {
 
-    //temporary
-    //extern const std::filesystem::path s_assetPath;
 
 
-    static const uint32_t s_mapWidth = 26;
-    static const char* s_mapTiles =
-        "WWWWWWWWWWWWWWWWWWWWWWWWWWW"
-        "WWWWWWDDDDWWWWWWWWWWWWWWWWW"
-        "WWWWDDDDDDDDDWWWWWWWWWWWWWW"
-        "WWWDDDDDDDDDDDDWWWWWWWWWWWW"
-        "WWDDDDDDDDDDDDDDWWWWWWWWWWW"
-        "WWDDDDDDDDDDDDDDDDWWWWWWWWW"
-        "WWWDDDDDDDDDDDDDWWWWWWWWWWW"
-        "WWWWWWWDDWWWWWWWWWWWWWWWWWW"
-        "WWWWDDDDDDDDDDDWWWWWWWWWWWW"
-        "WWWWWDDDDDDDDWWWWWWWWWWWWWW"
-        "WWWWWWWWWWWWWWWWWWWWWWWWWWW"
-        "WWWWWCWWWWWWWWWWWWWWWWWWWWW"
-        ;
 
     class Editor;
 
@@ -190,7 +158,6 @@ namespace Engine {
         //return;
         EE_PROFILE_FUNCTION();
 
-        ProcessMainThreadTasks();
         // READ THIS !!!
         // TL;DR; this demo is more complicated than what most users you would normally use.
         // If we remove all options we are showcasing, this demo would become:
@@ -505,15 +472,6 @@ namespace Engine {
 
     }
 
-    void EditorLayer::ProcessMainThreadTasks()
-    {
-        std::lock_guard<std::mutex> lock(g_TaskMutex);
-        while (!g_MainThreadTasks.empty())
-        {
-            g_MainThreadTasks.front()();
-            g_MainThreadTasks.pop();
-        }
-    }
 
 
     void EditorLayer::UI_Toolbar()
@@ -533,23 +491,13 @@ namespace Engine {
 
         // Play Button
         Ref<VulkanTexture> icon;
-        if (g_IsGeneratingAI)
-        {
-			icon = m_iconLoading;
-            if (DrawRotatedImageButton((ImTextureID)icon->GetTextureDescriptor(), ImVec2(size, size), ImGui::GetTime(), "##play"))
-            {
-                EE_CORE_INFO("AI is generating, please wait...");
-            }
-        }
-        else
+       
         {
             icon = m_sceneState == SceneState::Play ? m_iconPause : m_iconPlay;
             if (ImGui::ImageButton("##playbutton", (ImTextureID)icon->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
             {
-                if (g_IsGeneratingAI)
-                {
-                }
-                else if (m_sceneState == SceneState::Pause || m_sceneState == SceneState::Edit)
+                
+                if (m_sceneState == SceneState::Pause || m_sceneState == SceneState::Edit)
                 {
                     OnScenePlay();
                 }
@@ -736,165 +684,7 @@ namespace Engine {
 
     }
 
-    void EditorLayer::DrawAIPromptPanel()
-    {
-        ImGui::Begin("AI Gameplay Generator");
 
-        ImGui::TextWrapped("Enter gameplay description:");
-        ImVec2 size = ImVec2(0.0f, 100.0f);
-        ImGui::InputTextMultiline("##prompt", g_PromptBuffer, sizeof(g_PromptBuffer), size);
-
-        if (ImGui::Button("Generate "))
-        {
-            g_ShouldGenerate = true;
-        }
-
-        if (g_ShouldGenerate)
-        {
-            g_ShouldGenerate = false;
-            g_IsGeneratingAI = true;
-
-            // Capture prompt & existing entities now (to be used in thread)
-            std::string prompt = std::string(g_PromptBuffer);
-
-            nlohmann::json existingEntitie;
-            existingEntitie["existing_entities"] = nlohmann::json::array();
-
-            auto scene = m_editorScene;
-            for (auto entity : scene->GetAllEntitiesWith<TagComponent>())
-            {
-                Entity e{ entity, scene.get() };
-                std::string& tag = e.GetComponent<TagComponent>().Tag;
-                UUID& ID = e.GetComponent<IDComponent>().ID;
-                existingEntitie["existing_entities"].push_back(tag);
-                existingEntitie["existing_entities"].push_back((uint64_t)ID);
-            }
-
-            /*
-            m_editor->GetGameLayer()->CreateGameEntities();
-            scene = m_editor->GetGameLayer()->GetActiveGameScene();
-            for (auto entity : scene->GetAllEntitiesWith<TagComponent>())
-            {
-                Entity e{ entity, scene.get() };
-                std::string& tag = e.GetComponent<TagComponent>().Tag;
-                UUID& ID = e.GetComponent<IDComponent>().ID;
-                existingEntitie["existing_entities"].push_back(tag);
-                existingEntitie["existing_entities"].push_back((uint64_t)ID);
-            }
-            */
-            // Launch background thread
-            std::thread([prompt, existingEntitie, this]() {
-                std::string responseText = g_AIClient.CreateGameplayJSON(prompt, existingEntitie);
-
-                if (responseText.empty() || responseText.find_first_not_of(" \t\n\r") == std::string::npos)
-                    return;
-
-                try {
-                    nlohmann::json j = nlohmann::json::parse(responseText);
-
-                    // Queue up task for main thread
-                    std::lock_guard<std::mutex> lock(g_TaskMutex);
-                    g_MainThreadTasks.push([j, this]()
-                        {
-                        SpawnFromJSON(j);
-                        g_IsGeneratingAI = false;
-                        });
-                }
-                catch (const std::exception& e)
-                {
-                    // Capture error string
-                    std::string errorMsg = e.what();
-
-                    std::lock_guard<std::mutex> lock(g_TaskMutex);
-                    g_MainThreadTasks.push([errorMsg]() {
-                        ImGui::OpenPopup("AI Error");
-                        if (ImGui::BeginPopupModal("AI Error", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-                        {
-                            ImGui::TextWrapped("Failed to parse AI response:\n%s", errorMsg.c_str());
-                            if (ImGui::Button("OK"))
-                                ImGui::CloseCurrentPopup();
-                            ImGui::EndPopup();
-                        }
-                        });
-                }
-                }).detach(); // Detach the thread to run in background
-        }
-
-
-        ImGui::End();
-    }
-
-    void EditorLayer::SpawnFromJSON(const nlohmann::json& j)
-    {
-        EE_PROFILE_FUNCTION();
-
-        // create a map of existing entities in scene
-        std::unordered_map<UUID, Entity> existingEntities;
-        for (auto ent : m_sceneHierarchyPanel.GetNewComponentsContext()->GetAllEntitiesWith<IDComponent>())
-        {
-			Entity e = Entity{ ent, m_sceneHierarchyPanel.GetNewComponentsContext().get() };
-
-            UUID ID = e.GetComponent<IDComponent>().ID;
-            existingEntities[ID] = e;
-        }
-
-
-
-        for (const auto& e : j["entities"])
-        {
-            std::string name = "Entity";
-
-            // Try to get name from TagComponent if it exists
-            for (const auto& comp : e["components"])
-            {
-                if (comp["type"] == "TagComponent" && comp.contains("Tag"))
-                {
-                    name = comp["Tag"];
-                    break;
-                }
-            }
-
-            UUID id = e.contains("id") ? UUID(e["id"].get<uint64_t>()) : UUID();
-            Entity entity;
-       
-            entity = existingEntities[id]; // Modify existing
-            if (!entity)
-            {
-                entity = m_editorScene->CreateEntity(name);
-            }
-		
-
-            for (const nlohmann::json& compData : e["components"])
-            {
-                if (!compData.contains("type") || !compData["type"].is_string())
-                {
-                    EE_CORE_WARN("Component is missing 'type' or it's not a string:\n{}", compData.dump(4));
-                    continue;
-                }
-
-                std::string compName = compData["type"];
-
-                if (compName == "TagComponent")
-                {
-                    if (entity.HasComponent<Engine::TagComponent>())
-                    {
-                        Engine::TagComponent& src = entity.GetComponent<Engine::TagComponent>();
-                        src.Tag = name;
-
-                    }
-                    else
-                    {
-                        entity.AddComponent<Engine::TagComponent>(name);
-                    }
-                }
-                else
-                {
-                    ParseUtils::ParseComponent(compName, entity, compData);
-                }
-
-            }
-        }
-    }
 
 
 

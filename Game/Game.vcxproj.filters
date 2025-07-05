@@ -1,12 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Map">
-      <UniqueIdentifier>{6307880B-CF10-887C-588C-9E7CC494937C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Map\TextureStreaming">
-      <UniqueIdentifier>{4D55CCC0-39E4-558A-E202-6A85CE706630}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Systems">
       <UniqueIdentifier>{1DDE831B-89BD-02B7-92D5-8D8DFE336918}</UniqueIdentifier>
     </Filter>

@@ -31,6 +31,12 @@
     <Filter Include="source\Engine\ImGui">
       <UniqueIdentifier>{A55EB3C2-11C0-90D0-9A2D-D782068EC78F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Map">
+      <UniqueIdentifier>{08697707-747F-759D-BDF6-00BF294C4625}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Map\TextureStreaming">
+      <UniqueIdentifier>{92D5CDCF-7E11-D139-E723-E930D37E7954}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Math">
       <UniqueIdentifier>{F48A64F6-E06E-254C-49CF-1F9F35D20FCE}</UniqueIdentifier>
     </Filter>
@@ -66,6 +72,9 @@
     </Filter>
     <Filter Include="source\Engine\Scene\Components\Player">
       <UniqueIdentifier>{29B910EB-957D-0FDB-5EE3-3FA5CA66AB10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Components\Render">
+      <UniqueIdentifier>{7C2643EF-E8EA-41DF-B150-72A91DD4DD14}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\Engine\Scene\TaskManager">
       <UniqueIdentifier>{957A8D69-015E-9CA9-0A61-CAE576C362FA}</UniqueIdentifier>
@@ -150,6 +159,9 @@
     <ClInclude Include="source\Engine\Core\Window.h">
       <Filter>source\Engine\Core</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Debug\DebugInterface.h">
+      <Filter>source\Engine\Debug</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Debug\DebugUtils.h">
       <Filter>source\Engine\Debug</Filter>
     </ClInclude>
@@ -182,6 +194,12 @@
     </ClInclude>
     <ClInclude Include="source\Engine\ImGui\ImGuiLayer.h">
       <Filter>source\Engine\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h">
+      <Filter>source\Engine\Map\TextureStreaming</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h">
+      <Filter>source\Engine\Map\TextureStreaming</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Math\Math.h">
       <Filter>source\Engine\Math</Filter>
@@ -323,6 +341,12 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h">
       <Filter>source\Engine\Scene\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\ChunkRendererComponent.h">
+      <Filter>source\Engine\Scene\Components\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\TileComponent.h">
+      <Filter>source\Engine\Scene\Components\Render</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Entity.h">
       <Filter>source\Engine\Scene</Filter>
@@ -1608,11 +1632,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h" />
-    <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h" />
-    <ClInclude Include="source\Engine\Debug\DebugInterface.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Render\TileComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Render\ChunkRendererComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1636,6 +1655,9 @@
     <ClCompile Include="source\Engine\Core\Window.cpp">
       <Filter>source\Engine\Core</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Debug\DebugInterface.cpp">
+      <Filter>source\Engine\Debug</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Debug\DebugUtils.cpp">
       <Filter>source\Engine\Debug</Filter>
     </ClCompile>
@@ -1644,6 +1666,9 @@
     </ClCompile>
     <ClCompile Include="source\Engine\ImGui\imGuiBuild.cpp">
       <Filter>source\Engine\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp">
+      <Filter>source\Engine\Map\TextureStreaming</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Math\Math.cpp">
       <Filter>source\Engine\Math</Filter>
@@ -1729,6 +1754,9 @@
     <ClCompile Include="source\Engine\Renderer\Buffer.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Camera.cpp">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Renderer\EditorCamera.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
@@ -1801,9 +1829,6 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp" />
-    <ClCompile Include="source\Engine\Debug\DebugInterface.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">
@@ -1824,6 +1849,9 @@
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
     <None Include="..\assets\shaders\compute.comp">
       <Filter>assets\shaders</Filter>
     </None>
@@ -1836,6 +1864,5 @@
     <None Include="..\assets\shaders\testShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />
   </ItemGroup>
 </Project>

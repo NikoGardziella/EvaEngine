@@ -146,7 +146,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\Engine\Debug\DebugInterface.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h" />
     <ClInclude Include="source\Engine\Core\Application.h" />
@@ -159,6 +158,7 @@
     <ClInclude Include="source\Engine\Core\Timestep.h" />
     <ClInclude Include="source\Engine\Core\UUID.h" />
     <ClInclude Include="source\Engine\Core\Window.h" />
+    <ClInclude Include="source\Engine\Debug\DebugInterface.h" />
     <ClInclude Include="source\Engine\Debug\DebugUtils.h" />
     <ClInclude Include="source\Engine\Debug\Instrumentor.h" />
     <ClInclude Include="source\Engine\Events\ApplicationEvent.h" />
@@ -651,7 +651,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Engine\Debug\DebugInterface.cpp" />
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp" />
     <ClCompile Include="source\Engine\Core\Application.cpp" />
     <ClCompile Include="source\Engine\Core\Layer.cpp" />
@@ -659,6 +658,7 @@
     <ClCompile Include="source\Engine\Core\Log.cpp" />
     <ClCompile Include="source\Engine\Core\UUID.cpp" />
     <ClCompile Include="source\Engine\Core\Window.cpp" />
+    <ClCompile Include="source\Engine\Debug\DebugInterface.cpp" />
     <ClCompile Include="source\Engine\Debug\DebugUtils.cpp" />
     <ClCompile Include="source\Engine\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="source\Engine\ImGui\imGuiBuild.cpp" />
@@ -725,8 +725,8 @@
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
-    <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
+    <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />
     <None Include="..\assets\shaders\compute.comp" />
     <None Include="..\assets\shaders\fullscreen_shader.glsl" />
     <None Include="..\assets\shaders\imgui_shader.glsl" />

@@ -1,0 +1,13 @@
+TilePalette:
+  - Name: house
+    UV: [0, 0, 0.33333334, 0.5]
+  - Name: objects_house_0055_Layer-56
+    UV: [0.33333334, 0, 0.6666667, 0.5]
+  - Name: walls_0004_Layer-5
+    UV: [0.6666667, 0, 1, 0.5]
+  - Name: walls_0009_Layer-10
+    UV: [0, 0.5, 0.33333334, 1]
+  - Name: wall_0019
+    UV: [0.33333334, 0.5, 0.6666667, 1]
+  - Name: walk_000
+    UV: [0.6666667, 0.5, 1, 1]

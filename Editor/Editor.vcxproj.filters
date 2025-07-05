@@ -7,48 +7,47 @@
     <Filter Include="Panels">
       <UniqueIdentifier>{A80D95C9-94AF-BF9F-7D6A-D3F369AB46F0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Panels\Utils">
+      <UniqueIdentifier>{08AD8892-F40F-1837-9D95-50ED89D7E3B9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\AI\OpenAIClient.h">
-      <Filter>AI</Filter>
-    </ClInclude>
-    <ClInclude Include="source\AI\OpenAICostTracker.h">
-      <Filter>AI</Filter>
-    </ClInclude>
-    <ClInclude Include="source\AI\ParseUtils.h">
-      <Filter>AI</Filter>
-    </ClInclude>
     <ClInclude Include="source\EditorApp.h" />
     <ClInclude Include="source\EditorLayer.h" />
     <ClInclude Include="source\FPSCounter.h" />
     <ClInclude Include="source\Panels\ContentBrowserPanel.h">
       <Filter>Panels</Filter>
     </ClInclude>
+    <ClInclude Include="source\Panels\DebugPanel.h">
+      <Filter>Panels</Filter>
+    </ClInclude>
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h">
       <Filter>Panels</Filter>
     </ClInclude>
-    <ClInclude Include="source\Panels\DebugPanel.h" />
-    <ClInclude Include="source\Panels\TileEditorPanel.h" />
+    <ClInclude Include="source\Panels\TileEditorPanel.h">
+      <Filter>Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Panels\Utils\TilePaletteSerializer.h">
+      <Filter>Panels\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\AI\OpenAIClient.cpp">
-      <Filter>AI</Filter>
-    </ClCompile>
-    <ClCompile Include="source\AI\OpenAICostTracker.cpp">
-      <Filter>AI</Filter>
-    </ClCompile>
-    <ClCompile Include="source\AI\ParseUtils.cpp">
-      <Filter>AI</Filter>
-    </ClCompile>
     <ClCompile Include="source\EditorApp.cpp" />
     <ClCompile Include="source\EditorLayer.cpp" />
     <ClCompile Include="source\Panels\ContentBrowserPanel.cpp">
       <Filter>Panels</Filter>
     </ClCompile>
+    <ClCompile Include="source\Panels\DebugPanel.cpp">
+      <Filter>Panels</Filter>
+    </ClCompile>
     <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp">
       <Filter>Panels</Filter>
     </ClCompile>
-    <ClCompile Include="source\Panels\DebugPanel.cpp" />
-    <ClCompile Include="source\Panels\TileEditorPanel.cpp" />
+    <ClCompile Include="source\Panels\TileEditorPanel.cpp">
+      <Filter>Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Panels\Utils\TilePaletteSerializer.cpp">
+      <Filter>Panels\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
