@@ -23,7 +23,7 @@
 #include "Engine/Renderer/Renderer.h"
 
 #include <Engine/Scene/Components/Render/TileComponent.h>
-
+#include "Panels/Utils/EditorUtils.h"
 
 
 namespace Engine {
@@ -631,17 +631,8 @@ namespace Engine {
 
     void EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV)
     {
-        Entity entity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
 
-        TileComponent& tileComp = entity.AddComponent<TileComponent>(); 
-        //comp.Texture = AssetManager::GetTexture(selectedTileName);
-        float flippedU0 = UV.z; // original u1 (right edge)
-        float flippedU1 = UV.x; // original u0 (left edge)
-
-      //  tileComp.UV = glm::vec4(flippedU0, UV.y, flippedU1, UV.w);
-        tileComp.UV = UV;
-
-		tileComp.TextureName = selectedTileName;
+       
         glm::vec2 ndc;
         ndc.x = (m_localMousePosInViewport.x / m_viewportSize.x) * 2.0f - 1.0f;
         ndc.y = 1.0f - (m_localMousePosInViewport.y / m_viewportSize.y) * 2.0f;
@@ -665,6 +656,23 @@ namespace Engine {
         snapped.x = std::round(finalWorldPos.x);
         snapped.y = std::round(finalWorldPos.y);
 
+		for (auto& tile : m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTextureStreamingSystem().GetDeserializedTiles())
+		{
+			if (tile.WorldPos == snapped && tile.TextureName == selectedTileName)
+			{
+				EE_CORE_WARN("Tile already exists at position: {}, {}", snapped.x, snapped.y);
+				return;
+			}
+		}
+        Entity entity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
+        TransformComponent& transformComp = entity.AddComponent<TransformComponent>();
+		transformComp.Translation.x = snapped.x;
+		transformComp.Translation.y = snapped.y;
+        TileComponent& tileComp = entity.AddComponent<TileComponent>();
+
+        tileComp.UV = UV;
+
+        tileComp.TextureName = selectedTileName;
 		tileComp.WorldPos = snapped;
 
         DeserializedTile tile{};
@@ -675,6 +683,9 @@ namespace Engine {
 
 
         Entity editorEntity = m_sceneHierarchyPanel.GetNewComponentsContext()->CreateEntity();
+		TransformComponent& editorTransformComp = editorEntity.AddComponent<TransformComponent>();
+		editorTransformComp.Translation.x = snapped.x;
+		editorTransformComp.Translation.y = snapped.y;
         TileComponent& editorTileComp = editorEntity.AddComponent<TileComponent>();
         editorTileComp.UV = UV;
 
@@ -854,18 +865,6 @@ namespace Engine {
     {
         if (e.GetMouseButton() == Mouse::Button0)
         {
-           
-            if (m_mouseIsInViewPort && m_hoveredEntity && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
-            {
-                m_sceneHierarchyPanel.SetSelectedEntity(m_hoveredEntity);
-                return true;
-            }
-            else if(m_mouseIsInViewPort && !ImGuizmo::IsOver() && !m_hoveredEntity)
-            {
-                // reset selected entity
-                //m_sceneHierarchyPanel.SetSelectedEntity({}); 
-                //return true;
-            }
             std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
             if (m_mouseIsInViewPort && selectedTile != "")
             {
@@ -878,6 +877,50 @@ namespace Engine {
 				OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile));
             }
 
+            if (m_mouseIsInViewPort && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt) && selectedTile == "")
+            {
+
+                // quick way to get clicked entity
+                // better would be to add entity ID to vertex data
+                // and read it from shaders.
+                glm::vec2 ndc;
+                ndc.x = (m_localMousePosInViewport.x / m_viewportSize.x) * 2.0f - 1.0f;
+                ndc.y = 1.0f - (m_localMousePosInViewport.y / m_viewportSize.y) * 2.0f;
+
+                glm::vec4 clipNear(ndc.x, ndc.y, -1.0f, 1.0f);
+                glm::vec4 clipFar(ndc.x, ndc.y, 1.0f, 1.0f);
+                glm::mat4 invViewProj = glm::inverse(m_editorCamera.GetViewProjection());
+                glm::vec4 worldNear = invViewProj * clipNear;
+                glm::vec4 worldFar = invViewProj * clipFar;
+                worldNear /= worldNear.w;
+                worldFar /= worldFar.w;
+
+                glm::vec3 rayOrigin = glm::vec3(worldNear);
+                glm::vec3 rayDir = glm::normalize(glm::vec3(worldFar - worldNear));
+                float t = -rayOrigin.z / rayDir.z; // When Z = 0
+                glm::vec3 hitPoint = rayOrigin + t * rayDir;
+                glm::vec2 finalWorldPos = glm::vec2(hitPoint.x, hitPoint.y);
+                glm::vec2 snapped;
+                snapped.x = std::round(finalWorldPos.x);
+                snapped.y = std::round(finalWorldPos.y);
+
+                Entity selectedEntity = EditorUtils::FindTileAtPosition(m_editorScene, snapped);
+
+
+                if (!selectedEntity)
+                {
+                    return false; // No entity found at the clicked position
+                }
+                m_sceneHierarchyPanel.SetSelectedEntity(selectedEntity);
+
+                return true;
+            }
+            else if (m_mouseIsInViewPort && !ImGuizmo::IsOver() && !m_hoveredEntity)
+            {
+                // reset selected entity
+                //m_sceneHierarchyPanel.SetSelectedEntity({}); 
+                //return true;
+            }
         }
         else if (e.GetMouseButton() == Mouse::Button1)
         {

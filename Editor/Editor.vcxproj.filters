@@ -30,6 +30,9 @@
     <ClInclude Include="source\Panels\Utils\TilePaletteSerializer.h">
       <Filter>Panels\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="source\Panels\Utils\EditorUtils.h">
+      <Filter>Panels\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\EditorApp.cpp" />
@@ -47,6 +50,9 @@
       <Filter>Panels</Filter>
     </ClCompile>
     <ClCompile Include="source\Panels\Utils\TilePaletteSerializer.cpp">
+      <Filter>Panels\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Panels\Utils\EditorUtils.cpp">
       <Filter>Panels\Utils</Filter>
     </ClCompile>
   </ItemGroup>

@@ -63,10 +63,11 @@ namespace Engine{
 		void TextureStreamingSystem::UploadToChunkFromTexture(const glm::vec2& worldPosition, UUID ID,
             std::string name, const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
         
-		std::vector<DeserializedTile>& GetDeserializedTiles() { return m_tiles; }
-
 		std::unordered_map<UUID, TextureChunk>& GetChunkMap() { return m_chunkMap; }
 
+
+		std::vector<DeserializedTile>& GetDeserializedTiles() { return m_tiles; }
+            
         void AddDeserializedTile(const DeserializedTile& tile);
         void BakeTilesIntoChunks();
         void AddChunkEntitiesToRegistry(entt::registry& registry);

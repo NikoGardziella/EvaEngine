@@ -25,21 +25,29 @@ Entities:
     WeaponComponent:
       Damage: 10
       FireRate: 0.6
-  - ID: 4095573477999156775
+  - ID: 15042660392640376060
     TagComponent:
       Tag: Entity
+    TransformComponent:
+      Translation: [-4, 1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
     TileComponent:
       TileID: 0
-      WorldPos: [1, 3]
-      UV: [0, 0, 0.33333334, 0.5]
+      WorldPos: [-4, 1]
+      UV: [0, 0, 0.125, 1]
       IsDestructible: false
       Texture: house
-  - ID: 8957819344909221207
+  - ID: 13812534005648149095
     TagComponent:
       Tag: Entity
+    TransformComponent:
+      Translation: [5, 1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
     TileComponent:
       TileID: 0
-      WorldPos: [-6, 3]
-      UV: [0, 0, 0.33333334, 0.5]
+      WorldPos: [5, 1]
+      UV: [0, 0, 0.125, 1]
       IsDestructible: false
       Texture: house

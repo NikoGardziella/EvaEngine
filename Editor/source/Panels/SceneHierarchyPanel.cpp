@@ -59,7 +59,6 @@ namespace Engine {
 
 
 
-
         ImGui::PushID(label.c_str());
 
         ImGui::Columns(2);
@@ -147,7 +146,7 @@ namespace Engine {
     void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
     {
         m_selectionContext = entity;
-        
+
     }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
@@ -212,25 +211,7 @@ namespace Engine {
 
         bool clickedOnEmptySpace = true;  // Track if no entity was clicked
 
-        
-        // Iterate over all entities with a TagComponent
-
-        
-        /*
-        ImGui::PushID((void*)m_newComponentsContext.get()); // Push scene ID to make entity IDs unique
-        m_newComponentsContext->m_registry.view<TagComponent>().each([&](auto entityID, TagComponent& tagComp)
-            {
-                Entity entity{ entityID, m_newComponentsContext.get() };
-               // EE_CORE_INFO("Entity: {0} ", entity.GetComponent<IDComponent>().ID);
-
-                ImGui::PushID(entity.GetComponent<IDComponent>().ID);
-                DrawEntityNode(entity);
-                ImGui::PopID();
-            });
-        ImGui::PopID();
-        
-        
-        */
+   
 
 
         
