@@ -25,29 +25,42 @@ Entities:
     WeaponComponent:
       Damage: 10
       FireRate: 0.6
-  - ID: 15042660392640376060
+  - ID: 5642144091497463804
     TagComponent:
       Tag: Entity
     TransformComponent:
-      Translation: [-4, 1, 0]
+      Translation: [-3, 1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TileComponent:
       TileID: 0
-      WorldPos: [-4, 1]
-      UV: [0, 0, 0.125, 1]
-      IsDestructible: false
-      Texture: house
-  - ID: 13812534005648149095
+      WorldPos: [0, 0]
+      Texture: ""
+      Tiles:
+        - Position: [-3, 1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-0, -2]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+  - ID: 11791684054892607438
     TagComponent:
       Tag: Entity
     TransformComponent:
-      Translation: [5, 1, 0]
+      Translation: [0, 1, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TileComponent:
       TileID: 0
-      WorldPos: [5, 1]
-      UV: [0, 0, 0.125, 1]
-      IsDestructible: false
-      Texture: house
+      WorldPos: [0, 0]
+      Texture: ""
+      Tiles:
+        - Position: [0, 1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false

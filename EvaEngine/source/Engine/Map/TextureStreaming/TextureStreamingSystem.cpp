@@ -7,6 +7,7 @@
 #include <Engine/Renderer/VulkanRenderer2D.h>
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 #include <Engine/Scene/Components/Render/ChunkRendererComponent.h>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 
 namespace Engine {
@@ -392,44 +393,44 @@ namespace Engine {
         }
     }
 
-    void TextureStreamingSystem::AddDeserializedTile(const DeserializedTile& tile)
-    {
-		m_tiles.push_back(tile);
-    }
 
 
-    void TextureStreamingSystem::BakeTilesIntoChunks()
+    void TextureStreamingSystem::BakeTilesIntoChunks(entt::registry& registry)
     {
         constexpr int TILE_SIZE = 1; // Size in world units (not pixels), adjust accordingly
 
-        for (const auto& tile : m_tiles)
+        auto view = registry.view<TileComponent>();
+        for (auto entity : view)
         {
-           
+            const auto& tileComp = view.get<TileComponent>(entity);
 
-            // Convert grid position to world space
-            glm::vec3 worldPos = {
-                tile.GridPos.x * TILE_SIZE,
-                tile.GridPos.y * TILE_SIZE,
-                0.0f
-            };
-
-            std::vector<uint8_t> pixelData;
-            int width, height;
-
-
-            if (AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, width, height))
+            for (const auto& tile : tileComp.tiles)
             {
-                if (pixelData.empty())
+                glm::vec3 worldPos = {
+                    tile.position.x * TILE_SIZE + tileComp.WorldPos.x,
+                    tile.position.y * TILE_SIZE + tileComp.WorldPos.y,
+                    0.0f
+                };
+
+                std::vector<uint8_t> pixelData;
+                int width, height;
+
+                if (AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, width, height))
                 {
-                    continue;
+                    if (pixelData.empty())
+                        continue;
+
+                    EE_CORE_INFO("Baking tile '{}' at worldPos = ({:.1f}, {:.1f})",
+                        tile.name.c_str(), worldPos.x, worldPos.y);
+
+                    UploadToChunkFromTexture(worldPos, tileComp.TileID, tile.name, pixelData, width, height);
                 }
-			    EE_CORE_INFO("Baking tile '{}' at worldPos = ({:.1f}, {:.1f})",
-				    tile.TextureName.c_str(), tile.WorldPos.x, tile.WorldPos.y);
-                UploadToChunkFromTexture(tile.WorldPos, tile.TileID, tile.TextureName, pixelData, width, height);
             }
         }
-       // DebugMarkChunks();
+
+        // DebugMarkChunks();
     }
+
 
     void TextureStreamingSystem::AddChunkEntitiesToRegistry(entt::registry& registry)
     {

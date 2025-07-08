@@ -11,12 +11,15 @@ namespace Engine {
         for (auto entity : tileView)
         {
             const auto& tileComp = tileView.get<TileComponent>(entity);
-
-            glm::vec2 tilePosition = tileComp.WorldPos;
-            if (tilePosition == worldPosition)
+            for (size_t i = 0; i < tileComp.tiles.size(); i++)
             {
-                return Entity{entity, scene.get()};
+                glm::vec2 tilePosition = tileComp.tiles[i].position;
+                if (tilePosition == worldPosition)
+                {
+                    return Entity{ entity, scene.get() };
+                }
             }
+            
         }
 
         return Entity{};

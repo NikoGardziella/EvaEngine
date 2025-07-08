@@ -371,7 +371,7 @@ namespace Engine {
         // makes sure textures are reloaded to the right registry
         // editor to game
         m_textureStreamingSystem->ResetAllChunks(m_registry);
-        m_textureStreamingSystem->BakeTilesIntoChunks();
+        m_textureStreamingSystem->BakeTilesIntoChunks(m_registry);
 		m_textureStreamingSystem->AddChunkEntitiesToRegistry(m_registry);
     }
 
@@ -881,15 +881,19 @@ namespace Engine {
             auto view = m_registry.view<TileComponent>();
             for (auto entity : view)
             {
-                auto& tileComponent = view.get<TileComponent>(entity); 
-                
                 glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-                float flippedV0 = tileComponent.UV.w; // original v1 (bottom)
-                float flippedV1 = tileComponent.UV.y; // original v0 (top)
-                glm::vec4 flippedUV = glm::vec4(tileComponent.UV.x, flippedV0, tileComponent.UV.z, flippedV1);
 
-                // Use flippedUV for rendering, don't overwrite original UV
-                Engine::VulkanRenderer2D::DrawTile(tileComponent.WorldPos, flippedUV, color);
+                TileComponent& tileComponent = view.get<TileComponent>(entity);
+                for (size_t i = 0; i < tileComponent.tiles.size(); i++)
+                {
+                    float flippedV0 = tileComponent.tiles[i].UV.w; // original v1 (bottom)
+                    float flippedV1 = tileComponent.tiles[i].UV.y; // original v0 (top)
+                    glm::vec4 flippedUV = glm::vec4(tileComponent.tiles[i].UV.x, flippedV0, tileComponent.tiles[i].UV.z, flippedV1);
+
+                    // Use flippedUV for rendering, don't overwrite original UV
+                    Engine::VulkanRenderer2D::DrawTile(tileComponent.tiles[i].position, flippedUV, color);
+                }
+                
             }
             
         }

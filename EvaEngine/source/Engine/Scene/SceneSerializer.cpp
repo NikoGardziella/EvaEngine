@@ -264,7 +264,6 @@ namespace Engine {
 
             out << YAML::EndMap;
         }
-
         inline void SerializeTileComponent(Entity entity, YAML::Emitter& out)
         {
             const auto& comp = entity.GetComponent<TileComponent>();
@@ -277,19 +276,35 @@ namespace Engine {
             out << YAML::Key << "WorldPos" << YAML::Value << YAML::Flow
                 << std::vector<float>{ comp.WorldPos.x, comp.WorldPos.y };
 
-            out << YAML::Key << "UV" << YAML::Value << YAML::Flow
-                << std::vector<float>{ comp.UV.x, comp.UV.y, comp.UV.z , comp.UV.w};
-           
-            out << YAML::Key << "IsDestructible" << YAML::Value << comp.IsDestructible;
-
-            // Serialize texture as path or UUID
-            if (comp.TextureName != "")
-                out << YAML::Key << "Texture" << YAML::Value << comp.TextureName;
+            // Optional texture name
+            if (comp.Texture && !comp.Texture->GetName().empty())
+                out << YAML::Key << "Texture" << YAML::Value << comp.Texture->GetName();
             else
                 out << YAML::Key << "Texture" << YAML::Value << "";
 
+            // Serialize all tiles in the group
+            out << YAML::Key << "Tiles" << YAML::Value << YAML::BeginSeq;
+            for (const auto& tile : comp.tiles)
+            {
+                out << YAML::BeginMap;
+
+                out << YAML::Key << "Position" << YAML::Value << YAML::Flow
+                    << std::vector<float>{ tile.position.x, tile.position.y };
+
+                out << YAML::Key << "UV" << YAML::Value << YAML::Flow
+                    << std::vector<float>{ tile.UV.x, tile.UV.y, tile.UV.z, tile.UV.w };
+
+                out << YAML::Key << "Name" << YAML::Value << tile.name;
+                out << YAML::Key << "IsDestructible" << YAML::Value << tile.IsDestructible;
+                out << YAML::Key << "IsRoof" << YAML::Value << tile.IsRoof;
+
+                out << YAML::EndMap;
+            }
+            out << YAML::EndSeq;
+
             out << YAML::EndMap;
         }
+
 
 
         // Serializes an individual entity by checking for each component.
@@ -366,42 +381,45 @@ namespace Engine {
             if (!entityNode["TileComponent"])
                 return;
 
-            const auto& node = entityNode["TileComponent"];
-
-            DeserializedTile tile{};
-           // tile.TileUUID = entityNode["Entity"].as<uint64_t>();
             const auto& tc = entityNode["TileComponent"];
 
-            tile.TileID = tc["TileID"].as<uint32_t>();
-            tile.WorldPos = glm::vec2(tc["WorldPos"][0].as<float>(), tc["WorldPos"][1].as<float>());
-            tile.IsDestructible = tc["IsDestructible"].as<bool>();
-            //tile.WorldPos = entity.GetComponent<TransformComponent>().Translation;
-            tile.TextureName = tc["Texture"].as<std::string>();
-			tile.UV = tc["UV"] ? glm::vec4(
-				tc["UV"][0].as<float>(),
-				tc["UV"][1].as<float>(),
-				tc["UV"][2].as<float>(),
-				tc["UV"][3].as<float>()
-			) : glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
-
             TileComponent& tileComp = entity.AddComponent<TileComponent>();
-			tileComp.TileID = tile.TileID;
-			tileComp.WorldPos = tile.WorldPos;
-			tileComp.IsDestructible = tile.IsDestructible;
-			tileComp.UV = tile.UV;
+            tileComp.TileID = tc["TileID"].as<uint32_t>();
+            tileComp.WorldPos = glm::vec2(tc["WorldPos"][0].as<float>(), tc["WorldPos"][1].as<float>());
 
-			if (!tile.TextureName.empty())
-			{
-                //tileComp.Texture = AssetManager::GetTexture(tile.TextureName);
-				tileComp.TextureName = tile.TextureName;
-			}
-			else
-			{
-                tileComp.Texture = nullptr; // No texture specified
-			}
+            // Load texture name (optional)
+            std::string textureName = tc["Texture"] ? tc["Texture"].as<std::string>() : "";
+            if (!textureName.empty())
+            {
+                tileComp.Texture = AssetManager::GetTexture(textureName); // Adjust if using another loader
+            }
+            else
+            {
+                tileComp.Texture = nullptr;
+            }
 
-			scene->GetTextureStreamingSystem().AddDeserializedTile(tile);
+            // Load tiles
+            if (tc["Tiles"])
+            {
+                for (const auto& tileNode : tc["Tiles"])
+                {
+                    TileInfo tile;
+                    tile.position = glm::vec2(tileNode["Position"][0].as<float>(), tileNode["Position"][1].as<float>());
+                    tile.UV = glm::vec4(
+                        tileNode["UV"][0].as<float>(),
+                        tileNode["UV"][1].as<float>(),
+                        tileNode["UV"][2].as<float>(),
+                        tileNode["UV"][3].as<float>()
+                    );
+                    tile.name = tileNode["Name"] ? tileNode["Name"].as<std::string>() : "";
+                    tile.IsDestructible = tileNode["IsDestructible"] ? tileNode["IsDestructible"].as<bool>() : false;
+                    tile.IsRoof = tileNode["IsRoof"] ? tileNode["IsRoof"].as<bool>() : false;
+
+                    tileComp.tiles.push_back(tile);
+                }
+            }
         }
+
 
         
 

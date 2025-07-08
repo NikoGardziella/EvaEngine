@@ -826,7 +826,7 @@ namespace Engine {
                 ImGui::Text("Grid Pos");
                 ImGui::DragFloat2("##Position", glm::value_ptr(component.WorldPos), 1.0f);
 
-                ImGui::Checkbox("Destructible", &component.IsDestructible);
+                //ImGui::Checkbox("Destructible", &component.IsDestructible);
 
                 ImGui::SeparatorText("Texture");
                 const char* textureButtonText = component.Texture

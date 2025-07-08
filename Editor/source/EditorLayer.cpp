@@ -656,43 +656,62 @@ namespace Engine {
         snapped.x = std::round(finalWorldPos.x);
         snapped.y = std::round(finalWorldPos.y);
 
-		for (auto& tile : m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTextureStreamingSystem().GetDeserializedTiles())
-		{
-			if (tile.WorldPos == snapped && tile.TextureName == selectedTileName)
-			{
-				EE_CORE_WARN("Tile already exists at position: {}, {}", snapped.x, snapped.y);
-				return;
-			}
-		}
-        Entity entity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
-        TransformComponent& transformComp = entity.AddComponent<TransformComponent>();
-		transformComp.Translation.x = snapped.x;
-		transformComp.Translation.y = snapped.y;
-        TileComponent& tileComp = entity.AddComponent<TileComponent>();
+        auto& registry = m_editor->GetGameLayer()->GetActiveGameScene()->GetRegistry();
 
-        tileComp.UV = UV;
+        auto view = registry.view<TileComponent>();
+        for (auto entity : view)
+        {
+            const auto& tileComp = view.get<TileComponent>(entity);
 
-        tileComp.TextureName = selectedTileName;
-		tileComp.WorldPos = snapped;
+            for (const auto& tile : tileComp.tiles)
+            {
+                glm::vec2 worldTilePos = tileComp.WorldPos + tile.position;
+                if (worldTilePos == snapped && tile.name == selectedTileName)
+                {
+                    EE_CORE_WARN("Tile already exists at position: {}, {}", snapped.x, snapped.y);
+                    return;
+                }
+            }
+        }
 
-        DeserializedTile tile{};
-		tile.TextureName = selectedTileName;
-		tile.WorldPos = snapped;
-		tile.UV = UV;
-        m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTextureStreamingSystem().AddDeserializedTile(tile);
+        if (m_selectedEntity)
+        {
+            if (m_selectedEntity.HasComponent<TileComponent>())
+            {
+                TileComponent& tileComp = m_selectedEntity.GetComponent<TileComponent>();
+				tileComp.tiles.push_back(TileInfo{ snapped,UV, selectedTileName });
+                EE_CORE_INFO("adding tile: {}", tileComp.tiles.size());
 
+            }
+            else
+            {
+                TileComponent& tileComp = m_selectedEntity.AddComponent<TileComponent>();
+				tileComp.tiles.push_back(TileInfo{ snapped, UV, selectedTileName });
+				EE_CORE_INFO(" new TieComp.adding tile: {}", tileComp.tiles.size());
+            }
+            
+            
+        }
+        else
+        {
 
-        Entity editorEntity = m_sceneHierarchyPanel.GetNewComponentsContext()->CreateEntity();
-		TransformComponent& editorTransformComp = editorEntity.AddComponent<TransformComponent>();
-		editorTransformComp.Translation.x = snapped.x;
-		editorTransformComp.Translation.y = snapped.y;
-        TileComponent& editorTileComp = editorEntity.AddComponent<TileComponent>();
-        editorTileComp.UV = UV;
+            Entity entity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
+           // Entity entity = m_sceneHierarchyPanel.GetNewComponentsContext()->CreateEntity();
+            TransformComponent& transformComp = entity.AddComponent<TransformComponent>();
+            transformComp.Translation.x = snapped.x;
+            transformComp.Translation.y = snapped.y;
+            TileComponent& tileComp = entity.AddComponent<TileComponent>();
+            tileComp.tiles.push_back(TileInfo{ snapped, UV, selectedTileName });
 
-        editorTileComp.WorldPos = snapped;
-        editorTileComp.TextureName = selectedTileName;
-        EE_CORE_INFO("snapped {} {}", snapped.x, snapped.y);
-
+            Entity editorEntity = m_editorScene->CreateEntity();
+            TransformComponent& editorTransformComp = editorEntity.AddComponent<TransformComponent>();
+            editorTransformComp.Translation.x = snapped.x;
+            editorTransformComp.Translation.y = snapped.y;
+            TileComponent& editorTileComp = editorEntity.AddComponent<TileComponent>();
+            editorTileComp.tiles.push_back(TileInfo{ snapped, UV, selectedTileName });
+        }
+       
+        
     }
 
 
@@ -904,15 +923,19 @@ namespace Engine {
                 snapped.x = std::round(finalWorldPos.x);
                 snapped.y = std::round(finalWorldPos.y);
 
-                Entity selectedEntity = EditorUtils::FindTileAtPosition(m_editorScene, snapped);
+                m_selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
 
+                if (!m_selectedEntity)
+                {
+                   // m_selectedEntity = EditorUtils::FindTileAtPosition(m_editor.get()->GetGameLayer()->GetActiveGameScene(), snapped);
+                    m_selectedEntity = EditorUtils::FindTileAtPosition(m_sceneHierarchyPanel.GetNewComponentsContext(), snapped);
+                    m_sceneHierarchyPanel.SetSelectedEntity(m_selectedEntity);
+                }
 
-                if (!selectedEntity)
+                if (!m_selectedEntity)
                 {
                     return false; // No entity found at the clicked position
                 }
-                m_sceneHierarchyPanel.SetSelectedEntity(selectedEntity);
-
                 return true;
             }
             else if (m_mouseIsInViewPort && !ImGuizmo::IsOver() && !m_hoveredEntity)

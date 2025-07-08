@@ -81,7 +81,7 @@ namespace Engine {
 
 		bool m_viewportFocused = false;
 		bool m_viewportHovered = false;
-
+		Entity m_selectedEntity;
 		//Ref<Scene> m_activeScene;
 		Ref<Scene> m_editorScene;
 		//Ref<Scene> m_runtimeScene;

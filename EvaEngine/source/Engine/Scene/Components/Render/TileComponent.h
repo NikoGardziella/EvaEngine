@@ -5,15 +5,23 @@
 
 namespace Engine {
 
+    struct TileInfo {
+        glm::vec2 position; // local position within group
+        glm::vec4 UV;
+        std::string name;
+        bool IsDestructible;
+        bool IsRoof;
+		TileInfo(const glm::vec2& pos = glm::vec2(0.0f), const glm::vec4& uvCoords = glm::vec4(0.0f), const std::string& tileName = "", bool destructible = false, bool roof = false)
+			: position(pos), UV(uvCoords), name(tileName), IsDestructible(destructible), IsRoof(roof) {
+		}
+    };
+
     struct TileComponent
     {
         uint32_t TileID;
-        glm::vec2 GridPos;
         Ref<VulkanTexture> Texture;
-        bool IsDestructible;
         glm::vec2 WorldPos;
-		glm::vec4 UV; // (u0,v0,u1,v1) for the tile in normalized UV space
-        std::string TextureName;
+        std::vector<TileInfo> tiles;
     };
 }
 

@@ -45,7 +45,6 @@ namespace Engine {
 		Ref<Scene> m_newComponentsContext;
 
 		Entity m_selectionContext;
-		Entity m_editorSelectionContext;
 		int m_guizmoType = -1;
 
 		// stats

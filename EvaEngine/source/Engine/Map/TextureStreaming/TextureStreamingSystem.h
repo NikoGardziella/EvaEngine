@@ -28,16 +28,7 @@ namespace Engine{
         uint32_t TextureCount = 0;
     };
 
-    struct DeserializedTile
-    {
-        UUID TileUUID;
-        uint32_t TileID;
-        glm::vec2 GridPos;
-        std::string TextureName;
-        bool IsDestructible;
-        glm::vec2 WorldPos;
-        glm::vec4 UV;
-    };
+   
 
 
     struct IVec2Hasher
@@ -66,10 +57,8 @@ namespace Engine{
 		std::unordered_map<UUID, TextureChunk>& GetChunkMap() { return m_chunkMap; }
 
 
-		std::vector<DeserializedTile>& GetDeserializedTiles() { return m_tiles; }
             
-        void AddDeserializedTile(const DeserializedTile& tile);
-        void BakeTilesIntoChunks();
+        void BakeTilesIntoChunks(entt::registry& registry);
         void AddChunkEntitiesToRegistry(entt::registry& registry);
         void DebugMarkChunks();
         //debug
@@ -87,7 +76,6 @@ namespace Engine{
 
         std::unordered_map<UUID, TextureChunk> m_chunkMap;
 
-        std::vector<DeserializedTile> m_tiles;
     };
 
 
