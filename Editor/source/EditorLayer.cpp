@@ -25,6 +25,8 @@
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include "Panels/Utils/EditorUtils.h"
 
+//debug
+#include "Panels/Utils/EditorDebugUtils.h"
 
 namespace Engine {
 
@@ -44,32 +46,19 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
        
-
-	    //m_iconStop = AssetManager::AddTexture("stopButton", AssetManager::GetAssetPath("icons/stop-button.png").string());
         m_iconPlay = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string(),"iconPlay", true);
         m_iconStop = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/stop-button.png").string(),"iconStop", true);
         m_iconPause = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/video-pause-button.png").string(),"iconPause", true);
         m_iconLoading = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/loading.png").string(),"iconLoading", true);
-		//m_iconPause = AssetManager::AddTexture("pauseButton", AssetManager::GetAssetPath("icons/video-pause-button.png").string());
-       
-        //m_textureMap['D'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 6, 11 }, { 128,128 });
-        //m_textureMap['W'] = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 11, 11 }, { 128,128 });
-
-        //m_textureBarrel = Engine::SubTexture2D::CreateFromCoordinates(m_textureSpriteSheetPacked, { 8, 0 }, { 128,128 });
-
-
-        //m_orthoCameraController.SetZoomLevel(10.0f);
 
         Engine::FramebufferSpecification framebufferSpecs;
 
         framebufferSpecs.Attachments = { FramebufferTextureFormat::RGBA8,FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
         framebufferSpecs.Height = 720;
         framebufferSpecs.Width = 1280;
-        //m_framebuffer = Engine::Framebuffer::Create(framebufferSpecs);
 
         m_editorCamera = EditorCamera(55.0f, 1.78f, 0.1f, 1000.0f);
 
-       // m_framebuffer = m_editor.get()->GetGameLayer()->GetGameFramebuffer();
 
         class CameraController : public ScriptableEntity
         {
@@ -106,48 +95,23 @@ namespace Engine {
 
         };        
 
-        //m_activeScene = std::make_shared<Scene>();
-        //m_activeScene = m_editor.get()->GetGameLayer()->GetActiveGameScene();
 
-
-        m_editorScene = std::make_shared<Scene>();
-        //m_activeScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
-        //m_editorScene->OnRunTimeStart();
-        //m_editorScene = Scene::Copy(m_editor.get()->GetGameLayer()->GetActiveGameScene());
-
-        
-        
-        
-        Engine::SceneSerializer serializer(m_editorScene);
+        Engine::SceneSerializer serializer(m_sceneHierarchyPanel.GetNewComponentsContext());
         std::string scenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName()).string();
         if (!serializer.Deserialize(scenePath))
         {
             EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
         }
-        
-        
-        
-        
-       // m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y);
-        //m_activeScene = Scene::Copy(m_editorScene);
-        m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
-        m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
-        m_sceneHierarchyPanel.SetNewComponentsContext(m_editorScene); // remove this and only use new components?
 
+        m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
         m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
-       //m_sceneHierarchyPanel.SetContext(Scene::Combine(m_editorScene, m_editor.get()->GetGameLayer()->GetActiveGameScene()));
-        //m_sceneHierarchyPanel.SetContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
-      
-        //m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_editorScene, m_editor.get()->GetGameLayer()->GetActiveGameScene()));
         m_currentScenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName());
-        //m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStart();
 
     }
 
     void EditorLayer::OnDetach()
     {
         EE_PROFILE_FUNCTION();
-        //m_sceneSerializer->Serialize("assets/scene/example_scene.ee");
         
     }
 
@@ -342,7 +306,7 @@ namespace Engine {
             // Optional debug log
            
             // Make sure viewport size is correct as well
-            m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds);
+            m_sceneHierarchyPanel.GetNewComponentsContext()->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds);
 
             uint32_t newWidth = (uint32_t)viewportPanelSize.x;
             uint32_t newHeight = (uint32_t)viewportPanelSize.y;
@@ -351,7 +315,7 @@ namespace Engine {
             if ((uint32_t)m_viewportSize.x != newWidth || (uint32_t)m_viewportSize.y != newHeight)
             {
                 m_viewportSize = { (float)newWidth, (float)newHeight };
-                m_editorScene->OnViewportResize(newWidth, newHeight, m_viewportBounds);
+                //m_editorScene->OnViewportResize(newWidth, newHeight, m_viewportBounds);
             }
 
 
@@ -382,9 +346,6 @@ namespace Engine {
                 }
             }
             
-
-           
-
             if (ImGui::BeginDragDropTarget())
             {
                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -398,7 +359,7 @@ namespace Engine {
 
 
             // Guizmo
-           
+    
             Entity selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
            // auto cameraEntity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetPrimaryCameraEntity();
 
@@ -567,51 +528,41 @@ namespace Engine {
 
     void EditorLayer::OnScenePlay()
     {
-        m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds);
 
+		m_editor.get()->GetGameLayer()->GetActiveGameScene()->ClearRegistry();
+
+        // Should this combine be removed?
         m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetNewComponentsContext(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
-       // m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStart();
         
         if (m_sceneState != SceneState::Pause)
         {
+            m_editor.get()->GetGameLayer()->OnGameStart();
             m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
             m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
-            m_editor.get()->GetGameLayer()->OnGameStart();
         }
-
+ 
         m_sceneState = SceneState::Play;
-
-       // m_editor.get()->GetGameLayer()->SetIsPlaying(true);
-         
+  
     }
 
     void EditorLayer::OnSceneStop()
     {      
 
         m_sceneState = SceneState::Edit;
-        //m_activeScene = m_editorScene;
 
         m_editor.get()->GetGameLayer()->SetIsPlaying(false);
         m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStop();
         m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
-        //SaveScene();
-        m_sceneHierarchyPanel.SetGameContext(m_editorScene);
-        //m_editor.get()->GetGameLayer()->SetActiveScene(m_editorScene);
+        m_sceneHierarchyPanel.SetGameContext(m_sceneHierarchyPanel.GetNewComponentsContext());
         m_editor.get()->GetGameLayer()->OnGameStop();
         m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetNewComponentsContext(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
-       // m_editor.get()->GetGameLayer()->SetActiveScene(m_activeScene);
-
-
     }
 
     void EditorLayer::OnScenePause()
     {
         m_sceneState = SceneState::Pause;
-        //m_activeScene->OnRunTimeStop();
-
-
         m_editor.get()->GetGameLayer()->SetIsPlaying(false);
     }
 
@@ -674,6 +625,7 @@ namespace Engine {
             }
         }
 
+       
         if (m_selectedEntity)
         {
             if (m_selectedEntity.HasComponent<TileComponent>())
@@ -694,27 +646,32 @@ namespace Engine {
         }
         else
         {
-
-            Entity entity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
-           // Entity entity = m_sceneHierarchyPanel.GetNewComponentsContext()->CreateEntity();
-            TransformComponent& transformComp = entity.AddComponent<TransformComponent>();
-            transformComp.Translation.x = snapped.x;
-            transformComp.Translation.y = snapped.y;
-            TileComponent& tileComp = entity.AddComponent<TileComponent>();
-            tileComp.tiles.push_back(TileInfo{ snapped, UV, selectedTileName });
-
-            Entity editorEntity = m_editorScene->CreateEntity();
+ 
+            Entity editorEntity = m_sceneHierarchyPanel.GetNewComponentsContext()->CreateEntity();
             TransformComponent& editorTransformComp = editorEntity.AddComponent<TransformComponent>();
             editorTransformComp.Translation.x = snapped.x;
             editorTransformComp.Translation.y = snapped.y;
             TileComponent& editorTileComp = editorEntity.AddComponent<TileComponent>();
             editorTileComp.tiles.push_back(TileInfo{ snapped, UV, selectedTileName });
+            
+            
         }
-       
+        
+		// this is only to render textures while in editor mode
+        // Tile should still be saved in top Vector of tiles and they 
+        // are combined to one texture on play. Actually these should be removed on play? 
+        // this only works because GameScene registry is cleared on Start
+        Entity entity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
+        // Entity entity = m_sceneHierarchyPanel.GetNewComponentsContext()->CreateEntity();
+        TransformComponent& transformComp = entity.AddComponent<TransformComponent>();
+        transformComp.Translation.x = snapped.x;
+        transformComp.Translation.y = snapped.y;
+        TileComponent& tileComp = entity.AddComponent<TileComponent>();
+        tileComp.tiles.push_back(TileInfo{ snapped, UV, selectedTileName });
+        
+
         
     }
-
-
 
 
 
@@ -832,10 +789,6 @@ namespace Engine {
             mousePos.y = viewportSize.y - mousePos.y;
             int mouseX = (int)mousePos.x;
             int mouseY = (int)mousePos.y;
-
-           //EE_CORE_INFO("mouseX: {0}, {1}", mouseX, mouseY);
-           //EE_CORE_INFO("viewportSize: {0}, {1}", viewportSize.x, viewportSize.y);
-
             
             m_mouseIsInViewPort = mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y;
             /*
@@ -854,13 +807,9 @@ namespace Engine {
             }
             */
             
-
            OnOverlayRender();
 
-           /// m_framebuffer->Unbind();
         }
-
-        
 
     }
 
@@ -896,7 +845,7 @@ namespace Engine {
 				OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile));
             }
 
-            if (m_mouseIsInViewPort && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt) && selectedTile == "")
+            if (!ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt) && selectedTile == "")
             {
 
                 // quick way to get clicked entity
@@ -923,12 +872,24 @@ namespace Engine {
                 snapped.x = std::round(finalWorldPos.x);
                 snapped.y = std::round(finalWorldPos.y);
 
-                m_selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
+                m_selectedEntity = EditorUtils::FindTileAtPosition(m_sceneHierarchyPanel.GetNewComponentsContext(), snapped);
+                if(m_selectedEntity)
+                {
+                    m_sceneHierarchyPanel.SetSelectedEntity(m_selectedEntity);
+                    EE_CORE_INFO("viewport Clicked ID:  {}", (uint64_t)m_selectedEntity.GetComponent<IDComponent>().ID);
 
+                }
+                
+               
                 if (!m_selectedEntity)
                 {
+                   // EditorDebugUtils::PrintAllEntities(m_sceneHierarchyPanel.GetNewComponentsContext()->GetRegistry());
+
+                    m_selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
+                    if (m_selectedEntity)
+                        EE_CORE_INFO("panel Clicked ID:  {}", (uint64_t)m_selectedEntity.GetComponent<IDComponent>().ID);
+
                    // m_selectedEntity = EditorUtils::FindTileAtPosition(m_editor.get()->GetGameLayer()->GetActiveGameScene(), snapped);
-                    m_selectedEntity = EditorUtils::FindTileAtPosition(m_sceneHierarchyPanel.GetNewComponentsContext(), snapped);
                     m_sceneHierarchyPanel.SetSelectedEntity(m_selectedEntity);
                 }
 
@@ -948,6 +909,14 @@ namespace Engine {
         else if (e.GetMouseButton() == Mouse::Button1)
         {
             // Deselect
+			m_tileEditorPanel.SetSelectedTile(UINT_MAX, "");
+			m_sceneHierarchyPanel.SetSelectedEntity({}); // Deselect entity
+			m_selectedEntity = Entity(); // Reset selected entity
+			m_hoveredEntity = Entity(); // Reset hovered entity
+		}
+		else if (e.GetMouseButton() == Mouse::Button2)
+		{
+			// Right click - deselect tile
 			m_tileEditorPanel.SetSelectedTile(UINT_MAX, "");
         }
         return false;
@@ -1022,6 +991,11 @@ namespace Engine {
             m_sceneHierarchyPanel.SetGizmoType(ImGuizmo::OPERATION::SCALE);
             break;
         }
+        case Key::Delete:
+        {
+            m_sceneHierarchyPanel.DestrtoySelectedEntity(m_sceneHierarchyPanel.GetSelectedEntity());
+            break;
+        }
         }
         return false;
     }
@@ -1032,7 +1006,7 @@ namespace Engine {
     {
         //m_activeScene = std::make_shared<Scene>();
         //m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds); // min only for 
-        m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
+        //m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
         m_currentScenePath = std::filesystem::path();
     }
 
@@ -1058,11 +1032,11 @@ namespace Engine {
             return;
         }
 
-        m_editorScene = std::make_shared<Scene>();
-        m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds);
-        m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
+        //m_editorScene = std::make_shared<Scene>();
+        //m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds);
+       // m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
 
-        SceneSerializer serializer(m_editorScene);
+        SceneSerializer serializer(m_sceneHierarchyPanel.GetNewComponentsContext());
         serializer.Deserialize(path.string());
 
         //m_activeScene = m_editorScene;
@@ -1074,7 +1048,7 @@ namespace Engine {
         std::string filepath = FileDialogs::SaveFile("Engine scene (*.ee)\0*.ee\0");
         if (!filepath.empty())
         {
-            SceneSerializer serializer(m_editorScene);
+            SceneSerializer serializer(m_sceneHierarchyPanel.GetNewComponentsContext());
             serializer.Serialize(filepath);
             m_currentScenePath = filepath;
         }
@@ -1086,8 +1060,9 @@ namespace Engine {
     {
         if (!m_currentScenePath.empty())
         {
+            EditorDebugUtils::PrintAllEntities(m_sceneHierarchyPanel.GetNewComponentsContext()->GetRegistry());
 
-            SceneSerializer serializer(Scene::Combine(m_editorScene, m_sceneHierarchyPanel.GetNewComponentsContext()));
+            SceneSerializer serializer(m_sceneHierarchyPanel.GetNewComponentsContext());
 
             // Log before saving to check what exists in the scene
             //DebugUtils::LogAllEntitiesWithComponents(m_editorScene);

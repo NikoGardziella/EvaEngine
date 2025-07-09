@@ -22,7 +22,12 @@ namespace Engine {
     extern const std::filesystem::path s_assetPath;
 
 
-	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
+    SceneHierarchyPanel::SceneHierarchyPanel()
+    {
+		m_newComponentsContext = std::make_shared<Scene>();
+    }
+
+    SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 	{
 		SetEditorContext(context);
 	}
@@ -149,6 +154,21 @@ namespace Engine {
 
     }
 
+    void SceneHierarchyPanel::DestrtoySelectedEntity(Entity entity)
+    {
+        if (!m_newComponentsContext->DestroyEntity(entity))
+        {
+            // entity was not in new components. Delete it from GameScene
+
+        }
+        m_gameContext->DestroyEntity(entity);
+
+        if (m_selectionContext == entity)
+        {
+            m_selectionContext = {};
+        }
+    }
+
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
         auto& tagComp = entity.GetComponent<TagComponent>();
@@ -157,10 +177,12 @@ namespace Engine {
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
         
         bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tagComp.Tag.c_str());
+        m_itemIsClicked = false;
 
         if (ImGui::IsItemClicked())
         {
             m_selectionContext = entity;  // Store the selected entity
+            m_itemIsClicked = true;
         }
 
         bool entityDeleted = false;
@@ -168,9 +190,11 @@ namespace Engine {
         
         if (ImGui::BeginPopupContextItem())
         {
+            m_itemIsClicked = true;
             if (ImGui::MenuItem("Delete entity"))
             {
                 entityDeleted = true;
+                
             }
             ImGui::EndPopup(); 
         }
@@ -184,22 +208,13 @@ namespace Engine {
                 ImGui::TreePop();
 
             }
+            
             ImGui::TreePop();
         }
 
         if (entityDeleted)
         {
-            if (!m_newComponentsContext->DestroyEntity(entity))
-            {
-                // entity was not in new components. Delete it from GameScene
-                m_gameContext->DestroyEntity(entity);
-
-            }
-
-            if (m_selectionContext == entity)
-            {
-                m_selectionContext = {};
-            }
+			DestrtoySelectedEntity(entity);
         }
     }
 
@@ -211,17 +226,14 @@ namespace Engine {
 
         bool clickedOnEmptySpace = true;  // Track if no entity was clicked
 
-   
+ 
+        ImGui::PushID((void*)m_newComponentsContext.get()); // Push scene ID to make entity IDs unique
 
-
-        
-        ImGui::PushID((void*)m_gameContext.get()); // Push scene ID to make entity IDs unique
-
-        auto view = m_gameContext->m_registry.view<TagComponent>();
+        auto view = m_newComponentsContext->m_registry.view<TagComponent>();
         std::vector<entt::entity> entityList(view.begin(), view.end());
         std::reverse(entityList.begin(), entityList.end());
 
-        ImGui::PushID((void*)m_gameContext.get());
+        ImGui::PushID((void*)m_newComponentsContext.get());
 
         ImGuiListClipper clipper;
         clipper.Begin(static_cast<int>(entityList.size()));
@@ -234,7 +246,7 @@ namespace Engine {
             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
             {
                 entt::entity entityID = entityList[i];
-                Entity entity{ entityID, m_gameContext.get() };
+                Entity entity{ entityID, m_newComponentsContext.get() };
 
                 ImGui::PushID((uint32_t)entityID);
                 DrawEntityNode(entity);
@@ -251,14 +263,12 @@ namespace Engine {
         ImGui::PopID();
         
        
-        // Reset selection if clicking on empty space
-        if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && clickedOnEmptySpace)
-        {
-            m_selectionContext = {};
-        }
+        
 
+        
         // Open "Create Empty Entity" popup **only** if no entity was clicked
-        if (!m_selectionContext && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
+        
+        if (!m_itemIsClicked && !m_selectionContext && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
         {
             if (ImGui::MenuItem("Create Empty Entity"))
             {
@@ -270,6 +280,13 @@ namespace Engine {
 
             }
             ImGui::EndPopup();
+        }
+        
+
+        // Reset selection if clicking on empty space
+        if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && clickedOnEmptySpace)
+        {
+            m_selectionContext = {};
         }
 
         ImGui::End();

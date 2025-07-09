@@ -8,6 +8,7 @@ namespace Engine {
     {
         auto tileView = scene->GetRegistry().view<TileComponent>();
 
+
         for (auto entity : tileView)
         {
             const auto& tileComp = tileView.get<TileComponent>(entity);

@@ -13,7 +13,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
 {
     EE_PROFILE_FUNCTION();
 
-    
+   
     glm::vec2 mouseWorldPosition = glm::vec2(0.0f, 0.0f);
     {
         EE_PROFILE_SCOPE("Get Update Runtime Camera");
@@ -41,11 +41,14 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& 
         auto& controllerComp = view.get<CharacterControllerComponent>(entity);
 
       
-        // rotate player toward mouse pos
-        glm::vec2 direction = glm::normalize(glm::vec2(mouseWorldPosition) - glm::vec2(playerTransformComp.Translation));
-        float angle = std::atan2(direction.y, direction.x);
-        playerTransformComp.Rotation.z = angle + 130;
-       
+        glm::vec2 diff = glm::vec2(mouseWorldPosition) - glm::vec2(playerTransformComp.Translation);
+
+        if (glm::length(diff) > 0.0001f)
+        {
+            glm::vec2 direction = glm::normalize(diff);
+            float angle = std::atan2(direction.y, direction.x);
+            playerTransformComp.Rotation.z = angle + glm::radians(220.0f);
+        }
 
         glm::vec2 input = { 0.0f, 0.0f };
 

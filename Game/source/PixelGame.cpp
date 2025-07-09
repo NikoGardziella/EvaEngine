@@ -120,6 +120,7 @@ void PixelGame::OnEvent(Engine::Event& event)
 void PixelGame::OnGameStart()
 {
 
+	
 	CreateGameEntities();
 	m_activeScene->OnRunTimeStart();
 	

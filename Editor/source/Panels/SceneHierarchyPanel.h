@@ -13,7 +13,7 @@ namespace Engine {
 	{
 
 	public:
-		SceneHierarchyPanel() = default;
+		SceneHierarchyPanel();
 		SceneHierarchyPanel(const Ref<Scene>& context);
 
 
@@ -34,6 +34,8 @@ namespace Engine {
 		int GetEntityCount() const { return m_entityCount; }
 		int GetProjectileCount() const { return m_projectileCount; }
 
+		void DestrtoySelectedEntity(Entity entity);
+
 	private:
 
 		void DrawEntityNode(Entity entity);
@@ -47,12 +49,15 @@ namespace Engine {
 		Entity m_selectionContext;
 		int m_guizmoType = -1;
 
+		bool m_itemIsClicked = false;
+
 		// stats
 		int m_entityCount = 0;
 		int m_projectileCount = 0;
 		// ****
 
 		friend class Scene;
+
 	};
 
 }
