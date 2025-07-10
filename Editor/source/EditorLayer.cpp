@@ -530,12 +530,12 @@ namespace Engine {
     void EditorLayer::OnScenePlay()
     {
 
-		m_editorScene = m_sceneHierarchyPanel.GetEditorScene();
+		m_editorScene = Scene::Copy(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
 
 		//m_editor.get()->GetGameLayer()->GetActiveGameScene()->ClearRegistry();
 
         // Should this combine be removed?
-        m_editor.get()->GetGameLayer()->CopyToActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+        //m_editor.get()->GetGameLayer()->CopyToActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
         
         if (m_sceneState != eSceneState::Pause)
         {
@@ -561,8 +561,9 @@ namespace Engine {
        // m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
         m_sceneHierarchyPanel.SetSceneHierarchyPanelScene(m_editorScene);
+		m_editor.get()->GetGameLayer()->SetActiveScene(m_sceneHierarchyPanel.GetEditorScene());
         m_editor.get()->GetGameLayer()->OnGameStop();
-        m_editor.get()->GetGameLayer()->CopyToActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+       // m_editor.get()->GetGameLayer()->CopyToActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
     }
 
     void EditorLayer::OnScenePause()
@@ -884,7 +885,7 @@ namespace Engine {
                 snapped.x = std::round(finalWorldPos.x);
                 snapped.y = std::round(finalWorldPos.y);
 
-                m_selectedEntity = EditorUtils::FindTileAtPosition(m_editor.get()->GetGameLayer()->GetActiveGameScene(), snapped);
+                m_selectedEntity = EditorUtils::FindTileAtPosition(m_sceneHierarchyPanel.GetEditorScene(), snapped);
                 if(m_selectedEntity)
                 {
                     m_sceneHierarchyPanel.SetSelectedEntity(m_selectedEntity);

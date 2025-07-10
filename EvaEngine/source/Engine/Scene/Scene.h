@@ -52,15 +52,24 @@ namespace Engine {
 
 		Entity GetPrimaryCameraEntity();
 		TextureStreamingSystem& GetTextureStreamingSystem() { return *m_textureStreamingSystem; }
-		void SetTextureStreamingSystem(Engine::Scope<TextureStreamingSystem> textureStreamingSystem)
+
+
+		void SetTextureStreamingSystem(Engine::Ref<TextureStreamingSystem>& textureStreamingSystem)
 		{
-			m_textureStreamingSystem = std::move(textureStreamingSystem);
+			m_textureStreamingSystem = textureStreamingSystem;
 		}
-		Engine::Scope<TextureStreamingSystem> ReleaseTextureStreamingSystem()
+		Engine::Ref < TextureStreamingSystem>& GetTextureStreamingSystemRef()
 		{
-			return std::move(m_textureStreamingSystem);
+			return m_textureStreamingSystem;
 		}
 
+		/*
+			Engine::Scope<TextureStreamingSystem> ReleaseTextureStreamingSystem()
+			{
+				return std::move(m_textureStreamingSystem);
+			}
+
+		*/
 		void ClearRegistry() { m_registry.clear(); };
 
 		entt::registry& GetRegistry() { return m_registry;  }
@@ -111,7 +120,7 @@ namespace Engine {
 
 		std::vector<std::function<void(entt::registry&, float, Scene*)>> m_gameplaySystems;
 
-		Engine::Scope<TextureStreamingSystem> m_textureStreamingSystem;
+		Engine::Ref<TextureStreamingSystem> m_textureStreamingSystem;
 
 
 		friend class Entity;

@@ -27,18 +27,7 @@ PixelGame::PixelGame(const std::string scene)
 	m_activeScene = std::make_shared<Engine::Scene>();
 
 	
-	m_activeScene->RegisterSystem(CharacterControllerSystem::UpdateCharacterControllerSystem);
 	
-	m_activeScene->RegisterSystem(PlayerCollisionSystem::UpdatePlayerCollision);
-	m_activeScene->RegisterSystem(PlayerMovementSystem::MovementSystem);
-	m_activeScene->RegisterSystem(PlayerCameraSystem::UpdatePlayerCameraSystem);
-	m_activeScene->RegisterSystem(PlayerWeaponSystem::UpdatePlayerWeaponSystem);
-
-	m_activeScene->RegisterSystem(PixelCollisionSystem::UpdatePixelCollisionSystem);
-	m_activeScene->RegisterSystem(ProjectileSystem::UpdateProjectileSystem);
-	m_activeScene->RegisterSystem(HealthSystem::UpdateHealthSystem);
-	m_activeScene->RegisterSystem(NpcAIMovementSystem::UpdateNPCAIMovementSystem);
-	m_activeScene->RegisterSystem(NPCAIVisionSystem::UpdateNPCAIVisionSystem);
 
 }
 
@@ -58,6 +47,22 @@ void PixelGame::OnAttach()
 		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
 	}
 	
+}
+
+void PixelGame::RegisterSystems()
+{
+	m_activeScene->RegisterSystem(CharacterControllerSystem::UpdateCharacterControllerSystem);
+
+	m_activeScene->RegisterSystem(PlayerCollisionSystem::UpdatePlayerCollision);
+	m_activeScene->RegisterSystem(PlayerMovementSystem::MovementSystem);
+	m_activeScene->RegisterSystem(PlayerCameraSystem::UpdatePlayerCameraSystem);
+	m_activeScene->RegisterSystem(PlayerWeaponSystem::UpdatePlayerWeaponSystem);
+
+	m_activeScene->RegisterSystem(PixelCollisionSystem::UpdatePixelCollisionSystem);
+	m_activeScene->RegisterSystem(ProjectileSystem::UpdateProjectileSystem);
+	m_activeScene->RegisterSystem(HealthSystem::UpdateHealthSystem);
+	m_activeScene->RegisterSystem(NpcAIMovementSystem::UpdateNPCAIMovementSystem);
+	m_activeScene->RegisterSystem(NPCAIVisionSystem::UpdateNPCAIVisionSystem);
 }
 
 void PixelGame::OnDetach()
@@ -120,7 +125,7 @@ void PixelGame::OnEvent(Engine::Event& event)
 void PixelGame::OnGameStart()
 {
 
-	
+	RegisterSystems();
 	CreateGameEntities();
 	m_activeScene->OnRunTimeStart();
 	
@@ -144,10 +149,10 @@ void PixelGame::OnGameStop()
 		m_activeSceneName = "currentScene";
 		
 	}
-	m_activeScene->ClearRegistry();
+	//m_activeScene->ClearRegistry();
 	
-	Engine::SceneSerializer serializer(m_activeScene);
-	serializer.Deserialize(Engine::AssetManager::GetScenePath(m_activeSceneName).string());
+	//Engine::SceneSerializer serializer(m_activeScene);
+	//serializer.Deserialize(Engine::AssetManager::GetScenePath(m_activeSceneName).string());
 
 }
 
@@ -166,16 +171,16 @@ void PixelGame::CreateGameEntities()
 		//playerSpriteComp.Color = color;
 		playerSpriteComp.Texture = m_playerTexture;
 
-		
+		m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
+		auto& transformComp = m_pixelEntity.AddComponent<Engine::TransformComponent>();
+		transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
+		Engine::SpriteRendererComponent& spriteComp = m_pixelEntity.AddComponent<Engine::SpriteRendererComponent>();
+		spriteComp.Texture = m_pixelTexture;
+
 	
 
 	*/
-	m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
-	auto& transformComp = m_pixelEntity.AddComponent<Engine::TransformComponent>();
-	transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
-	Engine::SpriteRendererComponent& spriteComp = m_pixelEntity.AddComponent<Engine::SpriteRendererComponent>();
-	spriteComp.Texture = m_pixelTexture;
-
+	
 	m_cameraEntity = m_activeScene->CreateEntity("camera");
 	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
 	cameraComp.FixedAspectRatio = true;

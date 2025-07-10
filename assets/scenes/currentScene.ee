@@ -1,10 +1,10 @@
 Scene: My Scene
 Entities:
-  - ID: 6882855267010927123
+  - ID: 14967347341273714913
     TagComponent:
       Tag: Entity
     TransformComponent:
-      Translation: [-4, -1, 0]
+      Translation: [4, -0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TileComponent:
@@ -17,39 +17,53 @@ Entities:
           Name: house
           IsDestructible: false
           IsRoof: false
+        - Position: [1, -2]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
         - Position: [-2, -2]
           UV: [0.125, 0, 0.25, 1]
           Name: objects_house_0055_Layer-56
           IsDestructible: false
           IsRoof: false
-        - Position: [5, 0]
+        - Position: [-5, -2]
           UV: [0.125, 0, 0.25, 1]
           Name: objects_house_0055_Layer-56
           IsDestructible: false
           IsRoof: false
-        - Position: [5, -1]
-          UV: [0.125, 0, 0.25, 1]
-          Name: objects_house_0055_Layer-56
-          IsDestructible: false
-          IsRoof: false
-        - Position: [-4, 3]
+  - ID: 4363033572223485974
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [5, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      WorldPos: [0, 0]
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
           UV: [0, 0, 0.125, 1]
           Name: house
           IsDestructible: false
           IsRoof: false
-        - Position: [8, -1]
-          UV: [0.125, 0, 0.25, 1]
-          Name: objects_house_0055_Layer-56
-          IsDestructible: false
-          IsRoof: false
-        - Position: [7, 3]
-          UV: [0.125, 0, 0.25, 1]
-          Name: objects_house_0055_Layer-56
-          IsDestructible: false
-          IsRoof: false
-        - Position: [7, 3]
-          UV: [0.125, 0, 0.25, 1]
-          Name: objects_house_0055_Layer-56
+  - ID: 9824921736354421747
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [7, 5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      WorldPos: [0, 0]
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0, 0, 0.125, 1]
+          Name: house
           IsDestructible: false
           IsRoof: false
   - ID: 3342535701
@@ -77,11 +91,11 @@ Entities:
     WeaponComponent:
       Damage: 10
       FireRate: 0.6
-  - ID: 3444113948
+  - ID: 2420331562
     TagComponent:
       Tag: Entity
     TransformComponent:
-      Translation: [-3, 3, 0]
+      Translation: [-4, 2, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TileComponent:
@@ -92,10 +106,5 @@ Entities:
         - Position: [0, 0]
           UV: [0, 0, 0.125, 1]
           Name: house
-          IsDestructible: false
-          IsRoof: false
-        - Position: [6, -1]
-          UV: [0.125, 0, 0.25, 1]
-          Name: objects_house_0055_Layer-56
           IsDestructible: false
           IsRoof: false

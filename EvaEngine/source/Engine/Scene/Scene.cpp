@@ -111,7 +111,7 @@ namespace Engine {
 		newScene->m_viewportBounds[0] = other->m_viewportBounds[0];
 		newScene->m_viewportBounds[1] = other->m_viewportBounds[1];
 
-		newScene->SetTextureStreamingSystem(other->ReleaseTextureStreamingSystem());
+		newScene->SetTextureStreamingSystem(other->GetTextureStreamingSystemRef());
 
         std::unordered_map<UUID, entt::entity> enttMap;
 
@@ -194,7 +194,7 @@ namespace Engine {
         Ref<Scene> combinedScene = std::make_shared<Scene>();
 
         // usually sceneB is the Game scene that has the TextureStreaming
-        combinedScene->SetTextureStreamingSystem(sceneB->ReleaseTextureStreamingSystem());
+        combinedScene->SetTextureStreamingSystem(sceneB->GetTextureStreamingSystemRef());
 
 
 

@@ -305,6 +305,8 @@ namespace Engine {
     {
         EE_CORE_INFO("Resetting all chunks (scheduled unload)...");
 
+		
+
         // Phase 1: gather IDs of all loaded chunks
         std::vector<UUID> toUnload;
 		uint32_t chunkCount = static_cast<uint32_t>(m_chunkMap.size());

@@ -26,7 +26,7 @@ public:
 	void CreateGameEntities();
 
 	void SpawnChunkGridSprites();
-
+	void RegisterSystems();
 
 	Engine::Ref<Engine::Scene>& GetActiveGameScene() { return m_activeScene; }
 
