@@ -1,9 +1,7 @@
 #pragma once
-#include <Engine/Scene/Scene.h>
+
 #include <Engine/Scene/Entity.h>
-
 #include "Engine/Core/Core.h"
-
 
 namespace Engine {
 
@@ -11,17 +9,14 @@ namespace Engine {
 
 	class SceneHierarchyPanel
 	{
-
+		
 	public:
 		SceneHierarchyPanel();
-		SceneHierarchyPanel(const Ref<Scene>& context);
+		//SceneHierarchyPanel(const Ref<Scene>& context);
 
-
-
-		void SetEditorContext(const Ref<Scene>& scene);
-		void SetGameContext(const Ref<Scene>& scene);
-		void SetNewComponentsContext(const Ref<Scene>& scene);
-		const Ref<Scene>& GetNewComponentsContext() { return m_newComponentsContext; }
+		//void SetGameContext(const Ref<Scene>& scene);
+		void SetSceneHierarchyPanelScene(const Ref<Scene>& scene);
+		Ref<Scene>& GetEditorScene() { return m_sceneHierarchyPanelScene; }
 		void OnImGuiRender();
 		void DrawComponents(Entity entity);
 
@@ -43,13 +38,14 @@ namespace Engine {
 
 	private:
 
-		Ref<Scene> m_gameContext;
-		Ref<Scene> m_newComponentsContext;
+		//Ref<Scene> m_gameContext;
+		Ref<Scene> m_sceneHierarchyPanelScene;
 
 		Entity m_selectionContext;
 		int m_guizmoType = -1;
 
 		bool m_itemIsClicked = false;
+	
 
 		// stats
 		int m_entityCount = 0;

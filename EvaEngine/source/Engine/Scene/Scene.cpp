@@ -878,20 +878,24 @@ namespace Engine {
         }
         {
             
-            auto view = m_registry.view<TileComponent>();
+            auto view = m_registry.view<TileComponent, TransformComponent>();
             for (auto entity : view)
             {
                 glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
                 TileComponent& tileComponent = view.get<TileComponent>(entity);
+                TransformComponent& transformComponent = view.get<TransformComponent>(entity);
                 for (size_t i = 0; i < tileComponent.tiles.size(); i++)
                 {
                     float flippedV0 = tileComponent.tiles[i].UV.w; // original v1 (bottom)
                     float flippedV1 = tileComponent.tiles[i].UV.y; // original v0 (top)
                     glm::vec4 flippedUV = glm::vec4(tileComponent.tiles[i].UV.x, flippedV0, tileComponent.tiles[i].UV.z, flippedV1);
 
+
+                    glm::vec2 worldPos = glm::vec2(transformComponent.Translation) + tileComponent.tiles[i].position;
+
                     // Use flippedUV for rendering, don't overwrite original UV
-                    Engine::VulkanRenderer2D::DrawTile(tileComponent.tiles[i].position, flippedUV, color);
+                    Engine::VulkanRenderer2D::DrawTile(worldPos, flippedUV, color);
                 }
                 
             }

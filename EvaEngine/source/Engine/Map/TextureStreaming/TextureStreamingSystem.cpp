@@ -397,39 +397,43 @@ namespace Engine {
 
     void TextureStreamingSystem::BakeTilesIntoChunks(entt::registry& registry)
     {
-        constexpr int TILE_SIZE = 1; // Size in world units (not pixels), adjust accordingly
+        constexpr int TILE_SIZE = 1; 
 
-        auto view = registry.view<TileComponent>();
+        auto view = registry.view<TransformComponent, TileComponent>();
         for (auto entity : view)
         {
-            const auto& tileComp = view.get<TileComponent>(entity);
+            const auto& xf = view.get<TransformComponent>(entity);
+            const auto& tcomp = view.get<TileComponent>(entity);
 
-            for (const auto& tile : tileComp.tiles)
+            for (const auto& tile : tcomp.tiles)
             {
-                glm::vec3 worldPos = {
-                    tile.position.x * TILE_SIZE + tileComp.WorldPos.x,
-                    tile.position.y * TILE_SIZE + tileComp.WorldPos.y,
-                    0.0f
-                };
+                glm::vec2 world2D = (glm::vec2)xf.Translation + tile.position;
+                glm::vec3 worldPos = { world2D.x * float(TILE_SIZE),
+                                       world2D.y * float(TILE_SIZE),
+                                       0.0f };
 
                 std::vector<uint8_t> pixelData;
                 int width, height;
+                if (!AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, width, height))
+                    continue;
 
-                if (AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, width, height))
-                {
-                    if (pixelData.empty())
-                        continue;
+                EE_CORE_INFO("Baking tile '{}' at worldPos = ({:.1f}, {:.1f})",
+                    tile.name.c_str(), worldPos.x, worldPos.y);
 
-                    EE_CORE_INFO("Baking tile '{}' at worldPos = ({:.1f}, {:.1f})",
-                        tile.name.c_str(), worldPos.x, worldPos.y);
-
-                    UploadToChunkFromTexture(worldPos, tileComp.TileID, tile.name, pixelData, width, height);
-                }
+                UploadToChunkFromTexture(
+                    glm::vec2(worldPos.x, worldPos.y),
+                    tcomp.TileID,
+                    tile.name,
+                    pixelData,
+                    uint32_t(width),
+                    uint32_t(height)
+                );
             }
         }
 
-        // DebugMarkChunks();
+        //DebugMarkChunks();
     }
+
 
 
     void TextureStreamingSystem::AddChunkEntitiesToRegistry(entt::registry& registry)

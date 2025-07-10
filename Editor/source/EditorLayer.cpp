@@ -59,7 +59,7 @@ namespace Engine {
 
         m_editorCamera = EditorCamera(55.0f, 1.78f, 0.1f, 1000.0f);
 
-
+        /*
         class CameraController : public ScriptableEntity
         {
         public:
@@ -95,24 +95,25 @@ namespace Engine {
 
         };        
 
+        */
 
-        Engine::SceneSerializer serializer(m_sceneHierarchyPanel.GetNewComponentsContext());
+        Engine::SceneSerializer serializer(m_sceneHierarchyPanel.GetEditorScene());
         std::string scenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName()).string();
         if (!serializer.Deserialize(scenePath))
         {
             EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
         }
 
-        m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+        //m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
         m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
         m_currentScenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName());
+        m_editor.get()->GetGameLayer()->SetActiveScene(m_sceneHierarchyPanel.GetEditorScene());
 
     }
 
     void EditorLayer::OnDetach()
     {
         EE_PROFILE_FUNCTION();
-        
     }
 
     void EditorLayer::OnImGuiRender()
@@ -306,7 +307,7 @@ namespace Engine {
             // Optional debug log
            
             // Make sure viewport size is correct as well
-            m_sceneHierarchyPanel.GetNewComponentsContext()->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds);
+            m_sceneHierarchyPanel.GetEditorScene()->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds);
 
             uint32_t newWidth = (uint32_t)viewportPanelSize.x;
             uint32_t newHeight = (uint32_t)viewportPanelSize.y;
@@ -454,15 +455,15 @@ namespace Engine {
         Ref<VulkanTexture> icon;
        
         {
-            icon = m_sceneState == SceneState::Play ? m_iconPause : m_iconPlay;
+            icon = m_sceneState == eSceneState::Play ? m_iconPause : m_iconPlay;
             if (ImGui::ImageButton("##playbutton", (ImTextureID)icon->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
             {
                 
-                if (m_sceneState == SceneState::Pause || m_sceneState == SceneState::Edit)
+                if (m_sceneState == eSceneState::Pause || m_sceneState == eSceneState::Edit)
                 {
                     OnScenePlay();
                 }
-                else if (m_sceneState == SceneState::Play)
+                else if (m_sceneState == eSceneState::Play)
                 {
                     OnScenePause();
                 }
@@ -476,7 +477,7 @@ namespace Engine {
         // Stop Button
         if (ImGui::ImageButton("##stopbutton", (ImTextureID)m_iconStop->GetTextureDescriptor(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1)))
         {
-            if (m_sceneState == SceneState::Play || m_sceneState == SceneState::Pause)
+            if (m_sceneState == eSceneState::Play || m_sceneState == eSceneState::Pause)
             {
                 OnSceneStop();
             }
@@ -529,46 +530,50 @@ namespace Engine {
     void EditorLayer::OnScenePlay()
     {
 
-		m_editor.get()->GetGameLayer()->GetActiveGameScene()->ClearRegistry();
+		m_editorScene = m_sceneHierarchyPanel.GetEditorScene();
+
+		//m_editor.get()->GetGameLayer()->GetActiveGameScene()->ClearRegistry();
 
         // Should this combine be removed?
-        m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetNewComponentsContext(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+        m_editor.get()->GetGameLayer()->CopyToActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
         
-        if (m_sceneState != SceneState::Pause)
+        if (m_sceneState != eSceneState::Pause)
         {
             m_editor.get()->GetGameLayer()->OnGameStart();
             m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
-            m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+            m_sceneHierarchyPanel.SetSceneHierarchyPanelScene(m_editor.get()->GetGameLayer()->GetActiveGameScene());
         }
  
-        m_sceneState = SceneState::Play;
+        m_sceneState = eSceneState::Play;
   
     }
 
     void EditorLayer::OnSceneStop()
     {      
 
-        m_sceneState = SceneState::Edit;
+        m_sceneState = eSceneState::Edit;
+
+
 
         m_editor.get()->GetGameLayer()->SetIsPlaying(false);
         m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStop();
-        m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+       // m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
 
-        m_sceneHierarchyPanel.SetGameContext(m_sceneHierarchyPanel.GetNewComponentsContext());
+        m_sceneHierarchyPanel.SetSceneHierarchyPanelScene(m_editorScene);
         m_editor.get()->GetGameLayer()->OnGameStop();
-        m_editor.get()->GetGameLayer()->SetActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetNewComponentsContext(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+        m_editor.get()->GetGameLayer()->CopyToActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
     }
 
     void EditorLayer::OnScenePause()
     {
-        m_sceneState = SceneState::Pause;
+        m_sceneState = eSceneState::Pause;
         m_editor.get()->GetGameLayer()->SetIsPlaying(false);
     }
 
     void EditorLayer::OnDuplicateEntity()
     {
-        if (m_sceneState != SceneState::Edit)
+        if (m_sceneState != eSceneState::Edit)
         {
             return;
         }
@@ -576,7 +581,7 @@ namespace Engine {
         Entity selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity)
         {
-            m_sceneHierarchyPanel.GetNewComponentsContext()->DuplicateEntity(selectedEntity);
+            m_sceneHierarchyPanel.GetEditorScene()->DuplicateEntity(selectedEntity);
         }
     }
 
@@ -628,17 +633,23 @@ namespace Engine {
        
         if (m_selectedEntity)
         {
+            // add tile to already existing entity
+            TransformComponent& entityTransformComp = m_selectedEntity.GetComponent<TransformComponent>();
+
             if (m_selectedEntity.HasComponent<TileComponent>())
             {
                 TileComponent& tileComp = m_selectedEntity.GetComponent<TileComponent>();
-				tileComp.tiles.push_back(TileInfo{ snapped,UV, selectedTileName });
+                glm::vec2 localOffset = snapped - (glm::vec2)entityTransformComp.Translation;
+				tileComp.tiles.push_back(TileInfo{ localOffset,UV, selectedTileName });
                 EE_CORE_INFO("adding tile: {}", tileComp.tiles.size());
 
             }
             else
             {
                 TileComponent& tileComp = m_selectedEntity.AddComponent<TileComponent>();
-				tileComp.tiles.push_back(TileInfo{ snapped, UV, selectedTileName });
+                glm::vec2 localOffset = snapped - (glm::vec2)entityTransformComp.Translation;
+
+				tileComp.tiles.push_back(TileInfo{ localOffset, UV, selectedTileName });
 				EE_CORE_INFO(" new TieComp.adding tile: {}", tileComp.tiles.size());
             }
             
@@ -646,29 +657,30 @@ namespace Engine {
         }
         else
         {
- 
-            Entity editorEntity = m_sceneHierarchyPanel.GetNewComponentsContext()->CreateEntity();
+			// create new entity with tile component
+            Entity editorEntity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
             TransformComponent& editorTransformComp = editorEntity.AddComponent<TransformComponent>();
             editorTransformComp.Translation.x = snapped.x;
             editorTransformComp.Translation.y = snapped.y;
             TileComponent& editorTileComp = editorEntity.AddComponent<TileComponent>();
-            editorTileComp.tiles.push_back(TileInfo{ snapped, UV, selectedTileName });
-            
-            
+            editorTileComp.tiles.push_back(TileInfo{ glm::vec2(0.0f, 0.0f), UV, selectedTileName });
         }
         
+        /*
 		// this is only to render textures while in editor mode
         // Tile should still be saved in top Vector of tiles and they 
         // are combined to one texture on play. Actually these should be removed on play? 
         // this only works because GameScene registry is cleared on Start
+        // if I do this. changig values in transform comp does not show in editor(only in runtime)
         Entity entity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
         // Entity entity = m_sceneHierarchyPanel.GetNewComponentsContext()->CreateEntity();
         TransformComponent& transformComp = entity.AddComponent<TransformComponent>();
         transformComp.Translation.x = snapped.x;
         transformComp.Translation.y = snapped.y;
         TileComponent& tileComp = entity.AddComponent<TileComponent>();
-        tileComp.tiles.push_back(TileInfo{ snapped, UV, selectedTileName });
+        tileComp.tiles.push_back(TileInfo{ glm::vec2(0.0f, 0.0f), UV, selectedTileName });
         
+        */
 
         
     }
@@ -677,7 +689,7 @@ namespace Engine {
 
     void EditorLayer::OnOverlayRender()
     {
-        if (m_sceneState == SceneState::Play)
+        if (m_sceneState == eSceneState::Play)
         {
             Entity camera = m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetPrimaryCameraEntity();
             if (!camera)
@@ -760,19 +772,19 @@ namespace Engine {
 
             switch (m_sceneState)   
             {
-                case Engine::EditorLayer::SceneState::Edit:
+                case Engine::EditorLayer::eSceneState::Edit:
                 {
 
                     m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateEditor(timestep, m_editorCamera);
                     break;
 
                 }
-                case Engine::EditorLayer::SceneState::Play:
+                case Engine::EditorLayer::eSceneState::Play:
                 {
                     //m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateRuntime(timestep);
                     break;
                 }
-                case Engine::EditorLayer::SceneState::Pause:
+                case Engine::EditorLayer::eSceneState::Pause:
                 {
                     m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateRuntime(timestep, false);
                     break;
@@ -836,7 +848,7 @@ namespace Engine {
             std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
             if (m_mouseIsInViewPort && selectedTile != "")
             {
-                if (m_sceneState != SceneState::Edit)
+                if (m_sceneState != eSceneState::Edit)
                 {
                     return false;
                 }
@@ -872,7 +884,7 @@ namespace Engine {
                 snapped.x = std::round(finalWorldPos.x);
                 snapped.y = std::round(finalWorldPos.y);
 
-                m_selectedEntity = EditorUtils::FindTileAtPosition(m_sceneHierarchyPanel.GetNewComponentsContext(), snapped);
+                m_selectedEntity = EditorUtils::FindTileAtPosition(m_editor.get()->GetGameLayer()->GetActiveGameScene(), snapped);
                 if(m_selectedEntity)
                 {
                     m_sceneHierarchyPanel.SetSelectedEntity(m_selectedEntity);
@@ -1021,7 +1033,7 @@ namespace Engine {
 
     void EditorLayer::OpenScene(const std::filesystem::path& path)
     {
-        if (m_sceneState != SceneState::Edit)
+        if (m_sceneState != eSceneState::Edit)
         {
             OnSceneStop();
         }
@@ -1036,7 +1048,7 @@ namespace Engine {
         //m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds);
        // m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
 
-        SceneSerializer serializer(m_sceneHierarchyPanel.GetNewComponentsContext());
+        SceneSerializer serializer(m_sceneHierarchyPanel.GetEditorScene());
         serializer.Deserialize(path.string());
 
         //m_activeScene = m_editorScene;
@@ -1048,7 +1060,7 @@ namespace Engine {
         std::string filepath = FileDialogs::SaveFile("Engine scene (*.ee)\0*.ee\0");
         if (!filepath.empty())
         {
-            SceneSerializer serializer(m_sceneHierarchyPanel.GetNewComponentsContext());
+            SceneSerializer serializer(m_sceneHierarchyPanel.GetEditorScene());
             serializer.Serialize(filepath);
             m_currentScenePath = filepath;
         }
@@ -1060,9 +1072,9 @@ namespace Engine {
     {
         if (!m_currentScenePath.empty())
         {
-            EditorDebugUtils::PrintAllEntities(m_sceneHierarchyPanel.GetNewComponentsContext()->GetRegistry());
+            EditorDebugUtils::PrintAllEntities(m_sceneHierarchyPanel.GetEditorScene()->GetRegistry());
 
-            SceneSerializer serializer(m_sceneHierarchyPanel.GetNewComponentsContext());
+            SceneSerializer serializer(m_sceneHierarchyPanel.GetEditorScene());
 
             // Log before saving to check what exists in the scene
             //DebugUtils::LogAllEntitiesWithComponents(m_editorScene);

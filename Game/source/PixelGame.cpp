@@ -166,15 +166,15 @@ void PixelGame::CreateGameEntities()
 		//playerSpriteComp.Color = color;
 		playerSpriteComp.Texture = m_playerTexture;
 
-		m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
-		auto& transformComp = m_pixelEntity.AddComponent<Engine::TransformComponent>();
-		transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
-		Engine::SpriteRendererComponent& spriteComp = m_pixelEntity.AddComponent<Engine::SpriteRendererComponent>();
-		spriteComp.Texture = m_pixelTexture;
+		
 	
 
 	*/
-	
+	m_pixelEntity = m_activeScene->CreateEntity("pixel entity");
+	auto& transformComp = m_pixelEntity.AddComponent<Engine::TransformComponent>();
+	transformComp.Translation += glm::vec3(0.0f, 5.0f, 0.0f);
+	Engine::SpriteRendererComponent& spriteComp = m_pixelEntity.AddComponent<Engine::SpriteRendererComponent>();
+	spriteComp.Texture = m_pixelTexture;
 
 	m_cameraEntity = m_activeScene->CreateEntity("camera");
 	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();

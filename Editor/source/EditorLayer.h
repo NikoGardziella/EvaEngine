@@ -22,7 +22,8 @@ namespace Engine {
 
 	class EditorLayer : public Layer
 	{
-		enum class SceneState
+	
+		enum class eSceneState
 		{
 			Edit = 0,
 			Play = 1,
@@ -111,9 +112,10 @@ namespace Engine {
 		DebugPanel m_debugPanel;
 
 
+		Ref<Scene> m_editorScene;
 
 		// PlayButton
-		SceneState m_sceneState = SceneState::Edit;
+		eSceneState m_sceneState = eSceneState::Edit;
 		Ref<VulkanTexture> m_iconPlay;
 		Ref<VulkanTexture> m_iconStop;
 		Ref<VulkanTexture> m_iconPause;

@@ -31,7 +31,8 @@ public:
 	Engine::Ref<Engine::Scene>& GetActiveGameScene() { return m_activeScene; }
 
 	void SetIsPlaying(bool play) { m_isPlaying = play; }
-	void SetActiveScene(Engine::Ref<Engine::Scene>& scene) { m_activeScene = Engine::Scene::Copy(scene); }
+	void CopyToActiveScene(Engine::Ref<Engine::Scene>& scene) { m_activeScene = Engine::Scene::Copy(scene); }
+	void SetActiveScene(Engine::Ref<Engine::Scene>& scene) { m_activeScene = scene; };
 
 	std::string GetActiveSceneName() { return m_activeSceneName; }
 

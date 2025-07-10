@@ -244,7 +244,7 @@ namespace Engine {
 			ImGui_ImplVulkan_NewFrame();
 			ImGui_ImplGlfw_NewFrame(); // or SDL, depending on what you use
 			ImGui::NewFrame();
-
+			ImGuizmo::BeginFrame();
 		
 
 			break;
