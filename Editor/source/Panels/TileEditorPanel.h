@@ -42,7 +42,7 @@ namespace Engine
 		}
 	private:
 		void DrawTilePalette();
-		void CreateTileAtlas();
+		//void CreateTileAtlas();
 	private:
 
 		bool m_showChunks = false;
@@ -50,12 +50,11 @@ namespace Engine
 
 		//  top-left and bottom-right corners in normalized UV space.
 		std::unordered_map<std::string, glm::vec4> m_tileUVMap;
-
+		std::vector<std::string> m_tileNames;
 
 		Ref<VulkanTexture> m_tileTextureIconAtlas;
 		uint32_t m_selectedTile = UINT32_MAX; 
 		std::string m_selectedTileName;
-		std::vector<std::string> m_tileNames;
 	};
 }
 
