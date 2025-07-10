@@ -15,6 +15,8 @@ namespace Engine {
     public:
         static void Initialize(int maxDepth = 5);
 
+        static void CreateTileAtlas();
+
         static std::filesystem::path GetAssetPath(const std::string& subPath);
         static std::filesystem::path GetScenePath(const std::string& subPath);
         static std::filesystem::path GetAssetFolderPath();
@@ -39,6 +41,11 @@ namespace Engine {
         static bool GetTexturePixelData(const std::string& textureName, std::vector<uint8_t>& outPixels, int& outWidth, int& outHeight);
         static std::string ResolveTexturePath(const std::string& textureName);
         
+        //Tile atlas
+		static std::unordered_map<std::string, glm::vec4>& GetTileUVMap() { return s_tileUVMap; }
+		static std::vector<std::string>& GetTileNames() { return s_tileNames; }
+		static Ref<VulkanTexture>& GetTileTextureIconAtlas() { return s_tileTextureIconAtlas; }
+		
 
     private:
         static std::filesystem::path s_AssetPath;
@@ -46,7 +53,11 @@ namespace Engine {
 
         static std::unordered_map<std::string, std::shared_ptr<VulkanTexture>> s_textureCache;
         static std::unordered_map<std::string, std::shared_ptr<VulkanPixelTexture>> s_pixelTextureCache;
-        static Scope<VulkanTexture> s_tileTextureIconAtlas;
+        static Ref<VulkanTexture> s_tileTextureIconAtlas;
+
+        static std::unordered_map<std::string, glm::vec4> s_tileUVMap;
+        static std::vector<std::string> s_tileNames;
+
 
     };
 

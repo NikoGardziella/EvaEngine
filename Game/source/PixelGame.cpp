@@ -28,6 +28,7 @@ PixelGame::PixelGame(const std::string scene)
 
 	
 	
+	
 
 }
 
@@ -40,12 +41,7 @@ void PixelGame::OnAttach()
 
 	m_orthoCameraController.SetZoomLevel(30.0f);
 
-	Engine::SceneSerializer serializer(m_activeScene);
-	std::string scenePath = Engine::AssetManager::GetScenePath(m_activeSceneName).string();
-	if (!serializer.Deserialize(scenePath))
-	{
-		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
-	}
+	
 	
 }
 
@@ -124,7 +120,7 @@ void PixelGame::OnEvent(Engine::Event& event)
 
 void PixelGame::OnGameStart()
 {
-
+	
 	RegisterSystems();
 	CreateGameEntities();
 	m_activeScene->OnRunTimeStart();
@@ -139,6 +135,14 @@ void PixelGame::LoadGameAssets()
 {
 	m_pixelTexture = Engine::AssetManager::GetPixelTexture("pixel");
 	//m_playerTexture = Engine::AssetManager::GetTexture("player");
+
+	Engine::SceneSerializer serializer(m_activeScene);
+	std::string scenePath = Engine::AssetManager::GetScenePath(m_activeSceneName).string();
+	if (!serializer.Deserialize(scenePath))
+	{
+		EE_CORE_ERROR("Failed to load scene at: {}", scenePath);
+	}
+
 }
 
 void PixelGame::OnGameStop()

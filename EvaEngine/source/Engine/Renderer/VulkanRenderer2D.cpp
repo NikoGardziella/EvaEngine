@@ -1364,7 +1364,7 @@ namespace Engine {
 
 		for (uint32_t i = 0; i < s_VulkanData.TextureSlotIndex; i++)
 		{
-			if (s_VulkanData.TextureSlots[i] == AssetManager::GetTexture("tilePalette"))
+			if (s_VulkanData.TextureSlots[i] == AssetManager::GetTileTextureIconAtlas())
 			{
 				textureIndex = (float)i;
 				break;
@@ -1375,7 +1375,7 @@ namespace Engine {
 		if (textureIndex == 0.0f)
 		{
 			textureIndex = (float)s_VulkanData.TextureSlotIndex;
-			s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::GetTexture("tilePalette");
+			s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::GetTileTextureIconAtlas();
 			s_VulkanData.TextureSlotIndex++;
 		}
 		// Vertex data (inside DrawQuad or similar):

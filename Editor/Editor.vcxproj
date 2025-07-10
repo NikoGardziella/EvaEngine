@@ -134,8 +134,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\Panels\Utils\EditorDebugUtils.h" />
-    <ClInclude Include="source\Panels\Utils\EditorUtils.h" />
     <ClInclude Include="source\EditorApp.h" />
     <ClInclude Include="source\EditorLayer.h" />
     <ClInclude Include="source\FPSCounter.h" />
@@ -143,18 +141,18 @@
     <ClInclude Include="source\Panels\DebugPanel.h" />
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h" />
     <ClInclude Include="source\Panels\TileEditorPanel.h" />
-    <ClInclude Include="source\Panels\Utils\TilePaletteSerializer.h" />
+    <ClInclude Include="source\Panels\Utils\EditorDebugUtils.h" />
+    <ClInclude Include="source\Panels\Utils\EditorUtils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Panels\Utils\EditorDebugUtils.cpp" />
-    <ClCompile Include="source\Panels\Utils\EditorUtils.cpp" />
     <ClCompile Include="source\EditorApp.cpp" />
     <ClCompile Include="source\EditorLayer.cpp" />
     <ClCompile Include="source\Panels\ContentBrowserPanel.cpp" />
     <ClCompile Include="source\Panels\DebugPanel.cpp" />
     <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp" />
     <ClCompile Include="source\Panels\TileEditorPanel.cpp" />
-    <ClCompile Include="source\Panels\Utils\TilePaletteSerializer.cpp" />
+    <ClCompile Include="source\Panels\Utils\EditorDebugUtils.cpp" />
+    <ClCompile Include="source\Panels\Utils\EditorUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EvaEngine\EvaEngine.vcxproj">

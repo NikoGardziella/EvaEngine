@@ -268,7 +268,6 @@ namespace Engine {
     {
         EE_CORE_INFO("Unloading chunk at coords: {}, {}", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
 
-        // Reset the owning smart pointer — its destructor will free Vulkan resources
         auto entityView = gameRegistry.view<IDComponent, SpriteRendererComponent>();
 
         for (auto entity : entityView)
@@ -316,23 +315,26 @@ namespace Engine {
 			return;
         }
 
-        toUnload.reserve(m_chunkMap.size());
         for (auto& [id, chunk] : m_chunkMap)
         {
-            if (chunk.IsLoaded)
-                toUnload.push_back(id);
-        }
+            auto chynkentityView = gameRegistry.view<IDComponent, ChunkRendererComponent>();
 
-        // Phase 2: safely unload each, one by one
-        for (auto const& id : toUnload)
-        {
-            auto it = m_chunkMap.find(id);
-            if (it == m_chunkMap.end())
-                continue;
+            for (auto entity : chynkentityView)
+            {
 
-            // Now it->second is guaranteed to exist, and no one else is iterating the map
-            UnloadChunkFromGPU(it->second, gameRegistry);
+                auto [IDComp, chunkRendComp] = chynkentityView.get<IDComponent, ChunkRendererComponent>(entity);
+               
+                chunkRendComp.Texture = nullptr;
+                chunkRendComp.IsLoaded = false;
+                break;
+                
+
+            }
+            chunk.GPUTexture = nullptr;
+            chunk.IsLoaded = false;
         }
+		m_chunkMap.clear();
+        
     }
     void TextureStreamingSystem::DebugDrawChunkOutlines(entt::registry& gameRegistry)
     {

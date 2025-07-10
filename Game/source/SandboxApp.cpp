@@ -46,10 +46,13 @@ Engine::Application* Engine::CreateApplication()
 	
 	auto game = new PixelGame("currentScene");
 	game->SetViewportSize(app->GetWindow().GetWidth(), app->GetWindow().GetHeight());
+	std::array<glm::vec2, 2> viewportBounds = { glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 1.0f) };
+	game->GetActiveGameScene()->OnViewportResize(app->GetWindow().GetWidth(), app->GetWindow().GetHeight(), viewportBounds);
+	
+	Engine::AssetManager::CreateTileAtlas();
 	game->LoadGameAssets();
 	game->OnGameStart();
 	app->PushLayer(game);
-	
 
 	return app;
 	

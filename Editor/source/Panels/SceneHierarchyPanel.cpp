@@ -225,7 +225,7 @@ namespace Engine {
 
         m_entityCount = (int)entityList.size();
         m_projectileCount = 0;
-
+		m_tileCount = 0;
         while (clipper.Step())
         {
             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
@@ -240,6 +240,13 @@ namespace Engine {
                 if (entity.HasComponent<ProjectileComponent>())
                 {
                     m_projectileCount++;
+                }
+
+                if (entity.HasComponent<TileComponent>())
+                {
+                    TileComponent& tileComp = entity.GetComponent<TileComponent>();
+					m_tileCount += tileComp.tiles.size();
+
                 }
             }
         }

@@ -270,6 +270,7 @@ namespace Engine {
             {
                // ImGui::Text("Total Entity count: %d", m_sceneHierarchyPanel.GetEntityCount());
                 ImGui::Text("Projectile count: %d", m_sceneHierarchyPanel.GetProjectileCount());
+                ImGui::Text("Tile count: %d", m_sceneHierarchyPanel.GetTileCount());
           
                 ImGui::TreePop();
             }
@@ -530,7 +531,7 @@ namespace Engine {
     void EditorLayer::OnScenePlay()
     {
 
-		m_editorScene = Scene::Copy(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+		m_editorScene = Scene::Copy(m_sceneHierarchyPanel.GetEditorScene());
 
 		//m_editor.get()->GetGameLayer()->GetActiveGameScene()->ClearRegistry();
 

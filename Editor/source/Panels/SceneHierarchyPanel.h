@@ -28,6 +28,7 @@ namespace Engine {
 
 		int GetEntityCount() const { return m_entityCount; }
 		int GetProjectileCount() const { return m_projectileCount; }
+		int GetTileCount() const { return m_tileCount; }
 
 		void DestrtoySelectedEntity(Entity entity);
 
@@ -50,6 +51,7 @@ namespace Engine {
 		// stats
 		int m_entityCount = 0;
 		int m_projectileCount = 0;
+		int m_tileCount = 0;
 		// ****
 
 		friend class Scene;

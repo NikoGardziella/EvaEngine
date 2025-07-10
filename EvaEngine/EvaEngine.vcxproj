@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h" />
+    <ClInclude Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.h" />
     <ClInclude Include="source\Engine\Core\Application.h" />
     <ClInclude Include="source\Engine\Core\Core.h" />
     <ClInclude Include="source\Engine\Core\EntryPoint.h" />
@@ -652,6 +653,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp" />
+    <ClCompile Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.cpp" />
     <ClCompile Include="source\Engine\Core\Application.cpp" />
     <ClCompile Include="source\Engine\Core\Layer.cpp" />
     <ClCompile Include="source\Engine\Core\LayerStack.cpp" />

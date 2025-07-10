@@ -16,6 +16,9 @@
     <Filter Include="source\Engine\AssetManager">
       <UniqueIdentifier>{A555E108-9165-8DD9-FA1E-F2F7E64D7C72}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\AssetManager\Utils">
+      <UniqueIdentifier>{C53EFC94-B18F-E7D6-DAF3-D598C6A37A40}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Core">
       <UniqueIdentifier>{734A5FF6-5F2E-204C-C88E-1A9FB4910ACE}</UniqueIdentifier>
     </Filter>
@@ -128,6 +131,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h">
       <Filter>source\Engine\AssetManager</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.h">
+      <Filter>source\Engine\AssetManager\Utils</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Core\Application.h">
       <Filter>source\Engine\Core</Filter>
@@ -1636,6 +1642,9 @@
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
       <Filter>source\Engine\AssetManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.cpp">
+      <Filter>source\Engine\AssetManager\Utils</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Core\Application.cpp">
       <Filter>source\Engine\Core</Filter>

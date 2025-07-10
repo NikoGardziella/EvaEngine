@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "TilePaletteSerializer.h"
 #include <Engine/Core/Log.h>
 

@@ -442,7 +442,7 @@ namespace Engine {
 
 
 
-        //************ update scripts ***************
+        //************ update scripts *************** // Remove?
         {
             m_registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
                 {
@@ -465,10 +465,6 @@ namespace Engine {
             // Remove Box 2d physics
             UpdatePhysics(timestep);
         }
-
-
-        
-
 
 
         Camera* mainCamera = nullptr;
@@ -526,19 +522,6 @@ namespace Engine {
                             float halfW = worldWidth * 0.5f;  // 200
                             float halfH = worldHeight * 0.5f;  // 200
 
-                            // Build model: 
-                            /*
-                            glm::mat4 model =
-                                glm::translate(glm::mat4(1.0f),
-                                    glm::vec3(transform.Translation.x + halfW,
-                                        transform.Translation.y + halfH,
-                                        0.0f))
-                                * glm::scale(glm::mat4(1.0f),
-                                    glm::vec3(worldWidth, worldHeight, 1.0f));
-                            */
-                            
-                            /*
-                            */
                             glm::ivec2 chunkCoords = chunkSprite.ChunkCoords;
 
                             glm::vec2 worldPos = glm::vec2(chunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
