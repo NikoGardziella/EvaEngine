@@ -83,22 +83,20 @@ namespace Engine {
         constexpr uint32_t chunkPixelSize = CHUNK_SIZE * PIXELS_IN_TILE;
 
         glm::ivec2 chunkCoords = glm::floor(glm::vec2(worldPosition) / float(CHUNK_SIZE));
-        EE_CORE_INFO("Forcing tile into chunk at {}, {}", chunkCoords.x, chunkCoords.y);
         glm::ivec2 chunkOrigin = chunkCoords * (int)CHUNK_SIZE;
         glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOrigin;
         glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)PIXELS_IN_TILE;
-
+        /*
         EE_CORE_INFO("worldPosition: {}, {}", worldPosition.x, worldPosition.y);
         EE_CORE_INFO("chunkCoords: {}, {}", chunkCoords.x, chunkCoords.y);
         EE_CORE_INFO("chunkOrigin: {}, {}", chunkOrigin.x, chunkOrigin.y);
         EE_CORE_INFO("offsetInChunkTiles: {}, {}", offsetInChunkTiles.x, offsetInChunkTiles.y);
         EE_CORE_INFO("offsetInChunk (pixels): {}, {}", offsetInChunk.x, offsetInChunk.y);
 
+        */
         // Resize CPU buffer if needed
         TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
-        EE_CORE_INFO("Chunk ID: {}, Coord: ({}, {}), TexCount: {}",
-            (uint64_t)chunk.ID, chunkCoords.x, chunkCoords.y, chunk.TextureCount);
-
+       
 
         chunk.TextureCount += 1;
         if (chunk.PixelData.empty())
@@ -112,7 +110,7 @@ namespace Engine {
             chunk.AssetName = name;
             chunk.ID = HashCoords(chunkCoords);
 			chunk.ChunkCoords = chunkCoords;
-            EE_CORE_INFO("Adding chunk with ID: {}", (uint64_t)chunk.ID);
+           //EE_CORE_INFO("Adding chunk with ID: {}", (uint64_t)chunk.ID);
 
         }
         // Clamp to chunk pixel bounds
@@ -138,16 +136,11 @@ namespace Engine {
 
                 EE_CORE_ASSERT(dstIndex + 3 < chunk.PixelData.size(), "OOB dst");
                 EE_CORE_ASSERT(srcIndex + 3 < textureData.size(), "OOB src");
-
-                
-               
+       
                std::memcpy(&chunk.PixelData[dstIndex], &textureData[srcIndex], 4);
                 
             }
         }
-
-
-
         chunk.IsDirty = true;
     }
 
@@ -206,11 +199,6 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-
-        EE_CORE_INFO("Loading chunk at coords: {}, {}", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
-        EE_CORE_INFO("Loading chunk {}", chunk.Name);
-        EE_CORE_INFO("Uploading to GPU: size {}x{}, PixelData size: {}", chunk.Width, chunk.Height, chunk.PixelData.size());
-
         if (chunk.PixelData.empty())
         {
 			EE_CORE_ERROR("Chunk pixel data is empty for: {}", chunk.Name);
@@ -225,9 +213,6 @@ namespace Engine {
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		chunk.GPUTexture->SetData(chunk.PixelData.data(), chunk.Height * chunk.Width * 4);
-
-       
-       
 
         auto entityView = gameRegistry.view<IDComponent, SpriteRendererComponent>();
 
@@ -304,7 +289,6 @@ namespace Engine {
     {
         EE_CORE_INFO("Resetting all chunks (scheduled unload)...");
 
-		
 
         // Phase 1: gather IDs of all loaded chunks
         std::vector<UUID> toUnload;
@@ -421,8 +405,8 @@ namespace Engine {
                 if (!AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, width, height))
                     continue;
 
-                EE_CORE_INFO("Baking tile '{}' at worldPos = ({:.1f}, {:.1f})",
-                    tile.name.c_str(), worldPos.x, worldPos.y);
+              //  EE_CORE_INFO("Baking tile '{}' at worldPos = ({:.1f}, {:.1f})",
+               //     tile.name.c_str(), worldPos.x, worldPos.y);
 
                 UploadToChunkFromTexture(
                     glm::vec2(worldPos.x, worldPos.y),

@@ -107,7 +107,7 @@ namespace Engine {
     void EditorCamera::OnMouseZoom(float deltaY)
     {
         static const float minFOV = 10.0f;   // Minimum zoom-in limit
-        static const float maxFOV = 130.0f;  // Maximum zoom-out limit
+        static const float maxFOV = 170.0f;  // Maximum zoom-out limit
         static const float zoomSpeed = 0.5f; // Sensitivity for smoother zooming
 
         m_FOV -= deltaY * zoomSpeed;

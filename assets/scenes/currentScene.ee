@@ -1,22 +1,5 @@
 Scene: My Scene
 Entities:
-  - ID: 16199812645726992758
-    TagComponent:
-      Tag: Entity
-    TransformComponent:
-      Translation: [-32.2, -7.9, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TileComponent:
-      TileID: 0
-      WorldPos: [0, 0]
-      Texture: ""
-      Tiles:
-        - Position: [0, 0]
-          UV: [0, 0, 0.125, 1]
-          Name: house
-          IsDestructible: false
-          IsRoof: false
   - ID: 3342535701
     TagComponent:
       Tag: player
@@ -42,3 +25,837 @@ Entities:
     WeaponComponent:
       Damage: 10
       FireRate: 0.6
+  - ID: 1617967478
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-32.2, -7.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      WorldPos: [0, 0]
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [29.2, 4.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [25.2, 0.9000001]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [30.2, -3.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [38.2, 1.9000001]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [39.2, 6.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [27.2, 11.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [22.2, 10.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [22.2, 9.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [21.2, 8.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [21.2, 5.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [20.2, -0.099999905]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [20.2, -1.0999999]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [20.2, 0.9000001]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [19.2, 3.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [19.2, 4.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [20.2, 6.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [20.2, 10.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [19.2, 12.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [20.2, 13.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [27.2, 13.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [30.2, 13.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [33.2, 13.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [37.2, 13.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [39.2, 13.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [49.2, 13.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, 13.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, 3.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, 2.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, -0.099999905]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, -3.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [51.2, 3.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, 5.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, 8.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, 11.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, 11.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, 15.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [49.2, 15.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [43.2, 16.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [36.2, 16.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [33.2, 16.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [30.2, 16.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [24.2, 16.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [19.2, 16.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [14.200001, 14.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [8.200001, 2.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [9.200001, -7.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [18.2, -10.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [35.2, -11.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [43.2, -11.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, 30.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [33.2, 28.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [17.2, 26.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [9.200001, 25.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [6.200001, 19.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [6.200001, 10.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [6.200001, 6.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [6.200001, 1.9000001]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [6.200001, -9.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [8.200001, -12.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [18.2, -13.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [28.2, -13.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [41.2, -13.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [51.2, -12.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [62.2, -11.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [63.2, -3.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [61.2, 5.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [60.2, 12.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [60.2, 19.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [60.2, 22.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [43.2, 21.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [35.2, 21.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [26.2, 21.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [21.2, 21.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [15.200001, 17.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [14.200001, 8.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [14.200001, 2.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [14.200001, -2.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [10.200001, -5.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [5.200001, -6.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [5.200001, -12.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [22.2, -15.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [36.2, -13.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [30.2, -6.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [31.2, -2.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [40.2, -8.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [50.2, -3.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [59.2, 11.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [54.2, 18.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [44.2, 23.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [45.2, 27.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [24.2, 30.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [10.200001, 31.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [2.2000008, 28.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-7.799999, 13.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-6.799999, 1.9000001]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-9.799999, -13.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [13.200001, -15.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [37.2, -15.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [47.2, -13.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [59.2, -10.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [62.2, 3.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [58.2, 8.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [61.2, 22.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [22.2, 24.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [4.200001, 13.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [0.20000076, -1.0999999]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-2.7999992, -12.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [2.2000008, -16.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [27.2, -12.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [38.2, -6.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [25.2, -0.099999905]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [32.2, -6.1]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [39.2, 2.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [42.2, 8.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [42.2, 3.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [44.2, -1.0999999]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [52.2, 0.9000001]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [35.2, 8.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [32.2, 8.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [30.2, 3.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [23.2, 4.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [19.2, 15.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [14.200001, 22.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [7.200001, 23.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [3.2000008, 21.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [1.2000008, 10.9]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [61.2, 27.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [56.2, 27.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [54.2, 25.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [60.2, 18.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [66.2, 15.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [67.2, -0.099999905]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [66.2, -5.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [66.2, -12.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [60.2, -10.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [59.2, 4.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [55.2, 6.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [55.2, -3.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [53.2, -8.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [46.2, -6.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [46.2, -5.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [47.2, -3.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [42.2, -3.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [36.2, -0.099999905]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [33.2, -8.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [21.2, -8.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [18.2, -7.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [13.200001, -13.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [12.200001, -13.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [4.200001, -10.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-3.7999992, -7.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-3.7999992, -3.1]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-9.799999, 5.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-7.799999, 15.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-3.7999992, 21.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-2.7999992, 26.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [0.20000076, 29.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [22.2, 27.9]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+  - ID: 3482378430
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-5, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      WorldPos: [0, 0]
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0, 0, 0.125, 1]
+          Name: house
+          IsDestructible: false
+          IsRoof: false
+        - Position: [-1, 0]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
+        - Position: [2, 0]
+          UV: [0.125, 0, 0.25, 1]
+          Name: objects_house_0055_Layer-56
+          IsDestructible: false
+          IsRoof: false
