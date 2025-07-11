@@ -2,6 +2,7 @@
 
 #include <Engine/Scene/Scene.h>
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 
 namespace Engine
@@ -41,7 +42,7 @@ namespace Engine
 			return glm::vec4(0.0f); // Return empty UV if not found
 		}
 	private:
-		void DrawTilePalette();
+		void DrawTilePalette(eTileCategory selectedCategory);
 		//void CreateTileAtlas();
 	private:
 
@@ -55,6 +56,7 @@ namespace Engine
 		Ref<VulkanTexture> m_tileTextureIconAtlas;
 		uint32_t m_selectedTile = UINT32_MAX; 
 		std::string m_selectedTileName;
+		eTileCategory m_selectedTileCategory;
 	};
 }
 

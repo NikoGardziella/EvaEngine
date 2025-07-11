@@ -531,11 +531,8 @@ namespace Engine {
                                     glm::vec3(worldPos.x, worldPos.y, 0.0f))
                                 * glm::scale(glm::mat4(1.0f),
                                     glm::vec3(CHUNK_SIZE, CHUNK_SIZE, 1.0f));
-							//EE_CORE_INFO("chunkpos: {}, {}", worldPos.x, worldPos.y);
                            
                             float pixelSize = (float)CHUNK_SIZE / chunkSprite.Texture->GetWidth();;
-
-                            //EE_CORE_INFO("bottomLeftWorldPos: {}, {}", bottomLeftWorldPos.x, bottomLeftWorldPos.y);
                             glm::vec2 textureOrigin;
                             textureOrigin.x = worldPos.x - CHUNK_SIZE * 0.5f;
                             textureOrigin.y = worldPos.y - CHUNK_SIZE * 0.5f;

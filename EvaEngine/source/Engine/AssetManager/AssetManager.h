@@ -7,6 +7,7 @@
 #include <memory>
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 #include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 namespace Engine {
 
@@ -16,6 +17,7 @@ namespace Engine {
         static void Initialize(int maxDepth = 5);
 
         static void CreateTileAtlas();
+
 
         static std::filesystem::path GetAssetPath(const std::string& subPath);
         static std::filesystem::path GetScenePath(const std::string& subPath);
@@ -35,6 +37,9 @@ namespace Engine {
         static bool ExtractPixelsFromTilePallette(const glm::vec4& uv, std::vector<uint8_t>& outPixelData, int& outWidth, int& outHeight);
         static  std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures();
 
+        static Ref<VulkanTexture> GetTileTextureIconAtlas() { return s_tileTextureIconAtlas; };
+
+		static const std::unordered_map<std::string, glm::vec4>& AssetManager::GetTileTextureAtalsUVs() { return  s_tileUVMap; }
         static VkDeviceSize s_totalTextureMemory;
 
         // Texture streaming system
@@ -42,10 +47,29 @@ namespace Engine {
         static std::string ResolveTexturePath(const std::string& textureName);
         
         //Tile atlas
-		static std::unordered_map<std::string, glm::vec4>& GetTileUVMap() { return s_tileUVMap; }
-		static std::vector<std::string>& GetTileNames() { return s_tileNames; }
-		static Ref<VulkanTexture>& GetTileTextureIconAtlas() { return s_tileTextureIconAtlas; }
-		
+        static const std::unordered_map<std::string, glm::vec4>& AssetManager::GetTileUVMap(const eTileCategory& category)
+        {
+            return s_tileUVMapsByCategory.at(category);
+        }
+
+        static const std::vector<std::string>& AssetManager::GetTileNames(const eTileCategory& category)
+        {
+            return s_tileNamesByCategory.at(category);
+        }
+
+        static Ref<VulkanTexture> AssetManager::GetTileAtlas(eTileCategory category)
+        {
+            return s_tileAtlasesByCategory.at(category);
+        }
+
+
+        static const std::unordered_map<eTileCategory, std::unordered_map<std::string, glm::vec4>>&
+            AssetManager::GetAllTileUVMaps()
+        {
+            return s_tileUVMapsByCategory;
+        }
+
+        static const std::vector<std::string>& AssetManager::GetTileNamesByCategory(eTileCategory category);
 
     private:
         static std::filesystem::path s_AssetPath;
@@ -53,10 +77,13 @@ namespace Engine {
 
         static std::unordered_map<std::string, std::shared_ptr<VulkanTexture>> s_textureCache;
         static std::unordered_map<std::string, std::shared_ptr<VulkanPixelTexture>> s_pixelTextureCache;
-        static Ref<VulkanTexture> s_tileTextureIconAtlas;
-
+       
+        static std::unordered_map<eTileCategory, std::unordered_map<std::string, glm::vec4>> s_tileUVMapsByCategory;
+        static std::unordered_map<eTileCategory, std::vector<std::string>> s_tileNamesByCategory;
         static std::unordered_map<std::string, glm::vec4> s_tileUVMap;
-        static std::vector<std::string> s_tileNames;
+        static std::unordered_map<eTileCategory, Ref<VulkanTexture>> s_tileAtlasesByCategory;
+
+		static Ref<VulkanTexture> s_tileTextureIconAtlas;
 
 
     };

@@ -1228,6 +1228,8 @@ namespace Engine {
 		{
 			EE_CORE_ASSERT(false, "Texture slot index exceeded maximum limit!");
 		}
+		
+
 
 		// Try to get texture slot from map
 		float textureIndex = 0.0f;

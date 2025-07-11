@@ -634,7 +634,7 @@ namespace Engine {
         DrawComponent<WeaponComponent>("Weapon", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
                 ImGui::DragFloat("Damage", &component.Damage, 0.1f, 0.0f, 100.0f);
-                ImGui::DragFloat("Fire Rate", &component.FireRate, 0.1f, 0.0f, 100.0f);
+                ImGui::DragFloat("Fire Rate", &component.FireRate, 0.1f, 0.1f, 100.0f);
                 ImGui::DragFloat("Cooldown", &component.Cooldown, 0.1f, 0.0f, 100.0f);
 
 

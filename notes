@@ -144,3 +144,10 @@
 
     leave only one scene in SceneHierarchyPanel
 }
+
+11.07.2025
+{
+    Need to fix:
+    Reloading a chunk does not save the image data/pixel data 
+    meaning if you destroy something and go far, so the chunk gets unloaded, its not going to be destroyed/saved
+}
