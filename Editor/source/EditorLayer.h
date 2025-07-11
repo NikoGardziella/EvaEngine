@@ -83,7 +83,7 @@ namespace Engine {
 		bool m_viewportFocused = false;
 		bool m_viewportHovered = false;
 		Entity m_selectedEntity;
-
+		glm::vec2 m_selectedTilePosition = { 0.0f, 0.0f };
 
 		std::filesystem::path m_currentScenePath;
 

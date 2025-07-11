@@ -652,7 +652,6 @@ namespace Engine {
                 glm::vec2 localOffset = snapped - (glm::vec2)entityTransformComp.Translation;
 
 				tileComp.tiles.push_back(TileInfo{ localOffset, UV, selectedTileName });
-				EE_CORE_INFO(" new TieComp.adding tile: {}", tileComp.tiles.size());
             }
             
             
@@ -886,7 +885,7 @@ namespace Engine {
                 snapped.x = std::round(finalWorldPos.x);
                 snapped.y = std::round(finalWorldPos.y);
 
-                m_selectedEntity = EditorUtils::FindTileAtPosition(m_sceneHierarchyPanel.GetEditorScene(), snapped);
+                m_selectedEntity = EditorUtils::FindEntityAtPosition(m_sceneHierarchyPanel.GetEditorScene(), snapped);
                 if(m_selectedEntity)
                 {
                     m_sceneHierarchyPanel.SetSelectedEntity(m_selectedEntity);
@@ -911,6 +910,7 @@ namespace Engine {
                 {
                     return false; // No entity found at the clicked position
                 }
+				m_selectedTilePosition = snapped;
                 return true;
             }
             else if (m_mouseIsInViewPort && !ImGuizmo::IsOver() && !m_hoveredEntity)
@@ -1007,7 +1007,23 @@ namespace Engine {
         }
         case Key::Delete:
         {
-            m_sceneHierarchyPanel.DestrtoySelectedEntity(m_sceneHierarchyPanel.GetSelectedEntity());
+            if (!m_selectedEntity)
+            {
+                break;
+            }
+            if (m_selectedEntity.HasComponent<TileComponent>())
+            {
+                TileComponent& tileComp = m_selectedEntity.GetComponent<TileComponent>();
+                if (tileComp.tiles.size() == 0)
+                {
+                    m_sceneHierarchyPanel.DestrtoySelectedEntity(m_selectedEntity);
+                }
+                else
+                {
+					EditorUtils::DeleteTileAtPosition(m_selectedEntity, m_selectedTilePosition);
+                }
+            }
+
             break;
         }
         }

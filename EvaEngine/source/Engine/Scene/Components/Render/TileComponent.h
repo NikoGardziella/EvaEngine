@@ -5,6 +5,9 @@
 
 namespace Engine {
 
+    // for editor
+    
+
     enum class eTileCategory
     {
 		Undefined = 0,
