@@ -16,6 +16,7 @@
 #include "Engine/Debug/DebugInterface.h"
 #include "Components/Render/TileComponent.h"
 #include "Components/Render/ChunkRendererComponent.h"
+#include "Components/Render/RoofRenderComponent.h"
 
 
 namespace Engine {
@@ -129,21 +130,7 @@ namespace Engine {
         }
         
         CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
-        /*
-        CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<RigidBody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<CharacterControllerComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<ProjectileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<HealthComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-
-        */
-
+     
         newScene->m_gameplaySystems = other->m_gameplaySystems;
 
         return newScene;
@@ -236,6 +223,7 @@ namespace Engine {
         CopyComponent<NPCAIVisionComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<WeaponComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<TileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<RoofRenderComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
     }
 
     Entity Scene::CreateEntity(const std::string& name)
@@ -546,6 +534,72 @@ namespace Engine {
                         }
                     }
                 }
+
+                {
+                    EE_PROFILE_SCOPE("roof render");
+
+
+                    entt::basic_view view = m_registry.view<RoofRenderComponent, TransformComponent>();
+                    for (auto entity : view)
+                    {
+                        auto [transform, roofSprite] = view.get<TransformComponent, RoofRenderComponent>(entity);
+                        if (!roofSprite.IsLoaded)
+                            continue;
+
+                        //constexpr float PIXELS_PER_UNIT = PIXELS_IN_TILE / float(TILE_SIZE);
+
+                        glm::vec2 textureSizeInTiles = glm::vec2(
+                            roofSprite.Texture->GetWidth(),
+                            roofSprite.Texture->GetHeight()
+                        ) / float(PIXELS_IN_TILE);
+
+                        // World size = tiles * TILE_SIZE
+                        glm::vec2 textureSizeWorld = textureSizeInTiles * float(TILE_SIZE);
+
+                        // World origin = entity position + local offset
+
+                        // World max
+
+                        
+
+
+                        float tiling = 1.0f;
+                        glm::vec4 color = glm::vec4(1);
+                        roofSprite.Texture->SetCheckCollision(false);
+
+                        glm::mat4 model =
+                            glm::translate(glm::mat4(1.0f), transform.Translation + roofSprite.LocalOffset) *
+                            glm::scale(glm::mat4(1.0f), glm::vec3(textureSizeWorld, 1.0f));
+
+
+                        // World origin = entity position + local offset
+                        glm::vec2 roofMin = glm::vec2(transform.Translation) + glm::vec2(roofSprite.LocalOffset);
+                        glm::vec2 roofMax = roofMin + textureSizeWorld;
+
+                        glm::vec2 playerCenter = playerPos + glm::vec2(1.1f, 1.1f);
+                       
+                        float margin = 0.1f; 
+
+                        glm::vec2 expandedMin = roofMin - glm::vec2(margin);
+                        glm::vec2 expandedMax = roofMax + glm::vec2(margin);
+
+                        glm::bvec2 minCheck = glm::greaterThanEqual(playerCenter, expandedMin);
+                        glm::bvec2 maxCheck = glm::lessThanEqual(playerCenter, expandedMax);
+                        if (glm::all(minCheck) && glm::all(maxCheck))
+                        {
+                            continue;
+                        }
+
+
+                        Engine::VulkanRenderer2D::DrawTextureQuad(model, roofSprite.Texture, tiling, color);
+                        Engine::VulkanRenderer2D::DrawLineRect(model, glm::vec4(1, 0, 0, 0.3f), -1);
+                    }
+
+
+
+                }
+
+
 
                 {
                     

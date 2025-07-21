@@ -65,7 +65,7 @@ namespace Engine {
 
 
 		void OnDuplicateEntity();
-		void OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV);
+		void OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory);
 
 		void OnOverlayRender();
 

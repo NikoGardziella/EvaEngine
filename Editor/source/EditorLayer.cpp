@@ -587,7 +587,7 @@ namespace Engine {
         }
     }
 
-    void EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV)
+    void EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory)
     {
 
        
@@ -632,6 +632,30 @@ namespace Engine {
             }
         }
 
+        bool destructible = false;
+        bool isRoof = false;
+
+        switch (tileCategory)
+        {
+            case Engine::eTileCategory::Undefined:
+                EE_CORE_WARN("undefined tile category");
+                break;
+            case Engine::eTileCategory::Buildings:
+                destructible = true;
+                isRoof =  false;
+                break;
+            case Engine::eTileCategory::Terrain:
+                destructible = false;
+                isRoof = false;
+                break;
+            case Engine::eTileCategory::Roofs:
+                destructible = false;
+                isRoof = true;
+                break;
+            default:
+                break;
+        }
+            
        
         if (m_selectedEntity)
         {
@@ -642,7 +666,7 @@ namespace Engine {
             {
                 TileComponent& tileComp = m_selectedEntity.GetComponent<TileComponent>();
                 glm::vec2 localOffset = snapped - (glm::vec2)entityTransformComp.Translation;
-				tileComp.tiles.push_back(TileInfo{ localOffset,UV, selectedTileName });
+				tileComp.tiles.push_back(TileInfo{ localOffset,UV, selectedTileName, destructible, isRoof });
                 EE_CORE_INFO("adding tile: {}", tileComp.tiles.size());
 
             }
@@ -651,7 +675,7 @@ namespace Engine {
                 TileComponent& tileComp = m_selectedEntity.AddComponent<TileComponent>();
                 glm::vec2 localOffset = snapped - (glm::vec2)entityTransformComp.Translation;
 
-				tileComp.tiles.push_back(TileInfo{ localOffset, UV, selectedTileName });
+				tileComp.tiles.push_back(TileInfo{ localOffset, UV, selectedTileName, destructible, isRoof });
             }
             
             
@@ -664,25 +688,14 @@ namespace Engine {
             editorTransformComp.Translation.x = snapped.x;
             editorTransformComp.Translation.y = snapped.y;
             TileComponent& editorTileComp = editorEntity.AddComponent<TileComponent>();
-            editorTileComp.tiles.push_back(TileInfo{ glm::vec2(0.0f, 0.0f), UV, selectedTileName });
+            editorTileComp.tiles.push_back(TileInfo{ glm::vec2(0.0f, 0.0f), UV, selectedTileName,  destructible, isRoof });
+        
+            m_selectedEntity = editorEntity;
+            m_sceneHierarchyPanel.SetSelectedEntity(editorEntity);
         }
         
-        /*
-		// this is only to render textures while in editor mode
-        // Tile should still be saved in top Vector of tiles and they 
-        // are combined to one texture on play. Actually these should be removed on play? 
-        // this only works because GameScene registry is cleared on Start
-        // if I do this. changig values in transform comp does not show in editor(only in runtime)
-        Entity entity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
-        // Entity entity = m_sceneHierarchyPanel.GetNewComponentsContext()->CreateEntity();
-        TransformComponent& transformComp = entity.AddComponent<TransformComponent>();
-        transformComp.Translation.x = snapped.x;
-        transformComp.Translation.y = snapped.y;
-        TileComponent& tileComp = entity.AddComponent<TileComponent>();
-        tileComp.tiles.push_back(TileInfo{ glm::vec2(0.0f, 0.0f), UV, selectedTileName });
+      
         
-        */
-
         
     }
 
@@ -855,7 +868,7 @@ namespace Engine {
                 }
 
                 EE_CORE_INFO("Selected tile: {}", selectedTile);
-				OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile));
+				OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
             }
 
             if (!ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt) && selectedTile == "")

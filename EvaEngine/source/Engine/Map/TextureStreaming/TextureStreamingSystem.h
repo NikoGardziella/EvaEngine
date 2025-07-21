@@ -1,5 +1,4 @@
 #pragma once
-#include <glm/ext/vector_float2.hpp>
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 #include "Engine/Core/Core.h"
 #include <Engine/Core/UUID.h>
@@ -42,7 +41,7 @@ namespace Engine{
     };
 
 
-
+    class Scene;
     class TextureStreamingSystem
     {
     public:

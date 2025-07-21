@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "TextureStreamingSystem.h"
-#include <glm/geometric.hpp>
+#include "TextureStreamingUtils.h"
 #include "Engine/AssetManager/AssetManager.h"
 #include <Engine/Scene/Component.h>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
@@ -8,6 +8,7 @@
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 #include <Engine/Scene/Components/Render/ChunkRendererComponent.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include <Engine/Scene/Scene.h>
 
 
 namespace Engine {
@@ -86,18 +87,9 @@ namespace Engine {
         glm::ivec2 chunkOrigin = chunkCoords * (int)CHUNK_SIZE;
         glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOrigin;
         glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)PIXELS_IN_TILE;
-        /*
-        EE_CORE_INFO("worldPosition: {}, {}", worldPosition.x, worldPosition.y);
-        EE_CORE_INFO("chunkCoords: {}, {}", chunkCoords.x, chunkCoords.y);
-        EE_CORE_INFO("chunkOrigin: {}, {}", chunkOrigin.x, chunkOrigin.y);
-        EE_CORE_INFO("offsetInChunkTiles: {}, {}", offsetInChunkTiles.x, offsetInChunkTiles.y);
-        EE_CORE_INFO("offsetInChunk (pixels): {}, {}", offsetInChunk.x, offsetInChunk.y);
-
-        */
-        // Resize CPU buffer if needed
+    
         TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
        
-
         chunk.TextureCount += 1;
         if (chunk.PixelData.empty())
         {
@@ -385,13 +377,18 @@ namespace Engine {
 
     void TextureStreamingSystem::BakeTilesIntoChunks(entt::registry& registry)
     {
-        constexpr int TILE_SIZE = 1; 
+
 
         auto view = registry.view<TransformComponent, TileComponent>();
         for (auto entity : view)
         {
-            const auto& xf = view.get<TransformComponent>(entity);
+            auto& xf = view.get<TransformComponent>(entity);
             const auto& tcomp = view.get<TileComponent>(entity);
+
+
+            // check if this entity has roof tiles.
+            // if it does, make a new roof texture that is combinatio of all roof tiles
+            TextureStreamingUtils::BakeRoofTextureIfNeeded(registry, entity);
 
             for (const auto& tile : tcomp.tiles)
             {
@@ -399,23 +396,21 @@ namespace Engine {
                 glm::vec3 worldPos = { world2D.x * float(TILE_SIZE),
                                        world2D.y * float(TILE_SIZE),
                                        0.0f };
-
+                // Baking
+                
                 std::vector<uint8_t> pixelData;
                 int width, height;
                 if (!AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, width, height))
                     continue;
 
-              //  EE_CORE_INFO("Baking tile '{}' at worldPos = ({:.1f}, {:.1f})",
-               //     tile.name.c_str(), worldPos.x, worldPos.y);
+                if (tile.IsDestructible)
+                {
+                    UploadToChunkFromTexture(glm::vec2(worldPos.x, worldPos.y),
+                        tcomp.TileID,tile.name,pixelData,uint32_t(width), uint32_t(height));
+                }
+                
 
-                UploadToChunkFromTexture(
-                    glm::vec2(worldPos.x, worldPos.y),
-                    tcomp.TileID,
-                    tile.name,
-                    pixelData,
-                    uint32_t(width),
-                    uint32_t(height)
-                );
+
             }
         }
 

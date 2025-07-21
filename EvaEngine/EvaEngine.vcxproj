@@ -221,6 +221,7 @@
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\ChunkRendererComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\RoofRenderComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\TileComponent.h" />
     <ClInclude Include="source\Engine\Scene\Entity.h" />
     <ClInclude Include="source\Engine\Scene\Scene.h" />
@@ -665,6 +666,7 @@
     <ClCompile Include="source\Engine\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="source\Engine\ImGui\imGuiBuild.cpp" />
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp" />
+    <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.cpp" />
     <ClCompile Include="source\Engine\Math\Math.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLContext.cpp" />

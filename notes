@@ -151,3 +151,16 @@
     Reloading a chunk does not save the image data/pixel data 
     meaning if you destroy something and go far, so the chunk gets unloaded, its not going to be destroyed/saved
 }
+20.07.2025
+{
+
+    layers:
+    - Buildings. Collider and are destructible. Always visible. Includes some ground stuff like a tree.
+    - Roofs. No collisions. Destrutible to some degree? not collision to projectiles though. Visible. Not visible when player is inside roof entity
+    - ground stuff. no collisions. not destrutible. always visible. not projectile collision.
+    - other ground stuff. no collisions.  destrutible. always visible. projectile collision.
+    
+    - Enemies. collision. destrutible(not by pixel). visible. projectile collision
+
+    - fog of war
+}

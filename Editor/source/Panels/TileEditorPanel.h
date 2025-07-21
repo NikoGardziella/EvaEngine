@@ -21,7 +21,7 @@ namespace Engine
 		~TileEditorPanel() = default;
 		void OnImGuiRender();
 
-
+		eTileCategory GetSelectedTileCategory() { return m_selectedTileCategory;  }
 
 		uint32_t GetSelectedTile() const { return m_selectedTile; }
 		std::string GetSelectedTileName() const { return m_selectedTileName; }
