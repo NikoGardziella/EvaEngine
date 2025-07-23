@@ -27,6 +27,15 @@ namespace Engine {
 		{
 			return glm::vec2(chunkCoord) * float(CHUNK_SIZE);
 		}
+		inline glm::vec2 GetWorldPosition(const glm::vec2& localTilePos, const glm::vec3& entityTranslation)
+		{
+			return glm::vec2(entityTranslation) + localTilePos * float(TILE_SIZE);
+		}
 
+		inline glm::ivec2 GetWorldTileCoords(const glm::vec2& localTilePos, const glm::vec3& entityTranslation)
+		{
+			glm::vec2 worldPos = glm::vec2(entityTranslation) + localTilePos * float(TILE_SIZE);
+			return worldPos;
+		}
 	}
 } 

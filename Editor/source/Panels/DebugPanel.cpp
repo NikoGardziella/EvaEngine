@@ -7,6 +7,7 @@
 #include <Engine/Renderer/VulkanRenderer2D.h>
 #include <Engine/Scene/Component.h>
 #include "Engine/Scene/Entity.h"
+#include "../EditorApp.h"
 
 namespace Engine {
    
@@ -43,6 +44,33 @@ namespace Engine {
 
 
             ImGui::Checkbox("Show Chunks", &m_showChunks);
+            ImGui::Checkbox("Show LOS", &m_showLOS);
+
+            if (boldFont)
+                ImGui::PopFont();
+
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)2, flags, "Grid:"))
+        {
+            if (boldFont)
+                ImGui::PushFont(boldFont);
+   
+            ImGui::Checkbox("Show Grid", &m_showGrid);
+
+            if (boldFont)
+                ImGui::PopFont();
+
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)3, flags, "Combat:"))
+        {
+            if (boldFont)
+                ImGui::PushFont(boldFont);
+
+            ImGui::Checkbox("Show LOS", &m_showLOS);
 
             if (boldFont)
                 ImGui::PopFont();
@@ -59,11 +87,7 @@ namespace Engine {
                 Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera.GetViewProjection(), camera.GetComponent<TransformComponent>().GetTransform());
 
             }
-            else
-            {
-               // Engine::VulkanRenderer2D::BeginScene(m_editorCamera);
-
-            }
+            
 
             
             
@@ -72,15 +96,49 @@ namespace Engine {
             Engine::VulkanRenderer2D::EndScene();
 
 		}
+        if (m_showGrid)
+        {
+            Entity camera = m_gameContext->GetPrimaryCameraEntity();
+            if (camera)
+            {
+                Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera.GetViewProjection(), camera.GetComponent<TransformComponent>().GetTransform());
+            }
+            m_editor->GetGameLayer()->GetActiveGameScene()->GetGrid().DrawDebugBlockedTiles();
 
+
+        }
+
+        if (m_showLOS)
+        {
+            Entity camera = m_gameContext->GetPrimaryCameraEntity();
+            if (camera)
+            {
+                Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera.GetViewProjection(), camera.GetComponent<TransformComponent>().GetTransform());
+            }
+            m_editor->GetGameLayer()->GetActiveGameScene()->SetDebugDrawLOS(true);
+
+        }
+        else
+        {
+            m_editor->GetGameLayer()->GetActiveGameScene()->SetDebugDrawLOS(false);
+        }
         
 
         ImGui::End();
     }
+   
+
+    
+
     void DebugPanel::SetGameContext(const Ref<Scene>& scene)
     {
 		m_gameContext = scene;
 		
+    }
+
+    void DebugPanel::SetEditor(const Ref<Editor>& editor)
+    {
+        m_editor = editor;
     }
 
 }

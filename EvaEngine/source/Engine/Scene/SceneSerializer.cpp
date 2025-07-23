@@ -273,8 +273,8 @@ namespace Engine {
 
             out << YAML::Key << "TileID" << YAML::Value << comp.TileID;
 
-            out << YAML::Key << "WorldPos" << YAML::Value << YAML::Flow
-                << std::vector<float>{ comp.WorldPos.x, comp.WorldPos.y };
+           // out << YAML::Key << "WorldPos" << YAML::Value << YAML::Flow
+          //      << std::vector<float>{ comp.WorldPos.x, comp.WorldPos.y };
 
             // Optional texture name
             if (comp.Texture && !comp.Texture->GetName().empty())
@@ -297,6 +297,7 @@ namespace Engine {
                 out << YAML::Key << "Name" << YAML::Value << tile.name;
                 out << YAML::Key << "IsDestructible" << YAML::Value << tile.IsDestructible;
                 out << YAML::Key << "IsRoof" << YAML::Value << tile.IsRoof;
+                out << YAML::Key << "Category" << YAML::Value << ToString(tile.Category);
 
                 out << YAML::EndMap;
             }
@@ -385,7 +386,7 @@ namespace Engine {
 
             TileComponent& tileComp = entity.AddComponent<TileComponent>();
             tileComp.TileID = tc["TileID"].as<uint32_t>();
-            tileComp.WorldPos = glm::vec2(tc["WorldPos"][0].as<float>(), tc["WorldPos"][1].as<float>());
+          //  tileComp.WorldPos = glm::vec2(tc["WorldPos"][0].as<float>(), tc["WorldPos"][1].as<float>());
 
             // Load texture name (optional)
             std::string textureName = tc["Texture"] ? tc["Texture"].as<std::string>() : "";
@@ -414,7 +415,7 @@ namespace Engine {
                     tile.name = tileNode["Name"] ? tileNode["Name"].as<std::string>() : "";
                     tile.IsDestructible = tileNode["IsDestructible"] ? tileNode["IsDestructible"].as<bool>() : false;
                     tile.IsRoof = tileNode["IsRoof"] ? tileNode["IsRoof"].as<bool>() : false;
-
+                    tile.Category = CategoryFromString(tileNode["Category"].as<std::string>());
                     tileComp.tiles.push_back(tile);
                 }
             }
@@ -579,11 +580,12 @@ namespace Engine {
                 {
                     bool isStatic = true;
 
-                    if (entity.HasComponent<CharacterControllerComponent>())
+                    if (entity.HasComponent<CharacterControllerComponent>() ||
+                        entity.HasComponent<NPCAIVisionComponent>())
                     {
                         isStatic = false; // CharacterControllerComponent dynamic entity
                     }
-                    //isStatic = false;
+
                     if (isStatic)
                     {
                         std::vector<uint8_t> pixelData;

@@ -106,6 +106,7 @@ namespace Engine {
 
         //m_sceneHierarchyPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
         m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+        m_debugPanel.SetEditor(m_editor);
         m_currentScenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName());
         m_editor.get()->GetGameLayer()->SetActiveScene(m_sceneHierarchyPanel.GetEditorScene());
 
@@ -616,14 +617,15 @@ namespace Engine {
 
         auto& registry = m_editor->GetGameLayer()->GetActiveGameScene()->GetRegistry();
 
-        auto view = registry.view<TileComponent>();
+        auto view = registry.view<TileComponent, TransformComponent>();
         for (auto entity : view)
         {
             const auto& tileComp = view.get<TileComponent>(entity);
+            const auto& transformComp = view.get<TransformComponent>(entity);
 
             for (const auto& tile : tileComp.tiles)
             {
-                glm::vec2 worldTilePos = tileComp.WorldPos + tile.position;
+                glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
                 if (worldTilePos == snapped && tile.name == selectedTileName)
                 {
                     EE_CORE_WARN("Tile already exists at position: {}, {}", snapped.x, snapped.y);
@@ -665,17 +667,22 @@ namespace Engine {
             if (m_selectedEntity.HasComponent<TileComponent>())
             {
                 TileComponent& tileComp = m_selectedEntity.GetComponent<TileComponent>();
-                glm::vec2 localOffset = snapped - (glm::vec2)entityTransformComp.Translation;
-				tileComp.tiles.push_back(TileInfo{ localOffset,UV, selectedTileName, destructible, isRoof });
+                glm::vec2 localOffsetWorld = snapped - glm::vec2(entityTransformComp.Translation);
+                glm::ivec2 tilePos = glm::round(localOffsetWorld / float(TILE_SIZE));
+
+                tileComp.tiles.push_back(TileInfo{ glm::vec2(tilePos), UV, selectedTileName, destructible, isRoof, tileCategory });
+
                 EE_CORE_INFO("adding tile: {}", tileComp.tiles.size());
 
             }
             else
             {
                 TileComponent& tileComp = m_selectedEntity.AddComponent<TileComponent>();
-                glm::vec2 localOffset = snapped - (glm::vec2)entityTransformComp.Translation;
+                glm::vec2 localOffsetWorld = snapped - glm::vec2(entityTransformComp.Translation);
+                glm::ivec2 tilePos = glm::round(localOffsetWorld / float(TILE_SIZE));
 
-				tileComp.tiles.push_back(TileInfo{ localOffset, UV, selectedTileName, destructible, isRoof });
+                tileComp.tiles.push_back(TileInfo{ glm::vec2(tilePos), UV, selectedTileName, destructible, isRoof, tileCategory });
+
             }
             
             
@@ -688,7 +695,7 @@ namespace Engine {
             editorTransformComp.Translation.x = snapped.x;
             editorTransformComp.Translation.y = snapped.y;
             TileComponent& editorTileComp = editorEntity.AddComponent<TileComponent>();
-            editorTileComp.tiles.push_back(TileInfo{ glm::vec2(0.0f, 0.0f), UV, selectedTileName,  destructible, isRoof });
+            editorTileComp.tiles.push_back(TileInfo{ glm::vec2(0.0f, 0.0f), UV, selectedTileName,  destructible, isRoof, tileCategory });
         
             m_selectedEntity = editorEntity;
             m_sceneHierarchyPanel.SetSelectedEntity(editorEntity);
@@ -761,6 +768,7 @@ namespace Engine {
                 }
 
             }
+
         }
        
         Engine::VulkanRenderer2D::EndScene();

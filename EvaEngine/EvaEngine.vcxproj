@@ -146,6 +146,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Map\Grid\GridMap.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.h" />
@@ -173,6 +174,7 @@
     <ClInclude Include="source\Engine\ImGui\ImGuiLayer.h" />
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h" />
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h" />
+    <ClInclude Include="source\Engine\Map\Utils\IVec2Hasher.h" />
     <ClInclude Include="source\Engine\Math\Math.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLBuffer.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLContext.h" />
@@ -653,6 +655,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp" />
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp" />
     <ClCompile Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.cpp" />
     <ClCompile Include="source\Engine\Core\Application.cpp" />

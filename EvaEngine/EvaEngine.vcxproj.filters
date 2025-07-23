@@ -1639,6 +1639,8 @@
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Render\RoofRenderComponent.h" />
+    <ClInclude Include="source\Engine\Map\Grid\GridMap.h" />
+    <ClInclude Include="source\Engine\Map\Utils\IVec2Hasher.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1840,6 +1842,7 @@
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.cpp" />
+    <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">

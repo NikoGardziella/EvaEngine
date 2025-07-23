@@ -81,6 +81,8 @@ namespace Engine {
         const std::vector<uint8_t>& textureData,
         uint32_t textureWidth, uint32_t textureHeight)
     {
+
+        EE_PROFILE_FUNCTION();
         constexpr uint32_t chunkPixelSize = CHUNK_SIZE * PIXELS_IN_TILE;
 
         glm::ivec2 chunkCoords = glm::floor(glm::vec2(worldPosition) / float(CHUNK_SIZE));
@@ -243,6 +245,7 @@ namespace Engine {
 
     void TextureStreamingSystem::UnloadChunkFromGPU(TextureChunk& chunk, entt::registry& gameRegistry)
     {
+        EE_PROFILE_FUNCTION();
         EE_CORE_INFO("Unloading chunk at coords: {}, {}", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
 
         auto entityView = gameRegistry.view<IDComponent, SpriteRendererComponent>();
@@ -279,6 +282,7 @@ namespace Engine {
 
     void TextureStreamingSystem::ResetAllChunks(entt::registry& gameRegistry)
     {
+        EE_PROFILE_FUNCTION();
         EE_CORE_INFO("Resetting all chunks (scheduled unload)...");
 
 
@@ -314,6 +318,7 @@ namespace Engine {
     }
     void TextureStreamingSystem::DebugDrawChunkOutlines(entt::registry& gameRegistry)
     {
+        EE_PROFILE_FUNCTION();
         // 1) Find the player's position
         glm::vec2 playerPos{ 0.0f };
         auto playerView = gameRegistry.view<TransformComponent, CharacterControllerComponent>();
@@ -377,12 +382,12 @@ namespace Engine {
 
     void TextureStreamingSystem::BakeTilesIntoChunks(entt::registry& registry)
     {
-
+        EE_PROFILE_FUNCTION();
 
         auto view = registry.view<TransformComponent, TileComponent>();
         for (auto entity : view)
         {
-            auto& xf = view.get<TransformComponent>(entity);
+            auto& transformComp = view.get<TransformComponent>(entity);
             const auto& tcomp = view.get<TileComponent>(entity);
 
 
@@ -392,11 +397,8 @@ namespace Engine {
 
             for (const auto& tile : tcomp.tiles)
             {
-                glm::vec2 world2D = (glm::vec2)xf.Translation + tile.position;
-                glm::vec3 worldPos = { world2D.x * float(TILE_SIZE),
-                                       world2D.y * float(TILE_SIZE),
-                                       0.0f };
-                // Baking
+                glm::ivec2 worldTilePos = MapUtils::GetWorldTileCoords(tile.position, transformComp.Translation);
+
                 
                 std::vector<uint8_t> pixelData;
                 int width, height;
@@ -405,7 +407,7 @@ namespace Engine {
 
                 if (tile.IsDestructible)
                 {
-                    UploadToChunkFromTexture(glm::vec2(worldPos.x, worldPos.y),
+                    UploadToChunkFromTexture(worldTilePos,
                         tcomp.TileID,tile.name,pixelData,uint32_t(width), uint32_t(height));
                 }
                 
@@ -421,6 +423,7 @@ namespace Engine {
 
     void TextureStreamingSystem::AddChunkEntitiesToRegistry(entt::registry& registry)
     {
+        EE_PROFILE_FUNCTION();
         for (auto& [uuid, chunk] : m_chunkMap)
         {
             
@@ -453,6 +456,7 @@ namespace Engine {
 
     void TextureStreamingSystem::DebugMarkChunks()
     {
+        EE_PROFILE_FUNCTION();
         constexpr uint32_t markerSize = 30; // Size of the red/green square in pixels
 
         for (auto& [chunkID, chunk] : m_chunkMap)

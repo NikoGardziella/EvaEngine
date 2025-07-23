@@ -10,6 +10,7 @@
 
 #include "TaskManager/PhysicsTaskScheduler.h"
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
+#include <Engine/Map/Grid/GridMap.h>
 
 
 
@@ -63,6 +64,8 @@ namespace Engine {
 			return m_textureStreamingSystem;
 		}
 
+		Engine::GridMap GetGrid() { return m_gridMap; }
+
 		/*
 			Engine::Scope<TextureStreamingSystem> ReleaseTextureStreamingSystem()
 			{
@@ -82,6 +85,7 @@ namespace Engine {
 
 
 		void RegisterSystem(const std::function<void(entt::registry&, float, Scene*)>& system);
+		void SetDebugDrawLOS(bool drawLOS) { m_debugDrawLOS = drawLOS; }
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()
@@ -121,7 +125,8 @@ namespace Engine {
 		std::vector<std::function<void(entt::registry&, float, Scene*)>> m_gameplaySystems;
 
 		Engine::Ref<TextureStreamingSystem> m_textureStreamingSystem;
-
+		Engine::GridMap m_gridMap;
+		bool m_debugDrawLOS = false;
 
 		friend class Entity;
 		friend class SceneSerializer;

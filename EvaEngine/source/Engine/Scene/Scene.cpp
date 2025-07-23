@@ -361,6 +361,9 @@ namespace Engine {
         m_textureStreamingSystem->ResetAllChunks(m_registry);
         m_textureStreamingSystem->BakeTilesIntoChunks(m_registry);
 		m_textureStreamingSystem->AddChunkEntitiesToRegistry(m_registry);
+
+        m_gridMap.Clear();
+        m_gridMap.BuildFromRegistry(m_registry);
     }
 
 
@@ -370,6 +373,8 @@ namespace Engine {
     void Scene::OnRunTimeStop()
     {
         b2DestroyWorld(m_worldId);
+
+        m_gridMap.Clear();
     }
 
     void Scene::PauseRuntime()
@@ -504,15 +509,10 @@ namespace Engine {
                             float tiling = 1.0f;
                             glm::vec4 color = glm::vec4(1);
 
-                            float worldWidth = CHUNK_SIZE;
-                            float worldHeight = CHUNK_SIZE;
-
-                            float halfW = worldWidth * 0.5f;  // 200
-                            float halfH = worldHeight * 0.5f;  // 200
-
-                            glm::ivec2 chunkCoords = chunkSprite.ChunkCoords;
-
-                            glm::vec2 worldPos = glm::vec2(chunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
+                           
+                            glm::vec2 worldPos = glm::vec2(chunkSprite.ChunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
+                            //worldPos.x -= 0.5f;
+                            //worldPos.y -= 0.5f;
 
                             glm::mat4 model =
                                 glm::translate(glm::mat4(1.0f),
@@ -546,22 +546,13 @@ namespace Engine {
                         if (!roofSprite.IsLoaded)
                             continue;
 
-                        //constexpr float PIXELS_PER_UNIT = PIXELS_IN_TILE / float(TILE_SIZE);
 
                         glm::vec2 textureSizeInTiles = glm::vec2(
                             roofSprite.Texture->GetWidth(),
                             roofSprite.Texture->GetHeight()
                         ) / float(PIXELS_IN_TILE);
 
-                        // World size = tiles * TILE_SIZE
                         glm::vec2 textureSizeWorld = textureSizeInTiles * float(TILE_SIZE);
-
-                        // World origin = entity position + local offset
-
-                        // World max
-
-                        
-
 
                         float tiling = 1.0f;
                         glm::vec4 color = glm::vec4(1);
@@ -577,7 +568,14 @@ namespace Engine {
                         glm::vec2 roofMax = roofMin + textureSizeWorld;
 
                         glm::vec2 playerCenter = playerPos + glm::vec2(1.1f, 1.1f);
-                       
+                        glm::ivec2 tileCoord = glm::floor(playerPos / float(TILE_SIZE));
+
+                       // m_gridMap.DrawDebugBlockedTiles();
+
+                        if (m_gridMap.IsBlocked(tileCoord))
+                        {
+                            //EE_CORE_INFO("Blocked! Can't see through this tile. {} | {}.", tileCoord.x, tileCoord.y);
+                        }
                         float margin = 0.1f; 
 
                         glm::vec2 expandedMin = roofMin - glm::vec2(margin);
@@ -589,10 +587,10 @@ namespace Engine {
                         {
                             continue;
                         }
-
+                       
 
                         Engine::VulkanRenderer2D::DrawTextureQuad(model, roofSprite.Texture, tiling, color);
-                        Engine::VulkanRenderer2D::DrawLineRect(model, glm::vec4(1, 0, 0, 0.3f), -1);
+                        //Engine::VulkanRenderer2D::DrawLineRect(model, glm::vec4(1, 0, 0, 0.3f), -1);
                     }
 
 
@@ -635,10 +633,7 @@ namespace Engine {
                                 }
 
                                 {
-                                  //  EE_PROFILE_SCOPE("Final culling");
-                                  
-                                    /*
-                                    */
+                                
 
                                     glm::mat4 view = glm::inverse(cameraTransform);
                                     glm::mat4 proj = mainCamera->GetViewProjection();
@@ -803,9 +798,12 @@ namespace Engine {
                 for (auto entity : view)
                 {
                     auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
-
-                    float tiling = 1.0f;
-                   // Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+                    // check what is this actually rendering,.
+                    if (m_gridMap.HasLineOfSight(playerPos, transform.Translation, m_debugDrawLOS))
+                    {
+                        float tiling = 1.0f;
+                        Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+                    }
                 }
 
             }

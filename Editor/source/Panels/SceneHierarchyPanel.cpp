@@ -442,7 +442,6 @@ namespace Engine {
             {
                 if (ImGui::MenuItem("Sprite renderer"))
                 {
-                    m_selectionContext.AddComponent<SpriteRendererComponent>();
                     ImGui::CloseCurrentPopup();
                     Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                     if (entity)
@@ -488,13 +487,11 @@ namespace Engine {
             {
                 if (ImGui::MenuItem("Transform"))
                 {
-                    m_selectionContext.AddComponent<TransformComponent>();
                     ImGui::CloseCurrentPopup();
                     Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get()};
                     if (entity)
                     {
-                        m_sceneHierarchyPanelScene->GetRegistry().emplace<TransformComponent>(entity);
-
+                        entity.AddComponent<TransformComponent>();
                     }
 
                 }
@@ -529,7 +526,6 @@ namespace Engine {
 
             if (ImGui::MenuItem("Circle Collider"))
             {
-                m_selectionContext.AddComponent<CircleCollider2DComponent>();
                 ImGui::CloseCurrentPopup();
                 Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
@@ -540,7 +536,6 @@ namespace Engine {
             }
             if (ImGui::MenuItem("Health Component"))
             {
-                m_selectionContext.AddComponent<HealthComponent>();
                 ImGui::CloseCurrentPopup();
                 Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
@@ -551,7 +546,6 @@ namespace Engine {
             }
             if (ImGui::MenuItem("Weapon Component"))
             {
-                m_selectionContext.AddComponent<WeaponComponent>();
                 ImGui::CloseCurrentPopup();
                 Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
@@ -562,7 +556,6 @@ namespace Engine {
             }
             if (ImGui::MenuItem("NPC movement Component"))
             {
-                m_selectionContext.AddComponent<NPCAIMovementComponent>();
                 ImGui::CloseCurrentPopup();
                 Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
@@ -573,7 +566,6 @@ namespace Engine {
             }
             if (ImGui::MenuItem("NPC vision Component"))
             {
-                m_selectionContext.AddComponent<NPCAIVisionComponent>();
                 ImGui::CloseCurrentPopup();
                 Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
@@ -595,7 +587,6 @@ namespace Engine {
             }
             if (ImGui::MenuItem("Tile Component"))
             {
-                m_selectionContext.AddComponent<TileComponent>();
                 ImGui::CloseCurrentPopup();
                 Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
@@ -834,7 +825,7 @@ namespace Engine {
         DrawComponent<TileComponent>("Tile", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
                 ImGui::Text("Grid Pos");
-                ImGui::DragFloat2("##Position", glm::value_ptr(component.WorldPos), 1.0f);
+                //ImGui::DragFloat2("##Position", glm::value_ptr(component.WorldPos), 1.0f);
 
                 //ImGui::Checkbox("Destructible", &component.IsDestructible);
 

@@ -12,6 +12,7 @@ namespace Engine {
 
     bool TextureStreamingUtils::BakeRoofTextureIfNeeded(entt::registry& registry, entt::entity entity)
     {
+        EE_PROFILE_FUNCTION();
         if (!registry.all_of<TileComponent, TransformComponent>(entity))
             return false;
 
@@ -91,8 +92,9 @@ namespace Engine {
         roofRenderComp.Texture = combinedTexture;
 
 
-        glm::vec2 centerOffset = glm::vec2(textureSize) * 0.5f / float(PIXELS_IN_TILE);
-        roofRenderComp.LocalOffset = glm::vec3(glm::vec2(minPos) * float(TILE_SIZE) + centerOffset, 0.0f);
+        glm::vec2 localCenter = glm::vec2(minPos + maxPos) * 0.5f + glm::vec2(0.5f);
+        glm::vec2 centerOffsetWorld = localCenter * float(TILE_SIZE);
+        roofRenderComp.LocalOffset = glm::vec3(centerOffsetWorld, 0.0f);
 
         EE_CORE_INFO("Entity pos: {}, {} | Roof LocalOffset: {}, {}", xf.Translation.x, xf.Translation.y, roofRenderComp.LocalOffset.x, roofRenderComp.LocalOffset.y);
 
