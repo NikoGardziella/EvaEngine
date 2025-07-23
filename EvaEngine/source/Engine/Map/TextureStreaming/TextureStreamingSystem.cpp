@@ -407,6 +407,9 @@ namespace Engine {
 
                 if (tile.IsDestructible)
                 {
+                    m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData, width, height);
+
+
                     UploadToChunkFromTexture(worldTilePos,
                         tcomp.TileID,tile.name,pixelData,uint32_t(width), uint32_t(height));
                 }

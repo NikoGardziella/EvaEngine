@@ -32,6 +32,37 @@ namespace Engine
 			}
 		}
 	}
+    void GridMap::MarkBlockedSubtilesFromTexture(
+        const glm::vec2& worldPosition, // tile position in world units (e.g., (5, 10))
+        const std::vector<uint8_t>& textureData,
+        uint32_t textureWidth, uint32_t textureHeight)
+    {
+
+        for (uint32_t y = 0; y < textureHeight; ++y)
+        {
+            for (uint32_t x = 0; x < textureWidth; ++x)
+            {
+                size_t index = (y * textureWidth + x) * 4;
+                uint8_t alpha = textureData[index + 3];
+                if (alpha < 10) continue; // skip transparent pixels
+
+                // Pixel position in fractional tile units
+                glm::vec2 pixelOffsetInTile = glm::vec2(float(x) / float(PIXELS_IN_TILE), float(y) / float(PIXELS_IN_TILE));
+
+                // Total subtile world position
+                glm::vec2 subtileWorldPos = worldPosition + pixelOffsetInTile;
+
+                // Convert to subtile grid coordinate (integers)
+                glm::ivec2 subtileGridCoord = glm::floor(subtileWorldPos * float(GRID_SUBDIVISIONS));
+
+                m_blockedTiles.insert(subtileGridCoord);
+            }
+        }
+    }
+
+
+
+
 
 	bool GridMap::IsBlocked(glm::ivec2 worldTileCoords) const
 	{
@@ -47,8 +78,12 @@ namespace Engine
     bool GridMap::HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw)
     {
         EE_PROFILE_FUNCTION();
-        glm::ivec2 from = glm::floor(fromWorld / float(TILE_SIZE));
-        glm::ivec2 to = glm::floor(toWorld / float(TILE_SIZE));
+
+        constexpr float subtileSize = float(TILE_SIZE) / float(GRID_SUBDIVISIONS);
+
+        // Convert world position to subtile coordinates:
+        glm::ivec2 from = glm::floor(fromWorld / subtileSize);
+        glm::ivec2 to = glm::floor(toWorld / subtileSize);
 
         int x0 = from.x;
         int y0 = from.y;
@@ -65,15 +100,15 @@ namespace Engine
 
         while (true)
         {
-            glm::ivec2 tileCoord = { x0, y0 };
+            glm::ivec2 subtileCoord = { x0, y0 };
 
-            if (!isFirstTile && m_blockedTiles.find(tileCoord) != m_blockedTiles.end())
+            if (!isFirstTile && m_blockedTiles.find(subtileCoord) != m_blockedTiles.end())
             {
                 if (debugDraw)
                 {
-                    glm::vec2 tileCenter = glm::vec2(tileCoord) * float(TILE_SIZE) + glm::vec2(TILE_SIZE * 0.5f);
-                    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(tileCenter, 0.0f)) *
-                        glm::scale(glm::mat4(1.0f), glm::vec3(TILE_SIZE));
+                    glm::vec2 subtileCenter = glm::vec2(subtileCoord) * subtileSize + glm::vec2(subtileSize * 0.5f);
+                    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(subtileCenter, 0.0f)) *
+                        glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize));
                     Engine::VulkanRenderer2D::DrawLineRect(model, glm::vec4(1, 0, 0, 0.3f), -1.0f);
                     DrawDebugLine(fromWorld, toWorld, glm::vec4(1, 0, 0, 1));
                 }
@@ -82,9 +117,9 @@ namespace Engine
 
             if (debugDraw)
             {
-                glm::vec2 tileCenter = glm::vec2(tileCoord) * float(TILE_SIZE) + glm::vec2(TILE_SIZE * 0.5f);
-                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(tileCenter, 0.0f)) *
-                    glm::scale(glm::mat4(1.0f), glm::vec3(TILE_SIZE));
+                glm::vec2 subtileCenter = glm::vec2(subtileCoord) * subtileSize + glm::vec2(subtileSize * 0.5f);
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(subtileCenter, 0.0f)) *
+                    glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize));
                 Engine::VulkanRenderer2D::DrawLineRect(model, glm::vec4(1, 1, 0, 0.2f), -1.0f);
             }
 
@@ -108,15 +143,16 @@ namespace Engine
 
         if (debugDraw)
         {
-            glm::vec2 tileCenter = glm::vec2(to) * float(TILE_SIZE) + glm::vec2(TILE_SIZE * 0.5f);
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(tileCenter, 0.0f)) *
-                glm::scale(glm::mat4(1.0f), glm::vec3(TILE_SIZE));
+            glm::vec2 subtileCenter = glm::vec2(to) * subtileSize + glm::vec2(subtileSize * 0.5f);
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(subtileCenter, 0.0f)) *
+                glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize));
             Engine::VulkanRenderer2D::DrawLineRect(model, glm::vec4(0, 1, 1, 0.4f), -1.0f);
             DrawDebugLine(fromWorld, toWorld, glm::vec4(0, 1, 0, 1));
         }
 
         return true;
     }
+
 
 
 
@@ -130,20 +166,25 @@ namespace Engine
 		Engine::VulkanRenderer2D::DrawLine(a, b, color, -1);
 	}
 
-	void GridMap::DrawDebugBlockedTiles() const
-	{
+    void GridMap::DrawDebugBlockedTiles() const
+    {
         EE_PROFILE_FUNCTION();
-		constexpr float tileSize = static_cast<float>(TILE_SIZE);
-		glm::vec4 debugColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.3f); // Semi-transparent red
+        constexpr float tileSize = static_cast<float>(TILE_SIZE);  
+        constexpr float subtileSize = tileSize / float(GRID_SUBDIVISIONS); 
 
-		for (const glm::ivec2& tilePos : m_blockedTiles)
-		{
-			glm::vec2 worldPos = glm::vec2(tilePos) * tileSize + glm::vec2(tileSize * 0.5f); // center of tile
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos, 0.0f)) *
-				glm::scale(glm::mat4(1.0f), glm::vec3(tileSize, tileSize, 1.0f));
+        glm::vec4 debugColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.3f); // Semi-transparent red
 
-			Engine::VulkanRenderer2D::DrawLineRect(model, debugColor, -1.0f);
-		}
-	}
+        for (const glm::ivec2& subtilePos : m_blockedTiles)
+        {
+            // Calculate center position of subtile in world units
+            glm::vec2 worldPos = glm::vec2(subtilePos) * subtileSize + glm::vec2(subtileSize * 0.5f);
+
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos, 0.0f)) *
+                glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize, subtileSize, 1.0f));
+
+            Engine::VulkanRenderer2D::DrawLineRect(model, debugColor, -1.0f);
+        }
+    }
+
 
 }

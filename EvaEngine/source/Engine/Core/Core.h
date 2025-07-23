@@ -90,6 +90,10 @@ constexpr size_t MAX_COLLISION_RESULTS = 64; // projectiles and player
 constexpr size_t PIXELS_IN_TILE = 128;
 constexpr size_t TILE_SIZE = 1;
 
+// GRID
+constexpr size_t GRID_SUBDIVISIONS = 4;
+
+
 namespace Engine {
 
     template<typename T>

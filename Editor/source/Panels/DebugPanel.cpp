@@ -103,7 +103,7 @@ namespace Engine {
             {
                 Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera.GetViewProjection(), camera.GetComponent<TransformComponent>().GetTransform());
             }
-            m_editor->GetGameLayer()->GetActiveGameScene()->GetGrid().DrawDebugBlockedTiles();
+            m_editor->GetGameLayer()->GetActiveGameScene()->GetGrid()->DrawDebugBlockedTiles();
 
 
         }

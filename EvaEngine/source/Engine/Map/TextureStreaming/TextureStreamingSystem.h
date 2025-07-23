@@ -5,10 +5,11 @@
 
 #include "entt.hpp"
 #include <Engine/Map/Utils/IVec2Hasher.h>
+#include "Engine/Map/Grid/GridMap.h"
 
 namespace Engine{
 
-    const uint32_t CHUNK_SIZE = 32;
+    const uint32_t CHUNK_SIZE = 64;
     const int LOAD_RADIUS = 2; // Load a 3×3 chunk area (1 chunks in all directions)
     const int UNLOAD_RADIUS = 2; 
 
@@ -47,7 +48,7 @@ namespace Engine{
         
 		std::unordered_map<UUID, TextureChunk>& GetChunkMap() { return m_chunkMap; }
 
-
+        void SetGridMap(Ref<GridMap>& gridmap) { m_gridMap = gridmap; }
             
         void BakeTilesIntoChunks(entt::registry& registry);
         void AddChunkEntitiesToRegistry(entt::registry& registry);
@@ -66,6 +67,7 @@ namespace Engine{
         Ref<VulkanTexture> CreateTextureFromData(const uint8_t* pixelData, int width, int height);
 
         std::unordered_map<UUID, TextureChunk> m_chunkMap;
+        Ref<GridMap> m_gridMap;
 
     };
 

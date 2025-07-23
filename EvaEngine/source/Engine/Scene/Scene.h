@@ -64,7 +64,7 @@ namespace Engine {
 			return m_textureStreamingSystem;
 		}
 
-		Engine::GridMap GetGrid() { return m_gridMap; }
+		Ref<GridMap>& GetGrid() { return m_gridMap; }
 
 		/*
 			Engine::Scope<TextureStreamingSystem> ReleaseTextureStreamingSystem()
@@ -124,8 +124,8 @@ namespace Engine {
 
 		std::vector<std::function<void(entt::registry&, float, Scene*)>> m_gameplaySystems;
 
-		Engine::Ref<TextureStreamingSystem> m_textureStreamingSystem;
-		Engine::GridMap m_gridMap;
+		Ref<TextureStreamingSystem> m_textureStreamingSystem;
+		Ref<GridMap> m_gridMap;
 		bool m_debugDrawLOS = false;
 
 		friend class Entity;

@@ -13,6 +13,8 @@ namespace Engine {
 	{
 	public:
 		void BuildFromRegistry(entt::registry& registry);
+		void GridMap::MarkBlockedSubtilesFromTexture(const glm::vec2& worldPosition,
+			const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
 
 		bool IsBlocked(glm::ivec2 worldTileCoords) const;
 

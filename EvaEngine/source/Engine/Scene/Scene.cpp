@@ -64,7 +64,9 @@ namespace Engine {
     {
 		EE_CORE_INFO("Creating new Scene");
         m_registry = entt::registry();
+        m_gridMap = std::make_shared<GridMap>();
         m_textureStreamingSystem = std::make_unique<TextureStreamingSystem>();
+        m_textureStreamingSystem->SetGridMap(m_gridMap);
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
 
     }
@@ -362,8 +364,7 @@ namespace Engine {
         m_textureStreamingSystem->BakeTilesIntoChunks(m_registry);
 		m_textureStreamingSystem->AddChunkEntitiesToRegistry(m_registry);
 
-        m_gridMap.Clear();
-        m_gridMap.BuildFromRegistry(m_registry);
+       // m_gridMap->BuildFromRegistry(m_registry);
     }
 
 
@@ -374,7 +375,7 @@ namespace Engine {
     {
         b2DestroyWorld(m_worldId);
 
-        m_gridMap.Clear();
+        m_gridMap->Clear();
     }
 
     void Scene::PauseRuntime()
@@ -572,7 +573,7 @@ namespace Engine {
 
                        // m_gridMap.DrawDebugBlockedTiles();
 
-                        if (m_gridMap.IsBlocked(tileCoord))
+                        if (m_gridMap->IsBlocked(tileCoord))
                         {
                             //EE_CORE_INFO("Blocked! Can't see through this tile. {} | {}.", tileCoord.x, tileCoord.y);
                         }
@@ -793,13 +794,13 @@ namespace Engine {
 
             {
                 EE_PROFILE_SCOPE("Update Runtime SpriteRendererComponent");
-                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
+                auto view = m_registry.view<SpriteRendererComponent, TransformComponent, NPCAIVisionComponent>();
 
                 for (auto entity : view)
                 {
                     auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
                     // check what is this actually rendering,.
-                    if (m_gridMap.HasLineOfSight(playerPos, transform.Translation, m_debugDrawLOS))
+                    if (m_gridMap->HasLineOfSight(playerPos, transform.Translation, m_debugDrawLOS))
                     {
                         float tiling = 1.0f;
                         Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
@@ -1008,7 +1009,6 @@ namespace Engine {
 
 
 
-
     Entity Scene::GetPrimaryCameraEntity()
     {
         auto view = m_registry.view<CameraComponent>();
@@ -1024,41 +1024,7 @@ namespace Engine {
         return {};
     }
 
-    /*
-    void Scene::UpdatePhysics(Timestep timestep)
-    {
-        EE_PROFILE_FUNCTION();
-
-        constexpr int32_t subStepCount = 4;
-        constexpr float physicsStep = 1.0f / 60.0f;  // Precomputed constant
-
-        // Step physics world in parallel (with multithreading)
-        b2World_Step(m_worldId, physicsStep, subStepCount);
-
-        // Parallelize physics state updates
-        size_t count = m_renderSOA.BodyIds.size();
-
-        // Use a parallel loop to update transforms
-        std::for_each(std::execution::par, m_renderSOA.BodyIds.begin(), m_renderSOA.BodyIds.end(),
-            [&](b2BodyId& bodyId)
-            {
-                // Find the index of the current body
-                size_t index = &bodyId - m_renderSOA.BodyIds.data();
-
-                // Update physics state for the current body
-                b2Vec2 position = b2Body_GetPosition(bodyId);
-                b2Rot rotation = b2Body_GetRotation(bodyId);
-               
-
-                // Directly update transform (modify the transform in the same array)
-                m_renderSOA.InstanceTransforms[index] =
-                    glm::translate(glm::mat4(1.0f), { position.x, position.y, 0.0f }) *
-                    glm::rotate(glm::mat4(1.0f), std::atan2(rotation.s, rotation.c), { 0, 0, 1 }) *
-                    glm::scale(glm::mat4(1.0f), Math::extractScaleFromMat4(m_renderSOA.InstanceTransforms[index]));
-            }
-        );
-    }
-    */
+    
     void Scene::UpdatePhysics(Timestep timestep)
     {
         EE_PROFILE_FUNCTION();
