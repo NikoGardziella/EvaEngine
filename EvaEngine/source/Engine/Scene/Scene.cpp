@@ -17,6 +17,8 @@
 #include "Components/Render/TileComponent.h"
 #include "Components/Render/ChunkRendererComponent.h"
 #include "Components/Render/RoofRenderComponent.h"
+#include "Components/Vehicles/VehicleComponent.h"
+#include "Components/Vehicles/DriverComponent.h"
 
 
 namespace Engine {
@@ -226,6 +228,8 @@ namespace Engine {
         CopyComponent<WeaponComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<TileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<RoofRenderComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<VehicleComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<DriverComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
     }
 
     Entity Scene::CreateEntity(const std::string& name)
@@ -512,9 +516,6 @@ namespace Engine {
 
                            
                             glm::vec2 worldPos = glm::vec2(chunkSprite.ChunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
-                            //worldPos.x -= 0.5f;
-                            //worldPos.y -= 0.5f;
-
                             glm::mat4 model =
                                 glm::translate(glm::mat4(1.0f),
                                     glm::vec3(worldPos.x, worldPos.y, 0.0f))
@@ -571,12 +572,6 @@ namespace Engine {
                         glm::vec2 playerCenter = playerPos + glm::vec2(1.1f, 1.1f);
                         glm::ivec2 tileCoord = glm::floor(playerPos / float(TILE_SIZE));
 
-                       // m_gridMap.DrawDebugBlockedTiles();
-
-                        if (m_gridMap->IsBlocked(tileCoord))
-                        {
-                            //EE_CORE_INFO("Blocked! Can't see through this tile. {} | {}.", tileCoord.x, tileCoord.y);
-                        }
                         float margin = 0.1f; 
 
                         glm::vec2 expandedMin = roofMin - glm::vec2(margin);
@@ -589,21 +584,14 @@ namespace Engine {
                             continue;
                         }
                        
-
                         Engine::VulkanRenderer2D::DrawTextureQuad(model, roofSprite.Texture, tiling, color);
                         //Engine::VulkanRenderer2D::DrawLineRect(model, glm::vec4(1, 0, 0, 0.3f), -1);
                     }
 
-
-
                 }
 
-
-
                 {
-                    
                     EE_PROFILE_SCOPE("Texture update");
-
 
                     entt::basic_view view = m_registry.view<SpriteRendererComponent, TransformComponent>();
                     glm::vec4 cameraBounds = mainCameraComp.Camera.CalculateCameraWorldBounds(mainCameraComp.Camera, cameraTransform);
@@ -661,13 +649,36 @@ namespace Engine {
                             //EE_PROFILE_SCOPE("DrawTextureQuad");
 
                             float tiling = 1.0f;
-                            if (m_registry.any_of<CharacterControllerComponent>(entity))
+                            if (m_registry.any_of<CharacterControllerComponent>(entity) &&
+                                !m_registry.any_of<DriverComponent>(entity))
                             {
                                 // only render player from here for now
+                                // if player is NOT in vehicle
+                                
                                 Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
 
                             }
+                            if (m_registry.any_of<VehicleComponent>(entity))
+                            {
 
+                                glm::vec2 textureSizeInTiles = glm::vec2(
+                                    quadSprite.Texture->GetWidth(),
+                                    quadSprite.Texture->GetHeight()
+                                ) / float(PIXELS_IN_TILE);
+
+                                glm::vec2 textureSizeWorld = textureSizeInTiles * float(TILE_SIZE);
+
+                                float tiling = 1.0f;
+                                glm::vec4 color = glm::vec4(1);
+
+                                glm::mat4 model =
+                                    glm::translate(glm::mat4(1.0f), transform.Translation) *
+                                    glm::rotate(glm::mat4(1.0f), transform.Rotation.z + 0.0f , glm::vec3(0.0f, 0.0f, 1.0f)) *
+                                    glm::scale(glm::mat4(1.0f), glm::vec3(textureSizeWorld, 1.0f));
+
+                                Engine::VulkanRenderer2D::DrawTextureQuad(model, quadSprite.Texture, tiling, quadSprite.Color);
+
+                            }
                         }
 
                         
@@ -736,7 +747,7 @@ namespace Engine {
             }
             {
                 EE_PROFILE_SCOPE("Update Runtime SpriteRendererComponent");
-                auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
+                auto view = m_registry.view<SpriteRendererComponent, TransformComponent, VehicleComponent>();
 
                 for (auto entity : view)
                 {

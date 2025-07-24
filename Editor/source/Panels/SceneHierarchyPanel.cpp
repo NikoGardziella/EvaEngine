@@ -14,6 +14,7 @@
 #include <Engine/Scene/Components/Combat/WeaponComponent.h>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include <Engine/Scene/Components/Vehicles/VehicleComponent.h>
 
 //#include "entt.hpp"
 
@@ -595,6 +596,15 @@ namespace Engine {
 
                 }
             }
+            if (ImGui::MenuItem("Vehicle Component"))
+            {
+                ImGui::CloseCurrentPopup();
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                if (entity)
+                {
+                    m_sceneHierarchyPanelScene->GetRegistry().emplace<VehicleComponent>(entity);
+                }
+            }
 
             ImGui::EndPopup();
         }
@@ -645,7 +655,28 @@ namespace Engine {
 
 
             });
+        DrawComponent<VehicleComponent>("Vehicle", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
+            {
+                ImGui::DragFloat("Mass", &component.Mass, 0.1f, 0.0f, 100.0f);
+                ImGui::DragFloat2("Velocity", glm::value_ptr(component.Velocity));
 
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID),
+                 m_sceneHierarchyPanelScene.get()
+                };
+
+                if (newEntity)
+                {
+                    if (!newEntity.HasComponent<VehicleComponent>())
+                    {
+                        newEntity.AddComponent<VehicleComponent>();
+                    }
+
+                    newEntity.GetComponent<VehicleComponent>() = component;
+                }
+
+
+            });
         DrawComponent<HealthComponent>("Health", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
                 ImGui::DragFloat("Health", &component.Current, 0.1f, 0.0f, 100.0f);

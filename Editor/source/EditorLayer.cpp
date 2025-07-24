@@ -654,6 +654,10 @@ namespace Engine {
                 destructible = false;
                 isRoof = true;
                 break;
+            case Engine::eTileCategory::Vehicles:
+                destructible = false;
+                isRoof = false;
+                break;
             default:
                 break;
         }

@@ -28,7 +28,8 @@ namespace Engine {
         static const CategoryEntry categories[] = {
             { "Buildings", eTileCategory::Buildings },
             { "Terrain", eTileCategory::Terrain },
-            { "Roofs", eTileCategory::Roofs }
+            { "Roofs", eTileCategory::Roofs },
+            { "Vehicles", eTileCategory::Vehicles }
         };
 
         for (const auto& entry : categories)

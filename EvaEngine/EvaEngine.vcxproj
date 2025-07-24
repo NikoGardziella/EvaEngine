@@ -225,6 +225,8 @@
     <ClInclude Include="source\Engine\Scene\Components\Render\ChunkRendererComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\RoofRenderComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\TileComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Vehicles\DriverComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Vehicles\VehicleComponent.h" />
     <ClInclude Include="source\Engine\Scene\Entity.h" />
     <ClInclude Include="source\Engine\Scene\Scene.h" />
     <ClInclude Include="source\Engine\Scene\SceneCamera.h" />

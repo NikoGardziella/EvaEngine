@@ -4,7 +4,7 @@ Entities:
     TagComponent:
       Tag: Entity
     TransformComponent:
-      Translation: [-4, 9, 0]
+      Translation: [-6.3, 9, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TileComponent:
@@ -145,7 +145,7 @@ Entities:
       ViewRadius: 10
       ViewAngle: 180
       HasLineOfSight: false
-  - ID: 5032721710874775006
+  - ID: 1175866846
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -168,3 +168,29 @@ Entities:
           IsDestructible: true
           IsRoof: false
           Category: Buildings
+  - ID: 4112408847
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-1, -2.4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.5, 0.5, 0.6220703, 1]
+          Name: car_0001_Layer-2_left
+          IsDestructible: false
+          IsRoof: false
+          Category: Vehicles
+        - Position: [1, 0]
+          UV: [0.6220703, 0.5, 0.7470703, 1]
+          Name: car_0001_Layer-2_right
+          IsDestructible: false
+          IsRoof: false
+          Category: Vehicles
+    VehicleComponent:
+      Velocity: [0, 0]
+      Mass: 100

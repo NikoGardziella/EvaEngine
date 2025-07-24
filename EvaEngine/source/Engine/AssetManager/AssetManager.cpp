@@ -373,7 +373,8 @@ namespace Engine {
         static const std::unordered_map<eTileCategory, std::string> CategoryNames = {
             { eTileCategory::Buildings, "buildings" },
             { eTileCategory::Terrain,   "terrain" },
-            { eTileCategory::Roofs,     "roofs" }
+            { eTileCategory::Roofs,     "roofs" },
+            { eTileCategory::Vehicles,     "vehicles" }
         };
 
         const fs::path baseTilePath = AssetManager::GetAssetPath("textures/tiles");

@@ -394,6 +394,7 @@ namespace Engine {
             // check if this entity has roof tiles.
             // if it does, make a new roof texture that is combinatio of all roof tiles
             TextureStreamingUtils::BakeRoofTextureIfNeeded(registry, entity);
+            TextureStreamingUtils::BakeVehicleTextureIfNeeded(registry, entity);
 
             for (const auto& tile : tcomp.tiles)
             {

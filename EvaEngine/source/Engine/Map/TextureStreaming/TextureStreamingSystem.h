@@ -9,7 +9,7 @@
 
 namespace Engine{
 
-    const uint32_t CHUNK_SIZE = 64;
+    const uint32_t CHUNK_SIZE = 32;
     const int LOAD_RADIUS = 2; // Load a 3×3 chunk area (1 chunks in all directions)
     const int UNLOAD_RADIUS = 2; 
 

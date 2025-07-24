@@ -15,6 +15,7 @@
 #include "Components/Render/TileComponent.h"
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 #include <string>
+#include "Components/Vehicles/VehicleComponent.h"
 
 
 namespace Engine {
@@ -306,6 +307,22 @@ namespace Engine {
             out << YAML::EndMap;
         }
 
+        inline void SerializeVehicleComponent(Entity entity, YAML::Emitter& out)
+        {
+            if (!entity.HasComponent<VehicleComponent>())
+                return;
+
+            const auto& comp = entity.GetComponent<VehicleComponent>();
+
+            out << YAML::Key << "VehicleComponent" << YAML::Value;
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "Velocity" << YAML::Value << YAML::Flow << YAML::BeginSeq << comp.Velocity.x << comp.Velocity.y << YAML::EndSeq;
+            out << YAML::Key << "Mass" << YAML::Value << comp.Mass;
+
+           
+            out << YAML::EndMap;
+        }
 
 
         // Serializes an individual entity by checking for each component.
@@ -348,6 +365,8 @@ namespace Engine {
                 SerializeWeaponComponent(entity, out);
             if (entity.HasComponent<TileComponent>())
                 SerializeTileComponent(entity, out);
+            if (entity.HasComponent<VehicleComponent>())
+                SerializeVehicleComponent(entity, out);
 
 
 
@@ -377,7 +396,7 @@ namespace Engine {
             }
         }
         
-        inline void DeserializeTileComponent(Entity entity, const YAML::Node& entityNode, Ref<Scene> scene)
+        inline void DeserializeTileComponent(Entity entity, const YAML::Node& entityNode)
         {
             if (!entityNode["TileComponent"])
                 return;
@@ -718,6 +737,26 @@ namespace Engine {
             }
         }
 
+        inline void DeserializeVehicleComponent(Entity entity, const YAML::Node& entityNode)
+        {
+            if (entityNode["VehicleComponent"])
+            {
+                VehicleComponent& component = entity.AddComponent<VehicleComponent>();
+                const auto& node = entityNode["VehicleComponent"];
+
+                if (node["Velocity"])
+                {
+                    auto velocityNode = node["Velocity"];
+                    component.Velocity.x = velocityNode[0].as<float>();
+                    component.Velocity.y = velocityNode[1].as<float>();
+                }
+
+                if (node["Mass"])
+                    component.Mass = node["Mass"].as<uint32_t>();
+
+            }
+        }
+
 
         inline void DeserializeEntity(Entity entity, const YAML::Node& entityNode, Ref<Scene> scene)
         {
@@ -734,7 +773,8 @@ namespace Engine {
 			DeserializeNPCAIVisionComponent(entity, entityNode);
 			DeserializeCharacterControllerComponent(entity, entityNode);
 			DeserializeWeaponComponent(entity, entityNode);
-			DeserializeTileComponent(entity, entityNode, scene);
+			DeserializeTileComponent(entity, entityNode);
+            DeserializeVehicleComponent(entity, entityNode);
 
             DeserializeSpriteRendererComponent(entity, entityNode, scene);
         }

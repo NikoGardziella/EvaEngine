@@ -12,6 +12,7 @@ namespace Engine {
 	{
 	public:
 		static bool BakeRoofTextureIfNeeded(entt::registry& registry, entt::entity entity);
+		static bool BakeVehicleTextureIfNeeded(entt::registry& registry, entt::entity entity);
 	};
 
 

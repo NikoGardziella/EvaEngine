@@ -142,6 +142,7 @@
     <ClInclude Include="source\Systems\Player\Camera\PlayerCameraSystem.h" />
     <ClInclude Include="source\Systems\Player\CharacterControllerSystem.h" />
     <ClInclude Include="source\Systems\Player\PlayerMovementSystem.h" />
+    <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -156,6 +157,7 @@
     <ClCompile Include="source\Systems\Player\Camera\PlayerCameraSystem.cpp" />
     <ClCompile Include="source\Systems\Player\CharacterControllerSystem.cpp" />
     <ClCompile Include="source\Systems\Player\PlayerMovementSystem.cpp" />
+    <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EvaEngine\EvaEngine.vcxproj">

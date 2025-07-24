@@ -13,7 +13,8 @@ namespace Engine {
 		Undefined = 0,
         Buildings,
         Terrain,
-        Roofs
+        Roofs,
+        Vehicles
     };
 
 
@@ -48,6 +49,8 @@ namespace Engine {
         case eTileCategory::Buildings: return "Buildings";
         case eTileCategory::Terrain:   return "Terrain";
         case eTileCategory::Roofs:     return "Roofs";
+        case eTileCategory::Vehicles:  return "Vehicles";
+
         default: return "Unknown";
         }
     }
@@ -57,6 +60,7 @@ namespace Engine {
         if (str == "Buildings") return eTileCategory::Buildings;
         if (str == "Terrain") return eTileCategory::Terrain;
         if (str == "Roofs") return eTileCategory::Roofs;
+        if (str == "Vehicles") return eTileCategory::Vehicles;
         return eTileCategory::Undefined;
     }
 }
