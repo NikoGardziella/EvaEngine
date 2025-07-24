@@ -222,6 +222,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\ChunkRendererComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\RoofRenderComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\TileComponent.h" />

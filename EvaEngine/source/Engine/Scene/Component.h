@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 
+
 #include "entt.hpp"
 
 
@@ -38,19 +39,7 @@ namespace Engine {
 
     };
 
-    //class Entity;
-    struct ProjectileComponent
-    {
-        glm::vec2 Velocity;   // units per second
-        float      LifeTime;   // range
-        float      Damage = 10.0f;
-        entt::entity   Owner;
-
-        ProjectileComponent() = default;
-        ProjectileComponent(const glm::vec2& velocity, float lifeTime)
-            : Velocity(velocity), LifeTime(lifeTime)  {
-        }
-    };
+    
 
     struct TagComponent
     {

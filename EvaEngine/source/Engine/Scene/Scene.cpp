@@ -19,6 +19,7 @@
 #include "Components/Render/RoofRenderComponent.h"
 #include "Components/Vehicles/VehicleComponent.h"
 #include "Components/Vehicles/DriverComponent.h"
+#include "Components/Projectiles/ProjectileComponent.h"
 
 
 namespace Engine {
@@ -593,13 +594,13 @@ namespace Engine {
                 {
                     EE_PROFILE_SCOPE("Texture update");
 
-                    entt::basic_view view = m_registry.view<SpriteRendererComponent, TransformComponent>();
+                    entt::basic_view view = m_registry.view<SpriteRendererComponent, TransformComponent, IDComponent>();
                     glm::vec4 cameraBounds = mainCameraComp.Camera.CalculateCameraWorldBounds(mainCameraComp.Camera, cameraTransform);
                     glm::vec2 camMin = glm::vec2(cameraBounds.x, cameraBounds.y);
                     glm::vec2 camMax = camMin + glm::vec2(cameraBounds.z, cameraBounds.w);
                     for (auto entity : view)
                     {
-                        auto [transform, quadSprite] = view.get<TransformComponent, SpriteRendererComponent>(entity);
+                        auto [transform, quadSprite, IDcomp] = view.get<TransformComponent, SpriteRendererComponent, IDComponent>(entity);
                         {
                             {
 
@@ -675,6 +676,15 @@ namespace Engine {
                                     glm::translate(glm::mat4(1.0f), transform.Translation) *
                                     glm::rotate(glm::mat4(1.0f), transform.Rotation.z + 0.0f , glm::vec3(0.0f, 0.0f, 1.0f)) *
                                     glm::scale(glm::mat4(1.0f), glm::vec3(textureSizeWorld, 1.0f));
+                                
+                                float pixelSize = quadSprite.Texture->GetWidth();;
+                              
+                                quadSprite.Texture->SetCheckCollision(true);
+                                quadSprite.Texture->SetTextureOrigin(transform.Translation);
+                                quadSprite.Texture->SetPixelSize(pixelSize);
+                                float radius = 0.1f;
+
+                                Engine::VulkanRenderer2D::CalculateCollision(transform.Translation, radius, IDcomp.ID, eCollisionType::PROJECTILE);
 
                                 Engine::VulkanRenderer2D::DrawTextureQuad(model, quadSprite.Texture, tiling, quadSprite.Color);
 

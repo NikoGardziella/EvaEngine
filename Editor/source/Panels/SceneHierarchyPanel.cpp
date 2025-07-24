@@ -15,6 +15,7 @@
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <Engine/Scene/Components/Vehicles/VehicleComponent.h>
+#include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
 
 //#include "entt.hpp"
 

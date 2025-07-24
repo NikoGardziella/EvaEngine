@@ -2,13 +2,14 @@
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
 #include <Engine/Events/Public/CollisionEvents.h>
+#include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
 
 
 void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto projectileView = registry.view<Engine::TransformComponent, Engine::ProjectileComponent, Engine::IDComponent>();
+    auto projectileView = registry.view<Engine::TransformComponent, ProjectileComponent, Engine::IDComponent>();
 
     // Cache and clear collision results before loop
     const auto collisions = Engine::CollisionResultsCPU::LatestProjectiles;
@@ -17,7 +18,7 @@ void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float de
     for (auto projectileEntity : projectileView)
     {
         auto& projectileTransform = projectileView.get<Engine::TransformComponent>(projectileEntity);
-        auto& projectile = projectileView.get<Engine::ProjectileComponent>(projectileEntity);
+        auto& projectile = projectileView.get<ProjectileComponent>(projectileEntity);
         auto& IDComp = projectileView.get<Engine::IDComponent>(projectileEntity);
 
         // Check GPU-reported collisions

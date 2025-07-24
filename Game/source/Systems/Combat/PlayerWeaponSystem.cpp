@@ -3,6 +3,8 @@
 #include <Engine/Scene/Components/Combat/WeaponComponent.h>
 #include <Engine/AssetManager/AssetManager.h>
 #include <Engine/Debug/Instrumentor.h>
+#include <Engine/Scene/Components/Vehicles/DriverComponent.h>
+#include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
 
 
 void PlayerWeaponSystem::UpdatePlayerWeaponSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
@@ -44,21 +46,25 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(entt::registry& registry, floa
             glm::vec2 playerPos = glm::vec2(transform.Translation);
             glm::vec2 direction = glm::normalize(mouseWorldPosition - playerPos);
 
-            ShootProjectile(registry, entity, transform.Translation, direction, scene, weapon.Damage);
+            Engine::Entity playerEntity = Engine::Entity{ entity, scene };
+            ShootProjectile(registry, playerEntity, transform.Translation, direction, scene, weapon.Damage);
 
             weapon.Cooldown = weapon.FireRate;
         }
     }
 }
 
-void PlayerWeaponSystem::ShootProjectile(entt::registry& registry, entt::entity entity, const glm::vec2& position, const glm::vec2& direction, Engine::Scene* scene, float damage)
+void PlayerWeaponSystem::ShootProjectile(entt::registry& registry, Engine::Entity entity, const glm::vec2& position, const glm::vec2& direction, Engine::Scene* scene, float damage)
 {
+    // disable shooting from a car now
+    if (entity.HasComponent<DriverComponent>())
+        return;
     Engine::Entity& projectileEntity = scene->CreateEntity("Projectile");
 
     Engine::TransformComponent& transformComp = projectileEntity.AddComponent<Engine::TransformComponent>();
     float projectileSpeed = 2.0f;
 	float lifeTime = 1.0f;
-    Engine::ProjectileComponent& projectileComp = projectileEntity.AddComponent<Engine::ProjectileComponent>(direction * projectileSpeed, lifeTime);
+    ProjectileComponent& projectileComp = projectileEntity.AddComponent<ProjectileComponent>(direction * projectileSpeed, lifeTime);
     projectileComp.Damage = damage;
     Engine::SpriteRendererComponent& spriteComp = projectileEntity.AddComponent<Engine::SpriteRendererComponent>();
     projectileComp.Owner = entity;

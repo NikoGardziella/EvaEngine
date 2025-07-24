@@ -1,13 +1,14 @@
 #include "PixelCollisionSystem.h"
 #include "glm/glm.hpp"
 #include <Engine/Debug/Instrumentor.h>
+#include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
 
-
+// remove this
 void PixelCollisionSystem::UpdatePixelCollisionSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto projectileView = registry.view<Engine::TransformComponent, Engine::ProjectileComponent>();
+    auto projectileView = registry.view<Engine::TransformComponent, ProjectileComponent>();
     auto pixelView = registry.view<Engine::TransformComponent, Engine::PixelSpriteRendererComponent>();
 
     for (auto projectileEntity : projectileView)
