@@ -21,7 +21,7 @@ namespace Engine
 		{
 			return ProjectileID > 0 && TargetID > 0;
 		}
-		uint64_t GetProjectileID() const { return ProjectileID; }
+		uint64_t GetEntityID() const { return ProjectileID; }
 	};
 
 	// Supports only one collision result at a time

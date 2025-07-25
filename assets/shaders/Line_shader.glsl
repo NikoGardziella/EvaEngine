@@ -19,7 +19,7 @@ struct VertexOutput
 };
 
 layout (location = 0) out VertexOutput Output;
-layout (location = 1) out flat int v_EntityID;
+//layout (location = 1) out flat int v_EntityID;
 
 void main()
 {

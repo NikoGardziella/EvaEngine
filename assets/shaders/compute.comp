@@ -6,47 +6,46 @@
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
-layout(binding = 0, rgba8) uniform image2D u_InputTexture[MAX_TEXTURES];
-layout(binding = 1, rgba8) uniform image2D u_OutputTexture[MAX_TEXTURES];
+// Texture bindings
+layout(set = 0, binding = 0, rgba8) uniform image2D u_InputTexture[MAX_TEXTURES];
+layout(set = 0, binding = 1, rgba8) uniform image2D u_OutputTexture[MAX_TEXTURES];
 
+// Collision result per projectile
 struct CollisionResult {
     uint collisionDetected;
     uint hitProjectileID_Low;
     uint hitProjectileID_High;
-    uint _padding1;
+    uint _padding0;
     vec2 CollisionPosition;
+    uint _padding1;
     uint _padding2;
-    uint _padding3;
-
 };
 
+// Projectile data sent from CPU
 struct ProjectileGPU {
-    vec2 Position;
-    float Radius;
-    uint Type;      // 0 = projectile, 1 = player
-    uint ID_Low;
-    uint ID_High;
-    uint _padding0; 
-    uint _padding1; 
+    vec2 Position;    // 8 bytes
+    float Radius;     // 4 bytes
+    uint Type;        // 4 bytes
+    uint ID_Low;      // 4 bytes
+    uint ID_High;     // 4 bytes
+    vec2 Size;        // 8 bytes (only for Type 2)
+    float Rotation;   // 4 bytes (only for Type 2)
+    float _padding0;  // 4 bytes (align to 40)
 };
 
-// Results SSBO
-layout(std430, binding = 2) buffer ResultBuffer {
+layout(std430, set = 0, binding = 2) buffer ResultBuffer {
     uint collisionCount;
-    uint _padding0; 
-    uint _padding1; 
-    uint _padding2; 
+    uint _padding0;
+    uint _padding1;
+    uint _padding2;
     CollisionResult results[MAX_COLLISION_ENTITIES];
 };
 
-// Projectiles SSBO
-layout(std140, set = 0, binding = 3) readonly buffer Projectiles {
+layout(std430, set = 0, binding = 3) readonly buffer Projectiles {
     ProjectileGPU data[];
 };
 
-// Push constants
-layout(push_constant) uniform PushConstants
-{
+layout(push_constant) uniform PushConstants {
     vec2 TextureOrigin;
     float PixelSize;
     uint TextureIndex;
@@ -54,54 +53,64 @@ layout(push_constant) uniform PushConstants
     uint mode; // 0 = Detect, 1 = Destroy
 } pc;
 
+// Helper: rotated box check
+bool PointInRotatedBox(vec2 point, vec2 boxCenter, vec2 halfSize, float rotation)
+{
+    vec2 local = point - boxCenter;
+    float cosR = cos(rotation);
+    float sinR = sin(rotation);
+    vec2 rotated = vec2(
+        cosR * local.x + sinR * local.y,
+       -sinR * local.x + cosR * local.y
+    );
+    return abs(rotated.x) <= halfSize.x && abs(rotated.y) <= halfSize.y;
+}
+
 void main() {
     ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
 
-    // Bounds check
-    ivec2 textureSize = imageSize(u_InputTexture[pc.TextureIndex]);
-    if (pixelCoord.x >= textureSize.x || pixelCoord.y >= textureSize.y)
+    // Early out of bounds
+    ivec2 texSize = imageSize(u_InputTexture[pc.TextureIndex]);
+    if (pixelCoord.x >= texSize.x || pixelCoord.y >= texSize.y)
         return;
 
     vec4 pixel = imageLoad(u_InputTexture[pc.TextureIndex], pixelCoord);
     if (pixel.a == 0.0)
         return;
 
-   
     vec2 worldPos = pc.TextureOrigin + vec2(pixelCoord) * pc.PixelSize;
 
-    for (uint i = 0; i < pc.NumProjectiles; ++i)
-    {
-        vec2 projectilePos = data[i].Position;
-        float radius = data[i].Radius;
-        uint type = data[i].Type;
+    for (uint i = 0; i < pc.NumProjectiles; ++i) {
+        ProjectileGPU proj = data[i];
+        bool collided = false;
 
-        float collisionRadius = radius / 10.0f;
-        float dist = distance(worldPos, projectilePos);
-        if (dist < radius)
+        if (proj.Type == 0 || proj.Type == 1)
         {
+            float dist = distance(worldPos, proj.Position);
+            if (dist < proj.Radius)
+                collided = true;
+        } else if (proj.Type == 2)
+        {
+            if (PointInRotatedBox(worldPos, proj.Position, proj.Size * 0.5, proj.Rotation))
+                collided = true;
+        }
 
-           
-            if (type == 0)
+        if (collided)
+        {
+            // Destroy if it's a projectile
+            if (proj.Type == 0 || proj.Type == 2)
             {
-                imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0, 0, 0, 0));
-            }
-            if(type == 1)
-            {
-                // debug
-               // imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0.9f, 0.1f, 0.1f, 1));
+                imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0.0));
             }
 
-            //if(dist < collisionRadius)
+            uint index = atomicAdd(collisionCount, 1);
+            if (index < MAX_COLLISION_ENTITIES)
             {
-                
-                uint index = atomicAdd(collisionCount, 1);
                 results[index].collisionDetected = 1;
-                results[index].hitProjectileID_Low = data[i].ID_Low;
-                results[index].hitProjectileID_High = data[i].ID_High;
+                results[index].hitProjectileID_Low = proj.ID_Low;
+                results[index].hitProjectileID_High = proj.ID_High;
                 results[index].CollisionPosition = worldPos;
-                
             }
-           
         }
     }
 }

@@ -14,10 +14,10 @@
 namespace Engine {
 
 	enum eCollisionType {
-		PROJECTILE = 0,
-		PLAYER = 1,
-		ELSE  = 2,
-	};;
+		PROJECTILE = 0, // destroyed itself and what it hits
+		PLAYER = 1, // only collision
+		VEHICLE  = 2, // 
+	};
 	enum eComputeMode : uint32_t {
 		DetectOnly = 0,
 		Destroy = 1
@@ -149,8 +149,9 @@ namespace Engine {
 
 		// for rendering game in Editor
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
-
-		static void CalculateCollision(const glm::vec2& colliderPos, const float radius, uint64_t entityID, eCollisionType collisionType);
+		
+		static void CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size, float rotation, uint64_t entityID, eCollisionType collisionType);
+		static void CalculateCircleCollision(const glm::vec2& colliderPos, const float radius, uint64_t entityID, eCollisionType collisionType);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static void DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
@@ -179,6 +180,7 @@ namespace Engine {
 
 		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
 		void CreateSyncObjects();
+
 
 		// I dont use this at the moment, but they might come in handy later
 		void TransitionImageLayout(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);

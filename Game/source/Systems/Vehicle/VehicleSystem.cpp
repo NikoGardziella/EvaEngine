@@ -2,6 +2,7 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Components/Vehicles/VehicleComponent.h>
 #include <Engine/Debug/Instrumentor.h>
+
 void VehicleSystem::UpdateVehicleSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
@@ -17,50 +18,49 @@ void VehicleSystem::UpdateVehicleSystem(entt::registry& registry, float deltaTim
         const float linearFriction = 0.90f;
         const float angularFriction = 0.90f;
 
-        bool collision = false;
-        for (auto& col : Engine::CollisionResultsCPU::LatestProjectiles)
+        // === Speed Calculation ===
+        if (glm::length(vehicle.Velocity) > 0.0f)
         {
-            if (IDComp.ID == col.GetProjectileID())
-            {
-                collision = true;
-                EE_INFO("vehicle collided");
-                break;
-            }
-        }
-
-        if (!collision)
-        {
-            if (glm::length(vehicle.Velocity) > 0.0f)
-            {
-                float engineForce = vehicle.Power * glm::sign(vehicle.Velocity.y);
-                float acceleration = engineForce / vehicle.Mass;
-                vehicle.CurrentSpeed += acceleration * deltaTime;
-            }
-            else
-            {
-                float deceleration = vehicle.Deceleration / vehicle.Mass;
-                if (vehicle.CurrentSpeed > 0.0f)
-                {
-                    vehicle.CurrentSpeed -= deceleration * deltaTime;
-                    if (vehicle.CurrentSpeed < 0.0f)
-                        vehicle.CurrentSpeed = 0.0f;
-                }
-                else if (vehicle.CurrentSpeed < 0.0f)
-                {
-                    vehicle.CurrentSpeed += deceleration * deltaTime;
-                    if (vehicle.CurrentSpeed > 0.0f)
-                        vehicle.CurrentSpeed = 0.0f;
-                }
-            }
-
-            vehicle.CurrentSpeed = glm::clamp(vehicle.CurrentSpeed, -vehicle.MaxSpeed, vehicle.MaxSpeed);
+            float engineForce = vehicle.Power * glm::sign(vehicle.Velocity.y);
+            float acceleration = engineForce / vehicle.Mass;
+            vehicle.CurrentSpeed += acceleration * deltaTime;
         }
         else
         {
-            // Collision: stop or reverse slightly
-            vehicle.CurrentSpeed = -0.3f * glm::abs(vehicle.CurrentSpeed); // Pushback
+            // Decelerate when no input
+            float deceleration = vehicle.Deceleration / vehicle.Mass;
+            if (vehicle.CurrentSpeed > 0.0f)
+            {
+                vehicle.CurrentSpeed -= deceleration * deltaTime;
+                if (vehicle.CurrentSpeed < 0.0f)
+                    vehicle.CurrentSpeed = 0.0f;
+            }
+            else if (vehicle.CurrentSpeed < 0.0f)
+            {
+                vehicle.CurrentSpeed += deceleration * deltaTime;
+                if (vehicle.CurrentSpeed > 0.0f)
+                    vehicle.CurrentSpeed = 0.0f;
+            }
         }
 
+        // Clamp speed
+        vehicle.CurrentSpeed = glm::clamp(vehicle.CurrentSpeed, -vehicle.MaxSpeed, vehicle.MaxSpeed);
+
+        // === Pushback ===
+        if (glm::length(vehicle.Pushback) > 0.001f)
+        {
+            transform.Translation += glm::vec3(vehicle.Pushback * deltaTime, 0.0f);
+
+            // Decay pushback over time
+            float pushDecay = 5.0f; // tweak as needed
+            vehicle.Pushback = glm::mix(vehicle.Pushback, glm::vec2(0.0f), pushDecay * deltaTime);
+        }
+        else
+        {
+            vehicle.Pushback = glm::vec2(0.0f); // zero out when very small
+        }
+
+        // === Movement and Steering ===
         float rotationRadians = transform.Rotation.z;
         glm::vec2 forward = glm::vec2(glm::cos(rotationRadians), glm::sin(rotationRadians));
         glm::vec2 movement = forward * vehicle.CurrentSpeed * deltaTime;
@@ -69,13 +69,15 @@ void VehicleSystem::UpdateVehicleSystem(entt::registry& registry, float deltaTim
 
         if (vehicle.CurrentSpeed != 0.0f)
         {
-            float steering = -vehicle.Velocity.x * 3.0f;
+            float steering = -vehicle.Velocity.x * 3.0f; // arbitrary factor
             transform.Rotation.z += steering * deltaTime;
         }
 
+        // === Friction ===
         vehicle.Velocity.y *= linearFriction;
         vehicle.Velocity.x *= angularFriction;
     }
+
 
 
 

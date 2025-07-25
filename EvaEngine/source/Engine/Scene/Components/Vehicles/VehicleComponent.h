@@ -18,13 +18,14 @@
         float VehicleSpeed = 50.0f;
         float MaxSpeed = 10.0f;
         float Power = 2000.0f;
-        float Mass = 100.0f;
+        float Mass = 400.0f;
 
         float CurrentSpeed = 0.0f;
         float Acceleration = 30.0f;
-        float Deceleration = 20.0f;
+        float Deceleration = 500.0f;
 
 
         float ExitEnterCooldown = 0.5f;
+        glm::vec2 Pushback = glm::vec2(0.0f);
     };
 

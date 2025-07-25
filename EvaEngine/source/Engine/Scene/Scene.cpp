@@ -428,15 +428,16 @@ namespace Engine {
         glm::vec2 playerPos;
         uint64_t playerID = 0;
 
-        for (auto playerEntity : playerView)
+        Entity playerEntity = Entity{};
+        for (auto entity : playerView)
         {
-            auto& playerTransform = playerView.get<Engine::TransformComponent>(playerEntity);
+            auto& playerTransform = playerView.get<Engine::TransformComponent>(entity);
             playerPos.x = playerTransform.Translation.x;
             playerPos.y = playerTransform.Translation.y;
 
-            auto& playerIDComp = playerView.get<Engine::IDComponent>(playerEntity);
+            auto& playerIDComp = playerView.get<Engine::IDComponent>(entity);
             playerID = playerIDComp.ID;
-
+            playerEntity = Entity{ entity, this };
         }
 
 
@@ -603,8 +604,6 @@ namespace Engine {
                         auto [transform, quadSprite, IDcomp] = view.get<TransformComponent, SpriteRendererComponent, IDComponent>(entity);
                         {
                             {
-
-
                                // EE_PROFILE_SCOPE("Texture culling");
 
                                 {
@@ -623,8 +622,6 @@ namespace Engine {
                                 }
 
                                 {
-                                
-
                                     glm::mat4 view = glm::inverse(cameraTransform);
                                     glm::mat4 proj = mainCamera->GetViewProjection();
                                     
@@ -641,7 +638,6 @@ namespace Engine {
 
                                     if (!visible)
                                         continue;
-
                                 }
                             }
                         }
@@ -677,14 +673,17 @@ namespace Engine {
                                     glm::rotate(glm::mat4(1.0f), transform.Rotation.z + 0.0f , glm::vec3(0.0f, 0.0f, 1.0f)) *
                                     glm::scale(glm::mat4(1.0f), glm::vec3(textureSizeWorld, 1.0f));
                                 
-                                float pixelSize = quadSprite.Texture->GetWidth();;
+                                float pixelSize = quadSprite.Texture->GetWidth();
                               
-                                quadSprite.Texture->SetCheckCollision(true);
-                                quadSprite.Texture->SetTextureOrigin(transform.Translation);
-                                quadSprite.Texture->SetPixelSize(pixelSize);
+                                quadSprite.Texture->SetCheckCollision(false);
+                                //quadSprite.Texture->SetTextureOrigin(transform.Translation);
+                               // quadSprite.Texture->SetPixelSize(pixelSize);
                                 float radius = 0.1f;
 
-                                Engine::VulkanRenderer2D::CalculateCollision(transform.Translation, radius, IDcomp.ID, eCollisionType::PROJECTILE);
+                               // glm::vec2 size = glm::vec2{ quadSprite.Texture->GetWidth()  ,quadSprite.Texture->GetHeight() };
+                                glm::vec2 size = glm::vec2{ 2  ,1 };
+
+                                Engine::VulkanRenderer2D::CalculateBoxCollision(transform.Translation, size, transform.Rotation.z, IDcomp.ID, eCollisionType::VEHICLE);
 
                                 Engine::VulkanRenderer2D::DrawTextureQuad(model, quadSprite.Texture, tiling, quadSprite.Color);
 
@@ -704,7 +703,7 @@ namespace Engine {
                             textureOrigin.x = transform.Translation.x - transform.Scale.x * 0.5f; // to bottom left
 
                             textureOrigin.y = transform.Translation.y - transform.Scale.y * 0.5f; // to bottom left
-                            quadSprite.Texture->SetCheckCollision(true);
+                           // quadSprite.Texture->SetCheckCollision(true);
                             quadSprite.Texture->SetTextureOrigin(textureOrigin);
                             quadSprite.Texture->SetPixelSize(pixelSize);
 
@@ -730,12 +729,14 @@ namespace Engine {
                         projectilePos.y = projectileTransform.Translation.y;
 
                       //  projectileTransform.Translation.z = 0.1f;
-                        Engine::VulkanRenderer2D::CalculateCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE);
+                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE);
                         Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
 
                     }
-
-                   Engine::VulkanRenderer2D::CalculateCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
+                    if (!playerEntity.HasComponent<DriverComponent>())
+                    {
+                        Engine::VulkanRenderer2D::CalculateCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
+                    }
                 }
 
             }

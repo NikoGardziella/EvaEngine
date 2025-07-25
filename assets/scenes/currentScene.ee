@@ -1,45 +1,10 @@
 Scene: My Scene
 Entities:
-  - ID: 256625537
+  - ID: 11492768827421536337
     TagComponent:
       Tag: Entity
     TransformComponent:
-      Translation: [-6.3, 9, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TileComponent:
-      TileID: 0
-      Texture: ""
-      Tiles:
-        - Position: [0, 0]
-          UV: [0.25, 0.5, 0.375, 1]
-          Name: roof_0000_Layer-1
-          IsDestructible: false
-          IsRoof: true
-          Category: Roofs
-        - Position: [1, 0]
-          UV: [0.25, 0.5, 0.375, 1]
-          Name: roof_0000_Layer-1
-          IsDestructible: false
-          IsRoof: true
-          Category: Roofs
-        - Position: [2, 0]
-          UV: [0.25, 0.5, 0.375, 1]
-          Name: roof_0000_Layer-1
-          IsDestructible: false
-          IsRoof: true
-          Category: Roofs
-        - Position: [3, 0]
-          UV: [0.25, 0.5, 0.375, 1]
-          Name: roof_0000_Layer-1
-          IsDestructible: false
-          IsRoof: true
-          Category: Roofs
-  - ID: 971840278
-    TagComponent:
-      Tag: Entity
-    TransformComponent:
-      Translation: [-3, 9, 0]
+      Translation: [-2, 6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TileComponent:
@@ -59,40 +24,16 @@ Entities:
           IsRoof: false
           Category: Buildings
         - Position: [2, 0]
-          UV: [0.625, 0, 0.75, 0.5]
-          Name: walls_0007_Layer-8
+          UV: [0.5, 0, 0.625, 0.5]
+          Name: walls_0006_Layer-7
           IsDestructible: true
           IsRoof: false
           Category: Buildings
-        - Position: [2, -1]
-          UV: [0.75, 0, 0.875, 0.5]
-          Name: walls_0008_Layer-9
-          IsDestructible: true
-          IsRoof: false
-          Category: Buildings
-        - Position: [-1, -1]
-          UV: [0.125, 0, 0.25, 0.5]
-          Name: walls_0003_Layer-4
-          IsDestructible: true
-          IsRoof: false
-          Category: Buildings
-        - Position: [-1, -2]
-          UV: [0.25, 0, 0.375, 0.5]
-          Name: walls_0004_Layer-5
-          IsDestructible: true
-          IsRoof: false
-          Category: Buildings
-        - Position: [2, -2]
-          UV: [0.875, 0, 1, 0.5]
-          Name: walls_0009_Layer-10
-          IsDestructible: true
-          IsRoof: false
-          Category: Buildings
-  - ID: 4034826917
+  - ID: 9108847587693671855
     TagComponent:
       Tag: Entity
     TransformComponent:
-      Translation: [-4, 9, 0]
+      Translation: [-3, 6, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TileComponent:
@@ -130,44 +71,6 @@ Entities:
     WeaponComponent:
       Damage: 10
       FireRate: 0.6
-  - ID: 342155892
-    TagComponent:
-      Tag: Empty entity
-    TransformComponent:
-      Translation: [-2.6, 7.49, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-      Texture: zombie1_walk_000
-      Tiling: 1
-    NPCAIVisionComponent:
-      ViewRadius: 10
-      ViewAngle: 180
-      HasLineOfSight: false
-  - ID: 1175866846
-    TagComponent:
-      Tag: Entity
-    TransformComponent:
-      Translation: [-8, 1, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TileComponent:
-      TileID: 0
-      Texture: ""
-      Tiles:
-        - Position: [0, 0]
-          UV: [0.75, 0, 0.875, 0.5]
-          Name: walls_0008_Layer-9
-          IsDestructible: true
-          IsRoof: false
-          Category: Buildings
-        - Position: [0, -1]
-          UV: [0.75, 0, 0.875, 0.5]
-          Name: walls_0008_Layer-9
-          IsDestructible: true
-          IsRoof: false
-          Category: Buildings
   - ID: 4112408847
     TagComponent:
       Tag: Entity

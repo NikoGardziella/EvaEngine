@@ -37,7 +37,7 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
             // Check initial move collision
             for (const auto& collision : Engine::CollisionResultsCPU::LatestProjectiles)
             {
-                if (playerIDComp.ID != collision.GetProjectileID())
+                if (playerIDComp.ID != collision.GetEntityID())
                     continue;
 
                 glm::vec2 collisionPos = collision.HitPosition;
@@ -82,7 +82,7 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
                     bool slideCollides = false;
                     for (const auto& collision : Engine::CollisionResultsCPU::LatestProjectiles)
                     {
-                        if (playerIDComp.ID != collision.GetProjectileID())
+                        if (playerIDComp.ID != collision.GetEntityID())
                             continue;
 
                         glm::vec2 collisionPos = collision.HitPosition;
@@ -122,7 +122,7 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
         glm::vec2 playerCenter = glm::vec2(playerTransform.Translation) + offset;
         for (const auto& collision : Engine::CollisionResultsCPU::LatestProjectiles)
         {
-            if (playerIDComp.ID != collision.GetProjectileID())
+            if (playerIDComp.ID != collision.GetEntityID())
                 continue;
 
             glm::vec2 collisionPos = collision.HitPosition;

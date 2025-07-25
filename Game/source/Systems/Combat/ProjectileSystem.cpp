@@ -25,7 +25,7 @@ void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float de
         bool destroyedByCollision = false;
         for (const auto& col : collisions)
         {
-            if (IDComp.ID  == col.GetProjectileID())
+            if (IDComp.ID  == col.GetEntityID())
             {
 				EE_INFO("Projectile collided");
                 registry.destroy(projectileEntity);

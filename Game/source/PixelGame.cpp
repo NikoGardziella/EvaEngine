@@ -11,6 +11,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include "Systems/Combat/ProjectileSystem.h"
 #include "Systems/Collision/PlayerCollisionSystem.h"
+#include "Systems/Collision/VehicleCollisionSystem.h"
 #include "Systems/Combat/HealthSystem.h"
 #include "Systems/NPC/NpcAIMovementSystem.h"
 #include "Systems/NPC/NPCAIVisionSystem.h"
@@ -48,6 +49,13 @@ void PixelGame::OnAttach()
 
 void PixelGame::RegisterSystems()
 {
+	// -----------------------------------------------------------------------------
+	// Order of the systems matter! for example:
+	// 1. Check input from player
+	// 2. Check collisions
+	// 3. apply translation accordingly
+	// 
+	// -----------------------------------------------------------------------------
 	m_activeScene->RegisterSystem(CharacterControllerSystem::UpdateCharacterControllerSystem);
 
 	m_activeScene->RegisterSystem(PlayerCollisionSystem::UpdatePlayerCollision);
@@ -60,6 +68,7 @@ void PixelGame::RegisterSystems()
 	m_activeScene->RegisterSystem(HealthSystem::UpdateHealthSystem);
 	m_activeScene->RegisterSystem(NpcAIMovementSystem::UpdateNPCAIMovementSystem);
 	m_activeScene->RegisterSystem(NPCAIVisionSystem::UpdateNPCAIVisionSystem);
+	m_activeScene->RegisterSystem(VehicleCollisionSystem::UpdateVehicleCollision);
 	m_activeScene->RegisterSystem(VehicleSystem::UpdateVehicleSystem);
 }
 

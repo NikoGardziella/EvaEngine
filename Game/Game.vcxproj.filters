@@ -53,6 +53,7 @@
       <Filter>Systems\Player</Filter>
     </ClInclude>
     <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
+    <ClInclude Include="source\Systems\Collision\VehicleCollisionSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -88,5 +89,6 @@
       <Filter>Systems\Player</Filter>
     </ClCompile>
     <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp" />
+    <ClCompile Include="source\Systems\Collision\VehicleCollisionSystem.cpp" />
   </ItemGroup>
 </Project>
