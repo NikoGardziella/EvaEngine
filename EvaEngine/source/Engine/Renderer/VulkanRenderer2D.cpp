@@ -175,7 +175,7 @@ namespace Engine {
 		//CollisionResultsCPU::Latest.resize(MAX_COLLISION_RESULTS);
 
 		// just to fill the arrays
-		 m_dummyTexture = AssetManager::GetTexture("logo");
+		 m_dummyTexture = std::make_shared<VulkanTexture>(true, 1, 1);
 		 m_dummyTexture->SetCheckCollision(false);
 		// VulkanUtils::TransitionImageLayout(m_dummyTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
 		//	 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
@@ -246,7 +246,11 @@ namespace Engine {
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			m_vulkanGraphicsPipelines->UpdateProjectileDescriptorSets(i, s_VulkanProjectileData.TextureSlots);
+		
+			m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(i,
+				m_IOTextures[inputIndex], m_IOTextures[outputIndex]);
 		}
+		
 	}
 
 	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
@@ -716,6 +720,7 @@ namespace Engine {
 		m_CPUCollisionsHandeled = false;
 
 		m_IOTextures[inputIndex] = s_VulkanData.TextureSlots;
+
 		m_IOTextures[outputIndex] = s_VulkanData.TextureSlots;
 
 		// Prepare descriptor sets with input/output textures
@@ -735,6 +740,7 @@ namespace Engine {
 					inputTex.GetImage(),
 					inputTex.GetCurrentLayout(),
 					VK_IMAGE_LAYOUT_GENERAL);
+
 				inputTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
 			}
 		}
@@ -750,9 +756,15 @@ namespace Engine {
 					outputTex.GetImage(),
 					outputTex.GetCurrentLayout(),
 					VK_IMAGE_LAYOUT_GENERAL);
+
+
 				outputTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
+
 			}
+			
 		}
+
+		
 
 		// Bind compute pipeline & descriptor set
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_vulkanGraphicsPipelines->GetComputePipeline());
@@ -808,7 +820,11 @@ namespace Engine {
 					outputTex.GetImage(),
 					outputTex.GetCurrentLayout(),
 					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				
 				outputTex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+				
+
 			}
 		}
 

@@ -10,6 +10,7 @@
 #include "VulkanContext.h"
 #include <Engine/Renderer/Renderer.h>
 #include "VulkanUtils.h"
+#include "VulkanTexture.h"
 
 
 
@@ -75,10 +76,8 @@ namespace Engine {
        
         CreatePresentSampler();
         CreateGPUCollisionResultBuffer();
-       // CreateDescriptorSetLayout();
         CreateDescriptorSetLayouts();
         CreateProjectileDescriptorSetLayout();
-        //CreateComputeDescriptorSetLayout();
         CreateCameraDescriptorSetLayout();
         CreateComputeArrayDescriptorSetLayout();
 
@@ -97,55 +96,14 @@ namespace Engine {
         CreatePresentPipelineLayout();
         CreatePresentGraphicsPipeline(vulkanContext.GetPresentRenderPass());
         CreateProjectileGraphicsPipeline(vulkanContext.GetGameRenderPass());
-        ///UpdateTextureInfoDescriptorSets();
-        m_storageImage = CreateStorageImage(m_device, vulkanContext.GetDeviceManager().GetPhysicalDevice(),
-            512, 512, VK_FORMAT_R32G32B32A32_SFLOAT, vulkanContext.GetCommandPool(), vulkanContext.GetGraphicsQueue());
-       
-        //--------
 
-            //texture upload
-        const int width = 512;
-        const int height = 512;
-        const int channels = 4; // RGBA
-        size_t imageSize = width * height * channels;
-
-        std::vector<uint8_t> testData(imageSize);
-
-        // Fill testData with something, e.g., red pixels:
-        for (int i = 0; i < imageSize; i += 4)
-        {
-            testData[i + 0] = 255; // R
-            testData[i + 1] = 0;   // G
-            testData[i + 2] = 0;   // B
-            testData[i + 3] = 255; // A
-        }
-
-        m_pixelStagingBuffers = VulkanBuffer(
-            m_device,
-            vulkanContext.GetDeviceManager().GetPhysicalDevice(),
-            imageSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-        );
-        void* data;
-        vkMapMemory(m_device, m_pixelStagingBuffers.GetMemory(), 0, imageSize, 0, &data);
-        memcpy(data, testData.data(), static_cast<size_t>(imageSize));
-        vkUnmapMemory(m_device, m_pixelStagingBuffers.GetMemory());
-
-        m_pixelTextureImage = CreateStorageImage(m_device, vulkanContext.GetDeviceManager().GetPhysicalDevice(),
-            width, height, VK_FORMAT_R8G8B8A8_UNORM, vulkanContext.GetCommandPool(), vulkanContext.GetGraphicsQueue());
-
-        m_outputTextureImage = CreateStorageImage(m_device, vulkanContext.GetDeviceManager().GetPhysicalDevice(),
-            width, height, VK_FORMAT_R8G8B8A8_UNORM, vulkanContext.GetCommandPool(), vulkanContext.GetGraphicsQueue());
-
-
- 
         CreateComputeDescriptorSet();
-        //UpdateStorageImageDescriptorSets();
-        //UpdateBulletUBODescriptorSets();
+
         AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
 
         m_whiteTexture = AssetManager::GetTexture("logo");
+        m_dummyTexture = std::make_shared<VulkanTexture>(true, 1, 1);
+
     }
 
     VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
@@ -918,7 +876,7 @@ namespace Engine {
 
 
     }
-
+    /*
     void VulkanGraphicsPipeline::CreateComputeDescriptorSetLayout()
     {
         
@@ -942,8 +900,15 @@ namespace Engine {
         resultBufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         resultBufferBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-        std::array<VkDescriptorSetLayoutBinding, 3> bindings = {
-            inputImageBinding, outputImageBinding, resultBufferBinding
+
+        VkDescriptorSetLayoutBinding healthBinding{};
+        healthBinding.binding = 3;
+        healthBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        healthBinding.descriptorCount = 1;
+        healthBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+        std::array<VkDescriptorSetLayoutBinding, 4> bindings = {
+            inputImageBinding, outputImageBinding, resultBufferBinding, healthBinding
         };
 
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -954,10 +919,11 @@ namespace Engine {
         vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_computeDescriptorSetLayout);
 
     }
+    */
 
     void VulkanGraphicsPipeline::CreateComputeArrayDescriptorSetLayout()
     {
-        std::array<VkDescriptorSetLayoutBinding, 4> bindings{};
+        std::array<VkDescriptorSetLayoutBinding, 5> bindings{};
 
         // Binding 0: input textures
         bindings[0].binding = 0;
@@ -985,6 +951,14 @@ namespace Engine {
         bindings[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         bindings[3].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         bindings[3].pImmutableSamplers = nullptr;
+
+        // health
+        bindings[4].binding = 4;
+        bindings[4].descriptorCount = MAX_TEXTURES;
+        bindings[4].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        bindings[4].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        bindings[4].pImmutableSamplers = nullptr;
+
 
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -1207,50 +1181,93 @@ namespace Engine {
     }
 
   
-
-    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES>  inputTextures, std::array<Ref<VulkanTexture>, MAX_TEXTURES>  outputTextures)
+    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES> inputTextures, std::array<Ref<VulkanTexture>, MAX_TEXTURES> outputTextures)
     {
 
-        std::vector<VkDescriptorImageInfo> inputImageInfos(inputTextures.size());
-        std::vector<VkDescriptorImageInfo> outputImageInfos(outputTextures.size());
 
-        for (size_t i = 0; i < inputTextures.size(); ++i)
+        std::vector<VkDescriptorImageInfo> inputImageInfos;
+        std::vector<VkDescriptorImageInfo> outputImageInfos;
+        std::vector<VkDescriptorImageInfo> healthImageInfos;
+
+        inputImageInfos.reserve(inputTextures.size());
+        outputImageInfos.reserve(outputTextures.size());
+        healthImageInfos.reserve(inputTextures.size());
+
+        for (const auto& tex : inputTextures)
         {
-            // images are VK_DESCRIPTOR_TYPE_STORAGE_IMAGEso even input
-            // images must in VK_IMAGE_LAYOUT_GENERAL
-            inputImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL; 
-            inputImageInfos[i].imageView = inputTextures[i]->GetImageView();
-            inputImageInfos[i].sampler = VK_NULL_HANDLE;
+            VkDescriptorImageInfo info{};
+            info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+            info.imageView = tex->GetImageView();
+            info.sampler = VK_NULL_HANDLE;
+            inputImageInfos.push_back(info);
         }
 
-        for (size_t i = 0; i < outputTextures.size(); ++i)
+        for (const auto& tex : outputTextures)
         {
-            outputImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            outputImageInfos[i].imageView = outputTextures[i]->GetImageView();
-            outputImageInfos[i].sampler = VK_NULL_HANDLE;
+            VkDescriptorImageInfo info{};
+            info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+            info.imageView = tex->GetImageView();
+            info.sampler = VK_NULL_HANDLE;
+            outputImageInfos.push_back(info);
         }
 
-        std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+        for (const auto& tex : inputTextures)
+        {
+            VkDescriptorImageInfo info{};
+            info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+            VkImageView healthView = tex->GetHealthImageView();
 
-        descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[0].dstSet = m_computeDescriptorSet[frameIndex];
-        descriptorWrites[0].dstBinding = 0; // or 1 depending on input/output
-        descriptorWrites[0].descriptorCount = static_cast<uint32_t>(inputImageInfos.size());
-        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        descriptorWrites[0].pImageInfo = inputImageInfos.data();
+            if (healthView != VK_NULL_HANDLE)
+                info.imageView = healthView;
+            else
+                info.imageView = m_dummyTexture->GetHealthImageView(); // or a dummy health image
 
-        descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[1].dstSet = m_computeDescriptorSet[frameIndex];
-        descriptorWrites[1].dstBinding = 1; 
-        descriptorWrites[1].descriptorCount = static_cast<uint32_t>(outputImageInfos.size());
-        descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        descriptorWrites[1].pImageInfo = outputImageInfos.data();
+            info.sampler = VK_NULL_HANDLE;
+            healthImageInfos.push_back(info);
+        }
+
+
+        std::vector<VkWriteDescriptorSet> descriptorWrites;
+
+        // Input
+        VkWriteDescriptorSet inputWrite{};
+        inputWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        inputWrite.dstSet = m_computeDescriptorSet[frameIndex];
+        inputWrite.dstBinding = 0;
+        inputWrite.descriptorCount = static_cast<uint32_t>(inputImageInfos.size());
+        inputWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        inputWrite.pImageInfo = inputImageInfos.data();
+        descriptorWrites.push_back(inputWrite);
+
+        // Output
+        VkWriteDescriptorSet outputWrite{};
+        outputWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        outputWrite.dstSet = m_computeDescriptorSet[frameIndex];
+        outputWrite.dstBinding = 1;
+        outputWrite.descriptorCount = static_cast<uint32_t>(outputImageInfos.size());
+        outputWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        outputWrite.pImageInfo = outputImageInfos.data();
+        descriptorWrites.push_back(outputWrite);
+
+        // Health (conditionally)
+        if (!healthImageInfos.empty())
+        {
+            VkWriteDescriptorSet healthWrite{};
+            healthWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            healthWrite.dstSet = m_computeDescriptorSet[frameIndex];
+            healthWrite.dstBinding = 4;
+            healthWrite.descriptorCount = static_cast<uint32_t>(healthImageInfos.size());
+            healthWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+            healthWrite.pImageInfo = healthImageInfos.data();
+            descriptorWrites.push_back(healthWrite);
+        }
 
         vkUpdateDescriptorSets(m_device,
             static_cast<uint32_t>(descriptorWrites.size()),
             descriptorWrites.data(),
             0, nullptr);
     }
+
 
 
     void VulkanGraphicsPipeline::UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures)
@@ -1351,7 +1368,7 @@ namespace Engine {
 
 
     #include "Engine/Core/Core.h"
-
+    /*
     void VulkanGraphicsPipeline::UpdateComputeArrayDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures)
     {
         // -- INPUT IMAGES --
@@ -1396,6 +1413,7 @@ namespace Engine {
 
     }
 
+    */
     void VulkanGraphicsPipeline::CreatePresentSampler()
     {
         VkSamplerCreateInfo samplerInfo{};
@@ -1466,6 +1484,7 @@ namespace Engine {
         UpdateCameraUBODescriptorSets();
     }
 
+
     void VulkanGraphicsPipeline::CreateComputeDescriptorSet()
     {
         m_computeDescriptorSet.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1483,16 +1502,7 @@ namespace Engine {
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            VkDescriptorImageInfo inputImageInfo{};
-            inputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            inputImageInfo.imageView = m_pixelTextureImage.ImageView;
-            inputImageInfo.sampler = VK_NULL_HANDLE;
-
-            VkDescriptorImageInfo outputImageInfo{};
-            outputImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            outputImageInfo.imageView = m_outputTextureImage.ImageView;
-            outputImageInfo.sampler = VK_NULL_HANDLE;
-
+     
             VkDescriptorBufferInfo resultBufferInfo{};
             resultBufferInfo.buffer = m_GPUCollisionresultBufferBuffer;
             resultBufferInfo.offset = 0;
@@ -1503,39 +1513,26 @@ namespace Engine {
             bulletBufferInfo.offset = 0;
             bulletBufferInfo.range = sizeof(CollisionEntitiesGPU) * MAX_COLLISION_ENTITIES;
 
-            std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
+            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
-            // Binding 0: input storage image
-            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = m_computeDescriptorSet[i];
-            descriptorWrites[0].dstBinding = 0;
-            descriptorWrites[0].descriptorCount = 1;
-            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            descriptorWrites[0].pImageInfo = &inputImageInfo;
-
-            // Binding 1: output storage image
-            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = m_computeDescriptorSet[i];
-            descriptorWrites[1].dstBinding = 1;
-            descriptorWrites[1].descriptorCount = 1;
-            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            descriptorWrites[1].pImageInfo = &outputImageInfo;
+            // dstBinding = 0 u_InputTexture and 1 u_OutputTexture
+            // are updated every frame so no need to do it here
 
             // Binding 2: result buffer
-            descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[2].dstSet = m_computeDescriptorSet[i];
-            descriptorWrites[2].dstBinding = 2;
-            descriptorWrites[2].descriptorCount = 1;
-            descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            descriptorWrites[2].pBufferInfo = &resultBufferInfo;
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = m_computeDescriptorSet[i];
+            descriptorWrites[0].dstBinding = 2;
+            descriptorWrites[0].descriptorCount = 1;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            descriptorWrites[0].pBufferInfo = &resultBufferInfo;
 
             //  Binding 3: bullet buffer (SSBO)
-            descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[3].dstSet = m_computeDescriptorSet[i];
-            descriptorWrites[3].dstBinding = 3;
-            descriptorWrites[3].descriptorCount = 1;
-            descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            descriptorWrites[3].pBufferInfo = &bulletBufferInfo;
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].dstSet = m_computeDescriptorSet[i];
+            descriptorWrites[1].dstBinding = 3;
+            descriptorWrites[1].descriptorCount = 1;
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            descriptorWrites[1].pBufferInfo = &bulletBufferInfo;
 
             vkUpdateDescriptorSets(m_device,
                 static_cast<uint32_t>(descriptorWrites.size()),
@@ -1719,7 +1716,7 @@ namespace Engine {
 
     
 
-
+    /*
     void VulkanGraphicsPipeline::UpdateStorageImageDescriptorSets()
     {
         for (size_t i = 0; i < m_gameDescriptorSets.size(); ++i)
@@ -1740,6 +1737,7 @@ namespace Engine {
             vkUpdateDescriptorSets(m_device, 1, &descriptorWrite, 0, nullptr);
         }
     }
+    */
 
 
     void VulkanGraphicsPipeline::UpdateCameraUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix)

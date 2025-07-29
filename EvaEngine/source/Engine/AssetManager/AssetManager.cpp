@@ -295,21 +295,83 @@ namespace Engine {
     }
 
 
-
-
-    bool AssetManager::GetTexturePixelData(const std::string& textureName, std::vector<uint8_t>& outPixels, int& outWidth, int& outHeight)
+    bool AssetManager::ExtractPixelsFromTilePallette(const glm::vec4& uv, std::vector<uint8_t>& outPixelData,
+        std::vector<uint8_t>& outHealthData, int& outWidth, int& outHeight)
     {
+        Ref<VulkanTexture> texture = GetTileTextureIconAtlas();
+        bool flipVertical = true;
+        bool flipHorizontal = false;
 
-		if (textureName.empty())
-		{
-			EE_CORE_ERROR("Texture file does not exist: {}", textureName);
-			return false;
-		}
-        
+        const std::vector<uint8_t>& pixelData = texture->GetPixelData();
+        if (pixelData.empty())
+        {
+            EE_CORE_ERROR("Texture has no CPU-side pixel data!");
+            return false;
+        }
+
+        uint32_t texWidth = texture->GetWidth();
+        uint32_t texHeight = texture->GetHeight();
+        constexpr uint32_t channels = 4; // Assuming RGBA8 format
+
+        // Convert normalized UVs to absolute pixel coordinates
+        uint32_t x0 = static_cast<uint32_t>(uv.x * texWidth);
+        uint32_t y0 = static_cast<uint32_t>(uv.y * texHeight);
+        uint32_t x1 = static_cast<uint32_t>(uv.z * texWidth);
+        uint32_t y1 = static_cast<uint32_t>(uv.w * texHeight);
+
+        if (x1 <= x0 || y1 <= y0 || x1 > texWidth || y1 > texHeight)
+        {
+            EE_CORE_ERROR("Invalid UV bounds for extraction: ({}, {}, {}, {})", uv.x, uv.y, uv.z, uv.w);
+            return false;
+        }
+
+        outWidth = x1 - x0;
+        outHeight = y1 - y0;
+
+        const size_t pixelCount = outWidth * outHeight;
+        outPixelData.resize(pixelCount * channels);
+        outHealthData.resize(pixelCount, 255); // Set full health (max 255) initially
+
+        for (uint32_t y = 0; y < outHeight; ++y)
+        {
+            for (uint32_t x = 0; x < outWidth; ++x) 
+            {
+                uint32_t srcX = flipHorizontal ? (x1 - 1 - x) : (x0 + x);
+                uint32_t srcY = flipVertical ? (y1 - 1 - y) : (y0 + y);
+
+                size_t srcIndex = (srcY * texWidth + srcX) * channels;
+                size_t dstIndex = (y * outWidth + x) * channels;
+
+                // Copy RGBA
+                memcpy(&outPixelData[dstIndex], &pixelData[srcIndex], channels);
+
+                // You can initialize health here based on material or color if needed:
+                uint8_t alpha = pixelData[srcIndex + 3];
+                uint32_t health = 2;
+                outHealthData[y * outWidth + x] = (alpha > 0) ? health : 0;
+            }
+        }
+
+        return true;
+    }
+
+
+    bool AssetManager::GetTexturePixelData(
+        const std::string& textureName,
+        std::vector<uint8_t>& outPixels,
+        std::vector<uint8_t>& outHealthData,
+        int& outWidth,
+        int& outHeight)
+    {
+        if (textureName.empty())
+        {
+            EE_CORE_ERROR("Texture file does not exist: {}", textureName);
+            return false;
+        }
+
         std::string texturePath = ResolveTexturePath(textureName);
 
         int channels;
-        //stbi_set_flip_vertically_on_load(true);
         unsigned char* data = stbi_load(texturePath.c_str(), &outWidth, &outHeight, &channels, STBI_rgb_alpha);
         if (!data)
         {
@@ -318,12 +380,25 @@ namespace Engine {
         }
 
         size_t pixelCount = outWidth * outHeight;
-        outPixels.resize(pixelCount * 4); // RGBA8 = 4 bytes per pixel
+
+        // Copy RGBA pixels
+        outPixels.resize(pixelCount * 4);
         std::memcpy(outPixels.data(), data, outPixels.size());
+
+        // Fill health only for visible pixels
+        outHealthData.resize(pixelCount);
+        uint32_t health = 2;
+        for (size_t i = 0; i < pixelCount; ++i)
+        {
+            uint8_t alpha = data[i * 4 + 3]; // Alpha channel
+            outHealthData[i] = (alpha > 0) ? health : 0;
+        }
 
         stbi_image_free(data);
         return true;
     }
+
+
 
     std::string AssetManager::ResolveTexturePath(const std::string& textureName)
     {

@@ -9,6 +9,7 @@
 #include <Engine/Scene/Components/Render/ChunkRendererComponent.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <Engine/Scene/Scene.h>
+#include <Engine/Map/Utils/PixelUtils.h>
 
 
 namespace Engine {
@@ -75,13 +76,12 @@ namespace Engine {
             }
         }
     }
-
     void TextureStreamingSystem::UploadToChunkFromTexture(
         const glm::vec2& worldPosition, UUID ID, std::string name,
-        const std::vector<uint8_t>& textureData,
+        const std::vector<uint8_t>& textureData,           // RGBA
+        const std::vector<uint8_t>& healthData,            // 1 byte per pixel
         uint32_t textureWidth, uint32_t textureHeight)
     {
-
         EE_PROFILE_FUNCTION();
         constexpr uint32_t chunkPixelSize = CHUNK_SIZE * PIXELS_IN_TILE;
 
@@ -89,30 +89,32 @@ namespace Engine {
         glm::ivec2 chunkOrigin = chunkCoords * (int)CHUNK_SIZE;
         glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOrigin;
         glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)PIXELS_IN_TILE;
-    
+
         TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
-       
         chunk.TextureCount += 1;
+
+        const uint32_t totalChunkPixels = chunkPixelSize * chunkPixelSize;
+
         if (chunk.PixelData.empty())
         {
-            uint32_t chunkPixelSize = CHUNK_SIZE * PIXELS_IN_TILE;
-            chunk.PixelData.resize(chunkPixelSize * chunkPixelSize * 4, 0);
+            chunk.PixelData.resize(totalChunkPixels * 4, 0);   // RGBA
+            chunk.HealthData.resize(totalChunkPixels, 0);      // 1 byte per pixel
             chunk.Width = chunkPixelSize;
             chunk.Height = chunkPixelSize;
             chunk.IsLoaded = false;
             chunk.Name = "Chunk_" + std::to_string(chunkCoords.x) + "_" + std::to_string(chunkCoords.y);
             chunk.AssetName = name;
             chunk.ID = HashCoords(chunkCoords);
-			chunk.ChunkCoords = chunkCoords;
-           //EE_CORE_INFO("Adding chunk with ID: {}", (uint64_t)chunk.ID);
+            chunk.ChunkCoords = chunkCoords;
 
+
+           
         }
-        // Clamp to chunk pixel bounds
+
         uint32_t copyWidth = std::min(textureWidth, chunkPixelSize - offsetInChunk.x);
         uint32_t copyHeight = std::min(textureHeight, chunkPixelSize - offsetInChunk.y);
 
-        if (offsetInChunk.x < 0 || offsetInChunk.y < 0 ||
-            copyWidth == 0 || copyHeight == 0)
+        if (offsetInChunk.x < 0 || offsetInChunk.y < 0 || copyWidth == 0 || copyHeight == 0)
         {
             EE_CORE_WARN("Texture '{}' is outside chunk bounds", name.c_str());
             return;
@@ -125,18 +127,30 @@ namespace Engine {
                 int dstX = offsetInChunk.x + x;
                 int dstY = offsetInChunk.y + y;
 
-                size_t dstIndex = (dstY * chunkPixelSize + dstX) * 4;
-                size_t srcIndex = (y * textureWidth + x) * 4;
+                size_t dstColorIndex = (dstY * chunkPixelSize + dstX) * 4;
+                size_t dstHealthIndex = (dstY * chunkPixelSize + dstX);
 
-                EE_CORE_ASSERT(dstIndex + 3 < chunk.PixelData.size(), "OOB dst");
-                EE_CORE_ASSERT(srcIndex + 3 < textureData.size(), "OOB src");
-       
-               std::memcpy(&chunk.PixelData[dstIndex], &textureData[srcIndex], 4);
-                
+                size_t srcIndex = (y * textureWidth + x) * 4;
+                size_t healthIndex = (y * textureWidth + x);
+
+                EE_CORE_ASSERT(dstColorIndex + 3 < chunk.PixelData.size(), "OOB color dst");
+                EE_CORE_ASSERT(srcIndex + 3 < textureData.size(), "OOB color src");
+                EE_CORE_ASSERT(dstHealthIndex < chunk.HealthData.size(), "OOB health dst");
+                EE_CORE_ASSERT(healthIndex < healthData.size(), "OOB health src");
+
+                const uint8_t alpha = textureData[srcIndex + 3];
+                if (alpha != 0)
+                {
+                    std::memcpy(&chunk.PixelData[dstColorIndex], &textureData[srcIndex], 4); // RGBA
+                    chunk.HealthData[dstHealthIndex] = healthData[healthIndex];             // Health
+                }
             }
         }
+
         chunk.IsDirty = true;
     }
+
+
 
     
     uint64_t TextureStreamingSystem::HashCoords(const glm::ivec2& coords)
@@ -200,13 +214,33 @@ namespace Engine {
         }
         constexpr int CHUNK_RES = CHUNK_SIZE; // Assuming square chunks
 
-        chunk.GPUTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width);
-        //EE_CORE_INFO("Texture size: {}x{}", chunk.GPUTexture->GetWidth(), chunk.GPUTexture->GetHeight());
+        bool hasHealthData = false;
+        if (!chunk.HealthData.empty())
+        {
+            hasHealthData = true;
+        }
+        chunk.GPUTexture = std::make_shared<VulkanTexture>(hasHealthData, chunk.Height, chunk.Width);
 
         VulkanUtils::TransitionImageLayout(chunk.GPUTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		chunk.GPUTexture->SetData(chunk.PixelData.data(), chunk.Height * chunk.Width * 4);
+
+
+
+     
+        chunk.GPUTexture->SetHealtData(chunk.HealthData.data(), chunk.Height * chunk.Width);
+
+        int count = 0;
+        for (size_t i = 0; i < chunk.HealthData.size(); i++)
+        {
+            if (chunk.HealthData[i] != 0)
+            {
+                count++;
+            }
+        }
+        EE_CORE_INFO("health count {}", count);
+       
 
         auto entityView = gameRegistry.view<IDComponent, SpriteRendererComponent>();
 
@@ -402,17 +436,25 @@ namespace Engine {
 
                 
                 std::vector<uint8_t> pixelData;
+                std::vector<uint8_t> healthData;
                 int width, height;
-                if (!AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, width, height))
+                if (!AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, healthData, width, height))
                     continue;
+
+               
+                uint8_t health = 1; //MaterialDatabase::GetMaterial(tile.MaterialName); // e.g., Wood = 1, Steel = 2
+                uint8_t durability = 1; //MaterialDatabase::GetDurability(mat);
+
+              
 
                 if (tile.IsDestructible)
                 {
-                    m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData, width, height);
+                    m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
+                        width, height);
 
 
-                    UploadToChunkFromTexture(worldTilePos,
-                        tcomp.TileID,tile.name,pixelData,uint32_t(width), uint32_t(height));
+                    UploadToChunkFromTexture(worldTilePos, tcomp.TileID,tile.name,pixelData, 
+                        healthData, uint32_t(width), uint32_t(height));
                 }
                 
 

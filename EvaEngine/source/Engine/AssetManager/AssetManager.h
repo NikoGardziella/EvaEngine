@@ -34,6 +34,7 @@ namespace Engine {
 		static Ref<VulkanTexture> GetTexture(const std::string& name);
         static Ref<VulkanTexture> CloneTexture(const std::string& name);
 		static Ref<VulkanPixelTexture> GetPixelTexture(const std::string& name);
+        static bool ExtractPixelsFromTilePallette(const glm::vec4& uv, std::vector<uint8_t>& outPixelData, std::vector<uint8_t>& outHealthData, int& outWidth, int& outHeight);
         static bool ExtractPixelsFromTilePallette(const glm::vec4& uv, std::vector<uint8_t>& outPixelData, int& outWidth, int& outHeight);
         static  std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures();
 
@@ -43,7 +44,7 @@ namespace Engine {
         static VkDeviceSize s_totalTextureMemory;
 
         // Texture streaming system
-        static bool GetTexturePixelData(const std::string& textureName, std::vector<uint8_t>& outPixels, int& outWidth, int& outHeight);
+        static bool GetTexturePixelData(const std::string& textureName, std::vector<uint8_t>& outPixels, std::vector<uint8_t>& outHealthData, int& outWidth, int& outHeight);
         static std::string ResolveTexturePath(const std::string& textureName);
         
         //Tile atlas

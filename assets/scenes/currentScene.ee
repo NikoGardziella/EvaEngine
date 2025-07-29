@@ -1,10 +1,10 @@
 Scene: My Scene
 Entities:
-  - ID: 11492768827421536337
+  - ID: 18056208912126254339
     TagComponent:
       Tag: Entity
     TransformComponent:
-      Translation: [-2, 6, 0]
+      Translation: [-4, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TileComponent:
@@ -12,37 +12,8 @@ Entities:
       Texture: ""
       Tiles:
         - Position: [0, 0]
-          UV: [0.5, 0, 0.625, 0.5]
-          Name: walls_0006_Layer-7
-          IsDestructible: true
-          IsRoof: false
-          Category: Buildings
-        - Position: [1, 0]
-          UV: [0.5, 0, 0.625, 0.5]
-          Name: walls_0006_Layer-7
-          IsDestructible: true
-          IsRoof: false
-          Category: Buildings
-        - Position: [2, 0]
-          UV: [0.5, 0, 0.625, 0.5]
-          Name: walls_0006_Layer-7
-          IsDestructible: true
-          IsRoof: false
-          Category: Buildings
-  - ID: 9108847587693671855
-    TagComponent:
-      Tag: Entity
-    TransformComponent:
-      Translation: [-3, 6, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TileComponent:
-      TileID: 0
-      Texture: ""
-      Tiles:
-        - Position: [0, 0]
-          UV: [0, 0, 0.125, 0.5]
-          Name: walls_0002_Layer-3-128x128
+          UV: [0.125, 0, 0.25, 0.5]
+          Name: walls_0003_Layer-4
           IsDestructible: true
           IsRoof: false
           Category: Buildings
@@ -71,29 +42,3 @@ Entities:
     WeaponComponent:
       Damage: 10
       FireRate: 0.6
-  - ID: 4112408847
-    TagComponent:
-      Tag: Entity
-    TransformComponent:
-      Translation: [-1, -2.4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TileComponent:
-      TileID: 0
-      Texture: ""
-      Tiles:
-        - Position: [0, 0]
-          UV: [0.5, 0.5, 0.6220703, 1]
-          Name: car_0001_Layer-2_left
-          IsDestructible: false
-          IsRoof: false
-          Category: Vehicles
-        - Position: [1, 0]
-          UV: [0.6220703, 0.5, 0.7470703, 1]
-          Name: car_0001_Layer-2_right
-          IsDestructible: false
-          IsRoof: false
-          Category: Vehicles
-    VehicleComponent:
-      Velocity: [0, 0]
-      Mass: 100

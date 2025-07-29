@@ -1644,6 +1644,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Vehicles\VehicleComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Vehicles\DriverComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
+    <ClInclude Include="source\Engine\Map\Utils\PixelUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">

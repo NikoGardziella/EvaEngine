@@ -608,15 +608,16 @@ namespace Engine {
                     if (isStatic)
                     {
                         std::vector<uint8_t> pixelData;
+                        std::vector<uint8_t> healthData;
                         int width, height;
                         std::string TextureName = entityNode["SpriteRendererComponent"]["Texture"].as<std::string>();
-                        if (AssetManager::GetTexturePixelData(TextureName, pixelData, width, height))
+                        if (AssetManager::GetTexturePixelData(TextureName, pixelData, healthData, width, height))
                         {
                             
                                scene->GetTextureStreamingSystem().UploadToChunkFromTexture(
                                 entity.GetComponent<TransformComponent>().Translation,
                                 entity.GetComponent<IDComponent>().ID, TextureName,
-                                pixelData, width, height);
+                                pixelData, healthData, width, height);
                         }
                     }
                     else

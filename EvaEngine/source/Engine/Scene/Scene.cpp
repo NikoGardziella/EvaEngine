@@ -1014,15 +1014,19 @@ namespace Engine {
             SpriteRendererComponent& spriteComp =  newEntity.AddComponent<SpriteRendererComponent>();
             //spriteComp.Texture = AssetManager::CloneTexture(entity.GetComponent<SpriteRendererComponent>().Texture->GetName());
             std::vector<uint8_t> pixelData;
+            std::vector<uint8_t> healthData;
             int width, height;
 
-            if (AssetManager::GetTexturePixelData(entity.GetComponent<SpriteRendererComponent>().Texture->GetName(), pixelData, width, height))
+            if (AssetManager::GetTexturePixelData(entity.GetComponent<SpriteRendererComponent>().Texture->GetName(), pixelData, healthData, width, height))
             {
+                EE_CORE_WARN("health data not implemented to GetTexturePixelData");
+                
 				m_textureStreamingSystem->UploadToChunkFromTexture(
 					entity.GetComponent<TransformComponent>().Translation,
 					entity.GetComponent<IDComponent>().ID,
                     entity.GetComponent<SpriteRendererComponent>().Texture->GetName(),
-					pixelData, width, height);
+					pixelData, healthData, width, height);
+                
             }
         }
 

@@ -14,19 +14,21 @@ namespace Engine{
     const int UNLOAD_RADIUS = 2; 
 
     struct TextureChunk {
-        //std::string ID; // Unique ID or path
         UUID ID;
 		std::string Name;
 		std::string AssetName;
         glm::ivec2 WorldPosition;
         glm::ivec2 ChunkCoords; 
         std::vector<uint8_t> PixelData; 
+        std::vector<uint8_t> HealthData;
         bool IsDirty = false; // Mark if pixels were modified
         bool IsLoaded = false;
         Engine::Ref<Engine::VulkanTexture> GPUTexture; 
         uint32_t Width = 0;
         uint32_t Height = 0;
         uint32_t TextureCount = 0;
+
+    
     };
 
    
@@ -44,7 +46,7 @@ namespace Engine{
         void TextureStreamingSystem::Update(const glm::vec2& playerPos, entt::registry& gameRegistry);
       
 		void TextureStreamingSystem::UploadToChunkFromTexture(const glm::vec2& worldPosition, UUID ID,
-            std::string name, const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
+            std::string name, const std::vector<uint8_t>& textureData, const std::vector<uint8_t>& healthData, uint32_t textureWidth, uint32_t textureHeight);
         
 		std::unordered_map<UUID, TextureChunk>& GetChunkMap() { return m_chunkMap; }
 

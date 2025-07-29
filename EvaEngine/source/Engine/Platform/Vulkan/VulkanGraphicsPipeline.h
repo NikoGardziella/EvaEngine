@@ -128,12 +128,10 @@ namespace Engine {
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
         void UpdateProjectileDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_PROJECTILES>& textures);
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::vector<Ref<VulkanTexture>>& textures);
-        void UpdateComputeArrayDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
 
         void UpdateCameraUBODescriptorSets();
         void UpdateBulletUBODescriptorSets();
         void UpdateTextureInfoDescriptorSets();
-        void UpdateStorageImageDescriptorSets();
         void UpdateCameraUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix);
 
         void UpdateCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionEntitiesGPU, MAX_COLLISION_ENTITIES> bulletPositions);
@@ -233,7 +231,6 @@ namespace Engine {
         std::vector<VulkanBuffer> m_uniformBuffers;
         std::vector<VulkanBuffer> m_bulletUniformBuffers;
         std::vector<VulkanBuffer> m_textureUniformBuffers;
-        VulkanBuffer m_pixelStagingBuffers;
 
         Ref<VulkanShader> m_pixelGameShader;
         Ref<VulkanShader> m_fullscreenShader;
@@ -250,15 +247,19 @@ namespace Engine {
         };
 
         std::vector<BulletData> bullets;
-        StorageImage m_storageImage;
-        StorageImage  m_pixelTextureImage;
-        StorageImage  m_outputTextureImage;
+       // StorageImage m_storageImage;
+       // StorageImage  m_pixelTextureImage;
+      // StorageImage  m_outputTextureImage;
 
 
         VkBuffer m_GPUCollisionresultBufferBuffer;
         VkDeviceMemory  m_GPUCollisionresultBufferMemory;
 
+        VkBuffer m_healthBuffer;
+        VkDeviceMemory m_healthBufferMemory;
+
         Ref<VulkanTexture> m_whiteTexture;
+        Ref<VulkanTexture> m_dummyTexture;
 
     };
 

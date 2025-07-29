@@ -13,6 +13,7 @@ namespace Engine {
     public:
         VulkanTexture(const std::string& path, const std::string& name = "", bool imGuiTexture = false, uint32_t textureID = 0);
         VulkanTexture(uint32_t width, uint32_t height, bool imGuiTexture = false, uint32_t textureID = 0);
+        VulkanTexture(bool healthImage, uint32_t width, uint32_t height);
 
         virtual ~VulkanTexture();
 
@@ -25,6 +26,10 @@ namespace Engine {
         virtual uint32_t GetRendererID() const override { return 0; }
 		VkImageView GetImageView() const { return m_imageView; }
         VkImage GetImage() const { return m_image;  }
+
+        VkImageView GetHealthImageView() const { return m_healthImageView; }
+        VkImage GetHealthImage() const { return m_image; }
+
 		VkSampler GetSampler() const { return m_sampler; }
 		VkDescriptorSet GetTextureDescriptor() const { return m_textureDescriptor; }
 		const std::string GetPath() const { return m_path; }
@@ -37,6 +42,8 @@ namespace Engine {
         void SetTextureID(uint32_t textureID) { m_TextureID = textureID; }
 
         virtual void SetData(void* data, uint32_t size) override;
+        void SetHealtData(void* data, uint32_t size) const;
+        void CreateTextureImage();
         Ref<VulkanTexture> Clone() const;
 
         const std::vector<uint8_t>& GetPixelData() const { return m_pixelData; }
@@ -53,6 +60,12 @@ namespace Engine {
 
         VkImageLayout GetCurrentLayout() const { return m_CurrentLayout; }
         void SetCurrentLayout(VkImageLayout layout) { m_CurrentLayout = layout; }
+
+        VkImageLayout GetCurrentHealthLayout() const { return m_CurrentHealthLayout; }
+        void SetCurrentHealthLayout(VkImageLayout layout) { m_CurrentHealthLayout = layout; }
+
+
+
         //****************************
 
         virtual bool operator==(const Texture& other) const override
@@ -74,6 +87,8 @@ namespace Engine {
         void CreateTextureSampler();
         void CopyFrom(const VulkanTexture& src);
 
+        void CreateHealthImage();
+
 
         std::string m_path;
         std::string m_name;
@@ -84,11 +99,15 @@ namespace Engine {
         uint32_t m_TextureID;
         VkSampler m_sampler;
 
+        VkDeviceMemory m_healthImageMemory;
+        VkImageView m_healthImageView = VK_NULL_HANDLE;
+        VkImage m_healthImage = VK_NULL_HANDLE;
 
         bool m_checkCollision = false;
         glm::vec2 m_texureOrigin;
 		float m_pixelSize = 1.0f;
         VkImageLayout m_CurrentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        VkImageLayout m_CurrentHealthLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 
     };
