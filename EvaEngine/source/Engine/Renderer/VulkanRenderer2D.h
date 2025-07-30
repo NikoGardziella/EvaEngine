@@ -74,8 +74,9 @@ namespace Engine {
 
 		std::unordered_map<VulkanTexture*, uint32_t> TextureToSlotMap;
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> TextureSlots;
-		std::array<Ref<VulkanPixelTexture>, MaxTextureSlots> PixelTextureSlots;
+		std::array<Ref<VulkanTexture>, MaxTextureSlots> HealthTextureSlots;
 		uint32_t TextureSlotIndex = 1; // 0 = white texture
+		uint32_t HealthTextureSlotIndex = 0;
 
 		glm::vec3 QuadVertexPositions[4];
 
@@ -152,6 +153,7 @@ namespace Engine {
 		
 		static void CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size, float rotation, uint64_t entityID, eCollisionType collisionType);
 		static void CalculateCircleCollision(const glm::vec2& colliderPos, const float radius, uint64_t entityID, eCollisionType collisionType);
+		static void AddHealthTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static void DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);

@@ -214,22 +214,27 @@ namespace Engine {
         }
         constexpr int CHUNK_RES = CHUNK_SIZE; // Assuming square chunks
 
-        bool hasHealthData = false;
+        
         if (!chunk.HealthData.empty())
         {
-            hasHealthData = true;
+            chunk.HealthTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8_UINT);
+
+            VulkanUtils::TransitionImageLayout(chunk.HealthTexture->GetImage(), VK_FORMAT_R8_UINT,
+                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            chunk.HealthTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+            chunk.HealthTexture->SetData(chunk.HealthData.data(), chunk.Height * chunk.Width);
         }
-        chunk.GPUTexture = std::make_shared<VulkanTexture>(hasHealthData, chunk.Height, chunk.Width);
+
+        chunk.GPUTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UNORM);
 
         VulkanUtils::TransitionImageLayout(chunk.GPUTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        chunk.GPUTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		chunk.GPUTexture->SetData(chunk.PixelData.data(), chunk.Height * chunk.Width * 4);
 
 
-
-     
-        chunk.GPUTexture->SetHealtData(chunk.HealthData.data(), chunk.Height * chunk.Width);
 
         int count = 0;
         for (size_t i = 0; i < chunk.HealthData.size(); i++)
@@ -266,6 +271,7 @@ namespace Engine {
             if (chunkRendComp.ChunkCoords == chunk.ChunkCoords)
             {
                 chunkRendComp.Texture = chunk.GPUTexture;
+                chunkRendComp.HealthTexture = chunk.HealthTexture;
                 chunkRendComp.IsLoaded = true;
                 chunk.GPUTexture = nullptr;
                 break;
@@ -305,6 +311,7 @@ namespace Engine {
             if (IDComp.ID == chunk.ID)
             {
                 chunkRendComp.Texture = nullptr;
+                chunkRendComp.HealthTexture = nullptr;
                 chunkRendComp.IsLoaded = false;
                 break;
             }

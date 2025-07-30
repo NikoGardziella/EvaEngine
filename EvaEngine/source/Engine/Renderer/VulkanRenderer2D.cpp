@@ -141,12 +141,15 @@ namespace Engine {
 		AssetManager::AddTexture("car_0001", Engine::AssetManager::GetAssetPath("textures/car_0001.png").string(), false);
 		AssetManager::AddTexture("house", Engine::AssetManager::GetAssetPath("textures/house.png").string(), false);
 
-	
+		m_dummyTexture = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8_UINT);
+		m_dummyTexture->SetCheckCollision(false);
 
+		s_VulkanData.HealthTextureSlots[0] = m_dummyTexture;
 		// Fill the rest of the slots with pixel texture
 		for (uint32_t i = s_VulkanData.TextureSlotIndex; i < s_VulkanData.MaxTextureSlots; i++)
 		{
 			s_VulkanData.TextureSlots[i] = s_VulkanData.WhiteTexture;
+			s_VulkanData.HealthTextureSlots[i] = m_dummyTexture;
 			s_VulkanData.TextureSlotIndex++;
 		}
 
@@ -175,8 +178,7 @@ namespace Engine {
 		//CollisionResultsCPU::Latest.resize(MAX_COLLISION_RESULTS);
 
 		// just to fill the arrays
-		 m_dummyTexture = std::make_shared<VulkanTexture>(true, 1, 1);
-		 m_dummyTexture->SetCheckCollision(false);
+		
 		// VulkanUtils::TransitionImageLayout(m_dummyTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
 		//	 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
 
@@ -214,9 +216,7 @@ namespace Engine {
 
 		//s_VulkanProjectileData.QuadIndexCount = static_cast<uint32_t>(projectileIndices.size());
 
-		s_VulkanProjectileData.WhiteTexture = std::make_shared<VulkanTexture>(
-			AssetManager::GetAssetPath("textures/white_texture.png").string()
-		);
+		s_VulkanProjectileData.WhiteTexture = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("textures/white_texture.png").string());
 		
 		s_VulkanProjectileData.TextureSlots[0] = s_VulkanProjectileData.WhiteTexture;
 
@@ -232,6 +232,7 @@ namespace Engine {
 		for (uint32_t i = s_VulkanProjectileData.TextureSlotIndex; i < s_VulkanProjectileData.MaxProjectiles; i++)
 		{
 			s_VulkanProjectileData.TextureSlots[i] = s_VulkanProjectileData.WhiteTexture;
+
 			s_VulkanProjectileData.TextureSlotIndex++;
 		}
 
@@ -442,7 +443,6 @@ namespace Engine {
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
 		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame); // only compute dispatch
-		//m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(currentFrame, m_IOTextures[outputIndex], s_VulkanData.TextureSlotIndex);
 
 		
 		vkEndCommandBuffer(cmd);
@@ -691,6 +691,7 @@ namespace Engine {
 		vkCmdEndRenderPass(commandBuffer);
 
 	}
+
 	void VulkanRenderer2D::RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
@@ -703,9 +704,10 @@ namespace Engine {
 		
 		// Use current texture slots for both read and write (in-place compute)
 		std::array<Ref<VulkanTexture>, MAX_TEXTURES>& computeTextures = s_VulkanData.TextureSlots;
+		std::array<Ref<VulkanTexture>, MAX_TEXTURES>& HealthTextures = s_VulkanData.HealthTextureSlots;
 
 		// Update descriptor set with same textures for read/write
-		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,	computeTextures);
+		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,	computeTextures, HealthTextures);
 
 		// Transition textures to GENERAL layout
 		for (size_t i = 0; i < MAX_TEXTURES; i++)
@@ -720,6 +722,21 @@ namespace Engine {
 					VK_IMAGE_LAYOUT_GENERAL);
 
 				tex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
+			}
+		}
+
+
+		for (size_t i = 0; i < MAX_TEXTURES; i++)
+		{
+			VulkanTexture& healthTex = *HealthTextures[i];
+			if (healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
+			{
+				TransitionImageLayout(commandBuffer,
+					healthTex.GetImage(),
+					healthTex.GetCurrentLayout(),
+					VK_IMAGE_LAYOUT_GENERAL);
+
+				healthTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
 			}
 		}
 
@@ -772,6 +789,22 @@ namespace Engine {
 				tex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			}
 		}
+		// Transition HealthTextures back to SHADER_READ_ONLY_OPTIMAL if needed
+		for (size_t i = 0; i < MAX_TEXTURES; i++)
+		{
+			VulkanTexture& healthTex = *HealthTextures[i];
+			if (healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			{
+				TransitionImageLayout(commandBuffer,
+					healthTex.GetImage(),
+					healthTex.GetCurrentLayout(),
+					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+				healthTex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			}
+		}
+
+
 	}
 
 
@@ -1135,6 +1168,26 @@ namespace Engine {
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
 		s_CollisionData.EntitySlotIndex++;
+	}
+
+	void VulkanRenderer2D::AddHealthTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture)
+	{
+		EE_PROFILE_FUNCTION();
+
+		
+
+		if (s_VulkanData.HealthTextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
+		{
+			//EE_CORE_ASSERT(false, "Texture slot index exceeded maximum limit!");
+			return;
+		}
+
+
+		float textureIndex = 0.0f;
+		textureIndex = static_cast<float>(s_VulkanData.HealthTextureSlotIndex);
+		s_VulkanData.HealthTextureSlots[s_VulkanData.HealthTextureSlotIndex] = texture;
+		s_VulkanData.HealthTextureSlotIndex++;
+
 	}
 
 	void VulkanRenderer2D::DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor)

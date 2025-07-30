@@ -2,6 +2,7 @@
 #include "VulkanGraphicsPipeline.h"
 #include "Engine/AssetManager/AssetManager.h"
 #include "VulkanBuffer.h"
+#include "Engine/Core/Core.h"
 
 
 #include <stdexcept>
@@ -102,7 +103,7 @@ namespace Engine {
         AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
 
         m_whiteTexture = AssetManager::GetTexture("logo");
-        m_dummyTexture = std::make_shared<VulkanTexture>(true, 1, 1);
+        m_dummyTexture = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8_UINT);
 
     }
 
@@ -1176,9 +1177,8 @@ namespace Engine {
     }
 
   
-    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES> inputTextures)
+    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES> inputTextures, std::array<Ref<VulkanTexture>, MAX_TEXTURES> healthTextures)
     {
-
 
         std::vector<VkDescriptorImageInfo> inputImageInfos;
         std::vector<VkDescriptorImageInfo> healthImageInfos;
@@ -1196,19 +1196,14 @@ namespace Engine {
         }
 
        
-        for (const auto& tex : inputTextures)
+        for (const auto& tex : healthTextures)
         {
             VkDescriptorImageInfo info{};
             info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            VkImageView healthView = tex->GetHealthImageView();
-
-            if (healthView != VK_NULL_HANDLE)
-                info.imageView = healthView;
-            else
-                info.imageView = m_dummyTexture->GetHealthImageView(); // or a dummy health image
-
+            info.imageView = tex->GetImageView();
             info.sampler = VK_NULL_HANDLE;
             healthImageInfos.push_back(info);
+
         }
 
 
@@ -1343,53 +1338,7 @@ namespace Engine {
     }
 
 
-    #include "Engine/Core/Core.h"
-    /*
-    void VulkanGraphicsPipeline::UpdateComputeArrayDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures)
-    {
-        // -- INPUT IMAGES --
-        std::array<VkDescriptorImageInfo, MAX_TEXTURES> inputImageInfos{};
-        for (uint32_t i = 0; i < MAX_TEXTURES; ++i)
-        {
-            inputImageInfos[i].imageView = m_pixelTextureImage.ImageView;
-            inputImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            inputImageInfos[i].sampler = VK_NULL_HANDLE;
-        }
-
-        // -- OUTPUT IMAGES --
-        std::array<VkDescriptorImageInfo, MAX_TEXTURES> outputImageInfos{};
-        for (uint32_t i = 0; i < MAX_TEXTURES; ++i)
-        {
-            outputImageInfos[i].imageView = m_outputTextureImage.ImageView;
-            outputImageInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            outputImageInfos[i].sampler = VK_NULL_HANDLE;
-        }
-
-        VkWriteDescriptorSet writeInput{};
-        writeInput.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        writeInput.dstSet = m_computeDescriptorSet[frameIndex];
-        writeInput.dstBinding = 0;
-        writeInput.dstArrayElement = 0;
-        writeInput.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        writeInput.descriptorCount = static_cast<uint32_t>(inputImageInfos.size());
-        writeInput.pImageInfo = inputImageInfos.data();
-
-        VkWriteDescriptorSet writeOutput{};
-        writeOutput.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        writeOutput.dstSet = m_computeDescriptorSet[frameIndex];
-        writeOutput.dstBinding = 1;
-        writeOutput.dstArrayElement = 0;
-        writeOutput.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        writeOutput.descriptorCount = static_cast<uint32_t>(outputImageInfos.size());
-        writeOutput.pImageInfo = outputImageInfos.data();
-
-        std::array<VkWriteDescriptorSet, 2> writes = { writeInput, writeOutput };
-        vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
-
-
-    }
-
-    */
+    
     void VulkanGraphicsPipeline::CreatePresentSampler()
     {
         VkSamplerCreateInfo samplerInfo{};

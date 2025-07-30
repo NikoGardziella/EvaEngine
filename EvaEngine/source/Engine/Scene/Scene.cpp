@@ -508,33 +508,33 @@ namespace Engine {
                     glm::vec2 camMax = camMin + glm::vec2(cameraBounds.z, cameraBounds.w);
                     for (auto entity : view)
                     {
-                        auto [transform, chunkSprite] = view.get<TransformComponent, ChunkRendererComponent>(entity);
+                        auto [transform, chunkComp] = view.get<TransformComponent, ChunkRendererComponent>(entity);
                         {
-                            if (!chunkSprite.IsLoaded)
+                            if (!chunkComp.IsLoaded)
                                 continue;
 
                             float tiling = 1.0f;
                             glm::vec4 color = glm::vec4(1);
 
                            
-                            glm::vec2 worldPos = glm::vec2(chunkSprite.ChunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
+                            glm::vec2 worldPos = glm::vec2(chunkComp.ChunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
                             glm::mat4 model =
                                 glm::translate(glm::mat4(1.0f),
                                     glm::vec3(worldPos.x, worldPos.y, 0.0f))
                                 * glm::scale(glm::mat4(1.0f),
                                     glm::vec3(CHUNK_SIZE, CHUNK_SIZE, 1.0f));
                            
-                            float pixelSize = (float)CHUNK_SIZE / chunkSprite.Texture->GetWidth();;
+                            float pixelSize = (float)CHUNK_SIZE / chunkComp.Texture->GetWidth();;
                             glm::vec2 textureOrigin;
                             textureOrigin.x = worldPos.x - CHUNK_SIZE * 0.5f;
                             textureOrigin.y = worldPos.y - CHUNK_SIZE * 0.5f;
                             
-                            chunkSprite.Texture->SetCheckCollision(true);
-                            chunkSprite.Texture->SetTextureOrigin(textureOrigin);
-                            chunkSprite.Texture->SetPixelSize(pixelSize);
+                            chunkComp.Texture->SetCheckCollision(true);
+                            chunkComp.Texture->SetTextureOrigin(textureOrigin);
+                            chunkComp.Texture->SetPixelSize(pixelSize);
 
-                            Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkSprite.Texture, tiling, color);
-
+                            Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.Texture, tiling, color);
+                            Engine::VulkanRenderer2D::AddHealthTextureQuad(model, chunkComp.HealthTexture);
                         }
                     }
                 }

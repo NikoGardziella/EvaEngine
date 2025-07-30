@@ -134,7 +134,7 @@ namespace Engine {
 		//std::lock_guard<std::mutex> lock(s_Mutex);
 		if (s_textureCache.find(name) == s_textureCache.end())
 		{
-            s_textureCache[name] = std::make_shared<VulkanTexture>(path, name, imGuiTexture, textureID);
+            s_textureCache[name] = std::make_shared<VulkanTexture>(path, VK_FORMAT_R8G8B8A8_UNORM, name, imGuiTexture, textureID);
 			EE_CORE_INFO("Texture added to cache: {}", name);
 		}
 		else
@@ -565,7 +565,8 @@ namespace Engine {
         }
 
         // Final combined texture
-        s_tileTextureIconAtlas = std::make_shared<VulkanTexture>(atlasWidth, atlasHeight, "combined_tileAtlas", true);
+        s_tileTextureIconAtlas = std::make_shared<VulkanTexture>(atlasWidth, atlasHeight, VK_FORMAT_R8G8B8A8_UNORM,
+            "combined_tileAtlas", true);
         VulkanUtils::TransitionImageLayout(s_tileTextureIconAtlas->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         s_tileTextureIconAtlas->SetData(atlasData.data(), static_cast<uint32_t>(atlasData.size()));

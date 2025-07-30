@@ -9,6 +9,7 @@ namespace Engine {
     struct ChunkRendererComponent
     {
         Ref<VulkanTexture> Texture;
+        Ref<VulkanTexture> HealthTexture;
         glm::ivec2 ChunkCoords;
         float ChunkSize;
         bool IsLoaded;

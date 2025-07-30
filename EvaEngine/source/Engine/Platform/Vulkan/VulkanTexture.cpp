@@ -11,14 +11,16 @@ namespace Engine {
 
     constexpr VkDeviceSize MAX_TEXTURE_MEMORY_BUDGET = 512 * 1024 * 1024; // 512 MB 
 
-    VulkanTexture::VulkanTexture(const std::string& path, const std::string& name, bool imGuiTexture, uint32_t textureID)
-		: m_path(path), m_name(name), m_TextureID(textureID)
+    VulkanTexture::VulkanTexture(const std::string& path, VkFormat textureFormat,const std::string& name, bool imGuiTexture, uint32_t textureID)
+		: m_path(path), m_name(name), m_TextureID(textureID), m_textureFormat(textureFormat)
     {
 
 
 
         CreateTextureImage(path);
         CreateTextureImageView();
+
+
         CreateTextureSampler();
 
         if (imGuiTexture)
@@ -31,13 +33,15 @@ namespace Engine {
         AssetManager::s_totalTextureMemory += m_memorySize;
     }
 
-    VulkanTexture::VulkanTexture(uint32_t width, uint32_t height, bool imGuiTexture, uint32_t textureID)
-		: m_width(width), m_height(height), m_TextureID(textureID)
+    VulkanTexture::VulkanTexture(uint32_t width, uint32_t height, VkFormat textureFormat, bool imGuiTexture, uint32_t textureID)
+		: m_width(width), m_height(height), m_TextureID(textureID), m_textureFormat(textureFormat)
     {
 
 
         CreateTextureImage();
         CreateTextureImageView();
+
+
         CreateTextureSampler();
         if (imGuiTexture)
         {
@@ -49,21 +53,6 @@ namespace Engine {
         AssetManager::s_totalTextureMemory += m_memorySize;
     }
 
-    VulkanTexture::VulkanTexture(bool healthImage,uint32_t width, uint32_t height) : 
-        m_width(width), m_height(height)
-    {
-        if (healthImage)
-        {
-            CreateHealthImage();
-        }
-
-
-        CreateTextureImage();
-        CreateTextureImageView();
-        CreateTextureSampler();
-        AssetManager::s_totalTextureMemory += m_memorySize;
-
-    }
 
 
     VulkanTexture::~VulkanTexture()
@@ -87,7 +76,7 @@ namespace Engine {
     {
         EE_CORE_ASSERT(data, "SetData called with null data");
       
-        EE_CORE_ASSERT(size == m_width * m_height * 4, "Staging buffer size mismatch");
+        //EE_CORE_ASSERT(size == m_width * m_height * 4, "Staging buffer size mismatch");
 
         VulkanContext* vulkaContext = VulkanContext::Get();
 
@@ -117,7 +106,7 @@ namespace Engine {
         EE_CORE_ASSERT(cmd != VK_NULL_HANDLE, "Command buffer is null");
 
         VulkanUtils::TransitionImageLayout(cmd,
-            m_image, VK_FORMAT_R8G8B8A8_UNORM,
+            m_image, m_textureFormat,
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 
@@ -127,7 +116,7 @@ namespace Engine {
             stagingBuffer.GetBuffer(), m_image, m_width, m_height);
 
         VulkanUtils::TransitionImageLayout( cmd,
-            m_image, VK_FORMAT_R8G8B8A8_UNORM,
+            m_image, m_textureFormat,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
@@ -138,59 +127,6 @@ namespace Engine {
 
 
 
-    void VulkanTexture::SetHealtData(void* data, uint32_t size) const
-    {
-
-
-        EE_CORE_ASSERT(data, "SetHealth Data called with null data");
-
-        EE_CORE_ASSERT(size == m_width * m_height, "Staging buffer size mismatch");
-
-        VulkanContext* vulkaContext = VulkanContext::Get();
-
-        VkDevice device = vulkaContext->GetDeviceManager().GetDevice();
-        VkQueue& graphicsQueue = vulkaContext->GetGraphicsQueue();
-        VkCommandPool& cmdPool = vulkaContext->GetCommandPool();
-
-        VulkanBuffer stagingBuffer(
-            device,
-            VulkanContext::Get()->GetDeviceManager().GetPhysicalDevice(),
-            size,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-        );
-        uint8_t* src = reinterpret_cast<uint8_t*>(data);
-
-
-
-
-        void* mapped;
-        vkMapMemory(device, stagingBuffer.GetMemory(), 0, size, 0, &mapped);
-        std::memcpy(mapped, data, size);
-        vkUnmapMemory(device, stagingBuffer.GetMemory());
-
-
-        VkCommandBuffer cmd = vulkaContext->BeginSingleTimeCommands();
-        EE_CORE_ASSERT(cmd != VK_NULL_HANDLE, "Command buffer is null");
-
-        VulkanUtils::TransitionImageLayout(cmd,
-            m_healthImage, VK_FORMAT_R8_UINT,
-            VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-
-        EE_CORE_ASSERT(stagingBuffer.GetBuffer() != VK_NULL_HANDLE, "Staging buffer is null");
-
-        VulkanUtils::CopyBufferToImage(cmd,
-            stagingBuffer.GetBuffer(), m_healthImage, m_width, m_height);
-
-        VulkanUtils::TransitionImageLayout(cmd,
-            m_healthImage, VK_FORMAT_R8_UINT,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_LAYOUT_GENERAL);
-
-        vulkaContext->EndSingleTimeCommands(cmd);
-
-    }
 
     void VulkanTexture::CreateTextureImage()
     {
@@ -209,7 +145,7 @@ namespace Engine {
         imageInfo.extent.depth = 1;
         imageInfo.mipLevels = 1;
         imageInfo.arrayLayers = 1;
-        imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+        imageInfo.format = m_textureFormat;
         imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT // for compute writes
@@ -286,7 +222,7 @@ namespace Engine {
         VulkanUtils::CreateImage(
             m_width,
             m_height,
-            VK_FORMAT_R8G8B8A8_UNORM,
+            m_textureFormat,
             VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
             | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
@@ -296,12 +232,12 @@ namespace Engine {
         );
 
         // Transition image layout and copy buffer data
-        VulkanUtils::TransitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_UNORM,
+        VulkanUtils::TransitionImageLayout(m_image, m_textureFormat,
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
         VulkanUtils::CopyBufferToImage(stagingBuffer.GetBuffer(), m_image, m_width, m_height);
 
-        VulkanUtils::TransitionImageLayout(m_image, VK_FORMAT_R8G8B8A8_UNORM,
+        VulkanUtils::TransitionImageLayout(m_image, m_textureFormat,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         m_CurrentLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -317,7 +253,7 @@ namespace Engine {
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image = m_image;
         viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+        viewInfo.format = m_textureFormat;
         viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         viewInfo.subresourceRange.baseMipLevel = 0;
         viewInfo.subresourceRange.levelCount = 1;
@@ -365,7 +301,7 @@ namespace Engine {
     }
     Ref<VulkanTexture> VulkanTexture::Clone() const
     {
-        auto clone = std::make_shared<VulkanTexture>(m_width, m_height);
+        auto clone = std::make_shared<VulkanTexture>(m_width, m_height, VK_FORMAT_R8G8B8A8_UNORM);
 
         clone->CopyFrom(*this);
         clone->SetTextureID(this->GetTextureID());
@@ -516,68 +452,6 @@ namespace Engine {
 
     }
 
-    void VulkanTexture::CreateHealthImage()
-    {
-        VulkanContext* vulkaContext = VulkanContext::Get();
-        VkDevice device = vulkaContext->GetDeviceManager().GetDevice();
-        VkPhysicalDevice physicalDevice = vulkaContext->GetDeviceManager().GetPhysicalDevice();
-
-        // Create image
-        VkImageCreateInfo imageInfo{};
-        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageInfo.extent.width = m_width;
-        imageInfo.extent.height = m_height;
-        imageInfo.extent.depth = 1;
-        imageInfo.mipLevels = 1;
-        imageInfo.arrayLayers = 1;
-        imageInfo.format = VK_FORMAT_R8_UINT;
-        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageInfo.flags = 0;
-
-        vkCreateImage(device, &imageInfo, nullptr, &m_healthImage);
-
-        // Allocate memory
-        VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(device, m_healthImage, &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = vulkaContext->FindMemoryType(
-            memRequirements.memoryTypeBits,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-        );
-
-        vkAllocateMemory(device, &allocInfo, nullptr, &m_healthImageMemory);
-        vkBindImageMemory(device, m_healthImage, m_healthImageMemory, 0);
-
-        // Create image view
-        VkImageViewCreateInfo viewInfo{};
-        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = m_healthImage;
-        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = VK_FORMAT_R8_UINT;
-        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = 1;
-        viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount = 1;
-
-        vkCreateImageView(device, &viewInfo, nullptr, &m_healthImageView);
-
-
-        VulkanUtils::TransitionImageLayout(m_healthImage, VK_FORMAT_R8_UINT,
-           VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-
-        m_CurrentHealthLayout = VK_IMAGE_LAYOUT_GENERAL;
-
-
-    }
 
 
 

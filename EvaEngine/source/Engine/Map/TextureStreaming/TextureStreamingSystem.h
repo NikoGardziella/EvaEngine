@@ -24,6 +24,8 @@ namespace Engine{
         bool IsDirty = false; // Mark if pixels were modified
         bool IsLoaded = false;
         Engine::Ref<Engine::VulkanTexture> GPUTexture; 
+        Engine::Ref<Engine::VulkanTexture> HealthTexture; 
+
         uint32_t Width = 0;
         uint32_t Height = 0;
         uint32_t TextureCount = 0;
@@ -66,7 +68,6 @@ namespace Engine{
 
         void UnloadChunkFromGPU(TextureChunk& chunk, entt::registry& gameRegistry);
 
-        Ref<VulkanTexture> CreateTextureFromData(const uint8_t* pixelData, int width, int height);
 
         std::unordered_map<UUID, TextureChunk> m_chunkMap;
         Ref<GridMap> m_gridMap;
