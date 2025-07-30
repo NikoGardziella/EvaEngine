@@ -8,7 +8,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 
 // Texture bindings
 layout(set = 0, binding = 0, rgba8) uniform image2D u_InputTexture[MAX_TEXTURES];
-layout(set = 0, binding = 1, rgba8) uniform image2D u_OutputTexture[MAX_TEXTURES];
+layout(set = 0, binding = 1, r8ui) uniform uimage2D u_HealthImage[MAX_TEXTURES];
 
 // Collision result per projectile
 struct CollisionResult {
@@ -45,7 +45,6 @@ layout(std430, set = 0, binding = 3) readonly buffer Projectiles {
     ProjectileGPU data[];
 };
 
-layout(set = 0, binding = 4, r8ui) uniform uimage2D u_HealthImage[MAX_TEXTURES];
 
 layout(push_constant) uniform PushConstants {
     vec2 TextureOrigin;
@@ -103,15 +102,13 @@ void main() {
         {
             uvec4 healthPixel = imageLoad(u_HealthImage[pc.TextureIndex], pixelCoord);
             uint health = healthPixel.r;
-            //imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(255.0, 0.0, 0.0, 1.0));
             if (health > 0) 
             {
                 health -= 1;
                 imageStore(u_HealthImage[pc.TextureIndex], pixelCoord, uvec4(health, 0, 0, 0));
-
                 if (health == 0)
                 {
-                    imageStore(u_OutputTexture[pc.TextureIndex], pixelCoord, vec4(0.0));
+                    imageStore(u_InputTexture[pc.TextureIndex], pixelCoord, vec4(0.0));
                 }
 
                 uint collisionIndex = atomicAdd(collisionCount, 1);

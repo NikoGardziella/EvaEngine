@@ -180,15 +180,7 @@ namespace Engine {
 		// VulkanUtils::TransitionImageLayout(m_dummyTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
 		//	 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
 
-		for (uint32_t i = 0; i < MAX_TEXTURES; i++)
-		{
-			//m_IOTextures[0][i] = s_VulkanData.TextureSlots[i];
-			//m_IOTextures[1][i] = s_VulkanData.TextureSlots[i];
-
-			m_IOTextures[0][i] = m_dummyTexture;
-			m_IOTextures[1][i] = m_dummyTexture;
-
-		}
+		
 
 
 		// *********** PROJECTILES **************
@@ -247,8 +239,7 @@ namespace Engine {
 		{
 			m_vulkanGraphicsPipelines->UpdateProjectileDescriptorSets(i, s_VulkanProjectileData.TextureSlots);
 		
-			m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(i,
-				m_IOTextures[inputIndex], m_IOTextures[outputIndex]);
+			
 		}
 		
 	}
@@ -700,101 +691,58 @@ namespace Engine {
 		vkCmdEndRenderPass(commandBuffer);
 
 	}
-
 	void VulkanRenderer2D::RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
 
 		if (!m_CPUCollisionsHandeled)
-		{
-			// let CPU handle the results before new compute pass
-			// because GPU results come at the end of the frame.
-			// then ECS handles them "mid frame" so the GPU results
-			// are handeled 1 frame later. There us probably better
-			// way to do this, but this works for now. Fences etc.
 			return;
-		}
-		
-		inputIndex = currentFrame % 2;
-		outputIndex = (currentFrame + 1) % 2;
+
 		m_CPUCollisionsHandeled = false;
 
-		m_IOTextures[inputIndex] = s_VulkanData.TextureSlots;
-
-		m_IOTextures[outputIndex] = s_VulkanData.TextureSlots;
-
-		// Prepare descriptor sets with input/output textures
-		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,
-			m_IOTextures[inputIndex], m_IOTextures[outputIndex]);
-
 		
+		// Use current texture slots for both read and write (in-place compute)
+		std::array<Ref<VulkanTexture>, MAX_TEXTURES>& computeTextures = s_VulkanData.TextureSlots;
 
-		// Transition all input textures to GENERAL layout for compute shader read/write
+		// Update descriptor set with same textures for read/write
+		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,	computeTextures);
+
+		// Transition textures to GENERAL layout
 		for (size_t i = 0; i < MAX_TEXTURES; i++)
 		{
-			VulkanTexture& inputTex = *m_IOTextures[inputIndex][i];
+			VulkanTexture& tex = *computeTextures[i];
 
-			if (inputTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
+			if (tex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
 			{
 				TransitionImageLayout(commandBuffer,
-					inputTex.GetImage(),
-					inputTex.GetCurrentLayout(),
+					tex.GetImage(),
+					tex.GetCurrentLayout(),
 					VK_IMAGE_LAYOUT_GENERAL);
 
-				inputTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
+				tex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
 			}
 		}
 
-		// Transition all output textures to GENERAL layout for compute shader read/write
-		for (size_t i = 0; i < MAX_TEXTURES; i++)
-		{
-			VulkanTexture& outputTex = *m_IOTextures[outputIndex][i];
-
-			if (outputTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
-			{
-				TransitionImageLayout(commandBuffer,
-					outputTex.GetImage(),
-					outputTex.GetCurrentLayout(),
-					VK_IMAGE_LAYOUT_GENERAL);
-
-
-				outputTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
-
-			}
-			
-		}
-
-		
-
-		// Bind compute pipeline & descriptor set
+		// Bind pipeline and descriptor set
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_vulkanGraphicsPipelines->GetComputePipeline());
 
 		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetComputeDescriptorSet(currentFrame);
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
 			m_vulkanGraphicsPipelines->GetComputePipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
 
-
-		// Dispatch compute for each texture
+		// Dispatch compute work per active texture
 		for (size_t i = 0; i < MAX_TEXTURES; i++)
 		{
+			VulkanTexture& tex = *computeTextures[i];
 
-			VulkanTexture& inputTex = *m_IOTextures[inputIndex][i];
-			//VulkanTexture& outputTex = *m_IOTextures[outputIndex][i];
-
-			if (!inputTex.GetCheckCollision())
-			{
+			if (!tex.GetCheckCollision())
 				continue;
-			}
-			
-			// Set push constants (adjust to your struct and values)
-			PushConstants pushconstant{};
-			pushconstant.TextureOrigin = inputTex.GetTextureOrigin();
-			pushconstant.PixelSize = inputTex.GetPixelSize();
-			pushconstant.textureIndex = static_cast<uint32_t>(i); 
-			pushconstant.NumProjectiles = s_CollisionData.EntitySlotIndex;
-			
 
-			//EE_CORE_INFO("pushconstant.NumProjectiles: {}", pushconstant.NumProjectiles);
+			PushConstants pushconstant{};
+			pushconstant.TextureOrigin = tex.GetTextureOrigin();
+			pushconstant.PixelSize = tex.GetPixelSize();
+			pushconstant.textureIndex = static_cast<uint32_t>(i);
+			pushconstant.NumProjectiles = s_CollisionData.EntitySlotIndex;
 
 			vkCmdPushConstants(commandBuffer,
 				m_vulkanGraphicsPipelines->GetComputePipelineLayout(),
@@ -803,35 +751,28 @@ namespace Engine {
 			uint32_t groupSizeX = 16;
 			uint32_t groupSizeY = 16;
 
-			uint32_t dispatchX = (inputTex.GetWidth() + groupSizeX - 1) / groupSizeX;
-			uint32_t dispatchY = (inputTex.GetHeight() + groupSizeY - 1) / groupSizeY;
+			uint32_t dispatchX = (tex.GetWidth() + groupSizeX - 1) / groupSizeX;
+			uint32_t dispatchY = (tex.GetHeight() + groupSizeY - 1) / groupSizeY;
 
 			vkCmdDispatch(commandBuffer, dispatchX, dispatchY, 1);
 		}
 
-		// After compute dispatch, transition output textures back to SHADER_READ_ONLY_OPTIMAL for graphics shader sampling
+		// Transition all textures back to SHADER_READ_ONLY_OPTIMAL
 		for (size_t i = 0; i < MAX_TEXTURES; i++)
 		{
-			VulkanTexture& outputTex = *m_IOTextures[outputIndex][i];
+			VulkanTexture& tex = *computeTextures[i];
 
-			if (outputTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			if (tex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 			{
 				TransitionImageLayout(commandBuffer,
-					outputTex.GetImage(),
-					outputTex.GetCurrentLayout(),
+					tex.GetImage(),
+					tex.GetCurrentLayout(),
 					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-				
-				outputTex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-				
-
+				tex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			}
 		}
-
-
-		
 	}
-
 
 
 

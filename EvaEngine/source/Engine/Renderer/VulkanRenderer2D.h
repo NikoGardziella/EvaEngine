@@ -222,7 +222,6 @@ namespace Engine {
 		//static const uint32_t MaxTextures = 10;
 		//std::array<CollisionTexture, MaxTextures> s_CollisionTextures;
 		//CollisionTexture s_CollisionTextures;
-		std::array<Ref<VulkanTexture>, MAX_TEXTURES> m_IOTextures[2];
 		Ref<VulkanTexture> m_dummyTexture;
 
 		bool m_CPUCollisionsHandeled = false;

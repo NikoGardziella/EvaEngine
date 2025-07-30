@@ -923,7 +923,7 @@ namespace Engine {
 
     void VulkanGraphicsPipeline::CreateComputeArrayDescriptorSetLayout()
     {
-        std::array<VkDescriptorSetLayoutBinding, 5> bindings{};
+        std::array<VkDescriptorSetLayoutBinding, 4> bindings{};
 
         // Binding 0: input textures
         bindings[0].binding = 0;
@@ -932,7 +932,7 @@ namespace Engine {
         bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         bindings[0].pImmutableSamplers = nullptr;
 
-        // Binding 1: output textures
+        // Binding 1: health
         bindings[1].binding = 1;
         bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
         bindings[1].descriptorCount = MAX_TEXTURES;
@@ -952,12 +952,7 @@ namespace Engine {
         bindings[3].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         bindings[3].pImmutableSamplers = nullptr;
 
-        // health
-        bindings[4].binding = 4;
-        bindings[4].descriptorCount = MAX_TEXTURES;
-        bindings[4].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        bindings[4].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        bindings[4].pImmutableSamplers = nullptr;
+        
 
 
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -1181,16 +1176,14 @@ namespace Engine {
     }
 
   
-    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES> inputTextures, std::array<Ref<VulkanTexture>, MAX_TEXTURES> outputTextures)
+    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES> inputTextures)
     {
 
 
         std::vector<VkDescriptorImageInfo> inputImageInfos;
-        std::vector<VkDescriptorImageInfo> outputImageInfos;
         std::vector<VkDescriptorImageInfo> healthImageInfos;
 
         inputImageInfos.reserve(inputTextures.size());
-        outputImageInfos.reserve(outputTextures.size());
         healthImageInfos.reserve(inputTextures.size());
 
         for (const auto& tex : inputTextures)
@@ -1202,15 +1195,7 @@ namespace Engine {
             inputImageInfos.push_back(info);
         }
 
-        for (const auto& tex : outputTextures)
-        {
-            VkDescriptorImageInfo info{};
-            info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            info.imageView = tex->GetImageView();
-            info.sampler = VK_NULL_HANDLE;
-            outputImageInfos.push_back(info);
-        }
-
+       
         for (const auto& tex : inputTextures)
         {
             VkDescriptorImageInfo info{};
@@ -1239,23 +1224,14 @@ namespace Engine {
         inputWrite.pImageInfo = inputImageInfos.data();
         descriptorWrites.push_back(inputWrite);
 
-        // Output
-        VkWriteDescriptorSet outputWrite{};
-        outputWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        outputWrite.dstSet = m_computeDescriptorSet[frameIndex];
-        outputWrite.dstBinding = 1;
-        outputWrite.descriptorCount = static_cast<uint32_t>(outputImageInfos.size());
-        outputWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        outputWrite.pImageInfo = outputImageInfos.data();
-        descriptorWrites.push_back(outputWrite);
-
+       
         // Health (conditionally)
         if (!healthImageInfos.empty())
         {
             VkWriteDescriptorSet healthWrite{};
             healthWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             healthWrite.dstSet = m_computeDescriptorSet[frameIndex];
-            healthWrite.dstBinding = 4;
+            healthWrite.dstBinding = 1;
             healthWrite.descriptorCount = static_cast<uint32_t>(healthImageInfos.size());
             healthWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
             healthWrite.pImageInfo = healthImageInfos.data();
