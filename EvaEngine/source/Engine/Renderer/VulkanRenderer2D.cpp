@@ -1170,25 +1170,61 @@ namespace Engine {
 		s_CollisionData.EntitySlotIndex++;
 	}
 
-	void VulkanRenderer2D::AddHealthTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture)
+	void VulkanRenderer2D::DrawTextureQuadWithHealth(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const std::shared_ptr<VulkanTexture>& healthTexture)
 	{
 		EE_PROFILE_FUNCTION();
 
-		
+		if (s_VulkanData.QuadIndexCount >= VulkanRenderer2DData::MaxIndices)
+		{
+			EE_CORE_ASSERT(false, "Quad index count exceeded maximum limit!");
+			return;
+		}
 
-		if (s_VulkanData.HealthTextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
+		if (s_VulkanData.TextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
 		{
 			//EE_CORE_ASSERT(false, "Texture slot index exceeded maximum limit!");
 			return;
 		}
 
+		// Use the same slot index for both texture arrays
+		float textureIndex = static_cast<float>(s_VulkanData.TextureSlotIndex);
 
-		float textureIndex = 0.0f;
-		textureIndex = static_cast<float>(s_VulkanData.HealthTextureSlotIndex);
-		s_VulkanData.HealthTextureSlots[s_VulkanData.HealthTextureSlotIndex] = texture;
-		s_VulkanData.HealthTextureSlotIndex++;
+		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = texture;
+		s_VulkanData.HealthTextureSlots[s_VulkanData.TextureSlotIndex] = healthTexture;
 
+		s_VulkanData.TextureSlotIndex++;
+
+		// Quad vertex data
+		const glm::vec3 quadPositions[4] = {
+			{-0.5f, -0.5f, 0.0f},
+			{ 0.5f, -0.5f, 0.0f},
+			{ 0.5f,  0.5f, 0.0f},
+			{-0.5f,  0.5f, 0.0f}
+		};
+
+		const glm::vec2 texCoords[4] = {
+			{0.0f, 0.0f},
+			{1.0f, 0.0f},
+			{1.0f, 1.0f},
+			{0.0f, 1.0f}
+		};
+
+		// Write 4 vertices
+		for (size_t i = 0; i < 4; i++)
+		{
+			glm::vec4 transformed = transform * glm::vec4(quadPositions[i], 1.0f);
+			s_VulkanData.QuadVertexBufferPtr->Position = glm::vec3(transformed);
+			//s_VulkanData.QuadVertexBufferPtr->Color = tintColor;
+			s_VulkanData.QuadVertexBufferPtr->TexCoord = texCoords[i];
+			s_VulkanData.QuadVertexBufferPtr->TexIndex = textureIndex;
+			//s_VulkanData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			s_VulkanData.QuadVertexBufferPtr++;
+		}
+
+		s_VulkanData.QuadIndexCount += 6;
+		s_VulkanData.Stats.QuadCount++;
 	}
+
 
 	void VulkanRenderer2D::DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor)
 	{

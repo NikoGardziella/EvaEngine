@@ -533,8 +533,7 @@ namespace Engine {
                             chunkComp.Texture->SetTextureOrigin(textureOrigin);
                             chunkComp.Texture->SetPixelSize(pixelSize);
 
-                            Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.Texture, tiling, color);
-                            Engine::VulkanRenderer2D::AddHealthTextureQuad(model, chunkComp.HealthTexture);
+                            Engine::VulkanRenderer2D::DrawTextureQuadWithHealth(model, chunkComp.Texture, chunkComp.HealthTexture);
                         }
                     }
                 }
