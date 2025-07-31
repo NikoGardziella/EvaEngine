@@ -78,6 +78,30 @@ namespace Engine {
         }
     }
 
+    inline std::string ToString(eTileMaterial material)
+    {
+        switch (material)
+        {
+        case eTileMaterial::None: return "None";
+        case eTileMaterial::Wood: return "Wood";
+        case eTileMaterial::Concrete: return "Concrete";
+        case eTileMaterial::Metal: return "Metal";
+        case eTileMaterial::Glass: return "Glass";
+        default: return "Unknown";
+        }
+    }
+
+    inline eTileMaterial MaterialFromString(const std::string& str)
+    {
+        if (str == "None")     return eTileMaterial::None;
+        if (str == "Wood")     return eTileMaterial::Wood;
+        if (str == "Concrete") return eTileMaterial::Concrete;
+        if (str == "Metal")    return eTileMaterial::Metal;
+        if (str == "Glass")    return eTileMaterial::Glass;
+        return eTileMaterial::None;
+    }
+
+
     inline eTileCategory CategoryFromString(const std::string& str)
     {
         if (str == "Buildings") return eTileCategory::Buildings;
