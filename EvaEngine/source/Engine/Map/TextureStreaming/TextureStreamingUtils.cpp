@@ -55,7 +55,7 @@ namespace Engine {
 
             std::vector<uint8_t> pixelData;
             int width, height;
-            if (!AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, width, height))
+            if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, width, height))
                 continue;
 
             for (int y = 0; y < height; ++y)
@@ -144,7 +144,7 @@ namespace Engine {
 
             std::vector<uint8_t> pixelData;
             int width, height;
-            if (!AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, width, height))
+            if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, width, height))
                 continue;
 
             for (int y = 0; y < height; ++y)

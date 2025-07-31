@@ -8,6 +8,8 @@
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 #include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include "Utils/TileSerializer.h"
+
 
 namespace Engine {
 
@@ -17,6 +19,8 @@ namespace Engine {
         static void Initialize(int maxDepth = 5);
 
         static void CreateTileAtlas();
+
+        static eTileMaterial ParseMaterialFromPath(const std::filesystem::path& path);
 
 
         static std::filesystem::path GetAssetPath(const std::string& subPath);
@@ -34,11 +38,21 @@ namespace Engine {
 		static Ref<VulkanTexture> GetTexture(const std::string& name);
         static Ref<VulkanTexture> CloneTexture(const std::string& name);
 		static Ref<VulkanPixelTexture> GetPixelTexture(const std::string& name);
-        static bool ExtractPixelsFromTilePallette(const glm::vec4& uv, std::vector<uint8_t>& outPixelData, std::vector<uint8_t>& outHealthData, int& outWidth, int& outHeight);
-        static bool ExtractPixelsFromTilePallette(const glm::vec4& uv, std::vector<uint8_t>& outPixelData, int& outWidth, int& outHeight);
+        static bool ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, std::vector<uint8_t>& outHealthData, int& outWidth, int& outHeight);
+        static bool ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, int& outWidth, int& outHeight);
         static  std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures();
 
+        static const std::vector<std::string>& AssetManager::GetTileNamesByCategoryAndMaterial(eTileCategory category, eTileMaterial material);
+        static int AssetManager::GetTileCountForCategory(eTileCategory category);
+
         static Ref<VulkanTexture> GetTileTextureIconAtlas() { return s_tileTextureIconAtlas; };
+
+        static const TileProperties& AssetManager::GetTileProperties(const std::string& tileName);
+
+        static void LoadTileProperties();
+
+        static void RegisterTile(const std::string& tileName, const TileProperties& properties);
+
 
 		static const std::unordered_map<std::string, glm::vec4>& AssetManager::GetTileTextureAtalsUVs() { return  s_tileUVMap; }
         static VkDeviceSize s_totalTextureMemory;
@@ -83,9 +97,10 @@ namespace Engine {
         static std::unordered_map<eTileCategory, std::vector<std::string>> s_tileNamesByCategory;
         static std::unordered_map<std::string, glm::vec4> s_tileUVMap;
         static std::unordered_map<eTileCategory, Ref<VulkanTexture>> s_tileAtlasesByCategory;
+        static std::unordered_map<eTileCategory, std::unordered_map<eTileMaterial, std::vector<std::string>>> s_tileNamesByCategoryAndMaterial;
 
 		static Ref<VulkanTexture> s_tileTextureIconAtlas;
-
+        static inline std::unordered_map<std::string, TileProperties> s_tileProperties;
 
     };
 

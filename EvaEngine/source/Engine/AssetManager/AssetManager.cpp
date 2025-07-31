@@ -3,7 +3,6 @@
 #include <iostream>
 #include <mutex>
 #include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
-#include "Engine/AssetManager/Utils/TilePaletteSerializer.h"
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 
 #include <stb_image.h>
@@ -25,8 +24,10 @@ namespace Engine {
     std::unordered_map<eTileCategory, Ref<VulkanTexture>> AssetManager::s_tileAtlasesByCategory;
     std::unordered_map<std::string, glm::vec4> AssetManager::s_tileUVMap;
 
-    Ref<VulkanTexture> AssetManager::s_tileTextureIconAtlas;
+    std::unordered_map<eTileCategory, std::unordered_map<eTileMaterial, std::vector<std::string>>> AssetManager::s_tileNamesByCategoryAndMaterial;
 
+    Ref<VulkanTexture> AssetManager::s_tileTextureIconAtlas;
+    
 
 
     void AssetManager::Initialize(int maxDepth)
@@ -54,8 +55,7 @@ namespace Engine {
             EE_CORE_WARN("Could not find asset folder within {} parent levels!", maxDepth);
         }
 
-
-
+       
     }
 
     std::filesystem::path AssetManager::GetAssetPath(const std::string& subPath)
@@ -244,12 +244,13 @@ namespace Engine {
         }
     }
 
-    bool AssetManager::ExtractPixelsFromTilePallette(const glm::vec4& uv, std::vector<uint8_t>& outPixelData,
+    bool AssetManager::ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData,
         int& outWidth, int& outHeight)
     {
         Ref<VulkanTexture> texture = GetTileTextureIconAtlas();
         bool flipVertical = true;
         bool flipHorizontal = false;
+        const glm::vec4 uv = tile.UV;
 
         const std::vector<uint8_t>& pixelData = texture->GetPixelData();
         if (pixelData.empty())
@@ -295,13 +296,14 @@ namespace Engine {
     }
 
 
-    bool AssetManager::ExtractPixelsFromTilePallette(const glm::vec4& uv, std::vector<uint8_t>& outPixelData,
+    bool AssetManager::ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData,
         std::vector<uint8_t>& outHealthData, int& outWidth, int& outHeight)
     {
         Ref<VulkanTexture> texture = GetTileTextureIconAtlas();
         bool flipVertical = true;
         bool flipHorizontal = false;
-
+        
+        const glm::vec4& uv = tile.UV;
         const std::vector<uint8_t>& pixelData = texture->GetPixelData();
         if (pixelData.empty())
         {
@@ -311,7 +313,7 @@ namespace Engine {
 
         uint32_t texWidth = texture->GetWidth();
         uint32_t texHeight = texture->GetHeight();
-        constexpr uint32_t channels = 4; // Assuming RGBA8 format
+        constexpr uint32_t channels = 4; // RGBA8 format
 
         // Convert normalized UVs to absolute pixel coordinates
         uint32_t x0 = static_cast<uint32_t>(uv.x * texWidth);
@@ -330,7 +332,7 @@ namespace Engine {
 
         const size_t pixelCount = outWidth * outHeight;
         outPixelData.resize(pixelCount * channels);
-        outHealthData.resize(pixelCount, 255); // Set full health (max 255) initially
+        outHealthData.resize(pixelCount, 0);
 
         for (uint32_t y = 0; y < outHeight; ++y)
         {
@@ -345,10 +347,9 @@ namespace Engine {
                 // Copy RGBA
                 memcpy(&outPixelData[dstIndex], &pixelData[srcIndex], channels);
 
-                // You can initialize health here based on material or color if needed:
+                
                 uint8_t alpha = pixelData[srcIndex + 3];
-                uint32_t health = 2;
-                outHealthData[y * outWidth + x] = (alpha > 0) ? health : 0;
+                outHealthData[y * outWidth + x] = (alpha > 0) ? tile.TileHealth : 0;
             }
         }
 
@@ -439,7 +440,6 @@ namespace Engine {
         return empty;
     }
 
-
     void AssetManager::CreateTileAtlas()
     {
         EE_PROFILE_FUNCTION();
@@ -449,7 +449,7 @@ namespace Engine {
             { eTileCategory::Buildings, "buildings" },
             { eTileCategory::Terrain,   "terrain" },
             { eTileCategory::Roofs,     "roofs" },
-            { eTileCategory::Vehicles,     "vehicles" }
+            { eTileCategory::Vehicles,  "vehicles" }
         };
 
         const fs::path baseTilePath = AssetManager::GetAssetPath("textures/tiles");
@@ -459,6 +459,8 @@ namespace Engine {
             int width, height;
             stbi_uc* pixels;
             eTileCategory category;
+            eTileMaterial material;
+            std::string name;
         };
 
         std::vector<TileInfo> loadedTiles;
@@ -473,18 +475,62 @@ namespace Engine {
                 continue;
             }
 
-            for (const auto& p : fs::directory_iterator(categoryPath))
+            bool hasSubfolders = false;
+            for (const auto& entry : fs::directory_iterator(categoryPath))
             {
-                if (p.path().extension() == ".png")
+                if (entry.is_directory())
                 {
-                    int w, h, channels;
-                    stbi_uc* pixels = stbi_load(p.path().string().c_str(), &w, &h, &channels, STBI_rgb_alpha);
-                    if (!pixels)
-                    {
-                        EE_CORE_WARN("Failed to load tile '{}'", p.path().string());
+                    hasSubfolders = true;
+                    break;
+                }
+            }
+
+            if (hasSubfolders)
+            {
+                for (const auto& subdir : fs::directory_iterator(categoryPath))
+                {
+                    if (!subdir.is_directory())
                         continue;
+
+                    eTileMaterial material = ParseMaterialFromPath(subdir.path());
+
+                    for (const auto& file : fs::directory_iterator(subdir.path()))
+                    {
+                        if (file.path().extension() == ".png")
+                        {
+                            int w, h, channels;
+                            stbi_uc* pixels = stbi_load(file.path().string().c_str(), &w, &h, &channels, STBI_rgb_alpha);
+                            if (!pixels)
+                            {
+                                EE_CORE_WARN("Failed to load tile '{}'", file.path().string());
+                                continue;
+                            }
+
+                            std::string name = file.path().stem().string();
+
+                            loadedTiles.push_back({ file.path(), w, h, pixels, category, material, name });
+                        }
                     }
-                    loadedTiles.push_back({ p.path(), w, h, pixels, category });
+                }
+            }
+            else
+            {
+                for (const auto& file : fs::directory_iterator(categoryPath))
+                {
+                    if (file.path().extension() == ".png")
+                    {
+                        int w, h, channels;
+                        stbi_uc* pixels = stbi_load(file.path().string().c_str(), &w, &h, &channels, STBI_rgb_alpha);
+                        if (!pixels)
+                        {
+                            EE_CORE_WARN("Failed to load tile '{}'", file.path().string());
+                            continue;
+                        }
+
+                        std::string name = file.path().stem().string();
+
+                        loadedTiles.push_back({ file.path(), w, h, pixels, category, eTileMaterial::Default, name });
+                    }
                 }
             }
         }
@@ -499,6 +545,7 @@ namespace Engine {
         s_tileUVMap.clear();
         s_tileUVMapsByCategory.clear();
         s_tileNamesByCategory.clear();
+        s_tileNamesByCategoryAndMaterial.clear();
 
         const int atlasWidth = 1024;
         int currentX = 0, currentY = 0, rowHeight = 0;
@@ -554,17 +601,36 @@ namespace Engine {
 
             glm::vec4 uv = glm::vec4(u0, v0, u1, v1);
 
-            // Store in all UV maps
+            // Store UV in maps
             s_tileUVMap[name] = uv;
             s_tileUVMapsByCategory[tile.category][name] = uv;
             s_tileNamesByCategory[tile.category].push_back(name);
+
+            // Now, use loaded tile properties if available
+            auto itProps = s_tileProperties.find(name);
+            if (itProps != s_tileProperties.end())
+            {
+                // Override material with loaded material (if you want)
+                eTileMaterial materialToUse = itProps->second.material;
+
+                // Insert into category/material map with loaded material
+                s_tileNamesByCategoryAndMaterial[tile.category][materialToUse].push_back(name);
+
+                // Optionally update tile material in loadedTiles if needed later
+                // (Not used here after atlas creation)
+            }
+            else
+            {
+                // No saved property, use default material from loaded tile
+                s_tileNamesByCategoryAndMaterial[tile.category][tile.material].push_back(name);
+            }
 
             currentX += tile.width;
             rowHeight = std::max(rowHeight, tile.height);
             stbi_image_free(tile.pixels);
         }
 
-        // Final combined texture
+        // Create Vulkan texture atlas
         s_tileTextureIconAtlas = std::make_shared<VulkanTexture>(atlasWidth, atlasHeight, VK_FORMAT_R8G8B8A8_UNORM,
             "combined_tileAtlas", true);
         VulkanUtils::TransitionImageLayout(s_tileTextureIconAtlas->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
@@ -573,10 +639,83 @@ namespace Engine {
         s_tileTextureIconAtlas->SetPixelData(atlasData);
 
         EE_CORE_INFO("Created combined tile atlas with dimensions {}x{}", atlasWidth, atlasHeight);
+
+        LoadTileProperties();
     }
 
 
 
-    
+
+    eTileMaterial AssetManager::ParseMaterialFromPath(const std::filesystem::path& path)
+    {
+        std::string materialName = path.filename().string(); // e.g., "wood", "concrete"
+
+        if (materialName == "default" || materialName == "Default") return eTileMaterial::Default;
+        if (materialName == "wood" || materialName == "Wood") return eTileMaterial::Wood;
+        if (materialName == "concrete" || materialName == "Concrete") return eTileMaterial::Concrete;
+        // Add more as needed
+
+        return eTileMaterial::Undefined; // or Default
+    }
+
+    const std::vector<std::string>& AssetManager::GetTileNamesByCategoryAndMaterial(eTileCategory category, eTileMaterial material)
+    {
+        static const std::vector<std::string> empty;
+        auto catIt = s_tileNamesByCategoryAndMaterial.find(category);
+        if (catIt == s_tileNamesByCategoryAndMaterial.end())
+        {
+            return empty;
+        }
+
+        auto matIt = catIt->second.find(material);
+        if (matIt == catIt->second.end())
+        {
+            return empty;
+        }
+        return matIt->second;
+    }
+
+
+    int AssetManager::GetTileCountForCategory(eTileCategory category)
+    {
+        auto it = s_tileNamesByCategory.find(category);
+        if (it != s_tileNamesByCategory.end())
+            return static_cast<int>(it->second.size());
+
+        return 0;
+    }
+
+    const TileProperties& AssetManager::GetTileProperties(const std::string& tileName)
+    {
+        for (const auto& [tileName, props] : s_tileProperties)
+        {
+            EE_CORE_INFO("Loaded tile property: '{}' Health: {} Material: {}", tileName, props.health, static_cast<int>(props.material));
+        }
+
+
+        auto it = s_tileProperties.find(tileName);
+        if (it != s_tileProperties.end())
+            return it->second;
+
+        static TileProperties s_default;
+        return s_default;
+    }
+
+    void AssetManager::LoadTileProperties()
+    {
+        std::unordered_map<std::string, TileProperties> loadedTiles;
+        TileSerializer::Load(loadedTiles);  // This reads YAML and fills loadedTiles
+
+        if (loadedTiles.empty())
+        {
+            EE_CORE_WARN("Tile properties file is empty or failed to load.");
+        }
+        else
+        {
+            s_tileProperties = std::move(loadedTiles);
+            EE_CORE_INFO("Loaded {} tile properties.", s_tileProperties.size());
+        }
+    }
+
 
 }

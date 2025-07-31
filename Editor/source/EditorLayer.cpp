@@ -663,6 +663,8 @@ namespace Engine {
         }
             
        
+        TileProperties& tileProperties = m_tileEditorPanel.GetSelectedTileProperties();
+
         if (m_selectedEntity)
         {
             // add tile to already existing entity
@@ -674,7 +676,8 @@ namespace Engine {
                 glm::vec2 localOffsetWorld = snapped - glm::vec2(entityTransformComp.Translation);
                 glm::ivec2 tilePos = glm::round(localOffsetWorld / float(TILE_SIZE));
 
-                tileComp.tiles.push_back(TileInfo{ glm::vec2(tilePos), UV, selectedTileName, destructible, isRoof, tileCategory });
+                tileComp.tiles.push_back(TileInfo{ glm::vec2(tilePos), UV, selectedTileName, destructible,
+                    isRoof, tileCategory, tileProperties.material, tileProperties.health });
 
                 EE_CORE_INFO("adding tile: {}", tileComp.tiles.size());
 
@@ -685,7 +688,8 @@ namespace Engine {
                 glm::vec2 localOffsetWorld = snapped - glm::vec2(entityTransformComp.Translation);
                 glm::ivec2 tilePos = glm::round(localOffsetWorld / float(TILE_SIZE));
 
-                tileComp.tiles.push_back(TileInfo{ glm::vec2(tilePos), UV, selectedTileName, destructible, isRoof, tileCategory });
+                tileComp.tiles.push_back(TileInfo{ glm::vec2(tilePos), UV, selectedTileName,
+                    destructible, isRoof, tileCategory , tileProperties.material, tileProperties.health });
 
             }
             
@@ -699,7 +703,8 @@ namespace Engine {
             editorTransformComp.Translation.x = snapped.x;
             editorTransformComp.Translation.y = snapped.y;
             TileComponent& editorTileComp = editorEntity.AddComponent<TileComponent>();
-            editorTileComp.tiles.push_back(TileInfo{ glm::vec2(0.0f, 0.0f), UV, selectedTileName,  destructible, isRoof, tileCategory });
+            editorTileComp.tiles.push_back(TileInfo{ glm::vec2(0.0f, 0.0f), UV, selectedTileName,  destructible, 
+                isRoof, tileCategory, tileProperties.material, tileProperties.health });
         
             m_selectedEntity = editorEntity;
             m_sceneHierarchyPanel.SetSelectedEntity(editorEntity);

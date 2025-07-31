@@ -3,6 +3,8 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include <imgui/imgui.h>
+#include <Engine/AssetManager/Utils/TileSerializer.h>
 
 
 namespace Engine
@@ -21,7 +23,12 @@ namespace Engine
 		~TileEditorPanel() = default;
 		void OnImGuiRender();
 
-		eTileCategory GetSelectedTileCategory() { return m_selectedTileCategory;  }
+		void DrawTilePalette(eTileCategory category);
+
+		void DrawTiles(const std::vector<std::string>& tileNames, ImTextureID textureID, eTileCategory category, eTileMaterial material);
+
+		eTileCategory GetSelectedTileCategory() const { return m_selectedTileCategory; }
+		TileProperties& GetSelectedTileProperties() { return m_selectedTileprops; }
 
 		uint32_t GetSelectedTile() const { return m_selectedTile; }
 		std::string GetSelectedTileName() const { return m_selectedTileName; }
@@ -42,7 +49,6 @@ namespace Engine
 			return glm::vec4(0.0f); // Return empty UV if not found
 		}
 	private:
-		void DrawTilePalette(eTileCategory selectedCategory);
 		//void CreateTileAtlas();
 	private:
 
@@ -57,6 +63,18 @@ namespace Engine
 		uint32_t m_selectedTile = UINT32_MAX; 
 		std::string m_selectedTileName;
 		eTileCategory m_selectedTileCategory;
+		eTileMaterial m_selectedTileMaterial;
+
+		TileProperties& m_selectedTileprops = TileProperties{};
+
+		std::unordered_map<eTileCategory, eTileMaterial> m_selectedMaterials;
+
+		
+
+		std::unordered_map<std::string, TileProperties> m_tilePropertyDefaults; // key = tile name
+		std::unordered_map<std::string, TileProperties> m_modifiedTileProperties; // optional overrides
+
+
 	};
 }
 

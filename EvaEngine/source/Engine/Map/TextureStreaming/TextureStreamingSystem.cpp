@@ -437,7 +437,7 @@ namespace Engine {
             TextureStreamingUtils::BakeRoofTextureIfNeeded(registry, entity);
             TextureStreamingUtils::BakeVehicleTextureIfNeeded(registry, entity);
 
-            for (const auto& tile : tcomp.tiles)
+            for (const TileInfo& tile : tcomp.tiles)
             {
                 glm::ivec2 worldTilePos = MapUtils::GetWorldTileCoords(tile.position, transformComp.Translation);
 
@@ -445,7 +445,7 @@ namespace Engine {
                 std::vector<uint8_t> pixelData;
                 std::vector<uint8_t> healthData;
                 int width, height;
-                if (!AssetManager::ExtractPixelsFromTilePallette(tile.UV, pixelData, healthData, width, height))
+                if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, width, height))
                     continue;
 
                

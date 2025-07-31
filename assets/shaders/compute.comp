@@ -85,12 +85,15 @@ void main() {
     {
         ProjectileGPU proj = data[i];
         bool collided = false;
+       
 
         if (proj.Type == 0 || proj.Type == 1)
         {
             float dist = distance(worldPos, proj.Position);
             if (dist < proj.Radius)
+            {
                 collided = true;
+            }
         }
         else if (proj.Type == 2)
         {
@@ -104,7 +107,9 @@ void main() {
             uint health = healthPixel.r;
             if (health > 0) 
             {
-                health -= 1;
+                if(proj.Type == 0 || proj.Type == 2)
+                    health -= 1;
+
                 imageStore(u_HealthImage[pc.TextureIndex], pixelCoord, uvec4(health, 0, 0, 0));
                 if (health == 0)
                 {
