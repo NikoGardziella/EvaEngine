@@ -654,8 +654,11 @@ namespace Engine {
                                 Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
 
                             }
+
+                            
                             if (m_registry.any_of<VehicleComponent>(entity))
                             {
+                                VehicleComponent& vehicleComp = m_registry.get<VehicleComponent>(entity);
 
                                 glm::vec2 textureSizeInTiles = glm::vec2(
                                     quadSprite.Texture->GetWidth(),
@@ -682,7 +685,12 @@ namespace Engine {
                                // glm::vec2 size = glm::vec2{ quadSprite.Texture->GetWidth()  ,quadSprite.Texture->GetHeight() };
                                 glm::vec2 size = glm::vec2{ 2  ,1 };
 
-                                Engine::VulkanRenderer2D::CalculateBoxCollision(transform.Translation, size, transform.Rotation.z, IDcomp.ID, eCollisionType::VEHICLE);
+                                uint32_t vehicleCurrentSpeed = (uint32_t)vehicleComp.CurrentSpeed;
+                                uint32_t vehicleMass = (uint32_t)vehicleComp.Mass;
+                                uint32_t decreaseForceMultiplier = 500;
+                                uint32_t vehicleCollisionDamge = (vehicleMass * vehicleCurrentSpeed * vehicleCurrentSpeed) / decreaseForceMultiplier;
+                                
+                                Engine::VulkanRenderer2D::CalculateBoxCollision(transform.Translation, size, transform.Rotation.z, IDcomp.ID, eCollisionType::VEHICLE, vehicleCollisionDamge);
 
                                 Engine::VulkanRenderer2D::DrawTextureQuad(model, quadSprite.Texture, tiling, quadSprite.Color);
 
@@ -728,13 +736,15 @@ namespace Engine {
                         projectilePos.y = projectileTransform.Translation.y;
 
                       //  projectileTransform.Translation.z = 0.1f;
-                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE);
+     
+                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE, projectile.Damage);
                         Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
 
                     }
                     if (!playerEntity.HasComponent<DriverComponent>())
                     {
-                        Engine::VulkanRenderer2D::CalculateCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
+                        uint32_t plauerCollisionDamage = 0; // player does no damage on collision
+                        Engine::VulkanRenderer2D::CalculateCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER, plauerCollisionDamage);
                     }
                 }
 

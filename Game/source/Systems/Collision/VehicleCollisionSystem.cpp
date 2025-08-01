@@ -21,17 +21,39 @@ void VehicleCollisionSystem::UpdateVehicleCollision(entt::registry& registry, fl
         {
             if (IDComp.ID != collision.GetEntityID())
                 continue;
+
             collided = true;
-            float pushbackStrength = 0.5f;
-            ApplyPush(vehicleTransform, vehicle, collision.HitPosition, pushbackStrength);
+
+            // Query health of collided object (implement GetObjectHealthByID)
+            uint32_t objectHealth = collision.Health;
+            uint32_t maxHealth = 255;
+
+            float healthRatio = (maxHealth > 0) ? (float)objectHealth / maxHealth : 1.0f;
+
+            float pushbackStrength = 0.8f;
+            float velocityNudge = 0.3f;
+
+            if (healthRatio < 0.01f)
+            {
+                // Low health: allow push through, small pushback, mild slow
+                //ApplyPush(vehicleTransform, vehicle, collision.HitPosition, pushbackStrength * 0.3f, velocityNudge * 0.5f);
+                vehicle.CurrentSpeed *= 0.8f;
+                EE_INFO("low health, healthRatio {}", healthRatio);
+            }
+            else
+            {
+                // High health: strong pushback, big slow
+                ApplyPush(vehicleTransform, vehicle, collision.HitPosition, pushbackStrength, velocityNudge);
+                vehicle.CurrentSpeed *= 0.3f;
+                EE_INFO("high health, healthRatio {}", healthRatio);
+            }
+
             break;
         }
+
     }
 
-    if (collided)
-    {
-        EE_INFO("vehicle collision");
-    }
+
 
 }
 
@@ -56,7 +78,6 @@ void VehicleCollisionSystem::ApplyPush(
         vehicle.Pushback += pushDir * scaledPushStrength;
         vehicle.Velocity += pushDir * scaledVelocityNudge;
 
-        // Optional: dampen a bit to avoid ricocheting forever
         vehicle.CurrentSpeed *= 0.7f;
     }
 }

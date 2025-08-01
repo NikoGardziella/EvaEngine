@@ -17,7 +17,7 @@ struct CollisionResult {
     uint hitProjectileID_High;
     uint _padding0;
     vec2 CollisionPosition;
-    uint _padding1;
+    uint Health;
     uint _padding2;
 };
 
@@ -30,7 +30,7 @@ struct ProjectileGPU {
     uint ID_High;     // 4 bytes
     vec2 Size;        // 8 bytes (only for Type 2)
     float Rotation;   // 4 bytes (only for Type 2)
-    float _padding0;  // 4 bytes (align to 40)
+    uint Damage;      // 4 bytes (align to 40)
 };
 
 layout(std430, set = 0, binding = 2) buffer ResultBuffer {
@@ -103,18 +103,25 @@ void main() {
 
         if (collided)
         {
+
             uvec4 healthPixel = imageLoad(u_HealthImage[pc.TextureIndex], pixelCoord);
             uint health = healthPixel.r;
-            if (health > 0) 
+            uint currentHealth = health;
+
+            if (health > 0u)
             {
-                if(proj.Type == 0 || proj.Type == 2)
-                    health -= 1;
+                if(proj.Type == 0u || proj.Type == 2u)
+                {
+                    health = (proj.Damage > health) ? 0u : (health - proj.Damage);
+                }
 
                 imageStore(u_HealthImage[pc.TextureIndex], pixelCoord, uvec4(health, 0, 0, 0));
-                if (health == 0)
+
+                if (health == 0u)
                 {
                     imageStore(u_InputTexture[pc.TextureIndex], pixelCoord, vec4(0.0));
                 }
+
 
                 uint collisionIndex = atomicAdd(collisionCount, 1);
                 if (collisionIndex < MAX_COLLISION_ENTITIES)
@@ -123,6 +130,7 @@ void main() {
                     results[collisionIndex].hitProjectileID_Low = proj.ID_Low;
                     results[collisionIndex].hitProjectileID_High = proj.ID_High;
                     results[collisionIndex].CollisionPosition = worldPos;
+                    results[collisionIndex].Health = currentHealth;
                 }
             }
 

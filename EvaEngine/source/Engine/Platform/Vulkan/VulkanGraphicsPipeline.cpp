@@ -1288,7 +1288,7 @@ namespace Engine {
 
         
         VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = m_uniformBuffers[frameIndex].GetBuffer();  // Replace with your actual camera UBO
+        bufferInfo.buffer = m_uniformBuffers[frameIndex].GetBuffer();  
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(glm::mat4); // or your full Camera UBO struct size
 
@@ -1434,7 +1434,7 @@ namespace Engine {
             resultBufferInfo.range = sizeof(CollisionResultBuffer);
 
             VkDescriptorBufferInfo bulletBufferInfo{};
-            bulletBufferInfo.buffer = m_bulletUniformBuffers[i].GetBuffer(); // Make sure this is set up correctly
+            bulletBufferInfo.buffer = m_bulletUniformBuffers[i].GetBuffer(); 
             bulletBufferInfo.offset = 0;
             bulletBufferInfo.range = sizeof(CollisionEntitiesGPU) * MAX_COLLISION_ENTITIES;
 
@@ -1639,30 +1639,6 @@ namespace Engine {
         return result;
     }
 
-    
-
-    /*
-    void VulkanGraphicsPipeline::UpdateStorageImageDescriptorSets()
-    {
-        for (size_t i = 0; i < m_gameDescriptorSets.size(); ++i)
-        {
-            VkDescriptorImageInfo imageInfo{};
-            imageInfo.imageView = m_storageImage.ImageView;
-            imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL; // storage images usually use GENERAL layout
-
-            VkWriteDescriptorSet descriptorWrite{};
-            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrite.dstSet = m_gameDescriptorSets[i]; 
-            descriptorWrite.dstBinding = 2;             
-            descriptorWrite.dstArrayElement = 0;
-            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            descriptorWrite.descriptorCount = 1;
-            descriptorWrite.pImageInfo = &imageInfo;
-
-            vkUpdateDescriptorSets(m_device, 1, &descriptorWrite, 0, nullptr);
-        }
-    }
-    */
 
 
     void VulkanGraphicsPipeline::UpdateCameraUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix)
@@ -1673,20 +1649,22 @@ namespace Engine {
         vkUnmapMemory(m_device, m_uniformBuffers[currentFrame].GetMemory());
     }
 
-    void VulkanGraphicsPipeline::UpdateCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionEntitiesGPU,MAX_COLLISION_ENTITIES> bulletPositions)
+    void VulkanGraphicsPipeline::UpdateCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionEntitiesGPU,MAX_COLLISION_ENTITIES> collidingEntityData)
     {
         void* data;
-        VkDeviceSize size = sizeof(CollisionEntitiesGPU) * bulletPositions.size();
+        VkDeviceSize size = sizeof(CollisionEntitiesGPU) * collidingEntityData.size();
         if (size <= 0) // this probably does not work
         {
             return;
         }
 
+      
+
         // Map buffer memory
         vkMapMemory(m_device, m_bulletUniformBuffers[currentFrame].GetMemory(),
             0, size, 0, &data);
 
-        memcpy(data, bulletPositions.data(), size);
+        memcpy(data, collidingEntityData.data(), size);
 
         vkUnmapMemory(m_device, m_bulletUniformBuffers[currentFrame].GetMemory());
     }

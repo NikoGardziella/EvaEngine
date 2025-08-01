@@ -9,6 +9,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <glm/glm.hpp>
+#include <cstddef>
 
 
 namespace Engine {
@@ -22,7 +23,7 @@ namespace Engine {
         uint32_t _padding0 = 0; // Pad to 16-byte boundary
 
         glm::vec2 CollisionPosition;
-        uint32_t _padding1 = 0;
+        uint32_t Health = 0;
         uint32_t _padding2 = 0;
 
         uint64_t GetProjectileID() const
@@ -53,10 +54,10 @@ namespace Engine {
         glm::vec2 Size;        // 8 bytes (width, height of box)
         float Rotation;        // 4 bytes (in radians)
 
-        uint32_t padding;      // 4 bytes to maintain 16-byte alignment (optional)
+        uint32_t Damage;      // 4 bytes 
     };
-
-    static_assert(sizeof(CollisionEntitiesGPU) == 40, "ProjectileGPU must be 32 bytes (std140 alignment)");
+    static_assert(offsetof(CollisionEntitiesGPU, Damage) == 36);
+    static_assert(sizeof(CollisionEntitiesGPU) == 40, "ProjectileGPU must be 40 bytes (std140 alignment)");
 
    
 

@@ -1,6 +1,49 @@
 Scene: My Scene
 Entities:
-  - ID: 2905588700579480845
+  - ID: 17554447747758649486
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [26, 6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.125, 0, 0.1640625, 0.33333334]
+          Name: walls_0043_Layer-44
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 50
+        - Position: [1, 0]
+          UV: [0.125, 0, 0.1640625, 0.33333334]
+          Name: walls_0043_Layer-44
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 50
+        - Position: [2, 0]
+          UV: [0.125, 0, 0.1640625, 0.33333334]
+          Name: walls_0043_Layer-44
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 50
+        - Position: [3, 0]
+          UV: [0.125, 0, 0.1640625, 0.33333334]
+          Name: walls_0043_Layer-44
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 0
+  - ID: 1500366093
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -18,7 +61,7 @@ Entities:
           IsRoof: false
           Category: Buildings
           Material: None
-          Health: 0
+          Health: 5
         - Position: [1, 0]
           UV: [0.578125, 0, 0.703125, 0.104166664]
           Name: walls_0048_Layer-49
@@ -26,7 +69,7 @@ Entities:
           IsRoof: false
           Category: Buildings
           Material: None
-          Health: 0
+          Health: 5
         - Position: [2, 0]
           UV: [0.578125, 0, 0.703125, 0.104166664]
           Name: walls_0048_Layer-49
@@ -34,7 +77,7 @@ Entities:
           IsRoof: false
           Category: Buildings
           Material: None
-          Health: 0
+          Health: 5
         - Position: [3, 0]
           UV: [0.578125, 0, 0.703125, 0.104166664]
           Name: walls_0048_Layer-49
@@ -42,7 +85,7 @@ Entities:
           IsRoof: false
           Category: Buildings
           Material: None
-          Health: 0
+          Health: 5
         - Position: [4, 0]
           UV: [0.578125, 0, 0.703125, 0.104166664]
           Name: walls_0048_Layer-49
@@ -50,8 +93,8 @@ Entities:
           IsRoof: false
           Category: Buildings
           Material: None
-          Health: 0
-  - ID: 12131042429179867263
+          Health: 5
+  - ID: 4201984127
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -69,7 +112,7 @@ Entities:
           IsRoof: false
           Category: Buildings
           Material: None
-          Health: 0
+          Health: 1
         - Position: [1, 0]
           UV: [0.375, 0.33333334, 0.5, 0.6666667]
           Name: walls_0006_Layer-7
@@ -77,7 +120,7 @@ Entities:
           IsRoof: false
           Category: Buildings
           Material: None
-          Health: 0
+          Health: 1
         - Position: [2, 0]
           UV: [0.375, 0.33333334, 0.5, 0.6666667]
           Name: walls_0006_Layer-7
@@ -85,7 +128,7 @@ Entities:
           IsRoof: false
           Category: Buildings
           Material: None
-          Health: 0
+          Health: 1
         - Position: [3, 0]
           UV: [0.375, 0.33333334, 0.5, 0.6666667]
           Name: walls_0006_Layer-7
@@ -93,7 +136,7 @@ Entities:
           IsRoof: false
           Category: Buildings
           Material: None
-          Health: 0
+          Health: 1
   - ID: 1640454093
     TagComponent:
       Tag: Car

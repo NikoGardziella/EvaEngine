@@ -864,9 +864,11 @@ namespace Engine {
 
     void EditorLayer::OnEvent(Engine::Event& event)
     {
-
         if (m_mouseIsInViewPort)
         {
+            // block events if mouse is not in the game viewport
+            // I did this because I wanted to block scrolling if mouse is not in viewport
+            // might block some other events that should not be blocked
             m_editorCamera.OnEvent(event);
         }
 
