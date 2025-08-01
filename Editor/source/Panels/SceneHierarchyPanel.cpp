@@ -143,12 +143,8 @@ namespace Engine {
 
     void SceneHierarchyPanel::DestrtoySelectedEntity(Entity entity)
     {
-        if (!m_sceneHierarchyPanelScene->DestroyEntity(entity))
-        {
-            // entity was not in new components. Delete it from GameScene
-
-        }
-        //m_gameContext->DestroyEntity(entity);
+       
+        m_sceneHierarchyPanelScene->DestroyEntity(entity);
 
         if (m_selectionContext == entity)
         {
@@ -160,50 +156,63 @@ namespace Engine {
     {
         auto& tagComp = entity.GetComponent<TagComponent>();
 
-        ImGuiTreeNodeFlags flags = (m_selectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-        flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-        
+        ImGuiTreeNodeFlags flags = (m_selectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0)
+            | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+        bool hasExpandableContent = entity.HasComponent<TileComponent>(); // add other checks if needed
+        if (!hasExpandableContent)
+            flags |= ImGuiTreeNodeFlags_Leaf;
+        else
+            flags |= ImGuiTreeNodeFlags_OpenOnArrow;
+
         bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tagComp.Tag.c_str());
         m_itemIsClicked = false;
 
         if (ImGui::IsItemClicked())
         {
-            m_selectionContext = entity;  // Store the selected entity
+            m_selectionContext = entity;
             m_itemIsClicked = true;
         }
 
         bool entityDeleted = false;
 
-        
         if (ImGui::BeginPopupContextItem())
         {
             m_itemIsClicked = true;
             if (ImGui::MenuItem("Delete entity"))
-            {
                 entityDeleted = true;
-                
-            }
-            ImGui::EndPopup(); 
+            ImGui::EndPopup();
         }
 
         if (opened)
         {
-            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_OpenOnArrow;
-            bool opened = ImGui::TreeNodeEx((void*)9213123, flags, tagComp.Tag.c_str());
-            if (opened)
-            {
-                ImGui::TreePop();
+           
 
+            // Draw TileComponent tiles if present
+            if (entity.HasComponent<TileComponent>())
+            {
+                auto& tileComp = entity.GetComponent<TileComponent>();
+
+                if (ImGui::TreeNodeEx("TileComponent", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth))
+                {
+                    for (const auto& tile : tileComp.tiles)
+                    {
+                        std::string label = tile.name + " (" + std::to_string(tile.position.x) + ", " + std::to_string(tile.position.y) + ")";
+                        ImGui::BulletText("%s", label.c_str());
+                    }
+                    ImGui::TreePop();
+                }
             }
-            
+
             ImGui::TreePop();
         }
 
         if (entityDeleted)
         {
-			DestrtoySelectedEntity(entity);
+            DestrtoySelectedEntity(entity); // typo: should be DestroySelectedEntity
         }
     }
+
 
     void SceneHierarchyPanel::DrawContext()
     {
@@ -853,15 +862,11 @@ namespace Engine {
 
             });
 
-
         DrawComponent<TileComponent>("Tile", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
                 ImGui::Text("Grid Pos");
-                //ImGui::DragFloat2("##Position", glm::value_ptr(component.WorldPos), 1.0f);
-
-                //ImGui::Checkbox("Destructible", &component.IsDestructible);
-
                 ImGui::SeparatorText("Texture");
+
                 const char* textureButtonText = component.Texture
                     ? component.Texture->GetName().c_str()
                     : "Add";
@@ -881,24 +886,60 @@ namespace Engine {
 
                         component.Texture = AssetManager::GetTexture(textureName);
                         if (!component.Texture)
-                        {
                             component.Texture = AssetManager::AddTexture(textureName, texturePath.string());
-                        }
                         if (!component.Texture)
-                        {
                             component.Texture = AssetManager::GetTexture("logo"); // fallback
-                        }
                     }
                     ImGui::EndDragDropTarget();
                 }
 
-                // Apply to new context
+                // Edit each tile
+                for (size_t i = 0; i < component.tiles.size(); ++i)
+                {
+                    TileInfo& tile = component.tiles[i];
+                    std::string header = "Tile: " + tile.name + "###Tile_" + std::to_string(i);
+
+                    if (ImGui::TreeNodeEx(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                    {
+                        ImGui::DragFloat2("Position", &tile.position.x, 1.0f);
+                        ImGui::DragFloat4("UV", &tile.UV.x, 0.01f);
+
+                        char nameBuffer[128];
+                        memset(nameBuffer, 0, sizeof(nameBuffer));
+                        strncpy(nameBuffer, tile.name.c_str(), sizeof(nameBuffer) - 1);
+
+                        if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
+                        {
+                            tile.name = std::string(nameBuffer);
+                        }
+
+                        ImGui::Checkbox("Destructible", &tile.IsDestructible);
+                        ImGui::Checkbox("Is Roof", &tile.IsRoof);
+
+                        // Category Combo
+                        const char* categoryOptions[] = { "Undefined", "Buildings", "Terrain", "Roofs", "Vehicles" };
+                        int currentCategory = static_cast<int>(tile.Category);
+                        if (ImGui::Combo("Category", &currentCategory, categoryOptions, IM_ARRAYSIZE(categoryOptions)))
+                            tile.Category = static_cast<eTileCategory>(currentCategory);
+
+                        // Material Combo
+                        const char* materialOptions[] = { "Undefined", "None", "Wood", "Concrete", "Metal", "Glass" };
+                        int currentMaterial = static_cast<int>(tile.Material);
+                        if (ImGui::Combo("Material", &currentMaterial, materialOptions, IM_ARRAYSIZE(materialOptions)))
+                            tile.Material = static_cast<eTileMaterial>(currentMaterial);
+
+                        ImGui::InputScalar("Health", ImGuiDataType_U32, &tile.TileHealth);
+
+                        ImGui::TreePop();
+                    }
+                }
+
+                // Sync the component back (optional depending on ECS design)
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (newEntity)
-                {
                     m_sceneHierarchyPanelScene->GetRegistry().get<TileComponent>(newEntity) = component;
-                }
             });
+
 
 
         DrawComponent<CircleRendererComponent>("Circle  renderer", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)

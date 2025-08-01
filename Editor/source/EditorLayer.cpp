@@ -1053,6 +1053,11 @@ namespace Engine {
 					EditorUtils::DeleteTileAtPosition(m_selectedEntity, m_selectedTilePosition);
                 }
             }
+            else
+            {
+                m_sceneHierarchyPanel.DestrtoySelectedEntity(m_selectedEntity);
+
+            }
 
             break;
         }

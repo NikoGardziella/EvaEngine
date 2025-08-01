@@ -1,6 +1,6 @@
 Scene: My Scene
 Entities:
-  - ID: 9619987820963170870
+  - ID: 1276643894
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -44,3 +44,33 @@ Entities:
     WeaponComponent:
       Damage: 10
       FireRate: 0.6
+  - ID: 7886255935071934413
+    TagComponent:
+      Tag: Car
+    TransformComponent:
+      Translation: [5, -3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.375, 0.6666667, 0.4970703, 1]
+          Name: car_0001_Layer-2_left
+          IsDestructible: false
+          IsRoof: false
+          Category: Vehicles
+          Material: None
+          Health: 0
+        - Position: [1, 0]
+          UV: [0.4970703, 0.6666667, 0.6220703, 1]
+          Name: car_0001_Layer-2_right
+          IsDestructible: false
+          IsRoof: false
+          Category: Vehicles
+          Material: None
+          Health: 0
+    VehicleComponent:
+      Velocity: [0, 0]
+      Mass: 400
