@@ -35,11 +35,11 @@ namespace Engine {
 
         m_position = m_focalPoint - GetForwardDirection() * m_distance;
         m_viewMatrix = glm::lookAt(m_position, m_position + front, up);
+
     }
 
-    void EditorCamera::OnUpdate(Timestep timestep, bool controlPressed)
+    void EditorCamera::OnUpdate(Timestep timestep)
     {
-		m_controlPressed = controlPressed;
 
         if (Input::IsKeyPressed(Key::LeftAlt))
         {
@@ -79,6 +79,7 @@ namespace Engine {
 
         UpdateView();
 
+
     }
 
     void EditorCamera::OnEvent(Event& event)
@@ -89,8 +90,10 @@ namespace Engine {
 
     bool EditorCamera::OnMouseScroll(MouseScrolledEvent& event)
     {
+        
+
 		float scrollSpeed = 3.0f;
-		if (m_controlPressed)
+		if (Input::IsKeyPressed(Key::LeftControl))
 		{
 			scrollSpeed = 10.0f;
 		}
@@ -164,6 +167,12 @@ namespace Engine {
     glm::vec2 EditorCamera::PanSpeed() const
     {
         float speed = 15.0f;
+
+        if (Input::IsKeyPressed(Key::LeftControl))
+        {
+            speed = 45.0f;
+        }
+
         float x = std::min(m_viewportWidth / 1000.0f, 2.4f) * speed;
         float y = std::min(m_viewportHeight / 1000.0f, 2.4f) * speed;
         return { x, y };

@@ -893,46 +893,95 @@ namespace Engine {
                     ImGui::EndDragDropTarget();
                 }
 
-                // Edit each tile
+
+                std::optional<size_t> previousSelected = m_previousSelected;
+
+                // Ensure selected tile is open
+                if (m_selectedTileIndex.has_value())
+                {
+                    m_openTileIndices.insert(*m_selectedTileIndex);
+                }
+
+                // Set scroll flag only if selection changed externally
+                if (m_selectedTileIndex && (!previousSelected || *previousSelected != *m_selectedTileIndex))
+                {
+                    m_openTileIndices.insert(*m_selectedTileIndex);
+                    m_scrollToSelectedTileNextFrame = true;
+                }
+
                 for (size_t i = 0; i < component.tiles.size(); ++i)
                 {
                     TileInfo& tile = component.tiles[i];
-                    std::string header = "Tile: " + tile.name + "###Tile_" + std::to_string(i);
+                    bool isOpen = m_openTileIndices.find(i) != m_openTileIndices.end();
 
-                    if (ImGui::TreeNodeEx(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                    std::string label = tile.name + " (" + std::to_string(tile.position.x) + ", " + std::to_string(tile.position.y) + ")";
+
+                    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanAvailWidth;
+                    bool isSelected = m_selectedTileIndex && *m_selectedTileIndex == i;
+                    if (isOpen)
+                        nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+                    if (isSelected)
+                        nodeFlags |= ImGuiTreeNodeFlags_Selected;
+
+                    if (isSelected)
+                        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.26f, 0.39f, 0.98f, 0.9f));
+
+                    bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)i, nodeFlags, "%s", label.c_str());
+
+                    // Handle UI clicks to select tile
+                    if (ImGui::IsItemClicked())
                     {
-                        ImGui::DragFloat2("Position", &tile.position.x, 1.0f);
-                        ImGui::DragFloat4("UV", &tile.UV.x, 0.01f);
-
-                        char nameBuffer[128];
-                        memset(nameBuffer, 0, sizeof(nameBuffer));
-                        strncpy(nameBuffer, tile.name.c_str(), sizeof(nameBuffer) - 1);
-
-                        if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
+                        if (!m_selectedTileIndex || *m_selectedTileIndex != i)
                         {
-                            tile.name = std::string(nameBuffer);
+                            m_selectedTileIndex = i;
+                            m_openTileIndices.insert(i);
+                            m_scrollToSelectedTileNextFrame = true;  // Set scroll flag on UI selection
                         }
+                    }
 
+                    if (isSelected)
+                    {
+                        if (m_scrollToSelectedTileNextFrame)
+                        {
+                            ImGui::SetScrollHereY(0.25f);
+                            m_scrollToSelectedTileNextFrame = false;  // Reset scroll flag here so it scrolls once
+                        }
+                        ImGui::PopStyleColor();
+                    }
+
+                    if (nodeOpen)
+                    {
+                        ImGui::Indent();
+
+                        ImGui::Text("Position: %.2f, %.2f", tile.position.x, tile.position.y);
                         ImGui::Checkbox("Destructible", &tile.IsDestructible);
-                        ImGui::Checkbox("Is Roof", &tile.IsRoof);
+                        ImGui::Checkbox("Roof", &tile.IsRoof);
 
-                        // Category Combo
-                        const char* categoryOptions[] = { "Undefined", "Buildings", "Terrain", "Roofs", "Vehicles" };
-                        int currentCategory = static_cast<int>(tile.Category);
-                        if (ImGui::Combo("Category", &currentCategory, categoryOptions, IM_ARRAYSIZE(categoryOptions)))
-                            tile.Category = static_cast<eTileCategory>(currentCategory);
+                        static char nameBuffer[256];
+                        strncpy(nameBuffer, tile.name.c_str(), sizeof(nameBuffer));
+                        nameBuffer[sizeof(nameBuffer) - 1] = '\0';
+                        if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
+                            tile.name = std::string(nameBuffer);
 
-                        // Material Combo
-                        const char* materialOptions[] = { "Undefined", "None", "Wood", "Concrete", "Metal", "Glass" };
-                        int currentMaterial = static_cast<int>(tile.Material);
-                        if (ImGui::Combo("Material", &currentMaterial, materialOptions, IM_ARRAYSIZE(materialOptions)))
-                            tile.Material = static_cast<eTileMaterial>(currentMaterial);
+                        static const char* materialOptions[] = { "None", "Wood", "Concrete", "Metal", "Glass" };
+                        int currentMaterialIdx = static_cast<int>(tile.Material);
+                        if (ImGui::Combo("Material", &currentMaterialIdx, materialOptions, IM_ARRAYSIZE(materialOptions)))
+                            tile.Material = static_cast<eTileMaterial>(currentMaterialIdx);
 
                         ImGui::InputScalar("Health", ImGuiDataType_U32, &tile.TileHealth);
 
+                        ImGui::Unindent();
                         ImGui::TreePop();
                     }
+                    else
+                    {
+                        m_openTileIndices.erase(i);
+                    }
                 }
+
+                // Update previous selected tile for next frame
+                m_previousSelected = m_selectedTileIndex;
+
 
                 // Sync the component back (optional depending on ECS design)
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };

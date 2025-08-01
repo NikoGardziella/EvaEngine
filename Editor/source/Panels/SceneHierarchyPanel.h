@@ -2,6 +2,7 @@
 
 #include <Engine/Scene/Entity.h>
 #include "Engine/Core/Core.h"
+#include <optional>
 
 namespace Engine {
 
@@ -20,6 +21,8 @@ namespace Engine {
 		void OnImGuiRender();
 		void DrawComponents(Entity entity);
 
+	
+
 		void SetGizmoType(const int guizmoType) { m_guizmoType = guizmoType; }
 		int GetGuizmoType() const { return m_guizmoType; }
 
@@ -32,6 +35,15 @@ namespace Engine {
 
 		void DestrtoySelectedEntity(Entity entity);
 
+		void SetSelectedTileIndex(size_t index)
+		{
+			m_selectedTileIndex = index;
+			m_openTileIndices.insert(index);
+		}
+		void ClearSelectedTile()
+		{
+			m_selectedTileIndex.reset();
+		}
 	private:
 
 		void DrawEntityNode(Entity entity);
@@ -46,7 +58,12 @@ namespace Engine {
 		int m_guizmoType = -1;
 
 		bool m_itemIsClicked = false;
-	
+		std::unordered_set<size_t> m_openTileIndices;
+		std::optional<size_t> m_selectedTileIndex = std::nullopt;
+		bool m_scrollToSelectedTileNextFrame = false;
+		std::optional<size_t> m_previousSelected = m_selectedTileIndex;
+
+
 
 		// stats
 		int m_entityCount = 0;

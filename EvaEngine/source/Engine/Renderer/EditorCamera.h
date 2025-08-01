@@ -22,7 +22,7 @@ namespace Engine {
         void UpdateView();
 
 
-        void OnUpdate(Timestep timestep, bool controlPressed);
+        void OnUpdate(Timestep timestep);
         void OnMouseZoom(float deltaY);
         void OnEvent(Event& event);
 
@@ -78,7 +78,6 @@ namespace Engine {
         float m_viewportWidth = 1280;
         float m_viewportHeight = 720;
 
-		bool m_controlPressed = false;
         bool m_isPanning = false;
     };
 

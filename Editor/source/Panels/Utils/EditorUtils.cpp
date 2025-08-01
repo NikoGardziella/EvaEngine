@@ -49,7 +49,17 @@ namespace Engine {
         EE_CORE_WARN("No tile found at local position ({}, {}) to delete.", localOffset.x, localOffset.y);
     }
 
-   
+    std::optional<size_t> EditorUtils::FindTileIndexAtPosition(const TileComponent& tileComp, const TransformComponent& transform, const glm::vec2& worldPos)
+    {
+        for (size_t i = 0; i < tileComp.tiles.size(); ++i)
+        {
+            glm::vec2 tileWorldPos = glm::vec2(transform.Translation.x, transform.Translation.y) + tileComp.tiles[i].position;
+            if (tileWorldPos == worldPos)
+                return i;
+        }
+        return std::nullopt;
+    }
+
 
 }
 

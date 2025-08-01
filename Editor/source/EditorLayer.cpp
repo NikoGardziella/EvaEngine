@@ -109,6 +109,7 @@ namespace Engine {
         m_debugPanel.SetEditor(m_editor);
         m_currentScenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName());
         m_editor.get()->GetGameLayer()->SetActiveScene(m_sceneHierarchyPanel.GetEditorScene());
+        m_sceneHierarchyPanel.SetGizmoType(ImGuizmo::OPERATION::TRANSLATE);
 
     }
 
@@ -791,7 +792,7 @@ namespace Engine {
     
 
         m_controlPressed = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
-        m_editorCamera.OnUpdate(timestep, m_controlPressed);
+        m_editorCamera.OnUpdate(timestep);
 
         m_fpsCounter.Update(timestep);
 
@@ -863,8 +864,11 @@ namespace Engine {
 
     void EditorLayer::OnEvent(Engine::Event& event)
     {
-        //m_orthoCameraController.OnEvent(event);
-        m_editorCamera.OnEvent(event);
+
+        if (m_mouseIsInViewPort)
+        {
+            m_editorCamera.OnEvent(event);
+        }
 
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(EE_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
@@ -922,7 +926,7 @@ namespace Engine {
                     EE_CORE_INFO("viewport Clicked ID:  {}", (uint64_t)m_selectedEntity.GetComponent<IDComponent>().ID);
 
                 }
-                
+               
                
                 if (!m_selectedEntity)
                 {
@@ -934,6 +938,17 @@ namespace Engine {
 
                    // m_selectedEntity = EditorUtils::FindTileAtPosition(m_editor.get()->GetGameLayer()->GetActiveGameScene(), snapped);
                     m_sceneHierarchyPanel.SetSelectedEntity(m_selectedEntity);
+                }
+
+                if (m_selectedEntity && m_selectedEntity.HasComponent<TileComponent>())
+                {
+                    TileComponent& tileComp = m_selectedEntity.GetComponent<TileComponent>();
+                    TransformComponent& transformComp = m_selectedEntity.GetComponent<TransformComponent>();
+                    auto indexOpt = EditorUtils::FindTileIndexAtPosition(tileComp, transformComp, snapped);
+                    if (indexOpt)
+                    {
+                        m_sceneHierarchyPanel.SetSelectedTileIndex(*indexOpt);
+                    }
                 }
 
                 if (!m_selectedEntity)
@@ -1014,6 +1029,8 @@ namespace Engine {
             }
             break;
         }
+
+
         //Gizmos
         case Key::Q:
         {
@@ -1069,9 +1086,6 @@ namespace Engine {
 
     void EditorLayer::NewScene()
     {
-        //m_activeScene = std::make_shared<Scene>();
-        //m_activeScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds); // min only for 
-        //m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
         m_currentScenePath = std::filesystem::path();
     }
 
@@ -1097,14 +1111,9 @@ namespace Engine {
             return;
         }
 
-        //m_editorScene = std::make_shared<Scene>();
-        //m_editorScene->OnViewportResize((uint32_t)m_viewportSize.x, (uint32_t)m_viewportSize.y, m_viewportBounds);
-       // m_sceneHierarchyPanel.SetEditorContext(m_editorScene);
-
         SceneSerializer serializer(m_sceneHierarchyPanel.GetEditorScene());
         serializer.Deserialize(path.string());
 
-        //m_activeScene = m_editorScene;
         m_currentScenePath = path;
     }
 
@@ -1144,6 +1153,7 @@ namespace Engine {
     }
 
 
-  
+    
+
 
 }
