@@ -1451,7 +1451,8 @@ namespace Engine {
             destroyedTileMaskInfo.buffer = m_blockedTileMaskBuffer;
             destroyedTileMaskInfo.offset = 0;
 
-            const int tilesPerMask = CHUNK_SIZE * CHUNK_SIZE * CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH;
+            uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
+            uint32_t tilesPerMask = tilesPerRow * tilesPerRow;
             destroyedTileMaskInfo.range = sizeof(uint32_t) * tilesPerMask;
 
             std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
@@ -1516,13 +1517,15 @@ namespace Engine {
         vkBindBufferMemory(m_device, m_GPUCollisionresultBufferBuffer, m_GPUCollisionresultBufferMemory, 0);
 
     }
+
     void VulkanGraphicsPipeline::CreateBlockedTileMaskBuffer()
     {
         VkDevice device = m_device;
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 
-        const int tilesPerMask = CHUNK_SIZE * CHUNK_SIZE * CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH;
+        uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
+        uint32_t tilesPerMask = tilesPerRow * tilesPerRow;
         bufferInfo.size = sizeof(uint32_t) * tilesPerMask;
         bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;

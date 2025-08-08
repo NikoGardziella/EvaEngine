@@ -92,7 +92,7 @@ constexpr size_t TILE_SIZE = 1;
 constexpr size_t CHUNK_SIZE = 32; // Tiles in a chunk
 
 // GRID
-constexpr size_t GRID_SUBDIVISIONS = 1;
+constexpr size_t GRID_SUBDIVISIONS = 4;
 
 
 namespace Engine {

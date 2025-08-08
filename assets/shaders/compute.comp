@@ -4,6 +4,7 @@
 #define MAX_TEXTURES 32
 #define MAX_COLLISION_ENTITIES 64
 #define CHUNK_SIZE 32
+#define SUBTILES_PER_TILE 4
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
@@ -91,22 +92,29 @@ void main() {
 
     if (health > 0u)
     {
-
         vec2 worldPixelPos = vec2(pc.TextureOrigin) * float(pc.TileSize) + vec2(pixelCoord);
 
         vec2 tileWorldPos = worldPixelPos / float(pc.TileSize);
         ivec2 globalTileCoord = ivec2(floor(tileWorldPos));
 
-        ivec2 relativeTileCoord = globalTileCoord - pc.MinTileCoords;
+        vec2 tileOriginWorld = vec2(globalTileCoord) * float(pc.TileSize);
+        vec2 localInTile = worldPixelPos - tileOriginWorld;
+
+        ivec2 subtileCoord = ivec2(floor(localInTile / (float(pc.TileSize) / float(SUBTILES_PER_TILE))));
+
+        ivec2 globalSubtileCoord = globalTileCoord * SUBTILES_PER_TILE + subtileCoord;
+
+        ivec2 relativeSubtileCoord = globalSubtileCoord - pc.MinTileCoords * SUBTILES_PER_TILE;
 
         // 3 means LOAD_RADIOUS in TextureStreaming is 1
         // which is 3x3 chunks around the player.
-        const uint tilesPerRow = CHUNK_SIZE * 3; 
-        uint tileIndex = uint(relativeTileCoord.y) * tilesPerRow + uint(relativeTileCoord.x);
+        const uint subtilesPerRow = CHUNK_SIZE * 3 * SUBTILES_PER_TILE;
+        uint subtileIndex = uint(relativeSubtileCoord.y) * subtilesPerRow + uint(relativeSubtileCoord.x);
 
-        // Mark this tile as blocked atomically in the buffer
-        atomicExchange(blockedMask[tileIndex], 1);
+        // Mark this subtile as blocked
+        atomicExchange(blockedMask[subtileIndex], 1);
     }
+
 
 
     for (uint i = 0; i < pc.NumProjectiles; ++i)

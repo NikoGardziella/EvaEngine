@@ -163,6 +163,7 @@ namespace Engine
         return true;
     }
 
+
     void GridMap::UpdateTiles(const glm::ivec2& minOrigin)
     {
         EE_PROFILE_FUNCTION();
@@ -170,32 +171,28 @@ namespace Engine
         m_blockedTiles.clear();
 
         const auto& mask = TileBlockedMaskCPU::CachedGPUMask;
-        const uint32_t chunkSize = CHUNK_SIZE;
-        const uint32_t tilesPerRow = chunkSize * 3; // 3x3 grid
-
-        auto safe_mod = [](int a, int b) {
-            int r = a % b;
-            return r < 0 ? r + b : r;
-            };
+        const uint32_t tilesPerRow = CHUNK_SIZE * 3; // 3x3 grid
+        const uint32_t subtilesPerTile = GRID_SUBDIVISIONS;
+        const uint32_t subtilesPerRow = tilesPerRow * subtilesPerTile;
 
         for (uint32_t index = 0; index < mask.size(); ++index)
         {
             if (mask[index] != 1)
                 continue;
 
-            glm::ivec2 tileOffsetIn3x3 = {
-                index % (CHUNK_SIZE * 3),
-                index / (CHUNK_SIZE * 3)
+            // Convert flat index to (subtileX, subtileY) in 3x3 region
+            glm::ivec2 subtileOffsetIn3x3 = {
+                index % subtilesPerRow,
+                index / subtilesPerRow
             };
 
-            glm::ivec2 worldTilePos = minOrigin * (int)CHUNK_SIZE + tileOffsetIn3x3;
-
-            glm::ivec2 globalSubtilePos = worldTilePos * (int)GRID_SUBDIVISIONS;
-
+            // Convert to global subtile coordinates
+            glm::ivec2 globalSubtilePos = (minOrigin * (int)CHUNK_SIZE * (int)subtilesPerTile) + subtileOffsetIn3x3;
+           // EE_CORE_INFO("Blocked subtile: {}, {}", globalSubtilePos.x, globalSubtilePos.y);
             m_blockedTiles.insert(globalSubtilePos);
         }
-
     }
+
 
 
 

@@ -148,3 +148,15 @@
 
     
 }
+8.08.2025
+{
+   fix adding a tile to assets and messing UVs
+   sub grid tile ( + try using % of pixels destroyed would destroy the whole tile)
+   path finding?
+
+   fix delete stuff
+   fix play stop add tiles?
+   fix add projectile radius. radious of 1 and then add explosion radius or something
+
+    
+}

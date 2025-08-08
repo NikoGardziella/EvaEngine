@@ -518,13 +518,18 @@ namespace Engine {
 
 
 		{
-			uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH;
+			uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
 			uint32_t totalTiles = tilesPerRow * tilesPerRow;
 			Engine::TileBlockedMaskCPU::CachedGPUMask.resize(totalTiles);
 			std::vector<uint32_t> gpuBlockedTileMask(totalTiles);
 			ReadBlockedTileMask(gpuBlockedTileMask, totalTiles);
 
+			//EE_CORE_INFO("totalTiles {}", totalTiles);
+			//EE_CORE_INFO("gpuBlockedTileMask {}", gpuBlockedTileMask.size());
+
+		
 			Engine::TileBlockedMaskCPU::CachedGPUMask = std::move(gpuBlockedTileMask);
+
 		}
 
 
@@ -729,8 +734,8 @@ namespace Engine {
 		if (!m_CPUCollisionsHandeled)
 			return;
 
-
-		uint32_t tilesPerRow = CHUNK_SIZE * 3;
+		// only reset when needed?
+		uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
 		uint32_t totalTiles = tilesPerRow * tilesPerRow;
 		void* data;
 		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory(), 0, totalTiles * sizeof(uint32_t), 0, &data);
