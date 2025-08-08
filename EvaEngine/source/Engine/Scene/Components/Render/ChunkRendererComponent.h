@@ -11,7 +11,6 @@ namespace Engine {
         Ref<VulkanTexture> Texture;
         Ref<VulkanTexture> HealthTexture;
         glm::ivec2 ChunkCoords;
-        float ChunkSize;
         bool IsLoaded;
 	};
 }

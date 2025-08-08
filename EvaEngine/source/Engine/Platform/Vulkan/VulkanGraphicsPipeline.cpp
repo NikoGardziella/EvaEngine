@@ -12,6 +12,7 @@
 #include <Engine/Renderer/Renderer.h>
 #include "VulkanUtils.h"
 #include "VulkanTexture.h"
+#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 
 
 
@@ -77,6 +78,7 @@ namespace Engine {
        
         CreatePresentSampler();
         CreateGPUCollisionResultBuffer();
+        CreateBlockedTileMaskBuffer();
         CreateDescriptorSetLayouts();
         CreateProjectileDescriptorSetLayout();
         CreateCameraDescriptorSetLayout();
@@ -924,7 +926,7 @@ namespace Engine {
 
     void VulkanGraphicsPipeline::CreateComputeArrayDescriptorSetLayout()
     {
-        std::array<VkDescriptorSetLayoutBinding, 4> bindings{};
+        std::array<VkDescriptorSetLayoutBinding, 5> bindings{};
 
         // Binding 0: input textures
         bindings[0].binding = 0;
@@ -953,7 +955,13 @@ namespace Engine {
         bindings[3].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         bindings[3].pImmutableSamplers = nullptr;
 
-        
+        // destroyed tiles mask
+        bindings[4].binding = 4;
+        bindings[4].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bindings[4].descriptorCount = 1;
+        bindings[4].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        bindings[4].pImmutableSamplers = nullptr;
+
 
 
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -1438,7 +1446,15 @@ namespace Engine {
             bulletBufferInfo.offset = 0;
             bulletBufferInfo.range = sizeof(CollisionEntitiesGPU) * MAX_COLLISION_ENTITIES;
 
-            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+            uint32_t chunkcount = 2;// check this. Is it LOAD_RADIUS from textureSsytem
+            VkDescriptorBufferInfo destroyedTileMaskInfo{};
+            destroyedTileMaskInfo.buffer = m_blockedTileMaskBuffer;
+            destroyedTileMaskInfo.offset = 0;
+
+            const int tilesPerMask = CHUNK_SIZE * CHUNK_SIZE * CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH;
+            destroyedTileMaskInfo.range = sizeof(uint32_t) * tilesPerMask;
+
+            std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
             // dstBinding = 0 u_InputTexture and 1 u_OutputTexture
             // are updated every frame so no need to do it here
@@ -1458,6 +1474,15 @@ namespace Engine {
             descriptorWrites[1].descriptorCount = 1;
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
             descriptorWrites[1].pBufferInfo = &bulletBufferInfo;
+
+            descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[2].dstSet = m_computeDescriptorSet[i];
+            descriptorWrites[2].dstBinding = 4;
+            descriptorWrites[2].descriptorCount = 1;
+            descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            descriptorWrites[2].pBufferInfo = &destroyedTileMaskInfo;
+
+
 
             vkUpdateDescriptorSets(m_device,
                 static_cast<uint32_t>(descriptorWrites.size()),
@@ -1491,6 +1516,38 @@ namespace Engine {
         vkBindBufferMemory(m_device, m_GPUCollisionresultBufferBuffer, m_GPUCollisionresultBufferMemory, 0);
 
     }
+    void VulkanGraphicsPipeline::CreateBlockedTileMaskBuffer()
+    {
+        VkDevice device = m_device;
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+
+        const int tilesPerMask = CHUNK_SIZE * CHUNK_SIZE * CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH;
+        bufferInfo.size = sizeof(uint32_t) * tilesPerMask;
+        bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        if (vkCreateBuffer(device, &bufferInfo, nullptr, &m_blockedTileMaskBuffer) != VK_SUCCESS)
+            throw std::runtime_error("Failed to create destroyed tile mask buffer");
+
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(device, m_blockedTileMaskBuffer, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = VulkanContext::Get()->FindMemoryType(
+            memRequirements.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        );
+
+        if (vkAllocateMemory(device, &allocInfo, nullptr, &m_blockedTileMaskMemory) != VK_SUCCESS)
+            throw std::runtime_error("Failed to allocate destroyed tile mask memory");
+
+        vkBindBufferMemory(device, m_blockedTileMaskBuffer, m_blockedTileMaskMemory, 0);
+    }
+
+
 
     void VulkanGraphicsPipeline::UpdateCameraUBODescriptorSets()
     {

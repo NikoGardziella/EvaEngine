@@ -1646,6 +1646,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
     <ClInclude Include="source\Engine\Map\Utils\PixelUtils.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\TileSerializer.h" />
+    <ClInclude Include="source\Engine\Map\Grid\TileCollisionMask.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1849,6 +1850,7 @@
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp" />
     <ClCompile Include="source\Engine\AssetManager\Utils\TileSerializer.cpp" />
+    <ClCompile Include="source\Engine\Map\Grid\TileCollisionMask.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">

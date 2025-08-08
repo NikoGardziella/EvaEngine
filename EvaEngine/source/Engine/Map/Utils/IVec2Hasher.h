@@ -16,4 +16,11 @@ namespace Engine {
         }
     };
 
+    struct IVec2Equal
+    {
+        bool operator()(const glm::ivec2& lhs, const glm::ivec2& rhs) const noexcept
+        {
+            return lhs.x == rhs.x && lhs.y == rhs.y;
+        }
+    };
 }

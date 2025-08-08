@@ -86,12 +86,13 @@
 constexpr size_t MAX_TEXTURES = 32;
 constexpr size_t MAX_PROJECTILES = 32;
 constexpr size_t MAX_COLLISION_ENTITIES = 32; // projectiles and player
-constexpr size_t MAX_COLLISION_RESULTS = 64; // projectiles and player
+constexpr size_t MAX_COLLISION_RESULTS = 64; 
 constexpr size_t PIXELS_IN_TILE = 128;
 constexpr size_t TILE_SIZE = 1;
+constexpr size_t CHUNK_SIZE = 32; // Tiles in a chunk
 
 // GRID
-constexpr size_t GRID_SUBDIVISIONS = 4;
+constexpr size_t GRID_SUBDIVISIONS = 1;
 
 
 namespace Engine {

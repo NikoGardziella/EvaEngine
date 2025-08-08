@@ -33,19 +33,21 @@ void VehicleCollisionSystem::UpdateVehicleCollision(entt::registry& registry, fl
             float pushbackStrength = 0.8f;
             float velocityNudge = 0.3f;
 
-            if (healthRatio < 0.01f)
+            if (healthRatio < 0.10f)
             {
+                float slowFactor = glm::mix(0.9f, 0.5f, healthRatio); // mix(minSlow, maxSlow, ratio)
+
                 // Low health: allow push through, small pushback, mild slow
                 //ApplyPush(vehicleTransform, vehicle, collision.HitPosition, pushbackStrength * 0.3f, velocityNudge * 0.5f);
-                vehicle.CurrentSpeed *= 0.8f;
-                EE_INFO("low health, healthRatio {}", healthRatio);
+                vehicle.CurrentSpeed *= slowFactor;
+                //EE_INFO("low health, healthRatio {}", healthRatio);
             }
             else
             {
                 // High health: strong pushback, big slow
                 ApplyPush(vehicleTransform, vehicle, collision.HitPosition, pushbackStrength, velocityNudge);
                 vehicle.CurrentSpeed *= 0.3f;
-                EE_INFO("high health, healthRatio {}", healthRatio);
+                //EE_INFO("high health, healthRatio {}", healthRatio);
             }
 
             break;

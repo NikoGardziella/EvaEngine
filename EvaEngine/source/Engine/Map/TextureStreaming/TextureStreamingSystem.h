@@ -9,15 +9,14 @@
 
 namespace Engine{
 
-    const uint32_t CHUNK_SIZE = 32;
-    const int LOAD_RADIUS = 2; // Load a 3×3 chunk area (1 chunks in all directions)
-    const int UNLOAD_RADIUS = 2; 
+    const int LOAD_RADIUS = 1; // Load a 3×3 chunk area (1 chunks in all directions)
+    const int UNLOAD_RADIUS = 1; 
+    const int CHUNK_GRID_WIDTH = LOAD_RADIUS * 2 + 1;
 
     struct TextureChunk {
         UUID ID;
 		std::string Name;
 		std::string AssetName;
-        glm::ivec2 WorldPosition;
         glm::ivec2 ChunkCoords; 
         std::vector<uint8_t> PixelData; 
         std::vector<uint8_t> HealthData;

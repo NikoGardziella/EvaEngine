@@ -1,5 +1,8 @@
 #include "pch.h"
 #include "GridMap.h"
+#include "TileCollisionMask.h"
+
+
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <Engine/Scene/Component.h>
 #include <Engine/Renderer/VulkanRenderer2D.h>
@@ -7,13 +10,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <Engine/Map/Utils/IVec2Hasher.h>
 #include <unordered_set>
+#include <Engine/Platform/Vulkan/VulkanTexture.h>
+
 
 namespace Engine
 {
 	void GridMap::BuildFromRegistry(entt::registry& registry)
 	{
         EE_PROFILE_FUNCTION();
-		m_blockedTiles.clear();
+		//m_blockedTiles.clear();
 
 		auto view = registry.view<TileComponent, TransformComponent>();
 		for (auto entity : view)
@@ -28,10 +33,13 @@ namespace Engine
 
 				glm::ivec2 worldTilePos = MapUtils::GetWorldTileCoords(tile.position, transform.Translation);
 				
-				m_blockedTiles.insert(worldTilePos);
+				//m_blockedTiles.insert(worldTilePos);
 			}
-		}
+		
+        }
 	}
+
+
     void GridMap::MarkBlockedSubtilesFromTexture(
         const glm::vec2& worldPosition, // tile position in world units (e.g., (5, 10))
         const std::vector<uint8_t>& textureData,
@@ -55,7 +63,7 @@ namespace Engine
                 // Convert to subtile grid coordinate (integers)
                 glm::ivec2 subtileGridCoord = glm::floor(subtileWorldPos * float(GRID_SUBDIVISIONS));
 
-                m_blockedTiles.insert(subtileGridCoord);
+              //  m_blockedTiles.insert(subtileGridCoord);
             }
         }
     }
@@ -67,13 +75,15 @@ namespace Engine
 	bool GridMap::IsBlocked(glm::ivec2 worldTileCoords) const
 	{
         EE_PROFILE_FUNCTION();
-		return m_blockedTiles.find(worldTileCoords) != m_blockedTiles.end();
+		//return m_blockedTiles.find(worldTileCoords) != m_blockedTiles.end();
+        return false;
 	}
 
 	void GridMap::Clear()
 	{
-		m_blockedTiles.clear();
+		//m_blockedTiles.clear();
 	}
+
 
     bool GridMap::HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw)
     {
@@ -102,7 +112,7 @@ namespace Engine
         {
             glm::ivec2 subtileCoord = { x0, y0 };
 
-            if (!isFirstTile && m_blockedTiles.find(subtileCoord) != m_blockedTiles.end())
+           if (!isFirstTile && m_blockedTiles.find(subtileCoord) != m_blockedTiles.end())
             {
                 if (debugDraw)
                 {
@@ -153,9 +163,48 @@ namespace Engine
         return true;
     }
 
+    void GridMap::UpdateTiles(const glm::ivec2& minOrigin)
+    {
+        EE_PROFILE_FUNCTION();
+
+        m_blockedTiles.clear();
+
+        const auto& mask = TileBlockedMaskCPU::CachedGPUMask;
+        const uint32_t chunkSize = CHUNK_SIZE;
+        const uint32_t tilesPerRow = chunkSize * 3; // 3x3 grid
+
+        auto safe_mod = [](int a, int b) {
+            int r = a % b;
+            return r < 0 ? r + b : r;
+            };
+
+        for (uint32_t index = 0; index < mask.size(); ++index)
+        {
+            if (mask[index] != 1)
+                continue;
+
+            glm::ivec2 tileOffsetIn3x3 = {
+                index % (CHUNK_SIZE * 3),
+                index / (CHUNK_SIZE * 3)
+            };
+
+            glm::ivec2 worldTilePos = minOrigin * (int)CHUNK_SIZE + tileOffsetIn3x3;
+
+            glm::ivec2 globalSubtilePos = worldTilePos * (int)GRID_SUBDIVISIONS;
+
+            m_blockedTiles.insert(globalSubtilePos);
+        }
+
+    }
 
 
 
+   int GridMap::floorDiv(int value, int divisor) {
+    int result = value / divisor;
+    if ((value < 0) && (value % divisor != 0))
+        result--;
+    return result;
+}
 
 
 	void GridMap::DrawDebugLine(glm::vec2 from, glm::vec2 to, const glm::vec4& color)
@@ -169,15 +218,17 @@ namespace Engine
     void GridMap::DrawDebugBlockedTiles() const
     {
         EE_PROFILE_FUNCTION();
-        constexpr float tileSize = static_cast<float>(TILE_SIZE);  
-        constexpr float subtileSize = tileSize / float(GRID_SUBDIVISIONS); 
 
-        glm::vec4 debugColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.3f); // Semi-transparent red
+        constexpr float tileSize = static_cast<float>(TILE_SIZE);
+        constexpr float subtileSize = tileSize / float(GRID_SUBDIVISIONS);
 
-        for (const glm::ivec2& subtilePos : m_blockedTiles)
+        glm::vec4 debugColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.3f);
+
+        // Iterate directly over all blocked subtile positions
+        for (const glm::ivec2& worldSubtilePos : m_blockedTiles)
         {
-            // Calculate center position of subtile in world units
-            glm::vec2 worldPos = glm::vec2(subtilePos) * subtileSize + glm::vec2(subtileSize * 0.5f);
+            // Convert subtile coordinates to world position
+            glm::vec2 worldPos = glm::vec2(worldSubtilePos) * subtileSize + glm::vec2(subtileSize * 0.5f);
 
             glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos, 0.0f)) *
                 glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize, subtileSize, 1.0f));
@@ -185,6 +236,13 @@ namespace Engine
             Engine::VulkanRenderer2D::DrawLineRect(model, debugColor, -1.0f);
         }
     }
+
+
+
+
+
+
+
 
 
 }

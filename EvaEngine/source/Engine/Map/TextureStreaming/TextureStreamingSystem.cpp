@@ -36,46 +36,22 @@ namespace Engine {
         {
             return;
         }
-
-        // --- Load nearby chunks ---
         for (auto& [id, chunk] : m_chunkMap)
         {
-            if (chunk.IsLoaded)
-                continue;
-           
-            //if (!chunk.IsDirty)
-            //   continue;
-
             glm::ivec2 chunkCoords = chunk.ChunkCoords;
-            int dist = glm::abs(chunkCoords.x - playerChunk.x) + glm::abs(chunkCoords.y - playerChunk.y);
-            if (dist <= LOAD_RADIUS)
+            int dist = std::max(glm::abs(chunkCoords.x - playerChunk.x), glm::abs(chunkCoords.y - playerChunk.y));
+
+            if (dist <= LOAD_RADIUS && !chunk.IsLoaded)
             {
-                EE_CORE_INFO("Chunks currently being loaded:");
-                EE_CORE_INFO(" - Chunk at coords: ({}, {})", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
                 LoadChunkToGPU(chunk, gameRegistry);
-
-				EE_CORE_INFO("chunk count: {}", m_chunkMap.size());
             }
-        }
-
-        // --- Unload far-away chunks ---
-        for (auto& [id, chunk] : m_chunkMap)
-        {
-            if (!chunk.IsLoaded)
-                continue;
-
-            //EE_CORE_INFO("Chunks currently loaded:");
-            //EE_CORE_INFO(" - Chunk at coords: ({}, {})", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
-
-            glm::ivec2 chunkCoords = chunk.ChunkCoords;
-            int dist = glm::abs(chunkCoords.x - playerChunk.x) + glm::abs(chunkCoords.y - playerChunk.y);
-
-            if (dist > UNLOAD_RADIUS)
+            else if (dist > UNLOAD_RADIUS && chunk.IsLoaded)
             {
                 UnloadChunkFromGPU(chunk, gameRegistry);
             }
         }
     }
+
     void TextureStreamingSystem::UploadToChunkFromTexture(
         const glm::vec2& worldPosition, UUID ID, std::string name,
         const std::vector<uint8_t>& textureData,           // RGBA
@@ -219,11 +195,16 @@ namespace Engine {
         {
             chunk.HealthTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8_UINT);
 
+            /*
+            EE_CORE_WARN("REMOVE THIS?");
+            chunk.HealthTexture->SetPixelData(chunk.HealthData);
+            */
             VulkanUtils::TransitionImageLayout(chunk.HealthTexture->GetImage(), VK_FORMAT_R8_UINT,
                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             chunk.HealthTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
             chunk.HealthTexture->SetData(chunk.HealthData.data(), chunk.Height * chunk.Width);
+            // *****************************
         }
 
         chunk.GPUTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UNORM);
@@ -236,16 +217,7 @@ namespace Engine {
 
 
 
-        int count = 0;
-        for (size_t i = 0; i < chunk.HealthData.size(); i++)
-        {
-            if (chunk.HealthData[i] != 0)
-            {
-                count++;
-            }
-        }
-        EE_CORE_INFO("health count {}", count);
-       
+      
 
         auto entityView = gameRegistry.view<IDComponent, SpriteRendererComponent>();
 
@@ -310,6 +282,12 @@ namespace Engine {
             auto [IDComp, chunkRendComp] = chynkentityView.get<IDComponent, ChunkRendererComponent>(entity);
             if (IDComp.ID == chunk.ID)
             {
+
+                // This Texture is still in s_VulkanData.TextureSlotIndex 
+                // which means it would be rendered inside REcordCommands()
+                // this will prevent it. Feels a bit crappy fix but lets see.
+                chunkRendComp.Texture->SetCheckCollision(false);
+
                 chunkRendComp.Texture = nullptr;
                 chunkRendComp.HealthTexture = nullptr;
                 chunkRendComp.IsLoaded = false;
@@ -449,15 +427,11 @@ namespace Engine {
                     continue;
 
                
-                uint8_t health = 1; //MaterialDatabase::GetMaterial(tile.MaterialName); // e.g., Wood = 1, Steel = 2
-                uint8_t durability = 1; //MaterialDatabase::GetDurability(mat);
-
-              
 
                 if (tile.IsDestructible)
                 {
-                    m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
-                        width, height);
+                  //  m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
+                   //     width, height);
 
 
                     UploadToChunkFromTexture(worldTilePos, tcomp.TileID,tile.name,pixelData, 
@@ -483,11 +457,9 @@ namespace Engine {
             auto entity = registry.create();
             auto& chunkRenderer = registry.emplace<ChunkRendererComponent>(entity);
             TransformComponent& transformComp = registry.emplace<TransformComponent>(entity);
-            transformComp.Translation.x = chunk.WorldPosition.x;
-            transformComp.Translation.y = chunk.WorldPosition.y;
-
+            
 			EE_CORE_INFO("Creating chunk entity at position: ({}, {})",
-				transformComp.Translation.x, transformComp.Translation.y);
+                chunk.ChunkCoords.x, chunk.ChunkCoords.y);
 
             IDComponent id;
             id.ID = HashCoords(chunk.ChunkCoords);
@@ -497,7 +469,6 @@ namespace Engine {
 
             chunkRenderer.Texture = chunk.GPUTexture;
             chunkRenderer.ChunkCoords = chunk.ChunkCoords;
-            chunkRenderer.ChunkSize = CHUNK_SIZE;
 			chunkRenderer.IsLoaded = false;
             //FlipChunkHorizontally(chunk);
            // FlipChunkVertically(chunk);

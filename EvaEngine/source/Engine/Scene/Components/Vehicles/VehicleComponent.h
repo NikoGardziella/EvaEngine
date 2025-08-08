@@ -15,13 +15,13 @@
         Engine::Entity Driver = Engine::Entity{};
         glm::vec2 Velocity = glm::vec2(0.0f);
 
-        float MaxSpeed = 10.0f;
+        float MaxSpeed = 15.0f;
         float Power = 2000.0f;
         float Mass = 400.0f;
 
         float CurrentSpeed = 0.0f;
         float Acceleration = 30.0f;
-        float Deceleration = 500.0f;
+        float Deceleration = 50.0f;
 
 
         float ExitEnterCooldown = 0.5f;

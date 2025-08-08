@@ -109,7 +109,10 @@ namespace Engine {
 		float PixelSize;           // 4 bytes
 		uint32_t textureIndex;     // 4 bytes
 		uint32_t NumProjectiles;
-		uint32_t mode; // 0 = Detect, 1 = Destroy
+		uint32_t mode; // 0 = Detect, 1 = Destroy, 2 = Tilemask
+		uint32_t ChunkSize; // in pixels
+		uint32_t TileSize; // in pixels
+		glm::ivec2 MinTileCoords;
 	
 	};
 
@@ -141,6 +144,7 @@ namespace Engine {
 		void BindBatchState(VkCommandBuffer cmd, uint32_t currentFrame);
 		void SubmitFrame(uint32_t currentFrame);
 		void CalculateCollisionFrame(uint32_t currentFrame);
+		void ReadBlockedTileMask(std::vector<uint32_t>& outDestroyedMask, uint32_t count);
 		void DeviceWaitIdle();
 
 		static void StartBatch();

@@ -496,11 +496,13 @@ namespace Engine {
             //Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
             Engine::VulkanRenderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
 
+            glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 
             //*********** GPU COLLISIONS & RENDER ***********
             {
                 {
                     EE_PROFILE_SCOPE("chunk render");
+                    glm::ivec2 minOrigin = glm::ivec2(std::numeric_limits<int>::max());
 
                     entt::basic_view view = m_registry.view<ChunkRendererComponent, TransformComponent>();
                     glm::vec4 cameraBounds = mainCameraComp.Camera.CalculateCameraWorldBounds(mainCameraComp.Camera, cameraTransform);
@@ -533,10 +535,20 @@ namespace Engine {
                             chunkComp.Texture->SetTextureOrigin(textureOrigin);
                             chunkComp.Texture->SetPixelSize(pixelSize);
 
+                            minOrigin.x = std::min(minOrigin.x, chunkComp.ChunkCoords.x);
+                            minOrigin.y = std::min(minOrigin.y, chunkComp.ChunkCoords.y);
+
+                            //EE_CORE_INFO("minOrigin {}, {}", minOrigin.x, minOrigin.y);
                             Engine::VulkanRenderer2D::DrawTextureQuadWithHealth(model, chunkComp.Texture, chunkComp.HealthTexture);
+
+                            
                         }
                     }
+                    //glm::ivec2 chunkMinOrigin = glm::floor(glm::vec2(minOrigin) / float(CHUNK_SIZE));
+                    //glm::ivec2 tileMinOrigin = chunkMinOrigin * int(CHUNK_SIZE);
+                    m_gridMap->UpdateTiles(minOrigin);
                 }
+
 
                 {
                     EE_PROFILE_SCOPE("roof render");
@@ -726,7 +738,6 @@ namespace Engine {
                     auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent, SpriteRendererComponent>();
 
                     float playerRadius = 0.5f;
-                    float bulletRadius = 0.05f;
                     for (auto projectileEntity : projectileView)
                     {
 
@@ -734,10 +745,8 @@ namespace Engine {
                         glm::vec2 projectilePos;
                         projectilePos.x = projectileTransform.Translation.x;
                         projectilePos.y = projectileTransform.Translation.y;
-
-                      //  projectileTransform.Translation.z = 0.1f;
      
-                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, bulletRadius, IDComp.ID, eCollisionType::PROJECTILE, projectile.Damage);
+                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.Radius, IDComp.ID, eCollisionType::PROJECTILE, projectile.Damage);
                         Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
 
                     }
@@ -776,36 +785,7 @@ namespace Engine {
                     //Engine::VulkanRenderer2D::DrawQuad(transform.GetTransform(), quadSprite.Color);
                 }
 
-                std::vector<int> instanceTextureIDs;
-                /*
-                size_t maxInstances = 600;
-                std::vector<glm::mat4> instanceTransforms;
-                instanceTransforms.reserve(maxInstances);
-
-                std::vector<glm::vec4> instanceColors;
-                instanceColors.reserve(maxInstances);
-                
-                // Iterate through each entity in the view
-                auto view = m_registry.view<const TransformComponent, SpriteRendererComponent>();
-                view.each([&](const TransformComponent &transform, const SpriteRendererComponent &sprite)
-                    {
-                        instanceTransforms.push_back(transform.GetTransform());
-                        instanceColors.push_back(sprite.Color);
-                    });
-
-                if (instanceTransforms.size() > maxInstances)
-                {
-                    // increase masxInstances
-                    EE_CORE_INFO(" Max instance count reached: {0}", instanceTransforms.size());
-                }
-                */
-
-                //if (!instanceTransforms.empty())
-                {
-                    // Pass all collected instance data in one call
-                   // Renderer2D::DrawQuadInstanced(m_renderSOA.InstanceTransforms, m_renderSOA.Color, instanceTextureIDs);
-                }
-
+               
             }
 
             

@@ -14,6 +14,7 @@
 
 namespace Engine {
 
+    
 
     struct CollisionResult
     {
@@ -167,6 +168,9 @@ namespace Engine {
 
         VkBuffer GetGPUCollisionBuffer() const { return m_GPUCollisionresultBufferBuffer; }
         VkDeviceMemory GetGPUCollisionMemory() const { return m_GPUCollisionresultBufferMemory; }
+        
+        VkBuffer GetBlockedTileMaskBuffer() const { return m_blockedTileMaskBuffer; }
+        VkDeviceMemory GetBlockedTileMaskMemory() const { return m_blockedTileMaskMemory;  }
 
 
        // StorageImage GetOutputImage() { return m_outputTextureImage; }
@@ -180,7 +184,6 @@ namespace Engine {
         void CreateProjectileGraphicsPipeline(VkRenderPass renderPass);
         void CreatePresentPipelineLayout();
         void CreateDescriptorSetLayouts();
-        void CreateComputeDescriptorSetLayout();
         void CreateComputeArrayDescriptorSetLayout();
         void CreateProjectileDescriptorSetLayout();
         void CreatePresentGameDescriptorPool();
@@ -193,6 +196,7 @@ namespace Engine {
         void CreateCameraDescriptorSet();
         void CreateComputeDescriptorSet();
         void CreateGPUCollisionResultBuffer();
+        void CreateBlockedTileMaskBuffer();
         StorageImage CreateStorageImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkFormat format, VkCommandPool commandPool, VkQueue graphicsQueue);
 
     private:
@@ -255,6 +259,12 @@ namespace Engine {
 
         VkBuffer m_GPUCollisionresultBufferBuffer;
         VkDeviceMemory  m_GPUCollisionresultBufferMemory;
+
+       
+        VkBuffer m_blockedTileMaskBuffer;
+        VkDeviceMemory  m_blockedTileMaskMemory;
+
+
 
         VkBuffer m_healthBuffer;
         VkDeviceMemory m_healthBufferMemory;

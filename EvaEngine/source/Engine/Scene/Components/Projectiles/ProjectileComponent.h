@@ -8,6 +8,7 @@ struct ProjectileComponent
     glm::vec2 Velocity;   // units per second
     float      LifeTime;   // range
     float      Damage = 10.0f;
+    float      Radius = 1.0f;
     Engine::Entity   Owner;
 
     ProjectileComponent() = default;

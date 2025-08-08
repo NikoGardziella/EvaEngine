@@ -28,7 +28,7 @@ void VehicleSystem::UpdateVehicleSystem(entt::registry& registry, float deltaTim
         else
         {
             // Decelerate when no input
-            float deceleration = vehicle.Deceleration / vehicle.Mass;
+            float deceleration = vehicle.Deceleration / vehicle.Mass * 100.0f; // arbitrary multiplier
             if (vehicle.CurrentSpeed > 0.0f)
             {
                 vehicle.CurrentSpeed -= deceleration * deltaTime;
@@ -57,7 +57,7 @@ void VehicleSystem::UpdateVehicleSystem(entt::registry& registry, float deltaTim
         }
         else
         {
-            vehicle.Pushback = glm::vec2(0.0f); // zero out when very small
+            vehicle.Pushback = glm::vec2(0.0f);
         }
 
         // === Movement and Steering ===
@@ -67,9 +67,9 @@ void VehicleSystem::UpdateVehicleSystem(entt::registry& registry, float deltaTim
 
         transform.Translation += glm::vec3(movement, 0.0f);
 
-        if (vehicle.CurrentSpeed != 0.0f)
+        if (vehicle.CurrentSpeed > 0.9f || vehicle.CurrentSpeed < -0.9f)
         {
-            float steering = -vehicle.Velocity.x * 3.0f; // arbitrary factor
+            float steering = -vehicle.Velocity.x * 2.0f; // arbitrary factor
             transform.Rotation.z += steering * deltaTime;
         }
 

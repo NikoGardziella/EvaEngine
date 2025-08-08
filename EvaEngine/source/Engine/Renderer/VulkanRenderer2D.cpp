@@ -9,6 +9,11 @@
 
 #include "Renderer.h"
 #include <backends/imgui_impl_vulkan.h>
+#include <Engine/Map/Grid/TileCollisionMask.h>
+#include <algorithm>
+#include <Engine/Core/Core.h>
+#include <utility>
+#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 
 
 namespace Engine {
@@ -242,7 +247,7 @@ namespace Engine {
 		
 			
 		}
-		
+
 	}
 
 	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
@@ -442,7 +447,7 @@ namespace Engine {
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
-		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame); // only compute dispatch
+		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame); 
 
 		
 		vkEndCommandBuffer(cmd);
@@ -461,6 +466,8 @@ namespace Engine {
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
+
+		// move this to own method
 		// Read back collision results
 		CollisionResultBuffer result = {};
 
@@ -509,7 +516,30 @@ namespace Engine {
 			vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
 		}
 
-		
+
+		{
+			uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH;
+			uint32_t totalTiles = tilesPerRow * tilesPerRow;
+			Engine::TileBlockedMaskCPU::CachedGPUMask.resize(totalTiles);
+			std::vector<uint32_t> gpuBlockedTileMask(totalTiles);
+			ReadBlockedTileMask(gpuBlockedTileMask, totalTiles);
+
+			Engine::TileBlockedMaskCPU::CachedGPUMask = std::move(gpuBlockedTileMask);
+		}
+
+
+	}
+
+
+	void VulkanRenderer2D::ReadBlockedTileMask(std::vector<uint32_t>& outDestroyedMask, uint32_t count)
+	{
+		void* data;
+		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory(), 0, sizeof(uint32_t) * count, 0, &data);
+
+		// Copy data from GPU buffer memory to CPU vector
+		memcpy(outDestroyedMask.data(), data, sizeof(uint32_t) * count);
+
+		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory());
 	}
 
 
@@ -699,9 +729,16 @@ namespace Engine {
 		if (!m_CPUCollisionsHandeled)
 			return;
 
-		m_CPUCollisionsHandeled = false;
 
-		
+		uint32_t tilesPerRow = CHUNK_SIZE * 3;
+		uint32_t totalTiles = tilesPerRow * tilesPerRow;
+		void* data;
+		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory(), 0, totalTiles * sizeof(uint32_t), 0, &data);
+
+		std::fill_n(static_cast<uint32_t*>(data), totalTiles, 0u);
+		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory());
+
+
 		// Use current texture slots for both read and write (in-place compute)
 		std::array<Ref<VulkanTexture>, MAX_TEXTURES>& computeTextures = s_VulkanData.TextureSlots;
 		std::array<Ref<VulkanTexture>, MAX_TEXTURES>& HealthTextures = s_VulkanData.HealthTextureSlots;
@@ -709,6 +746,7 @@ namespace Engine {
 		// Update descriptor set with same textures for read/write
 		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,	computeTextures, HealthTextures);
 
+		glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 		// Transition textures to GENERAL layout
 		for (size_t i = 0; i < MAX_TEXTURES; i++)
 		{
@@ -722,6 +760,20 @@ namespace Engine {
 					VK_IMAGE_LAYOUT_GENERAL);
 
 				tex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
+
+				if (tex.GetCheckCollision())
+				{
+					glm::ivec2 texOrigin = tex.GetTextureOrigin();
+					glm::ivec2 tileCoord = glm::floor(glm::vec2(texOrigin) / float(PIXELS_IN_TILE));
+
+					//EE_CORE_INFO("Chunk Index {}: CheckCollision = true, texOrigin = ({}, {}), tileCoord = ({}, {})",
+					//	i, texOrigin.x, texOrigin.y, tileCoord.x, tileCoord.y);
+
+					minOrigin.x = std::min(minOrigin.x, tileCoord.x);
+					minOrigin.y = std::min(minOrigin.y, tileCoord.y);
+				}
+				
+
 			}
 		}
 
@@ -757,9 +809,17 @@ namespace Engine {
 
 			PushConstants pushconstant{};
 			pushconstant.TextureOrigin = tex.GetTextureOrigin();
+			//EE_CORE_INFO("texture origin {} | {}, for index {}", tex.GetTextureOrigin().x, tex.GetTextureOrigin().y, i);
+			//EE_CORE_INFO("texture minOrigin {} | {}, for index {}", minOrigin.x, minOrigin.y, i);
+
 			pushconstant.PixelSize = tex.GetPixelSize();
 			pushconstant.textureIndex = static_cast<uint32_t>(i);
 			pushconstant.NumProjectiles = s_CollisionData.EntitySlotIndex;
+			pushconstant.ChunkSize = PIXELS_IN_TILE * CHUNK_SIZE;
+			pushconstant.TileSize = PIXELS_IN_TILE;
+			pushconstant.mode = 2;
+			pushconstant.MinTileCoords = minOrigin * (int)CHUNK_SIZE;
+
 
 			vkCmdPushConstants(commandBuffer,
 				m_vulkanGraphicsPipelines->GetComputePipelineLayout(),

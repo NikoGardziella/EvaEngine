@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <entt.hpp>
 #include <Engine/Map/Utils/IVec2Hasher.h>
+#include <Engine/Platform/Vulkan/VulkanTexture.h>
+#include <unordered_map>
 
 
 namespace Engine {
@@ -22,7 +24,14 @@ namespace Engine {
 
 		bool HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw);
 
+		void UpdateTiles(const glm::ivec2& centerChunkCoord);
+
+		//void UpdateLOSBlockedTilesFromHealthTexture(const VulkanTexture& healthTexture);
+
+
 		//bool HasLineOfSight(glm::ivec2 from, glm::ivec2 to);
+
+		static int floorDiv(int a, int b);
 
 		void DrawDebugLine(glm::vec2 from, glm::vec2 to, const glm::vec4& color);
 
@@ -30,7 +39,8 @@ namespace Engine {
 
 
 	private:
-		std::unordered_set<glm::ivec2, IVec2Hasher> m_blockedTiles;
+		std::unordered_set<glm::ivec2, IVec2Hasher, IVec2Equal> m_blockedTiles;
+		std::unordered_map<glm::ivec2, int, IVec2Hasher> tileHitCounts;
 	};
 }
 

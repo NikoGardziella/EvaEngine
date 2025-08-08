@@ -36,7 +36,9 @@ namespace Engine {
 		inline glm::ivec2 GetWorldTileCoords(const glm::vec2& localTilePos, const glm::vec3& entityTranslation)
 		{
 			glm::vec2 worldPos = glm::vec2(entityTranslation) + localTilePos * float(TILE_SIZE);
-			return worldPos;
+			glm::ivec2 tileCoords = glm::ivec2(glm::floor(worldPos / float(TILE_SIZE)));
+			return tileCoords;
 		}
+
 	}
 } 

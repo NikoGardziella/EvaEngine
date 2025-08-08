@@ -1,0 +1,2350 @@
+Scene: My Scene
+Entities:
+  - ID: 18106274265762899923
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-49.44581, -47.30957, -4.9112714e-10]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [3, -1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [0, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [0, 6]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [0, 1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [30, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [31, -3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [37, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [31, 2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [29, -2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [32, -1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [32, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [66, 2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [64, -1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [66, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [65, 3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [65, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [66, -1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [99, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [100, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [100, 1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [100, 1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [96, -1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [97, 3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [98, 2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [99, 1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [2, 101]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [2, 99]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [1, 98]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [3, 101]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-8, 99]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-3, 99]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-1, 97]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-3, 99]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [1, 100]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [28, 98]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [32, 98]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [33, 96]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [30, 97]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [32, 99]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [28, 95]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [30, 97]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [65, 97]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [66, 95]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [66, 95]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [63, 95]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [63, 96]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [63, 96]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-46, 95]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-44, 94]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-43, 94]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-43, 97]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-43, 98]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-43, 98]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-45, 63]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-45, 64]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-42, 66]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-46, 65]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-47, 67]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-45, 66]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-46, 66]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-43, 66]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-48, 62]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-42, 36]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-47, 33]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-45, 35]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-47, 29]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-48, 32]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-45, 34]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-46, 33]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-46, 33]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-48, 33]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-44, -2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-46, -2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-46, -2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-49, 2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-46, 1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-45, -3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+        - Position: [-48, -3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Unknown
+          Health: 1
+  - ID: 2041884516
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [56, 61, 4.4330365e+10]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-88, -2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-125, -1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-156, -3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-171, -20]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-179, -58]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-175, -91]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-113, -126]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-23, -140]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [49, -108]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [55, -51]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-2, -25]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-79, -15]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-126, -37]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-114, -67]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-55, -50]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [21, -37]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [34, -54]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [14, -91]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-6, -50]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-18, -43]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-41, -76]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-26, -93]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-68, -82]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-103, -54]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-139, -41]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-159, -35]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-191, -32]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-202, -56]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-194, -92]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-173, -113]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-72, -106]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-57, -122]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-6, -162]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [70, -136]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [90, -89]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [38, -53]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-6, -36]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [48, -10]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [42, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-15, 24]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-38, 7]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [24, -18]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [22, 3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-71, 13]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-127, 23]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-186, 17]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-203, 4]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-227, -64]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-226, -110]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-160, -137]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [21, -152]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [51, -149]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [23, -127]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-18, -108]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-53, -151]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [12, -158]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [86, -118]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [71, -63]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [35, -68]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [89, -36]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [56, -26]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-25, -16]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-50, -6]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-11, 26]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-102, 30]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-155, 16]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-195, -67]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-203, -117]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-201, -143]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-126, -172]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-4, -160]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-42, -137]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-118, -104]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-106, -82]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-151, -128]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-181, -143]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-212, -131]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-210, -81]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+  - ID: 1816054507
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-4, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [1, 0]
+          UV: [0.375, 0.33333334, 0.5, 0.6666667]
+          Name: walls_0006_Layer-7
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [2, 0]
+          UV: [0.375, 0.33333334, 0.5, 0.6666667]
+          Name: walls_0006_Layer-7
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [3, 0]
+          UV: [0.375, 0.33333334, 0.5, 0.6666667]
+          Name: walls_0006_Layer-7
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [4, 0]
+          UV: [0.375, 0.33333334, 0.5, 0.6666667]
+          Name: walls_0006_Layer-7
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 0
+        - Position: [5, 0]
+          UV: [0.375, 0.33333334, 0.5, 0.6666667]
+          Name: walls_0006_Layer-7
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [6, 0]
+          UV: [0.375, 0.33333334, 0.5, 0.6666667]
+          Name: walls_0006_Layer-7
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [7, 0]
+          UV: [0.375, 0.33333334, 0.5, 0.6666667]
+          Name: walls_0006_Layer-7
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [8, 0]
+          UV: [0.5, 0.33333334, 0.625, 0.6666667]
+          Name: walls_0007_Layer-8
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [8, -1]
+          UV: [0.625, 0.33333334, 0.75, 0.6666667]
+          Name: walls_0008_Layer-9
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [8, -2]
+          UV: [0.625, 0.33333334, 0.75, 0.6666667]
+          Name: walls_0008_Layer-9
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [8, -3]
+          UV: [0.625, 0.33333334, 0.75, 0.6666667]
+          Name: walls_0008_Layer-9
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [8, -4]
+          UV: [0.625, 0.33333334, 0.75, 0.6666667]
+          Name: walls_0008_Layer-9
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [8, -5]
+          UV: [0.625, 0.33333334, 0.75, 0.6666667]
+          Name: walls_0008_Layer-9
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [0, -1]
+          UV: [0, 0.33333334, 0.125, 0.6666667]
+          Name: walls_0003_Layer-4
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [0, -2]
+          UV: [0, 0.33333334, 0.125, 0.6666667]
+          Name: walls_0003_Layer-4
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [0, -3]
+          UV: [0, 0.33333334, 0.125, 0.6666667]
+          Name: walls_0003_Layer-4
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [0, -4]
+          UV: [0, 0.33333334, 0.125, 0.6666667]
+          Name: walls_0003_Layer-4
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [0, -5]
+          UV: [0, 0.33333334, 0.125, 0.6666667]
+          Name: walls_0003_Layer-4
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [0, -6]
+          UV: [0.125, 0.33333334, 0.25, 0.6666667]
+          Name: walls_0004_Layer-5
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [1, -6]
+          UV: [0.25, 0.33333334, 0.375, 0.6666667]
+          Name: walls_0005_Layer-6
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [2, -6]
+          UV: [0.25, 0.33333334, 0.375, 0.6666667]
+          Name: walls_0005_Layer-6
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [3, -6]
+          UV: [0.25, 0.33333334, 0.375, 0.6666667]
+          Name: walls_0005_Layer-6
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [4, -6]
+          UV: [0.25, 0.33333334, 0.375, 0.6666667]
+          Name: walls_0005_Layer-6
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [5, -6]
+          UV: [0.25, 0.33333334, 0.375, 0.6666667]
+          Name: walls_0005_Layer-6
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [6, -6]
+          UV: [0.25, 0.33333334, 0.375, 0.6666667]
+          Name: walls_0005_Layer-6
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [7, -6]
+          UV: [0.25, 0.33333334, 0.375, 0.6666667]
+          Name: walls_0005_Layer-6
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [8, -6]
+          UV: [0.75, 0.33333334, 0.875, 0.6666667]
+          Name: walls_0009_Layer-10
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+  - ID: 3342535701
+    TagComponent:
+      Tag: player
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, .nan]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      Texture: Idle_gun_000
+      Tiling: 1
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+    CharacterControllerComponent:
+      Speed: 5
+      Velocity: [0, 0]
+      OnGround: false
+    WeaponComponent:
+      Damage: 10
+      FireRate: 0.6
+  - ID: 2406274307
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [5, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        []
+  - ID: 4097269158
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-119, 95, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [22, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [104, -1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [160, -2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [198, -4]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [239, -6]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [253, -20]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [267, -69]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [266, -120]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [264, -150]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [241, -199]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [199, -199]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [156, -199]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [119, -200]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [70, -195]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [21, -188]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-20, -185]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-47, -182]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-48, -169]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-60, -77]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-61, -59]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-58, -11]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+  - ID: 1068283129
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-48, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-1, -1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-1, -3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [0, -5]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [4, -4]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [3, -1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-1, -2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [0, -3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [1, -1]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [1, -3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [3, -5]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [4, -3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [0, -2]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [2, -4]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [2, -3]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [28, 11]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [29, 9]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [31, 10]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [30, 12]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [29, 11]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [27, 11]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [31, 11]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [31, -14]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [28, -15]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [33, -11]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [31, -17]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [26, -15]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [29, -13]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [28, -17]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [30, -12]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [29, -18]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [63, -16]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [62, -17]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [61, -14]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [65, -17]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [62, -19]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [57, -15]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [59, -14]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [60, -18]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [63, -14]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [61, 14]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [63, 13]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [58, 12]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [61, 12]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [63, 14]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [60, 11]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [62, 14]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [59, 11]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [61, 13]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [2, -19]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [3, -17]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-1, -16]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [1, -19]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-1, -19]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-4, -19]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-4, -20]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [-3, -17]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [99, 15]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [99, 14]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [96, 13]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [98, 13]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [96, 16]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [95, 16]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [97, 13]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [97, 15]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [98, 15]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [95, -20]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [98, -14]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [99, -18]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [96, -19]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [98, -16]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [95, -19]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [97, -17]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
+        - Position: [97, -18]
+          UV: [0.828125, 0, 0.953125, 0.33333334]
+          Name: walls_0002_Layer-3-128x128
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: None
+          Health: 1
