@@ -427,13 +427,8 @@ namespace Engine {
                 {
                     TileInfo tile;
                     tile.position = glm::vec2(tileNode["Position"][0].as<float>(), tileNode["Position"][1].as<float>());
-                    tile.UV = glm::vec4(
-                        tileNode["UV"][0].as<float>(),
-                        tileNode["UV"][1].as<float>(),
-                        tileNode["UV"][2].as<float>(),
-                        tileNode["UV"][3].as<float>()
-                    );
                     tile.name = tileNode["Name"] ? tileNode["Name"].as<std::string>() : "";
+                    tile.UV = AssetManager::GetTileProperties(tile.name).uv;
                     tile.IsDestructible = tileNode["IsDestructible"] ? tileNode["IsDestructible"].as<bool>() : false;
                     tile.IsRoof = tileNode["IsRoof"] ? tileNode["IsRoof"].as<bool>() : false;
                     tile.Category = CategoryFromString(tileNode["Category"].as<std::string>());

@@ -440,9 +440,11 @@ namespace Engine {
         return empty;
     }
 
+
     void AssetManager::CreateTileAtlas()
     {
         EE_PROFILE_FUNCTION();
+        LoadTileProperties();
         namespace fs = std::filesystem;
 
         static const std::unordered_map<eTileCategory, std::string> CategoryNames = {
@@ -599,11 +601,30 @@ namespace Engine {
             float u1 = float(currentX + tile.width) / float(atlasWidth);
             float v1 = float(currentY + tile.height) / float(atlasHeight);
 
-            glm::vec4 uv = glm::vec4(u0, v0, u1, v1);
+            glm::vec4 computedUV = glm::vec4(u0, v0, u1, v1);
 
-            // Store UV in maps
-            s_tileUVMap[name] = uv;
-            s_tileUVMapsByCategory[tile.category][name] = uv;
+            // Store fresh UV
+            s_tileUVMap[name] = computedUV;
+            s_tileUVMapsByCategory[tile.category][name] = computedUV;
+
+            // Keep other properties if they exist
+            TileProperties props;
+            auto it = s_tileProperties.find(name);
+            if (it != s_tileProperties.end())
+            {
+                props = it->second; // keep health, material
+            }
+            else
+            {
+                props.name = name;
+                props.health = 0;
+                props.material = eTileMaterial::None;
+            }
+            props.uv = computedUV; // always overwrite
+
+            s_tileProperties[name] = props;
+
+            
             s_tileNamesByCategory[tile.category].push_back(name);
 
             // Now, use loaded tile properties if available
@@ -640,7 +661,7 @@ namespace Engine {
 
         EE_CORE_INFO("Created combined tile atlas with dimensions {}x{}", atlasWidth, atlasHeight);
 
-        LoadTileProperties();
+        
     }
 
 
@@ -704,7 +725,7 @@ namespace Engine {
     void AssetManager::LoadTileProperties()
     {
         std::unordered_map<std::string, TileProperties> loadedTiles;
-        TileSerializer::Load(loadedTiles);  // This reads YAML and fills loadedTiles
+        TileSerializer::Load(loadedTiles);  
 
         if (loadedTiles.empty())
         {

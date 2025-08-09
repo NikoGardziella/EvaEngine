@@ -78,16 +78,23 @@ namespace Engine {
         }
     }
 
-    inline std::string ToString(eTileMaterial material)
+    
+
+    inline const char* ToString(eTileMaterial material)
     {
         switch (material)
         {
-        case eTileMaterial::None: return "None";
-        case eTileMaterial::Wood: return "Wood";
-        case eTileMaterial::Concrete: return "Concrete";
-        case eTileMaterial::Metal: return "Metal";
-        case eTileMaterial::Glass: return "Glass";
-        default: return "Unknown";
+        case eTileMaterial::Undefined: return "Undefined";
+        case eTileMaterial::Default:   return "Default";
+        case eTileMaterial::None:      return "None";
+        case eTileMaterial::Wood:      return "Wood";
+        case eTileMaterial::Concrete:  return "Concrete";
+        case eTileMaterial::Steel:     return "Steel";
+        case eTileMaterial::Stone:     return "Stone";
+        case eTileMaterial::Plastic:   return "Plastic";
+        case eTileMaterial::Metal:     return "Metal";
+        case eTileMaterial::Glass:     return "Glass";
+        default:                      return "Unknown";
         }
     }
 
@@ -96,6 +103,7 @@ namespace Engine {
         if (str == "None")     return eTileMaterial::None;
         if (str == "Wood")     return eTileMaterial::Wood;
         if (str == "Concrete") return eTileMaterial::Concrete;
+        if (str == "Steel") return eTileMaterial::Steel;
         if (str == "Metal")    return eTileMaterial::Metal;
         if (str == "Glass")    return eTileMaterial::Glass;
         return eTileMaterial::None;
@@ -120,8 +128,11 @@ namespace Engine {
         case eTileMaterial::Metal:    return "Metal";
         case eTileMaterial::Glass:    return "Glass";
         case eTileMaterial::Plastic:  return "Plastic";
+        case eTileMaterial::Steel:    return "Steel";
         case eTileMaterial::Concrete: return "Concrete";
         case eTileMaterial::None:     return "None";
+        case eTileMaterial::Undefined: return "Undefined";
+        case eTileMaterial::Default:   return "Default";
         default:                      return "Unknown";
         }
     }

@@ -51,7 +51,6 @@ namespace Engine {
 
         static void LoadTileProperties();
 
-        static void RegisterTile(const std::string& tileName, const TileProperties& properties);
 
 
 		static const std::unordered_map<std::string, glm::vec4>& AssetManager::GetTileTextureAtalsUVs() { return  s_tileUVMap; }

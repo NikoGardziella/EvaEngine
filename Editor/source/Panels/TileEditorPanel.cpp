@@ -81,9 +81,20 @@ namespace Engine {
                 tilePropertiesChanged = true;
             }
 
-            static const char* materialOptions[] = { "None", "Wood", "Concrete", "Metal", "Glass" };
-            constexpr int materialCount = IM_ARRAYSIZE(materialOptions);
+            static const char* materialOptions[] = {
+                ToString(eTileMaterial::Undefined),
+                ToString(eTileMaterial::Default),
+                ToString(eTileMaterial::None),
+                ToString(eTileMaterial::Wood),
+                ToString(eTileMaterial::Concrete),
+                ToString(eTileMaterial::Steel),
+                ToString(eTileMaterial::Stone),
+                ToString(eTileMaterial::Plastic),
+                ToString(eTileMaterial::Metal),
+                ToString(eTileMaterial::Glass)
+            };
 
+            constexpr int materialCount = sizeof(materialOptions) / sizeof(materialOptions[0]);
             int currentMaterialIdx = static_cast<int>(m_selectedTileprops.material);
             if (ImGui::Combo("Material", &currentMaterialIdx, materialOptions, materialCount))
             {
@@ -94,19 +105,12 @@ namespace Engine {
             if (tilePropertiesChanged)
             {
                 m_modifiedTileProperties[m_selectedTileName] = m_selectedTileprops;
+                
                 TileSerializer::Save(m_modifiedTileProperties);
+
             }
 
-            if (ImGui::Button("Reset to Default"))
-            {
-                auto it = m_tilePropertyDefaults.find(m_selectedTileName);
-                if (it != m_tilePropertyDefaults.end())
-                {
-                    m_selectedTileprops = it->second;
-                    m_modifiedTileProperties[m_selectedTileName] = m_selectedTileprops;
-                    TileSerializer::Save(m_modifiedTileProperties);
-                }
-            }
+           
 
             ImGui::End();
         }
@@ -139,12 +143,14 @@ namespace Engine {
 
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen;
 
-                std::string materialName = GetTileMaterialName(material); //
+                std::string materialName = GetTileMaterialName(material); 
                 if (ImGui::TreeNodeEx(materialName.c_str(), flags))
                 {
                     DrawTiles(tileNames, textureID, category, material);
                     ImGui::TreePop();
                 }
+
+                ImGui::Dummy(ImVec2(0.0f, 4.0f));
             }
         }
         else
@@ -162,6 +168,8 @@ namespace Engine {
         }
 
     }
+
+
     void TileEditorPanel::DrawTiles(const std::vector<std::string>& tileNames, ImTextureID textureID, eTileCategory category, eTileMaterial /*material*/)
     {
         const float iconSize = 32.0f;

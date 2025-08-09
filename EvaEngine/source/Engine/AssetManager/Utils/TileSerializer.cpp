@@ -7,10 +7,80 @@
 #include <filesystem>
 #include "Engine/AssetManager/AssetManager.h"
 #include <Engine/Core/Log.h>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 
 namespace Engine {
 
+    // At startup
+    void TileSerializer::LoadAllTiles(std::unordered_map<std::string, TileProperties>& tiles)
+    {
+        YAML::Node data;
+        try
+        {
+            data = YAML::LoadFile(GetTilePropertiesPath().string());
+        }
+        catch (const YAML::BadFile& e)
+        {
+            EE_CORE_WARN("No existing tile properties file found: {}", e.what());
+            return;
+        }
+
+        for (auto it = data.begin(); it != data.end(); ++it)
+        {
+            TileProperties props;
+            props.name = it->second["Name"].as<std::string>();
+            props.health = it->second["Health"].as<int>();
+            props.material = static_cast<eTileMaterial>(it->second["Material"].as<int>());
+
+            auto uv = it->second["UV"];
+            props.uv = glm::vec4(uv[0].as<float>(), uv[1].as<float>(),
+                uv[2].as<float>(), uv[3].as<float>());
+
+            tiles[it->first.as<std::string>()] = props;
+        }
+    }
+
+    // When saving
+    void TileSerializer::Save(const std::unordered_map<std::string, TileProperties>& editedTiles)
+    {
+        // 1. Load existing data so we don't lose it
+        std::unordered_map<std::string, TileProperties> allTiles;
+        LoadAllTiles(allTiles);
+
+        // 2. Merge edits into the existing map
+        for (const auto& pair : editedTiles)
+            allTiles[pair.first] = pair.second;
+
+        // 3. Write the merged set
+        YAML::Emitter emitter;
+        emitter << YAML::BeginMap;
+        for (const auto& pair : allTiles)
+        {
+            emitter << YAML::Key << pair.first;
+            emitter << YAML::Value << YAML::BeginMap;
+            emitter << YAML::Key << "Name" << YAML::Value << pair.second.name;
+            emitter << YAML::Key << "Health" << YAML::Value << pair.second.health;
+            emitter << YAML::Key << "Material" << YAML::Value << static_cast<int>(pair.second.material);
+            emitter << YAML::Key << "UV" << YAML::Value << YAML::Flow
+                << YAML::BeginSeq
+                << pair.second.uv.x << pair.second.uv.y
+                << pair.second.uv.z << pair.second.uv.w
+                << YAML::EndSeq;
+            emitter << YAML::EndMap;
+        }
+        emitter << YAML::EndMap;
+
+        std::ofstream fout(GetTilePropertiesPath());
+        if (!fout.is_open())
+        {
+            EE_CORE_WARN("Could not open file for saving tile properties");
+            return;
+        }
+        fout << emitter.c_str();
+    }
+
+    /*
     void TileSerializer::Save(const std::unordered_map<std::string, TileProperties>& tiles) {
         YAML::Emitter emitter;
         emitter << YAML::BeginMap;
@@ -21,8 +91,12 @@ namespace Engine {
             emitter << YAML::Key << "Name" << YAML::Value << pair.second.name;
             emitter << YAML::Key << "Health" << YAML::Value << pair.second.health;
             emitter << YAML::Key << "Material" << YAML::Value << static_cast<int>(pair.second.material);
+            emitter << YAML::Key << "UV" << YAML::Value << YAML::Flow
+                << YAML::BeginSeq
+                << pair.second.uv.x << pair.second.uv.y
+                << pair.second.uv.z << pair.second.uv.w
+                << YAML::EndSeq;
             emitter << YAML::EndMap;
-
         }
         emitter << YAML::EndMap;
 
@@ -31,13 +105,14 @@ namespace Engine {
         {
             fout << emitter.c_str();
             fout.close();
-
         }
         else
         {
             EE_CORE_WARN("Could not open file for saving tile properties");
         }
     }
+    */
+
 
     void TileSerializer::Load(std::unordered_map<std::string, TileProperties>& tiles)
     {
@@ -65,6 +140,16 @@ namespace Engine {
                     props.material = node["Material"]
                         ? static_cast<eTileMaterial>(node["Material"].as<int>())
                         : eTileMaterial::None;
+
+                    if (node["UV"] && node["UV"].IsSequence() && node["UV"].size() == 4)
+                    {
+                        props.uv = glm::vec4(
+                            node["UV"][0].as<float>(),
+                            node["UV"][1].as<float>(),
+                            node["UV"][2].as<float>(),
+                            node["UV"][3].as<float>()
+                        );
+                    }
 
                     tiles[tileName] = props;
                 }
