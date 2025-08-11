@@ -248,6 +248,10 @@ namespace Engine {
 			
 		}
 
+
+		uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
+		uint32_t totalTiles = tilesPerRow * tilesPerRow;
+		Engine::TileBlockedMaskCPU::CachedGPUMask.resize(totalTiles);
 	}
 
 	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
@@ -462,72 +466,76 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to submit compute command buffer!");
 		}
 
-		// Wait for compute to finish before reading buffer (optional, or use fence wait elsewhere)
-		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
-
-
-		// move this to own method
-		// Read back collision results
-		CollisionResultBuffer result = {};
-
-		
-		void* data = nullptr;
-		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, sizeof(result), 0, &data);
-		memcpy(&result, data, sizeof(result));
-		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
-
-		if (result.collisionCount > 0)
 		{
-			CollisionResultsCPU::LatestProjectiles.clear();
+			EE_PROFILE_SCOPE("FENCES");
+			// Wait for compute to finish before reading buffer (optional, or use fence wait elsewhere)
+			vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+			vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
-			CollisionResultsCPU::LatestProjectiles.reserve(result.collisionCount);
-			CollisionResultsCPU::LatestProjectiles.reserve(MAX_COLLISION_RESULTS);
-			for (uint32_t i = 0; i < result.collisionCount && i < MAX_COLLISION_RESULTS; ++i)
-			{
-				const auto& r = result.results[i];
-				if (r.collisionDetected == 0)
-					continue;
+		}
 
 
-				if (i >= MAX_COLLISION_RESULTS)
-					break;
-
-				result.results[i].collisionDetected = r.collisionDetected;
-
-				CollisionResultsCPU::LatestProjectiles.push_back({});
-				CollisionResultsCPU::LatestProjectiles[i].ProjectileID = r.GetProjectileID();
-				CollisionResultsCPU::LatestProjectiles[i].HitPosition = r.CollisionPosition;
-				CollisionResultsCPU::LatestProjectiles[i].Health = r.Health;
-			}
+		{
 			
-		}
-		else
-		{
-			CollisionResultsCPU::LatestProjectiles.clear();
-			m_CPUCollisionsHandeled = true;
-		}
-		
-		{
+			EE_PROFILE_SCOPE("collision results");
+			// move this to own method
+			// Read back collision results
+			CollisionResultBuffer result = {};	
 			void* data = nullptr;
-			VkDeviceSize size = sizeof(CollisionResultBuffer);
-			vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
-			std::memset(data, 0, size);
+			vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, sizeof(result), 0, &data);
+			memcpy(&result, data, sizeof(result));
 			vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
+
+			if (result.collisionCount > 0)
+			{
+				CollisionResultsCPU::LatestProjectiles.clear();
+
+				CollisionResultsCPU::LatestProjectiles.reserve(result.collisionCount);
+				CollisionResultsCPU::LatestProjectiles.reserve(MAX_COLLISION_RESULTS);
+				for (uint32_t i = 0; i < result.collisionCount && i < MAX_COLLISION_RESULTS; ++i)
+				{
+					const auto& r = result.results[i];
+					if (r.collisionDetected == 0)
+						continue;
+
+
+					if (i >= MAX_COLLISION_RESULTS)
+						break;
+
+					result.results[i].collisionDetected = r.collisionDetected;
+
+					CollisionResultsCPU::LatestProjectiles.push_back({});
+					CollisionResultsCPU::LatestProjectiles[i].ProjectileID = r.GetProjectileID();
+					CollisionResultsCPU::LatestProjectiles[i].HitPosition = r.CollisionPosition;
+					CollisionResultsCPU::LatestProjectiles[i].Health = r.Health;
+				}
+			
+			}
+			else
+			{
+				CollisionResultsCPU::LatestProjectiles.clear();
+				m_CPUCollisionsHandeled = true;
+			}
+		
+			{
+				void* data = nullptr;
+				VkDeviceSize size = sizeof(CollisionResultBuffer);
+				vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
+				std::memset(data, 0, size);
+				vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
+			}
+
 		}
 
-
 		{
+			EE_PROFILE_SCOPE("blocked tiles buffer");
 			uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
 			uint32_t totalTiles = tilesPerRow * tilesPerRow;
-			Engine::TileBlockedMaskCPU::CachedGPUMask.resize(totalTiles);
+
 			std::vector<uint32_t> gpuBlockedTileMask(totalTiles);
 			ReadBlockedTileMask(gpuBlockedTileMask, totalTiles);
 
-			//EE_CORE_INFO("totalTiles {}", totalTiles);
-			//EE_CORE_INFO("gpuBlockedTileMask {}", gpuBlockedTileMask.size());
 
-		
 			Engine::TileBlockedMaskCPU::CachedGPUMask = std::move(gpuBlockedTileMask);
 
 		}

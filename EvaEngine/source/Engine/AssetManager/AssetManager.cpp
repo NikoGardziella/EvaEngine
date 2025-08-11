@@ -708,12 +708,7 @@ namespace Engine {
 
     const TileProperties& AssetManager::GetTileProperties(const std::string& tileName)
     {
-        for (const auto& [tileName, props] : s_tileProperties)
-        {
-            EE_CORE_INFO("Loaded tile property: '{}' Health: {} Material: {}", tileName, props.health, static_cast<int>(props.material));
-        }
-
-
+       
         auto it = s_tileProperties.find(tileName);
         if (it != s_tileProperties.end())
             return it->second;
@@ -734,9 +729,9 @@ namespace Engine {
         else
         {
             s_tileProperties = std::move(loadedTiles);
-            EE_CORE_INFO("Loaded {} tile properties.", s_tileProperties.size());
         }
     }
 
 
 }
+ 

@@ -34,7 +34,7 @@ namespace Engine {
     void SceneHierarchyPanel::SetSceneHierarchyPanelScene(const Ref<Scene>& context)
     {
         m_sceneHierarchyPanelScene = context;
-        m_selectionContext = {};
+        m_selectedEntity = {};
     }
 
     void SceneHierarchyPanel::OnImGuiRender()
@@ -137,7 +137,7 @@ namespace Engine {
 
     void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
     {
-        m_selectionContext = entity;
+        m_selectedEntity = entity;
 
     }
 
@@ -146,9 +146,9 @@ namespace Engine {
        
         m_sceneHierarchyPanelScene->DestroyEntity(entity);
 
-        if (m_selectionContext == entity)
+        if (m_selectedEntity == entity)
         {
-            m_selectionContext = {};
+            m_selectedEntity = {};
         }
     }
 
@@ -156,7 +156,7 @@ namespace Engine {
     {
         auto& tagComp = entity.GetComponent<TagComponent>();
 
-        ImGuiTreeNodeFlags flags = (m_selectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0)
+        ImGuiTreeNodeFlags flags = (m_selectedEntity == entity ? ImGuiTreeNodeFlags_Selected : 0)
             | ImGuiTreeNodeFlags_SpanAvailWidth;
 
         bool hasExpandableContent = entity.HasComponent<TileComponent>(); // add other checks if needed
@@ -170,7 +170,7 @@ namespace Engine {
 
         if (ImGui::IsItemClicked())
         {
-            m_selectionContext = entity;
+            m_selectedEntity = entity;
             m_itemIsClicked = true;
         }
 
@@ -186,8 +186,6 @@ namespace Engine {
 
         if (opened)
         {
-           
-
             // Draw TileComponent tiles if present
             if (entity.HasComponent<TileComponent>())
             {
@@ -195,17 +193,45 @@ namespace Engine {
 
                 if (ImGui::TreeNodeEx("TileComponent", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth))
                 {
-                    for (const auto& tile : tileComp.tiles)
+                    for (size_t i = 0; i < tileComp.tiles.size(); i++)
                     {
+                        const auto& tile = tileComp.tiles[i];
                         std::string label = tile.name + " (" + std::to_string(tile.position.x) + ", " + std::to_string(tile.position.y) + ")";
-                        ImGui::BulletText("%s", label.c_str());
+
+                        ImGui::PushID((int)i);
+
+                        if (ImGui::SmallButton("X"))
+                        {
+                            // Erase the selected tile
+                            tileComp.tiles.erase(tileComp.tiles.begin() + i);
+
+                            // Adjust selection index if needed
+                            if (m_selectedTileIndex >= tileComp.tiles.size())
+                                m_selectedTileIndex = tileComp.tiles.empty() ? -1 : tileComp.tiles.size() - 1;
+
+                            ImGui::PopID();
+                            break; // Break to avoid using invalidated iterator after erase
+                        }
+
+                        ImGui::SameLine();
+
+                        if (ImGui::Selectable(label.c_str(), m_selectedTileIndex == i))
+                        {
+                            SetSelectedTileIndex(i);
+                        }
+
+                       
+
+                        ImGui::PopID();
                     }
+
                     ImGui::TreePop();
                 }
             }
 
             ImGui::TreePop();
         }
+
 
         if (entityDeleted)
         {
@@ -271,7 +297,7 @@ namespace Engine {
         
         // Open "Create Empty Entity" popup **only** if no entity was clicked
         
-        if (!m_itemIsClicked && !m_selectionContext && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
+        if (!m_itemIsClicked && !m_selectedEntity && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
         {
             if (ImGui::MenuItem("Create Empty Entity"))
             {
@@ -289,16 +315,16 @@ namespace Engine {
         // Reset selection if clicking on empty space
         if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && clickedOnEmptySpace)
         {
-            m_selectionContext = {};
+            m_selectedEntity = {};
         }
 
         ImGui::End();
 
         // Properties panel
         ImGui::Begin("Properties");
-        if (m_selectionContext)
+        if (m_selectedEntity)
         {
-            DrawComponents(m_selectionContext);
+            DrawComponents(m_selectedEntity);
         }
         ImGui::End();
     }
@@ -432,29 +458,29 @@ namespace Engine {
         {
 
 
-            if (!m_selectionContext.HasComponent<CameraComponent>())
+            if (!m_selectedEntity.HasComponent<CameraComponent>())
             {
                 if (ImGui::MenuItem("Camera"))
                 {
-                    m_selectionContext.AddComponent<CameraComponent>();
+                    m_selectedEntity.AddComponent<CameraComponent>();
                     ImGui::CloseCurrentPopup();
 
                     // I add new components for the game registry. I also want to add it to newcomponetsContext, which
                     // will be used for saving scene. Here I look for the corresponding entity - with UUID - from another scene
                     // add add component to it 
-                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                     if (entity)
                     {
                         m_sceneHierarchyPanelScene->GetRegistry().emplace<CameraComponent>(entity);
                     }
                 }
             }
-            if (!m_selectionContext.HasComponent<SpriteRendererComponent>())
+            if (!m_selectedEntity.HasComponent<SpriteRendererComponent>())
             {
                 if (ImGui::MenuItem("Sprite renderer"))
                 {
                     ImGui::CloseCurrentPopup();
-                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                     if (entity)
                     {
                         SpriteRendererComponent& spriteComp = entity.AddComponent<SpriteRendererComponent>();
@@ -464,13 +490,13 @@ namespace Engine {
                     }
                 }
             }
-            if (!m_selectionContext.HasComponent<TileComponent>())
+            if (!m_selectedEntity.HasComponent<TileComponent>())
             {
                 if (ImGui::MenuItem("Tile "))
                 {
-                    m_selectionContext.AddComponent<TileComponent>();
+                    m_selectedEntity.AddComponent<TileComponent>();
                     ImGui::CloseCurrentPopup();
-                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                     if (entity)
                     {
                         TileComponent& tileComp = entity.AddComponent<TileComponent>();
@@ -480,13 +506,13 @@ namespace Engine {
                     }
                 }
             }
-            if (!m_selectionContext.HasComponent<CircleRendererComponent>())
+            if (!m_selectedEntity.HasComponent<CircleRendererComponent>())
             {
                 if (ImGui::MenuItem("Circle renderer"))
                 {
-                    m_selectionContext.AddComponent<CircleRendererComponent>();
+                    m_selectedEntity.AddComponent<CircleRendererComponent>();
                     ImGui::CloseCurrentPopup();
-                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                     if (entity)
                     {
                         m_sceneHierarchyPanelScene->GetRegistry().emplace<CircleRendererComponent>(entity);
@@ -494,12 +520,12 @@ namespace Engine {
                     }
                 }
             }
-            if (!m_selectionContext.HasComponent<TransformComponent>())
+            if (!m_selectedEntity.HasComponent<TransformComponent>())
             {
                 if (ImGui::MenuItem("Transform"))
                 {
                     ImGui::CloseCurrentPopup();
-                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get()};
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get()};
                     if (entity)
                     {
                         entity.AddComponent<TransformComponent>();
@@ -508,13 +534,13 @@ namespace Engine {
                 }
 
             }
-            if (!m_selectionContext.HasComponent<RigidBody2DComponent>())
+            if (!m_selectedEntity.HasComponent<RigidBody2DComponent>())
             {
                 if (ImGui::MenuItem("RigidBody 2D"))
                 {
-                    m_selectionContext.AddComponent<RigidBody2DComponent>();
+                    m_selectedEntity.AddComponent<RigidBody2DComponent>();
                     ImGui::CloseCurrentPopup();
-                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                    Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                     if (entity)
                     {
                         m_sceneHierarchyPanelScene->GetRegistry().emplace<RigidBody2DComponent>(entity);
@@ -525,9 +551,9 @@ namespace Engine {
 
             if (ImGui::MenuItem("BoxCollider 2D"))
             {
-                m_selectionContext.AddComponent<BoxCollider2DComponent>();
+                m_selectedEntity.AddComponent<BoxCollider2DComponent>();
                 ImGui::CloseCurrentPopup();
-                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
                 {
                     m_sceneHierarchyPanelScene->GetRegistry().emplace<BoxCollider2DComponent>(entity);
@@ -538,7 +564,7 @@ namespace Engine {
             if (ImGui::MenuItem("Circle Collider"))
             {
                 ImGui::CloseCurrentPopup();
-                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
                 {
                     m_sceneHierarchyPanelScene->GetRegistry().emplace<CircleCollider2DComponent>(entity);
@@ -548,7 +574,7 @@ namespace Engine {
             if (ImGui::MenuItem("Health Component"))
             {
                 ImGui::CloseCurrentPopup();
-                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
                 {
                     m_sceneHierarchyPanelScene->GetRegistry().emplace<HealthComponent>(entity);
@@ -558,7 +584,7 @@ namespace Engine {
             if (ImGui::MenuItem("Weapon Component"))
             {
                 ImGui::CloseCurrentPopup();
-                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
                 {
                     m_sceneHierarchyPanelScene->GetRegistry().emplace<WeaponComponent>(entity);
@@ -568,7 +594,7 @@ namespace Engine {
             if (ImGui::MenuItem("NPC movement Component"))
             {
                 ImGui::CloseCurrentPopup();
-                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
                 {
                     m_sceneHierarchyPanelScene->GetRegistry().emplace<NPCAIMovementComponent>(entity);
@@ -578,7 +604,7 @@ namespace Engine {
             if (ImGui::MenuItem("NPC vision Component"))
             {
                 ImGui::CloseCurrentPopup();
-                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
                 {
                     m_sceneHierarchyPanelScene->GetRegistry().emplace<NPCAIVisionComponent>(entity);
@@ -587,9 +613,9 @@ namespace Engine {
             }
             if (ImGui::MenuItem("Character Controller Component"))
             {
-                m_selectionContext.AddComponent<CharacterControllerComponent>();
+                m_selectedEntity.AddComponent<CharacterControllerComponent>();
                 ImGui::CloseCurrentPopup();
-                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
                 {
                     m_sceneHierarchyPanelScene->GetRegistry().emplace<CharacterControllerComponent>(entity);
@@ -599,7 +625,7 @@ namespace Engine {
             if (ImGui::MenuItem("Tile Component"))
             {
                 ImGui::CloseCurrentPopup();
-                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
                 {
                     m_sceneHierarchyPanelScene->GetRegistry().emplace<TileComponent>(entity);
@@ -609,7 +635,7 @@ namespace Engine {
             if (ImGui::MenuItem("Vehicle Component"))
             {
                 ImGui::CloseCurrentPopup();
-                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectionContext.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                Entity entity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), m_selectedEntity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (entity)
                 {
                     m_sceneHierarchyPanelScene->GetRegistry().emplace<VehicleComponent>(entity);

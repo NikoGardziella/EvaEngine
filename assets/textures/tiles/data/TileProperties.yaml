@@ -1,23 +1,23 @@
-walls_0006_Layer-7:
-  Name: walls_0006_Layer-7
-  Health: 0
-  Material: 3
-  UV: [0.375, 0.33333334, 0.5, 0.6666667]
-walls_0004_Layer-5:
-  Name: walls_0004_Layer-5
-  Health: 0
-  Material: 3
-  UV: [0.125, 0.33333334, 0.25, 0.6666667]
-walls_0043_Layer-44:
-  Name: walls_0043_Layer-44
-  Health: 0
-  Material: 4
-  UV: [0.125, 0, 0.1640625, 0.33333334]
 walls_0044_Layer-45:
   Name: walls_0044_Layer-45
   Health: 1
   Material: 4
   UV: [0.1640625, 0, 0.2890625, 0.33333334]
+walls_0043_Layer-44:
+  Name: walls_0043_Layer-44
+  Health: 0
+  Material: 4
+  UV: [0.125, 0, 0.1640625, 0.33333334]
+walls_0004_Layer-5:
+  Name: walls_0004_Layer-5
+  Health: 0
+  Material: 3
+  UV: [0.125, 0.33333334, 0.25, 0.6666667]
+walls_0006_Layer-7:
+  Name: walls_0006_Layer-7
+  Health: 1
+  Material: 3
+  UV: [0.5, 0.33333334, 0.625, 0.6666667]
 walls_0005_Layer-6:
   Name: walls_0005_Layer-6
   Health: 1

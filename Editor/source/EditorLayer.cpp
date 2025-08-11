@@ -1067,6 +1067,7 @@ namespace Engine {
                 {
                     m_sceneHierarchyPanel.DestrtoySelectedEntity(m_selectedEntity);
                 }
+                
                 else
                 {
 					EditorUtils::DeleteTileAtPosition(m_selectedEntity, m_selectedTilePosition);

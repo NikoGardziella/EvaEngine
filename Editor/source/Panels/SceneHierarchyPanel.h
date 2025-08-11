@@ -26,7 +26,7 @@ namespace Engine {
 		void SetGizmoType(const int guizmoType) { m_guizmoType = guizmoType; }
 		int GetGuizmoType() const { return m_guizmoType; }
 
-		Entity GetSelectedEntity() const { return m_selectionContext;  }
+		Entity GetSelectedEntity() const { return m_selectedEntity;  }
 		void SetSelectedEntity(Entity entity);
 
 		int GetEntityCount() const { return m_entityCount; }
@@ -54,7 +54,7 @@ namespace Engine {
 		//Ref<Scene> m_gameContext;
 		Ref<Scene> m_sceneHierarchyPanelScene;
 
-		Entity m_selectionContext;
+		Entity m_selectedEntity;
 		int m_guizmoType = -1;
 
 		bool m_itemIsClicked = false;

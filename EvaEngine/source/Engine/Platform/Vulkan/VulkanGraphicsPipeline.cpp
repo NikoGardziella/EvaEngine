@@ -1703,6 +1703,8 @@ namespace Engine {
 
     void VulkanGraphicsPipeline::UpdateCameraUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix)
     {
+        EE_PROFILE_FUNCTION();
+
         void* data;
         vkMapMemory(m_device, m_uniformBuffers[currentFrame].GetMemory(), 0, sizeof(viewProjectionMatrix), 0, &data);
         memcpy(data, &viewProjectionMatrix, sizeof(viewProjectionMatrix));
@@ -1711,6 +1713,8 @@ namespace Engine {
 
     void VulkanGraphicsPipeline::UpdateCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionEntitiesGPU,MAX_COLLISION_ENTITIES> collidingEntityData)
     {
+        EE_PROFILE_FUNCTION();
+
         void* data;
         VkDeviceSize size = sizeof(CollisionEntitiesGPU) * collidingEntityData.size();
         if (size <= 0) // this probably does not work
