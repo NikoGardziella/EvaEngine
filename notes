@@ -160,3 +160,9 @@
 
     
 }
+11.8.2025
+{
+    Selected entity is in hierarchy panel and in Editor panel.
+    make only hierarchy panel be charge of the SelectedEntity??
+
+}

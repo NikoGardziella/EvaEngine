@@ -46,7 +46,7 @@ namespace Engine {
 
     struct CollisionEntitiesGPU {
         glm::vec2 Position;    // 8 bytes
-        float Radius;          // 4 bytes
+        float ColliderRadius;          // 4 bytes
         uint32_t Type;         // 4 bytes
 
         uint32_t ID_Low;       // 4 bytes
@@ -56,9 +56,11 @@ namespace Engine {
         float Rotation;        // 4 bytes (in radians)
 
         uint32_t Damage;      // 4 bytes 
+        uint32_t DestructionRadius; // 4 
+
     };
     static_assert(offsetof(CollisionEntitiesGPU, Damage) == 36);
-    static_assert(sizeof(CollisionEntitiesGPU) == 40, "ProjectileGPU must be 40 bytes (std140 alignment)");
+    static_assert(sizeof(CollisionEntitiesGPU) == 44, "ProjectileGPU must be 44 bytes");
 
    
 

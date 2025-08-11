@@ -1222,7 +1222,7 @@ namespace Engine {
 	}
 
 
-	void VulkanRenderer2D::CalculateCircleCollision(const glm::vec2& colliderPos, const float radius, uint64_t entityID, eCollisionType collisionType, uint32_t damage)
+	void VulkanRenderer2D::CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType, uint32_t damage, const uint32_t destructionRadius)
 	{
 		EE_PROFILE_FUNCTION();
 
@@ -1236,7 +1236,8 @@ namespace Engine {
 		s_CollisionData.CollisionEntities[index].Type = (uint32_t)collisionType;
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].Position = colliderPos;
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].Damage = damage;
-		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].Radius = radius;
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].DestructionRadius = destructionRadius;
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ColliderRadius = colliderRadius;
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
 		s_CollisionData.EntitySlotIndex++;

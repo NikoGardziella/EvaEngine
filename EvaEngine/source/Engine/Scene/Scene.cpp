@@ -737,7 +737,6 @@ namespace Engine {
 
                     auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent, SpriteRendererComponent>();
 
-                    float playerRadius = 0.5f;
                     for (auto projectileEntity : projectileView)
                     {
 
@@ -746,14 +745,18 @@ namespace Engine {
                         projectilePos.x = projectileTransform.Translation.x;
                         projectilePos.y = projectileTransform.Translation.y;
      
-                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.Radius, IDComp.ID, eCollisionType::PROJECTILE, projectile.Damage);
+                        
+
+                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.ProjectileRadius, IDComp.ID, eCollisionType::PROJECTILE, projectile.Damage, projectile.PixelDestructionRadius);
                         Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
 
                     }
                     if (!playerEntity.HasComponent<DriverComponent>())
                     {
+                        float playerRadius = 0.5f;
+                        uint32_t destructionRadius = 0;
                         uint32_t plauerCollisionDamage = 0; // player does no damage on collision
-                        Engine::VulkanRenderer2D::CalculateCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER, plauerCollisionDamage);
+                        Engine::VulkanRenderer2D::CalculateCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER, plauerCollisionDamage, destructionRadius);
                     }
                 }
 

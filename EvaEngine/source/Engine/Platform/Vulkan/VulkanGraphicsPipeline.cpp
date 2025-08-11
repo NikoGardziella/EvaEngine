@@ -1723,7 +1723,6 @@ namespace Engine {
         }
 
       
-
         // Map buffer memory
         vkMapMemory(m_device, m_bulletUniformBuffers[currentFrame].GetMemory(),
             0, size, 0, &data);

@@ -32,6 +32,7 @@ struct ProjectileGPU {
     vec2 Size;
     float Rotation;
     uint Damage;
+    uint DestructionRadius; 
 };
 
 layout(std430, set = 0, binding = 2) buffer ResultBuffer {
@@ -60,6 +61,7 @@ layout(push_constant) uniform PushConstants {
     uint ChunkSize;    // in pixels (e.g. 512)
     uint TileSize;     // in pixels (e.g. 128)
     ivec2 MinTileCoords;
+
 } pc;
 
 bool PointInRotatedBox(vec2 point, vec2 boxCenter, vec2 halfSize, float rotation)
@@ -149,7 +151,28 @@ void main() {
 
                 if (health == 0u)
                 {
-                    imageStore(u_InputTexture[pc.TextureIndex], pixelCoord, vec4(0.0));
+                    // Destroy pixels within DestructionRadius
+                    int radiusPixels = int(proj.DestructionRadius);
+                    for (int dy = -radiusPixels; dy <= radiusPixels; dy++)
+                    {
+                        for (int dx = -radiusPixels; dx <= radiusPixels; dx++)
+                        {
+                            ivec2 offsetCoord = pixelCoord + ivec2(dx, dy);
+
+                            // check boundaries
+                            if (offsetCoord.x < 0 || offsetCoord.y < 0 || 
+                                offsetCoord.x >= texSize.x || offsetCoord.y >= texSize.y)
+                                continue;
+
+                            // check if inside circle radius
+                            if (dx*dx + dy*dy <= radiusPixels * radiusPixels)
+                            {
+                                // Clear pixel color and health
+                                imageStore(u_InputTexture[pc.TextureIndex], offsetCoord, vec4(0.0));
+                                imageStore(u_HealthImage[pc.TextureIndex], offsetCoord, uvec4(0, 0, 0, 0));
+                            }
+                        }
+                    }
                 }
 
                 uint collisionIndex = atomicAdd(collisionCount, 1);
@@ -163,5 +186,6 @@ void main() {
                 }
             }
         }
+
     }
 }
