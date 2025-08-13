@@ -101,8 +101,8 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 		{
 			
 
-			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
 			m_activeScene->OnUpdateECSRuntime(timestep);
+			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
 
 			const glm::mat4 viewProjection = m_orthoCameraController.GetCamera().GetViewProjectionMatrix();
 					

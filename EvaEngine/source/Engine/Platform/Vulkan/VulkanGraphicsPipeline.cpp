@@ -32,6 +32,7 @@ namespace Engine {
         m_fullscreenShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/fullscreen_shader.GLSL").string());
         m_lineShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Line_shader.GLSL").string());
         m_computeShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/compute.comp").string());
+        m_effectShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Effect_shader.comp").string());
 
         m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
@@ -75,32 +76,45 @@ namespace Engine {
 
         m_vulkanRenderShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());
 		m_vulkanProjectileRenderShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_projectile.GLSL").string());
-       
+        // 1. Buffers and samplers
         CreatePresentSampler();
         CreateGPUCollisionResultBuffer();
         CreateBlockedTileMaskBuffer();
-        CreateDescriptorSetLayouts();
+        CreateExplosionBuffer();
+
+        // 2. Descriptor set layouts (these describe what resources your pipelines expect)
+        CreateDescriptorSetLayouts();          // game pipeline set layouts
         CreateProjectileDescriptorSetLayout();
         CreateCameraDescriptorSetLayout();
         CreateComputeArrayDescriptorSetLayout();
+        CreateEffectsDescriptorSetLayout();
 
-        CreateLineGraphicsPipeline(vulkanContext.GetGameRenderPass());
+        // 3. Descriptor pool(s)
+        CreatePresentGameDescriptorPool();     // must be created before allocating any descriptor sets
 
-        CreateGameGraphicsPipeline(vulkanContext.GetGameRenderPass());
-        CreateComputeGraphicsPipeline(vulkanContext.GetGameRenderPass());
+        // 4. Allocate descriptor sets
         CreateGameDescriptorSet();
         CreateProjectileDescriptorSet();
         CreateCameraDescriptorSet();
         CreatePresentDescriptorSet();
         CreateLineDescriptorSet();
+        CreateEffectsDescriptorSets();         // allocate your explosion/effects sets here
 
-        CreatePresentGameDescriptorPool();
- 
+        // 5. Pipeline layouts (depend on descriptor set layouts and push constants)
+        CreateEffectsPipelineLayout();
         CreatePresentPipelineLayout();
+
+        // 6. Graphics/compute pipelines 
+        CreateLineGraphicsPipeline(vulkanContext.GetGameRenderPass());
+        CreateGameGraphicsPipeline(vulkanContext.GetGameRenderPass());
+        CreateComputeGraphicsPipeline();
+        CreateEffectsPipeline();
         CreatePresentGraphicsPipeline(vulkanContext.GetPresentRenderPass());
         CreateProjectileGraphicsPipeline(vulkanContext.GetGameRenderPass());
 
+        // 7. Remaining descriptor sets that depend on pipelines (if any)
         CreateComputeDescriptorSet();
+
 
         AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
 
@@ -463,7 +477,55 @@ namespace Engine {
 
     }
 
-    void VulkanGraphicsPipeline::CreateComputeGraphicsPipeline(VkRenderPass renderPass)
+    void VulkanGraphicsPipeline::CreateEffectsPipelineLayout()
+    {
+        // Define the push constant range used by the compute shader
+        VkPushConstantRange pushRange{};
+        pushRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        pushRange.offset = 0;
+        pushRange.size = sizeof(EffectPushConstants);
+
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutInfo.setLayoutCount = 1;
+        pipelineLayoutInfo.pSetLayouts = &m_effectsDescriptorSetLayout;
+        pipelineLayoutInfo.pushConstantRangeCount = 1;
+        pipelineLayoutInfo.pPushConstantRanges = &pushRange;
+
+        if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_effectsPipelineLayout) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "failed to create effects pipeline layout!");
+        }
+    }
+
+    void VulkanGraphicsPipeline::CreateEffectsPipeline()
+    {
+       
+        // Describe the shader stage
+        VkPipelineShaderStageCreateInfo shaderStageInfo{};
+        shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        shaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+        shaderStageInfo.module = m_effectShader->GetComputeshaderModule();
+        shaderStageInfo.pName = "main";
+
+        // Set up the compute pipeline creation info
+        VkComputePipelineCreateInfo pipelineInfo{};
+        pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+        pipelineInfo.stage = shaderStageInfo;
+        pipelineInfo.layout = m_effectsPipelineLayout;
+        pipelineInfo.flags = 0;
+
+        if (vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_effectsPipeline) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "failed to create effects graphics pipeline!");
+        }
+
+        // Clean up shader module after pipeline creation
+        vkDestroyShaderModule(m_device, m_effectShader->GetComputeshaderModule(), nullptr);
+    }
+
+
+    void VulkanGraphicsPipeline::CreateComputeGraphicsPipeline()
     {
         VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
         computeShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -475,7 +537,6 @@ namespace Engine {
         pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         pushConstantRange.offset = 0;
 		pushConstantRange.size = sizeof(PushConstants); 
-
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -923,6 +984,49 @@ namespace Engine {
 
     }
     */
+    void VulkanGraphicsPipeline::CreateEffectsDescriptorSetLayout()
+    {
+        // Binding 0: array of storage images for color (u_InputTexture[MAX_TEXTURES])
+        VkDescriptorSetLayoutBinding colorBinding{};
+        colorBinding.binding = 0;
+        colorBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        colorBinding.descriptorCount = MAX_TEXTURES;          // one slot per texture
+        colorBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        colorBinding.pImmutableSamplers = nullptr;               // storage images don't use samplers
+
+        // Binding 1: array of storage images for health/timer (u_HealthImage[MAX_TEXTURES])
+        VkDescriptorSetLayoutBinding healthBinding{};
+        healthBinding.binding = 1;
+        healthBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        healthBinding.descriptorCount = MAX_TEXTURES;
+        healthBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        healthBinding.pImmutableSamplers = nullptr;
+
+        // Binding 2: (optional) storage buffer for explosion events
+        VkDescriptorSetLayoutBinding bufferBinding{};
+        bufferBinding.binding = 2;
+        bufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bufferBinding.descriptorCount = 1;
+        bufferBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        bufferBinding.pImmutableSamplers = nullptr;
+
+        std::array<VkDescriptorSetLayoutBinding, 3> bindings = {
+            colorBinding, healthBinding, bufferBinding
+        };
+
+        
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.pNext = nullptr; // &extFlags if using the optional block above
+        layoutInfo.flags = 0;       // or VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT if using update-after-bind
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
+
+        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_effectsDescriptorSetLayout) != VK_SUCCESS) {
+            EE_CORE_ASSERT(false, "Failed to create effects descriptor set layout!");
+        }
+    }
+
 
     void VulkanGraphicsPipeline::CreateComputeArrayDescriptorSetLayout()
     {
@@ -972,6 +1076,9 @@ namespace Engine {
         VkResult result = vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_computeArrayDescriptorSetLayout);
         EE_CORE_ASSERT(result == VK_SUCCESS, "Failed to create compute descriptor set layout");
     }
+
+
+
     void VulkanGraphicsPipeline::CreateProjectileDescriptorSetLayout()
     {
         VkDescriptorSetLayoutBinding bindings[2] = {};
@@ -1132,6 +1239,94 @@ namespace Engine {
         vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
 
+    void VulkanGraphicsPipeline::CreateEffectsDescriptorSets()
+    {
+        m_effectsDescriptorSet.resize(MAX_FRAMES_IN_FLIGHT);
+
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_effectsDescriptorSetLayout);
+
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = m_descriptorPool; // assume you have a descriptor pool already created
+        allocInfo.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+        allocInfo.pSetLayouts = layouts.data();
+
+        if (vkAllocateDescriptorSets(m_device, &allocInfo, m_effectsDescriptorSet.data()) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate effects descriptor sets");
+        }
+
+
+       
+        
+    }
+
+    void VulkanGraphicsPipeline::UpdateEffectsDescriptorSet(
+        uint32_t currentFrame,
+        const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& colorTextures,
+        const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& healthTextures) 
+    {
+        // --- Build image infos for COLOR images (binding 0)
+        std::vector<VkDescriptorImageInfo> colorInfos(MAX_TEXTURES);
+        for (size_t i = 0; i < MAX_TEXTURES; ++i)
+        {
+            colorInfos[i].sampler = VK_NULL_HANDLE; // storage images don't use samplers
+            colorInfos[i].imageView = colorTextures[i]->GetImageView();
+            colorInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL; // must match your transition before dispatch
+        }
+
+        // --- Build image infos for HEALTH/TIMER images (binding 1)
+        std::vector<VkDescriptorImageInfo> healthInfos(MAX_TEXTURES);
+        for (size_t i = 0; i < MAX_TEXTURES; ++i) {
+            
+            healthInfos[i].sampler = VK_NULL_HANDLE;
+            healthInfos[i].imageView = healthTextures[i]->GetImageView();
+            healthInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        }
+
+        // --- Explosion buffer (binding 2)
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = m_explosionBuffer;      // if you don’t use it, ensure you still created a small buffer or add a branch to skip this write
+        bufferInfo.offset = 0;
+        bufferInfo.range = m_explosionBufferSize;
+
+        // --- Write all three bindings
+        std::array<VkWriteDescriptorSet, 3> writes{};
+
+        // binding 0: color image array
+        writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[0].dstSet = m_effectsDescriptorSet[currentFrame];
+        writes[0].dstBinding = 0;
+        writes[0].dstArrayElement = 0;
+        writes[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        writes[0].descriptorCount = static_cast<uint32_t>(colorInfos.size());
+        writes[0].pImageInfo = colorInfos.data();
+
+        // binding 1: health image array
+        writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[1].dstSet = m_effectsDescriptorSet[currentFrame];
+        writes[1].dstBinding = 1;
+        writes[1].dstArrayElement = 0;
+        writes[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        writes[1].descriptorCount = static_cast<uint32_t>(healthInfos.size());
+        writes[1].pImageInfo = healthInfos.data();
+
+        // binding 2: explosion buffer
+        writes[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[2].dstSet = m_effectsDescriptorSet[currentFrame];
+        writes[2].dstBinding = 2;
+        writes[2].dstArrayElement = 0;
+        writes[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        writes[2].descriptorCount = 1;
+        writes[2].pBufferInfo = &bufferInfo;
+
+        vkUpdateDescriptorSets(m_device,
+            static_cast<uint32_t>(writes.size()),
+            writes.data(),
+            0, nullptr);
+    }
+
+
 
     void VulkanGraphicsPipeline::CreatePresentDescriptorSet()
     {
@@ -1191,8 +1386,9 @@ namespace Engine {
         std::vector<VkDescriptorImageInfo> inputImageInfos;
         std::vector<VkDescriptorImageInfo> healthImageInfos;
 
-        inputImageInfos.reserve(inputTextures.size());
-        healthImageInfos.reserve(inputTextures.size());
+        // first 9 are the chunks
+        inputImageInfos.reserve(CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH);
+        healthImageInfos.reserve(CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH);
 
         for (const auto& tex : inputTextures)
         {
@@ -1548,6 +1744,50 @@ namespace Engine {
             throw std::runtime_error("Failed to allocate destroyed tile mask memory");
 
         vkBindBufferMemory(device, m_blockedTileMaskBuffer, m_blockedTileMaskMemory, 0);
+    }
+
+
+    void VulkanGraphicsPipeline::CreateExplosionBuffer()
+    {
+       
+        m_explosionBufferSize = sizeof(uint32_t) 
+            + MAX_EXPLOSIONS * sizeof(ExplosionEvent); 
+
+    
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = m_explosionBufferSize;
+        bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // no sharing between queues
+
+        if (vkCreateBuffer(m_device, &bufferInfo, nullptr, &m_explosionBuffer) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "failed to create explosion buffer");
+        }
+
+        // 3) Query memory requirements for the buffer
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(m_device, m_explosionBuffer, &memRequirements);
+
+        // 4) Allocate device memory with HOST_VISIBLE so we can map it
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = VulkanContext::Get()->FindMemoryType(memRequirements.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+        if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_explosionBufferMemory) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate explosion buffer memory");
+        }
+
+        vkBindBufferMemory(m_device, m_explosionBuffer, m_explosionBufferMemory, 0);
+
+        // zero the buffer contents so explosionCount = 0 and no stale events
+        void* data;
+        vkMapMemory(m_device, m_explosionBufferMemory, 0, m_explosionBufferSize, 0, &data);
+        std::memset(data, 0, static_cast<size_t>(m_explosionBufferSize));
+        vkUnmapMemory(m_device, m_explosionBufferMemory);
     }
 
 

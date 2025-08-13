@@ -166,3 +166,11 @@
     make only hierarchy panel be charge of the SelectedEntity??
 
 }
+
+13.8.2025
+{
+    Effects:
+        -Add darkened pixels for the textures that were in radius of explosion but did not get destroyed
+        -No damage behind textures that did not get destroyed
+
+}

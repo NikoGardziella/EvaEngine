@@ -75,7 +75,7 @@ namespace Engine {
 		std::unordered_map<VulkanTexture*, uint32_t> TextureToSlotMap;
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> TextureSlots;
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> HealthTextureSlots;
-		uint32_t TextureSlotIndex = 1; // 0 = white texture
+		uint32_t TextureSlotIndex = 0; // 0 = white texture
 		uint32_t HealthTextureSlotIndex = 0;
 
 		glm::vec3 QuadVertexPositions[4];
@@ -101,6 +101,19 @@ namespace Engine {
 
 		std::array<CollisionEntitiesGPU, MAX_COLLISION_ENTITIES> CollisionEntities;
 	};
+
+	// Effect push constants for glow-only pass
+	struct EffectPushConstants
+	{
+		glm::vec2  textureOrigin;  // 8 bytes (align 8)
+		float      pixelSize;      // +4 = 12
+		uint32_t   textureIndex;   // +4 = 16
+		uint32_t   defaultTimer;   // +4 = 20
+		float      glowStrength;   // +4 = 24
+		uint32_t   maxTimer;       // +4 = 28
+		uint32_t   _pad0;          // +4 = 32 (keep total multiple of 16)
+	};
+	static_assert(sizeof(EffectPushConstants) == 32, "PC size must be 32 bytes");
 
 
 	struct PushConstants
@@ -182,6 +195,7 @@ namespace Engine {
 		void RecordProjectileDrawCommands(VkCommandBuffer cmd, uint32_t frameIndex, uint32_t currentFrame);
 		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
+		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 
 		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
@@ -230,7 +244,6 @@ namespace Engine {
 		//CollisionTexture s_CollisionTextures;
 		Ref<VulkanTexture> m_dummyTexture;
 
-		bool m_CPUCollisionsHandeled = false;
 		bool m_startedFirstBatch = false;
 		bool m_frameStarted = true;
 		bool m_renderPassActive = true;

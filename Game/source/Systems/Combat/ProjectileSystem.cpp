@@ -30,6 +30,7 @@ void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float de
 				EE_INFO("Projectile collided");
                 registry.destroy(projectileEntity);
                 destroyedByCollision = true;
+                
                 break;
             }
         }

@@ -439,6 +439,7 @@ namespace Engine {
             playerID = playerIDComp.ID;
             playerEntity = Entity{ entity, this };
         }
+        m_textureStreamingSystem->Update(playerPos, m_registry);
 
 
 
@@ -504,13 +505,13 @@ namespace Engine {
                     EE_PROFILE_SCOPE("chunk render");
                     glm::ivec2 minOrigin = glm::ivec2(std::numeric_limits<int>::max());
 
-                    entt::basic_view view = m_registry.view<ChunkRendererComponent, TransformComponent>();
+                    entt::basic_view view = m_registry.view<ChunkRendererComponent>();
                     glm::vec4 cameraBounds = mainCameraComp.Camera.CalculateCameraWorldBounds(mainCameraComp.Camera, cameraTransform);
                     glm::vec2 camMin = glm::vec2(cameraBounds.x, cameraBounds.y);
                     glm::vec2 camMax = camMin + glm::vec2(cameraBounds.z, cameraBounds.w);
                     for (auto entity : view)
                     {
-                        auto [transform, chunkComp] = view.get<TransformComponent, ChunkRendererComponent>(entity);
+                        ChunkRendererComponent& chunkComp = view.get<ChunkRendererComponent>(entity);
                         {
                             if (!chunkComp.IsLoaded)
                                 continue;
@@ -828,7 +829,6 @@ namespace Engine {
 
 
         }
-        m_textureStreamingSystem->Update(playerPos, m_registry);
 
     }
 

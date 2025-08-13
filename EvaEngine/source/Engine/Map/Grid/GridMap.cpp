@@ -163,13 +163,16 @@ namespace Engine
         return true;
     }
 
-
     void GridMap::UpdateTiles(const glm::ivec2& minOrigin)
     {
         EE_PROFILE_FUNCTION();
 
+        // 1. Store old state
+        auto destroyedTiles = std::vector<glm::ivec2>();
+        m_previousBlockedTiles.swap(m_blockedTiles);
         m_blockedTiles.clear();
 
+        // 2. Rebuild blockedTiles from GPU mask
         const auto& mask = TileBlockedMaskCPU::CachedGPUMask;
         const uint32_t tilesPerRow = CHUNK_SIZE * 3; // 3x3 grid
         const uint32_t subtilesPerTile = GRID_SUBDIVISIONS;
@@ -180,18 +183,33 @@ namespace Engine
             if (mask[index] != 1)
                 continue;
 
-            // Convert flat index to (subtileX, subtileY) in 3x3 region
             glm::ivec2 subtileOffsetIn3x3 = {
                 index % subtilesPerRow,
                 index / subtilesPerRow
             };
 
-            // Convert to global subtile coordinates
-            glm::ivec2 globalSubtilePos = (minOrigin * (int)CHUNK_SIZE * (int)subtilesPerTile) + subtileOffsetIn3x3;
-           // EE_CORE_INFO("Blocked subtile: {}, {}", globalSubtilePos.x, globalSubtilePos.y);
+            glm::ivec2 globalSubtilePos =
+                (minOrigin * (int)CHUNK_SIZE * (int)subtilesPerTile) + subtileOffsetIn3x3;
+
             m_blockedTiles.insert(globalSubtilePos);
         }
+
+        // 3. Detect destroyed tiles (were blocked, now not)
+        for (auto& prevTile : m_previousBlockedTiles)
+        {
+            if (m_blockedTiles.find(prevTile) == m_blockedTiles.end())
+            {
+                destroyedTiles.push_back(prevTile);
+            }
+        }
+
+        // 4. Spawn particles for destroyed tiles
+        for (auto& tile : destroyedTiles)
+        {
+            //EE_CORE_INFO("BOOM particleeees. DO i want this?");
+        }
     }
+
 
 
 

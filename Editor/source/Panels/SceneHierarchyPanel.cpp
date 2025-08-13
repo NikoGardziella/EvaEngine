@@ -673,7 +673,8 @@ namespace Engine {
                 ImGui::DragFloat("Damage", &component.Damage, 0.1f, 0.0f, 100.0f);
                 ImGui::DragFloat("Fire Rate", &component.FireRate, 0.1f, 0.1f, 100.0f);
                 ImGui::DragFloat("Cooldown", &component.Cooldown, 0.1f, 0.0f, 100.0f);
-
+                ImGui::DragFloat("Projectile Speed", &component.ProjectileSpeed, 0.1f, 0.0f, 100.0f);
+                ImGui::DragInt("Destruction Radius in Pixels", &component.DestructionRadius, 1.0f, 0, 10000);
 
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID),
                  m_sceneHierarchyPanelScene.get()

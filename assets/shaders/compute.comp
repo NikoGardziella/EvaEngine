@@ -1,191 +1,228 @@
 #type compute
 #version 450
 
-#define MAX_TEXTURES 32
-#define MAX_COLLISION_ENTITIES 64
-#define CHUNK_SIZE 32
-#define SUBTILES_PER_TILE 4
+// ---------- config ----------
+#define MAX_TEXTURES            32
+#define MAX_COLLISION_ENTITIES  64
+#define CHUNK_SIZE              32
+#define SUBTILES_PER_TILE       4
+#define GRID_WIDTH              3
+#define GRID_HEIGHT             3
+#define ACTIVE_SLOTS            (GRID_WIDTH * GRID_HEIGHT)  // 9
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
-// Texture bindings
-layout(set = 0, binding = 0, rgba8) uniform image2D u_InputTexture[MAX_TEXTURES];
-layout(set = 0, binding = 1, r8ui) uniform uimage2D u_HealthImage[MAX_TEXTURES];
+// ---------- resources ----------
+layout(set = 0, binding = 0, rgba8)   uniform  image2D  u_InputTexture[MAX_TEXTURES]; // color (UNORM)
+layout(set = 0, binding = 1, rgba8ui) uniform uimage2D u_HealthImage[MAX_TEXTURES];   // r=health, g=timer
 
-// Collision result per projectile
 struct CollisionResult {
     uint collisionDetected;
     uint hitProjectileID_Low;
     uint hitProjectileID_High;
-    uint _padding0;
+    uint _pad0;
     vec2 CollisionPosition;
-    uint Health;
-    uint _padding2;
+    uint HealthAfter;
+    uint _pad1;
 };
 
 struct ProjectileGPU {
-    vec2 Position;
-    float Radius;
-    uint Type;
-    uint ID_Low;
-    uint ID_High;
-    vec2 Size;
-    float Rotation;
-    uint Damage;
-    uint DestructionRadius; 
+    vec2  Position;           // world units
+    float Radius;             // world units (circle) — used by Type 0/1
+    uint  Type;               // 0/1=circle, 2=box
+    uint  ID_Low;
+    uint  ID_High;
+    vec2  Size;               // world units (box)
+    float Rotation;           // radians
+    uint  Damage;             // health units
+    uint  DestructionRadius;  // pixels (radius for clearing)
 };
 
 layout(std430, set = 0, binding = 2) buffer ResultBuffer {
     uint collisionCount;
-    uint _padding0;
-    uint _padding1;
-    uint _padding2;
+    uint _padA;
+    uint _padB;
+    uint _padC;
     CollisionResult results[MAX_COLLISION_ENTITIES];
 };
 
-layout(std430, set = 0, binding = 3) readonly buffer Projectiles {
-    ProjectileGPU data[];
-};
+layout(std430, set = 0, binding = 3) readonly buffer Projectiles { ProjectileGPU data[]; };
+layout(std430, set = 0, binding = 4) buffer BlockedTileMask      { uint blockedMask[]; };
 
-// Optional blocking result: one uint per tile (flattened)
-layout(std430, set = 0, binding = 4) buffer blockedTileMask {
-    uint blockedMask[];
-};
-
+// Push constants
 layout(push_constant) uniform PushConstants {
-    vec2 TextureOrigin; // chunk offset in world space
-    float PixelSize;
-    uint TextureIndex;
-    uint NumProjectiles;
-    uint mode;         // 0 = Detect, 1 = Destroy, 2 = TileMask
-    uint ChunkSize;    // in pixels (e.g. 512)
-    uint TileSize;     // in pixels (e.g. 128)
-    ivec2 MinTileCoords;
+    vec2  TextureOriginWorld;  // top-left of THIS chunk in world units
+    float PixelSizeWorld;      // world units per pixel
+    uint  TextureIndex;        // 0..8 inside the 3x3
 
+    uint  NumProjectiles;
+    uint  Mode;                // (unused here)
+    uint  ChunkSizePixels;     // pixels per chunk (e.g. 512)
+    uint  TileSizePixels;      // pixels per tile  (e.g. 128)
+
+    ivec2 MinChunkCoords;      // top-left chunk coords of the active 3x3 window
 } pc;
 
-bool PointInRotatedBox(vec2 point, vec2 boxCenter, vec2 halfSize, float rotation)
+// ---------- helpers ----------
+bool pointInRotatedBox(vec2 p, vec2 c, vec2 halfSize, float rot)
 {
-    vec2 local = point - boxCenter;
-    float cosR = cos(rotation);
-    float sinR = sin(rotation);
-    vec2 rotated = vec2(
-        cosR * local.x + sinR * local.y,
-       -sinR * local.x + cosR * local.y
-    );
-    return abs(rotated.x) <= halfSize.x && abs(rotated.y) <= halfSize.y;
+    vec2 d = p - c;
+    float cs = cos(rot), sn = sin(rot);
+    vec2 q = vec2(cs*d.x + sn*d.y, -sn*d.x + cs*d.y);
+    return (abs(q.x) <= halfSize.x) && (abs(q.y) <= halfSize.y);
 }
 
-void main() {
-    ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 texSize = imageSize(u_InputTexture[pc.TextureIndex]);
+// Wrap a local pixel (relative to current chunk) into neighbor slot by index
+void mapToNeighborSlot(ivec2 localPx, ivec2 curTexSize,
+                       out uint writeSlot, out ivec2 writePx)
+{
+    int gridW = GRID_WIDTH, gridH = GRID_HEIGHT;
+    int cx = int(pc.TextureIndex % uint(gridW));
+    int cy = int(pc.TextureIndex / uint(gridW));
 
-    if (pixelCoord.x >= texSize.x || pixelCoord.y >= texSize.y)
+    int sx = 0, sy = 0;
+    ivec2 p = localPx;
+
+    if      (p.x < 0)              { sx = -1; p.x += curTexSize.x; }
+    else if (p.x >= curTexSize.x)  { sx = +1; p.x -= curTexSize.x; }
+
+    if      (p.y < 0)              { sy = -1; p.y += curTexSize.y; }
+    else if (p.y >= curTexSize.y)  { sy = +1; p.y -= curTexSize.y; }
+
+    int nx = cx + sx;
+    int ny = cy + sy;
+
+    if (nx < 0 || nx >= gridW || ny < 0 || ny >= gridH) {
+        writeSlot = 0xffffffffu;
+        writePx   = ivec2(0);
         return;
+    }
 
-    vec4 pixel = imageLoad(u_InputTexture[pc.TextureIndex], pixelCoord);
-    if (pixel.a == 0.0)
-        return;
+    writeSlot = uint(ny * gridW + nx);
+    writePx   = p;
+}
 
-    vec2 worldPos = pc.TextureOrigin + vec2(pixelCoord) * pc.PixelSize;
+// ---------- main ----------
+void main()
+{
+    if (pc.TextureIndex >= ACTIVE_SLOTS) return;
 
-    uvec4 healthPixel = imageLoad(u_HealthImage[pc.TextureIndex], pixelCoord);
-    uint health = healthPixel.r;
+    ivec2 localPx = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 curSize = imageSize(u_InputTexture[pc.TextureIndex]);
+    if (localPx.x >= curSize.x || localPx.y >= curSize.y) return;
+
+    // No early-return on alpha: we still need collisions + neighbor spill
+    vec2 worldPos = pc.TextureOriginWorld + vec2(localPx) * pc.PixelSizeWorld;
+
+    // Health/timer for this pixel
+    uvec4 ht = imageLoad(u_HealthImage[pc.TextureIndex], localPx);
+    uint  health = ht.r;
 
     if (health > 0u)
     {
-        vec2 worldPixelPos = vec2(pc.TextureOrigin) * float(pc.TileSize) + vec2(pixelCoord);
+        // Tile coordinate INSIDE THIS CHUNK (integer divide)
+        int tileSize = int(pc.TileSizePixels);
+        ivec2 tileInChunk = localPx / tileSize;                          
 
-        vec2 tileWorldPos = worldPixelPos / float(pc.TileSize);
-        ivec2 globalTileCoord = ivec2(floor(tileWorldPos));
+        // Pixel coordinate INSIDE THE TILE
+        ivec2 pxInTile    = localPx - tileInChunk * tileSize;            
 
-        vec2 tileOriginWorld = vec2(globalTileCoord) * float(pc.TileSize);
-        vec2 localInTile = worldPixelPos - tileOriginWorld;
+        // Subtile inside this tile
+        int subDiv = tileSize / SUBTILES_PER_TILE;                       
+        ivec2 subtile = ivec2(pxInTile.x / subDiv, pxInTile.y / subDiv);  
 
-        ivec2 subtileCoord = ivec2(floor(localInTile / (float(pc.TileSize) / float(SUBTILES_PER_TILE))));
+        // Chunk position in the 3×3 window from TextureIndex (row-major)
+        int gridW = GRID_WIDTH;
+        int gridH = GRID_HEIGHT;
+        int cx = int(pc.TextureIndex % uint(gridW));
+        int cy = int(pc.TextureIndex / uint(gridW));
 
-        ivec2 globalSubtileCoord = globalTileCoord * SUBTILES_PER_TILE + subtileCoord;
+        // GLOBAL tile coordinates within the whole window
+        // (grid chunk coords * tiles-per-chunk) + tile-inside-chunk
+        ivec2 windowTile = ivec2(cx * CHUNK_SIZE + tileInChunk.x,
+                                 cy * CHUNK_SIZE + tileInChunk.y);
 
-        ivec2 relativeSubtileCoord = globalSubtileCoord - pc.MinTileCoords * SUBTILES_PER_TILE;
+        // Flatten to the blockedMask index (row-major over subtiles)
+        const int subtilesPerRow = GRID_WIDTH  * CHUNK_SIZE * SUBTILES_PER_TILE;
+        const int subtilesRows   = GRID_HEIGHT * CHUNK_SIZE * SUBTILES_PER_TILE;
 
-        // 3 means LOAD_RADIOUS in TextureStreaming is 1
-        // which is 3x3 chunks around the player.
-        const uint subtilesPerRow = CHUNK_SIZE * 3 * SUBTILES_PER_TILE;
-        uint subtileIndex = uint(relativeSubtileCoord.y) * subtilesPerRow + uint(relativeSubtileCoord.x);
+        int ix = windowTile.x * SUBTILES_PER_TILE + subtile.x;
+        int iy = windowTile.y * SUBTILES_PER_TILE + subtile.y;
 
-        // Mark this subtile as blocked
-        atomicExchange(blockedMask[subtileIndex], 1);
+        if (ix >= 0 && iy >= 0 && ix < subtilesPerRow && iy < subtilesRows)
+        {
+            uint idx = uint(iy) * uint(subtilesPerRow) + uint(ix);
+            atomicExchange(blockedMask[idx], 1u);
+        }
     }
 
 
 
+    // ---- Collision / damage / destruction ----
     for (uint i = 0; i < pc.NumProjectiles; ++i)
     {
         ProjectileGPU proj = data[i];
-        bool collided = false;
 
-        if (proj.Type == 0 || proj.Type == 1)
-        {
-            float dist = distance(worldPos, proj.Position);
-            if (dist < proj.Radius)
-                collided = true;
+        bool hit = false;
+        if (proj.Type == 0u || proj.Type == 1u) {
+            hit = (distance(worldPos, proj.Position) < proj.Radius);
+        } else if (proj.Type == 2u) {
+            hit = pointInRotatedBox(worldPos, proj.Position, proj.Size * 0.5, proj.Rotation);
         }
-        else if (proj.Type == 2)
-        {
-            if (PointInRotatedBox(worldPos, proj.Position, proj.Size * 0.5, proj.Rotation))
-                collided = true;
+        if (!hit) continue;
+
+        // No health here? Don't claim; let a neighbor with health handle it.
+        if (health == 0u) {
+            continue;
         }
 
-        
+        // Claim once AFTER verifying health > 0
+        if (i >= MAX_COLLISION_ENTITIES) continue;
+        if (atomicCompSwap(results[i].collisionDetected, 0u, 1u) != 0u)
+            continue;
 
-        if (collided)
+        // Re-read freshest health and apply damage
+        uvec4 centerHT = imageLoad(u_HealthImage[pc.TextureIndex], localPx);
+        uint  newHealth = centerHT.r;
+
+        if (proj.Type == 0u || proj.Type == 2u) {
+            newHealth = (proj.Damage > newHealth) ? 0u : (newHealth - proj.Damage);
+        }
+
+        centerHT.r = newHealth;
+        centerHT.g = (newHealth == 0u) ? 255u : 0u;   // arm effects when destroyed
+        imageStore(u_HealthImage[pc.TextureIndex], localPx, centerHT);
+
+        if (newHealth == 0u)
         {
-            if (health > 0u)
+            int rpx = int(proj.DestructionRadius);
+            for (int dy = -rpx; dy <= rpx; ++dy)
+            for (int dx = -rpx; dx <= rpx; ++dx)
             {
-                if (proj.Type == 0u || proj.Type == 2u)
-                {
-                    health = (proj.Damage > health) ? 0u : (health - proj.Damage);
-                }
+                if (dx*dx + dy*dy > rpx*rpx) continue;
 
-                imageStore(u_HealthImage[pc.TextureIndex], pixelCoord, uvec4(health, 0, 0, 0));
+                uint  dstSlot;
+                ivec2 dstPx;
+                mapToNeighborSlot(localPx + ivec2(dx,dy), curSize, dstSlot, dstPx);
+                if (dstSlot == 0xffffffffu || dstSlot >= ACTIVE_SLOTS) continue;
 
-                if (health == 0u)
-                {
-                    // Destroy pixels within DestructionRadius
-                    int radiusPixels = int(proj.DestructionRadius);
-                    for (int dy = -radiusPixels; dy <= radiusPixels; dy++)
-                    {
-                        for (int dx = -radiusPixels; dx <= radiusPixels; dx++)
-                        {
-                            ivec2 offsetCoord = pixelCoord + ivec2(dx, dy);
+                ivec2 dstSize = imageSize(u_InputTexture[dstSlot]);
+                if (dstPx.x < 0 || dstPx.y < 0 || dstPx.x >= dstSize.x || dstPx.y >= dstSize.y)
+                    continue;
 
-                            // check boundaries
-                            if (offsetCoord.x < 0 || offsetCoord.y < 0 || 
-                                offsetCoord.x >= texSize.x || offsetCoord.y >= texSize.y)
-                                continue;
-
-                            // check if inside circle radius
-                            if (dx*dx + dy*dy <= radiusPixels * radiusPixels)
-                            {
-                                // Clear pixel color and health
-                                imageStore(u_InputTexture[pc.TextureIndex], offsetCoord, vec4(0.0));
-                                imageStore(u_HealthImage[pc.TextureIndex], offsetCoord, uvec4(0, 0, 0, 0));
-                            }
-                        }
-                    }
-                }
-
-                uint collisionIndex = atomicAdd(collisionCount, 1);
-                if (collisionIndex < MAX_COLLISION_ENTITIES)
-                {
-                    results[collisionIndex].collisionDetected = 1;
-                    results[collisionIndex].hitProjectileID_Low = proj.ID_Low;
-                    results[collisionIndex].hitProjectileID_High = proj.ID_High;
-                    results[collisionIndex].CollisionPosition = worldPos;
-                    results[collisionIndex].Health = health;
-                }
+                imageStore(u_InputTexture[dstSlot], dstPx, vec4(0.0));
+                uvec4 nht = imageLoad(u_HealthImage[dstSlot], dstPx);
+                nht.r = 0u;
+                nht.g = 255u; // "newly destroyed" sentinel for effects pass
+                imageStore(u_HealthImage[dstSlot], dstPx, nht);
             }
         }
 
+        results[i].hitProjectileID_Low  = proj.ID_Low;
+        results[i].hitProjectileID_High = proj.ID_High;
+        results[i].CollisionPosition    = worldPos;
+        results[i].HealthAfter          = newHealth;
+        atomicAdd(collisionCount, 1u);
+        break;
     }
 }

@@ -10,11 +10,16 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <cstddef>
+#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 
 
 namespace Engine {
 
-    
+    struct ExplosionEvent
+    {
+        glm::vec2 position;
+        uint32_t radius;
+    };
 
     struct CollisionResult
     {
@@ -129,9 +134,11 @@ namespace Engine {
 
         void UpdatePresentDescriptorSet(uint32_t imageIndex);
         void UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES>  input, std::array<Ref<VulkanTexture>, MAX_TEXTURES> healthTextures);
-        void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
         void UpdateProjectileDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_PROJECTILES>& textures);
+       
+        void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::vector<Ref<VulkanTexture>>& textures);
+
 
         void UpdateCameraUBODescriptorSets();
         void UpdateBulletUBODescriptorSets();
@@ -141,6 +148,7 @@ namespace Engine {
         void UpdateCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionEntitiesGPU, MAX_COLLISION_ENTITIES> bulletPositions);
 
         void UpdateTextureUniformBuffer(uint32_t currentFrame, const glm::ivec2& textureSize);
+        void UpdateEffectsDescriptorSet(uint32_t currentFrame, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& colorTextures, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& healthTextures);
 
 
 
@@ -149,19 +157,24 @@ namespace Engine {
 		VkPipeline GetLinePipeline() const { return m_linePipeline; }
 		VkPipeline GetComputePipeline() const { return m_computePipeline; }
 		VkPipeline GetProjectilePipeline() const { return m_projectilePipeline; }
+        VkPipeline GetEffectsPipeline() const { return m_effectsPipeline; }
+
 
         VkPipelineLayout GetGamePipelineLayout() const { return m_gamePipelineLayout; }
         VkPipelineLayout GetPresentPipelineLayout() const { return m_presentPipelineLayout; }
 		VkPipelineLayout GetLinePipelineLayout() const { return m_linePipelineLayout; }
 		VkPipelineLayout GetComputePipelineLayout() const { return m_computePipelineLayout; }
 		VkPipelineLayout GetProjectilePipelineLayout() const { return m_projectilePipelineLayout; }
-        
+        VkPipelineLayout GetEffectsPipelineLayout() const { return m_effectsPipelineLayout; }
+
+
         VkDescriptorSet GetGameDescriptorSet(size_t frameIndex) { return m_gameDescriptorSets[frameIndex]; }
         VkDescriptorSet GetCameraDescriptorSet(size_t frameIndex) { return m_cameraDescriptorSets[frameIndex]; }
         VkDescriptorSet GetPresentDescriptorSet(size_t frameIndex) { return m_presentDescriptorSets[frameIndex]; }
 		VkDescriptorSet GetComputeDescriptorSet(size_t frameIndex) { return m_computeDescriptorSet[frameIndex]; }
 		VkDescriptorSet GetProjectileDescriptorSet(size_t frameIndex) { return m_projectileDescriptorSet[frameIndex]; }
         VkDescriptorSet GetLineDescriptorSet(size_t frameIndex) { return m_lineDescriptorSet[frameIndex]; }
+        VkDescriptorSet GetEffectsDescriptorSet(size_t frameIndex) { return m_effectsDescriptorSet[frameIndex]; }
 
         VkSampler& GetPresentSampler() { return m_presentSampler; }
 
@@ -174,6 +187,9 @@ namespace Engine {
         VkBuffer GetBlockedTileMaskBuffer() const { return m_blockedTileMaskBuffer; }
         VkDeviceMemory GetBlockedTileMaskMemory() const { return m_blockedTileMaskMemory;  }
 
+        VkBuffer GetExplosionBuffer() const { return m_explosionBuffer; }
+        VkDeviceSize GetExplosionBufferSize() const { return m_explosionBufferSize; }
+        VkDeviceMemory GetEffectsBufferMemory() const { return m_explosionBufferMemory; }
 
        // StorageImage GetOutputImage() { return m_outputTextureImage; }
 
@@ -181,17 +197,21 @@ namespace Engine {
 
         void CreateGameGraphicsPipeline(VkRenderPass renderPass);
         void CreateLineGraphicsPipeline(VkRenderPass renderPass);
-        void CreateComputeGraphicsPipeline(VkRenderPass renderPass);
+        void CreateEffectsPipelineLayout();
+        void CreateEffectsPipeline();
+        void CreateComputeGraphicsPipeline();
         void CreatePresentGraphicsPipeline(VkRenderPass renderPass);
         void CreateProjectileGraphicsPipeline(VkRenderPass renderPass);
         void CreatePresentPipelineLayout();
         void CreateDescriptorSetLayouts();
+        void CreateEffectsDescriptorSetLayout();
         void CreateComputeArrayDescriptorSetLayout();
         void CreateProjectileDescriptorSetLayout();
         void CreatePresentGameDescriptorPool();
         void CreateGameDescriptorSet();
         void CreateProjectileDescriptorSet();
         void CreateLineDescriptorSet();
+        void CreateEffectsDescriptorSets();
         void CreatePresentDescriptorSet();
         void CreatePresentSampler();
         void CreateCameraDescriptorSetLayout();
@@ -199,6 +219,7 @@ namespace Engine {
         void CreateComputeDescriptorSet();
         void CreateGPUCollisionResultBuffer();
         void CreateBlockedTileMaskBuffer();
+        void CreateExplosionBuffer();
         StorageImage CreateStorageImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkFormat format, VkCommandPool commandPool, VkQueue graphicsQueue);
 
     private:
@@ -209,6 +230,7 @@ namespace Engine {
         VkPipeline m_presentPipeline;
         VkPipeline m_linePipeline;
         VkPipeline m_computePipeline;
+        VkPipeline m_effectsPipeline;
         VkPipeline m_projectilePipeline;
         VkPipelineLayout m_gamePipelineLayout;
         VkPipelineLayout m_projectilePipelineLayout;
@@ -216,6 +238,7 @@ namespace Engine {
         VkPipelineLayout m_imguiPipelineLayout;
         VkPipelineLayout m_presentPipelineLayout;
         VkPipelineLayout m_computePipelineLayout;
+        VkPipelineLayout m_effectsPipelineLayout;
 
         VkDescriptorSetLayout m_gameDescriptorSetLayout;
         VkDescriptorSetLayout m_presentDescriptorSetLayout;
@@ -224,12 +247,14 @@ namespace Engine {
         VkDescriptorSetLayout m_cameraDescriptorSetLayout;
         VkDescriptorSetLayout m_computeDescriptorSetLayout;
         VkDescriptorSetLayout m_computeArrayDescriptorSetLayout;
+        VkDescriptorSetLayout m_effectsDescriptorSetLayout;
 
         VkDescriptorPool m_presentGamedescriptorPool;
 
         std::vector<VkDescriptorSet> m_lineDescriptorSet;
         std::vector<VkDescriptorSet> m_projectileDescriptorSet;
         std::vector<VkDescriptorSet> m_computeDescriptorSet;
+        std::vector<VkDescriptorSet> m_effectsDescriptorSet;
         std::vector<VkDescriptorSet> m_gameDescriptorSets;
         std::vector<VkDescriptorSet> m_cameraDescriptorSets;
         std::vector<VkDescriptorSet> m_presentDescriptorSets;
@@ -245,6 +270,7 @@ namespace Engine {
         Ref<VulkanShader> m_vulkanRenderShader;
         Ref<VulkanShader> m_vulkanProjectileRenderShader;
         Ref<VulkanShader> m_computeShader;
+        Ref<VulkanShader> m_effectShader;
         VkSampler m_presentSampler;
 
         std::vector<VkDynamicState> m_dynamicStates =
@@ -262,11 +288,12 @@ namespace Engine {
         VkBuffer m_GPUCollisionresultBufferBuffer;
         VkDeviceMemory  m_GPUCollisionresultBufferMemory;
 
-       
+        VkBuffer m_explosionBuffer;
+        VkDeviceSize m_explosionBufferSize;
+        VkDeviceMemory m_explosionBufferMemory;
+
         VkBuffer m_blockedTileMaskBuffer;
         VkDeviceMemory  m_blockedTileMaskMemory;
-
-
 
         VkBuffer m_healthBuffer;
         VkDeviceMemory m_healthBufferMemory;

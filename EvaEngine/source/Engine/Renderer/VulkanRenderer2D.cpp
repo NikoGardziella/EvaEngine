@@ -135,6 +135,7 @@ namespace Engine {
 		// Clone "logo" texture to slot 1 after loading it once
 		// Load original textures (not inserted into slots)
 		//AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
+		
 		AssetManager::AddTexture("chess", Engine::AssetManager::GetAssetPath("textures/chess_board.png").string(), false);
 		AssetManager::AddPixelTexture("pixel", Engine::AssetManager::GetAssetPath("textures/pixel_texture1.png").string());
 		AssetManager::AddTexture("Idle_gun_000", Engine::AssetManager::GetAssetPath("textures/Idle_gun_000.png").string(), false);
@@ -146,6 +147,7 @@ namespace Engine {
 		AssetManager::AddTexture("car_0001", Engine::AssetManager::GetAssetPath("textures/car_0001.png").string(), false);
 		AssetManager::AddTexture("house", Engine::AssetManager::GetAssetPath("textures/house.png").string(), false);
 
+		
 		m_dummyTexture = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8_UINT);
 		m_dummyTexture->SetCheckCollision(false);
 
@@ -158,36 +160,20 @@ namespace Engine {
 			s_VulkanData.TextureSlotIndex++;
 		}
 
+		
+
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(i, s_VulkanData.TextureSlots);
 		}
-		s_VulkanData.TextureSlotIndex = 1;
-		//m_vulkanGraphicsPipelines->UpdateComputeArrayDescriptorSets(0, s_VulkanData.TextureSlots);
+		s_VulkanData.TextureSlotIndex = 0;
 
 
 		// this is for rendering game in editor viewport
 		CreateImGuiTextureDescriptors();
 
-		//m_IOTextures[0] = AssetManager::GetTexture("logo");
-		// 
-		//VulkanUtils::TransitionImageLayout(m_IOTextures[0]->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
-		//	VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
-
-
-		//m_IOTextures[1] = AssetManager::GetTexture("logo");
-		
-
 		g_PerFrameGarbage.resize(MAX_FRAMES_IN_FLIGHT);
 
-		//CollisionResultsCPU::Latest.resize(MAX_COLLISION_RESULTS);
-
-		// just to fill the arrays
-		
-		// VulkanUtils::TransitionImageLayout(m_dummyTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
-		//	 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
-
-		
 
 
 		// *********** PROJECTILES **************
@@ -248,6 +234,11 @@ namespace Engine {
 			
 		}
 
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			m_vulkanGraphicsPipelines->UpdateEffectsDescriptorSet(i, s_VulkanProjectileData.TextureSlots,
+				s_VulkanData.HealthTextureSlots);
+		}
 
 		uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
 		uint32_t totalTiles = tilesPerRow * tilesPerRow;
@@ -302,7 +293,7 @@ namespace Engine {
 
 		//move somewhere
 		s_CollisionData.EntitySlotIndex = 0;
-		s_VulkanData.TextureSlotIndex = 1;
+		s_VulkanData.TextureSlotIndex = 0;
 		s_VulkanProjectileData.TextureSlotIndex = 1;
 		s_VulkanData.TextureToSlotMap.clear();
 		g_PerFrameGarbage[s_VulkanData.CurrentFrame].OldTextures.clear();
@@ -452,7 +443,7 @@ namespace Engine {
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
 		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame); 
-
+		RecordEffectComputeCommandBuffer(cmd, currentFrame);
 		
 		vkEndCommandBuffer(cmd);
 
@@ -488,9 +479,10 @@ namespace Engine {
 
 			if (result.collisionCount > 0)
 			{
+				EE_CORE_INFO("result.collisionCount {}", result.collisionCount);
 				CollisionResultsCPU::LatestProjectiles.clear();
 
-				CollisionResultsCPU::LatestProjectiles.reserve(result.collisionCount);
+				//CollisionResultsCPU::LatestProjectiles.reserve(result.collisionCount);
 				CollisionResultsCPU::LatestProjectiles.reserve(MAX_COLLISION_RESULTS);
 				for (uint32_t i = 0; i < result.collisionCount && i < MAX_COLLISION_RESULTS; ++i)
 				{
@@ -511,19 +503,7 @@ namespace Engine {
 				}
 			
 			}
-			else
-			{
-				CollisionResultsCPU::LatestProjectiles.clear();
-				m_CPUCollisionsHandeled = true;
-			}
-		
-			{
-				void* data = nullptr;
-				VkDeviceSize size = sizeof(CollisionResultBuffer);
-				vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
-				std::memset(data, 0, size);
-				vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
-			}
+			
 
 		}
 
@@ -534,7 +514,16 @@ namespace Engine {
 
 			std::vector<uint32_t> gpuBlockedTileMask(totalTiles);
 			ReadBlockedTileMask(gpuBlockedTileMask, totalTiles);
-
+			
+			/*
+			for (size_t i = 0; i < totalTiles; i++)
+			{
+				if (gpuBlockedTileMask[i] == 1)
+				{
+					EE_CORE_INFO("BLOCKED tile {}", i);
+				}
+			}
+			*/
 
 			Engine::TileBlockedMaskCPU::CachedGPUMask = std::move(gpuBlockedTileMask);
 
@@ -739,8 +728,14 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-		if (!m_CPUCollisionsHandeled)
-			return;
+		{
+			CollisionResultsCPU::LatestProjectiles.clear();
+			void* data = nullptr;
+			VkDeviceSize size = sizeof(CollisionResultBuffer);
+			vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
+			std::memset(data, 0, size);
+			vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
+		}
 
 		// only reset when needed?
 		uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
@@ -812,6 +807,7 @@ namespace Engine {
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
 			m_vulkanGraphicsPipelines->GetComputePipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
 
+
 		// Dispatch compute work per active texture
 		for (size_t i = 0; i < MAX_TEXTURES; i++)
 		{
@@ -879,6 +875,103 @@ namespace Engine {
 
 
 	}
+
+	void VulkanRenderer2D::RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame)
+	{
+		EE_PROFILE_FUNCTION();
+
+
+
+
+		// 1) Reset the explosion counter at the start of the pass
+		{
+			void* data = nullptr;
+			vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetEffectsBufferMemory(), 0, sizeof(uint32_t), 0, &data);
+			*reinterpret_cast<uint32_t*>(data) = 0u;
+			vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetEffectsBufferMemory());
+		}
+
+		// Update descriptor set (binding 0 = color images, binding 1 = health images, binding 2 = buffer)
+		m_vulkanGraphicsPipelines->UpdateEffectsDescriptorSet(currentFrame,
+			s_VulkanData.TextureSlots,         // COLOR array (u_InputTexture[])
+			s_VulkanData.HealthTextureSlots);  // HEALTH array (u_HealthImage[])
+
+		// 2) Transition BOTH arrays to GENERAL for storage writes/reads
+		// 2a) Color images (effects shader writes glow here)
+		for (size_t i = 0; i < MAX_TEXTURES; ++i) {
+			VulkanTexture& colorTex = *s_VulkanData.TextureSlots[i];
+			if (colorTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
+			{
+				TransitionImageLayout(cmdBuf, colorTex.GetImage(), colorTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_GENERAL);
+				colorTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
+			}
+		}
+		// 2b) Health images (effects shader reads/writes timer)
+		for (size_t i = 0; i < MAX_TEXTURES; ++i) {
+			VulkanTexture& healthTex = *s_VulkanData.HealthTextureSlots[i];
+			if ( healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
+			{
+				TransitionImageLayout(cmdBuf, healthTex.GetImage(), healthTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_GENERAL);
+				healthTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
+			}
+		}
+
+		// 3) Bind the effects compute pipeline
+		vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, m_vulkanGraphicsPipelines->GetEffectsPipeline());
+
+		// 4) Bind the effects descriptor set
+		VkDescriptorSet dset = m_vulkanGraphicsPipelines->GetEffectsDescriptorSet(currentFrame);
+		vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE,
+			m_vulkanGraphicsPipelines->GetEffectsPipelineLayout(),
+			0, 1, &dset, 0, nullptr);
+
+		// 5) Dispatch once per active texture
+		for (size_t i = 0; i < MAX_TEXTURES; ++i)
+		{
+			VulkanTexture& healthTex = *s_VulkanData.HealthTextureSlots[i];
+			if (healthTex.GetCheckCollision())
+				continue;
+
+			EffectPushConstants pc{};
+			pc.textureOrigin = healthTex.GetTextureOrigin();   // world origin of this chunk
+			pc.pixelSize = healthTex.GetPixelSize();       // world size of one pixel
+			pc.textureIndex = static_cast<uint32_t>(i);
+
+			// Effect tuning
+			pc.defaultTimer = 16;     // how many frames the glow should last when it starts
+			pc.glowStrength = 0.65f;  // additive strength per frame (tapered in shader)
+			pc.maxTimer = 32;     // clamp (also used for normalization in shader)
+			pc._pad0 = 0;
+
+			vkCmdPushConstants(cmdBuf,
+				m_vulkanGraphicsPipelines->GetEffectsPipelineLayout(),
+				VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(EffectPushConstants), &pc);
+
+			uint32_t groupX = (healthTex.GetWidth() + 15) / 16;
+			uint32_t groupY = (healthTex.GetHeight() + 15) / 16;
+			vkCmdDispatch(cmdBuf, groupX, groupY, 1);
+		}
+
+		// 6) Transition BOTH arrays back for sampling
+		// 6a) Color images -> SHADER_READ_ONLY_OPTIMAL (fragment sampling)
+		for (size_t i = 0; i < MAX_TEXTURES; ++i) {
+			VulkanTexture& colorTex = *s_VulkanData.TextureSlots[i];
+			if (colorTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+				TransitionImageLayout(cmdBuf, colorTex.GetImage(), colorTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				colorTex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			}
+		}
+		// 6b) Health images -> SHADER_READ_ONLY_OPTIMAL (if sampled later; otherwise you could keep GENERAL)
+		for (size_t i = 0; i < MAX_TEXTURES; ++i) {
+			VulkanTexture& healthTex = *s_VulkanData.HealthTextureSlots[i];
+			if (healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			{
+				TransitionImageLayout(cmdBuf, healthTex.GetImage(), healthTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				healthTex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			}
+		}
+	}
+
 
 
 
@@ -1218,7 +1311,7 @@ namespace Engine {
 		s_CollisionData.CollisionEntities[index].Rotation = rotation;
 		s_CollisionData.CollisionEntities[index].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
 		s_CollisionData.CollisionEntities[index].ID_High = static_cast<uint32_t>(entityID >> 32);
-		s_CollisionData.EntitySlotIndex++;
+		s_CollisionData.EntitySlotIndex;
 	}
 
 

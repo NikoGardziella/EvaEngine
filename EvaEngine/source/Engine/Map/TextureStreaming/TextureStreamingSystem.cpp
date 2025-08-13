@@ -31,6 +31,8 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
+        bool chunksPackedDirty = false;
+
         glm::ivec2 playerChunk = glm::ivec2(glm::floor(playerPos / float(CHUNK_SIZE)));
         if (m_chunkMap.empty())
         {
@@ -44,26 +46,37 @@ namespace Engine {
             if (dist <= LOAD_RADIUS && !chunk.IsLoaded)
             {
                 LoadChunkToGPU(chunk, gameRegistry);
+                chunksPackedDirty = true;
             }
             else if (dist > UNLOAD_RADIUS && chunk.IsLoaded)
             {
                 UnloadChunkFromGPU(chunk, gameRegistry);
+                chunksPackedDirty = true;
+
             }
         }
+
+        if (chunksPackedDirty)
+        {
+            SortChunksRowMajor(gameRegistry);
+        }
+
     }
 
     void TextureStreamingSystem::UploadToChunkFromTexture(
         const glm::vec2& worldPosition, UUID ID, std::string name,
-        const std::vector<uint8_t>& textureData,           // RGBA
-        const std::vector<uint8_t>& healthData,            // 1 byte per pixel
+        const std::vector<uint8_t>& textureData,           // RGBA (4 bpp)
+        const std::vector<uint8_t>& healthData,            // 1 bpp (optional; can be empty)
         uint32_t textureWidth, uint32_t textureHeight)
     {
         EE_PROFILE_FUNCTION();
         constexpr uint32_t chunkPixelSize = CHUNK_SIZE * PIXELS_IN_TILE;
+        constexpr uint8_t  kDefaultHealth = 255; // initial health for solid pixels
 
+        // Chunk addressing
         glm::ivec2 chunkCoords = glm::floor(glm::vec2(worldPosition) / float(CHUNK_SIZE));
-        glm::ivec2 chunkOrigin = chunkCoords * (int)CHUNK_SIZE;
-        glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOrigin;
+        glm::ivec2 chunkOriginTiles = chunkCoords * (int)CHUNK_SIZE;
+        glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOriginTiles;
         glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)PIXELS_IN_TILE;
 
         TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
@@ -71,10 +84,11 @@ namespace Engine {
 
         const uint32_t totalChunkPixels = chunkPixelSize * chunkPixelSize;
 
+        // First time we touch this chunk: allocate color (RGBA8) and health (RGBA8UI) storage
         if (chunk.PixelData.empty())
         {
-            chunk.PixelData.resize(totalChunkPixels * 4, 0);   // RGBA
-            chunk.HealthData.resize(totalChunkPixels, 0);      // 1 byte per pixel
+            chunk.PixelData.resize(size_t(totalChunkPixels) * 4, 0); // RGBA8 color
+            chunk.HealthData.resize(size_t(totalChunkPixels) * 4, 0); // RGBA8UI: R=health, G=timer, B/A=0
             chunk.Width = chunkPixelSize;
             chunk.Height = chunkPixelSize;
             chunk.IsLoaded = false;
@@ -82,48 +96,91 @@ namespace Engine {
             chunk.AssetName = name;
             chunk.ID = HashCoords(chunkCoords);
             chunk.ChunkCoords = chunkCoords;
-
-
-           
         }
 
-        uint32_t copyWidth = std::min(textureWidth, chunkPixelSize - offsetInChunk.x);
-        uint32_t copyHeight = std::min(textureHeight, chunkPixelSize - offsetInChunk.y);
-
-        if (offsetInChunk.x < 0 || offsetInChunk.y < 0 || copyWidth == 0 || copyHeight == 0)
-        {
-            EE_CORE_WARN("Texture '{}' is outside chunk bounds", name.c_str());
+        // Bounds check for copy region
+        if (offsetInChunk.x < 0 || offsetInChunk.y < 0) {
+            EE_CORE_WARN("Texture '{}' is outside chunk bounds (negative offset)", name.c_str());
             return;
         }
+
+        const uint32_t maxCopyW = chunkPixelSize - uint32_t(offsetInChunk.x);
+        const uint32_t maxCopyH = chunkPixelSize - uint32_t(offsetInChunk.y);
+        const uint32_t copyWidth = std::min(textureWidth, maxCopyW);
+        const uint32_t copyHeight = std::min(textureHeight, maxCopyH);
+        if (copyWidth == 0 || copyHeight == 0) {
+            EE_CORE_WARN("Texture '{}' has zero copy area into chunk", name.c_str());
+            return;
+        }
+
+        // Expect 4 bpp color source; health source is optional 1 bpp
+        EE_CORE_ASSERT(textureData.size() >= size_t(textureWidth) * textureHeight * 4, "textureData too small");
+        const bool has1BppHealth = (healthData.size() >= size_t(textureWidth) * textureHeight);
 
         for (uint32_t y = 0; y < copyHeight; ++y)
         {
             for (uint32_t x = 0; x < copyWidth; ++x)
             {
-                int dstX = offsetInChunk.x + x;
-                int dstY = offsetInChunk.y + y;
+                const int dstX = offsetInChunk.x + int(x);
+                const int dstY = offsetInChunk.y + int(y);
 
-                size_t dstColorIndex = (dstY * chunkPixelSize + dstX) * 4;
-                size_t dstHealthIndex = (dstY * chunkPixelSize + dstX);
+                const size_t dstColorIndex = (size_t(dstY) * chunkPixelSize + size_t(dstX)) * 4;
+                const size_t dstHealthIndex = (size_t(dstY) * chunkPixelSize + size_t(dstX)) * 4; // 4 bpp RGBA8UI
 
-                size_t srcIndex = (y * textureWidth + x) * 4;
-                size_t healthIndex = (y * textureWidth + x);
+                const size_t srcColorIndex = (size_t(y) * textureWidth + size_t(x)) * 4;
+                const size_t srcHealthIndex = (size_t(y) * textureWidth + size_t(x));             // 1 bpp
 
                 EE_CORE_ASSERT(dstColorIndex + 3 < chunk.PixelData.size(), "OOB color dst");
-                EE_CORE_ASSERT(srcIndex + 3 < textureData.size(), "OOB color src");
-                EE_CORE_ASSERT(dstHealthIndex < chunk.HealthData.size(), "OOB health dst");
-                EE_CORE_ASSERT(healthIndex < healthData.size(), "OOB health src");
+                EE_CORE_ASSERT(srcColorIndex + 3 < textureData.size(), "OOB color src");
+                EE_CORE_ASSERT(dstHealthIndex + 3 < chunk.HealthData.size(), "OOB health dst");
+                // srcHealthIndex is only used if has1BppHealth
 
-                const uint8_t alpha = textureData[srcIndex + 3];
-                if (alpha != 0)
+                const uint8_t srcR = textureData[srcColorIndex + 0];
+                const uint8_t srcG = textureData[srcColorIndex + 1];
+                const uint8_t srcB = textureData[srcColorIndex + 2];
+                const uint8_t srcA = textureData[srcColorIndex + 3];
+
+                if (srcA != 0)
                 {
-                    std::memcpy(&chunk.PixelData[dstColorIndex], &textureData[srcIndex], 4); // RGBA
-                    chunk.HealthData[dstHealthIndex] = healthData[healthIndex];             // Health
+                    // Write color as-is
+                    chunk.PixelData[dstColorIndex + 0] = srcR;
+                    chunk.PixelData[dstColorIndex + 1] = srcG;
+                    chunk.PixelData[dstColorIndex + 2] = srcB;
+                    chunk.PixelData[dstColorIndex + 3] = srcA;
+
+                    // Expand health to RGBA8UI
+                    const uint8_t healthR =
+                        has1BppHealth ? healthData[srcHealthIndex]
+                        : kDefaultHealth; // if no source, initialize from alpha presence
+
+                    chunk.HealthData[dstHealthIndex + 0] = healthR; // R = health
+                    chunk.HealthData[dstHealthIndex + 1] = 0;       // G = effect timer (starts at 0)
+                    chunk.HealthData[dstHealthIndex + 2] = 0;       // B = unused
+                    chunk.HealthData[dstHealthIndex + 3] = 0;       // A = unused
                 }
+                // else: transparent source pixel; leave color and health at 0s
             }
         }
 
         chunk.IsDirty = true;
+    }
+
+
+ 
+
+    void TextureStreamingSystem::SortChunksRowMajor(entt::registry& reg)
+    {
+        reg.sort<ChunkRendererComponent>([](const ChunkRendererComponent& a,
+            const ChunkRendererComponent& b)
+            {
+                // Put loaded chunks first
+                if (a.IsLoaded != b.IsLoaded) return a.IsLoaded && !b.IsLoaded;
+
+                // Then row-major by (y, x)
+                if (a.ChunkCoords.y != b.ChunkCoords.y)
+                    return a.ChunkCoords.y < b.ChunkCoords.y;
+                return a.ChunkCoords.x < b.ChunkCoords.x;
+            });
     }
 
 
@@ -193,17 +250,14 @@ namespace Engine {
         
         if (!chunk.HealthData.empty())
         {
-            chunk.HealthTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8_UINT);
+            chunk.HealthTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UINT);
 
-            /*
-            EE_CORE_WARN("REMOVE THIS?");
-            chunk.HealthTexture->SetPixelData(chunk.HealthData);
-            */
-            VulkanUtils::TransitionImageLayout(chunk.HealthTexture->GetImage(), VK_FORMAT_R8_UINT,
+           
+            VulkanUtils::TransitionImageLayout(chunk.HealthTexture->GetImage(), VK_FORMAT_R8G8B8A8_UINT,
                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             chunk.HealthTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-            chunk.HealthTexture->SetData(chunk.HealthData.data(), chunk.Height * chunk.Width);
+            chunk.HealthTexture->SetData(chunk.HealthData.data(), chunk.Height * chunk.Width * 4);
             // *****************************
         }
 
@@ -456,7 +510,6 @@ namespace Engine {
             
             auto entity = registry.create();
             auto& chunkRenderer = registry.emplace<ChunkRendererComponent>(entity);
-            TransformComponent& transformComp = registry.emplace<TransformComponent>(entity);
             
 			EE_CORE_INFO("Creating chunk entity at position: ({}, {})",
                 chunk.ChunkCoords.x, chunk.ChunkCoords.y);

@@ -29,8 +29,6 @@ namespace Engine
 	// todo add vector of collisions
     struct CollisionResultsCPU
     {
-
         static inline std::vector<Collision> LatestProjectiles;
-        static inline std::vector<Collision> LatestPlayer;
     };
 }

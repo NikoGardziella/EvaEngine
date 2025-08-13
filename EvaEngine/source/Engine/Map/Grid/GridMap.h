@@ -40,7 +40,7 @@ namespace Engine {
 
 	private:
 		std::unordered_set<glm::ivec2, IVec2Hasher, IVec2Equal> m_blockedTiles;
-		std::unordered_map<glm::ivec2, int, IVec2Hasher> tileHitCounts;
+		std::unordered_set<glm::ivec2, IVec2Hasher, IVec2Equal> m_previousBlockedTiles;
 	};
 }
 

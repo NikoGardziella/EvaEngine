@@ -1,0 +1,99 @@
+#type compute
+#version 450
+
+#define MAX_TEXTURES 32
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(set = 0, binding = 0, rgba8)   uniform  image2D  u_InputTexture[MAX_TEXTURES]; // color (UNORM)
+layout(set = 0, binding = 1, rgba8ui) uniform uimage2D u_HealthImage[MAX_TEXTURES];   // health/timer (UINT)
+
+layout(push_constant) uniform PC {
+    vec2  textureOrigin;
+    float pixelSize;
+    uint  textureIndex;
+    uint  defaultTimer;
+    float glowStrength;
+    uint  maxTimer;
+    uint  _pad0;
+} pc;
+
+// Small hash for subtle per-pixel flicker
+float hash12(ivec2 p){
+    // int->float hash, cheap and stable
+    uint x = uint(p.x) * 1664525u + 1013904223u;
+    uint y = uint(p.y) * 22695477u + 1u;
+    uint h = x ^ y;
+    return float(h & 0x00FFFFFFu) / 16777215.0;
+}
+
+// 3-stop palette: whiteHot -> orange -> smoke
+vec3 explosionPalette(float x){
+    // clamp life fraction 0..1 where 0 = start, 1 = end
+    x = clamp(x, 0.0, 1.0);
+    const vec3 whiteHot = vec3(1.0, 0.96, 0.85);
+    const vec3 orange   = vec3(1.00, 0.58, 0.18);
+    const vec3 smoke    = vec3(0.20, 0.20, 0.22);
+
+    if (x < 0.35) {
+        float t = smoothstep(0.0, 0.35, x);
+        return mix(whiteHot, orange, t);
+    } else {
+        float t = smoothstep(0.35, 1.0, x);
+        return mix(orange, smoke, t);
+    }
+}
+
+void main() {
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(u_HealthImage[pc.textureIndex]);
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    uvec4 hp = imageLoad(u_HealthImage[pc.textureIndex], gid);
+    uint  H  = hp.r;  // health
+    uint  T  = hp.g;  // timer (255 = just destroyed)
+
+    if (H == 0u) {
+        // Arm once for newly destroyed pixels
+        if (T == 255u) {
+            T = min(pc.defaultTimer, pc.maxTimer);
+        }
+
+        if (T > 0u) {
+            // Life fractions
+            float tLeft   = float(T) / float(max(pc.maxTimer, 1u)); // 1..0 over time
+            float life01  = 1.0 - tLeft;                            // 0..1 over time
+
+            // Weight: brighter at start, falls off
+            float w = tLeft * tLeft;
+
+            // Subtle per-pixel flicker (0..~0.1)
+            float flicker = (hash12(gid) - 0.5) * 0.12;
+
+            // Time-varying explosion color
+            vec3 glowCol = explosionPalette(life01);
+
+            vec4 base  = imageLoad(u_InputTexture[pc.textureIndex], gid);
+
+            // Additive glow with color evolution + small flicker
+            vec3 color = clamp(base.rgb + (pc.glowStrength + flicker) * w * glowCol, 0.0, 1.0);
+
+            // Keep it visible even if base alpha is 0
+            const float alphaFloor  = 0.22;
+            const float alphaBoost  = 0.55;
+            float a = max(base.a, alphaFloor);
+            a = clamp(a + alphaBoost * w, 0.0, 1.0);
+
+            imageStore(u_InputTexture[pc.textureIndex], gid, vec4(color, a));
+
+            // decrement once per frame
+            T = T - 1u;
+        } else {
+            // Effect is over -> make pixel fully transparent again
+            imageStore(u_InputTexture[pc.textureIndex], gid, vec4(0.0));
+        }
+    }
+
+    // Persist updated timer
+    hp.g = T;
+    imageStore(u_HealthImage[pc.textureIndex], gid, hp);
+}

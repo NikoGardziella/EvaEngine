@@ -36,40 +36,40 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(entt::registry& registry, floa
     for (auto entity : view)
     {
         auto& transform = view.get<Engine::TransformComponent>(entity);
-        auto& weapon = view.get<WeaponComponent>(entity);
+        auto& weaponCOmp = view.get<WeaponComponent>(entity);
 
-        if (weapon.Cooldown > 0.0f)
-            weapon.Cooldown -= deltaTime;
+        if (weaponCOmp.Cooldown > 0.0f)
+            weaponCOmp.Cooldown -= deltaTime;
 
-        if (Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0) && weapon.Cooldown <= 0.0f)
+        if (Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0) && weaponCOmp.Cooldown <= 0.0f)
         {
             glm::vec2 playerPos = glm::vec2(transform.Translation);
             glm::vec2 direction = glm::normalize(mouseWorldPosition - playerPos);
 
             Engine::Entity playerEntity = Engine::Entity{ entity, scene };
-            ShootProjectile(registry, playerEntity, transform.Translation, direction, scene, weapon.Damage);
+            ShootProjectile(registry, playerEntity, transform.Translation, direction, scene, weaponCOmp);
 
-            weapon.Cooldown = weapon.FireRate;
+            weaponCOmp.Cooldown = weaponCOmp.FireRate;
         }
     }
 }
 
-void PlayerWeaponSystem::ShootProjectile(entt::registry& registry, Engine::Entity entity, const glm::vec2& position, const glm::vec2& direction, Engine::Scene* scene, float damage)
+void PlayerWeaponSystem::ShootProjectile(entt::registry& registry, Engine::Entity entity,
+    const glm::vec2& position, const glm::vec2& direction, Engine::Scene* scene, const WeaponComponent& weaponComp)
 {
     // disable shooting from a car now
     if (entity.HasComponent<DriverComponent>())
         return;
+
     Engine::Entity& projectileEntity = scene->CreateEntity("Projectile");
 
     Engine::TransformComponent& transformComp = projectileEntity.AddComponent<Engine::TransformComponent>();
-    float projectileSpeed = 2.0f;
 	float lifeTime = 1.0f;
     float projectileRadius = 0.1f;
-    uint32_t pixeldestructionRadius = PIXELS_IN_TILE / 1;
-    ProjectileComponent& projectileComp = projectileEntity.AddComponent<ProjectileComponent>(direction * projectileSpeed, lifeTime);
-    projectileComp.Damage = damage;
+    ProjectileComponent& projectileComp = projectileEntity.AddComponent<ProjectileComponent>(direction * weaponComp.ProjectileSpeed, lifeTime);
+    projectileComp.Damage = weaponComp.Damage;
     projectileComp.ProjectileRadius = projectileRadius;
-    projectileComp.PixelDestructionRadius = pixeldestructionRadius;
+    projectileComp.PixelDestructionRadius = weaponComp.DestructionRadius;
 
     Engine::SpriteRendererComponent& spriteComp = projectileEntity.AddComponent<Engine::SpriteRendererComponent>();
     projectileComp.Owner = entity;

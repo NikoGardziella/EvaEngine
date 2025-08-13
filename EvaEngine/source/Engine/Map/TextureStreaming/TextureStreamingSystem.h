@@ -32,7 +32,7 @@ namespace Engine{
     
     };
 
-   
+
 
 
 
@@ -60,6 +60,7 @@ namespace Engine{
         void ResetAllChunks(entt::registry& gameRegistry);
         void DebugDrawChunkOutlines(entt::registry& gameRegistry);
     private:
+        void SortChunksRowMajor(entt::registry& reg);
         uint64_t HashCoords(const glm::ivec2& coords);
         void FlipChunkHorizontally(TextureChunk& chunk);
         void FlipChunkVertically(TextureChunk& chunk);
@@ -70,6 +71,8 @@ namespace Engine{
 
         std::unordered_map<UUID, TextureChunk> m_chunkMap;
         Ref<GridMap> m_gridMap;
+
+        
 
     };
 

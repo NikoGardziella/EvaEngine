@@ -94,6 +94,10 @@ constexpr size_t CHUNK_SIZE = 32; // Tiles in a chunk
 // GRID
 constexpr size_t GRID_SUBDIVISIONS = 4;
 
+//effects
+constexpr size_t MAX_EXPLOSIONS = 32;
+
+
 
 namespace Engine {
 
