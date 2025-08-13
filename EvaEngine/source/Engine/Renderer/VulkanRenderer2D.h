@@ -76,7 +76,7 @@ namespace Engine {
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> TextureSlots;
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> HealthTextureSlots;
 		uint32_t TextureSlotIndex = 0; // 0 = white texture
-		uint32_t HealthTextureSlotIndex = 0;
+		//uint32_t HealthTextureSlotIndex = 0;
 
 		glm::vec3 QuadVertexPositions[4];
 

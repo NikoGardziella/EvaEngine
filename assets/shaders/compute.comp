@@ -157,72 +157,124 @@ void main()
     }
 
 
-
-    // ---- Collision / damage / destruction ----
+    // ----- collision / damage / effects -----
     for (uint i = 0; i < pc.NumProjectiles; ++i)
     {
         ProjectileGPU proj = data[i];
 
         bool hit = false;
-        if (proj.Type == 0u || proj.Type == 1u) {
+        if (proj.Type == 0u || proj.Type == 1u)
+        {
             hit = (distance(worldPos, proj.Position) < proj.Radius);
-        } else if (proj.Type == 2u) {
+        }
+        else if (proj.Type == 2u)
+        {
             hit = pointInRotatedBox(worldPos, proj.Position, proj.Size * 0.5, proj.Rotation);
         }
         if (!hit) continue;
 
-        // No health here? Don't claim; let a neighbor with health handle it.
-        if (health == 0u) {
-            continue;
-        }
+        // If this pixel is already empty, let a neighbor with health claim it
+        if (health == 0u) continue;
 
-        // Claim once AFTER verifying health > 0
+        // Claim once (after health check)
         if (i >= MAX_COLLISION_ENTITIES) continue;
-        if (atomicCompSwap(results[i].collisionDetected, 0u, 1u) != 0u)
-            continue;
+        if (atomicCompSwap(results[i].collisionDetected, 0u, 1u) != 0u) continue;
 
-        // Re-read freshest health and apply damage
-        uvec4 centerHT = imageLoad(u_HealthImage[pc.TextureIndex], localPx);
-        uint  newHealth = centerHT.r;
+        // Current chunk size for neighbor mapping
+        ivec2 curSize = imageSize(u_InputTexture[pc.TextureIndex]);
 
-        if (proj.Type == 0u || proj.Type == 2u) {
-            newHealth = (proj.Damage > newHealth) ? 0u : (newHealth - proj.Damage);
-        }
+        // ----- center damage -----
+        uvec4 centerHT   = imageLoad(u_HealthImage[pc.TextureIndex], localPx);
+        uint  prevCenter = centerHT.r;
+        uint  newCenter  = prevCenter;
 
-        centerHT.r = newHealth;
-        centerHT.g = (newHealth == 0u) ? 255u : 0u;   // arm effects when destroyed
-        imageStore(u_HealthImage[pc.TextureIndex], localPx, centerHT);
-
-        if (newHealth == 0u)
+        bool damagesTerrain = (proj.Type == 0u || proj.Type == 2u);
+        if (damagesTerrain)
         {
+            newCenter  = (proj.Damage >= newCenter) ? 0u : (newCenter - proj.Damage);
+            centerHT.r = newCenter;
+
+            // Start effects via sentinels:
+            // 255 = destroyed flash, 254 = impact flash (only arm if not already running)
+            if (newCenter == 0u)
+            {
+                centerHT.g = 255u;
+                imageStore(u_InputTexture[pc.TextureIndex], localPx, vec4(0.0)); // clear only if dead
+            }
+            else
+            {
+                if (centerHT.g == 0u) centerHT.g = 254u;
+            }
+
+            imageStore(u_HealthImage[pc.TextureIndex], localPx, centerHT);
+
+            // ----- radius damage (ALWAYS, even if center survives) -----
             int rpx = int(proj.DestructionRadius);
+
             for (int dy = -rpx; dy <= rpx; ++dy)
             for (int dx = -rpx; dx <= rpx; ++dx)
             {
-                if (dx*dx + dy*dy > rpx*rpx) continue;
+                int d2 = dx*dx + dy*dy;
+                if (d2 > rpx*rpx) continue;
+                if (dx == 0 && dy == 0) continue; // center handled
 
+                // Map to neighbor slot / coords
                 uint  dstSlot;
                 ivec2 dstPx;
-                mapToNeighborSlot(localPx + ivec2(dx,dy), curSize, dstSlot, dstPx);
+                mapToNeighborSlot(localPx + ivec2(dx, dy), curSize, dstSlot, dstPx);
                 if (dstSlot == 0xffffffffu || dstSlot >= ACTIVE_SLOTS) continue;
 
                 ivec2 dstSize = imageSize(u_InputTexture[dstSlot]);
-                if (dstPx.x < 0 || dstPx.y < 0 || dstPx.x >= dstSize.x || dstPx.y >= dstSize.y)
-                    continue;
+                if (dstPx.x < 0 || dstPx.y < 0 || dstPx.x >= dstSize.x || dstPx.y >= dstSize.y) continue;
 
-                imageStore(u_InputTexture[dstSlot], dstPx, vec4(0.0));
+                // Neighbor health
                 uvec4 nht = imageLoad(u_HealthImage[dstSlot], dstPx);
-                nht.r = 0u;
-                nht.g = 255u; // "newly destroyed" sentinel for effects pass
+                uint  h   = nht.r;
+
+                if (h == 0u)
+                {
+                    // Already destroyed: keep clear and arm destroyed flash if idle
+                    imageStore(u_InputTexture[dstSlot], dstPx, vec4(0.0));
+                    if (nht.g == 0u) nht.g = 255u;
+                    imageStore(u_HealthImage[dstSlot], dstPx, nht);
+                    continue;
+                }
+
+                // Damage model — constant damage to all neighbors in radius
+                uint neighborDamage = proj.Damage;
+
+                // // Optional linear falloff:
+                // float distNorm = sqrt(float(d2)) / float(rpx);     // 0..1
+                // float scale    = clamp(1.0 - distNorm, 0.0, 1.0);
+                // uint  neighborDamage = uint(max(1.0, floor(float(proj.Damage) * scale)));
+
+                uint newH = (neighborDamage >= h) ? 0u : (h - neighborDamage);
+                nht.r = newH;
+
+                if (newH == 0u)
+                {
+                    imageStore(u_InputTexture[dstSlot], dstPx, vec4(0.0)); // clear only if dead
+                    nht.g = 255u;                                          // destroyed flash
+                }
+                else
+                {
+                    if (nht.g == 0u) nht.g = 254u;                          // impact flash (first time)
+                }
+
                 imageStore(u_HealthImage[dstSlot], dstPx, nht);
             }
         }
 
+        // Record result
         results[i].hitProjectileID_Low  = proj.ID_Low;
         results[i].hitProjectileID_High = proj.ID_High;
         results[i].CollisionPosition    = worldPos;
-        results[i].HealthAfter          = newHealth;
+        results[i].HealthAfter          = damagesTerrain ? newCenter : prevCenter;
         atomicAdd(collisionCount, 1u);
         break;
     }
+
+
+
+
 }

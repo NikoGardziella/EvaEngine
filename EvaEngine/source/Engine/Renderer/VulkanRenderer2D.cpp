@@ -148,10 +148,9 @@ namespace Engine {
 		AssetManager::AddTexture("house", Engine::AssetManager::GetAssetPath("textures/house.png").string(), false);
 
 		
-		m_dummyTexture = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8_UINT);
+		m_dummyTexture = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8G8B8A8_UINT);
 		m_dummyTexture->SetCheckCollision(false);
 
-		s_VulkanData.HealthTextureSlots[0] = m_dummyTexture;
 		// Fill the rest of the slots with pixel texture
 		for (uint32_t i = s_VulkanData.TextureSlotIndex; i < s_VulkanData.MaxTextureSlots; i++)
 		{
@@ -443,6 +442,10 @@ namespace Engine {
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
 		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame); 
+
+
+
+
 		RecordEffectComputeCommandBuffer(cmd, currentFrame);
 		
 		vkEndCommandBuffer(cmd);
@@ -858,6 +861,7 @@ namespace Engine {
 				tex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			}
 		}
+		/*
 		// Transition HealthTextures back to SHADER_READ_ONLY_OPTIMAL if needed
 		for (size_t i = 0; i < MAX_TEXTURES; i++)
 		{
@@ -872,6 +876,7 @@ namespace Engine {
 				healthTex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			}
 		}
+		*/
 
 
 	}
@@ -926,10 +931,10 @@ namespace Engine {
 			0, 1, &dset, 0, nullptr);
 
 		// 5) Dispatch once per active texture
-		for (size_t i = 0; i < MAX_TEXTURES; ++i)
+		for (size_t i = 0; i < 9; ++i)
 		{
 			VulkanTexture& healthTex = *s_VulkanData.HealthTextureSlots[i];
-			if (healthTex.GetCheckCollision())
+			if (!healthTex.GetCheckCollision())
 				continue;
 
 			EffectPushConstants pc{};

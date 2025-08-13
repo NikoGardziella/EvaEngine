@@ -1,6 +1,81 @@
 Scene: My Scene
 Entities:
-  - ID: 16517443141669074222
+  - ID: 7681132088292215974
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [4, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [-2, 1]
+          UV: [0.125, 0, 0.1640625, 0.33333334]
+          Name: walls_0043_Layer-44
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 20
+        - Position: [-1, 0]
+          UV: [0.125, 0, 0.1640625, 0.33333334]
+          Name: walls_0043_Layer-44
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 20
+        - Position: [-2, -1]
+          UV: [0.125, 0, 0.1640625, 0.33333334]
+          Name: walls_0043_Layer-44
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 20
+        - Position: [-1, -2]
+          UV: [0.125, 0, 0.1640625, 0.33333334]
+          Name: walls_0043_Layer-44
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 20
+        - Position: [-2, 0]
+          UV: [0, 0.33333334, 0.125, 0.6666667]
+          Name: walls_0003_Layer-4
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Wood
+          Health: 1
+        - Position: [-1, 1]
+          UV: [0, 0.33333334, 0.125, 0.6666667]
+          Name: walls_0003_Layer-4
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Wood
+          Health: 1
+        - Position: [-1, -1]
+          UV: [0, 0.33333334, 0.125, 0.6666667]
+          Name: walls_0003_Layer-4
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Wood
+          Health: 1
+        - Position: [-2, -2]
+          UV: [0, 0.33333334, 0.125, 0.6666667]
+          Name: walls_0003_Layer-4
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Wood
+          Health: 1
+  - ID: 820360494
     TagComponent:
       Tag: Entity
     TransformComponent:

@@ -532,9 +532,13 @@ namespace Engine {
                             textureOrigin.x = worldPos.x - CHUNK_SIZE * 0.5f;
                             textureOrigin.y = worldPos.y - CHUNK_SIZE * 0.5f;
                             
+                            chunkComp.HealthTexture->SetCheckCollision(true);
+                            chunkComp.HealthTexture->SetTextureOrigin(textureOrigin);
+                            chunkComp.HealthTexture->SetPixelSize(pixelSize);
                             chunkComp.Texture->SetCheckCollision(true);
                             chunkComp.Texture->SetTextureOrigin(textureOrigin);
                             chunkComp.Texture->SetPixelSize(pixelSize);
+
 
                             minOrigin.x = std::min(minOrigin.x, chunkComp.ChunkCoords.x);
                             minOrigin.y = std::min(minOrigin.y, chunkComp.ChunkCoords.y);

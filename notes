@@ -172,5 +172,7 @@
     Effects:
         -Add darkened pixels for the textures that were in radius of explosion but did not get destroyed
         -No damage behind textures that did not get destroyed
+        - each destroyed pixel becomes a particle
+        
 
 }

@@ -15,7 +15,7 @@ walls_0004_Layer-5:
   UV: [0.125, 0.33333334, 0.25, 0.6666667]
 walls_0043_Layer-44:
   Name: walls_0043_Layer-44
-  Health: 0
+  Health: 20
   Material: 4
   UV: [0.125, 0, 0.1640625, 0.33333334]
 walls_0044_Layer-45:
@@ -48,3 +48,8 @@ walls_0003_Layer-4:
   Health: 1
   Material: 3
   UV: [0, 0.33333334, 0.125, 0.6666667]
+walls_0046_Layer-47:
+  Name: walls_0046_Layer-47
+  Health: 0
+  Material: 2
+  UV: [0.4140625, 0, 0.453125, 0.33333334]
