@@ -1,15 +1,15 @@
 #pragma once
 
 
-    #include <spdlog/spdlog.h>
-    #include <spdlog/fmt/ostr.h>
-    #include <spdlog/fmt/bundled/format.h>
-    #include <spdlog/fmt/bundled/base.h>
-    #include <spdlog/fmt/bundled/ostream.h>
-    #include <spdlog/fmt/bundled/core.h>
-    #include <spdlog/fmt/compile.h>
-    #include "Engine/Core/Log.h"
-    #include <filesystem>
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/fmt/bundled/format.h>
+#include <spdlog/fmt/bundled/base.h>
+#include <spdlog/fmt/bundled/ostream.h>
+#include <spdlog/fmt/bundled/core.h>
+#include <spdlog/fmt/compile.h>
+#include "Engine/Core/Log.h"
+#include <filesystem>
 
 
 #ifdef EE_PLATFORM_WINDOWS
@@ -93,7 +93,6 @@ constexpr size_t CHUNK_SIZE = 32; // Tiles in a chunk
 
 // GRID
 constexpr size_t GRID_SUBDIVISIONS = 4;
-
 //effects
 constexpr size_t MAX_EXPLOSIONS = 32;
 

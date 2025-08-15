@@ -133,7 +133,7 @@ namespace Engine {
         ~VulkanGraphicsPipeline();
 
         void UpdatePresentDescriptorSet(uint32_t imageIndex);
-        void UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES>  input, std::array<Ref<VulkanTexture>, MAX_TEXTURES> healthTextures);
+        void UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>  input, std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> healthTextures);
         void UpdateProjectileDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_PROJECTILES>& textures);
        
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
@@ -148,7 +148,7 @@ namespace Engine {
         void UpdateCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionEntitiesGPU, MAX_COLLISION_ENTITIES> bulletPositions);
 
         void UpdateTextureUniformBuffer(uint32_t currentFrame, const glm::ivec2& textureSize);
-        void UpdateEffectsDescriptorSet(uint32_t currentFrame, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& colorTextures, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& healthTextures);
+        void UpdateEffectsDescriptorSet(uint32_t currentFrame, const std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& colorTextures, const std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& healthTextures);
 
 
 

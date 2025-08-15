@@ -12,6 +12,7 @@ namespace Engine{
     const int LOAD_RADIUS = 1; // Load a 3×3 chunk area (1 chunks in all directions)
     const int UNLOAD_RADIUS = 1; 
     const int CHUNK_GRID_WIDTH = LOAD_RADIUS * 2 + 1;
+    const int CHUNK_GRID_SIZE = CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH;
 
     struct TextureChunk {
         UUID ID;
@@ -20,10 +21,12 @@ namespace Engine{
         glm::ivec2 ChunkCoords; 
         std::vector<uint8_t> PixelData; 
         std::vector<uint8_t> HealthData;
+        std::vector<uint8_t> TerrainData;
         bool IsDirty = false; // Mark if pixels were modified
         bool IsLoaded = false;
         Engine::Ref<Engine::VulkanTexture> GPUTexture; 
         Engine::Ref<Engine::VulkanTexture> HealthTexture; 
+        Engine::Ref<Engine::VulkanTexture> TerrainTexture; 
 
         uint32_t Width = 0;
         uint32_t Height = 0;
@@ -48,6 +51,8 @@ namespace Engine{
       
 		void TextureStreamingSystem::UploadToChunkFromTexture(const glm::vec2& worldPosition, UUID ID,
             std::string name, const std::vector<uint8_t>& textureData, const std::vector<uint8_t>& healthData, uint32_t textureWidth, uint32_t textureHeight);
+
+        void UploadTerrainToChunkFromTexture(const glm::vec2& worldPosition, UUID ID, std::string name, const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
         
 		std::unordered_map<UUID, TextureChunk>& GetChunkMap() { return m_chunkMap; }
 

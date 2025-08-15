@@ -2,73 +2,106 @@
 #version 450
 
 #define MAX_TEXTURES 32
+#define GRID_WIDTH              3
+#define GRID_HEIGHT             3
+#define ACTIVE_SLOTS            (GRID_WIDTH * GRID_HEIGHT)  // 9
+
+
 layout(local_size_x = 16, local_size_y = 16) in;
 
-layout(set = 0, binding = 0, rgba8)   uniform  image2D  u_InputTexture[MAX_TEXTURES];
-layout(set = 0, binding = 1, rgba8ui) uniform uimage2D u_HealthImage[MAX_TEXTURES];
+layout(set = 0, binding = 0, rgba8)   uniform  image2D  u_InputTexture[ACTIVE_SLOTS];
+layout(set = 0, binding = 1, rgba8ui) uniform uimage2D u_HealthImage[ACTIVE_SLOTS];
 
 layout(push_constant) uniform PC {
     vec2  textureOrigin;
     float pixelSize;
     uint  textureIndex;
-    uint  defaultTimer;   // seed for destroyed
-    float glowStrength;   // recommend ~0.4..0.9
-    uint  maxTimer;       // clamp/normalize timeline
+    uint  defaultTimer;   // destroyed timer seed
+    float glowStrength;   // 0.4..0.9 typical
+    uint  maxTimer;       // clamp/normalize
     uint  _pad0;
 } pc;
 
 void main()
 {
+    // Only the 3x3 active slots are used
+    if (pc.textureIndex >= 9u)
+    {
+        return;
+    }
+
     ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
     ivec2 size = imageSize(u_HealthImage[pc.textureIndex]);
     if (gid.x >= size.x || gid.y >= size.y)
+    {
         return;
+    }
 
-    // r = health (0..255), g = timer/sentinel (0 idle, 254 impact, 255 destroyed, else live countdown)
+    // Load health/timer
     uvec4 hp = imageLoad(u_HealthImage[pc.textureIndex], gid);
-    uint  H  = hp.r;
-    uint  T  = hp.g;
+    uint  H  = hp.r;  // health (0 for empty OR immutable terrain)
+    uint  T0 = hp.g;  // timer or sentinel (254 = impact, 255 = destroyed, else active timer)
 
-    // Convert sentinels -> live timers (single-shot)
-    uint hitTimer = max(pc.defaultTimer / 2u, 1u);
-    if (T == 255u)
-        T = min(pc.defaultTimer, pc.maxTimer);
-    else if (T == 254u)
-        T = min(hitTimer, pc.maxTimer);
+    // Expand sentinels to a real timer
+    uint impactSeed    = max(pc.defaultTimer / 2u, 1u);
+    uint armedTimer    = (T0 == 255u) ? pc.defaultTimer
+                        : (T0 == 254u) ? impactSeed
+                        : T0;
+    uint Tcur          = min(armedTimer, pc.maxTimer);
 
-    if (T > 0u)
+    // Early out if nothing to do
+    if (Tcur == 0u)
     {
-        // Read current color (may be zero if center was cleared by destruction)
-        vec4 base = imageLoad(u_InputTexture[pc.textureIndex], gid);
-
-        // Smooth fade weight
-        float tf = float(T) / float(max(pc.maxTimer, 1u)); // 0..1
-        float w  = tf * tf;
-
-        // Pure color glow — no transparency during the effect
-        const vec3 glowDestroyed = vec3(1.00, 0.55, 0.15); // orange
-        const vec3 glowImpact    = vec3(1.00, 0.90, 0.25); // yellow
-        vec3 glowColor           = (H == 0u) ? glowDestroyed : glowImpact;
-
-        // Additive tint; clamp to 1.0
-        vec3 outRGB = clamp(base.rgb + glowColor * (pc.glowStrength * w), 0.0, 1.0);
-
-        // Force visible alpha during the glow so it’s never “see-through”
-        float outA = 1.0;
-
-        imageStore(u_InputTexture[pc.textureIndex], gid, vec4(outRGB, outA));
-
-        // countdown
-        T -= 1u;
-    }
-    else
-    {
-        // Timer finished: if the pixel is truly destroyed, keep it clear; otherwise leave as-is
-        if (H == 0u)
-            imageStore(u_InputTexture[pc.textureIndex], gid, vec4(0.0));
+        // Do not attempt to "restore" anything here; we write deltas below so fade-out is automatic.
+        // Also do NOT clear color for terrain (H==0 might be terrain).
+        return;
     }
 
-    // Persist updated timer
-    hp.g = T;
+    // Compute next timer value
+    uint Tnext = Tcur - 1u;
+
+    // Convert to 0..1 weights (quadratic curve for a nice fade)
+    float denom    = float(max(pc.maxTimer, 1u));
+    float w_cur    = float(Tcur)  / denom;
+    float w_next   = float(Tnext) / denom;
+    float w2_cur   = w_cur  * w_cur;
+    float w2_next  = w_next * w_next;
+
+    // Read current color (this already includes previous frames' effect)
+    vec4 base = imageLoad(u_InputTexture[pc.textureIndex], gid);
+
+    // Color delta so we always converge back to original:
+    // Enforce: color = base_original + glowStrength * w^2 * tint
+    // Implement by adding delta = glowStrength * (w_next^2 - w_cur^2) * tint each frame.
+    vec3 tint    = vec3(1.0, 0.75, 0.20);
+    float amp    = pc.glowStrength;
+    vec3 delta   = amp * (w2_next - w2_cur) * tint;
+
+    // Apply RGB delta (will brighten, then subtract back to original as T goes to 0)
+    vec3 outRgb  = clamp(base.rgb + delta, 0.0, 1.0);
+
+    // Alpha handling
+    // - Immutable terrain (visible pixels with H==0) should keep its alpha unchanged.
+    // - Destroyed/empty space (alpha ~0) should temporarily raise alpha so the glow is visible,
+    //   then fall back to 0 when the timer finishes.
+    float baseA      = base.a;
+    bool  isEmpty    = (baseA < 0.01);       // empty or destroyed area
+    bool  isTerrain  = !isEmpty && (H == 0u); // visible pixel but health==0
+
+    // Use the same delta trick for alpha, but only for empty/destroyed regions.
+    float alphaAmp   = 1.0;                  // how opaque the glow gets over empty
+    float dAlpha     = isEmpty ? alphaAmp * (w2_next - w2_cur) : 0.0;
+    float outA       = clamp(baseA + dAlpha, 0.0, 1.0);
+
+    // Important: never force terrain transparent
+    if (isTerrain)
+    {
+        outA = baseA;
+    }
+
+    imageStore(u_InputTexture[pc.textureIndex], gid, vec4(outRgb, outA));
+
+    // Persist updated timer (store the active countdown)
+    hp.g = Tnext;
     imageStore(u_HealthImage[pc.textureIndex], gid, hp);
 }

@@ -165,6 +165,103 @@ namespace Engine {
         chunk.IsDirty = true;
     }
 
+    void TextureStreamingSystem::UploadTerrainToChunkFromTexture(
+        const glm::vec2& worldPosition, UUID ID, std::string name,
+        const std::vector<uint8_t>& textureData,   // RGBA (4 bpp)
+        uint32_t textureWidth, uint32_t textureHeight)
+    {
+        EE_PROFILE_FUNCTION();
+
+        constexpr uint32_t chunkPixelSize = CHUNK_SIZE * PIXELS_IN_TILE;
+
+        // Chunk addressing (same as your other uploader)
+        glm::ivec2 chunkCoords = glm::floor(glm::vec2(worldPosition) / float(CHUNK_SIZE));
+        glm::ivec2 chunkOriginTiles = chunkCoords * (int)CHUNK_SIZE;
+        glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOriginTiles;
+        glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)PIXELS_IN_TILE;
+
+        TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
+        chunk.TextureCount += 1;
+
+        const uint32_t totalChunkPixels = chunkPixelSize * chunkPixelSize;
+
+        // Allocate terrain storage the first time we touch this chunk
+        if (chunk.TerrainData.empty())
+        {
+            chunk.TerrainData.resize(size_t(totalChunkPixels) * 4, 0); // RGBA8 terrain
+            // If this chunk was never initialized by the dynamic uploader, set metadata
+            if (chunk.Width == 0 || chunk.Height == 0)
+            {
+                chunk.Width = chunkPixelSize;
+                chunk.Height = chunkPixelSize;
+                chunk.IsLoaded = false;
+                chunk.Name = "Chunk_" + std::to_string(chunkCoords.x) + "_" + std::to_string(chunkCoords.y);
+                chunk.AssetName = name;
+                chunk.ID = HashCoords(chunkCoords);
+                chunk.ChunkCoords = chunkCoords;
+            }
+        }
+        else
+        {
+            // Ensure correct size if something changed
+            const size_t wanted = size_t(totalChunkPixels) * 4;
+            if (chunk.TerrainData.size() != wanted)
+                chunk.TerrainData.assign(wanted, 0);
+        }
+
+        // Bounds check for copy region
+        if (offsetInChunk.x < 0 || offsetInChunk.y < 0)
+        {
+            EE_CORE_WARN("Terrain '{}' is outside chunk bounds (negative offset)", name.c_str());
+            return;
+        }
+
+        const uint32_t maxCopyW = chunkPixelSize - uint32_t(offsetInChunk.x);
+        const uint32_t maxCopyH = chunkPixelSize - uint32_t(offsetInChunk.y);
+        const uint32_t copyWidth = std::min(textureWidth, maxCopyW);
+        const uint32_t copyHeight = std::min(textureHeight, maxCopyH);
+        if (copyWidth == 0 || copyHeight == 0)
+        {
+            EE_CORE_WARN("Terrain '{}' has zero copy area into chunk", name.c_str());
+            return;
+        }
+
+        // Expect 4 bpp color source
+        EE_CORE_ASSERT(textureData.size() >= size_t(textureWidth) * textureHeight * 4, "terrain textureData too small");
+
+        // Copy RGBA into TerrainData. We skip fully transparent source texels to preserve existing terrain underneath.
+        // If you want transparent areas to clear previous terrain, remove the alpha check and always write.
+        for (uint32_t y = 0; y < copyHeight; ++y)
+        {
+            for (uint32_t x = 0; x < copyWidth; ++x)
+            {
+                const int dstX = offsetInChunk.x + int(x);
+                const int dstY = offsetInChunk.y + int(y);
+
+                const size_t dstIdx = (size_t(dstY) * chunkPixelSize + size_t(dstX)) * 4;
+                const size_t srcIdx = (size_t(y) * textureWidth + size_t(x)) * 4;
+
+                EE_CORE_ASSERT(dstIdx + 3 < chunk.TerrainData.size(), "OOB terrain dst");
+                EE_CORE_ASSERT(srcIdx + 3 < textureData.size(), "OOB terrain src");
+
+                const uint8_t r = textureData[srcIdx + 0];
+                const uint8_t g = textureData[srcIdx + 1];
+                const uint8_t b = textureData[srcIdx + 2];
+                const uint8_t a = textureData[srcIdx + 3];
+
+                if (a != 0)
+                {
+                    chunk.TerrainData[dstIdx + 0] = r;
+                    chunk.TerrainData[dstIdx + 1] = g;
+                    chunk.TerrainData[dstIdx + 2] = b;
+                    chunk.TerrainData[dstIdx + 3] = a;
+                }
+                // else: leave existing terrain as-is under transparent texel
+            }
+        }
+
+        chunk.IsDirty = true; // mark for GPU upload
+    }
 
  
 
@@ -248,6 +345,19 @@ namespace Engine {
         constexpr int CHUNK_RES = CHUNK_SIZE; // Assuming square chunks
 
         
+        if (!chunk.TerrainData.empty())
+        {
+            chunk.TerrainTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UNORM);
+
+            VulkanUtils::TransitionImageLayout(chunk.TerrainTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
+                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            chunk.TerrainTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+            chunk.TerrainTexture->SetData(chunk.TerrainData.data(), chunk.Height * chunk.Width * 4);
+
+        }
+
+
         if (!chunk.HealthData.empty())
         {
             chunk.HealthTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UINT);
@@ -269,6 +379,8 @@ namespace Engine {
 
 		chunk.GPUTexture->SetData(chunk.PixelData.data(), chunk.Height * chunk.Width * 4);
 
+
+        
 
 
       
@@ -298,6 +410,7 @@ namespace Engine {
             {
                 chunkRendComp.Texture = chunk.GPUTexture;
                 chunkRendComp.HealthTexture = chunk.HealthTexture;
+                chunkRendComp.TerrainTexture = chunk.TerrainTexture;
                 chunkRendComp.IsLoaded = true;
                 chunk.GPUTexture = nullptr;
                 break;
@@ -463,14 +576,54 @@ namespace Engine {
             auto& transformComp = view.get<TransformComponent>(entity);
             const auto& tcomp = view.get<TileComponent>(entity);
 
+     
+            for (const TileInfo& tile : tcomp.tiles)
+            {
 
+                if (tile.Category != eTileCategory::Terrain)
+                {
+                    continue;
+                }
+
+                glm::ivec2 worldTilePos = MapUtils::GetWorldTileCoords(tile.position, transformComp.Translation);
+
+                std::vector<uint8_t> pixelData;
+                std::vector<uint8_t> healthData;
+                int width, height;
+                if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, width, height))
+                    continue;
+
+
+
+               
+                    //  m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
+                     //     width, height);
+
+                UploadTerrainToChunkFromTexture(worldTilePos, tcomp.TileID, tile.name, pixelData,
+                    uint32_t(width), uint32_t(height));
+                
+
+            }
+        }
+
+
+        for (auto entity : view)
+        {
             // check if this entity has roof tiles.
             // if it does, make a new roof texture that is combinatio of all roof tiles
             TextureStreamingUtils::BakeRoofTextureIfNeeded(registry, entity);
             TextureStreamingUtils::BakeVehicleTextureIfNeeded(registry, entity);
 
+            auto& transformComp = view.get<TransformComponent>(entity);
+            const auto& tcomp = view.get<TileComponent>(entity);
+
             for (const TileInfo& tile : tcomp.tiles)
             {
+
+                if (tile.Category == eTileCategory::Terrain)
+                {
+                    continue;
+                }
                 glm::ivec2 worldTilePos = MapUtils::GetWorldTileCoords(tile.position, transformComp.Translation);
 
                 
@@ -482,18 +635,14 @@ namespace Engine {
 
                
 
-                if (tile.IsDestructible)
-                {
+                
                   //  m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
                    //     width, height);
 
-
                     UploadToChunkFromTexture(worldTilePos, tcomp.TileID,tile.name,pixelData, 
                         healthData, uint32_t(width), uint32_t(height));
-                }
                 
-
-
+                
             }
         }
 

@@ -501,6 +501,33 @@ namespace Engine {
 
             //*********** GPU COLLISIONS & RENDER ***********
             {
+                // draw terrain after the 
+                entt::basic_view view = m_registry.view<ChunkRendererComponent>();
+                for (auto entity : view)
+                {
+                    ChunkRendererComponent& chunkComp = view.get<ChunkRendererComponent>(entity);
+                    {
+                        if (!chunkComp.IsLoaded)
+                            continue;
+
+                        glm::vec2 worldPos = glm::vec2(chunkComp.ChunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
+                        glm::mat4 model =
+                            glm::translate(glm::mat4(1.0f),
+                                glm::vec3(worldPos.x, worldPos.y, 0.0f))
+                            * glm::scale(glm::mat4(1.0f),
+                                glm::vec3(CHUNK_SIZE, CHUNK_SIZE, 1.0f));
+
+                        if (chunkComp.TerrainTexture == nullptr)
+                        {
+                            continue;
+                        }
+
+                        Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.TerrainTexture);
+
+                    }
+                }
+
+
                 {
                     EE_PROFILE_SCOPE("chunk render");
                     glm::ivec2 minOrigin = glm::ivec2(std::numeric_limits<int>::max());
@@ -553,6 +580,11 @@ namespace Engine {
                     //glm::ivec2 tileMinOrigin = chunkMinOrigin * int(CHUNK_SIZE);
                     m_gridMap->UpdateTiles(minOrigin);
                 }
+
+                
+              
+            
+
 
 
                 {
@@ -668,7 +700,7 @@ namespace Engine {
                                 // only render player from here for now
                                 // if player is NOT in vehicle
                                 
-                                Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+                                Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color = glm::vec4(1));
 
                             }
 
@@ -935,11 +967,42 @@ namespace Engine {
                     continue;
                 }
 				glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-                Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, color);
+                //Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, color);
             }
         }
+
         {
             
+            auto viewTerrain = m_registry.view<TileComponent, TransformComponent>();
+            for (auto entity : viewTerrain)
+            {
+                glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+                TileComponent& tileComponent = viewTerrain.get<TileComponent>(entity);
+                TransformComponent& transformComponent = viewTerrain.get<TransformComponent>(entity);
+                for (size_t i = 0; i < tileComponent.tiles.size(); i++)
+                {
+                    if (tileComponent.tiles[i].Category != eTileCategory::Terrain)
+                    {
+                        // draw terrain tiles first so the are below.
+                        continue;
+                    }
+                    float flippedV0 = tileComponent.tiles[i].UV.w; // original v1 (bottom)
+                    float flippedV1 = tileComponent.tiles[i].UV.y; // original v0 (top)
+                    glm::vec4 flippedUV = glm::vec4(tileComponent.tiles[i].UV.x, flippedV0, tileComponent.tiles[i].UV.z, flippedV1);
+
+
+                    glm::vec2 worldPos = (glm::vec2)transformComponent.Translation + tileComponent.tiles[i].position;
+
+                    // Use flippedUV for rendering, don't overwrite original UV
+                    Engine::VulkanRenderer2D::DrawTile(worldPos, flippedUV, color);
+                }
+            }
+
+            Engine::VulkanRenderer2D::EndScene();
+
+            Engine::VulkanRenderer2D::BeginScene(camera);
+
             auto view = m_registry.view<TileComponent, TransformComponent>();
             for (auto entity : view)
             {
@@ -947,19 +1010,26 @@ namespace Engine {
 
                 TileComponent& tileComponent = view.get<TileComponent>(entity);
                 TransformComponent& transformComponent = view.get<TransformComponent>(entity);
+
+
                 for (size_t i = 0; i < tileComponent.tiles.size(); i++)
                 {
+                    if (tileComponent.tiles[i].Category == eTileCategory::Terrain)
+                    {
+                        // skip terrain and draw everything else 
+                        continue;
+                    }
                     float flippedV0 = tileComponent.tiles[i].UV.w; // original v1 (bottom)
                     float flippedV1 = tileComponent.tiles[i].UV.y; // original v0 (top)
                     glm::vec4 flippedUV = glm::vec4(tileComponent.tiles[i].UV.x, flippedV0, tileComponent.tiles[i].UV.z, flippedV1);
 
 
-                    glm::vec2 worldPos = glm::vec2(transformComponent.Translation) + tileComponent.tiles[i].position;
+                    glm::vec2 worldPos = (glm::vec2)transformComponent.Translation + tileComponent.tiles[i].position;
 
                     // Use flippedUV for rendering, don't overwrite original UV
                     Engine::VulkanRenderer2D::DrawTile(worldPos, flippedUV, color);
                 }
-                
+
             }
             
         }

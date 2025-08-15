@@ -4,7 +4,7 @@
 // ---------- config ----------
 #define MAX_TEXTURES            32
 #define MAX_COLLISION_ENTITIES  64
-#define CHUNK_SIZE              32
+#define CHUNK_SIZE              32          // tiles per chunk (not pixels)
 #define SUBTILES_PER_TILE       4
 #define GRID_WIDTH              3
 #define GRID_HEIGHT             3
@@ -13,8 +13,8 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 
 // ---------- resources ----------
-layout(set = 0, binding = 0, rgba8)   uniform  image2D  u_InputTexture[MAX_TEXTURES]; // color (UNORM)
-layout(set = 0, binding = 1, rgba8ui) uniform uimage2D u_HealthImage[MAX_TEXTURES];   // r=health, g=timer
+layout(set = 0, binding = 0, rgba8)   uniform  image2D  u_InputTexture[ACTIVE_SLOTS]; // color (UNORM)
+layout(set = 0, binding = 1, rgba8ui) uniform uimage2D u_HealthImage[ACTIVE_SLOTS];   // r=health, g=timer/sentinel
 
 struct CollisionResult {
     uint collisionDetected;
@@ -28,7 +28,7 @@ struct CollisionResult {
 
 struct ProjectileGPU {
     vec2  Position;           // world units
-    float Radius;             // world units (circle) — used by Type 0/1
+    float Radius;             // world units (circle) for Type 0/1
     uint  Type;               // 0/1=circle, 2=box
     uint  ID_Low;
     uint  ID_High;
@@ -51,14 +51,14 @@ layout(std430, set = 0, binding = 4) buffer BlockedTileMask      { uint blockedM
 
 // Push constants
 layout(push_constant) uniform PushConstants {
-    vec2  TextureOriginWorld;  // top-left of THIS chunk in world units
+    vec2  TextureOriginWorld;  // top-left of this chunk in world units
     float PixelSizeWorld;      // world units per pixel
     uint  TextureIndex;        // 0..8 inside the 3x3
 
     uint  NumProjectiles;
-    uint  Mode;                // (unused here)
+    uint  Mode;                // unused here
     uint  ChunkSizePixels;     // pixels per chunk (e.g. 512)
-    uint  TileSizePixels;      // pixels per tile  (e.g. 128)
+    uint  TileSizePixels;      // pixels per tile (e.g. 128)
 
     ivec2 MinChunkCoords;      // top-left chunk coords of the active 3x3 window
 } pc;
@@ -72,7 +72,6 @@ bool pointInRotatedBox(vec2 p, vec2 c, vec2 halfSize, float rot)
     return (abs(q.x) <= halfSize.x) && (abs(q.y) <= halfSize.y);
 }
 
-// Wrap a local pixel (relative to current chunk) into neighbor slot by index
 void mapToNeighborSlot(ivec2 localPx, ivec2 curTexSize,
                        out uint writeSlot, out ivec2 writePx)
 {
@@ -83,11 +82,11 @@ void mapToNeighborSlot(ivec2 localPx, ivec2 curTexSize,
     int sx = 0, sy = 0;
     ivec2 p = localPx;
 
-    if      (p.x < 0)              { sx = -1; p.x += curTexSize.x; }
-    else if (p.x >= curTexSize.x)  { sx = +1; p.x -= curTexSize.x; }
+    if      (p.x < 0)             { sx = -1; p.x += curTexSize.x; }
+    else if (p.x >= curTexSize.x) { sx = +1; p.x -= curTexSize.x; }
 
-    if      (p.y < 0)              { sy = -1; p.y += curTexSize.y; }
-    else if (p.y >= curTexSize.y)  { sy = +1; p.y -= curTexSize.y; }
+    if      (p.y < 0)             { sy = -1; p.y += curTexSize.y; }
+    else if (p.y >= curTexSize.y) { sy = +1; p.y -= curTexSize.y; }
 
     int nx = cx + sx;
     int ny = cy + sy;
@@ -111,38 +110,35 @@ void main()
     ivec2 curSize = imageSize(u_InputTexture[pc.TextureIndex]);
     if (localPx.x >= curSize.x || localPx.y >= curSize.y) return;
 
-    // No early-return on alpha: we still need collisions + neighbor spill
     vec2 worldPos = pc.TextureOriginWorld + vec2(localPx) * pc.PixelSizeWorld;
 
-    // Health/timer for this pixel
-    uvec4 ht = imageLoad(u_HealthImage[pc.TextureIndex], localPx);
+    // Read color and health
+    vec4  base = imageLoad(u_InputTexture[pc.TextureIndex], localPx);
+    uvec4 ht   = imageLoad(u_HealthImage[pc.TextureIndex], localPx);
     uint  health = ht.r;
 
-    if (health > 0u)
+    // Material classification
+    bool solidColor      = (base.a > 0.0);
+    bool destructible    = (health > 0u);                 // building, etc.
+    bool immutableSolid  = solidColor && !destructible;   // terrain (alpha>0, health==0)
+    bool emptySpace      = (!solidColor) && (health == 0u);
+
+    // Blocked mask: any visible pixel blocks (destructible)
+    if (solidColor && destructible)
     {
-        // Tile coordinate INSIDE THIS CHUNK (integer divide)
         int tileSize = int(pc.TileSizePixels);
-        ivec2 tileInChunk = localPx / tileSize;                          
+        ivec2 tileInChunk = localPx / tileSize;
+        ivec2 pxInTile    = localPx - tileInChunk * tileSize;
+        int subDiv        = tileSize / SUBTILES_PER_TILE;
+        ivec2 subtile     = ivec2(pxInTile.x / subDiv, pxInTile.y / subDiv);
 
-        // Pixel coordinate INSIDE THE TILE
-        ivec2 pxInTile    = localPx - tileInChunk * tileSize;            
-
-        // Subtile inside this tile
-        int subDiv = tileSize / SUBTILES_PER_TILE;                       
-        ivec2 subtile = ivec2(pxInTile.x / subDiv, pxInTile.y / subDiv);  
-
-        // Chunk position in the 3×3 window from TextureIndex (row-major)
-        int gridW = GRID_WIDTH;
-        int gridH = GRID_HEIGHT;
+        int gridW = GRID_WIDTH, gridH = GRID_HEIGHT;
         int cx = int(pc.TextureIndex % uint(gridW));
         int cy = int(pc.TextureIndex / uint(gridW));
 
-        // GLOBAL tile coordinates within the whole window
-        // (grid chunk coords * tiles-per-chunk) + tile-inside-chunk
         ivec2 windowTile = ivec2(cx * CHUNK_SIZE + tileInChunk.x,
                                  cy * CHUNK_SIZE + tileInChunk.y);
 
-        // Flatten to the blockedMask index (row-major over subtiles)
         const int subtilesPerRow = GRID_WIDTH  * CHUNK_SIZE * SUBTILES_PER_TILE;
         const int subtilesRows   = GRID_HEIGHT * CHUNK_SIZE * SUBTILES_PER_TILE;
 
@@ -156,124 +152,228 @@ void main()
         }
     }
 
-
-    // ----- collision / damage / effects -----
-    for (uint i = 0; i < pc.NumProjectiles; ++i)
-    {
-        ProjectileGPU proj = data[i];
-
-        bool hit = false;
-        if (proj.Type == 0u || proj.Type == 1u)
+        // ----- collision / damage / effects -----
+        for (uint i = 0; i < pc.NumProjectiles; ++i)
         {
-            hit = (distance(worldPos, proj.Position) < proj.Radius);
-        }
-        else if (proj.Type == 2u)
-        {
-            hit = pointInRotatedBox(worldPos, proj.Position, proj.Size * 0.5, proj.Rotation);
-        }
-        if (!hit) continue;
+            ProjectileGPU proj = data[i];
 
-        // If this pixel is already empty, let a neighbor with health claim it
-        if (health == 0u) continue;
-
-        // Claim once (after health check)
-        if (i >= MAX_COLLISION_ENTITIES) continue;
-        if (atomicCompSwap(results[i].collisionDetected, 0u, 1u) != 0u) continue;
-
-        // Current chunk size for neighbor mapping
-        ivec2 curSize = imageSize(u_InputTexture[pc.TextureIndex]);
-
-        // ----- center damage -----
-        uvec4 centerHT   = imageLoad(u_HealthImage[pc.TextureIndex], localPx);
-        uint  prevCenter = centerHT.r;
-        uint  newCenter  = prevCenter;
-
-        bool damagesTerrain = (proj.Type == 0u || proj.Type == 2u);
-        if (damagesTerrain)
-        {
-            newCenter  = (proj.Damage >= newCenter) ? 0u : (newCenter - proj.Damage);
-            centerHT.r = newCenter;
-
-            // Start effects via sentinels:
-            // 255 = destroyed flash, 254 = impact flash (only arm if not already running)
-            if (newCenter == 0u)
+            bool hit = false;
+            if (proj.Type == 0u || proj.Type == 1u)
             {
-                centerHT.g = 255u;
-                imageStore(u_InputTexture[pc.TextureIndex], localPx, vec4(0.0)); // clear only if dead
+                hit = (distance(worldPos, proj.Position) < proj.Radius);
             }
-            else
+            else if (proj.Type == 2u)
             {
-                if (centerHT.g == 0u) centerHT.g = 254u;
+                hit = pointInRotatedBox(worldPos, proj.Position, proj.Size * 0.5, proj.Rotation);
+            }
+            if (!hit)
+            {
+                continue;
             }
 
-            imageStore(u_HealthImage[pc.TextureIndex], localPx, centerHT);
-
-            // ----- radius damage (ALWAYS, even if center survives) -----
-            int rpx = int(proj.DestructionRadius);
-
-            for (int dy = -rpx; dy <= rpx; ++dy)
-            for (int dx = -rpx; dx <= rpx; ++dx)
+            // Do not react on empty center or terrain center; let another pixel claim
+            if (emptySpace || immutableSolid)
             {
-                int d2 = dx*dx + dy*dy;
-                if (d2 > rpx*rpx) continue;
-                if (dx == 0 && dy == 0) continue; // center handled
-
-                // Map to neighbor slot / coords
-                uint  dstSlot;
-                ivec2 dstPx;
-                mapToNeighborSlot(localPx + ivec2(dx, dy), curSize, dstSlot, dstPx);
-                if (dstSlot == 0xffffffffu || dstSlot >= ACTIVE_SLOTS) continue;
-
-                ivec2 dstSize = imageSize(u_InputTexture[dstSlot]);
-                if (dstPx.x < 0 || dstPx.y < 0 || dstPx.x >= dstSize.x || dstPx.y >= dstSize.y) continue;
-
-                // Neighbor health
-                uvec4 nht = imageLoad(u_HealthImage[dstSlot], dstPx);
-                uint  h   = nht.r;
-
-                if (h == 0u)
-                {
-                    // Already destroyed: keep clear and arm destroyed flash if idle
-                    imageStore(u_InputTexture[dstSlot], dstPx, vec4(0.0));
-                    if (nht.g == 0u) nht.g = 255u;
-                    imageStore(u_HealthImage[dstSlot], dstPx, nht);
-                    continue;
-                }
-
-                // Damage model — constant damage to all neighbors in radius
-                uint neighborDamage = proj.Damage;
-
-                // // Optional linear falloff:
-                // float distNorm = sqrt(float(d2)) / float(rpx);     // 0..1
-                // float scale    = clamp(1.0 - distNorm, 0.0, 1.0);
-                // uint  neighborDamage = uint(max(1.0, floor(float(proj.Damage) * scale)));
-
-                uint newH = (neighborDamage >= h) ? 0u : (h - neighborDamage);
-                nht.r = newH;
-
-                if (newH == 0u)
-                {
-                    imageStore(u_InputTexture[dstSlot], dstPx, vec4(0.0)); // clear only if dead
-                    nht.g = 255u;                                          // destroyed flash
-                }
-                else
-                {
-                    if (nht.g == 0u) nht.g = 254u;                          // impact flash (first time)
-                }
-
-                imageStore(u_HealthImage[dstSlot], dstPx, nht);
+                continue;
             }
+
+            // From here: center is destructible
+            if (i >= MAX_COLLISION_ENTITIES) continue;
+            if (atomicCompSwap(results[i].collisionDetected, 0u, 1u) != 0u) continue;
+
+            ivec2 curSizeNow = imageSize(u_InputTexture[pc.TextureIndex]);
+
+            // ----- center damage (no effect if it survives) -----
+            uvec4 centerHT   = imageLoad(u_HealthImage[pc.TextureIndex], localPx);
+            uint  prevCenter = centerHT.r;
+            uint  newCenter  = prevCenter;
+
+            bool damagesTerrain = (proj.Type == 0u || proj.Type == 2u);
+            if (damagesTerrain)
+            {
+                newCenter  = (proj.Damage >= newCenter) ? 0u : (newCenter - proj.Damage);
+                centerHT.r = newCenter;
+
+                if (newCenter == 0u)
+                {
+                    // destroyed: clear and arm destroyed effect
+                    imageStore(u_InputTexture[pc.TextureIndex], localPx, vec4(0.0));
+                    centerHT.g = 255u; // destroyed sentinel
+                }
+                // else: survivor gets NO effect (do not touch centerHT.g)
+                imageStore(u_HealthImage[pc.TextureIndex], localPx, centerHT);
+            }
+
+            // ----- ray explosion -----
+            // Rays travel through empty and terrain.
+            // At destructible:
+            //   - if damage < health: apply damage (no effect) and stop the ray
+            //   - else destroy, set destroyed effect, keep going
+            if (damagesTerrain)
+            {
+                const int RAY_DIRS = 16;
+                const vec2 dirs[RAY_DIRS] = vec2[](
+                    vec2( 1.0,  0.0), vec2(-1.0,  0.0), vec2( 0.0,  1.0), vec2( 0.0, -1.0),
+                    vec2( 0.7071,  0.7071), vec2( 0.7071, -0.7071), vec2(-0.7071,  0.7071), vec2(-0.7071, -0.7071),
+                    vec2( 0.9239,  0.3827), vec2( 0.9239, -0.3827), vec2(-0.9239,  0.3827), vec2(-0.9239, -0.3827),
+                    vec2( 0.3827,  0.9239), vec2( 0.3827, -0.9239), vec2(-0.3827,  0.9239), vec2(-0.3827, -0.9239)
+                );
+
+                const int BRUSH = 2; // small brush to fill tiny gaps
+                int  rpx    = int(proj.DestructionRadius);
+                vec2 startP = vec2(localPx);
+
+                for (int d = 0; d < RAY_DIRS; ++d)
+                {
+                    vec2  dir        = normalize(dirs[d]);
+                    ivec2 lastStepPx = ivec2(0x7fffffff);
+
+                    for (int s = 1; s <= rpx; ++s)
+                    {
+                        vec2  posF   = startP + dir * float(s);
+                        ivec2 stepPx = ivec2(floor(posF + 0.5));
+                        if (stepPx == lastStepPx)
+                        {
+                            continue;
+                        }
+                        lastStepPx = stepPx;
+
+                        uint  stepSlot;
+                        ivec2 stepLocal;
+                        mapToNeighborSlot(stepPx, curSizeNow, stepSlot, stepLocal);
+                        if (stepSlot == 0xffffffffu || stepSlot >= ACTIVE_SLOTS) break;
+
+                        ivec2 stepSize = imageSize(u_InputTexture[stepSlot]);
+                        if (stepLocal.x < 0 || stepLocal.y < 0 ||
+                            stepLocal.x >= stepSize.x || stepLocal.y >= stepSize.y) break;
+
+                        vec4  stepColor = imageLoad(u_InputTexture[stepSlot], stepLocal);
+                        uvec4 stepHT    = imageLoad(u_HealthImage[stepSlot], stepLocal);
+                        uint  stepH     = stepHT.r;
+
+                        bool stepSolid     = (stepColor.a > 0.0);
+                        bool stepDestruct  = (stepH > 0u);
+                        bool stepImmutable = stepSolid && !stepDestruct;     // terrain
+                        bool stepEmpty     = (!stepSolid) && (stepH == 0u);  // true empty
+
+                        // Terrain: show impact (optional), do not block
+                        if (stepImmutable)
+                        {
+                            if (stepHT.g == 0u)
+                            {
+                                stepHT.g = 254u; // impact sentinel for terrain
+                                imageStore(u_HealthImage[stepSlot], stepLocal, stepHT);
+                            }
+                            continue;
+                        }
+
+                        // Empty: show impact, do not block
+                        if (stepEmpty)
+                        {
+                            if (stepHT.g == 0u)
+                            {
+                                stepHT.g = 254u; // impact sentinel for empty
+                                imageStore(u_HealthImage[stepSlot], stepLocal, stepHT);
+                            }
+                            continue;
+                        }
+
+                        // Destructible at this step
+                        if (proj.Damage < stepH)
+                        {
+                            // Non-lethal: apply damage, no effect, ray stops here
+                            stepHT.r = stepH - proj.Damage; // still > 0
+                            imageStore(u_HealthImage[stepSlot], stepLocal, stepHT);
+                            break;
+                        }
+
+                        // Destroyable: clear, set destroyed effect, and keep going
+                        imageStore(u_InputTexture[stepSlot], stepLocal, vec4(0.0));
+                        stepHT.r = 0u;
+                        stepHT.g = 255u; // destroyed sentinel
+                        imageStore(u_HealthImage[stepSlot], stepLocal, stepHT);
+
+                        // Brush around the step to reduce gaps
+                        for (int oy = -BRUSH; oy <= BRUSH; ++oy)
+                        {
+                            for (int ox = -BRUSH; ox <= BRUSH; ++ox)
+                            {
+                                if (ox*ox + oy*oy > BRUSH*BRUSH)
+                                {
+                                    continue;
+                                }
+
+                                ivec2 brushPx = stepPx + ivec2(ox, oy);
+
+                                uint  brushSlot;
+                                ivec2 brushLocal;
+                                mapToNeighborSlot(brushPx, curSizeNow, brushSlot, brushLocal);
+                                if (brushSlot == 0xffffffffu || brushSlot >= ACTIVE_SLOTS) continue;
+
+                                ivec2 brushSize = imageSize(u_InputTexture[brushSlot]);
+                                if (brushLocal.x < 0 || brushLocal.y < 0 ||
+                                    brushLocal.x >= brushSize.x || brushLocal.y >= brushSize.y) continue;
+
+                                vec4  bColor = imageLoad(u_InputTexture[brushSlot], brushLocal);
+                                uvec4 bht    = imageLoad(u_HealthImage[brushSlot], brushLocal);
+                                uint  bh     = bht.r;
+
+                                bool bSolid     = (bColor.a > 0.0);
+                                bool bDestruct  = (bh > 0u);
+                                bool bImmutable = bSolid && !bDestruct; // terrain
+                                bool bEmpty     = (!bSolid) && (bh == 0u);
+
+                                if (bImmutable)
+                                {
+                                    // terrain: optional impact tag, no block
+                                    if (bht.g == 0u)
+                                    {
+                                        bht.g = 254u;
+                                        imageStore(u_HealthImage[brushSlot], brushLocal, bht);
+                                    }
+                                    continue;
+                                }
+
+                                if (bEmpty)
+                                {
+                                    // empty: optional impact tag
+                                    if (bht.g == 0u)
+                                    {
+                                        bht.g = 254u;
+                                        imageStore(u_HealthImage[brushSlot], brushLocal, bht);
+                                    }
+                                    continue;
+                                }
+
+                                // destructible neighbor
+                                if (proj.Damage < bh)
+                                {
+                                    // apply damage, no effect, do not clear
+                                    bht.r = bh - proj.Damage;
+                                    imageStore(u_HealthImage[brushSlot], brushLocal, bht);
+                                }
+                                else
+                                {
+                                    // destroy neighbor
+                                    imageStore(u_InputTexture[brushSlot], brushLocal, vec4(0.0));
+                                    bht.r = 0u;
+                                    bht.g = 255u;
+                                    imageStore(u_HealthImage[brushSlot], brushLocal, bht);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Record result and exit
+            results[i].hitProjectileID_Low  = proj.ID_Low;
+            results[i].hitProjectileID_High = proj.ID_High;
+            results[i].CollisionPosition    = worldPos;
+            results[i].HealthAfter          = newCenter;
+            atomicAdd(collisionCount, 1u);
+            break;
         }
-
-        // Record result
-        results[i].hitProjectileID_Low  = proj.ID_Low;
-        results[i].hitProjectileID_High = proj.ID_High;
-        results[i].CollisionPosition    = worldPos;
-        results[i].HealthAfter          = damagesTerrain ? newCenter : prevCenter;
-        atomicAdd(collisionCount, 1u);
-        break;
-    }
-
 
 
 

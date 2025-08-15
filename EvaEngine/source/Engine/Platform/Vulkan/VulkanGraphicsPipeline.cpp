@@ -826,8 +826,12 @@ namespace Engine {
         }
 
         VkPipelineDepthStencilStateCreateInfo depthStencil{};
-        depthStencil.depthTestEnable = VK_FALSE;
-        depthStencil.depthWriteEnable = VK_FALSE;
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = VK_TRUE;                 // write to the depth buffer
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;      // smaller Z = closer
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.stencilTestEnable = VK_FALSE;
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -990,7 +994,7 @@ namespace Engine {
         VkDescriptorSetLayoutBinding colorBinding{};
         colorBinding.binding = 0;
         colorBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        colorBinding.descriptorCount = MAX_TEXTURES;          // one slot per texture
+        colorBinding.descriptorCount = CHUNK_GRID_SIZE;          // one slot per texture
         colorBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         colorBinding.pImmutableSamplers = nullptr;               // storage images don't use samplers
 
@@ -998,7 +1002,7 @@ namespace Engine {
         VkDescriptorSetLayoutBinding healthBinding{};
         healthBinding.binding = 1;
         healthBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        healthBinding.descriptorCount = MAX_TEXTURES;
+        healthBinding.descriptorCount = CHUNK_GRID_SIZE;
         healthBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         healthBinding.pImmutableSamplers = nullptr;
 
@@ -1035,14 +1039,14 @@ namespace Engine {
         // Binding 0: input textures
         bindings[0].binding = 0;
         bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        bindings[0].descriptorCount = MAX_TEXTURES;
+        bindings[0].descriptorCount = CHUNK_GRID_SIZE;
         bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         bindings[0].pImmutableSamplers = nullptr;
 
         // Binding 1: health
         bindings[1].binding = 1;
         bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        bindings[1].descriptorCount = MAX_TEXTURES;
+        bindings[1].descriptorCount = CHUNK_GRID_SIZE;
         bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         bindings[1].pImmutableSamplers = nullptr;
 
@@ -1263,12 +1267,12 @@ namespace Engine {
 
     void VulkanGraphicsPipeline::UpdateEffectsDescriptorSet(
         uint32_t currentFrame,
-        const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& colorTextures,
-        const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& healthTextures) 
+        const std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& colorTextures,
+        const std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& healthTextures)
     {
         // --- Build image infos for COLOR images (binding 0)
-        std::vector<VkDescriptorImageInfo> colorInfos(MAX_TEXTURES);
-        for (size_t i = 0; i < MAX_TEXTURES; ++i)
+        std::vector<VkDescriptorImageInfo> colorInfos(CHUNK_GRID_SIZE);
+        for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i)
         {
             colorInfos[i].sampler = VK_NULL_HANDLE; // storage images don't use samplers
             colorInfos[i].imageView = colorTextures[i]->GetImageView();
@@ -1276,8 +1280,8 @@ namespace Engine {
         }
 
         // --- Build image infos for HEALTH/TIMER images (binding 1)
-        std::vector<VkDescriptorImageInfo> healthInfos(MAX_TEXTURES);
-        for (size_t i = 0; i < MAX_TEXTURES; ++i) {
+        std::vector<VkDescriptorImageInfo> healthInfos(CHUNK_GRID_SIZE);
+        for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
             
             healthInfos[i].sampler = VK_NULL_HANDLE;
             healthInfos[i].imageView = healthTextures[i]->GetImageView();
@@ -1380,15 +1384,15 @@ namespace Engine {
     }
 
   
-    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, MAX_TEXTURES> inputTextures, std::array<Ref<VulkanTexture>, MAX_TEXTURES> healthTextures)
+    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> inputTextures, std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> healthTextures)
     {
 
         std::vector<VkDescriptorImageInfo> inputImageInfos;
         std::vector<VkDescriptorImageInfo> healthImageInfos;
 
         // first 9 are the chunks
-        inputImageInfos.reserve(CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH);
-        healthImageInfos.reserve(CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH);
+        inputImageInfos.reserve(CHUNK_GRID_SIZE);
+        healthImageInfos.reserve(CHUNK_GRID_SIZE);
 
         for (const auto& tex : inputTextures)
         {

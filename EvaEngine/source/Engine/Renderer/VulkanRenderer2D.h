@@ -18,6 +18,7 @@ namespace Engine {
 		PLAYER = 1, // only collision
 		VEHICLE  = 2, // damage but, dont destroy itself
 	};
+
 	enum eComputeMode : uint32_t {
 		DetectOnly = 0,
 		Destroy = 1
@@ -51,6 +52,7 @@ namespace Engine {
 		static const uint32_t MaxVertices = MaxQuads * 4;
 		static const uint32_t MaxIndices = MaxQuads * 6;
 		static const uint32_t MaxTextureSlots = MAX_TEXTURES;
+		static const uint32_t GridSize = CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH;
 
 		static const uint32_t MaxLines = 10000;
 		static const uint32_t MaxLineVertices = MaxLines * 2;
@@ -74,8 +76,10 @@ namespace Engine {
 
 		std::unordered_map<VulkanTexture*, uint32_t> TextureToSlotMap;
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> TextureSlots;
-		std::array<Ref<VulkanTexture>, MaxTextureSlots> HealthTextureSlots;
-		uint32_t TextureSlotIndex = 0; // 0 = white texture
+		std::array<Ref<VulkanTexture>, GridSize> HealthTextureSlots;
+		std::array<Ref<VulkanTexture>, GridSize> GridTextureSlots;
+		uint32_t TextureSlotIndex = 0;
+		uint32_t GridSlotIndex = 0;
 		//uint32_t HealthTextureSlotIndex = 0;
 
 		glm::vec3 QuadVertexPositions[4];
@@ -171,12 +175,13 @@ namespace Engine {
 		static void CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size, float rotation, uint64_t entityID, eCollisionType collisionType, uint32_t damage);
 		static void CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType, uint32_t damage, const uint32_t destructionRadius);
 		static void DrawTextureQuadWithHealth(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
-		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
+		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
 		static void DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID);
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID);
 		static void DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color);
+		static void DrawTile(const glm::vec3& transform, const glm::vec4& uv, const glm::vec4& color);
 		static void BeginScene(const Camera& camera, const glm::mat4& transform);
 		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(glm::mat4 viewProjectionMatrix);

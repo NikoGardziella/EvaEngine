@@ -123,13 +123,6 @@ namespace Engine {
 		s_VulkanData.WhiteTexture = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("textures/white_texture.png").string());
 
 		
-		int32_t samplers[s_VulkanData.MaxTextureSlots];
-		for (uint32_t i = 0; i < s_VulkanData.MaxTextureSlots; i++)
-		{
-			// what is this ?
-			samplers[i] = i;
-
-		}
 		
 		s_VulkanData.TextureSlots[0] = s_VulkanData.WhiteTexture;
 		// Clone "logo" texture to slot 1 after loading it once
@@ -155,17 +148,24 @@ namespace Engine {
 		for (uint32_t i = s_VulkanData.TextureSlotIndex; i < s_VulkanData.MaxTextureSlots; i++)
 		{
 			s_VulkanData.TextureSlots[i] = s_VulkanData.WhiteTexture;
-			s_VulkanData.HealthTextureSlots[i] = m_dummyTexture;
 			s_VulkanData.TextureSlotIndex++;
 		}
 
+		for (uint32_t i = s_VulkanData.GridSlotIndex; i < s_VulkanData.GridSize; i++)
+		{
+			s_VulkanData.GridTextureSlots[i] = s_VulkanData.WhiteTexture;
+			s_VulkanData.HealthTextureSlots[i] = m_dummyTexture;
+
+			s_VulkanData.GridSlotIndex++;
+		}
 		
 
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(i, s_VulkanData.TextureSlots);
 		}
-		s_VulkanData.TextureSlotIndex = 0;
+		s_VulkanData.TextureSlotIndex = CHUNK_GRID_SIZE;
+		s_VulkanData.GridSlotIndex = 0;
 
 
 		// this is for rendering game in editor viewport
@@ -219,6 +219,7 @@ namespace Engine {
 		s_VulkanProjectileData.TextureSlotIndex = 0;
 		s_VulkanProjectileData.TextureSlots[s_VulkanProjectileData.TextureSlotIndex++] = AssetManager::GetTexture("Idle_gun_000");
 		s_VulkanProjectileData.TextureSlots[s_VulkanProjectileData.TextureSlotIndex++] = AssetManager::GetTexture("bullet");
+		
 		for (uint32_t i = s_VulkanProjectileData.TextureSlotIndex; i < s_VulkanProjectileData.MaxProjectiles; i++)
 		{
 			s_VulkanProjectileData.TextureSlots[i] = s_VulkanProjectileData.WhiteTexture;
@@ -235,7 +236,13 @@ namespace Engine {
 
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			m_vulkanGraphicsPipelines->UpdateEffectsDescriptorSet(i, s_VulkanProjectileData.TextureSlots,
+			m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(i, s_VulkanData.GridTextureSlots,
+				s_VulkanData.HealthTextureSlots);
+		}
+
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			m_vulkanGraphicsPipelines->UpdateEffectsDescriptorSet(i, s_VulkanData.GridTextureSlots,
 				s_VulkanData.HealthTextureSlots);
 		}
 
@@ -292,7 +299,8 @@ namespace Engine {
 
 		//move somewhere
 		s_CollisionData.EntitySlotIndex = 0;
-		s_VulkanData.TextureSlotIndex = 0;
+		s_VulkanData.TextureSlotIndex = CHUNK_GRID_SIZE;
+		s_VulkanData.GridSlotIndex = 0;
 		s_VulkanProjectileData.TextureSlotIndex = 1;
 		s_VulkanData.TextureToSlotMap.clear();
 		g_PerFrameGarbage[s_VulkanData.CurrentFrame].OldTextures.clear();
@@ -750,16 +758,17 @@ namespace Engine {
 		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory());
 
 
+
 		// Use current texture slots for both read and write (in-place compute)
-		std::array<Ref<VulkanTexture>, MAX_TEXTURES>& computeTextures = s_VulkanData.TextureSlots;
-		std::array<Ref<VulkanTexture>, MAX_TEXTURES>& HealthTextures = s_VulkanData.HealthTextureSlots;
+		std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& computeTextures = s_VulkanData.GridTextureSlots;
+		std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& HealthTextures = s_VulkanData.HealthTextureSlots;
 
 		// Update descriptor set with same textures for read/write
 		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,	computeTextures, HealthTextures);
 
 		glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 		// Transition textures to GENERAL layout
-		for (size_t i = 0; i < MAX_TEXTURES; i++)
+		for (size_t i = 0; i < CHUNK_GRID_SIZE; i++)
 		{
 			VulkanTexture& tex = *computeTextures[i];
 
@@ -772,8 +781,7 @@ namespace Engine {
 
 				tex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
 
-				if (tex.GetCheckCollision())
-				{
+				
 					glm::ivec2 texOrigin = tex.GetTextureOrigin();
 					glm::ivec2 tileCoord = glm::floor(glm::vec2(texOrigin) / float(PIXELS_IN_TILE));
 
@@ -782,14 +790,14 @@ namespace Engine {
 
 					minOrigin.x = std::min(minOrigin.x, tileCoord.x);
 					minOrigin.y = std::min(minOrigin.y, tileCoord.y);
-				}
+				
 				
 
 			}
 		}
 
 
-		for (size_t i = 0; i < MAX_TEXTURES; i++)
+		for (size_t i = 0; i < CHUNK_GRID_SIZE; i++)
 		{
 			VulkanTexture& healthTex = *HealthTextures[i];
 			if (healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
@@ -812,12 +820,15 @@ namespace Engine {
 
 
 		// Dispatch compute work per active texture
-		for (size_t i = 0; i < MAX_TEXTURES; i++)
+		for (size_t i = 0; i < CHUNK_GRID_SIZE; i++)
 		{
 			VulkanTexture& tex = *computeTextures[i];
 
 			if (!tex.GetCheckCollision())
+			{
+				//Skip dummy textures
 				continue;
+			}
 
 			PushConstants pushconstant{};
 			pushconstant.TextureOrigin = tex.GetTextureOrigin();
@@ -847,7 +858,7 @@ namespace Engine {
 		}
 
 		// Transition all textures back to SHADER_READ_ONLY_OPTIMAL
-		for (size_t i = 0; i < MAX_TEXTURES; i++)
+		for (size_t i = 0; i < CHUNK_GRID_SIZE; i++)
 		{
 			VulkanTexture& tex = *computeTextures[i];
 
@@ -898,13 +909,13 @@ namespace Engine {
 
 		// Update descriptor set (binding 0 = color images, binding 1 = health images, binding 2 = buffer)
 		m_vulkanGraphicsPipelines->UpdateEffectsDescriptorSet(currentFrame,
-			s_VulkanData.TextureSlots,         // COLOR array (u_InputTexture[])
+			s_VulkanData.GridTextureSlots,         // COLOR array (u_InputTexture[])
 			s_VulkanData.HealthTextureSlots);  // HEALTH array (u_HealthImage[])
 
 		// 2) Transition BOTH arrays to GENERAL for storage writes/reads
 		// 2a) Color images (effects shader writes glow here)
-		for (size_t i = 0; i < MAX_TEXTURES; ++i) {
-			VulkanTexture& colorTex = *s_VulkanData.TextureSlots[i];
+		for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
+			VulkanTexture& colorTex = *s_VulkanData.GridTextureSlots[i];
 			if (colorTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
 			{
 				TransitionImageLayout(cmdBuf, colorTex.GetImage(), colorTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_GENERAL);
@@ -912,7 +923,7 @@ namespace Engine {
 			}
 		}
 		// 2b) Health images (effects shader reads/writes timer)
-		for (size_t i = 0; i < MAX_TEXTURES; ++i) {
+		for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
 			VulkanTexture& healthTex = *s_VulkanData.HealthTextureSlots[i];
 			if ( healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
 			{
@@ -959,15 +970,15 @@ namespace Engine {
 
 		// 6) Transition BOTH arrays back for sampling
 		// 6a) Color images -> SHADER_READ_ONLY_OPTIMAL (fragment sampling)
-		for (size_t i = 0; i < MAX_TEXTURES; ++i) {
-			VulkanTexture& colorTex = *s_VulkanData.TextureSlots[i];
+		for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
+			VulkanTexture& colorTex = *s_VulkanData.GridTextureSlots[i];
 			if (colorTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
 				TransitionImageLayout(cmdBuf, colorTex.GetImage(), colorTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 				colorTex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			}
 		}
 		// 6b) Health images -> SHADER_READ_ONLY_OPTIMAL (if sampled later; otherwise you could keep GENERAL)
-		for (size_t i = 0; i < MAX_TEXTURES; ++i) {
+		for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
 			VulkanTexture& healthTex = *s_VulkanData.HealthTextureSlots[i];
 			if (healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 			{
@@ -1351,19 +1362,20 @@ namespace Engine {
 			return;
 		}
 
-		if (s_VulkanData.TextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
+		if (s_VulkanData.GridSlotIndex >= VulkanRenderer2DData::GridSize)
 		{
 			//EE_CORE_ASSERT(false, "Texture slot index exceeded maximum limit!");
 			return;
 		}
 
 		// Use the same slot index for both texture arrays
-		float textureIndex = static_cast<float>(s_VulkanData.TextureSlotIndex);
+		float textureIndex = static_cast<float>(s_VulkanData.GridSlotIndex);
 
-		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = texture;
-		s_VulkanData.HealthTextureSlots[s_VulkanData.TextureSlotIndex] = healthTexture;
+		s_VulkanData.GridTextureSlots[s_VulkanData.GridSlotIndex] = texture;
+		s_VulkanData.TextureSlots[s_VulkanData.GridSlotIndex] = texture;
+		s_VulkanData.HealthTextureSlots[s_VulkanData.GridSlotIndex] = healthTexture;
 
-		s_VulkanData.TextureSlotIndex++;
+		s_VulkanData.GridSlotIndex++;
 
 		// Quad vertex data
 		const glm::vec3 quadPositions[4] = {
@@ -1442,6 +1454,8 @@ namespace Engine {
 			s_VulkanData.QuadVertexBufferPtr->Position = glm::vec3(transformed);
 			s_VulkanData.QuadVertexBufferPtr->Color = tintColor;
 			s_VulkanData.QuadVertexBufferPtr->TexCoord = texCoords[i];
+
+
 			s_VulkanData.QuadVertexBufferPtr->TexIndex = textureIndex;
 			s_VulkanData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
 			s_VulkanData.QuadVertexBufferPtr++;
@@ -1521,7 +1535,7 @@ namespace Engine {
 			{ 0.0f, 1.0f }
 		};
 
-		const float textureIndex = 0.0f; // White Texture
+		const float textureIndex = 0.0f; 
 		const float tilingFactor = 1.0f;
 
 		// Extract translation, rotation, and scale from transform
@@ -1593,10 +1607,10 @@ namespace Engine {
 	
 	void VulkanRenderer2D::DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color)
 	{
-		float tileSize = 1.0f; // or TILE_SIZE if defined elsewhere
+		
 
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos, 0.0f))
-			* glm::scale(glm::mat4(1.0f), glm::vec3(tileSize, tileSize, 1.0f));
+			* glm::scale(glm::mat4(1.0f), glm::vec3(TILE_SIZE, TILE_SIZE, 1.0f));
 
 		// Assuming you already have a texture atlas bound (e.g., m_tileTextureAtlas)
 		float textureIndex = 0.0f;
@@ -1646,7 +1660,61 @@ namespace Engine {
 		s_VulkanData.QuadIndexCount += 6;
 	}
 
-	
+
+	void VulkanRenderer2D::DrawTile(const glm::vec3& worldPos, const glm::vec4& uv, const glm::vec4& color)
+	{
+		
+		// Assuming you already have a texture atlas bound (e.g., m_tileTextureAtlas)
+		float textureIndex = 0.0f;
+
+		for (uint32_t i = 0; i < s_VulkanData.TextureSlotIndex; i++)
+		{
+			if (s_VulkanData.TextureSlots[i] == AssetManager::GetTileTextureIconAtlas())
+			{
+				textureIndex = (float)i;
+				break;
+			}
+		}
+
+		// Not yet bound? Add it
+		if (textureIndex == 0.0f)
+		{
+			textureIndex = (float)s_VulkanData.TextureSlotIndex;
+			s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::GetTileTextureIconAtlas();
+			s_VulkanData.TextureSlotIndex++;
+		}
+		// Vertex data (inside DrawQuad or similar):
+		const glm::vec3 quadPositions[4] = {
+			{-0.5f, -0.5f, 0.0f},
+			{ 0.5f, -0.5f, 0.0f},
+			{ 0.5f,  0.5f, 0.0f},
+			{-0.5f,  0.5f, 0.0f}
+		};
+
+		const glm::vec2 texCoords[4] = {
+			{uv.x, uv.y},   // top-left
+			{uv.z, uv.y},   // top-right
+			{uv.z, uv.w},   // bottom-right
+			{uv.x, uv.w}    // bottom-left
+		};
+
+		glm::mat4 model =
+			glm::translate(glm::mat4(1.0f), worldPos) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(TILE_SIZE, TILE_SIZE, 1.0f));
+
+		for (int i = 0; i < 4; ++i)
+		{
+			glm::vec4 transformed = model * glm::vec4(quadPositions[i], 1.0f);
+			s_VulkanData.QuadVertexBufferPtr->Position = glm::vec3(transformed);
+			s_VulkanData.QuadVertexBufferPtr->Color = color;
+			s_VulkanData.QuadVertexBufferPtr->TexCoord = texCoords[i];
+			s_VulkanData.QuadVertexBufferPtr->TexIndex = textureIndex;
+			s_VulkanData.QuadVertexBufferPtr->TilingFactor = 1.0f;
+			s_VulkanData.QuadVertexBufferPtr++;
+		}
+
+		s_VulkanData.QuadIndexCount += 6;
+	}
 
 
 	void VulkanRenderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)

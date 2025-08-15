@@ -28,7 +28,7 @@ namespace Engine {
         // Find bounding box of roof tiles in local tile coords
         for (const auto& tile : tcomp.tiles)
         {
-            if (!tile.IsRoof)
+            if (tile.Category != eTileCategory::Roofs)
                 continue;
 
             hasRoofTile = true;
