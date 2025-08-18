@@ -494,6 +494,31 @@ namespace Engine {
 
     }
 
+    EffectPushConstants VulkanUtils::MakeDefaultEffectsState()
+    {
+        EffectPushConstants pc{};
+
+        pc.textureOrigin = { 0.0f, 0.0f };
+        pc.pixelSize = 1.0f;
+        pc.textureIndex = 0u;
+
+        pc.defaultTimer = 36u;      // seed for destroyed; impact uses ~half in shader
+        pc.glowStrength = 0.80f;    // overall brightness scaler
+        pc.maxTimer = 64u;
+        pc.flags = (1u << 0) | (1u << 1); // glow on terrain + alpha-lift over empty
+
+        // Tint presets (RGB, alpha ignored)
+        pc.impactTint = { 1.00f, 0.92f, 0.25f, 1.0f }; // bright yellow
+        pc.destroyedTint = { 1.00f, 0.65f, 0.15f, 1.0f }; // orange
+        pc.flashTint = { 1.00f, 0.98f, 0.90f, 1.0f }; // white-hot flash
+
+        // x=flashStrength, y=flickerAmount, z=alphaLiftEmpty, w=curveBoost
+        pc.effectParams0 = { 0.60f, 0.08f, 0.90f, 1.20f };
+
+        return pc;
+    }
+
+
 } 
 
 

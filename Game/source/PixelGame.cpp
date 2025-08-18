@@ -209,7 +209,7 @@ void PixelGame::CreateGameEntities()
 	cameraComp.Camera.SetViewportSize(m_activeScene->GetViewportWidth(), m_activeScene->GetViewortHeight());
 	
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
-	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 30.0f);
+	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 15.0f);
 
 	//SpawnChunkGridSprites();
 

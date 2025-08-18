@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Panels\EffectsPanel.h" />
     <ClInclude Include="source\EditorApp.h" />
     <ClInclude Include="source\EditorLayer.h" />
     <ClInclude Include="source\FPSCounter.h" />
@@ -145,6 +146,7 @@
     <ClInclude Include="source\Panels\Utils\EditorUtils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Panels\EffectsPanel.cpp" />
     <ClCompile Include="source\EditorApp.cpp" />
     <ClCompile Include="source\EditorLayer.cpp" />
     <ClCompile Include="source\Panels\ContentBrowserPanel.cpp" />

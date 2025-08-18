@@ -109,15 +109,23 @@ namespace Engine {
 	// Effect push constants for glow-only pass
 	struct EffectPushConstants
 	{
-		glm::vec2  textureOrigin;  // 8 bytes (align 8)
-		float      pixelSize;      // +4 = 12
-		uint32_t   textureIndex;   // +4 = 16
-		uint32_t   defaultTimer;   // +4 = 20
-		float      glowStrength;   // +4 = 24
-		uint32_t   maxTimer;       // +4 = 28
-		uint32_t   _pad0;          // +4 = 32 (keep total multiple of 16)
+		glm::vec2  textureOrigin;
+		float      pixelSize;
+		uint32_t   textureIndex;
+
+		uint32_t   defaultTimer;
+		float      glowStrength;
+		uint32_t   maxTimer;
+		uint32_t   flags;           // bit0: glow on terrain, bit1: alpha-lift over empty
+
+		glm::vec4  impactTint;      // rgb
+		glm::vec4  destroyedTint;   // rgb
+		glm::vec4  flashTint;       // rgb (reserved)
+
+		glm::vec4  effectParams0;   // x=flashStrength, y=flickerAmount, z=alphaLiftEmpty, w=curveBoost
 	};
-	static_assert(sizeof(EffectPushConstants) == 32, "PC size must be 32 bytes");
+
+	static_assert(sizeof(EffectPushConstants) == 96, "PC size must be 96 bytes");
 
 
 	struct PushConstants
@@ -190,6 +198,8 @@ namespace Engine {
 
 
 		static Renderer2D::Statistics GetStats();
+		static EffectPushConstants& GetEffects() { return s_effectPushConstants;  }
+
 		static void ResetStats();
 
 	private:
@@ -243,15 +253,12 @@ namespace Engine {
 		static VulkanRenderer2DData s_VulkanData;
 		static VulkanRenderer2DProjectileData s_VulkanProjectileData;
 		static CollisionData s_CollisionData;
-
+		static EffectPushConstants s_effectPushConstants;
 		//static const uint32_t MaxTextures = 10;
 		//std::array<CollisionTexture, MaxTextures> s_CollisionTextures;
 		//CollisionTexture s_CollisionTextures;
 		Ref<VulkanTexture> m_dummyTexture;
 
-		bool m_startedFirstBatch = false;
-		bool m_frameStarted = true;
-		bool m_renderPassActive = true;
 	};
 
 

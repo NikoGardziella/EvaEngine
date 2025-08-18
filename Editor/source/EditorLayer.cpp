@@ -27,6 +27,7 @@
 
 //debug
 #include "Panels/Utils/EditorDebugUtils.h"
+#include <Engine/Renderer/VulkanRenderer2D.h>
 
 namespace Engine {
 
@@ -110,7 +111,7 @@ namespace Engine {
         m_currentScenePath = AssetManager::GetScenePath(m_editor.get()->GetGameLayer()->GetActiveSceneName());
         m_editor.get()->GetGameLayer()->SetActiveScene(m_sceneHierarchyPanel.GetEditorScene());
         m_sceneHierarchyPanel.SetGizmoType(ImGuizmo::OPERATION::TRANSLATE);
-
+        m_effectsPanel.SetState(VulkanRenderer2D::GetEffects());
     }
 
     void EditorLayer::OnDetach()
@@ -246,6 +247,7 @@ namespace Engine {
             }
 
 			m_debugPanel.OnImGuiRender();
+            m_effectsPanel.OnImGuiRender();
 
             m_sceneHierarchyPanel.OnImGuiRender();
             m_tileEditorPanel.OnImGuiRender();

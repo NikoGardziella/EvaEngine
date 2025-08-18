@@ -4,7 +4,7 @@
 // ---------- config ----------
 #define MAX_TEXTURES            32
 #define MAX_COLLISION_ENTITIES  64
-#define CHUNK_SIZE              32          // tiles per chunk (not pixels)
+#define CHUNK_SIZE              32
 #define SUBTILES_PER_TILE       4
 #define GRID_WIDTH              3
 #define GRID_HEIGHT             3
@@ -13,8 +13,8 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 
 // ---------- resources ----------
-layout(set = 0, binding = 0, rgba8)   uniform  image2D  u_InputTexture[ACTIVE_SLOTS]; // color (UNORM)
-layout(set = 0, binding = 1, rgba8ui) uniform uimage2D u_HealthImage[ACTIVE_SLOTS];   // r=health, g=timer/sentinel
+layout(set = 0, binding = 0, rgba8)   uniform  image2D  u_InputTexture[ACTIVE_SLOTS];
+layout(set = 0, binding = 1, rgba8ui) uniform uimage2D u_HealthImage[ACTIVE_SLOTS];   // r=health, g=glow
 
 struct CollisionResult {
     uint collisionDetected;
@@ -28,14 +28,14 @@ struct CollisionResult {
 
 struct ProjectileGPU {
     vec2  Position;           // world units
-    float Radius;             // world units (circle) for Type 0/1
-    uint  Type;               // 0/1=circle, 2=box
+    float Radius;             // circle radius (for Type 0/1)
+    uint  Type;               // 0=PROJECTILE(circle), 1=PLAYER(circle), 2=VEHICLE(box)
     uint  ID_Low;
     uint  ID_High;
-    vec2  Size;               // world units (box)
-    float Rotation;           // radians
+    vec2  Size;               // box size (for Type 2)
+    float Rotation;           // radians (for Type 2)
     uint  Damage;             // health units
-    uint  DestructionRadius;  // pixels (radius for clearing)
+    uint  DestructionRadius;  // pixels (ray length)
 };
 
 layout(std430, set = 0, binding = 2) buffer ResultBuffer {
@@ -49,21 +49,48 @@ layout(std430, set = 0, binding = 2) buffer ResultBuffer {
 layout(std430, set = 0, binding = 3) readonly buffer Projectiles { ProjectileGPU data[]; };
 layout(std430, set = 0, binding = 4) buffer BlockedTileMask      { uint blockedMask[]; };
 
-// Push constants
+// ---------- push constants ----------
 layout(push_constant) uniform PushConstants {
     vec2  TextureOriginWorld;  // top-left of this chunk in world units
     float PixelSizeWorld;      // world units per pixel
     uint  TextureIndex;        // 0..8 inside the 3x3
 
     uint  NumProjectiles;
-    uint  Mode;                // unused here
-    uint  ChunkSizePixels;     // pixels per chunk (e.g. 512)
-    uint  TileSizePixels;      // pixels per tile (e.g. 128)
+    uint  Mode;                // unused
+    uint  ChunkSizePixels;     // e.g. 512
+    uint  TileSizePixels;      // e.g. 128
 
-    ivec2 MinChunkCoords;      // top-left chunk coords of the active 3x3 window
+    ivec2 MinChunkCoords;      // unused here
 } pc;
 
-// ---------- helpers ----------
+// ---------- helpers (declared before use) ----------
+bool pointInRotatedBox(vec2 p, vec2 c, vec2 halfSize, float rot);
+void mapToNeighborSlot(ivec2 localPx, ivec2 curTexSize, out uint writeSlot, out ivec2 writePx);
+
+uvec4 loadHT(uint slot, ivec2 px);
+void  storeHT(uint slot, ivec2 px, uvec4 ht);
+void  clearColor(uint slot, ivec2 px);
+
+bool hasHealth(uvec4 ht);
+
+void armGlowIfZero_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht, uint val);
+void destroyPixel_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht);
+void applyDamage_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht, uint damage);
+
+void writeBlockedMaskIfNeeded(ivec2 localPx);
+
+bool isProjectile(uint type);
+bool isPlayer(uint type);
+bool isVehicle(uint type);
+
+bool projectileHitByType(const ProjectileGPU proj, vec2 pixelWorld);
+
+bool claimCollisionOnce(uint i);
+void writeCollisionResult(uint i, const ProjectileGPU proj, vec2 worldPos, uint healthAfter);
+
+void processRaysHealthOnly(const ProjectileGPU proj, bool fx, ivec2 startPx, ivec2 curSize);
+
+// ---------- helpers (definitions) ----------
 bool pointInRotatedBox(vec2 p, vec2 c, vec2 halfSize, float rot)
 {
     vec2 d = p - c;
@@ -101,6 +128,312 @@ void mapToNeighborSlot(ivec2 localPx, ivec2 curTexSize,
     writePx   = p;
 }
 
+uvec4 loadHT(uint slot, ivec2 px) { return imageLoad(u_HealthImage[slot], px); }
+void  storeHT(uint slot, ivec2 px, uvec4 ht) { imageStore(u_HealthImage[slot], px, ht); }
+void  clearColor(uint slot, ivec2 px) { imageStore(u_InputTexture[slot], px, vec4(0.0)); }
+
+bool hasHealth(uvec4 ht) { return (ht.r > 0u); }
+
+void armGlowIfZero_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht, uint val)
+{
+    if (!fx) return;
+    if (ht.g == 0u) { ht.g = val; storeHT(slot, px, ht); }
+}
+
+void destroyPixel_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht)
+{
+    clearColor(slot, px);
+    ht.r = 0u;
+    if (fx) ht.g = 255u; // destroyed glow
+    storeHT(slot, px, ht);
+}
+
+void applyDamage_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht, uint damage)
+{
+    uint h = ht.r;
+    if (damage >= h) {
+        destroyPixel_fx(fx, slot, px, ht);
+    } else {
+        ht.r = h - damage;
+        if (fx && ht.g == 0u) ht.g = 254u; // impact glow on survivor
+        storeHT(slot, px, ht);
+    }
+}
+
+// Health-only blocked mask
+void writeBlockedMaskIfNeeded(ivec2 localPx)
+{
+    int tileSize = int(pc.TileSizePixels);
+    ivec2 tileInChunk = localPx / tileSize;
+    ivec2 pxInTile    = localPx - tileInChunk * tileSize;
+
+    int subDiv        = max(1, tileSize / SUBTILES_PER_TILE);
+    ivec2 subtile     = ivec2(pxInTile.x / subDiv, pxInTile.y / subDiv);
+
+    int gridW = GRID_WIDTH, gridH = GRID_HEIGHT;
+    int cx = int(pc.TextureIndex % uint(gridW));
+    int cy = int(pc.TextureIndex / uint(gridW));
+
+    ivec2 windowTile = ivec2(cx * CHUNK_SIZE + tileInChunk.x,
+                             cy * CHUNK_SIZE + tileInChunk.y);
+
+    const int subtilesPerRow = GRID_WIDTH  * CHUNK_SIZE * SUBTILES_PER_TILE;
+    const int subtilesRows   = GRID_HEIGHT * CHUNK_SIZE * SUBTILES_PER_TILE;
+
+    int ix = windowTile.x * SUBTILES_PER_TILE + subtile.x;
+    int iy = windowTile.y * SUBTILES_PER_TILE + subtile.y;
+
+    if (ix >= 0 && iy >= 0 && ix < subtilesPerRow && iy < subtilesRows)
+    {
+        uint idx = uint(iy) * uint(subtilesPerRow) + uint(ix);
+        atomicExchange(blockedMask[idx], 1u);
+    }
+}
+
+bool isProjectile(uint type) { return type == 0u; }
+bool isPlayer(uint type)     { return type == 1u; }
+bool isVehicle(uint type)    { return type == 2u; }
+
+bool projectileHitByType(const ProjectileGPU proj, vec2 pixelWorld)
+{
+    if (isProjectile(proj.Type) || isPlayer(proj.Type)) {
+        return distance(pixelWorld, proj.Position) < proj.Radius;
+    } else if (isVehicle(proj.Type)) {
+        return pointInRotatedBox(pixelWorld, proj.Position, proj.Size * 0.5, proj.Rotation);
+    }
+    return false;
+}
+
+bool claimCollisionOnce(uint i)
+{
+    if (i >= MAX_COLLISION_ENTITIES) return false;
+    return (atomicCompSwap(results[i].collisionDetected, 0u, 1u) == 0u);
+}
+
+void writeCollisionResult(uint i, const ProjectileGPU proj, vec2 worldPos, uint healthAfter)
+{
+    results[i].hitProjectileID_Low  = proj.ID_Low;
+    results[i].hitProjectileID_High = proj.ID_High;
+    results[i].CollisionPosition    = worldPos;
+    results[i].HealthAfter          = healthAfter;
+    atomicAdd(collisionCount, 1u);
+}
+
+void processExplosionDisk(const ProjectileGPU proj, bool fx, ivec2 centerPx, ivec2 curSize)
+{
+    int  r  = int(proj.DestructionRadius);
+    int  r2 = r * r;
+
+    for (int dy = -r; dy <= r; ++dy)
+    {
+        int yy = centerPx.y + dy;
+        int rem = r2 - dy * dy;
+        if (rem < 0) continue;
+        int maxdx = int(floor(sqrt(float(rem))));
+
+        for (int dx = -maxdx; dx <= maxdx; ++dx)
+        {
+            ivec2 px = centerPx + ivec2(dx, dy);
+
+            uint  slot;
+            ivec2 local;
+            mapToNeighborSlot(px, curSize, slot, local);
+            if (slot == 0xffffffffu || slot >= ACTIVE_SLOTS) continue;
+
+            ivec2 sz = imageSize(u_InputTexture[slot]);
+            if (local.x < 0 || local.y < 0 || local.x >= sz.x || local.y >= sz.y) continue;
+
+            uvec4 ht = loadHT(slot, local);
+
+            // Only act on pixels with health; empty stays effect-free (per your last rule)
+            if (!hasHealth(ht)) continue;
+
+            if (proj.Damage < ht.r) {
+                applyDamage_fx(fx, slot, local, ht, proj.Damage);  // survivor => g=254 if fx
+            } else {
+                destroyPixel_fx(fx, slot, local, ht);              // destroyed => g=255 if fx
+            }
+        }
+    }
+}
+
+
+
+
+// Rays/explosion that are health-only; 'fx' gates glow/effects
+void processRaysHealthOnly(const ProjectileGPU proj, bool fx, ivec2 startPx, ivec2 curSize)
+{
+    const int RAY_DIRS = 16;
+    const vec2 dirs[RAY_DIRS] = vec2[](
+        vec2( 1.0,  0.0), vec2(-1.0,  0.0), vec2( 0.0,  1.0), vec2( 0.0, -1.0),
+        vec2( 0.7071,  0.7071), vec2( 0.7071, -0.7071), vec2(-0.7071,  0.7071), vec2(-0.7071, -0.7071),
+        vec2( 0.9239,  0.3827), vec2( 0.9239, -0.3827), vec2(-0.9239,  0.3827), vec2(-0.9239, -0.3827),
+        vec2( 0.3827,  0.9239), vec2( 0.3827, -0.9239), vec2(-0.3827,  0.9239), vec2(-0.3827, -0.9239)
+    );
+
+    const int BRUSH = 1;
+    int  rpx = int(proj.DestructionRadius);
+    ivec2 lastStepPxSentinel = ivec2(0x7fffffff);
+
+    for (int d = 0; d < RAY_DIRS; ++d)
+    {
+        vec2 dir = normalize(dirs[d]);
+        ivec2 lastStepPx = lastStepPxSentinel;
+
+        for (int s = 1; s <= rpx; ++s)
+        {
+            vec2  posF   = vec2(startPx) + dir * float(s);
+            ivec2 stepPx = ivec2(floor(posF + 0.5));
+            if (stepPx == lastStepPx) { continue; }
+            lastStepPx = stepPx;
+
+            uint  stepSlot;
+            ivec2 stepLocal;
+            mapToNeighborSlot(stepPx, curSize, stepSlot, stepLocal);
+            if (stepSlot == 0xffffffffu || stepSlot >= ACTIVE_SLOTS) break;
+
+            ivec2 stepSize = imageSize(u_InputTexture[stepSlot]);
+            if (stepLocal.x < 0 || stepLocal.y < 0 ||
+                stepLocal.x >= stepSize.x || stepLocal.y >= stepSize.y) break;
+
+            uvec4 stepHT = loadHT(stepSlot, stepLocal);
+
+            // Empty: mark glow only if projectile; continue
+            if (!hasHealth(stepHT)) {
+                armGlowIfZero_fx(fx, stepSlot, stepLocal, stepHT, 254u);
+                continue;
+            }
+
+            // Has health: apply damage; non-lethal stops, lethal continues
+            if (proj.Damage < stepHT.r)
+            {
+                applyDamage_fx(fx, stepSlot, stepLocal, stepHT, proj.Damage);
+                break; // stop ray
+            }
+            else
+            {
+                destroyPixel_fx(fx, stepSlot, stepLocal, stepHT);
+
+                // Brush around destroyed pixel
+                for (int oy = -BRUSH; oy <= BRUSH; ++oy)
+                for (int ox = -BRUSH; ox <= BRUSH; ++ox)
+                {
+                    if (ox*ox + oy*oy > BRUSH*BRUSH) continue;
+
+                    ivec2 brushPx = stepPx + ivec2(ox, oy);
+                    uint  brushSlot;
+                    ivec2 brushLocal;
+                    mapToNeighborSlot(brushPx, stepSize, brushSlot, brushLocal);
+                    if (brushSlot == 0xffffffffu || brushSlot >= ACTIVE_SLOTS) continue;
+
+                    ivec2 brushSize = imageSize(u_InputTexture[brushSlot]);
+                    if (brushLocal.x < 0 || brushLocal.y < 0 ||
+                        brushLocal.x >= brushSize.x || brushLocal.y >= brushSize.y) continue;
+
+                    uvec4 bht = loadHT(brushSlot, brushLocal);
+                    if (!hasHealth(bht)) {
+                        armGlowIfZero_fx(fx, brushSlot, brushLocal, bht, 254u);
+                        continue;
+                    }
+                    applyDamage_fx(fx, brushSlot, brushLocal, bht, proj.Damage);
+                }
+            }
+        }
+    }
+}
+
+// --- falloff helpers ---------------------------------------------------------
+
+// Bits in pc.Mode (pick one)
+// 0 = flat (compat), 1 = linear, 2 = quadratic, 3 = inverse-square (clamped)
+uint getFalloffMode() { return pc.Mode & 0x3u; }
+
+// Return weight in [0,1] for radius-normalized distance t = d/r
+float falloffWeight(float t, uint mode)
+{
+    t = clamp(t, 0.0, 1.0);
+    if (mode == 0u) {
+        // flat
+        return 1.0;
+    } else if (mode == 1u) {
+        // linear
+        return 1.0 - t;
+    } else if (mode == 2u) {
+        // quadratic (stronger center, softer edge)
+        float w = 1.0 - t;
+        return w * w;
+    } else {
+        // inverse-square (clamped)
+        // map t in (0,1] to 1/(t^2), normalize by 1/(0.05^2) so center?1
+        // tweak epsilon for taste
+        const float eps = 0.05;
+        float x = max(t, eps);
+        float w = (1.0 / (x * x)) / (1.0 / (eps * eps));
+        return clamp(w, 0.0, 1.0);
+    }
+}
+
+#define ENSURE_MIN_DAMAGE 1
+
+// --- explosion with falloff --------------------------------------------------
+
+// Solid disk with damage falloff.
+// Effects (glow) still only when damage is actually applied/destroyed.
+void processExplosionDiskFalloff(const ProjectileGPU proj, bool fx, ivec2 centerPx, ivec2 curSize)
+{
+    int   r   = int(proj.DestructionRadius);
+    int   r2  = r * r;
+    uint  mode = getFalloffMode();
+
+    for (int dy = -r; dy <= r; ++dy)
+    {
+        int yy  = centerPx.y + dy;
+        int rem = r2 - dy * dy;
+        if (rem < 0) continue;
+
+        int maxdx = int(floor(sqrt(float(rem))));
+        for (int dx = -maxdx; dx <= maxdx; ++dx)
+        {
+            ivec2 px = centerPx + ivec2(dx, dy);
+
+            uint  slot;
+            ivec2 local;
+            mapToNeighborSlot(px, curSize, slot, local);
+            if (slot == 0xffffffffu || slot >= ACTIVE_SLOTS) continue;
+
+            ivec2 sz = imageSize(u_InputTexture[slot]);
+            if (local.x < 0 || local.y < 0 || local.x >= sz.x || local.y >= sz.y) continue;
+
+            uvec4 ht = loadHT(slot, local);
+            if (!hasHealth(ht))
+            {
+                armGlowIfZero_fx(fx, slot, local, ht, 254u); // <-- add this
+                continue;
+            }
+            // Distance-based weight
+            float d   = length(vec2(dx, dy));
+            float t   = d / float(r);                  // 0..1
+            float w   = falloffWeight(t, mode);        // 0..1
+            uint  dmg = uint(floor(float(proj.Damage) * w + 0.5));
+
+        #ifdef ENSURE_MIN_DAMAGE
+            if (w > 0.0 && dmg == 0u) dmg = 1u;
+        #endif
+
+            if (dmg == 0u) continue;
+
+            if (dmg < ht.r) {
+                applyDamage_fx(fx, slot, local, ht, dmg);   // survivor => g=254 if fx
+            } else {
+                destroyPixel_fx(fx, slot, local, ht);       // destroyed => g=255 if fx
+            }
+        }
+    }
+}
+
+
+
+
 // ---------- main ----------
 void main()
 {
@@ -110,271 +443,51 @@ void main()
     ivec2 curSize = imageSize(u_InputTexture[pc.TextureIndex]);
     if (localPx.x >= curSize.x || localPx.y >= curSize.y) return;
 
+    // World position of this pixel center
     vec2 worldPos = pc.TextureOriginWorld + vec2(localPx) * pc.PixelSizeWorld;
 
-    // Read color and health
-    vec4  base = imageLoad(u_InputTexture[pc.TextureIndex], localPx);
-    uvec4 ht   = imageLoad(u_HealthImage[pc.TextureIndex], localPx);
-    uint  health = ht.r;
+    // Health at this pixel
+    uvec4 centerHT = loadHT(pc.TextureIndex, localPx);
+    uint  centerHealth = centerHT.r;
 
-    // Material classification
-    bool solidColor      = (base.a > 0.0);
-    bool destructible    = (health > 0u);                 // building, etc.
-    bool immutableSolid  = solidColor && !destructible;   // terrain (alpha>0, health==0)
-    bool emptySpace      = (!solidColor) && (health == 0u);
-
-    // Blocked mask: any visible pixel blocks (destructible)
-    if (solidColor && destructible)
-    {
-        int tileSize = int(pc.TileSizePixels);
-        ivec2 tileInChunk = localPx / tileSize;
-        ivec2 pxInTile    = localPx - tileInChunk * tileSize;
-        int subDiv        = tileSize / SUBTILES_PER_TILE;
-        ivec2 subtile     = ivec2(pxInTile.x / subDiv, pxInTile.y / subDiv);
-
-        int gridW = GRID_WIDTH, gridH = GRID_HEIGHT;
-        int cx = int(pc.TextureIndex % uint(gridW));
-        int cy = int(pc.TextureIndex / uint(gridW));
-
-        ivec2 windowTile = ivec2(cx * CHUNK_SIZE + tileInChunk.x,
-                                 cy * CHUNK_SIZE + tileInChunk.y);
-
-        const int subtilesPerRow = GRID_WIDTH  * CHUNK_SIZE * SUBTILES_PER_TILE;
-        const int subtilesRows   = GRID_HEIGHT * CHUNK_SIZE * SUBTILES_PER_TILE;
-
-        int ix = windowTile.x * SUBTILES_PER_TILE + subtile.x;
-        int iy = windowTile.y * SUBTILES_PER_TILE + subtile.y;
-
-        if (ix >= 0 && iy >= 0 && ix < subtilesPerRow && iy < subtilesRows)
-        {
-            uint idx = uint(iy) * uint(subtilesPerRow) + uint(ix);
-            atomicExchange(blockedMask[idx], 1u);
-        }
+    // Blocked mask purely by health>0
+    if (centerHealth > 0u) {
+        writeBlockedMaskIfNeeded(localPx);
     }
 
-        // ----- collision / damage / effects -----
-        for (uint i = 0; i < pc.NumProjectiles; ++i)
+    // Try each projectile-like object
+    for (uint i = 0u; i < pc.NumProjectiles; ++i)
+    {
+        ProjectileGPU proj = data[i];
+        bool fx = isProjectile(proj.Type); // only projectiles spawn effects
+
+        // Shape-based overlap from Type
+        if (!projectileHitByType(proj, worldPos)) continue;
+
+        // Empty pixels: mark effect for projectiles, but don't claim collisions
+        if (centerHealth == 0u) 
         {
-            ProjectileGPU proj = data[i];
-
-            bool hit = false;
-            if (proj.Type == 0u || proj.Type == 1u)
-            {
-                hit = (distance(worldPos, proj.Position) < proj.Radius);
-            }
-            else if (proj.Type == 2u)
-            {
-                hit = pointInRotatedBox(worldPos, proj.Position, proj.Size * 0.5, proj.Rotation);
-            }
-            if (!hit)
-            {
-                continue;
-            }
-
-            // Do not react on empty center or terrain center; let another pixel claim
-            if (emptySpace || immutableSolid)
-            {
-                continue;
-            }
-
-            // From here: center is destructible
-            if (i >= MAX_COLLISION_ENTITIES) continue;
-            if (atomicCompSwap(results[i].collisionDetected, 0u, 1u) != 0u) continue;
-
-            ivec2 curSizeNow = imageSize(u_InputTexture[pc.TextureIndex]);
-
-            // ----- center damage (no effect if it survives) -----
-            uvec4 centerHT   = imageLoad(u_HealthImage[pc.TextureIndex], localPx);
-            uint  prevCenter = centerHT.r;
-            uint  newCenter  = prevCenter;
-
-            bool damagesTerrain = (proj.Type == 0u || proj.Type == 2u);
-            if (damagesTerrain)
-            {
-                newCenter  = (proj.Damage >= newCenter) ? 0u : (newCenter - proj.Damage);
-                centerHT.r = newCenter;
-
-                if (newCenter == 0u)
-                {
-                    // destroyed: clear and arm destroyed effect
-                    imageStore(u_InputTexture[pc.TextureIndex], localPx, vec4(0.0));
-                    centerHT.g = 255u; // destroyed sentinel
-                }
-                // else: survivor gets NO effect (do not touch centerHT.g)
-                imageStore(u_HealthImage[pc.TextureIndex], localPx, centerHT);
-            }
-
-            // ----- ray explosion -----
-            // Rays travel through empty and terrain.
-            // At destructible:
-            //   - if damage < health: apply damage (no effect) and stop the ray
-            //   - else destroy, set destroyed effect, keep going
-            if (damagesTerrain)
-            {
-                const int RAY_DIRS = 16;
-                const vec2 dirs[RAY_DIRS] = vec2[](
-                    vec2( 1.0,  0.0), vec2(-1.0,  0.0), vec2( 0.0,  1.0), vec2( 0.0, -1.0),
-                    vec2( 0.7071,  0.7071), vec2( 0.7071, -0.7071), vec2(-0.7071,  0.7071), vec2(-0.7071, -0.7071),
-                    vec2( 0.9239,  0.3827), vec2( 0.9239, -0.3827), vec2(-0.9239,  0.3827), vec2(-0.9239, -0.3827),
-                    vec2( 0.3827,  0.9239), vec2( 0.3827, -0.9239), vec2(-0.3827,  0.9239), vec2(-0.3827, -0.9239)
-                );
-
-                const int BRUSH = 2; // small brush to fill tiny gaps
-                int  rpx    = int(proj.DestructionRadius);
-                vec2 startP = vec2(localPx);
-
-                for (int d = 0; d < RAY_DIRS; ++d)
-                {
-                    vec2  dir        = normalize(dirs[d]);
-                    ivec2 lastStepPx = ivec2(0x7fffffff);
-
-                    for (int s = 1; s <= rpx; ++s)
-                    {
-                        vec2  posF   = startP + dir * float(s);
-                        ivec2 stepPx = ivec2(floor(posF + 0.5));
-                        if (stepPx == lastStepPx)
-                        {
-                            continue;
-                        }
-                        lastStepPx = stepPx;
-
-                        uint  stepSlot;
-                        ivec2 stepLocal;
-                        mapToNeighborSlot(stepPx, curSizeNow, stepSlot, stepLocal);
-                        if (stepSlot == 0xffffffffu || stepSlot >= ACTIVE_SLOTS) break;
-
-                        ivec2 stepSize = imageSize(u_InputTexture[stepSlot]);
-                        if (stepLocal.x < 0 || stepLocal.y < 0 ||
-                            stepLocal.x >= stepSize.x || stepLocal.y >= stepSize.y) break;
-
-                        vec4  stepColor = imageLoad(u_InputTexture[stepSlot], stepLocal);
-                        uvec4 stepHT    = imageLoad(u_HealthImage[stepSlot], stepLocal);
-                        uint  stepH     = stepHT.r;
-
-                        bool stepSolid     = (stepColor.a > 0.0);
-                        bool stepDestruct  = (stepH > 0u);
-                        bool stepImmutable = stepSolid && !stepDestruct;     // terrain
-                        bool stepEmpty     = (!stepSolid) && (stepH == 0u);  // true empty
-
-                        // Terrain: show impact (optional), do not block
-                        if (stepImmutable)
-                        {
-                            if (stepHT.g == 0u)
-                            {
-                                stepHT.g = 254u; // impact sentinel for terrain
-                                imageStore(u_HealthImage[stepSlot], stepLocal, stepHT);
-                            }
-                            continue;
-                        }
-
-                        // Empty: show impact, do not block
-                        if (stepEmpty)
-                        {
-                            if (stepHT.g == 0u)
-                            {
-                                stepHT.g = 254u; // impact sentinel for empty
-                                imageStore(u_HealthImage[stepSlot], stepLocal, stepHT);
-                            }
-                            continue;
-                        }
-
-                        // Destructible at this step
-                        if (proj.Damage < stepH)
-                        {
-                            // Non-lethal: apply damage, no effect, ray stops here
-                            stepHT.r = stepH - proj.Damage; // still > 0
-                            imageStore(u_HealthImage[stepSlot], stepLocal, stepHT);
-                            break;
-                        }
-
-                        // Destroyable: clear, set destroyed effect, and keep going
-                        imageStore(u_InputTexture[stepSlot], stepLocal, vec4(0.0));
-                        stepHT.r = 0u;
-                        stepHT.g = 255u; // destroyed sentinel
-                        imageStore(u_HealthImage[stepSlot], stepLocal, stepHT);
-
-                        // Brush around the step to reduce gaps
-                        for (int oy = -BRUSH; oy <= BRUSH; ++oy)
-                        {
-                            for (int ox = -BRUSH; ox <= BRUSH; ++ox)
-                            {
-                                if (ox*ox + oy*oy > BRUSH*BRUSH)
-                                {
-                                    continue;
-                                }
-
-                                ivec2 brushPx = stepPx + ivec2(ox, oy);
-
-                                uint  brushSlot;
-                                ivec2 brushLocal;
-                                mapToNeighborSlot(brushPx, curSizeNow, brushSlot, brushLocal);
-                                if (brushSlot == 0xffffffffu || brushSlot >= ACTIVE_SLOTS) continue;
-
-                                ivec2 brushSize = imageSize(u_InputTexture[brushSlot]);
-                                if (brushLocal.x < 0 || brushLocal.y < 0 ||
-                                    brushLocal.x >= brushSize.x || brushLocal.y >= brushSize.y) continue;
-
-                                vec4  bColor = imageLoad(u_InputTexture[brushSlot], brushLocal);
-                                uvec4 bht    = imageLoad(u_HealthImage[brushSlot], brushLocal);
-                                uint  bh     = bht.r;
-
-                                bool bSolid     = (bColor.a > 0.0);
-                                bool bDestruct  = (bh > 0u);
-                                bool bImmutable = bSolid && !bDestruct; // terrain
-                                bool bEmpty     = (!bSolid) && (bh == 0u);
-
-                                if (bImmutable)
-                                {
-                                    // terrain: optional impact tag, no block
-                                    if (bht.g == 0u)
-                                    {
-                                        bht.g = 254u;
-                                        imageStore(u_HealthImage[brushSlot], brushLocal, bht);
-                                    }
-                                    continue;
-                                }
-
-                                if (bEmpty)
-                                {
-                                    // empty: optional impact tag
-                                    if (bht.g == 0u)
-                                    {
-                                        bht.g = 254u;
-                                        imageStore(u_HealthImage[brushSlot], brushLocal, bht);
-                                    }
-                                    continue;
-                                }
-
-                                // destructible neighbor
-                                if (proj.Damage < bh)
-                                {
-                                    // apply damage, no effect, do not clear
-                                    bht.r = bh - proj.Damage;
-                                    imageStore(u_HealthImage[brushSlot], brushLocal, bht);
-                                }
-                                else
-                                {
-                                    // destroy neighbor
-                                    imageStore(u_InputTexture[brushSlot], brushLocal, vec4(0.0));
-                                    bht.r = 0u;
-                                    bht.g = 255u;
-                                    imageStore(u_HealthImage[brushSlot], brushLocal, bht);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Record result and exit
-            results[i].hitProjectileID_Low  = proj.ID_Low;
-            results[i].hitProjectileID_High = proj.ID_High;
-            results[i].CollisionPosition    = worldPos;
-            results[i].HealthAfter          = newCenter;
-            atomicAdd(collisionCount, 1u);
-            break;
+            //uvec4 ht = centerHT; // local copy
+            //armGlowIfZero_fx(fx, pc.TextureIndex, localPx, ht, 254u);
+            continue;
         }
 
+        // Only one pixel reports per projectile index
+        if (!claimCollisionOnce(i)) continue;
 
+        // Apply damage for everything except PLAYER (players only collide)
+        if (!isPlayer(proj.Type))
+        {
+            // re-read in case of concurrent writes
+            centerHT = loadHT(pc.TextureIndex, localPx);
+            applyDamage_fx(fx, pc.TextureIndex, localPx, centerHT, proj.Damage);
 
+            // Rays/explosion
+            processExplosionDiskFalloff(proj, fx, localPx, curSize);
+        }
+
+        // Record result (health after center write)
+        writeCollisionResult(i, proj, worldPos, centerHT.r);
+        break;
+    }
 }

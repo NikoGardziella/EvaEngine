@@ -23,6 +23,17 @@ namespace Engine {
 	Engine::VulkanRenderer2DProjectileData Engine::VulkanRenderer2D::s_VulkanProjectileData;
 
 	CollisionData Engine::VulkanRenderer2D::s_CollisionData;
+	EffectPushConstants VulkanRenderer2D::s_effectPushConstants{
+		/*textureOrigin*/ {0.0f, 0.0f},
+		/*pixelSize*/      1.0f,
+		/*textureIndex*/   0u,
+
+		/*defaultTimer*/  24u,
+		/*glowStrength*/  0.65f,
+		/*maxTimer*/      64u,
+		/*_pad0*/         0u
+	};
+
 	std::vector<PerFrameGarbage> g_PerFrameGarbage;
 
 
@@ -249,6 +260,10 @@ namespace Engine {
 		uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
 		uint32_t totalTiles = tilesPerRow * tilesPerRow;
 		Engine::TileBlockedMaskCPU::CachedGPUMask.resize(totalTiles);
+
+
+		s_effectPushConstants = VulkanUtils::MakeDefaultEffectsState();
+
 	}
 
 	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
@@ -947,21 +962,17 @@ namespace Engine {
 			VulkanTexture& healthTex = *s_VulkanData.HealthTextureSlots[i];
 			if (!healthTex.GetCheckCollision())
 				continue;
+			
 
-			EffectPushConstants pc{};
-			pc.textureOrigin = healthTex.GetTextureOrigin();   // world origin of this chunk
-			pc.pixelSize = healthTex.GetPixelSize();       // world size of one pixel
-			pc.textureIndex = static_cast<uint32_t>(i);
+			// then per texture dispatch you only change:
+			s_effectPushConstants.textureIndex = i;
+			s_effectPushConstants.textureOrigin = healthTex.GetTextureOrigin();
+			s_effectPushConstants.pixelSize = healthTex.GetPixelSize();
 
-			// Effect tuning
-			pc.defaultTimer = 16;     // how many frames the glow should last when it starts
-			pc.glowStrength = 0.65f;  // additive strength per frame (tapered in shader)
-			pc.maxTimer = 32;     // clamp (also used for normalization in shader)
-			pc._pad0 = 0;
-
+			
 			vkCmdPushConstants(cmdBuf,
 				m_vulkanGraphicsPipelines->GetEffectsPipelineLayout(),
-				VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(EffectPushConstants), &pc);
+				VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(EffectPushConstants), &s_effectPushConstants);
 
 			uint32_t groupX = (healthTex.GetWidth() + 15) / 16;
 			uint32_t groupY = (healthTex.GetHeight() + 15) / 16;

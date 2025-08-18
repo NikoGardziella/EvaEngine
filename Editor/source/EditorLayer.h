@@ -15,6 +15,7 @@
 #include <imgui/imgui.h>
 #include "Panels/DebugPanel.h"
 #include "Panels/TileEditorPanel.h"
+#include "Panels/EffectsPanel.h"
 
 namespace Engine {
 
@@ -110,7 +111,7 @@ namespace Engine {
 		ContentBrowserPanel m_contentBrowserPanel;
 		TileEditorPanel m_tileEditorPanel;
 		DebugPanel m_debugPanel;
-
+		EffectsPanel m_effectsPanel;
 
 		Ref<Scene> m_editorScene;
 

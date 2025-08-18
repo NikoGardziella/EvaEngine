@@ -2,6 +2,7 @@
 #include "VulkanContext.h"
 #include <string>
 #include "VulkanGraphicsPipeline.h"
+#include <Engine/Renderer/VulkanRenderer2D.h>
 
 namespace Engine {
 
@@ -40,6 +41,8 @@ namespace Engine {
        const std::string LayoutToString(VkImageLayout layout);
 
        void CopyBufferToImage(StorageImage image, VkBuffer buffer);
+
+       EffectPushConstants MakeDefaultEffectsState();
 
 	}
 
