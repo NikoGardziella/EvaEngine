@@ -736,6 +736,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl" />
+    <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\Effect_shader.comp" />
     <None Include="..\assets\shaders\FlatColor.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />

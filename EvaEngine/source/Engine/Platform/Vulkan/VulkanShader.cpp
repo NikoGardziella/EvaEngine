@@ -30,7 +30,7 @@ namespace Engine {
 		m_device = VulkanContext::Get()->GetDeviceManager().GetDevice();
 		m_Name = std::filesystem::path(filepath).stem().string();
         std::string source = ReadFile(filepath);
-        auto shaderSources = PreProcess(source);
+        auto shaderSources = PreProcess(source, filepath);
         CompileOrGetVulkanBinaries(shaderSources, filepath);
     }
 
@@ -220,7 +220,7 @@ namespace Engine {
         return buffer;
     }
 
-    std::unordered_map<VkShaderStageFlagBits, std::string> VulkanShader::PreProcess(const std::string& source)
+    std::unordered_map<VkShaderStageFlagBits, std::string> VulkanShader::PreProcess(const std::string& source, const std::string& filepath)
     {
         std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources;
 
@@ -235,11 +235,47 @@ namespace Engine {
 
             size_t nextLinePos = source.find_first_not_of("\r\n", eol);
             pos = source.find(typeToken, nextLinePos);
-            shaderSources[ShaderTypeFromString(type)] = source.substr(nextLinePos, pos - nextLinePos);
+            shaderSources[ShaderTypeFromString(type)] =
+                ExpandIncludes(source.substr(nextLinePos, pos - nextLinePos), AssetManager::GetAssetFolderPath() / "shaders");
         }
 
         return shaderSources;
     }
+
+    std::string VulkanShader::ExpandIncludes(const std::string& src, const std::filesystem::path& directory)
+    {
+        std::istringstream iss(src);
+        std::ostringstream oss;
+        std::string line;
+
+        while (std::getline(iss, line))
+        {
+            if (line.find("#include") == 0)
+            {
+                // Extract file name between quotes
+                auto start = line.find_first_of("\"<") + 1;
+                auto end = line.find_last_of("\">");
+                std::string includeFile = line.substr(start, end - start);
+
+                std::filesystem::path includePath = directory / includeFile;
+                std::ifstream file(includePath);
+                if (!file.is_open())
+                    throw std::runtime_error("Failed to open include file: " + includePath.string());
+
+                std::ostringstream included;
+                included << file.rdbuf();
+                // recurse: expand includes inside included file too
+                oss << ExpandIncludes(included.str(), includePath.parent_path()) << "\n";
+            }
+            else
+            {
+                oss << line << "\n";
+            }
+        }
+        return oss.str();
+    }
+
+
 
     VkShaderStageFlagBits VulkanShader::ShaderTypeFromString(const std::string& type)
     {

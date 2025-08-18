@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 namespace Engine {
 
@@ -35,7 +36,9 @@ namespace Engine {
     private:
 
         std::string ReadFile(const std::string& filepath);
-        std::unordered_map<VkShaderStageFlagBits, std::string> PreProcess(const std::string& source);
+        std::unordered_map<VkShaderStageFlagBits, std::string> PreProcess(const std::string& source, const std::string& filepath);
+
+        std::string ExpandIncludes(const std::string& src, const std::filesystem::path& directory);
 
         VkShaderStageFlagBits ShaderTypeFromString(const std::string& type);
 

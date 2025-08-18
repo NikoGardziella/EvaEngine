@@ -858,7 +858,8 @@ namespace Engine {
 			pushconstant.mode = 2;
 			pushconstant.MinTileCoords = minOrigin * (int)CHUNK_SIZE;
 
-
+			//EE_CORE_INFO("EntitySlotIndex {}",s_CollisionData.EntitySlotIndex);
+			
 			vkCmdPushConstants(commandBuffer,
 				m_vulkanGraphicsPipelines->GetComputePipelineLayout(),
 				VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PushConstants), &pushconstant);

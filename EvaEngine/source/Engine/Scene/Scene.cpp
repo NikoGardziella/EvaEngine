@@ -783,7 +783,6 @@ namespace Engine {
                         projectilePos.y = projectileTransform.Translation.y;
      
                         
-
                         Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.ProjectileRadius, IDComp.ID, eCollisionType::PROJECTILE, projectile.Damage, projectile.PixelDestructionRadius);
                         Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
 
