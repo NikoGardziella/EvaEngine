@@ -1,0 +1,570 @@
+#type compute
+#version 450
+
+// One thread per projectile
+layout(local_size_x = 64) in;   // 64 threads per WG; dispatch ceil(NumProjectiles/64.0)
+
+#define GRID_WIDTH   3
+#define GRID_HEIGHT  3
+#define ACTIVE_SLOTS (GRID_WIDTH*GRID_HEIGHT)
+// ========== DEBUG CONFIG ==========
+#define DEBUG_ENABLE       1
+#define DEBUG_DENSE_STEPS  1024 // dense sampling count (debug only)
+#define DEBUG_DOT_SIZE     3    // square half-size for markers
+// ===== debug logging =====
+#define DEBUG_LOGGING 1
+#define TAG_THREAD_START   1001u
+#define TAG_CELL_VISIT     1002u  // every DDA cell touched
+#define TAG_FIRST_HIT      1003u
+#define TAG_CLIP_REJECT    1004u
+#define TAG_END_TMAX       1005u
+#define TAG_OUT_OF_WINDOW  1006u
+#define TAG_SEG_INFO 1007u
+// ==================================
+
+
+
+layout(set=0, binding=0, rgba8)   uniform  image2D  u_InputTexture[ACTIVE_SLOTS];
+layout(set=0, binding=1, rgba8ui) uniform uimage2D u_HealthImage[ACTIVE_SLOTS];
+
+struct ProjectileGPU {
+    vec2  Position;       // world
+    float Radius;         // world or pixels (pick one convention)
+    uint  Type;           // 0 proj, 1 player, 2 vehicle
+    uint  ID_Low;
+    uint  ID_High;
+    vec2  Size;
+    float Rotation;
+    uint  Damage;
+    uint  DestructionRadius; // pixels
+    vec2  Velocity;          // world/s
+};
+
+layout(std430, set=0, binding=3) readonly buffer Projectiles { ProjectileGPU P[]; };
+
+struct CollisionResult {
+    uint collisionDetected;
+    uint hitProjectileID_Low;
+    uint hitProjectileID_High;
+    uint _pad0;
+    vec2 CollisionPosition;
+    uint HealthAfter;
+    uint _pad1;
+};
+layout(std430, set=0, binding=2) buffer ResultBuffer {
+    uint collisionCount;
+    uint _padA; uint _padB; uint _padC;
+    CollisionResult results[];
+};
+
+layout(push_constant) uniform PC {
+    vec2  WindowOriginWorld;   // top-left of 3x3 window (world units)
+    float PixelSizeWorld;      // world units per pixel
+    uint  ChunkSizePixels;     // size of one chunk texture (pixels, e.g. 512)
+    uint  NumProjectiles;
+    float DeltaTime;           // seconds
+    uint  Mode;                // falloff mode, etc (optional)
+} pc;
+
+// --- helpers ---
+uvec4 loadHT(uint slot, ivec2 px) { return imageLoad(u_HealthImage[slot], px); }
+void  storeHT(uint slot, ivec2 px, uvec4 ht) { imageStore(u_HealthImage[slot], px, ht); }
+void  clearColor(uint slot, ivec2 px) { imageStore(u_InputTexture[slot], px, vec4(0.0)); }
+
+
+// Draw a filled square of (2*rad+1)^2 pixels at (slot, lp)
+#if DEBUG_ENABLE
+void debugSquare(uint slot, ivec2 lp, int rad, vec4 col)
+{
+    ivec2 sz = imageSize(u_InputTexture[slot]);
+    for (int j = -rad; j <= rad; ++j)
+    for (int i = -rad; i <= rad; ++i) {
+        ivec2 p = lp + ivec2(i, j);
+        if (p.x < 0 || p.y < 0 || p.x >= sz.x || p.y >= sz.y) continue;
+        imageStore(u_InputTexture[slot], p, col);
+    }
+}
+#else
+void debugSquare(uint, ivec2, int, vec4) {}
+#endif
+
+void windowWH(out float Wf, out float Hf)
+{
+    // Use actual image size in case pc.ChunkSizePixels drifts
+    ivec2 ch = imageSize(u_InputTexture[0]); // assume all chunks identical
+    Wf = float(GRID_WIDTH  * ch.x);
+    Hf = float(GRID_HEIGHT * ch.y);
+}
+
+bool windowToSlotLocal(ivec2 wpx, out uint slot, out ivec2 local)
+{
+    float Wf, Hf; windowWH(Wf, Hf);
+    int W = int(Wf), H = int(Hf);
+
+    // Clamp to avoid rare cases where wpx lands on the window’s right/bottom edge
+    wpx.x = clamp(wpx.x, 0, W - 1);
+    wpx.y = clamp(wpx.y, 0, H - 1);
+
+    // Determine which chunk (slot) this window pixel falls into
+    ivec2 ch = imageSize(u_InputTexture[0]);  // chunk size (pixels)
+    int cx = wpx.x / ch.x;
+    int cy = wpx.y / ch.y;
+
+    // Fast reject if out of 3x3
+    if (cx < 0 || cy < 0 || cx >= GRID_WIDTH || cy >= GRID_HEIGHT) return false;
+
+    slot  = uint(cy * GRID_WIDTH + cx);
+
+    // Local coords inside that chunk
+    local = ivec2(wpx.x - cx * ch.x, wpx.y - cy * ch.y);
+
+    // Extra safety (should always be true)
+    ivec2 sz = imageSize(u_InputTexture[slot]);
+    return (local.x >= 0 && local.y >= 0 && local.x < sz.x && local.y < sz.y);
+}
+
+// Map world point -> window pixel (integer) and then -> (slot,local). Returns false if outside.
+bool worldToSlotLocal(vec2 world, out uint slot, out ivec2 lp, out ivec2 wpx)
+{
+    wpx = ivec2(floor( (world - pc.WindowOriginWorld) / pc.PixelSizeWorld ));
+    return windowToSlotLocal(wpx, slot, lp);
+}
+// Minkowski “capsule vs cell” exact check; optional (use for proper radius)
+bool capsuleHitsCell(vec2 p0, vec2 p1, float Rw, ivec2 wpx)
+{
+    vec2  C     = pc.WindowOriginWorld + (vec2(wpx) + vec2(0.5)) * pc.PixelSizeWorld;
+    float H     = 0.5f * pc.PixelSizeWorld;
+    vec2  halfExtent = vec2(H + Rw);
+    vec2  bmin  = C - halfExtent;
+    vec2  bmax  = C + halfExtent;
+
+    const float EPS = 1e-7f;
+    const float BIG = 1e30f;
+
+    vec2 d    = p1 - p0;
+    vec2 invD = vec2( (abs(d.x) > EPS) ? (1.0f / d.x) : BIG,
+                      (abs(d.y) > EPS) ? (1.0f / d.y) : BIG );
+
+    vec2 t0s   = (bmin - p0) * invD;
+    vec2 t1s   = (bmax - p0) * invD;
+    vec2 tmin2 = min(t0s, t1s);
+    vec2 tmax2 = max(t0s, t1s);
+
+    float tmin = max(max(tmin2.x, tmin2.y), 0.0f);
+    float tmax = min(min(tmax2.x, tmax2.y), 1.0f);
+    return (tmax >= tmin);
+}
+
+// Dense “first hit” finder (debug only). Uses capsuleHitsCell and health check.
+bool findFirstByDense(vec2 p0, vec2 p1, float Rw, out uint slot, out ivec2 lp, out ivec2 wpxHit)
+{
+#if DEBUG_ENABLE
+    // march t from 0..1 and test the cell under the point
+    for (int k = 0; k <= DEBUG_DENSE_STEPS; ++k) {
+        float t = float(k) / float(DEBUG_DENSE_STEPS);
+        vec2 P  = mix(p0, p1, t);
+        ivec2 wpx;
+        uint s; ivec2 l;
+        // translate to a candidate cell near P
+        wpx = ivec2(floor((P - pc.WindowOriginWorld)/pc.PixelSizeWorld));
+        if (!windowToSlotLocal(wpx, s, l)) continue;
+        // accurate capsule test against that cell
+        if (!capsuleHitsCell(p0, p1, Rw, wpx)) continue;
+        // health gate
+        uvec4 ht = loadHT(s, l);
+        if (ht.r > 0u) { slot = s; lp = l; wpxHit = wpx; return true; }
+    }
+#endif
+    return false;
+}
+
+
+bool hasHP(uvec4 ht) { return ht.r > 0u; }
+
+// Map window pixel (x,y) -> (slot, localPx). Returns false if out of 3x3 window.
+
+
+
+
+bool claimAndWriteResult(uint projIdx, const ProjectileGPU proj, uint slot, ivec2 lp, uint healthAfter)
+{
+    if (atomicCompSwap(results[projIdx].collisionDetected, 0u, 1u) != 0u) return false;
+    results[projIdx].hitProjectileID_Low  = proj.ID_Low;
+    results[projIdx].hitProjectileID_High = proj.ID_High;
+    results[projIdx].CollisionPosition    = pc.WindowOriginWorld + (vec2(lp) + vec2(0.5)) * pc.PixelSizeWorld;
+    results[projIdx].HealthAfter          = healthAfter;
+    atomicAdd(collisionCount, 1u);
+    return true;
+}
+
+void applyDamageOrStop(uint projIdx, ProjectileGPU proj, uint slot, ivec2 lp, inout uvec4 ht)
+{
+    if (proj.Type == 1u) {
+        // Player: collide only
+        claimAndWriteResult(projIdx, proj, slot, lp, ht.r);
+        return;
+    }
+
+    // For debug, write visible colors so you can see the change immediately.
+    const vec4 DBG_SURVIVE = vec4(1,1,0,1); // yellow
+    const vec4 DBG_DESTROY = vec4(1,0,1,1); // magenta
+
+    if (proj.Damage >= ht.r) {
+        imageStore(u_InputTexture[slot], lp, DBG_DESTROY); // or vec4(0,0,0,0) for real hole
+        ht.r = 0u;
+        ht.g = 255u;              // destroyed sentinel (for your effect pass)
+        storeHT(slot, lp, ht);
+        claimAndWriteResult(projIdx, proj, slot, lp, ht.r);
+    } else {
+        imageStore(u_InputTexture[slot], lp, DBG_SURVIVE);
+        ht.r -= proj.Damage;
+        if (ht.g != 255u) ht.g = 254u; // survivor sentinel
+        storeHT(slot, lp, ht);
+        claimAndWriteResult(projIdx, proj, slot, lp, ht.r);
+    }
+}
+
+
+
+
+
+// Simple integer disk (no falloff) using proj.DestructionRadius (in pixels)
+void applyExplosionAtHit(in ProjectileGPU proj, in ivec2 hitCell)
+{
+    int r  = int(proj.DestructionRadius);
+    if (r <= 0) return;
+    int r2 = r * r;
+
+    for (int dy = -r; dy <= r; ++dy) {
+        int rem = r2 - dy*dy;
+        if (rem < 0) continue;
+        int maxdx = int(floor(sqrt(float(rem))));
+        for (int dx = -maxdx; dx <= maxdx; ++dx) {
+            ivec2 wpx = hitCell + ivec2(dx, dy);   // window pixel coords
+            uint slot; ivec2 lp;
+            if (!windowToSlotLocal(wpx, slot, lp)) continue;
+
+            uvec4 ht = loadHT(slot, lp);
+            if (ht.r == 0u) continue;             // only damage destructible pixels
+
+            uint dmg = proj.Damage;                // or add falloff based on length(vec2(dx,dy))/r
+            if (dmg >= ht.r) {
+                clearColor(slot, lp);
+                ht.r = 0u; ht.g = 255u;            // destroyed sentinel for your FX pass
+                storeHT(slot, lp, ht);
+            } else {
+                ht.r -= dmg;
+                if (ht.g != 255u) ht.g = 254u;     // survivor sentinel
+                storeHT(slot, lp, ht);
+            }
+        }
+    }
+}
+
+
+
+void paintBig(uint slot, ivec2 lp, vec4 col, int r)
+{
+    ivec2 sz = imageSize(u_InputTexture[slot]);
+    for (int oy = -r; oy <= r; ++oy)
+    for (int ox = -r; ox <= r; ++ox) {
+        ivec2 p = lp + ivec2(ox, oy);
+        if (p.x >= 0 && p.y >= 0 && p.x < sz.x && p.y < sz.y)
+            imageStore(u_InputTexture[slot], p, col);
+    }
+}
+
+
+// Returns entry t in [0,1] for swept capsule p0->p1 with radius Rw vs a given window cell.
+// If no intersection, returns > 1.0.
+float entryTIntoCell(vec2 p0, vec2 p1, float Rw, ivec2 wpx)
+{
+    // Cell AABB in world, expanded by radius
+    vec2 C  = pc.WindowOriginWorld + (vec2(wpx) + vec2(0.5)) * pc.PixelSizeWorld;
+    float H = 0.5 * pc.PixelSizeWorld;
+    vec2  Half = vec2(H + Rw);
+    vec2  bmin = C - Half;
+    vec2  bmax = C + Half;
+
+    vec2 d = p1 - p0;
+    vec2 invD = vec2(
+        (abs(d.x) > 1e-8) ? 1.0 / d.x : 1e8,
+        (abs(d.y) > 1e-8) ? 1.0 / d.y : 1e8
+    );
+
+    vec2 t0s = (bmin - p0) * invD;
+    vec2 t1s = (bmax - p0) * invD;
+    vec2 tmin2 = min(t0s, t1s);
+    vec2 tmax2 = max(t0s, t1s);
+
+    float tmin = max(max(tmin2.x, tmin2.y), 0.0);
+    float tmax = min(min(tmax2.x, tmax2.y), 1.0);
+
+    return (tmax >= tmin) ? tmin : 2.0; // >1 means "no hit in [0,1]"
+}
+
+
+// Robust Liang–Barsky clip in window pixel space [0..W)×[0..H)
+// --- helper: draw a small square at a local pixel (visible debug) ---
+void debugStampCell(uint slot, ivec2 lp, int halfSize, vec4 col)
+{
+    ivec2 sz = imageSize(u_InputTexture[slot]);
+    for (int oy = -halfSize; oy <= halfSize; ++oy)
+    for (int ox = -halfSize; ox <= halfSize; ++ox) {
+        ivec2 p = lp + ivec2(ox, oy);
+        if (p.x >= 0 && p.y >= 0 && p.x < sz.x && p.y < sz.y) {
+            imageStore(u_InputTexture[slot], p, col);
+        }
+    }
+}
+
+// --- helper: clip a segment in *window-pixel* space to the 3x3 window ---
+bool clipToWindow(vec2 s0, vec2 s1, out vec2 c0, out vec2 c1)
+{
+    float W = float(GRID_WIDTH  * int(pc.ChunkSizePixels));
+    float H = float(GRID_HEIGHT * int(pc.ChunkSizePixels));
+    vec2  d = s1 - s0;
+
+    float t0 = 0.0, t1 = 1.0;
+
+    // Left  : x >= 0
+    float p = -d.x, q =  s0.x - 0.0;
+    if (abs(p) < 1e-12) { if (q < 0.0) return false; }
+    else {
+        float r = q / p;
+        if (p < 0.0) { if (r > t1) return false; t0 = max(t0, r); }
+        else         { if (r < t0) return false; t1 = min(t1, r); }
+    }
+
+    // Right : x <= W
+    p = d.x; q = W - s0.x;
+    if (abs(p) < 1e-12) { if (q < 0.0) return false; }
+    else {
+        float r = q / p;
+        if (p < 0.0) { if (r > t1) return false; t0 = max(t0, r); }
+        else         { if (r < t0) return false; t1 = min(t1, r); }
+    }
+
+    // Bottom: y >= 0
+    p = -d.y; q =  s0.y - 0.0;
+    if (abs(p) < 1e-12) { if (q < 0.0) return false; }
+    else {
+        float r = q / p;
+        if (p < 0.0) { if (r > t1) return false; t0 = max(t0, r); }
+        else         { if (r < t0) return false; t1 = min(t1, r); }
+    }
+
+    // Top   : y <= H
+    p = d.y; q = H - s0.y;
+    if (abs(p) < 1e-12) { if (q < 0.0) return false; }
+    else {
+        float r = q / p;
+        if (p < 0.0) { if (r > t1) return false; t0 = max(t0, r); }
+        else         { if (r < t0) return false; t1 = min(t1, r); }
+    }
+
+    c0 = s0 + d * t0;
+    c1 = s0 + d * t1;
+    return true;
+}
+
+
+// mode: 0=flat, 1=linear, 2=quadratic, 3=inverse-square (clamped)
+float falloff01(float t, uint mode)
+{
+    t = clamp(t, 0.0, 1.0);
+    if (mode == 0u) return 1.0;
+    if (mode == 1u) return 1.0 - t;
+    if (mode == 2u) { float w = 1.0 - t; return w*w; }
+    // inv-square (normalized near center)
+    const float eps = 0.05;
+    float x = max(t, eps);
+    float w = (eps*eps) / (x*x);
+    return clamp(w, 0.0, 1.0);
+}
+
+// Apply a circular explosion in WINDOW-PIXEL coordinates.
+// centerWpx: window pixel (not local); rPx: radius in pixels.
+void applyExplosionAtWindowPx(ivec2 centerWpx, int rPx, uint baseDamage)
+{
+    if (rPx <= 0) return;
+
+    int CH = int(pc.ChunkSizePixels);
+    uint mode = (pc.Mode & 3u);
+
+    int r2 = rPx * rPx;
+    for (int dy = -rPx; dy <= rPx; ++dy)
+    {
+        int rem = r2 - dy*dy;
+        if (rem < 0) continue;
+        int maxdx = int(floor(sqrt(float(rem))));
+        for (int dx = -maxdx; dx <= maxdx; ++dx)
+        {
+            ivec2 wpx = centerWpx + ivec2(dx, dy);
+
+            // Map window pixel -> (slot, local)
+            uint  slot; 
+            ivec2 lp;
+            if (!windowToSlotLocal(wpx, slot, lp)) continue;
+
+            uvec4 ht = loadHT(slot, lp);
+            if (ht.r == 0u) continue; // empty/terrain: skip (health-based destruction only)
+
+            // falloff damage
+            float t = length(vec2(dx, dy)) / float(max(rPx,1));
+            float w = falloff01(t, mode);
+            uint  dmg = uint(floor(float(baseDamage) * w + 0.5));
+
+            if (dmg == 0u) continue;
+
+            if (dmg >= ht.r) {
+                clearColor(slot, lp);
+                ht.r = 0u; 
+                ht.g = 255u; // destroyed glow
+                storeHT(slot, lp, ht);
+            } else {
+                ht.r -= dmg;
+                if (ht.g != 255u) ht.g = 254u; // survivor glow
+                storeHT(slot, lp, ht);
+            }
+        }
+    }
+}
+
+ivec2 chunkSizePx() { return imageSize(u_InputTexture[0]); }
+
+// Convert (slot, local) -> window pixel coords
+ivec2 windowPxFromSlotLocal(uint slot, ivec2 lp) {
+    ivec2 ch = chunkSizePx();
+    int cx = int(slot % GRID_WIDTH);
+    int cy = int(slot / GRID_WIDTH);
+    return ivec2(cx * ch.x + lp.x, cy * ch.y + lp.y);
+}
+
+// Convert window pixel -> world coords (center of that pixel)
+vec2 worldFromWindowPx(ivec2 wpx) {
+    return pc.WindowOriginWorld + (vec2(wpx) + vec2(0.5)) * pc.PixelSizeWorld;
+}
+
+// Reserve a result slot (clamp if overflow so you still see *something*)
+uint dbgAlloc() {
+    uint idx = atomicAdd(collisionCount, 1u);
+    uint cap = 32;       // your current array size
+    return (idx < cap) ? idx : (cap - 1u);
+}
+
+void dbgLog(uint tag, uint pid, uint slot, ivec2 lp, ivec2 wpx, uint aux)
+{
+#if DEBUG_LOGGING
+    uint idx = dbgAlloc();
+    results[idx].collisionDetected  = tag;          // TAG_*
+    results[idx].hitProjectileID_Low  = pid;        // thread id
+    results[idx].hitProjectileID_High = slot;       // slot (or 0xFFFFFFFF for n/a)
+    results[idx].CollisionPosition  = vec2(wpx);    // write window px coords as float
+    results[idx].HealthAfter        = aux;          // e.g., ht.r or any small int
+#endif
+}
+// ---- main: one thread walks the path for one projectile ----
+
+
+// ---- main: continuous (look-ahead) DDA, first-hit damage ----
+void main()
+{
+    uint pid = gl_GlobalInvocationID.x;
+    if (pid >= pc.NumProjectiles) return;
+
+    ProjectileGPU proj = P[pid];
+
+    // Build segment this frame (world)
+    vec2 p1 = proj.Position;
+    vec2 p0 = proj.Position - proj.Velocity * pc.DeltaTime;
+
+    // Convert to window-pixel space
+    vec2 s0 = (p0 - pc.WindowOriginWorld) / pc.PixelSizeWorld;
+    vec2 s1 = (p1 - pc.WindowOriginWorld) / pc.PixelSizeWorld;
+    vec2 ds = s1 - s0;
+    float span = max(abs(ds.x), abs(ds.y));        // pixels moved this frame (dominant axis)
+
+    // ---- Look-ahead: extend the segment forward in window-pixels ----
+    const float LOOKAHEAD_MIN_PX = 64.0;           // always look at least this far
+    const float LOOKAHEAD_FACTOR = 2.0;            // and 2x the per-frame span
+    vec2 dirPx;
+    if (span > 1e-6) {
+        dirPx = ds / span;                         // normalized in pixel space
+    } else {
+        // fallback to velocity direction (convert world->px), or X+ if stalled
+        vec2 vPx = proj.Velocity / pc.PixelSizeWorld;
+        dirPx = (length(vPx) > 1e-6) ? normalize(vPx) : vec2(1.0, 0.0);
+    }
+    float lookahead = max(LOOKAHEAD_MIN_PX, span * LOOKAHEAD_FACTOR);
+    vec2  s1_ext    = s0 + dirPx * lookahead;
+
+    // Clip extended segment to the 3×3 window
+    vec2 c0, c1;
+    if (!clipToWindow(s0, s1_ext, c0, c1)) return; // entirely outside window
+
+    // DDA along clipped extended segment
+    vec2  dse   = c1 - c0;
+    ivec2 cell  = ivec2(floor(c0));
+    int   stepX = (dse.x > 0.0) ? 1 : (dse.x < 0.0 ? -1 : 0);
+    int   stepY = (dse.y > 0.0) ? 1 : (dse.y < 0.0 ? -1 : 0);
+
+    float tMaxX, tMaxY, tDeltaX, tDeltaY;
+    if (stepX != 0) {
+        float nextBx = float(cell.x + (stepX > 0 ? 1 : 0));
+        tMaxX   = (nextBx - c0.x) / (dse.x == 0.0 ? 1.0 : dse.x);
+        tDeltaX = abs(1.0 / (dse.x == 0.0 ? 1.0 : dse.x));
+    } else { tMaxX = 1e9; tDeltaX = 1e9; }
+
+    if (stepY != 0) {
+        float nextBy = float(cell.y + (stepY > 0 ? 1 : 0));
+        tMaxY   = (nextBy - c0.y) / (dse.y == 0.0 ? 1.0 : dse.y);
+        tDeltaY = abs(1.0 / (dse.y == 0.0 ? 1.0 : dse.y));
+    } else { tMaxY = 1e9; tDeltaY = 1e9; }
+
+    const int MAX_STEPS = 2048;                    // cap work
+    ivec2 lastCell = ivec2(0x7fffffff);
+
+    for (int it = 0; it < MAX_STEPS; ++it)
+    {
+        // Stop if we’ve marched past c1
+        if (tMaxX > 1.0 && tMaxY > 1.0) break;
+
+        // Skip duplicate cell
+        if (all(equal(cell, lastCell))) {
+            // advance to next boundary
+            if (tMaxX < tMaxY) { cell.x += stepX; tMaxX += tDeltaX; }
+            else               { cell.y += stepY; tMaxY += tDeltaY; }
+            continue;
+        }
+        lastCell = cell;
+
+        // Map window cell -> slot,local
+        uint  slot; ivec2 lp;
+        if (!windowToSlotLocal(cell, slot, lp)) {
+            // advance to next boundary and continue
+            if (tMaxX < tMaxY) { cell.x += stepX; tMaxX += tDeltaX; }
+            else               { cell.y += stepY; tMaxY += tDeltaY; }
+            continue;
+        }
+
+        // DEBUG: big blue stamp on every visited cell of the extended segment
+        debugSquare(slot, lp, 2, vec4(0,0,1,1));
+
+        // Swept circle (capsule) vs this cell using radius in WORLD units
+        float Rw = proj.Radius;
+        if (capsuleHitsCell(p0, p1, Rw, cell)) {
+            uvec4 ht = loadHT(slot, lp);
+            if (ht.r > 0u) {
+                // First blocking pixel — mark and apply
+                debugSquare(slot, lp, 3, vec4(1,1,0,1)); // yellow, thicker
+                applyDamageOrStop(pid, proj, slot, lp, ht);
+                return; // stop at first hit
+            }
+        }
+
+        // advance to next boundary
+        if (tMaxX < tMaxY) { cell.x += stepX; tMaxX += tDeltaX; }
+        else               { cell.y += stepY; tMaxY += tDeltaY; }
+    }
+}
