@@ -55,7 +55,7 @@ namespace Engine
                 if (alpha < 10) continue; // skip transparent pixels
 
                 // Pixel position in fractional tile units
-                glm::vec2 pixelOffsetInTile = glm::vec2(float(x) / float(PIXELS_IN_TILE), float(y) / float(PIXELS_IN_TILE));
+                glm::vec2 pixelOffsetInTile = glm::vec2(float(x) / float(TILE_PIXEL_WIDTH), float(y) / float(TILE_PIXEL_WIDTH));
 
                 // Total subtile world position
                 glm::vec2 subtileWorldPos = worldPosition + pixelOffsetInTile;

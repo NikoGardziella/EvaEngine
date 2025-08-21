@@ -859,7 +859,7 @@ namespace Engine {
 
 				
 					glm::ivec2 texOrigin = tex.GetTextureOrigin();
-					glm::ivec2 tileCoord = glm::floor(glm::vec2(texOrigin) / float(PIXELS_IN_TILE));
+					glm::ivec2 tileCoord = glm::floor(glm::vec2(texOrigin) / float(TILE_PIXEL_WIDTH));
 
 					//EE_CORE_INFO("Chunk Index {}: CheckCollision = true, texOrigin = ({}, {}), tileCoord = ({}, {})",
 					//	i, texOrigin.x, texOrigin.y, tileCoord.x, tileCoord.y);
@@ -914,8 +914,8 @@ namespace Engine {
 			pushconstant.PixelSize = tex.GetPixelSize();
 			pushconstant.textureIndex = static_cast<uint32_t>(i);
 			pushconstant.NumProjectiles = s_CollisionData.EntitySlotIndex;
-			pushconstant.ChunkSize = PIXELS_IN_TILE * CHUNK_SIZE;
-			pushconstant.TileSize = PIXELS_IN_TILE;
+			pushconstant.ChunkSize = TILE_PIXEL_WIDTH * CHUNK_SIZE;
+			pushconstant.TileSize = TILE_PIXEL_WIDTH;
 			pushconstant.mode = 2;
 			pushconstant.MinTileCoords = minOrigin * (int)CHUNK_SIZE;
 
@@ -1022,7 +1022,7 @@ namespace Engine {
 			// If you always send one player, set to 1.
 			pc.NumPlayers = 1; // TODO: replace if you pack multiple players
 
-			pc.ChunkSizePixels = PIXELS_IN_TILE * CHUNK_SIZE;
+			pc.ChunkSizePixels = TILE_PIXEL_WIDTH * CHUNK_SIZE;
 			pc.DeltaTime = Application::GetDelatime();
 			pc.Mode = 0; // unused or your preferred mode
 		}
@@ -1791,34 +1791,35 @@ namespace Engine {
 
 	}
 
-	
 	void VulkanRenderer2D::DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color)
 	{
-		
+		const float aspect = 2.0f;                 // 128x256
+		const float widthWorld = float(TILE_SIZE);
+		const float heightWorld = widthWorld * aspect;
 
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos, 0.0f))
-			* glm::scale(glm::mat4(1.0f), glm::vec3(TILE_SIZE, TILE_SIZE, 1.0f));
+		// bottom-center pivot: translate up by half height
+		glm::mat4 transform =
+			glm::translate(glm::mat4(1.0f), glm::vec3(worldPos + glm::vec2(0.0f, heightWorld * 0.5f), 0.0f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(widthWorld, heightWorld, 1.0f));
 
-		// Assuming you already have a texture atlas bound (e.g., m_tileTextureAtlas)
-		float textureIndex = 0.0f;
-
+		// Find or bind the atlas texture slot
+		float textureIndex = -1.0f;
 		for (uint32_t i = 0; i < s_VulkanData.TextureSlotIndex; i++)
 		{
 			if (s_VulkanData.TextureSlots[i] == AssetManager::GetTileTextureIconAtlas())
 			{
-				textureIndex = (float)i;
+				textureIndex = float(i);
 				break;
 			}
 		}
-
-		// Not yet bound? Add it
-		if (textureIndex == 0.0f)
+		if (textureIndex < 0.0f)
 		{
-			textureIndex = (float)s_VulkanData.TextureSlotIndex;
+			textureIndex = float(s_VulkanData.TextureSlotIndex);
 			s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::GetTileTextureIconAtlas();
 			s_VulkanData.TextureSlotIndex++;
 		}
-		// Vertex data (inside DrawQuad or similar):
+
+		// Unit quad centered at origin
 		const glm::vec3 quadPositions[4] = {
 			{-0.5f, -0.5f, 0.0f},
 			{ 0.5f, -0.5f, 0.0f},
@@ -1846,6 +1847,8 @@ namespace Engine {
 
 		s_VulkanData.QuadIndexCount += 6;
 	}
+
+
 
 
 	void VulkanRenderer2D::DrawTile(const glm::vec3& worldPos, const glm::vec4& uv, const glm::vec4& color)

@@ -19,7 +19,6 @@ namespace Engine {
        
     }
 
-
     void TileEditorPanel::OnImGuiRender()
     {
         EE_PROFILE_FUNCTION();
@@ -33,6 +32,11 @@ namespace Engine {
             { "Vehicles",  eTileCategory::Vehicles }
         };
 
+        // Thumbnail metrics for iso tiles (height = width * 256/128)
+        const float iconW = 48.0f; // tweak if you want bigger/smaller thumbs
+        const float iconH = iconW * (float)TILE_PIXEL_HEIGHT / (float)TILE_PIXEL_WIDTH; // 2x iconW for 128x256
+        const float spacingX = ImGui::GetStyle().ItemSpacing.x;
+        const float spacingY = ImGui::GetStyle().ItemSpacing.y;
 
         for (const auto& entry : categories)
         {
@@ -44,32 +48,38 @@ namespace Engine {
 
             if (open)
             {
-                float tileSize = 48.0f;
-                int tilesPerRow = 6;
+                // Compute how many items fit per row with current panel width
+                float availW = ImGui::GetContentRegionAvail().x;
+                int itemsPerRow = std::max(1, (int)std::floor((availW + spacingX) / (iconW + spacingX)));
+
                 int tileCount = AssetManager::GetTileCountForCategory(entry.category);
-                int rows = (tileCount + tilesPerRow - 1) / tilesPerRow;
-                float childHeight = rows * tileSize;
+                int rows = (tileCount + itemsPerRow - 1) / itemsPerRow;
+
+                // Each item roughly: iconH + label height + spacing
+                float labelH = ImGui::GetTextLineHeightWithSpacing();
+                float perItemH = iconH + labelH + spacingY;
+
+                float childHeight = rows * perItemH + 6.0f; // small padding
 
                 ImGui::BeginChild(("Palette_" + std::string(entry.name)).c_str(), ImVec2(0, childHeight), true);
+                // Uses your existing drawer (no new functions introduced)
                 DrawTilePalette(entry.category);
                 ImGui::EndChild();
                 ImGui::TreePop();
             }
         }
-        ImGui::End(); 
+        ImGui::End();
 
         if (!m_selectedTileName.empty())
         {
             ImGui::Begin("Tile Properties");
 
-            // Initialize defaults if uninitialized
+            // Initialize defaults if uninitialized (keep your original logic)
             if (m_selectedTileprops.health == 0 && m_selectedTileprops.material == eTileMaterial::None)
             {
                 auto it = m_tilePropertyDefaults.find(m_selectedTileName);
                 if (it != m_tilePropertyDefaults.end())
-                {
                     m_selectedTileprops = it->second;
-                }
             }
 
             ImGui::Text("Editing: %s", m_selectedTileName.c_str());
@@ -77,9 +87,7 @@ namespace Engine {
             bool tilePropertiesChanged = false;
 
             if (ImGui::InputScalar("Health", ImGuiDataType_U32, &m_selectedTileprops.health))
-            {
                 tilePropertiesChanged = true;
-            }
 
             static const char* materialOptions[] = {
                 ToString(eTileMaterial::Undefined),
@@ -93,8 +101,8 @@ namespace Engine {
                 ToString(eTileMaterial::Metal),
                 ToString(eTileMaterial::Glass)
             };
-
             constexpr int materialCount = sizeof(materialOptions) / sizeof(materialOptions[0]);
+
             int currentMaterialIdx = static_cast<int>(m_selectedTileprops.material);
             if (ImGui::Combo("Material", &currentMaterialIdx, materialOptions, materialCount))
             {
@@ -104,31 +112,19 @@ namespace Engine {
 
             if (tilePropertiesChanged)
             {
+                m_selectedTileprops.name = m_selectedTileName;
                 m_modifiedTileProperties[m_selectedTileName] = m_selectedTileprops;
-                
                 TileSerializer::Save(m_modifiedTileProperties);
-
             }
-
-           
 
             ImGui::End();
         }
-
-
-
-
     }
 
 
 
-   
-
     void TileEditorPanel::DrawTilePalette(eTileCategory category)
     {
-        const float iconSize = 32.0f;
-        const int itemsPerRow = 8;
-
         ImTextureID textureID = (ImTextureID)AssetManager::GetTileTextureIconAtlas()->GetTextureDescriptor();
 
         if (category == eTileCategory::Buildings)
@@ -137,13 +133,12 @@ namespace Engine {
             {
                 eTileMaterial material = static_cast<eTileMaterial>(m);
 
-                // Only show if there are tiles in this material
                 const auto& tileNames = AssetManager::GetTileNamesByCategoryAndMaterial(category, material);
                 if (tileNames.empty()) continue;
 
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen;
+                std::string materialName = GetTileMaterialName(material);
 
-                std::string materialName = GetTileMaterialName(material); 
                 if (ImGui::TreeNodeEx(materialName.c_str(), flags))
                 {
                     DrawTiles(tileNames, textureID, category, material);
@@ -156,7 +151,6 @@ namespace Engine {
         else
         {
             std::vector<std::string> allTiles;
-
             for (int m = 0; m < (int)eTileMaterial::COUNT; ++m)
             {
                 eTileMaterial material = static_cast<eTileMaterial>(m);
@@ -166,27 +160,39 @@ namespace Engine {
 
             DrawTiles(allTiles, textureID, category, eTileMaterial::None);
         }
-
     }
 
-
-    void TileEditorPanel::DrawTiles(const std::vector<std::string>& tileNames, ImTextureID textureID, eTileCategory category, eTileMaterial /*material*/)
+    void TileEditorPanel::DrawTiles(const std::vector<std::string>& tileNames,
+        ImTextureID textureID,
+        eTileCategory category,
+        eTileMaterial /*material*/)
     {
-        const float iconSize = 32.0f;
-        const int itemsPerRow = 8;
+        // Iso thumbnails: keep 128x256 aspect -> H = W * 256/128
+        const float iconW = 48.0f;
+        const float iconH = iconW * (float)TILE_PIXEL_HEIGHT / (float)TILE_PIXEL_WIDTH; // 2 * iconW
+        const float spacingX = ImGui::GetStyle().ItemSpacing.x;
+
+        // Compute items per row from available width inside the current region/child
+        const float availW = ImGui::GetContentRegionAvail().x;
+        const int itemsPerRow = std::max(1, (int)std::floor((availW + spacingX) / (iconW + spacingX)));
 
         for (size_t i = 0; i < tileNames.size(); ++i)
         {
             const std::string& name = tileNames[i];
             const glm::vec4 uv = GetTileUV(name);
 
-            ImGui::PushID((int)i);
-            if (ImGui::ImageButton("##tileIcon", textureID, ImVec2(iconSize, iconSize), ImVec2(uv.x, uv.y), ImVec2(uv.z, uv.w)))
+            // Stable unique ID per tile (avoids collisions across multiple material sections)
+            ImGui::PushID(name.c_str());
+
+            if (ImGui::ImageButton("##tileIcon",
+                textureID,
+                ImVec2(iconW, iconH),
+                ImVec2(uv.x, uv.y),
+                ImVec2(uv.z, uv.w)))
             {
                 m_selectedTileName = name;
                 m_selectedTileCategory = category;
 
-                // If not already modified, copy from AssetManager (or default)
                 if (m_modifiedTileProperties.find(name) == m_modifiedTileProperties.end())
                     m_modifiedTileProperties[name] = AssetManager::GetTileProperties(name);
 
@@ -196,19 +202,18 @@ namespace Engine {
 
             if (m_selectedTileName == name)
             {
-                auto pMin = ImGui::GetItemRectMin();
-                auto pMax = ImGui::GetItemRectMax();
+                ImVec2 pMin = ImGui::GetItemRectMin();
+                ImVec2 pMax = ImGui::GetItemRectMax();
                 ImGui::GetWindowDrawList()->AddRect(pMin, pMax, IM_COL32(255, 255, 0, 255), 0.0f, 0, 3.0f);
             }
 
             ImGui::PopID();
-            if ((i + 1) % itemsPerRow != 0)
+
+            // Wrap to next row
+            if (((int)i + 1) % itemsPerRow != 0)
                 ImGui::SameLine();
         }
     }
-
-
-
 
 
 

@@ -593,130 +593,142 @@ namespace Engine {
 
     void EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory)
     {
-
-       
+        // 1) Mouse ray -> world hit (Z=0)
         glm::vec2 ndc;
         ndc.x = (m_localMousePosInViewport.x / m_viewportSize.x) * 2.0f - 1.0f;
         ndc.y = 1.0f - (m_localMousePosInViewport.y / m_viewportSize.y) * 2.0f;
 
         glm::vec4 clipNear(ndc.x, ndc.y, -1.0f, 1.0f);
-        glm::vec4 clipFar(ndc.x, ndc.y, 1.0f, 1.0f); 
+        glm::vec4 clipFar(ndc.x, ndc.y, 1.0f, 1.0f);
 
         glm::mat4 invViewProj = glm::inverse(m_editorCamera.GetViewProjection());
-        glm::vec4 worldNear = invViewProj * clipNear;
-        glm::vec4 worldFar = invViewProj * clipFar;
-        worldNear /= worldNear.w;
-        worldFar /= worldFar.w;
+        glm::vec4 worldNear = invViewProj * clipNear; worldNear /= worldNear.w;
+        glm::vec4 worldFar = invViewProj * clipFar;  worldFar /= worldFar.w;
 
         glm::vec3 rayOrigin = glm::vec3(worldNear);
         glm::vec3 rayDir = glm::normalize(glm::vec3(worldFar - worldNear));
-        float t = -rayOrigin.z / rayDir.z; // When Z = 0
+        float t = -rayOrigin.z / rayDir.z; // Z=0 plane
         glm::vec3 hitPoint = rayOrigin + t * rayDir;
-		glm::vec2 finalWorldPos = glm::vec2(hitPoint.x, hitPoint.y);
+        glm::vec2 worldHit(hitPoint.x, hitPoint.y);
 
-        glm::vec2 snapped;
-        snapped.x = std::round(finalWorldPos.x);
-        snapped.y = std::round(finalWorldPos.y);
+        // 2) Iso snap (Y-down variant)
+        const float step = float(TILE_SIZE);
 
+        // world -> iso (continuous, Y-down)
+        float u = (worldHit.x - worldHit.y) / step;
+        float v = (worldHit.x + worldHit.y) / step;
+
+        // nearest iso cell
+        glm::ivec2 isoCell = glm::ivec2(glm::round(glm::vec2(u, v)));
+
+        // iso -> snapped world center (Y-down)
+        glm::vec2 snappedWorld;
+        snappedWorld.x = 0.5f * step * float(isoCell.x + isoCell.y);
+        snappedWorld.y = 0.5f * step * float(isoCell.y - isoCell.x);
+
+        // Helpers
+        auto IsoFromWorld = [&](const glm::vec2& p) -> glm::ivec2 {
+            float U = (p.x - p.y) / step;
+            float V = (p.x + p.y) / step;
+            return glm::ivec2(glm::round(glm::vec2(U, V)));
+            };
+        auto WorldDeltaFromLocalIso = [&](const glm::ivec2& localIso) -> glm::vec2 {
+            // iso (u,v) -> world delta (Y-down)
+            glm::vec2 d;
+            d.x = 0.5f * step * float(localIso.x + localIso.y);
+            d.y = 0.5f * step * float(localIso.y - localIso.x);
+            return d;
+            };
+
+        // 3) Duplicate check (convert existing tiles' WORLD positions to iso cells)
         auto& registry = m_editor->GetGameLayer()->GetActiveGameScene()->GetRegistry();
-
-        auto view = registry.view<TileComponent, TransformComponent>();
-        for (auto entity : view)
         {
-            const auto& tileComp = view.get<TileComponent>(entity);
-            const auto& transformComp = view.get<TransformComponent>(entity);
-
-            for (const auto& tile : tileComp.tiles)
+            auto view = registry.view<TileComponent, TransformComponent>();
+            for (auto entity : view)
             {
-                glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
-                if (worldTilePos == snapped && tile.name == selectedTileName)
+                const auto& tileComp = view.get<TileComponent>(entity);
+                const auto& transformComp = view.get<TransformComponent>(entity);
+
+                for (const auto& tile : tileComp.tiles)
                 {
-                    EE_CORE_WARN("Tile already exists at position: {}, {}", snapped.x, snapped.y);
-                    return;
+                    // Existing tiles are rendered at: entity world + tile.position (WORLD offset)
+                    glm::vec2 tileWorldPos = glm::vec2(transformComp.Translation) + tile.position;
+
+                    glm::ivec2 eIso = IsoFromWorld(tileWorldPos);
+                    if (eIso == isoCell && tile.name == selectedTileName)
+                    {
+                        EE_CORE_WARN("Tile already exists at iso cell: ({}, {})", isoCell.x, isoCell.y);
+                        return;
+                    }
                 }
             }
         }
 
-        bool destructible = false;
-        bool isRoof = false;
-
+        // 4) Flags by category (unchanged)
+        bool destructible = false, isRoof = false;
         switch (tileCategory)
         {
-            case Engine::eTileCategory::Undefined:
-                EE_CORE_WARN("undefined tile category");
-                break;
-            case Engine::eTileCategory::Buildings:
-                destructible = true;
-                isRoof =  false;
-                break;
-            case Engine::eTileCategory::Terrain:
-                destructible = false;
-                isRoof = false;
-                break;
-            case Engine::eTileCategory::Roofs:
-                destructible = false;
-                isRoof = true;
-                break;
-            case Engine::eTileCategory::Vehicles:
-                destructible = false;
-                isRoof = false;
-                break;
-            default:
-                break;
+        case Engine::eTileCategory::Buildings: destructible = true;  break;
+        case Engine::eTileCategory::Terrain:   destructible = false; break;
+        case Engine::eTileCategory::Roofs:     destructible = false; isRoof = true;  break;
+        case Engine::eTileCategory::Vehicles:  destructible = false; break;
+        default: EE_CORE_WARN("undefined tile category"); break;
         }
-            
-       
+
         TileProperties& tileProperties = m_tileEditorPanel.GetSelectedTileProperties();
 
+        // 5) Place tile
         if (m_selectedEntity)
         {
-            // add tile to already existing entity
-            TransformComponent& entityTransformComp = m_selectedEntity.GetComponent<TransformComponent>();
+            TransformComponent& tr = m_selectedEntity.GetComponent<TransformComponent>();
 
-            if (m_selectedEntity.HasComponent<TileComponent>())
-            {
-                TileComponent& tileComp = m_selectedEntity.GetComponent<TileComponent>();
-                glm::vec2 localOffsetWorld = snapped - glm::vec2(entityTransformComp.Translation);
-                glm::ivec2 tilePos = glm::round(localOffsetWorld / float(TILE_SIZE));
+            // Base iso cell from entity anchor (rounded)
+            glm::ivec2 baseIso = IsoFromWorld(glm::vec2(tr.Translation));
+            // Local ISO offset relative to entity
+            glm::ivec2 localIso = isoCell - baseIso;
 
-                tileComp.tiles.push_back(TileInfo{ glm::vec2(tilePos), UV, selectedTileName, destructible,
-                    isRoof, tileCategory, tileProperties.material, tileProperties.health });
+            // Convert local iso offset -> WORLD delta to store in tile.position
+            glm::vec2 deltaWorld = WorldDeltaFromLocalIso(localIso);
 
-                EE_CORE_INFO("adding tile: {}", tileComp.tiles.size());
+            TileComponent& tileComp = m_selectedEntity.GetComponent<TileComponent>();
+            tileComp.tiles.push_back(TileInfo{
+                /*position*/      deltaWorld,   // <<< store WORLD offset (renderer expects this)
+                /*uv*/            UV,
+                /*name*/          selectedTileName,
+                /*destructible*/  destructible,
+                /*isRoof*/        isRoof,
+                /*category*/      tileCategory,
+                /*material*/      tileProperties.material,
+                /*health*/        tileProperties.health
+                });
 
-            }
-            else
-            {
-                TileComponent& tileComp = m_selectedEntity.AddComponent<TileComponent>();
-                glm::vec2 localOffsetWorld = snapped - glm::vec2(entityTransformComp.Translation);
-                glm::ivec2 tilePos = glm::round(localOffsetWorld / float(TILE_SIZE));
-
-                tileComp.tiles.push_back(TileInfo{ glm::vec2(tilePos), UV, selectedTileName,
-                    destructible, isRoof, tileCategory , tileProperties.material, tileProperties.health });
-
-            }
-            
-            
+            EE_CORE_INFO("adding tile: {}", tileComp.tiles.size());
         }
         else
         {
-			// create new entity with tile component
-            Entity editorEntity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->CreateEntity();
-            TransformComponent& editorTransformComp = editorEntity.AddComponent<TransformComponent>();
-            editorTransformComp.Translation.x = snapped.x;
-            editorTransformComp.Translation.y = snapped.y;
-            TileComponent& editorTileComp = editorEntity.AddComponent<TileComponent>();
-            editorTileComp.tiles.push_back(TileInfo{ glm::vec2(0.0f, 0.0f), UV, selectedTileName,  destructible, 
-                isRoof, tileCategory, tileProperties.material, tileProperties.health });
-        
-            m_selectedEntity = editorEntity;
-            m_sceneHierarchyPanel.SetSelectedEntity(editorEntity);
+            // New entity anchored at snapped world center
+            Entity e = m_editor->GetGameLayer()->GetActiveGameScene()->CreateEntity();
+            TransformComponent& tr = e.AddComponent<TransformComponent>();
+            tr.Translation.x = snappedWorld.x;
+            tr.Translation.y = snappedWorld.y;
+
+            TileComponent& tileComp = e.AddComponent<TileComponent>();
+            tileComp.tiles.push_back(TileInfo{
+                glm::vec2(0.0f, 0.0f),  // base tile at entity anchor
+                UV,
+                selectedTileName,
+                destructible, isRoof, tileCategory,
+                tileProperties.material, tileProperties.health
+                });
+
+            m_selectedEntity = e;
+            m_sceneHierarchyPanel.SetSelectedEntity(e);
         }
-        
-      
-        
-        
+
+        // Edge placement later: nudge u or v by ±0.5 before rounding, then convert via WorldDeltaFromLocalIso.
     }
+
+
 
 
 
@@ -737,6 +749,55 @@ namespace Engine {
             Engine::VulkanRenderer2D::BeginScene(m_editorCamera);
 
         }
+
+        std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
+
+        if (m_mouseIsInViewPort && !selectedTile.empty())
+        {
+            glm::vec2 ndc;
+            ndc.x = (m_localMousePosInViewport.x / m_viewportSize.x) * 2.0f - 1.0f;
+            ndc.y = 1.0f - (m_localMousePosInViewport.y / m_viewportSize.y) * 2.0f;
+
+            glm::vec4 clipNear(ndc.x, ndc.y, -1.0f, 1.0f);
+            glm::vec4 clipFar(ndc.x, ndc.y, 1.0f, 1.0f);
+
+            glm::mat4 invViewProj = glm::inverse(m_editorCamera.GetViewProjection());
+            glm::vec4 worldNear = invViewProj * clipNear; worldNear /= worldNear.w;
+            glm::vec4 worldFar = invViewProj * clipFar;  worldFar /= worldFar.w;
+
+            glm::vec3 rayOrigin = glm::vec3(worldNear);
+            glm::vec3 rayDir = glm::normalize(glm::vec3(worldFar - worldNear));
+            float t = -rayOrigin.z / rayDir.z;
+            glm::vec3 hitPoint = rayOrigin + t * rayDir;
+            glm::vec2 worldHit(hitPoint.x, hitPoint.y);
+
+            const float step = float(TILE_SIZE);
+
+            // Y-down iso mapping
+            float u = (worldHit.x - worldHit.y) / step;
+            float v = (worldHit.x + worldHit.y) / step;
+            glm::ivec2 isoCell = glm::ivec2(glm::round(glm::vec2(u, v)));
+
+            // iso -> world (cell center), Y-down
+            glm::vec2 snappedCenter;
+            snappedCenter.x = 0.5f * step * float(isoCell.x + isoCell.y);
+            snappedCenter.y = 0.5f * step * float(isoCell.y - isoCell.x);
+
+            // shift to ground-contact (bottom tip) for bottom-center pivot rendering
+            glm::vec2 groundPos = snappedCenter + glm::vec2(step * 0.25f, step * 0.25f);
+
+            // UVs (flip V like your terrain path)
+            glm::vec4 uv = m_tileEditorPanel.GetTileUV(selectedTile);
+            glm::vec4 previewUV(uv.x, uv.w, uv.z, uv.y);
+
+            // green, semi-transparent ghost
+            glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.55f);
+
+            Engine::VulkanRenderer2D::DrawTile(groundPos, previewUV, previewColor);
+        }
+
+
+
         
         if (m_showColliders)
         {

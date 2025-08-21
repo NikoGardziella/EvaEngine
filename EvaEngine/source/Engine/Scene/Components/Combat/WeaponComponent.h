@@ -7,7 +7,7 @@ struct WeaponComponent
     float       FireRate = 1.0f;
     float       Cooldown = 0.0f;
     float       ProjectileSpeed = 2.0f;
-    int         DestructionRadius = PIXELS_IN_TILE / 15;
+    int         DestructionRadius = TILE_PIXEL_WIDTH / 15;
     bool        IsFiring = false;
 
     WeaponComponent() = default;

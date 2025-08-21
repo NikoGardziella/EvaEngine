@@ -70,14 +70,14 @@ namespace Engine {
         uint32_t textureWidth, uint32_t textureHeight)
     {
         EE_PROFILE_FUNCTION();
-        constexpr uint32_t chunkPixelSize = CHUNK_SIZE * PIXELS_IN_TILE;
+        constexpr uint32_t chunkPixelSize = CHUNK_SIZE * TILE_PIXEL_WIDTH;
         constexpr uint8_t  kDefaultHealth = 255; // initial health for solid pixels
 
         // Chunk addressing
         glm::ivec2 chunkCoords = glm::floor(glm::vec2(worldPosition) / float(CHUNK_SIZE));
         glm::ivec2 chunkOriginTiles = chunkCoords * (int)CHUNK_SIZE;
         glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOriginTiles;
-        glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)PIXELS_IN_TILE;
+        glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)TILE_PIXEL_WIDTH;
 
         TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
         chunk.TextureCount += 1;
@@ -172,13 +172,13 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        constexpr uint32_t chunkPixelSize = CHUNK_SIZE * PIXELS_IN_TILE;
+        constexpr uint32_t chunkPixelSize = CHUNK_SIZE * TILE_PIXEL_WIDTH;
 
         // Chunk addressing (same as your other uploader)
         glm::ivec2 chunkCoords = glm::floor(glm::vec2(worldPosition) / float(CHUNK_SIZE));
         glm::ivec2 chunkOriginTiles = chunkCoords * (int)CHUNK_SIZE;
         glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOriginTiles;
-        glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)PIXELS_IN_TILE;
+        glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)TILE_PIXEL_WIDTH;
 
         TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
         chunk.TextureCount += 1;

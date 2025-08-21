@@ -608,7 +608,7 @@ namespace Engine {
                         glm::vec2 textureSizeInTiles = glm::vec2(
                             roofSprite.Texture->GetWidth(),
                             roofSprite.Texture->GetHeight()
-                        ) / float(PIXELS_IN_TILE);
+                        ) / float(TILE_PIXEL_WIDTH);
 
                         glm::vec2 textureSizeWorld = textureSizeInTiles * float(TILE_SIZE);
 
@@ -718,7 +718,7 @@ namespace Engine {
                                 glm::vec2 textureSizeInTiles = glm::vec2(
                                     quadSprite.Texture->GetWidth(),
                                     quadSprite.Texture->GetHeight()
-                                ) / float(PIXELS_IN_TILE);
+                                ) / float(TILE_PIXEL_WIDTH);
 
                                 glm::vec2 textureSizeWorld = textureSizeInTiles * float(TILE_SIZE);
 
@@ -973,30 +973,34 @@ namespace Engine {
         {
             
             auto viewTerrain = m_registry.view<TileComponent, TransformComponent>();
+            const float step = float(TILE_SIZE);
+
             for (auto entity : viewTerrain)
             {
-                glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+                auto& tileComp = viewTerrain.get<TileComponent>(entity);
+                auto& tr = viewTerrain.get<TransformComponent>(entity);
 
-                TileComponent& tileComponent = viewTerrain.get<TileComponent>(entity);
-                TransformComponent& transformComponent = viewTerrain.get<TransformComponent>(entity);
-                for (size_t i = 0; i < tileComponent.tiles.size(); i++)
+                for (const auto& t : tileComp.tiles)
                 {
-                    if (tileComponent.tiles[i].Category != eTileCategory::Terrain)
-                    {
-                        // draw terrain tiles first so the are below.
-                        continue;
-                    }
-                    float flippedV0 = tileComponent.tiles[i].UV.w; // original v1 (bottom)
-                    float flippedV1 = tileComponent.tiles[i].UV.y; // original v0 (top)
-                    glm::vec4 flippedUV = glm::vec4(tileComponent.tiles[i].UV.x, flippedV0, tileComponent.tiles[i].UV.z, flippedV1);
+                    if (t.Category != eTileCategory::Terrain) continue;
 
+                    // t.position is a WORLD delta (not iso). Do NOT round/convert it.
+                    glm::vec2 worldPosCenter = glm::vec2(tr.Translation) + t.position;
 
-                    glm::vec2 worldPos = (glm::vec2)transformComponent.Translation + tileComponent.tiles[i].position;
+                    // bottom tip (ground contact) for bottom-center pivot
+                    glm::vec2 groundPos = worldPosCenter + glm::vec2(step * 0.25f, step * 0.25f);
 
-                    // Use flippedUV for rendering, don't overwrite original UV
-                    Engine::VulkanRenderer2D::DrawTile(worldPos, flippedUV, color);
+                    // Flip V like before
+                    glm::vec4 uv = t.UV;
+                    glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
+
+                    Engine::VulkanRenderer2D::DrawTile(groundPos, flippedUV, glm::vec4(1.0f));
                 }
             }
+
+
+
+
 
             Engine::VulkanRenderer2D::EndScene();
 
@@ -1005,7 +1009,6 @@ namespace Engine {
             auto view = m_registry.view<TileComponent, TransformComponent>();
             for (auto entity : view)
             {
-                glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
                 TileComponent& tileComponent = view.get<TileComponent>(entity);
                 TransformComponent& transformComponent = view.get<TransformComponent>(entity);
@@ -1018,15 +1021,20 @@ namespace Engine {
                         // skip terrain and draw everything else 
                         continue;
                     }
-                    float flippedV0 = tileComponent.tiles[i].UV.w; // original v1 (bottom)
-                    float flippedV1 = tileComponent.tiles[i].UV.y; // original v0 (top)
-                    glm::vec4 flippedUV = glm::vec4(tileComponent.tiles[i].UV.x, flippedV0, tileComponent.tiles[i].UV.z, flippedV1);
+                    glm::vec2 worldPosCenter = glm::vec2(transformComponent.Translation) + tileComponent.tiles[i].position;
 
+                    // bottom tip (ground contact) for bottom-center pivot
+                    glm::vec2 groundPos = worldPosCenter + glm::vec2(step * 0.25f, step * 0.25f);
 
-                    glm::vec2 worldPos = (glm::vec2)transformComponent.Translation + tileComponent.tiles[i].position;
+                    // Flip V like before
+                    glm::vec4 uv = tileComponent.tiles[i].UV;
+                    glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
 
+                  
+
+                    glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
                     // Use flippedUV for rendering, don't overwrite original UV
-                    Engine::VulkanRenderer2D::DrawTile(worldPos, flippedUV, color);
+                    Engine::VulkanRenderer2D::DrawTile(groundPos, flippedUV, color);
                 }
 
             }

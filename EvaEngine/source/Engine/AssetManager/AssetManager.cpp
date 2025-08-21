@@ -458,16 +458,16 @@ namespace Engine {
 
         struct TileInfo {
             fs::path path;
-            int width, height;
-            stbi_uc* pixels;
-            eTileCategory category;
-            eTileMaterial material;
+            int width = 0, height = 0;
+            stbi_uc* pixels = nullptr;
+            eTileCategory category = eTileCategory::Terrain;
+            eTileMaterial material = eTileMaterial::Default;
             std::string name;
         };
 
         std::vector<TileInfo> loadedTiles;
 
-        // Load all tiles from category folders
+        // Load all tiles
         for (const auto& [category, folderName] : CategoryNames)
         {
             fs::path categoryPath = baseTilePath / folderName;
@@ -479,61 +479,41 @@ namespace Engine {
 
             bool hasSubfolders = false;
             for (const auto& entry : fs::directory_iterator(categoryPath))
-            {
-                if (entry.is_directory())
+                if (entry.is_directory()) { hasSubfolders = true; break; }
+
+            auto loadPng = [&](const fs::path& p, eTileCategory cat, eTileMaterial mat)
                 {
-                    hasSubfolders = true;
-                    break;
-                }
-            }
+                    if (p.extension() != ".png") return;
+                    int w = 0, h = 0, channels = 0;
+                    stbi_uc* pixels = stbi_load(p.string().c_str(), &w, &h, &channels, STBI_rgb_alpha);
+                    if (!pixels)
+                    {
+                        EE_CORE_WARN("Failed to load tile '{}'", p.string());
+                        return;
+                    }
+                    std::string name = p.stem().string();
+
+                    // Optional: validate iso size
+                    if (w != 128 || h != 256)
+                        EE_CORE_WARN("Tile '{}' is {}x{}, expected 128x256 (iso). It will still be packed.", name, w, h);
+
+                    loadedTiles.push_back({ p, w, h, pixels, cat, mat, name });
+                };
 
             if (hasSubfolders)
             {
                 for (const auto& subdir : fs::directory_iterator(categoryPath))
                 {
-                    if (!subdir.is_directory())
-                        continue;
-
-                    eTileMaterial material = ParseMaterialFromPath(subdir.path());
-
+                    if (!subdir.is_directory()) continue;
+                    eTileMaterial mat = ParseMaterialFromPath(subdir.path());
                     for (const auto& file : fs::directory_iterator(subdir.path()))
-                    {
-                        if (file.path().extension() == ".png")
-                        {
-                            int w, h, channels;
-                            stbi_uc* pixels = stbi_load(file.path().string().c_str(), &w, &h, &channels, STBI_rgb_alpha);
-                            if (!pixels)
-                            {
-                                EE_CORE_WARN("Failed to load tile '{}'", file.path().string());
-                                continue;
-                            }
-
-                            std::string name = file.path().stem().string();
-
-                            loadedTiles.push_back({ file.path(), w, h, pixels, category, material, name });
-                        }
-                    }
+                        loadPng(file.path(), category, mat);
                 }
             }
             else
             {
                 for (const auto& file : fs::directory_iterator(categoryPath))
-                {
-                    if (file.path().extension() == ".png")
-                    {
-                        int w, h, channels;
-                        stbi_uc* pixels = stbi_load(file.path().string().c_str(), &w, &h, &channels, STBI_rgb_alpha);
-                        if (!pixels)
-                        {
-                            EE_CORE_WARN("Failed to load tile '{}'", file.path().string());
-                            continue;
-                        }
-
-                        std::string name = file.path().stem().string();
-
-                        loadedTiles.push_back({ file.path(), w, h, pixels, category, eTileMaterial::Default, name });
-                    }
-                }
+                    loadPng(file.path(), category, eTileMaterial::Default);
             }
         }
 
@@ -543,126 +523,130 @@ namespace Engine {
             return;
         }
 
-        // Reset outputs
+        // Stable atlas order
+        std::sort(loadedTiles.begin(), loadedTiles.end(),
+            [](const TileInfo& a, const TileInfo& b)
+            {
+                if (a.category != b.category) return a.category < b.category;
+                if (a.material != b.material) return a.material < b.material;
+                return a.name < b.name;
+            });
+
+        // Reset outputs (keep s_tileProperties from LoadTileProperties)
         s_tileUVMap.clear();
         s_tileUVMapsByCategory.clear();
         s_tileNamesByCategory.clear();
         s_tileNamesByCategoryAndMaterial.clear();
 
-        const int atlasWidth = 1024;
-        int currentX = 0, currentY = 0, rowHeight = 0;
+        // Packing params
+        constexpr int ATLAS_W = 1024;   // 8 iso cells per row at 128px width
+        constexpr int GUTTER = 2;      // px between tiles to prevent bleeding
+        const int atlasWidth = ATLAS_W;
 
-        // Estimate atlas height
-        for (const auto& tile : loadedTiles)
+        // First pass: estimate atlas height with gutter
+        int currentX = GUTTER;
+        int currentY = GUTTER;
+        int rowHeight = 0;
+        for (const auto& t : loadedTiles)
         {
-            if (currentX + tile.width > atlasWidth)
+            if (currentX + t.width + GUTTER > atlasWidth)
             {
-                currentY += rowHeight;
-                currentX = 0;
+                currentY += rowHeight + GUTTER;
+                currentX = GUTTER;
                 rowHeight = 0;
             }
-            currentX += tile.width;
-            rowHeight = std::max(rowHeight, tile.height);
+            rowHeight = std::max(rowHeight, t.height);
+            currentX += t.width + GUTTER;
         }
-        int atlasHeight = currentY + rowHeight;
+        int atlasHeight = currentY + rowHeight + GUTTER;
 
-        std::vector<uint8_t> atlasData(atlasWidth * atlasHeight * 4, 0);
+        std::vector<uint8_t> atlasData(size_t(atlasWidth) * size_t(atlasHeight) * 4, 0);
 
-        currentX = 0;
-        currentY = 0;
+        // Second pass: copy with gutter and compute UVs (inset by 0.5px)
+        currentX = GUTTER;
+        currentY = GUTTER;
         rowHeight = 0;
 
-        for (const auto& tile : loadedTiles)
+        for (const auto& t : loadedTiles)
         {
-            if (currentX + tile.width > atlasWidth)
+            if (currentX + t.width + GUTTER > atlasWidth)
             {
-                currentY += rowHeight;
-                currentX = 0;
+                currentY += rowHeight + GUTTER;
+                currentX = GUTTER;
                 rowHeight = 0;
             }
 
-            // Copy pixels to atlas
-            for (int y = 0; y < tile.height; ++y)
+            // Copy pixels
+            for (int y = 0; y < t.height; ++y)
             {
-                for (int x = 0; x < tile.width; ++x)
-                {
-                    size_t srcIdx = (y * tile.width + x) * 4;
-                    size_t dstX = currentX + x;
-                    size_t dstY = currentY + y;
-                    size_t dstIdx = (dstY * atlasWidth + dstX) * 4;
-                    memcpy(&atlasData[dstIdx], &tile.pixels[srcIdx], 4);
-                }
+                const size_t dstY = size_t(currentY + y);
+                const size_t srcY = size_t(y);
+                uint8_t* dst = &atlasData[(dstY * size_t(atlasWidth) + size_t(currentX)) * 4];
+                const uint8_t* src = &t.pixels[(srcY * size_t(t.width)) * 4];
+                memcpy(dst, src, size_t(t.width) * 4);
             }
 
-            std::string name = tile.path.stem().string();
+            // Compute UVs with a tiny 0.5px inset (stays inside the copied rect)
+            const float invW = 1.0f / float(atlasWidth);
+            const float invH = 1.0f / float(atlasHeight);
+            const float inset = 0.5f;
 
-            float u0 = float(currentX) / float(atlasWidth);
-            float v0 = float(currentY) / float(atlasHeight);
-            float u1 = float(currentX + tile.width) / float(atlasWidth);
-            float v1 = float(currentY + tile.height) / float(atlasHeight);
+            float u0 = (float(currentX) + inset) * invW;
+            float v0 = (float(currentY) + inset) * invH;
+            float u1 = (float(currentX + t.width) - inset) * invW;
+            float v1 = (float(currentY + t.height) - inset) * invH;
 
-            glm::vec4 computedUV = glm::vec4(u0, v0, u1, v1);
+            glm::vec4 uv = glm::vec4(u0, v0, u1, v1);
 
-            // Store fresh UV
-            s_tileUVMap[name] = computedUV;
-            s_tileUVMapsByCategory[tile.category][name] = computedUV;
+            const std::string name = t.name;
 
-            // Keep other properties if they exist
-            TileProperties props;
-            auto it = s_tileProperties.find(name);
-            if (it != s_tileProperties.end())
-            {
-                props = it->second; // keep health, material
-            }
-            else
-            {
-                props.name = name;
-                props.health = 0;
-                props.material = eTileMaterial::None;
-            }
-            props.uv = computedUV; // always overwrite
+            // Store UVs
+            s_tileUVMap[name] = uv;
+            s_tileUVMapsByCategory[t.category][name] = uv;
+
+            // Merge/override tile properties
+            TileProperties props{};
+            if (auto it = s_tileProperties.find(name); it != s_tileProperties.end())
+                props = it->second;
+            props.name = name;
+            props.uv = uv;
+            // If no saved material, use folder material
+            if (props.material == eTileMaterial::None)
+                props.material = t.material;
 
             s_tileProperties[name] = props;
 
-            
-            s_tileNamesByCategory[tile.category].push_back(name);
+            // Names per category
+            s_tileNamesByCategory[t.category].push_back(name);
 
-            // Now, use loaded tile properties if available
-            auto itProps = s_tileProperties.find(name);
-            if (itProps != s_tileProperties.end())
-            {
-                // Override material with loaded material (if you want)
-                eTileMaterial materialToUse = itProps->second.material;
+            // Category+material list with fallback
+            const eTileMaterial matToUse =
+                (props.material != eTileMaterial::None) ? props.material : t.material;
+            s_tileNamesByCategoryAndMaterial[t.category][matToUse].push_back(name);
 
-                // Insert into category/material map with loaded material
-                s_tileNamesByCategoryAndMaterial[tile.category][materialToUse].push_back(name);
+            currentX += t.width + GUTTER;
+            rowHeight = std::max(rowHeight, t.height);
 
-                // Optionally update tile material in loadedTiles if needed later
-                // (Not used here after atlas creation)
-            }
-            else
-            {
-                // No saved property, use default material from loaded tile
-                s_tileNamesByCategoryAndMaterial[tile.category][tile.material].push_back(name);
-            }
-
-            currentX += tile.width;
-            rowHeight = std::max(rowHeight, tile.height);
-            stbi_image_free(tile.pixels);
+            stbi_image_free(t.pixels);
         }
 
         // Create Vulkan texture atlas
+        s_tileTextureIconAtlas = std::make_shared<VulkanTexture>(
+            atlasWidth, atlasHeight, VK_FORMAT_R8G8B8A8_UNORM, "combined_tileAtlas", true);
+
+        // IMPORTANT: layout transitions in correct order
+        // If SetData handles transitions internally, just call SetData and skip manual transitions.
+        // Otherwise do UNDEFINED -> TRANSFER_DST -> SHADER_READ_ONLY.
+        // Example (uncomment if SetData does NOT transition):
         s_tileTextureIconAtlas = std::make_shared<VulkanTexture>(atlasWidth, atlasHeight, VK_FORMAT_R8G8B8A8_UNORM,
             "combined_tileAtlas", true);
         VulkanUtils::TransitionImageLayout(s_tileTextureIconAtlas->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         s_tileTextureIconAtlas->SetData(atlasData.data(), static_cast<uint32_t>(atlasData.size()));
         s_tileTextureIconAtlas->SetPixelData(atlasData);
-
         EE_CORE_INFO("Created combined tile atlas with dimensions {}x{}", atlasWidth, atlasHeight);
-
-        
     }
+
 
 
 

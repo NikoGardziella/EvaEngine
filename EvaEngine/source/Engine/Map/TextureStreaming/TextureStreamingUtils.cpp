@@ -19,7 +19,7 @@ namespace Engine {
         auto& tcomp = registry.get<TileComponent>(entity);
         auto& xf = registry.get<TransformComponent>(entity);
 
-        constexpr int TILE_SIZE_PX = PIXELS_IN_TILE;
+        constexpr int TILE_SIZE_PX = TILE_PIXEL_WIDTH;
 
         glm::ivec2 minPos(INT_MAX);
         glm::ivec2 maxPos(INT_MIN);
@@ -112,7 +112,7 @@ namespace Engine {
         auto& tcomp = registry.get<TileComponent>(entity);
         auto& xf = registry.get<TransformComponent>(entity);
 
-        constexpr int TILE_SIZE_PX = PIXELS_IN_TILE;
+        constexpr int TILE_SIZE_PX = TILE_PIXEL_WIDTH;
 
         glm::ivec2 minPos(INT_MAX);
         glm::ivec2 maxPos(INT_MIN);
