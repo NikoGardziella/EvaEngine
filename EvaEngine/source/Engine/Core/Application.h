@@ -40,6 +40,7 @@ namespace Engine
 
 		static Application& Get() { return *s_Instance; }
 		Window& GetWindow() { return *m_window; }
+		static Timestep& GetDelatime() { return m_timestep; }
 
 		void Close();
 
@@ -62,7 +63,7 @@ namespace Engine
 
 		LayerStack m_LayerStack;
 		float m_lastFrameTime = 0.0f;
-
+		static Timestep m_timestep;
 
 	};
 

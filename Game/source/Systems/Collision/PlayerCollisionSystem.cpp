@@ -35,7 +35,7 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
             glm::vec2 firstCollisionPos;
 
             // Check initial move collision
-            for (const auto& collision : Engine::CollisionResultsCPU::LatestProjectiles)
+            for (const auto& collision : Engine::CollisionResultsCPU::PlayerCollisions)
             {
                 if (playerIDComp.ID != collision.GetEntityID())
                     continue;
@@ -80,7 +80,7 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
                     glm::vec2 slideCenter = slideTestPos + offset;
 
                     bool slideCollides = false;
-                    for (const auto& collision : Engine::CollisionResultsCPU::LatestProjectiles)
+                    for (const auto& collision : Engine::CollisionResultsCPU::PlayerCollisions)
                     {
                         if (playerIDComp.ID != collision.GetEntityID())
                             continue;
@@ -120,30 +120,25 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
         glm::vec2 totalPush(0.0f);
         int pushCount = 0;
         glm::vec2 playerCenter = glm::vec2(playerTransform.Translation) + offset;
-        for (const auto& collision : Engine::CollisionResultsCPU::LatestProjectiles)
+        for (const auto& collision : Engine::CollisionResultsCPU::PlayerCollisions)
         {
             if (playerIDComp.ID != collision.GetEntityID())
                 continue;
 
-            glm::vec2 collisionPos = collision.HitPosition;
+            glm::vec2 collisionPos = collision.HitPosition; // world
             float dist = glm::distance(playerCenter, collisionPos);
-
-            if (dist < radius && dist > 0.0001f)
+            if (dist < radius && dist > 1e-5f)
             {
-                glm::vec2 pushDir = glm::normalize(playerCenter - collisionPos);
+                glm::vec2 n = glm::normalize(playerCenter - collisionPos); // outward normal
                 float penetration = radius - dist;
 
-                totalPush += pushDir * penetration;
-                pushCount++;
+                totalPush += n * penetration;
+                ++pushCount;
 
-                // Cancel velocity toward collision
-                glm::vec2 velocityDir = glm::length(controller.velocity) > 0.001f ? glm::normalize(controller.velocity) : glm::vec2(0.0f);
-                float dot = glm::dot(pushDir, velocityDir);
-                if (dot > 0.0f)
-                {
-                    float velIntoWall = glm::dot(controller.velocity, pushDir);
-                    if (velIntoWall < 0.0f)
-                        controller.velocity -= pushDir * velIntoWall;
+                // Remove velocity ONLY if pointing into the surface
+                float vn = glm::dot(controller.velocity, n);
+                if (vn < 0.0f) {
+                    controller.velocity -= n * vn; // subtract negative -> cancels into-wall component
                 }
             }
         }
@@ -152,8 +147,15 @@ void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, floa
         {
             float pushbackStrength = 1.0f;
             glm::vec2 avgPush = (totalPush / static_cast<float>(pushCount)) * pushbackStrength;
+
+            // Optional: clamp to avoid overshoot jitter
+            float maxStep = radius * 0.5f;
+            if (glm::length2(avgPush) > maxStep * maxStep)
+                avgPush = glm::normalize(avgPush) * maxStep;
+
             playerTransform.Translation += glm::vec3(avgPush, 0.0f);
         }
+
     }
 }
 

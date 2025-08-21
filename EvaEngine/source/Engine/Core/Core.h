@@ -90,6 +90,7 @@ constexpr size_t MAX_COLLISION_RESULTS = 64;
 constexpr size_t PIXELS_IN_TILE = 128;
 constexpr size_t TILE_SIZE = 1;
 constexpr size_t CHUNK_SIZE = 32; // Tiles in a chunk
+constexpr size_t PLAYER_COUNT = 1; // Tiles in a chunk
 
 // GRID
 constexpr size_t GRID_SUBDIVISIONS = 4;

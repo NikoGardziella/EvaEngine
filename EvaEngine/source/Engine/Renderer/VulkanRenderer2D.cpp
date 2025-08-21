@@ -14,7 +14,7 @@
 #include <Engine/Core/Core.h>
 #include <utility>
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
-
+#include "Engine/Core/Application.h"
 
 namespace Engine {
 
@@ -257,6 +257,13 @@ namespace Engine {
 				s_VulkanData.HealthTextureSlots);
 		}
 
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			m_vulkanGraphicsPipelines->UpdatePlayerCollisionDescriptorSet(i, s_VulkanData.HealthTextureSlots);
+		}
+
+
+
 		uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
 		uint32_t totalTiles = tilesPerRow * tilesPerRow;
 		Engine::TileBlockedMaskCPU::CachedGPUMask.resize(totalTiles);
@@ -454,7 +461,7 @@ namespace Engine {
 		EE_PROFILE_FUNCTION();
 
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
-		m_vulkanGraphicsPipelines->UpdateCollisionUniformBuffer(currentFrame, s_CollisionData.CollisionEntities);
+
 
 		vkResetCommandBuffer(cmd, 0);
 
@@ -464,8 +471,11 @@ namespace Engine {
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
+		m_vulkanGraphicsPipelines->UpdateCollisionUniformBuffer(currentFrame, s_CollisionData.CollisionEntities);
 		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame); 
 
+		m_vulkanGraphicsPipelines->UpdatePLayerCollisionUniformBuffer(currentFrame, s_CollisionData.playerEntities);
+		RecordPlayerCommandBuffer(cmd, m_imageIndex, currentFrame);
 
 
 
@@ -495,6 +505,9 @@ namespace Engine {
 		{
 			
 			EE_PROFILE_SCOPE("collision results");
+
+			ReadPlayerCollisionBuffer();
+
 			// move this to own method
 			// Read back collision results
 			CollisionResultBuffer result = {};	
@@ -507,29 +520,44 @@ namespace Engine {
 			{
 				EE_CORE_INFO("result.collisionCount {}", result.collisionCount);
 				CollisionResultsCPU::LatestProjectiles.clear();
-
-				//CollisionResultsCPU::LatestProjectiles.reserve(result.collisionCount);
 				CollisionResultsCPU::LatestProjectiles.reserve(MAX_COLLISION_RESULTS);
-				for (uint32_t i = 0; i < result.collisionCount && i < MAX_COLLISION_RESULTS; ++i)
+
+				const uint32_t cap = MAX_COLLISION_RESULTS;
+
+				for (uint32_t i = 0; i < cap; ++i)
 				{
 					const auto& r = result.results[i];
 					if (r.collisionDetected == 0)
 						continue;
 
+					Collision coll{};
+					// If your CollisionResult has Low/High parts, reconstruct here;
+					// otherwise keep using r.GetProjectileID() if that helper exists.
+					// coll.ProjectileID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
+					coll.ProjectileID = r.GetProjectileID();  // if your CPU-side struct provides it
+					coll.HitPosition = r.CollisionPosition;
+					coll.Health = r.Health;        // note: in shader it's HealthAfter
 
-					if (i >= MAX_COLLISION_RESULTS)
-						break;
-
-					result.results[i].collisionDetected = r.collisionDetected;
-
-					CollisionResultsCPU::LatestProjectiles.push_back({});
-					CollisionResultsCPU::LatestProjectiles[i].ProjectileID = r.GetProjectileID();
-					CollisionResultsCPU::LatestProjectiles[i].HitPosition = r.CollisionPosition;
-					CollisionResultsCPU::LatestProjectiles[i].Health = r.Health;
+					CollisionResultsCPU::LatestProjectiles.push_back(coll);
 				}
+
+
 			
 			}
 			
+			{
+				void* data = nullptr;
+				VkDeviceSize size = sizeof(CollisionResultBuffer);
+				vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
+				std::memset(data, 0, size);
+				vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
+
+				data = nullptr;
+				
+				vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetPlayerCollisionMemory(), 0, size, 0, &data);
+				std::memset(data, 0, size);
+				vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetPlayerCollisionMemory());
+			}
 
 		}
 
@@ -558,6 +586,44 @@ namespace Engine {
 
 	}
 
+
+	void VulkanRenderer2D::ReadPlayerCollisionBuffer()
+	{
+		CollisionResultBuffer result = {};
+		void* data = nullptr;
+		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetPlayerCollisionMemory(), 0, sizeof(result), 0, &data);
+		memcpy(&result, data, sizeof(result));
+		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetPlayerCollisionMemory());
+
+		if (result.collisionCount > 0)
+		{
+			CollisionResultsCPU::PlayerCollisions.clear();
+			CollisionResultsCPU::PlayerCollisions.reserve(MAX_COLLISION_RESULTS);
+
+			const uint32_t cap = MAX_COLLISION_RESULTS;
+
+			for (uint32_t i = 0; i < cap; ++i)
+			{
+				const auto& r = result.results[i];
+				if (r.collisionDetected == 0)
+					continue;
+
+				Collision coll{};
+				// If your CollisionResult has Low/High parts, reconstruct here;
+				// otherwise keep using r.GetProjectileID() if that helper exists.
+				// coll.ProjectileID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
+				coll.ProjectileID = r.GetProjectileID();  // if your CPU-side struct provides it
+				coll.HitPosition = r.CollisionPosition;
+				coll.Health = r.Health;        // note: in shader it's HealthAfter
+
+				CollisionResultsCPU::PlayerCollisions.push_back(coll);
+			}
+
+
+
+		}
+
+	}
 
 	void VulkanRenderer2D::ReadBlockedTileMask(std::vector<uint32_t>& outDestroyedMask, uint32_t count)
 	{
@@ -752,16 +818,11 @@ namespace Engine {
 
 	void VulkanRenderer2D::RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
+
+		
 		EE_PROFILE_FUNCTION();
 
-		{
-			CollisionResultsCPU::LatestProjectiles.clear();
-			void* data = nullptr;
-			VkDeviceSize size = sizeof(CollisionResultBuffer);
-			vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
-			std::memset(data, 0, size);
-			vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
-		}
+	
 
 		// only reset when needed?
 		uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
@@ -907,6 +968,108 @@ namespace Engine {
 
 
 	}
+
+	void VulkanRenderer2D::RecordPlayerCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame)
+	{
+		EE_PROFILE_FUNCTION();
+
+		// --- (Optional) If you use a separate results buffer for player collisions, clear it here ---
+		// {
+		//     void* data = nullptr;
+		//     VkDeviceSize size = sizeof(CollisionResultBuffer);
+		//     vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory_Player(), 0, size, 0, &data);
+		//     std::memset(data, 0, size);
+		//     vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory_Player());
+		// }
+
+		// Current grid slots (same arrays you already maintain)
+		auto& healthTex = s_VulkanData.HealthTextureSlots;   // we’ll only bind/use the center (index 4)
+
+		// Center chunk index in 3x3
+		constexpr uint32_t CENTER = 4;
+		EE_CORE_ASSERT(healthTex[CENTER], "Center chunk health texture is null");
+
+		// Transition center health image -> GENERAL
+		{
+			VulkanTexture& h = *healthTex[CENTER];
+			if (h.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL) {
+				TransitionImageLayout(cmd, h.GetImage(), h.GetCurrentLayout(), VK_IMAGE_LAYOUT_GENERAL);
+				h.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
+			}
+		}
+
+		// Update player-collision descriptor set (binds only the center health image at binding 0)
+		m_vulkanGraphicsPipelines->UpdatePlayerCollisionDescriptorSet(currentFrame, healthTex);
+		VkDescriptorSet ds = m_vulkanGraphicsPipelines->GetPlayerCollisionComputeDescriptorSet(currentFrame);
+
+		// Bind player-collision pipeline
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, m_vulkanGraphicsPipelines->GetPlayerCollisionComputePipeline());
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
+			m_vulkanGraphicsPipelines->GetPlayerCollisionComputePipelineLayout(),
+			0, 1, &ds, 0, nullptr);
+
+		// Build push constants for the center chunk only
+		// NOTE: reusing your PushConstants layout. If your player shader expects a different struct,
+		//       change this to match.
+		PlayerPC pc{}; // your original struct with TextureOrigin, PixelSize, TextureIndex, etc.
+
+		{
+			VulkanTexture& centerHealth= *healthTex[CENTER];  // for origin/pixel size
+			pc.WindowOriginWorld = centerHealth.GetTextureOrigin();  // top-left in world-units
+			pc.PixelSizeWorld = centerHealth.GetPixelSize();
+
+			// Supply just the number of players you packed into the SSBO for this pass.
+			// If you always send one player, set to 1.
+			pc.NumPlayers = 1; // TODO: replace if you pack multiple players
+
+			pc.ChunkSizePixels = PIXELS_IN_TILE * CHUNK_SIZE;
+			pc.DeltaTime = Application::GetDelatime();
+			pc.Mode = 0; // unused or your preferred mode
+		}
+
+		vkCmdPushConstants(cmd,
+			m_vulkanGraphicsPipelines->GetPlayerCollisionComputePipelineLayout(),
+			VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PlayerPC), &pc);
+
+		// Dispatch only over the center chunk
+		{
+			const VulkanTexture& centerH = *healthTex[CENTER];
+			const uint32_t w = centerH.GetWidth();
+			const uint32_t h = centerH.GetHeight();
+
+			const uint32_t groupSizeX = 16;
+			const uint32_t groupSizeY = 16;
+
+			const uint32_t dispatchX = (w + groupSizeX - 1) / groupSizeX;
+			const uint32_t dispatchY = (h + groupSizeY - 1) / groupSizeY;
+
+			vkCmdDispatch(cmd, dispatchX, dispatchY, 1);
+		}
+
+		// Ensure the player pass writes (results/health) are visible to CPU or subsequent passes
+		{
+			VkMemoryBarrier barrier{};
+			barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+			barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+			vkCmdPipelineBarrier(cmd,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				0, 1, &barrier, 0, nullptr, 0, nullptr);
+		}
+
+		// pass samples it with a sampled image. If it remains a storage image for later compute, skip this.
+		// {
+		//     VulkanTexture& h = *healthTex[CENTER];
+		//     if (h.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+		//         TransitionImageLayout(cmd, h.GetImage(), h.GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		//         h.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		//     }
+		// }
+	}
+
+
 
 	void VulkanRenderer2D::RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame)
 	{
@@ -1362,6 +1525,18 @@ namespace Engine {
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
 		s_CollisionData.EntitySlotIndex++;
+	}
+
+	void VulkanRenderer2D::CalculatePlayerCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType)
+	{
+		EE_PROFILE_FUNCTION();
+
+		uint32_t playerIndex = 0; // only one player
+		
+		s_CollisionData.playerEntities[playerIndex].Position = colliderPos;
+		s_CollisionData.playerEntities[playerIndex].ColliderRadius = colliderRadius;
+		s_CollisionData.playerEntities[playerIndex].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
+		s_CollisionData.playerEntities[playerIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
 	}
 
 	void VulkanRenderer2D::DrawTextureQuadWithHealth(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const std::shared_ptr<VulkanTexture>& healthTexture)

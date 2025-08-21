@@ -104,6 +104,7 @@ namespace Engine {
 		uint32_t EntitySlotIndex = 0;
 
 		std::array<CollisionEntitiesGPU, MAX_COLLISION_ENTITIES> CollisionEntities;
+		std::array<CollisionPlayerEntitiesGPU, PLAYER_COUNT> playerEntities;
 	};
 
 	// Effect push constants for glow-only pass
@@ -169,6 +170,7 @@ namespace Engine {
 		void BindBatchState(VkCommandBuffer cmd, uint32_t currentFrame);
 		void SubmitFrame(uint32_t currentFrame);
 		void CalculateCollisionFrame(uint32_t currentFrame);
+		void ReadPlayerCollisionBuffer();
 		void ReadBlockedTileMask(std::vector<uint32_t>& outDestroyedMask, uint32_t count);
 		void DeviceWaitIdle();
 
@@ -182,6 +184,7 @@ namespace Engine {
 		
 		static void CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size, float rotation, uint64_t entityID, eCollisionType collisionType, uint32_t damage);
 		static void CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType, uint32_t damage, const uint32_t destructionRadius);
+		static void CalculatePlayerCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType);
 		static void DrawTextureQuadWithHealth(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
 		static void DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const glm::vec4& tintColor);
@@ -210,6 +213,7 @@ namespace Engine {
 		void RecordProjectileDrawCommands(VkCommandBuffer cmd, uint32_t frameIndex, uint32_t currentFrame);
 		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
+		void RecordPlayerCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 
@@ -258,6 +262,7 @@ namespace Engine {
 		//std::array<CollisionTexture, MaxTextures> s_CollisionTextures;
 		//CollisionTexture s_CollisionTextures;
 		Ref<VulkanTexture> m_dummyTexture;
+
 
 	};
 

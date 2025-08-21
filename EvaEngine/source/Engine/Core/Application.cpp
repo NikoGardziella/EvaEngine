@@ -7,6 +7,7 @@
 #include "Engine/Renderer/Renderer.h"
 
 #include "GLFW/glfw3.h" // remove
+#include "Timestep.h"
 
 
 namespace Engine
@@ -14,6 +15,7 @@ namespace Engine
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
 	Application* Application::s_Instance = nullptr;
+	Timestep Application::m_timestep = 0.0f;
 
 	
 
@@ -82,7 +84,7 @@ namespace Engine
 		while (m_isRunning)
 		{
 			float time = (float)glfwGetTime(); // Move to Platform::GetTime to platform specific
-			Timestep timestep = time - m_lastFrameTime;
+			m_timestep = time - m_lastFrameTime;
 			m_lastFrameTime = time;
 			
 			Renderer::StartFrame();
@@ -97,7 +99,7 @@ namespace Engine
 				for (Layer* layer : m_LayerStack)
 				{
 					
-					layer->OnUpdate(timestep);
+					layer->OnUpdate(m_timestep);
 					
 				}
 

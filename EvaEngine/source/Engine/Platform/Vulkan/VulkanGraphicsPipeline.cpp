@@ -32,6 +32,7 @@ namespace Engine {
         m_fullscreenShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/fullscreen_shader.GLSL").string());
         m_lineShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Line_shader.GLSL").string());
         m_computeShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/compute.comp").string());
+        m_playerCollisionComputeShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/player_collision_compute.comp").string());
         m_effectShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Effect_shader.comp").string());
 
         m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -58,6 +59,18 @@ namespace Engine {
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
             );
         }
+        m_playerUniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+        {
+            m_playerUniformBuffers[i] = VulkanBuffer(
+                m_device,
+                vulkanContext.GetDeviceManager().GetPhysicalDevice(),
+                sizeof(CollisionPlayerEntitiesGPU) * PLAYER_COUNT,
+                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+            );
+        }
+
 
         m_textureUniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
@@ -79,6 +92,7 @@ namespace Engine {
         // 1. Buffers and samplers
         CreatePresentSampler();
         CreateGPUCollisionResultBuffer();
+        CreatePlayerCollisionResultBuffer();
         CreateBlockedTileMaskBuffer();
         CreateExplosionBuffer();
 
@@ -88,7 +102,7 @@ namespace Engine {
         CreateCameraDescriptorSetLayout();
         CreateComputeArrayDescriptorSetLayout();
         CreateEffectsDescriptorSetLayout();
-
+        CreatePlayerCollisionDescriptorSetLayout();
         // 3. Descriptor pool(s)
         CreatePresentGameDescriptorPool();     // must be created before allocating any descriptor sets
 
@@ -99,15 +113,19 @@ namespace Engine {
         CreatePresentDescriptorSet();
         CreateLineDescriptorSet();
         CreateEffectsDescriptorSets();         // allocate your explosion/effects sets here
+        CreatePlayerCollisionDescriptorSets();
 
         // 5. Pipeline layouts (depend on descriptor set layouts and push constants)
         CreateEffectsPipelineLayout();
         CreatePresentPipelineLayout();
+        CreatePlayerCollisionPipelineLayout();
+
 
         // 6. Graphics/compute pipelines 
         CreateLineGraphicsPipeline(vulkanContext.GetGameRenderPass());
         CreateGameGraphicsPipeline(vulkanContext.GetGameRenderPass());
         CreateComputeGraphicsPipeline();
+        CreatePlayerCollisionPipeline();
         CreateEffectsPipeline();
         CreatePresentGraphicsPipeline(vulkanContext.GetPresentRenderPass());
         CreateProjectileGraphicsPipeline(vulkanContext.GetGameRenderPass());
@@ -553,9 +571,37 @@ namespace Engine {
         computePipelineInfo.layout = m_computePipelineLayout;
 
         vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &computePipelineInfo, nullptr, &m_computePipeline);
-
-
     }
+
+    static VkShaderModule CreateShaderModule(VkDevice device, const std::vector<uint32_t>& spirv)
+    {
+        VkShaderModuleCreateInfo ci{ VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO };
+        ci.codeSize = spirv.size() * sizeof(uint32_t);
+        ci.pCode = spirv.data();
+
+        VkShaderModule mod;
+        VkResult r = vkCreateShaderModule(device, &ci, nullptr, &mod);
+        EE_CORE_ASSERT(r == VK_SUCCESS, "Failed to create shader module");
+        return mod;
+    }
+
+    void VulkanGraphicsPipeline::CreatePlayerCollisionPipeline()
+    {
+
+        VkPipelineShaderStageCreateInfo stage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
+        stage.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+        stage.module = m_playerCollisionComputeShader->GetComputeshaderModule();
+        stage.pName = "main";
+
+        VkComputePipelineCreateInfo ci{ VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
+        ci.stage = stage;
+        ci.layout = m_playerCollisionPipelineLayout;
+
+        VkResult r = vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &ci, nullptr, &m_playerCollisionPipeline);
+        vkDestroyShaderModule(m_device, m_playerCollisionComputeShader->GetComputeshaderModule(), nullptr);
+        EE_CORE_ASSERT(r == VK_SUCCESS, "Failed to create PlayerCollision compute pipeline");
+    }
+
 
     void VulkanGraphicsPipeline::CreatePresentGraphicsPipeline(VkRenderPass renderPass)
     {
@@ -875,6 +921,25 @@ namespace Engine {
 
     }
 
+    void VulkanGraphicsPipeline::CreatePlayerCollisionPipelineLayout()
+    {
+        VkPushConstantRange pc{};
+        pc.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        pc.offset = 0;
+        pc.size = sizeof(PlayerPC);
+
+        VkPipelineLayoutCreateInfo info{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
+        info.setLayoutCount = 1;
+        info.pSetLayouts = &m_playerCollisionDescriptorSetLayout;
+        info.pushConstantRangeCount = 1;
+        info.pPushConstantRanges = &pc;
+
+        VkResult r = vkCreatePipelineLayout(m_device, &info, nullptr, &m_playerCollisionPipelineLayout);
+        EE_CORE_ASSERT(r == VK_SUCCESS, "Failed to create PlayerCollision pipeline layout");
+    }
+
+
+
     void VulkanGraphicsPipeline::CreateDescriptorSetLayouts()
     {
         // Two bindings: Camera UBO and Texture Sampler Array
@@ -988,6 +1053,39 @@ namespace Engine {
 
     }
     */
+
+
+    void VulkanGraphicsPipeline::CreatePlayerCollisionDescriptorSetLayout() {
+        std::array<VkDescriptorSetLayoutBinding, 3> b{};
+
+        // 0: health storage image (single)
+        b[0].binding = 0;
+        b[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        b[0].descriptorCount = 1;
+        b[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+        // 1: results SSBO
+        b[1].binding = 1;
+        b[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        b[1].descriptorCount = 1;
+        b[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+        // 2: players SSBO
+        b[2].binding = 2;
+        b[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        b[2].descriptorCount = 1;
+        b[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        VkDescriptorSetLayoutCreateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+        info.bindingCount = static_cast<uint32_t>(b.size());
+        info.pBindings = b.data();
+
+        if (vkCreateDescriptorSetLayout(m_device, &info, nullptr, &m_playerCollisionDescriptorSetLayout) != VK_SUCCESS) {
+            EE_CORE_ASSERT(false, "Failed to create effects descriptor set layout!");
+        }
+    }
+
+
+
     void VulkanGraphicsPipeline::CreateEffectsDescriptorSetLayout()
     {
         // Binding 0: array of storage images for color (u_InputTexture[MAX_TEXTURES])
@@ -1260,10 +1358,70 @@ namespace Engine {
             throw std::runtime_error("failed to allocate effects descriptor sets");
         }
 
-
-       
-        
     }
+
+    void VulkanGraphicsPipeline::CreatePlayerCollisionDescriptorSets()
+    {
+        m_playerCollisionDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_playerCollisionDescriptorSetLayout);
+
+        VkDescriptorSetAllocateInfo ai{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+        ai.descriptorPool = m_descriptorPool; // or reuse your existing pool
+        ai.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+        ai.pSetLayouts = layouts.data();
+
+        VkResult r = vkAllocateDescriptorSets(m_device, &ai, m_playerCollisionDescriptorSets.data());
+        EE_CORE_ASSERT(r == VK_SUCCESS, "Failed to allocate PlayerCollision descriptor sets");
+   
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+
+            VkDescriptorBufferInfo resultBufferInfo{};
+            resultBufferInfo.buffer = m_playerCollisionresultBufferBuffer;
+            resultBufferInfo.offset = 0;
+            resultBufferInfo.range = sizeof(CollisionResultBuffer);
+
+            VkDescriptorBufferInfo playerBufferInfo{};
+            playerBufferInfo.buffer = m_playerUniformBuffers[i].GetBuffer();
+            playerBufferInfo.offset = 0;
+            playerBufferInfo.range = sizeof(CollisionPlayerEntitiesGPU) * PLAYER_COUNT;
+
+           
+
+            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+
+            // dstBinding = 0 u_InputTexture
+            // are updated every frame so no need to do it here
+
+           
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = m_playerCollisionDescriptorSets[i];
+            descriptorWrites[0].dstBinding = 1;
+            descriptorWrites[0].descriptorCount = 1;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            descriptorWrites[0].pBufferInfo = &resultBufferInfo;
+
+        
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].dstSet = m_playerCollisionDescriptorSets[i];
+            descriptorWrites[1].dstBinding = 2;
+            descriptorWrites[1].descriptorCount = 1;
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            descriptorWrites[1].pBufferInfo = &playerBufferInfo;
+
+          
+
+            vkUpdateDescriptorSets(m_device,
+                static_cast<uint32_t>(descriptorWrites.size()),
+                descriptorWrites.data(),
+                0, nullptr);
+        }
+
+    }
+
+
 
     void VulkanGraphicsPipeline::UpdateEffectsDescriptorSet(
         uint32_t currentFrame,
@@ -1447,6 +1605,32 @@ namespace Engine {
             0, nullptr);
     }
 
+    void VulkanGraphicsPipeline::UpdatePlayerCollisionDescriptorSet(uint32_t frameIndex, const  std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> healthTextures)
+    {
+
+        // We only need the center chunk (index 4 in a 3x3 grid: [0..8])
+        constexpr size_t CENTER = 4;
+        EE_CORE_ASSERT(healthTextures[CENTER], "Center health texture is null");
+        EE_CORE_ASSERT(m_playerCollisionDescriptorSets.size() > frameIndex, "Bad frame index");
+
+        VkDescriptorSet dst = m_playerCollisionDescriptorSets[frameIndex];
+
+        VkDescriptorImageInfo health{};
+        health.imageLayout = VK_IMAGE_LAYOUT_GENERAL;                  // must match the image's current layout
+        health.imageView = healthTextures[CENTER]->GetImageView();
+        health.sampler = VK_NULL_HANDLE;
+
+        VkWriteDescriptorSet write{};
+        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write.dstSet = dst;
+        write.dstBinding = 0;                                     // binding 0: u_Health (single)
+        write.dstArrayElement = 0;
+        write.descriptorCount = 1;
+        write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        write.pImageInfo = &health;
+
+        vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+    }
 
 
     void VulkanGraphicsPipeline::UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures)
@@ -1646,7 +1830,6 @@ namespace Engine {
             bulletBufferInfo.offset = 0;
             bulletBufferInfo.range = sizeof(CollisionEntitiesGPU) * MAX_COLLISION_ENTITIES;
 
-            uint32_t chunkcount = 2;// check this. Is it LOAD_RADIUS from textureSsytem
             VkDescriptorBufferInfo destroyedTileMaskInfo{};
             destroyedTileMaskInfo.buffer = m_blockedTileMaskBuffer;
             destroyedTileMaskInfo.offset = 0;
@@ -1692,7 +1875,29 @@ namespace Engine {
         }
     }
 
+    void VulkanGraphicsPipeline::CreatePlayerCollisionResultBuffer()
+    {
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = sizeof(CollisionResultBuffer);
+        bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
+        vkCreateBuffer(m_device, &bufferInfo, nullptr, &m_playerCollisionresultBufferBuffer);
+
+        // Allocate memory (host visible + coherent)
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(m_device, m_playerCollisionresultBufferBuffer, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = VulkanContext::Get()->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+        vkAllocateMemory(m_device, &allocInfo, nullptr, &m_playerCollisionresultBufferMemory);
+        vkBindBufferMemory(m_device, m_playerCollisionresultBufferBuffer, m_playerCollisionresultBufferMemory, 0);
+
+    }
 
     void VulkanGraphicsPipeline::CreateGPUCollisionResultBuffer()
     {
@@ -1974,6 +2179,27 @@ namespace Engine {
         memcpy(data, collidingEntityData.data(), size);
 
         vkUnmapMemory(m_device, m_bulletUniformBuffers[currentFrame].GetMemory());
+    }
+
+    void VulkanGraphicsPipeline::UpdatePLayerCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionPlayerEntitiesGPU, PLAYER_COUNT> collidingPlayerData)
+    {
+        EE_PROFILE_FUNCTION();
+
+        void* data;
+        VkDeviceSize size = sizeof(CollisionPlayerEntitiesGPU) * collidingPlayerData.size();
+        if (size <= 0) // this probably does not work
+        {
+            return;
+        }
+
+
+        // Map buffer memory
+        vkMapMemory(m_device, m_playerUniformBuffers[currentFrame].GetMemory(),
+            0, size, 0, &data);
+
+        memcpy(data, collidingPlayerData.data(), size);
+
+        vkUnmapMemory(m_device, m_playerUniformBuffers[currentFrame].GetMemory());
     }
 
 

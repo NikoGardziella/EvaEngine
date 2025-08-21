@@ -741,6 +741,7 @@
     <None Include="..\assets\shaders\FlatColor.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
+    <None Include="..\assets\shaders\player_collision_compute.comp" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />

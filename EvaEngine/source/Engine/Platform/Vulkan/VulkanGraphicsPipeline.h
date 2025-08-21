@@ -48,6 +48,16 @@ namespace Engine {
         CollisionResult results[MAX_COLLISION_RESULTS];
     };
 
+    struct CollisionPlayerEntitiesGPU {
+        glm::vec2 Position;    // 8 bytes
+        float ColliderRadius;          // 4 bytes
+
+        uint32_t ID_Low;       // 4 bytes
+        uint32_t ID_High;      // 4 bytes
+
+
+    };
+
 
     struct CollisionEntitiesGPU {
         glm::vec2 Position;    // 8 bytes
@@ -67,7 +77,17 @@ namespace Engine {
     static_assert(offsetof(CollisionEntitiesGPU, Damage) == 36);
     static_assert(sizeof(CollisionEntitiesGPU) == 44, "ProjectileGPU must be 44 bytes");
 
-   
+    struct PlayerPC {
+        glm::vec2 WindowOriginWorld;   // world units
+        float     PixelSizeWorld;      // world units per pixel
+        uint32_t  ChunkSizePixels;     // e.g. 4096
+        uint32_t  NumPlayers;          // threads to run
+        float     DeltaTime;           // seconds
+        uint32_t  Mode;                // optional flags
+        uint32_t  _pad0;
+    };
+    static_assert(sizeof(PlayerPC) % 4 == 0, "push constants must be 4-byte aligned");
+
 
     struct BulletData
     {
@@ -134,6 +154,7 @@ namespace Engine {
 
         void UpdatePresentDescriptorSet(uint32_t imageIndex);
         void UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>  input, std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> healthTextures);
+        void UpdatePlayerCollisionDescriptorSet(uint32_t frameIndex,const  std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> healthTextures);
         void UpdateProjectileDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_PROJECTILES>& textures);
        
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
@@ -147,6 +168,8 @@ namespace Engine {
 
         void UpdateCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionEntitiesGPU, MAX_COLLISION_ENTITIES> bulletPositions);
 
+        void UpdatePLayerCollisionUniformBuffer(uint32_t currentFrame, const std::array<CollisionPlayerEntitiesGPU, PLAYER_COUNT> collidingPlayerData);
+
         void UpdateTextureUniformBuffer(uint32_t currentFrame, const glm::ivec2& textureSize);
         void UpdateEffectsDescriptorSet(uint32_t currentFrame, const std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& colorTextures, const std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& healthTextures);
 
@@ -158,6 +181,7 @@ namespace Engine {
 		VkPipeline GetComputePipeline() const { return m_computePipeline; }
 		VkPipeline GetProjectilePipeline() const { return m_projectilePipeline; }
         VkPipeline GetEffectsPipeline() const { return m_effectsPipeline; }
+        VkPipeline GetPlayerCollisionComputePipeline() const { return m_playerCollisionPipeline; }
 
 
         VkPipelineLayout GetGamePipelineLayout() const { return m_gamePipelineLayout; }
@@ -166,6 +190,7 @@ namespace Engine {
 		VkPipelineLayout GetComputePipelineLayout() const { return m_computePipelineLayout; }
 		VkPipelineLayout GetProjectilePipelineLayout() const { return m_projectilePipelineLayout; }
         VkPipelineLayout GetEffectsPipelineLayout() const { return m_effectsPipelineLayout; }
+        VkPipelineLayout GetPlayerCollisionComputePipelineLayout() const { return m_playerCollisionPipelineLayout; }
 
 
         VkDescriptorSet GetGameDescriptorSet(size_t frameIndex) { return m_gameDescriptorSets[frameIndex]; }
@@ -175,15 +200,21 @@ namespace Engine {
 		VkDescriptorSet GetProjectileDescriptorSet(size_t frameIndex) { return m_projectileDescriptorSet[frameIndex]; }
         VkDescriptorSet GetLineDescriptorSet(size_t frameIndex) { return m_lineDescriptorSet[frameIndex]; }
         VkDescriptorSet GetEffectsDescriptorSet(size_t frameIndex) { return m_effectsDescriptorSet[frameIndex]; }
+        VkDescriptorSet GetPlayerCollisionComputeDescriptorSet(size_t frameIndex) { return m_playerCollisionDescriptorSets[frameIndex]; }
 
         VkSampler& GetPresentSampler() { return m_presentSampler; }
 
         VulkanBuffer GetBulletUniformBuffer(uint32_t imageIndex) { return m_bulletUniformBuffers[imageIndex]; }
+        VulkanBuffer GetPlayerCollisionUniformBuffer(uint32_t imageIndex) { return m_playerUniformBuffers[imageIndex]; }
         VulkanBuffer GetTextureInfoUniformBuffer(uint32_t imageIndex) { return m_textureUniformBuffers[imageIndex]; }
 
         VkBuffer GetGPUCollisionBuffer() const { return m_GPUCollisionresultBufferBuffer; }
         VkDeviceMemory GetGPUCollisionMemory() const { return m_GPUCollisionresultBufferMemory; }
         
+        VkBuffer GetPLayerollisionBuffer() const { return m_playerCollisionresultBufferBuffer; }
+        VkDeviceMemory GetPlayerCollisionMemory() const { return m_playerCollisionresultBufferMemory; }
+
+
         VkBuffer GetBlockedTileMaskBuffer() const { return m_blockedTileMaskBuffer; }
         VkDeviceMemory GetBlockedTileMaskMemory() const { return m_blockedTileMaskMemory;  }
 
@@ -200,9 +231,12 @@ namespace Engine {
         void CreateEffectsPipelineLayout();
         void CreateEffectsPipeline();
         void CreateComputeGraphicsPipeline();
+        void CreatePlayerCollisionDescriptorSetLayout();
+        void CreatePlayerCollisionPipeline();
         void CreatePresentGraphicsPipeline(VkRenderPass renderPass);
         void CreateProjectileGraphicsPipeline(VkRenderPass renderPass);
         void CreatePresentPipelineLayout();
+        void CreatePlayerCollisionPipelineLayout();
         void CreateDescriptorSetLayouts();
         void CreateEffectsDescriptorSetLayout();
         void CreateComputeArrayDescriptorSetLayout();
@@ -212,11 +246,13 @@ namespace Engine {
         void CreateProjectileDescriptorSet();
         void CreateLineDescriptorSet();
         void CreateEffectsDescriptorSets();
+        void CreatePlayerCollisionDescriptorSets();
         void CreatePresentDescriptorSet();
         void CreatePresentSampler();
         void CreateCameraDescriptorSetLayout();
         void CreateCameraDescriptorSet();
         void CreateComputeDescriptorSet();
+        void CreatePlayerCollisionResultBuffer();
         void CreateGPUCollisionResultBuffer();
         void CreateBlockedTileMaskBuffer();
         void CreateExplosionBuffer();
@@ -232,6 +268,7 @@ namespace Engine {
         VkPipeline m_computePipeline;
         VkPipeline m_effectsPipeline;
         VkPipeline m_projectilePipeline;
+        VkPipeline m_playerCollisionPipeline;
         VkPipelineLayout m_gamePipelineLayout;
         VkPipelineLayout m_projectilePipelineLayout;
         VkPipelineLayout m_linePipelineLayout;
@@ -239,6 +276,7 @@ namespace Engine {
         VkPipelineLayout m_presentPipelineLayout;
         VkPipelineLayout m_computePipelineLayout;
         VkPipelineLayout m_effectsPipelineLayout;
+        VkPipelineLayout m_playerCollisionPipelineLayout;
 
         VkDescriptorSetLayout m_gameDescriptorSetLayout;
         VkDescriptorSetLayout m_presentDescriptorSetLayout;
@@ -248,6 +286,7 @@ namespace Engine {
         VkDescriptorSetLayout m_computeDescriptorSetLayout;
         VkDescriptorSetLayout m_computeArrayDescriptorSetLayout;
         VkDescriptorSetLayout m_effectsDescriptorSetLayout;
+        VkDescriptorSetLayout m_playerCollisionDescriptorSetLayout;
 
         VkDescriptorPool m_presentGamedescriptorPool;
 
@@ -258,10 +297,12 @@ namespace Engine {
         std::vector<VkDescriptorSet> m_gameDescriptorSets;
         std::vector<VkDescriptorSet> m_cameraDescriptorSets;
         std::vector<VkDescriptorSet> m_presentDescriptorSets;
+        std::vector<VkDescriptorSet> m_playerCollisionDescriptorSets;
         VkDescriptorPool m_descriptorPool;
 		VkDescriptorPool m_lineDescriptorPool;
         std::vector<VulkanBuffer> m_uniformBuffers;
         std::vector<VulkanBuffer> m_bulletUniformBuffers;
+        std::vector<VulkanBuffer> m_playerUniformBuffers;
         std::vector<VulkanBuffer> m_textureUniformBuffers;
 
         Ref<VulkanShader> m_pixelGameShader;
@@ -270,6 +311,7 @@ namespace Engine {
         Ref<VulkanShader> m_vulkanRenderShader;
         Ref<VulkanShader> m_vulkanProjectileRenderShader;
         Ref<VulkanShader> m_computeShader;
+        Ref<VulkanShader> m_playerCollisionComputeShader;
         Ref<VulkanShader> m_effectShader;
         VkSampler m_presentSampler;
 
@@ -287,6 +329,11 @@ namespace Engine {
 
         VkBuffer m_GPUCollisionresultBufferBuffer;
         VkDeviceMemory  m_GPUCollisionresultBufferMemory;
+
+        VkBuffer m_playerCollisionresultBufferBuffer;
+        VkDeviceMemory  m_playerCollisionresultBufferMemory;
+
+
 
         VkBuffer m_explosionBuffer;
         VkDeviceSize m_explosionBufferSize;

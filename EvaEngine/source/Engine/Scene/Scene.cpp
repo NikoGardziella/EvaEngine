@@ -438,6 +438,12 @@ namespace Engine {
             auto& playerIDComp = playerView.get<Engine::IDComponent>(entity);
             playerID = playerIDComp.ID;
             playerEntity = Entity{ entity, this };
+
+            if (!playerEntity.HasComponent<DriverComponent>())
+            {
+                float playerRadius = 0.5f;
+                Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
+            }
         }
         m_textureStreamingSystem->Update(playerPos, m_registry);
 
@@ -787,13 +793,7 @@ namespace Engine {
                         Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
 
                     }
-                    if (!playerEntity.HasComponent<DriverComponent>())
-                    {
-                        float playerRadius = 0.5f;
-                        uint32_t destructionRadius = 0;
-                        uint32_t plauerCollisionDamage = 0; // player does no damage on collision
-                        Engine::VulkanRenderer2D::CalculateCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER, plauerCollisionDamage, destructionRadius);
-                    }
+                   
                 }
 
             }

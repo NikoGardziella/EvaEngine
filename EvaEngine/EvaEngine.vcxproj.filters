@@ -1888,5 +1888,6 @@
     </None>
     <None Include="..\assets\shaders\Effect_shader.comp" />
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
+    <None Include="..\assets\shaders\player_collision_compute.comp" />
   </ItemGroup>
 </Project>
