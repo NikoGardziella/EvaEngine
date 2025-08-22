@@ -144,6 +144,7 @@
     <ClInclude Include="source\Panels\TileEditorPanel.h" />
     <ClInclude Include="source\Panels\Utils\EditorDebugUtils.h" />
     <ClInclude Include="source\Panels\Utils\EditorUtils.h" />
+    <ClInclude Include="source\Panels\Utils\IsoTileUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Panels\EffectsPanel.cpp" />

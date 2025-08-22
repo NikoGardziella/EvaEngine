@@ -974,6 +974,7 @@ namespace Engine {
             
             auto viewTerrain = m_registry.view<TileComponent, TransformComponent>();
             const float step = float(TILE_SIZE);
+            viewTerrain.use<TransformComponent>();
 
             for (auto entity : viewTerrain)
             {
@@ -988,13 +989,12 @@ namespace Engine {
                     glm::vec2 worldPosCenter = glm::vec2(tr.Translation) + t.position;
 
                     // bottom tip (ground contact) for bottom-center pivot
-                    glm::vec2 groundPos = worldPosCenter + glm::vec2(step * 0.25f, step * 0.25f);
 
                     // Flip V like before
                     glm::vec4 uv = t.UV;
                     glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
 
-                    Engine::VulkanRenderer2D::DrawTile(groundPos, flippedUV, glm::vec4(1.0f));
+                    Engine::VulkanRenderer2D::DrawTile(worldPosCenter, flippedUV, glm::vec4(1.0f));
                 }
             }
 
@@ -1007,13 +1007,14 @@ namespace Engine {
             Engine::VulkanRenderer2D::BeginScene(camera);
 
             auto view = m_registry.view<TileComponent, TransformComponent>();
+            //view.use<TransformComponent>();
             for (auto entity : view)
             {
 
                 TileComponent& tileComponent = view.get<TileComponent>(entity);
                 TransformComponent& transformComponent = view.get<TransformComponent>(entity);
 
-
+                const float step = float(TILE_SIZE);
                 for (size_t i = 0; i < tileComponent.tiles.size(); i++)
                 {
                     if (tileComponent.tiles[i].Category == eTileCategory::Terrain)
@@ -1021,20 +1022,15 @@ namespace Engine {
                         // skip terrain and draw everything else 
                         continue;
                     }
-                    glm::vec2 worldPosCenter = glm::vec2(transformComponent.Translation) + tileComponent.tiles[i].position;
-
-                    // bottom tip (ground contact) for bottom-center pivot
-                    glm::vec2 groundPos = worldPosCenter + glm::vec2(step * 0.25f, step * 0.25f);
-
-                    // Flip V like before
+                    glm::vec2 ground = glm::vec2(transformComponent.Translation) + tileComponent.tiles[i].position; // position = WORLD delta to GROUND
+                   
+                    // Flip V as before
                     glm::vec4 uv = tileComponent.tiles[i].UV;
                     glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
 
-                  
-
                     glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
                     // Use flippedUV for rendering, don't overwrite original UV
-                    Engine::VulkanRenderer2D::DrawTile(groundPos, flippedUV, color);
+                    Engine::VulkanRenderer2D::DrawTile(ground, flippedUV, color);
                 }
 
             }

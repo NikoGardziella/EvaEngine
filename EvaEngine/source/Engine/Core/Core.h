@@ -83,13 +83,17 @@
 
 //#define MAX_TEXTURES = 512
 
+constexpr size_t TILE_SIZE = 1;
 constexpr size_t MAX_TEXTURES = 32;
 constexpr size_t MAX_PROJECTILES = 32;
 constexpr size_t MAX_COLLISION_ENTITIES = 32; // projectiles and player
 constexpr size_t MAX_COLLISION_RESULTS = 64; 
 constexpr size_t TILE_PIXEL_WIDTH = 128;
 constexpr size_t TILE_PIXEL_HEIGHT = 256;
-constexpr size_t TILE_SIZE = 1;
+
+constexpr float GRID_TILE_W = (float)TILE_SIZE;           // diamond width
+constexpr float GRID_TILE_H = GRID_TILE_W * 0.5f; // diamond height = 64
+
 constexpr size_t CHUNK_SIZE = 32; // Tiles in a chunk
 constexpr size_t PLAYER_COUNT = 1; // Tiles in a chunk
 
