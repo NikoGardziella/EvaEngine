@@ -1007,7 +1007,7 @@ namespace Engine {
             Engine::VulkanRenderer2D::BeginScene(camera);
 
             auto view = m_registry.view<TileComponent, TransformComponent>();
-            //view.use<TransformComponent>();
+            view.use<TransformComponent>();
             for (auto entity : view)
             {
 
