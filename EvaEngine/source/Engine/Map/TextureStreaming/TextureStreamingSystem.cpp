@@ -9,7 +9,7 @@
 #include <Engine/Scene/Components/Render/ChunkRendererComponent.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <Engine/Scene/Scene.h>
-#include <Engine/Map/Utils/PixelUtils.h>
+#include "Engine/Map/Utils/IsoTileUtils.h"
 
 
 namespace Engine {
@@ -63,34 +63,55 @@ namespace Engine {
 
     }
 
+
+    static constexpr uint32_t CELL_W = uint32_t(TILE_PIXEL_WIDTH);           // 128
+    static constexpr uint32_t CELL_H = uint32_t(TILE_PIXEL_WIDTH / 2);       // 64
     void TextureStreamingSystem::UploadToChunkFromTexture(
-        const glm::vec2& worldPosition, UUID ID, std::string name,
-        const std::vector<uint8_t>& textureData,           // RGBA (4 bpp)
-        const std::vector<uint8_t>& healthData,            // 1 bpp (optional; can be empty)
-        uint32_t textureWidth, uint32_t textureHeight)
+        const glm::vec2& worldPosition,   // ground point in WORLD units (keep as vec2)
+        UUID id,
+        std::string name,
+        const std::vector<uint8_t>& textureData,  // RGBA8, row 0 = bottom (flipped vertically in extractor)
+        const std::vector<uint8_t>& healthData,   // 1 bpp optional
+        uint32_t textureWidth,
+        uint32_t textureHeight)
     {
         EE_PROFILE_FUNCTION();
-        constexpr uint32_t chunkPixelSize = CHUNK_SIZE * TILE_PIXEL_WIDTH;
-        constexpr uint8_t  kDefaultHealth = 255; // initial health for solid pixels
 
-        // Chunk addressing
-        glm::ivec2 chunkCoords = glm::floor(glm::vec2(worldPosition) / float(CHUNK_SIZE));
-        glm::ivec2 chunkOriginTiles = chunkCoords * (int)CHUNK_SIZE;
-        glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOriginTiles;
-        glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)TILE_PIXEL_WIDTH;
+        // --- iso footprint per logical cell (diamond) ---
+        const int CELL_W = int(TILE_PIXEL_WIDTH);   
+        const int CELL_H = int(TILE_PIXEL_WIDTH);     
 
+        // --- chunk texture dimensions (rectangular) ---
+        const int chunkWpx = int(CHUNK_SIZE) * CELL_W;     
+        const int chunkHpx = int(CHUNK_SIZE) * CELL_H;     
+
+        // Which chunk in WORLD 32×32 space (component-wise floor)
+        glm::ivec2 chunkCoords = glm::floor(worldPosition / float(CHUNK_SIZE));
+
+        // Top-left of this chunk in WORLD units (square 32×32 layout)
+        glm::vec2 chunkWorldOrigin = glm::vec2(chunkCoords) * float(CHUNK_SIZE);
+
+        // Local WORLD offset inside this chunk (0..32 on each axis)
+        glm::vec2 localWorld = worldPosition - chunkWorldOrigin;
+
+        // Map local WORLD to chunk TEXTURE pixel coords:
+        // For a 32×32 quad drawn from a 4096×2048 texture:
+        //   pixelSizeX = 32 / 4096 = 1/128  => texX = localWorld.x * 128
+        //   pixelSizeY = 32 / 2048 = 1/64   => texY = localWorld.y *  64
+        const int groundPx = int(std::floor(localWorld.x * float(CELL_W)));  // bottom-center X in pixels
+        const int groundPy = int(std::floor(localWorld.y * float(CELL_H)));  // bottom-center Y in pixels
+
+        // Fetch / allocate chunk
         TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
         chunk.TextureCount += 1;
 
-        const uint32_t totalChunkPixels = chunkPixelSize * chunkPixelSize;
-
-        // First time we touch this chunk: allocate color (RGBA8) and health (RGBA8UI) storage
+        const size_t totalPixels = size_t(chunkWpx) * size_t(chunkHpx);
         if (chunk.PixelData.empty())
         {
-            chunk.PixelData.resize(size_t(totalChunkPixels) * 4, 0); // RGBA8 color
-            chunk.HealthData.resize(size_t(totalChunkPixels) * 4, 0); // RGBA8UI: R=health, G=timer, B/A=0
-            chunk.Width = chunkPixelSize;
-            chunk.Height = chunkPixelSize;
+            chunk.PixelData.assign(totalPixels * 4, 0);
+            chunk.HealthData.assign(totalPixels * 4, 0);
+            chunk.Width = uint32_t(chunkWpx);
+            chunk.Height = uint32_t(chunkHpx);
             chunk.IsLoaded = false;
             chunk.Name = "Chunk_" + std::to_string(chunkCoords.x) + "_" + std::to_string(chunkCoords.y);
             chunk.AssetName = name;
@@ -98,72 +119,69 @@ namespace Engine {
             chunk.ChunkCoords = chunkCoords;
         }
 
-        // Bounds check for copy region
-        if (offsetInChunk.x < 0 || offsetInChunk.y < 0) {
-            EE_CORE_WARN("Texture '{}' is outside chunk bounds (negative offset)", name.c_str());
+        // Stamp the extracted buffer:
+        //   - Source is V-FLIPPED (row 0 = bottom)
+        //   - We want source row 0 to land on 'groundPy - 1' (bottom contact)
+        //     so the top-left destination becomes:
+        const int destX0 = groundPx - int(textureWidth) / 2;          // center horizontally on ground
+        const int destY0 = (groundPy - 1) - 0;                        // row 0 at groundPy - 1
+
+        // Clip to chunk bounds
+        const int left = std::max(0, destX0);
+        const int top = std::max(0, destY0);
+        const int right = std::min(chunkWpx, destX0 + int(textureWidth));
+        const int bottom = std::min(chunkHpx, destY0 + int(textureHeight));
+        if (left >= right || top >= bottom) {
+            EE_CORE_WARN("Texture '{}' outside chunk", name.c_str());
             return;
         }
 
-        const uint32_t maxCopyW = chunkPixelSize - uint32_t(offsetInChunk.x);
-        const uint32_t maxCopyH = chunkPixelSize - uint32_t(offsetInChunk.y);
-        const uint32_t copyWidth = std::min(textureWidth, maxCopyW);
-        const uint32_t copyHeight = std::min(textureHeight, maxCopyH);
-        if (copyWidth == 0 || copyHeight == 0) {
-            EE_CORE_WARN("Texture '{}' has zero copy area into chunk", name.c_str());
-            return;
-        }
-
-        // Expect 4 bpp color source; health source is optional 1 bpp
         EE_CORE_ASSERT(textureData.size() >= size_t(textureWidth) * textureHeight * 4, "textureData too small");
         const bool has1BppHealth = (healthData.size() >= size_t(textureWidth) * textureHeight);
 
-        for (uint32_t y = 0; y < copyHeight; ++y)
+        // Tight top->bottom copy. Because the source is already V-FLIPPED (row 0 bottom),
+        // we copy with srcY = (dstY - destY0) and row 0 lands at groundPy - 1 as intended.
+        for (int dstY = top; dstY < bottom; ++dstY)
         {
-            for (uint32_t x = 0; x < copyWidth; ++x)
+            const int srcY = dstY - destY0;                               // 0..textureHeight-1
+            if (srcY < 0 || srcY >= int(textureHeight)) continue;
+
+            const size_t dstRow = size_t(dstY) * size_t(chunkWpx) * 4;
+            const size_t srcRow = size_t(srcY) * size_t(textureWidth) * 4;
+
+            for (int dstX = left; dstX < right; ++dstX)
             {
-                const int dstX = offsetInChunk.x + int(x);
-                const int dstY = offsetInChunk.y + int(y);
+                const int srcX = dstX - destX0;                           // 0..textureWidth-1
+                if (srcX < 0 || srcX >= int(textureWidth)) continue;
 
-                const size_t dstColorIndex = (size_t(dstY) * chunkPixelSize + size_t(dstX)) * 4;
-                const size_t dstHealthIndex = (size_t(dstY) * chunkPixelSize + size_t(dstX)) * 4; // 4 bpp RGBA8UI
+                const size_t si = srcRow + size_t(srcX) * 4;
+                const size_t di = dstRow + size_t(dstX) * 4;
 
-                const size_t srcColorIndex = (size_t(y) * textureWidth + size_t(x)) * 4;
-                const size_t srcHealthIndex = (size_t(y) * textureWidth + size_t(x));             // 1 bpp
+                const uint8_t a = textureData[si + 3];
+                if (!a) continue;
 
-                EE_CORE_ASSERT(dstColorIndex + 3 < chunk.PixelData.size(), "OOB color dst");
-                EE_CORE_ASSERT(srcColorIndex + 3 < textureData.size(), "OOB color src");
-                EE_CORE_ASSERT(dstHealthIndex + 3 < chunk.HealthData.size(), "OOB health dst");
-                // srcHealthIndex is only used if has1BppHealth
+                // Color
+                chunk.PixelData[di + 0] = textureData[si + 0];
+                chunk.PixelData[di + 1] = textureData[si + 1];
+                chunk.PixelData[di + 2] = textureData[si + 2];
+                chunk.PixelData[di + 3] = a;
 
-                const uint8_t srcR = textureData[srcColorIndex + 0];
-                const uint8_t srcG = textureData[srcColorIndex + 1];
-                const uint8_t srcB = textureData[srcColorIndex + 2];
-                const uint8_t srcA = textureData[srcColorIndex + 3];
-
-                if (srcA != 0)
-                {
-                    // Write color as-is
-                    chunk.PixelData[dstColorIndex + 0] = srcR;
-                    chunk.PixelData[dstColorIndex + 1] = srcG;
-                    chunk.PixelData[dstColorIndex + 2] = srcB;
-                    chunk.PixelData[dstColorIndex + 3] = srcA;
-
-                    // Expand health to RGBA8UI
-                    const uint8_t healthR =
-                        has1BppHealth ? healthData[srcHealthIndex]
-                        : kDefaultHealth; // if no source, initialize from alpha presence
-
-                    chunk.HealthData[dstHealthIndex + 0] = healthR; // R = health
-                    chunk.HealthData[dstHealthIndex + 1] = 0;       // G = effect timer (starts at 0)
-                    chunk.HealthData[dstHealthIndex + 2] = 0;       // B = unused
-                    chunk.HealthData[dstHealthIndex + 3] = 0;       // A = unused
-                }
-                // else: transparent source pixel; leave color and health at 0s
+                // Health (R), others zero
+                const uint8_t hR = has1BppHealth
+                    ? healthData[size_t(srcY) * size_t(textureWidth) + size_t(srcX)]
+                    : 255u;
+                chunk.HealthData[di + 0] = hR;
+                chunk.HealthData[di + 1] = 0;
+                chunk.HealthData[di + 2] = 0;
+                chunk.HealthData[di + 3] = 0;
             }
         }
 
         chunk.IsDirty = true;
     }
+
+
+
 
     void TextureStreamingSystem::UploadTerrainToChunkFromTexture(
         const glm::vec2& worldPosition, UUID ID, std::string name,
@@ -380,7 +398,6 @@ namespace Engine {
 		chunk.GPUTexture->SetData(chunk.PixelData.data(), chunk.Height * chunk.Width * 4);
 
 
-        
 
 
       
@@ -565,7 +582,6 @@ namespace Engine {
     }
 
 
-
     void TextureStreamingSystem::BakeTilesIntoChunks(entt::registry& registry)
     {
         EE_PROFILE_FUNCTION();
@@ -592,10 +608,7 @@ namespace Engine {
                 int width, height;
                 if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, width, height))
                     continue;
-
-
-
-               
+              
                     //  m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
                      //     width, height);
 
@@ -624,8 +637,7 @@ namespace Engine {
                 {
                     continue;
                 }
-                glm::ivec2 worldTilePos = MapUtils::GetWorldTileCoords(tile.position, transformComp.Translation);
-
+                const glm::vec2 ground = glm::vec2(transformComp.Translation) + tile.position;
                 
                 std::vector<uint8_t> pixelData;
                 std::vector<uint8_t> healthData;
@@ -633,22 +645,51 @@ namespace Engine {
                 if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, width, height))
                     continue;
 
-               
 
-                
                   //  m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
                    //     width, height);
 
-                    UploadToChunkFromTexture(worldTilePos, tcomp.TileID,tile.name,pixelData, 
-                        healthData, uint32_t(width), uint32_t(height));
+                UploadToChunkFromTexture(ground, tcomp.TileID,tile.name,pixelData,
+                    healthData, uint32_t(width), uint32_t(height));
                 
-                
+            
             }
         }
 
         //DebugMarkChunks();
     }
 
+    void TextureStreamingSystem::SortIsoTilesByY(entt::registry& registry)
+    {
+        // A) Entities: higher Y first (draw earlier)
+        registry.sort<TransformComponent>(
+            [&registry](entt::entity a, entt::entity b)
+            {
+                const auto& ta = registry.get<TransformComponent>(a).Translation;
+                const auto& tb = registry.get<TransformComponent>(b).Translation;
+
+                if (ta.y != tb.y) return ta.y > tb.y;        // DESC by Y
+                return (uint32_t)a < (uint32_t)b;            // stable tie-break
+            }
+        );
+
+        // B) Tiles within each entity: higher ground Y first (draw earlier)
+        auto view = registry.view<TileComponent, TransformComponent>();
+        for (auto e : view)
+        {
+            auto& tc = view.get<TileComponent>(e);
+            const auto& tr = view.get<TransformComponent>(e);
+
+            std::stable_sort(tc.tiles.begin(), tc.tiles.end(),
+                [&](const TileInfo& A, const TileInfo& B)
+                {
+                    const float yA = tr.Translation.y + A.position.y; // A/B.position = WORLD delta to GROUND
+                    const float yB = tr.Translation.y + B.position.y;
+                    return yA > yB;                                    // DESC by Y
+                }
+            );
+        }
+    }
 
 
     void TextureStreamingSystem::AddChunkEntitiesToRegistry(entt::registry& registry)
@@ -724,6 +765,77 @@ namespace Engine {
 
 
 
+    bool TextureStreamingSystem::DebugWriteTGA32(const char* path, int w, int h, const std::vector<uint8_t>& rgba)
+    {
+        if (w <= 0 || h <= 0) return false;
+        if (rgba.size() < size_t(w) * h * 4) return false;
 
+        FILE* f = std::fopen(path, "wb");
+        if (!f) return false;
 
+        // 18-byte TGA header
+        uint8_t hdr[18] = {};
+        hdr[2] = 2;                       // uncompressed true-color
+        hdr[12] = uint8_t(w & 0xFF);
+        hdr[13] = uint8_t((w >> 8) & 0xFF);
+        hdr[14] = uint8_t(h & 0xFF);
+        hdr[15] = uint8_t((h >> 8) & 0xFF);
+        hdr[16] = 32;                      // 32 bpp
+        hdr[17] = 0x28;                    // 8 alpha bits, origin at top-left (bit 5)
+        std::fwrite(hdr, 1, 18, f);
+
+        // TGA expects BGRA. We wrote origin=top-left, so we can stream rows 0..h-1.
+        std::vector<uint8_t> row(size_t(w) * 4);
+        for (int y = 0; y < h; ++y) {
+            const uint8_t* src = &rgba[size_t(y) * size_t(w) * 4];
+            for (int x = 0; x < w; ++x) {
+                const uint8_t r = src[x * 4 + 0];
+                const uint8_t g = src[x * 4 + 1];
+                const uint8_t b = src[x * 4 + 2];
+                const uint8_t a = src[x * 4 + 3];
+                row[size_t(x) * 4 + 0] = b;
+                row[size_t(x) * 4 + 1] = g;
+                row[size_t(x) * 4 + 2] = r;
+                row[size_t(x) * 4 + 3] = a;
+            }
+            std::fwrite(row.data(), 1, row.size(), f);
+        }
+
+        std::fclose(f);
+        return true;
+    }
+
+    bool TextureStreamingSystem::DebugWritePPM(const char* path, int w, int h, const std::vector<uint8_t>& rgba)
+    {
+        if (w <= 0 || h <= 0) return false;
+        if (rgba.size() < size_t(w) * h * 4) return false;
+
+        FILE* f = std::fopen(path, "wb");
+        if (!f) return false;
+        std::fprintf(f, "P6\n%d %d\n255\n", w, h);
+        for (int y = 0; y < h; ++y) {
+            const uint8_t* src = &rgba[size_t(y) * size_t(w) * 4];
+            for (int x = 0; x < w; ++x) {
+                std::fwrite(&src[x * 4 + 0], 1, 1, f); // R
+                std::fwrite(&src[x * 4 + 1], 1, 1, f); // G
+                std::fwrite(&src[x * 4 + 2], 1, 1, f); // B
+            }
+        }
+        std::fclose(f);
+        return true;
+    }
+
+    namespace fs = std::filesystem;
+    void TextureStreamingSystem::DumpRGBA(const std::string& filename, int w, int h, const std::vector<uint8_t>& rgba) {
+        fs::path folder = "C:/EvaEngine/debug";
+        fs::create_directories(folder);
+        fs::path out = folder / filename;
+
+        if (!DebugWriteTGA32(out.string().c_str(), w, h, rgba)) {
+            EE_CORE_ERROR("Failed to write {}", out.string());
+        }
+        else {
+            EE_CORE_INFO("Wrote {}", out.string());
+        }
+    }
 }

@@ -276,29 +276,31 @@ namespace Engine {
     {
         VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
 
-        VkSamplerCreateInfo samplerInfo{};
-        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_NEAREST; // for pixel graphics. VK_FILTER_LINEAR will interpolate
-        samplerInfo.minFilter = VK_FILTER_NEAREST;
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.anisotropyEnable = VK_FALSE;
-        samplerInfo.maxAnisotropy = 16.0f;
-        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-        samplerInfo.unnormalizedCoordinates = VK_FALSE;
-        samplerInfo.compareEnable = VK_FALSE;
-        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.mipLodBias = 0.0f;
-        samplerInfo.minLod = 0.0f;
-        samplerInfo.maxLod = 0.0f;
+        VkSamplerCreateInfo si{};
+        si.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        si.magFilter = VK_FILTER_NEAREST;                    // no interpolation
+        si.minFilter = VK_FILTER_NEAREST;
+        si.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;       // important: no mip blending
+        si.minLod = 0.0f;                                 // clamp to base level
+        si.maxLod = 0.0f;
 
-        if (vkCreateSampler(device, &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS)
-        {
-            EE_CORE_ERROR("failed to create texture sampler!");
+        si.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE; // do NOT use REPEAT for baked chunks
+        si.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        si.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+
+        si.anisotropyEnable = VK_FALSE;                      // off for pixel-perfect
+        si.maxAnisotropy = 1.0f;                          // ignored when disabled
+        si.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        si.unnormalizedCoordinates = VK_FALSE;
+        si.compareEnable = VK_FALSE;
+        si.compareOp = VK_COMPARE_OP_ALWAYS;
+
+        if (vkCreateSampler(device, &si, nullptr, &m_sampler) != VK_SUCCESS) {
+            EE_CORE_ERROR("failed to create chunk texture sampler!");
         }
     }
+
+
     Ref<VulkanTexture> VulkanTexture::Clone() const
     {
         auto clone = std::make_shared<VulkanTexture>(m_width, m_height, VK_FORMAT_R8G8B8A8_UNORM);

@@ -7,7 +7,7 @@ namespace Engine {
     class IsoTileUtils {
        
     public:
-        static inline glm::ivec2 WorldToIsoCell(const glm::vec2& p)
+        static inline glm::ivec2 WorldToIsoCellInt(const glm::vec2& p)
         {
             float tX = p.x / (GRID_TILE_W * 0.5f);
             float tY = p.y / (GRID_TILE_H * 0.5f);
@@ -16,6 +16,14 @@ namespace Engine {
             return glm::ivec2(glm::round(glm::vec2(u, v)));
         }
 
+        static inline glm::ivec2 WorldToIsoCell(const glm::vec2& p)
+        {
+            float tX = p.x / (GRID_TILE_W * 0.5f);
+            float tY = p.y / (GRID_TILE_H * 0.5f);
+            float u = 0.5f * (tY + tX);
+            float v = 0.5f * (tY - tX);
+            return glm::vec2(u, v);
+        }
 
         static inline glm::vec2 IsoToWorldGround(const glm::ivec2& c)
         {

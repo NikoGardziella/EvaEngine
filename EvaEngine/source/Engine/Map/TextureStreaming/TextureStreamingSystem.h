@@ -59,11 +59,17 @@ namespace Engine{
         void SetGridMap(Ref<GridMap>& gridmap) { m_gridMap = gridmap; }
             
         void BakeTilesIntoChunks(entt::registry& registry);
+        void SortIsoTilesByY(entt::registry& registry);
         void AddChunkEntitiesToRegistry(entt::registry& registry);
         void DebugMarkChunks();
         //debug
         void ResetAllChunks(entt::registry& gameRegistry);
         void DebugDrawChunkOutlines(entt::registry& gameRegistry);
+        
+        
+        bool DebugWriteTGA32(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
+        bool DebugWritePPM(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
+        void DumpRGBA(const std::string& filename, int w, int h, const std::vector<uint8_t>& rgba);
     private:
         void SortChunksRowMajor(entt::registry& reg);
         uint64_t HashCoords(const glm::ivec2& coords);

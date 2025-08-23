@@ -366,6 +366,7 @@ namespace Engine {
         // makes sure textures are reloaded to the right registry
         // editor to game
         m_textureStreamingSystem->ResetAllChunks(m_registry);
+        m_textureStreamingSystem->SortIsoTilesByY(m_registry);
         m_textureStreamingSystem->BakeTilesIntoChunks(m_registry);
 		m_textureStreamingSystem->AddChunkEntitiesToRegistry(m_registry);
 
@@ -577,7 +578,7 @@ namespace Engine {
                             minOrigin.y = std::min(minOrigin.y, chunkComp.ChunkCoords.y);
 
                             //EE_CORE_INFO("minOrigin {}, {}", minOrigin.x, minOrigin.y);
-                            Engine::VulkanRenderer2D::DrawTextureQuadWithHealth(model, chunkComp.Texture, chunkComp.HealthTexture);
+                           Engine::VulkanRenderer2D::DrawTextureQuadWithHealth(model, chunkComp.Texture, chunkComp.HealthTexture);
 
                             
                         }
@@ -1007,7 +1008,7 @@ namespace Engine {
             Engine::VulkanRenderer2D::BeginScene(camera);
 
             auto view = m_registry.view<TileComponent, TransformComponent>();
-            view.use<TransformComponent>();
+            view.use<TransformComponent>(); // this ensured the draw order!
             for (auto entity : view)
             {
 

@@ -176,6 +176,7 @@
     <ClInclude Include="source\Engine\Map\Grid\TileCollisionMask.h" />
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h" />
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h" />
+    <ClInclude Include="source\Engine\Map\Utils\IsoTileUtils.h" />
     <ClInclude Include="source\Engine\Map\Utils\IVec2Hasher.h" />
     <ClInclude Include="source\Engine\Map\Utils\PixelUtils.h" />
     <ClInclude Include="source\Engine\Math\Math.h" />

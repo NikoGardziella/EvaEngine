@@ -12,13 +12,14 @@
 
 namespace Engine {
 
-
+    struct PixelRect { int x = 0, y = 0, w = 0, h = 0; };
 
     struct TileProperties {
         uint32_t health = 0;
         eTileMaterial material = eTileMaterial::None;
         std::string name;
         glm::vec4 uv = glm::vec4(0);
+        PixelRect     pixelRect{};
     };
 
     class TileSerializer {

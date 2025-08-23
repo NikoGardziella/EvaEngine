@@ -302,7 +302,7 @@ namespace Engine {
         Ref<VulkanTexture> texture = GetTileTextureIconAtlas();
         bool flipVertical = true;
         bool flipHorizontal = false;
-        
+
         const glm::vec4& uv = tile.UV;
         const std::vector<uint8_t>& pixelData = texture->GetPixelData();
         if (pixelData.empty())
@@ -336,7 +336,7 @@ namespace Engine {
 
         for (uint32_t y = 0; y < outHeight; ++y)
         {
-            for (uint32_t x = 0; x < outWidth; ++x) 
+            for (uint32_t x = 0; x < outWidth; ++x)
             {
                 uint32_t srcX = flipHorizontal ? (x1 - 1 - x) : (x0 + x);
                 uint32_t srcY = flipVertical ? (y1 - 1 - y) : (y0 + y);
@@ -347,7 +347,7 @@ namespace Engine {
                 // Copy RGBA
                 memcpy(&outPixelData[dstIndex], &pixelData[srcIndex], channels);
 
-                
+
                 uint8_t alpha = pixelData[srcIndex + 3];
                 outHealthData[y * outWidth + x] = (alpha > 0) ? tile.TileHealth : 0;
             }
@@ -355,6 +355,10 @@ namespace Engine {
 
         return true;
     }
+
+
+
+
 
 
     bool AssetManager::GetTexturePixelData(
@@ -576,77 +580,72 @@ namespace Engine {
                 rowHeight = 0;
             }
 
-            // Copy pixels
-            for (int y = 0; y < t.height; ++y)
-            {
-                const size_t dstY = size_t(currentY + y);
-                const size_t srcY = size_t(y);
-                uint8_t* dst = &atlasData[(dstY * size_t(atlasWidth) + size_t(currentX)) * 4];
-                const uint8_t* src = &t.pixels[(srcY * size_t(t.width)) * 4];
-                memcpy(dst, src, size_t(t.width) * 4);
+            // ... inside the packing loop in CreateTileAtlas()
+            
+                // Copy pixels (unchanged)
+                for (int y = 0; y < t.height; ++y) {
+                    const size_t dstY = size_t(currentY + y);
+                    const uint8_t* src = &t.pixels[(size_t(y) * t.width) * 4];
+                    uint8_t* dst = &atlasData[(dstY * size_t(atlasWidth) + size_t(currentX)) * 4];
+                    memcpy(dst, src, size_t(t.width) * 4);
+                }
+
+                // UV with inset (for UI rendering)
+                const float invW = 1.0f / float(atlasWidth);
+                const float invH = 1.0f / float(atlasHeight);
+                const float inset = 0.5f;
+
+                glm::vec4 uv{
+                    (float(currentX) + inset) * invW,
+                    (float(currentY) + inset) * invH,
+                    (float(currentX + t.width) - inset) * invW,
+                    (float(currentY + t.height) - inset) * invH
+                };
+
+                const std::string name = t.name;
+
+                // Update properties
+                TileProperties props{};
+                if (auto it = s_tileProperties.find(name); it != s_tileProperties.end())
+                    props = it->second;
+
+                props.name = name;
+                props.health = (props.health == 0 ? 1u : props.health); // keep whatever you had
+                if (props.material == eTileMaterial::None) props.material = t.material;
+                props.uv = uv;
+
+                // NEW: exact integer rect (NO inset, NO gutter inside the rect)
+                props.pixelRect = { currentX, currentY, t.width, t.height };
+
+                s_tileProperties[name] = props;
+
+                // Indexes (unchanged)
+                s_tileUVMap[name] = uv;
+                s_tileUVMapsByCategory[t.category][name] = uv;
+                s_tileNamesByCategory[t.category].push_back(name);
+                s_tileNamesByCategoryAndMaterial[t.category][props.material].push_back(name);
+
+                currentX += t.width + GUTTER;
+                rowHeight = std::max(rowHeight, t.height);
+                stbi_image_free(t.pixels);
             }
 
-            // Compute UVs with a tiny 0.5px inset (stays inside the copied rect)
-            const float invW = 1.0f / float(atlasWidth);
-            const float invH = 1.0f / float(atlasHeight);
-            const float inset = 0.5f;
+            // --- create the Vulkan texture atlas ONCE, with correct transition order ---
+            s_tileTextureIconAtlas = std::make_shared<VulkanTexture>(
+                atlasWidth, atlasHeight, VK_FORMAT_R8G8B8A8_UNORM, "combined_tileAtlas", /*generateMips*/ false
+            );
+            VulkanUtils::TransitionImageLayout(s_tileTextureIconAtlas->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
+                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-            float u0 = (float(currentX) + inset) * invW;
-            float v0 = (float(currentY) + inset) * invH;
-            float u1 = (float(currentX + t.width) - inset) * invW;
-            float v1 = (float(currentY + t.height) - inset) * invH;
+            // If SetData does the proper transitions internally, just call SetData:
+            s_tileTextureIconAtlas->SetData(atlasData.data(), static_cast<uint32_t>(atlasData.size()));
 
-            glm::vec4 uv = glm::vec4(u0, v0, u1, v1);
+            // Keep CPU copy for extraction:
+            s_tileTextureIconAtlas->SetPixelData(atlasData);
 
-            const std::string name = t.name;
+            EE_CORE_INFO("Created combined tile atlas with dimensions {}x{}", atlasWidth, atlasHeight);
 
-            // Store UVs
-            s_tileUVMap[name] = uv;
-            s_tileUVMapsByCategory[t.category][name] = uv;
-
-            // Merge/override tile properties
-            TileProperties props{};
-            if (auto it = s_tileProperties.find(name); it != s_tileProperties.end())
-                props = it->second;
-            props.name = name;
-            props.uv = uv;
-            // If no saved material, use folder material
-            if (props.material == eTileMaterial::None)
-                props.material = t.material;
-
-            s_tileProperties[name] = props;
-
-            // Names per category
-            s_tileNamesByCategory[t.category].push_back(name);
-
-            // Category+material list with fallback
-            const eTileMaterial matToUse =
-                (props.material != eTileMaterial::None) ? props.material : t.material;
-            s_tileNamesByCategoryAndMaterial[t.category][matToUse].push_back(name);
-
-            currentX += t.width + GUTTER;
-            rowHeight = std::max(rowHeight, t.height);
-
-            stbi_image_free(t.pixels);
-        }
-
-        // Create Vulkan texture atlas
-        s_tileTextureIconAtlas = std::make_shared<VulkanTexture>(
-            atlasWidth, atlasHeight, VK_FORMAT_R8G8B8A8_UNORM, "combined_tileAtlas", true);
-
-        // IMPORTANT: layout transitions in correct order
-        // If SetData handles transitions internally, just call SetData and skip manual transitions.
-        // Otherwise do UNDEFINED -> TRANSFER_DST -> SHADER_READ_ONLY.
-        // Example (uncomment if SetData does NOT transition):
-        s_tileTextureIconAtlas = std::make_shared<VulkanTexture>(atlasWidth, atlasHeight, VK_FORMAT_R8G8B8A8_UNORM,
-            "combined_tileAtlas", true);
-        VulkanUtils::TransitionImageLayout(s_tileTextureIconAtlas->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
-            VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-        s_tileTextureIconAtlas->SetData(atlasData.data(), static_cast<uint32_t>(atlasData.size()));
-        s_tileTextureIconAtlas->SetPixelData(atlasData);
-        EE_CORE_INFO("Created combined tile atlas with dimensions {}x{}", atlasWidth, atlasHeight);
     }
-
 
 
 

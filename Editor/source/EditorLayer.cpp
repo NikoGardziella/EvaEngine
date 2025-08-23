@@ -25,7 +25,7 @@
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include "Panels/Utils/EditorUtils.h"
 
-#include "Panels/Utils/IsoTileUtils.h"
+#include "Engine/Map/Utils/IsoTileUtils.h"
 //debug
 #include "Panels/Utils/EditorDebugUtils.h"
 #include <Engine/Renderer/VulkanRenderer2D.h>
@@ -571,6 +571,9 @@ namespace Engine {
 		m_editor.get()->GetGameLayer()->SetActiveScene(m_sceneHierarchyPanel.GetEditorScene());
         m_editor.get()->GetGameLayer()->OnGameStop();
        // m_editor.get()->GetGameLayer()->CopyToActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
+   
+        SortIsometricTilesByY();
+
     }
 
     void EditorLayer::OnScenePause()
@@ -652,7 +655,7 @@ namespace Engine {
         glm::vec2 p(hit.x, hit.y);
 
         // Snap to cell & compute its ground point
-        glm::ivec2 isoCell = IsoTileUtils::WorldToIsoCell(p);
+        glm::ivec2 isoCell = IsoTileUtils::WorldToIsoCellInt(p);
         glm::vec2  groundPos = IsoTileUtils::IsoToWorldGround(isoCell);
 
         // Duplicate check (compare iso cells)
@@ -667,7 +670,7 @@ namespace Engine {
                 for (const auto& tinfo : tc.tiles)
                 {
                     glm::vec2 tileGround = glm::vec2(tr.Translation) + tinfo.position; 
-                    if (IsoTileUtils::WorldToIsoCell(tileGround) == isoCell &&
+                    if (IsoTileUtils::WorldToIsoCellInt(tileGround) == isoCell &&
                         tinfo.name == selectedTileName)
                     {
                         EE_CORE_WARN("Tile already exists at iso cell: ({}, {})", isoCell.x, isoCell.y);
@@ -686,7 +689,7 @@ namespace Engine {
         if (m_selectedEntity)
         {
             auto& tr = m_selectedEntity.GetComponent<TransformComponent>();
-            glm::ivec2 baseIso = IsoTileUtils::WorldToIsoCell(glm::vec2(tr.Translation));
+            glm::ivec2 baseIso = IsoTileUtils::WorldToIsoCellInt(glm::vec2(tr.Translation));
             glm::ivec2 localIso = isoCell - baseIso;
 
             // Store WORLD delta to the target cell's **ground**

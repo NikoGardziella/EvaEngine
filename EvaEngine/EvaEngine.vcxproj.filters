@@ -1647,6 +1647,7 @@
     <ClInclude Include="source\Engine\Map\Utils\PixelUtils.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\TileSerializer.h" />
     <ClInclude Include="source\Engine\Map\Grid\TileCollisionMask.h" />
+    <ClInclude Include="source\Engine\Map\Utils\IsoTileUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
