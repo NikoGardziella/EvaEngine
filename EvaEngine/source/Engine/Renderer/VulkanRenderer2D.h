@@ -189,7 +189,7 @@ namespace Engine {
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
 		static void DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
-		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID);
+		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID);
 		static void DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color);
 		static void DrawTile(const glm::vec3& transform, const glm::vec4& uv, const glm::vec4& color);

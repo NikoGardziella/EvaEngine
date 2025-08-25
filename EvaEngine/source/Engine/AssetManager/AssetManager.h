@@ -12,7 +12,6 @@
 
 
 namespace Engine {
-
     class AssetManager
     {
     public:

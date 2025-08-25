@@ -296,63 +296,62 @@ namespace Engine {
     }
 
 
-    bool AssetManager::ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData,
-        std::vector<uint8_t>& outHealthData, int& outWidth, int& outHeight)
+    bool AssetManager::ExtractPixelsFromTilePallette(
+        const TileInfo& tile,
+        std::vector<uint8_t>& outPixelData,
+        std::vector<uint8_t>& outHealthData,
+        int& outWidth, int& outHeight)
     {
-        Ref<VulkanTexture> texture = GetTileTextureIconAtlas();
-        bool flipVertical = true;
-        bool flipHorizontal = false;
+        Ref<VulkanTexture> atlas = GetTileTextureIconAtlas();
+        const auto& pixels = atlas->GetPixelData();
+        if (pixels.empty()) { EE_CORE_ERROR("Atlas has no CPU pixels"); return false; }
 
-        const glm::vec4& uv = tile.UV;
-        const std::vector<uint8_t>& pixelData = texture->GetPixelData();
-        if (pixelData.empty())
-        {
-            EE_CORE_ERROR("Texture has no CPU-side pixel data!");
+        const TileProperties props = AssetManager::GetTileProperties(tile.name);
+        const auto& pr = props.pixelRect; 
+
+        const int x0 = pr.x;
+        const int y0 = pr.y;
+        const int w = pr.w;   
+        const int h = pr.h;  
+
+        if (w <= 0 || h <= 0 ||
+            x0 < 0 || y0 < 0 ||
+            x0 + w > int(atlas->GetWidth()) ||
+            y0 + h > int(atlas->GetHeight())) {
+            EE_CORE_ERROR("Bad pixelRect for '{}'", tile.name.c_str());
             return false;
         }
 
-        const uint32_t texWidth = texture->GetWidth();
-        const uint32_t texHeight = texture->GetHeight();
-        constexpr uint32_t channels = 4;
+        constexpr bool kFlipVertical = true;
+        constexpr bool kFlipHorizontal = false;
 
-        // UVs (with inset) -> integer pixel box, then expand by 1 px each side
-        int x0 = int(std::floor(uv.x * texWidth));
-        int y0 = int(std::floor(uv.y * texHeight));
-        int x1 = int(std::ceil(uv.z * texWidth));  // exclusive
-        int y1 = int(std::ceil(uv.w * texHeight)); // exclusive
+        outWidth = w;
+        outHeight = h;
+        outPixelData.assign(size_t(w) * size_t(h) * 4, 0);
+        outHealthData.assign(size_t(w) * size_t(h), 0);
 
-        // de-inset: bring back the border the atlas removed
-        x0 = std::max(0, x0 - 1);
-        y0 = std::max(0, y0 - 1);
-        x1 = std::min(int(texWidth), x1 + 1);
-        y1 = std::min(int(texHeight), y1 + 1);
+        const uint32_t A_W = atlas->GetWidth();
+        const uint8_t* src = pixels.data();
 
-        outWidth = x1 - x0;
-        outHeight = y1 - y0;
+        for (int y = 0; y < h; ++y) {
+            const int sy = kFlipVertical ? (y0 + (h - 1 - y)) : (y0 + y);
+            const size_t srcRow = size_t(sy) * size_t(A_W) * 4;
+            const size_t dstRow = size_t(y) * size_t(w) * 4;
 
-        const size_t pixelCount = outWidth * outHeight;
-        outPixelData.resize(pixelCount * channels);
-        outHealthData.resize(pixelCount, 0);
+            for (int x = 0; x < w; ++x) {
+                const int sx = kFlipHorizontal ? (x0 + (w - 1 - x)) : (x0 + x);
+                const size_t si = srcRow + size_t(sx) * 4;
+                const size_t di = dstRow + size_t(x) * 4;
 
-        for (int y = 0; y < outHeight; ++y)
-        {
-            const int srcY = flipVertical ? (y1 - 1 - y) : (y0 + y);
-            const size_t srcRow = size_t(srcY) * texWidth;
-            const size_t dstRow = size_t(y) * outWidth;
+                outPixelData[di + 0] = src[si + 0];
+                outPixelData[di + 1] = src[si + 1];
+                outPixelData[di + 2] = src[si + 2];
+                outPixelData[di + 3] = src[si + 3];
 
-            for (int x = 0; x < outWidth; ++x)
-            {
-                const int srcX = flipHorizontal ? (x1 - 1 - x) : (x0 + x);
-                const size_t si = (srcRow + size_t(srcX)) * channels;
-                const size_t di = (dstRow + size_t(x)) * channels;
-
-                memcpy(&outPixelData[di], &pixelData[si], channels);
-
-                const uint8_t a = pixelData[si + 3];
-                outHealthData[dstRow + size_t(x)] = a ? tile.TileHealth : 0;
+                const uint8_t a = src[si + 3];
+                outHealthData[size_t(y) * size_t(w) + size_t(x)] = a ? tile.TileHealth : 0;
             }
         }
-
 
         return true;
     }
@@ -421,7 +420,6 @@ namespace Engine {
         if (fs::exists(tilePath))
             return tilePath.string();
 
-        // 3. (Optional) Search recursively in all subfolders of textures/
         for (auto& p : fs::recursive_directory_iterator(base))
         {
             if (p.path().filename() == textureName + ".png")
@@ -430,7 +428,7 @@ namespace Engine {
 
         // 4. Not found
         EE_CORE_WARN("Texture not found: {}", textureName);
-        return ""; // or return some fallback path
+        return ""; 
     }
 
     const std::vector<std::string>& AssetManager::GetTileNamesByCategory(eTileCategory category)
@@ -545,10 +543,9 @@ namespace Engine {
 
         // Packing params
         constexpr int ATLAS_W = 1024;   // 8 iso cells per row at 128px width
-        constexpr int GUTTER = 2;      // px between tiles to prevent bleeding
+        constexpr int GUTTER = 1;      // px between tiles to prevent bleeding
         const int atlasWidth = ATLAS_W;
 
-        // First pass: estimate atlas height with gutter
         int currentX = GUTTER;
         int currentY = GUTTER;
         int rowHeight = 0;
@@ -567,7 +564,6 @@ namespace Engine {
 
         std::vector<uint8_t> atlasData(size_t(atlasWidth) * size_t(atlasHeight) * 4, 0);
 
-        // Second pass: copy with gutter and compute UVs (inset by 0.5px)
         currentX = GUTTER;
         currentY = GUTTER;
         rowHeight = 0;
@@ -581,9 +577,7 @@ namespace Engine {
                 rowHeight = 0;
             }
 
-            // ... inside the packing loop in CreateTileAtlas()
             
-                // Copy pixels (unchanged)
                 for (int y = 0; y < t.height; ++y) {
                     const size_t dstY = size_t(currentY + y);
                     const uint8_t* src = &t.pixels[(size_t(y) * t.width) * 4];
@@ -605,22 +599,19 @@ namespace Engine {
 
                 const std::string name = t.name;
 
-                // Update properties
                 TileProperties props{};
                 if (auto it = s_tileProperties.find(name); it != s_tileProperties.end())
                     props = it->second;
 
                 props.name = name;
-                props.health = (props.health == 0 ? 1u : props.health); // keep whatever you had
+                props.health = (props.health == 0 ? 1u : props.health);
                 if (props.material == eTileMaterial::None) props.material = t.material;
                 props.uv = uv;
 
-                // NEW: exact integer rect (NO inset, NO gutter inside the rect)
                 props.pixelRect = { currentX, currentY, t.width, t.height };
 
                 s_tileProperties[name] = props;
 
-                // Indexes (unchanged)
                 s_tileUVMap[name] = uv;
                 s_tileUVMapsByCategory[t.category][name] = uv;
                 s_tileNamesByCategory[t.category].push_back(name);
@@ -631,14 +622,12 @@ namespace Engine {
                 stbi_image_free(t.pixels);
             }
 
-            // --- create the Vulkan texture atlas ONCE, with correct transition order ---
             s_tileTextureIconAtlas = std::make_shared<VulkanTexture>(
                 atlasWidth, atlasHeight, VK_FORMAT_R8G8B8A8_UNORM, "combined_tileAtlas", /*generateMips*/ false
             );
             VulkanUtils::TransitionImageLayout(s_tileTextureIconAtlas->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-            // If SetData does the proper transitions internally, just call SetData:
             s_tileTextureIconAtlas->SetData(atlasData.data(), static_cast<uint32_t>(atlasData.size()));
 
             // Keep CPU copy for extraction:

@@ -11,33 +11,140 @@
 #include <Engine/Map/Utils/IVec2Hasher.h>
 #include <unordered_set>
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
-
+#include "Engine/Map/Utils/IsoTileUtils.h"
 
 namespace Engine
 {
-	void GridMap::BuildFromRegistry(entt::registry& registry)
-	{
-        EE_PROFILE_FUNCTION();
-		//m_blockedTiles.clear();
+    void GridMap::BuildFromRegistry(entt::registry& registry)
+    {
+        m_blockedSubCells.clear();
 
-		auto view = registry.view<TileComponent, TransformComponent>();
-		for (auto entity : view)
-		{
-			auto [tileComp, transform] = view.get<TileComponent, TransformComponent>(entity);
+        // --- measure iso diamond in your world units ---
+        const glm::vec2 g00 = IsoTileUtils::IsoToWorldGround({ 0, 0 });
+        const glm::vec2 gE = IsoTileUtils::IsoToWorldGround({ 1, -1 }); // east neighbor
+        const glm::vec2 gS = IsoTileUtils::IsoToWorldGround({ 1,  1 }); // south neighbor
+        const float CELL_W = std::abs(gE.x - g00.x);  // full diamond width
+        const float CELL_H = std::abs(gS.y - g00.y);  // full diamond height
+        if (CELL_W <= 0.f || CELL_H <= 0.f) return;
 
-			for (const auto& tile : tileComp.tiles)
-			{
-				if (tile.Category != eTileCategory::Buildings)
-					continue;
+        // sub-cell layout
+        constexpr int   SUBS = SUBDIVS;         // 3 segments along the edge
+        constexpr float SHRINK_ALONG = 0.96f;    // tiny shrink along edge to avoid overlap
+        const     float HALF_THICK = 0.5f * (0.22f * std::min(CELL_W, CELL_H)); // strip thickness/2
 
+        enum class FootSide : uint8_t { North, East, South, West };
 
-				glm::ivec2 worldTilePos = MapUtils::GetWorldTileCoords(tile.position, transform.Translation);
-				
-				//m_blockedTiles.insert(worldTilePos);
-			}
-		
+        // parse side from tile name ("..._N", "..._E", "..._S", "..._W")
+        auto parseSide = [](const std::string& name) -> FootSide {
+            auto pos = name.find_last_of('_');
+            if (pos != std::string::npos && pos + 1 < name.size()) {
+                char c = (char)std::toupper(name[pos + 1]);
+                if (c == 'N') return FootSide::North;
+                if (c == 'E') return FootSide::East;
+                if (c == 'S') return FootSide::South;
+                if (c == 'W') return FootSide::West;
+            }
+            return FootSide::South; // sensible default
+            };
+
+        // pick the edge *segment* for each side (90° CW vs your previous mapping)
+        // Diamond vertices from ground S (south tip):
+        //   N(0,-CELL_H), E(+W/2,-H/2), S(0,0), W(-W/2,-H/2)
+        // Edges: N?E, E?S, S?W, W?N (clockwise)
+        auto edgeForSide = [&](FootSide side, const glm::vec2& S,
+            glm::vec2& A, glm::vec2& B)
+            {
+                const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
+
+                switch (side) {
+                case FootSide::North: A = N; B = E; break; // use top-right edge
+                case FootSide::East:  A = E; B = S; break; // right edge
+                case FootSide::South: A = S; B = W; break; // bottom-left edge
+                case FootSide::West:  A = W; B = N; break; // left edge
+                }
+            };
+
+        auto emitSubcellsOnEdge = [&](const glm::ivec2& cell, FootSide side)
+            {
+                const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
+
+                // vertices (for centroid / inward normal)
+                const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
+                const glm::vec2 C = (E + W + N + S) * 0.25f; // diamond centroid
+
+                glm::vec2 A{}, B{};
+                edgeForSide(side, S, A, B);
+
+                const glm::vec2 e = B - A;
+                const float     L = glm::length(e);
+                if (L <= 1e-6f) return;
+
+                const glm::vec2 T = e / L;               // tangent along the edge
+                glm::vec2       Nin = glm::vec2(-T.y, T.x); // left normal
+
+                // make normal point inward (towards centroid)
+                const glm::vec2 midEdge = 0.5f * (A + B);
+                if (glm::dot(Nin, C - midEdge) < 0.0f) Nin = -Nin;
+
+                const float segLen = L / float(SUBS);
+                const float halfAlong = 0.5f * segLen * SHRINK_ALONG;
+
+                for (int s = 0; s < SUBS; ++s)
+                {
+                    const float t0 = float(s) * segLen;
+                    const float t1 = float(s + 1) * segLen;
+                    const float tm = 0.5f * (t0 + t1);
+                    const glm::vec2 P = A + T * tm;                  // mid point on edge
+
+                    SubCellOBB obb;
+                    obb.center = P + Nin * HALF_THICK;          // push inward
+                    obb.halfExtents = { halfAlong, HALF_THICK };
+                    obb.tangent = T;                             // orientation
+                    m_blockedSubCells.push_back(obb);
+                }
+            };
+        auto sideIsoOffset = [](FootSide s) -> glm::ivec2 {
+            switch (s) {
+            case FootSide::North: return { +1, +1 };  // DR one cell (matches what fixed N/S for you)
+            case FootSide::South: return { +1, +1 };  // DR one cell
+            case FootSide::East:  return { 0, +1 };  // EAST neighbor in iso (u+1, v-1)
+            case FootSide::West:  return { +2, +1 };  // WEST neighbor in iso (u-1, v+1)
+            }
+            return { 0,0 };
+            };
+
+        // walk tiles and emit sub-cells
+        auto view = registry.view<TileComponent, TransformComponent>();
+        for (auto e : view)
+        {
+            const auto& tc = view.get<TileComponent>(e);
+            const auto& tr = view.get<TransformComponent>(e);
+
+            for (const auto& t : tc.tiles)
+            {
+                if (t.Category != eTileCategory::Buildings) continue;
+
+                // ground = entity anchor + local world delta you stored
+                const glm::vec2  ground = glm::vec2(tr.Translation) + t.position;
+                glm::ivec2       cell = IsoTileUtils::WorldToIsoCell(ground);
+
+                FootSide side = parseSide(t.name);
+
+                // <<< per-side anchor correction >>>
+                cell += sideIsoOffset(side);
+
+                emitSubcellsOnEdge(cell, side);
+            }
         }
-	}
+    }
+
+
+
+
 
 
     void GridMap::MarkBlockedSubtilesFromTexture(
@@ -229,35 +336,51 @@ namespace Engine
 		glm::vec3 b(to, 0.1f);
 		Engine::VulkanRenderer2D::DrawLine(a, b, color, -1);
 	}
-
     void GridMap::DrawDebugBlockedTiles() const
     {
         EE_PROFILE_FUNCTION();
 
-        constexpr float tileSize = static_cast<float>(TILE_SIZE);
-        constexpr float subtileSize = tileSize / float(GRID_SUBDIVISIONS);
+        const glm::vec4 outline = { 0.2f, 1.0f, 0.3f, 0.95f };
+        const glm::vec4 fill = { 0.2f, 1.0f, 0.3f, 0.35f };
+        const float z = 0.002f;
 
-        glm::vec4 debugColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.3f);
-
-        // Iterate directly over all blocked subtile positions
-        for (const glm::ivec2& worldSubtilePos : m_blockedTiles)
+        for (const SubCellOBB& obb : m_blockedSubCells)
         {
-            // Convert subtile coordinates to world position
-            glm::vec2 worldPos = glm::vec2(worldSubtilePos) * subtileSize + glm::vec2(subtileSize * 0.5f);
+            // Local axes: T along the edge, N is the perpendicular.
+            glm::vec2 T = obb.tangent;
+            // Try LEFT normal first:
+            glm::vec2 N = glm::vec2(-T.y, T.x);
+            // If the rectangle appears mirrored/flipped in your engine, swap to RIGHT normal:
+            // glm::vec2 N = glm::vec2(T.y, -T.x);
 
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos, 0.0f)) *
-                glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize, subtileSize, 1.0f));
+            // Build a 4x4 basis with columns [T N Z translate], then scale in local space
+            glm::mat4 M(1.0f);
+            // column 0 = T
+            M[0] = glm::vec4(T.x, T.y, 0.0f, 0.0f);
+            // column 1 = N
+            M[1] = glm::vec4(N.x, N.y, 0.0f, 0.0f);
+            // column 2 = Z
+            M[2] = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+            // column 3 = translation
+            M[3] = glm::vec4(obb.center.x, obb.center.y, z, 1.0f);
 
-            Engine::VulkanRenderer2D::DrawLineRect(model, debugColor, -1.0f);
+            // Scale along local T/N axes (double half-extents to get full size)
+            glm::mat4 S = glm::scale(glm::mat4(1.0f),
+                glm::vec3(obb.halfExtents.x * 2.0f,
+                    obb.halfExtents.y * 2.0f, 1.0f));
+
+            glm::mat4 model = M * S;
+
+            // Optional fill:
+            // Engine::VulkanRenderer2D::DrawQuad(model, fill);
+            Engine::VulkanRenderer2D::DrawLineRect(model, outline, -1.0f);
+
+            // (Optional) draw the edge centerline to visually confirm orientation:
+            // glm::vec2 p0 = obb.center - T * obb.halfExtents.x;
+            // glm::vec2 p1 = obb.center + T * obb.halfExtents.x;
+            // Engine::VulkanRenderer2D::DrawLine(p0, p1, outline);
         }
     }
-
-
-
-
-
-
-
 
 
 }

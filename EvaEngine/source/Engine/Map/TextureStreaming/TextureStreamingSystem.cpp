@@ -64,222 +64,313 @@ namespace Engine {
     }
 
 
-    static constexpr uint32_t CELL_W = uint32_t(TILE_PIXEL_WIDTH);           // 128
-    static constexpr uint32_t CELL_H = uint32_t(TILE_PIXEL_WIDTH / 2);       // 64
     void TextureStreamingSystem::UploadToChunkFromTexture(
-        const glm::vec2& worldPosition,   // ground point in WORLD units (keep as vec2)
+        const glm::vec2& worldPosition,   // ground point in WORLD units
         UUID id,
         std::string name,
-        const std::vector<uint8_t>& textureData,  // RGBA8, row 0 = bottom (flipped vertically in extractor)
+        const std::vector<uint8_t>& textureData,  // RGBA8, row 0 = bottom (already flipped in extractor)
         const std::vector<uint8_t>& healthData,   // 1 bpp optional
         uint32_t textureWidth,
         uint32_t textureHeight)
     {
         EE_PROFILE_FUNCTION();
 
-        // --- iso footprint per logical cell (diamond) ---
-        const int CELL_W = int(TILE_PIXEL_WIDTH);   
-        const int CELL_H = int(TILE_PIXEL_WIDTH);     
+        const int CELL_W = int(TILE_PIXEL_WIDTH);  
+        const int CELL_H = int(TILE_PIXEL_WIDTH);   
 
-        // --- chunk texture dimensions (rectangular) ---
-        const int chunkWpx = int(CHUNK_SIZE) * CELL_W;     
-        const int chunkHpx = int(CHUNK_SIZE) * CELL_H;     
+        const int chunkWpx = int(CHUNK_SIZE) * CELL_W;  // e.g. 32 * 128 = 4096
+        const int chunkHpx = int(CHUNK_SIZE) * CELL_H;  // same as above
 
-        // Which chunk in WORLD 32×32 space (component-wise floor)
-        glm::ivec2 chunkCoords = glm::floor(worldPosition / float(CHUNK_SIZE));
+        // Convert ground world -> GLOBAL pixel coords (not local-to-chunk)
+        const int groundPxX = int(std::floor(worldPosition.x * float(CELL_W)));
+        const int groundPxY = int(std::floor(worldPosition.y * float(CELL_H)));
 
-        // Top-left of this chunk in WORLD units (square 32×32 layout)
-        glm::vec2 chunkWorldOrigin = glm::vec2(chunkCoords) * float(CHUNK_SIZE);
+        // Place bottom row of the sprite at groundPy - 1; center horizontally
+        const int destX0_global = groundPxX - int(textureWidth) / 2;
+        const int destY0_global = (groundPxY - 1);
 
-        // Local WORLD offset inside this chunk (0..32 on each axis)
-        glm::vec2 localWorld = worldPosition - chunkWorldOrigin;
+        // Destination rect in global pixels [x0, y0, x1, y1) (right/bottom exclusive)
+        const int dstX1_global = destX0_global + int(textureWidth);
+        const int dstY1_global = destY0_global + int(textureHeight);
 
-        // Map local WORLD to chunk TEXTURE pixel coords:
-        // For a 32×32 quad drawn from a 4096×2048 texture:
-        //   pixelSizeX = 32 / 4096 = 1/128  => texX = localWorld.x * 128
-        //   pixelSizeY = 32 / 2048 = 1/64   => texY = localWorld.y *  64
-        const int groundPx = int(std::floor(localWorld.x * float(CELL_W)));  // bottom-center X in pixels
-        const int groundPy = int(std::floor(localWorld.y * float(CELL_H)));  // bottom-center Y in pixels
+        // Which chunk columns/rows does this rect touch?
+        auto floorDiv = [](int a, int b) {
+            int q = a / b, r = a % b;
+            if ((r != 0) && ((r > 0) != (b > 0))) --q;
+            return q;
+            };
+        const int minChunkX = floorDiv(destX0_global, chunkWpx);
+        const int maxChunkX = floorDiv(dstX1_global - 1, chunkWpx);
+        const int minChunkY = floorDiv(destY0_global, chunkHpx);
+        const int maxChunkY = floorDiv(dstY1_global - 1, chunkHpx);
 
-        // Fetch / allocate chunk
-        TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
-        chunk.TextureCount += 1;
+        EE_CORE_ASSERT(textureData.size() >= size_t(textureWidth) * size_t(textureHeight) * 4, "textureData too small");
+        const bool has1BppHealth = (healthData.size() >= size_t(textureWidth) * size_t(textureHeight));
 
-        const size_t totalPixels = size_t(chunkWpx) * size_t(chunkHpx);
-        if (chunk.PixelData.empty())
+        enum class StampMode { KeepExisting, MaxAlpha, AlphaOver };
+        constexpr StampMode kStampMode = StampMode::AlphaOver;
+
+        for (int cy = minChunkY; cy <= maxChunkY; ++cy)
         {
-            chunk.PixelData.assign(totalPixels * 4, 0);
-            chunk.HealthData.assign(totalPixels * 4, 0);
-            chunk.Width = uint32_t(chunkWpx);
-            chunk.Height = uint32_t(chunkHpx);
-            chunk.IsLoaded = false;
-            chunk.Name = "Chunk_" + std::to_string(chunkCoords.x) + "_" + std::to_string(chunkCoords.y);
-            chunk.AssetName = name;
-            chunk.ID = HashCoords(chunkCoords);
-            chunk.ChunkCoords = chunkCoords;
-        }
-
-        // Stamp the extracted buffer:
-        //   - Source is V-FLIPPED (row 0 = bottom)
-        //   - We want source row 0 to land on 'groundPy - 1' (bottom contact)
-        //     so the top-left destination becomes:
-        const int destX0 = groundPx - int(textureWidth) / 2;          // center horizontally on ground
-        const int destY0 = (groundPy - 1) - 0;                        // row 0 at groundPy - 1
-
-        // Clip to chunk bounds
-        const int left = std::max(0, destX0);
-        const int top = std::max(0, destY0);
-        const int right = std::min(chunkWpx, destX0 + int(textureWidth));
-        const int bottom = std::min(chunkHpx, destY0 + int(textureHeight));
-        if (left >= right || top >= bottom) {
-            EE_CORE_WARN("Texture '{}' outside chunk", name.c_str());
-            return;
-        }
-
-        EE_CORE_ASSERT(textureData.size() >= size_t(textureWidth) * textureHeight * 4, "textureData too small");
-        const bool has1BppHealth = (healthData.size() >= size_t(textureWidth) * textureHeight);
-
-        // Tight top->bottom copy. Because the source is already V-FLIPPED (row 0 bottom),
-        // we copy with srcY = (dstY - destY0) and row 0 lands at groundPy - 1 as intended.
-        for (int dstY = top; dstY < bottom; ++dstY)
-        {
-            const int srcY = dstY - destY0;                               // 0..textureHeight-1
-            if (srcY < 0 || srcY >= int(textureHeight)) continue;
-
-            const size_t dstRow = size_t(dstY) * size_t(chunkWpx) * 4;
-            const size_t srcRow = size_t(srcY) * size_t(textureWidth) * 4;
-
-            for (int dstX = left; dstX < right; ++dstX)
+            for (int cx = minChunkX; cx <= maxChunkX; ++cx)
             {
-                const int srcX = dstX - destX0;                           // 0..textureWidth-1
-                if (srcX < 0 || srcX >= int(textureWidth)) continue;
+                const glm::ivec2 chunkCoords(cx, cy);
+                TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
+                chunk.TextureCount += 1;
 
-                const size_t si = srcRow + size_t(srcX) * 4;
-                const size_t di = dstRow + size_t(dstX) * 4;
+                const size_t totalPixels = size_t(chunkWpx) * size_t(chunkHpx);
+                if (chunk.PixelData.empty())
+                {
+                    chunk.PixelData.assign(totalPixels * 4, 0);
+                    chunk.HealthData.assign(totalPixels * 4, 0);
+                    chunk.Width = uint32_t(chunkWpx);
+                    chunk.Height = uint32_t(chunkHpx);
+                    chunk.IsLoaded = false;
+                    chunk.Name = "Chunk_" + std::to_string(cx) + "_" + std::to_string(cy);
+                    chunk.AssetName = name;
+                    chunk.ID = HashCoords(chunkCoords);
+                    chunk.ChunkCoords = chunkCoords;
+                }
 
-                const uint8_t a = textureData[si + 3];
-                if (!a) continue;
+                const int chunkX0 = cx * chunkWpx;
+                const int chunkY0 = cy * chunkHpx;
+                const int chunkX1 = chunkX0 + chunkWpx;
+                const int chunkY1 = chunkY0 + chunkHpx;
 
-                // Color
-                chunk.PixelData[di + 0] = textureData[si + 0];
-                chunk.PixelData[di + 1] = textureData[si + 1];
-                chunk.PixelData[di + 2] = textureData[si + 2];
-                chunk.PixelData[di + 3] = a;
+                const int left = std::max(destX0_global, chunkX0);
+                const int right = std::min(dstX1_global, chunkX1);
+                const int top = std::max(destY0_global, chunkY0);
+                const int bottom = std::min(dstY1_global, chunkY1);
+                if (left >= right || top >= bottom) continue;
 
-                // Health (R), others zero
-                const uint8_t hR = has1BppHealth
-                    ? healthData[size_t(srcY) * size_t(textureWidth) + size_t(srcX)]
-                    : 255u;
-                chunk.HealthData[di + 0] = hR;
-                chunk.HealthData[di + 1] = 0;
-                chunk.HealthData[di + 2] = 0;
-                chunk.HealthData[di + 3] = 0;
+                for (int dstY = top; dstY < bottom; ++dstY)
+                {
+                   
+                    const int srcY = dstY - destY0_global;
+                    if (srcY < 0 || srcY >= int(textureHeight)) continue;
+
+                    const int dstY_inChunk = dstY - chunkY0;
+                    const size_t dstRow = size_t(dstY_inChunk) * size_t(chunkWpx) * 4;
+                    const size_t srcRow = size_t(srcY) * size_t(textureWidth) * 4;
+
+                    for (int dstX = left; dstX < right; ++dstX)
+                    {
+                        const int srcX = dstX - destX0_global;
+                        if (srcX < 0 || srcX >= int(textureWidth)) continue;
+
+                        const int dstX_inChunk = dstX - chunkX0;
+
+                        const size_t si = srcRow + size_t(srcX) * 4;
+                        const size_t di = dstRow + size_t(dstX_inChunk) * 4;
+
+                        const uint8_t sA = textureData[si + 3];
+                        if (!sA) continue; // skip fully transparent source
+
+                        uint8_t& dR = chunk.PixelData[di + 0];
+                        uint8_t& dG = chunk.PixelData[di + 1];
+                        uint8_t& dB = chunk.PixelData[di + 2];
+                        uint8_t& dA = chunk.PixelData[di + 3];
+
+                        if (kStampMode == StampMode::KeepExisting)
+                        {
+                            // Only write into empty pixels; prevents neighbors from replacing each other
+                            if (dA == 0)
+                            {
+                                dR = textureData[si + 0];
+                                dG = textureData[si + 1];
+                                dB = textureData[si + 2];
+                                dA = sA;
+
+                                if (has1BppHealth)
+                                {
+                                    const size_t shi = size_t(srcY) * size_t(textureWidth) + size_t(srcX);
+                                    chunk.HealthData[di + 0] = healthData[shi];
+                                }
+                                else
+                                {
+                                    chunk.HealthData[di + 0] = 255;
+                                }
+                                chunk.HealthData[di + 1] = 0;
+                                chunk.HealthData[di + 2] = 0;
+                                chunk.HealthData[di + 3] = 0;
+                            }
+                        }
+                        else if (kStampMode == StampMode::MaxAlpha)
+                        {
+                            if (sA > dA)
+                            {
+                                dR = textureData[si + 0];
+                                dG = textureData[si + 1];
+                                dB = textureData[si + 2];
+                                dA = sA;
+
+                                if (has1BppHealth)
+                                {
+                                    const size_t shi = size_t(srcY) * size_t(textureWidth) + size_t(srcX);
+                                    chunk.HealthData[di + 0] = healthData[shi];
+                                }
+                                else
+                                {
+                                    chunk.HealthData[di + 0] = 255;
+                                }
+                                chunk.HealthData[di + 1] = 0;
+                                chunk.HealthData[di + 2] = 0;
+                                chunk.HealthData[di + 3] = 0;
+                            }
+                        }
+                        else // StampMode::AlphaOver
+                        {
+                            // Non-premultiplied alpha-over: out = src over dst
+                            const float sa = sA / 255.0f;
+                            const float da = dA / 255.0f;
+
+                            const float sr = textureData[si + 0] / 255.0f;
+                            const float sg = textureData[si + 1] / 255.0f;
+                            const float sb = textureData[si + 2] / 255.0f;
+
+                            const float dr = dR / 255.0f;
+                            const float dg = dG / 255.0f;
+                            const float db = dB / 255.0f;
+
+                            const float outA = sa + da * (1.0f - sa);
+                            float outR = 0.0f, outG = 0.0f, outB = 0.0f;
+                            if (outA > 0.0f)
+                            {
+                                outR = (sr * sa + dr * da * (1.0f - sa)) / outA;
+                                outG = (sg * sa + dg * da * (1.0f - sa)) / outA;
+                                outB = (sb * sa + db * da * (1.0f - sa)) / outA;
+                            }
+
+                            dR = (uint8_t)std::clamp(outR * 255.0f, 0.0f, 255.0f);
+                            dG = (uint8_t)std::clamp(outG * 255.0f, 0.0f, 255.0f);
+                            dB = (uint8_t)std::clamp(outB * 255.0f, 0.0f, 255.0f);
+                            dA = (uint8_t)std::clamp(outA * 255.0f, 0.0f, 255.0f);
+
+                            // Health: keep the higher (more solid) one
+                            if (has1BppHealth)
+                            {
+                                const size_t shi = size_t(srcY) * size_t(textureWidth) + size_t(srcX);
+                                chunk.HealthData[di + 0] = std::max(chunk.HealthData[di + 0], healthData[shi]);
+                            }
+                            else
+                            {
+                                chunk.HealthData[di + 0] = std::max<uint8_t>(chunk.HealthData[di + 0], 255);
+                            }
+                            chunk.HealthData[di + 1] = 0;
+                            chunk.HealthData[di + 2] = 0;
+                            chunk.HealthData[di + 3] = 0;
+                        }
+                    }
+                }
+
+                chunk.IsDirty = true;
             }
         }
-
-        chunk.IsDirty = true;
     }
-
-
 
 
     void TextureStreamingSystem::UploadTerrainToChunkFromTexture(
-        const glm::vec2& worldPosition, UUID ID, std::string name,
-        const std::vector<uint8_t>& textureData,   // RGBA (4 bpp)
-        uint32_t textureWidth, uint32_t textureHeight)
+        const glm::vec2& worldPosition,
+        UUID id,
+        std::string name,
+        const std::vector<uint8_t>& textureData,   
+        uint32_t textureWidth,
+        uint32_t textureHeight)
     {
         EE_PROFILE_FUNCTION();
 
-        constexpr uint32_t chunkPixelSize = CHUNK_SIZE * TILE_PIXEL_WIDTH;
+        const int CELL_W = int(TILE_PIXEL_WIDTH);
+        const int CELL_H = int(TILE_PIXEL_WIDTH);
+        const int chunkWpx = int(CHUNK_SIZE) * CELL_W;
+        const int chunkHpx = int(CHUNK_SIZE) * CELL_H;
 
-        // Chunk addressing (same as your other uploader)
-        glm::ivec2 chunkCoords = glm::floor(glm::vec2(worldPosition) / float(CHUNK_SIZE));
-        glm::ivec2 chunkOriginTiles = chunkCoords * (int)CHUNK_SIZE;
-        glm::ivec2 offsetInChunkTiles = glm::ivec2(glm::floor(worldPosition)) - chunkOriginTiles;
-        glm::ivec2 offsetInChunk = offsetInChunkTiles * (int)TILE_PIXEL_WIDTH;
+        const int groundPxX = int(std::floor(worldPosition.x * float(CELL_W)));
+        const int groundPxY = int(std::floor(worldPosition.y * float(CELL_H)));
 
-        TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
-        chunk.TextureCount += 1;
+        const int destX0_global = groundPxX - int(textureWidth) / 2;
+        const int destY0_global = (groundPxY - 1) - 0;
+        const int dstX1_global = destX0_global + int(textureWidth);
+        const int dstY1_global = destY0_global + int(textureHeight);
 
-        const uint32_t totalChunkPixels = chunkPixelSize * chunkPixelSize;
+        auto floorDiv = [](int a, int b) {
+            int q = a / b, r = a % b;
+            if ((r != 0) && ((r > 0) != (b > 0))) --q;
+            return q;
+            };
+        const int minChunkX = floorDiv(destX0_global, chunkWpx);
+        const int maxChunkX = floorDiv(dstX1_global - 1, chunkWpx);
+        const int minChunkY = floorDiv(destY0_global, chunkHpx);
+        const int maxChunkY = floorDiv(dstY1_global - 1, chunkHpx);
 
-        // Allocate terrain storage the first time we touch this chunk
-        if (chunk.TerrainData.empty())
-        {
-            chunk.TerrainData.resize(size_t(totalChunkPixels) * 4, 0); // RGBA8 terrain
-            // If this chunk was never initialized by the dynamic uploader, set metadata
-            if (chunk.Width == 0 || chunk.Height == 0)
-            {
-                chunk.Width = chunkPixelSize;
-                chunk.Height = chunkPixelSize;
-                chunk.IsLoaded = false;
-                chunk.Name = "Chunk_" + std::to_string(chunkCoords.x) + "_" + std::to_string(chunkCoords.y);
-                chunk.AssetName = name;
-                chunk.ID = HashCoords(chunkCoords);
-                chunk.ChunkCoords = chunkCoords;
-            }
-        }
-        else
-        {
-            // Ensure correct size if something changed
-            const size_t wanted = size_t(totalChunkPixels) * 4;
-            if (chunk.TerrainData.size() != wanted)
-                chunk.TerrainData.assign(wanted, 0);
-        }
-
-        // Bounds check for copy region
-        if (offsetInChunk.x < 0 || offsetInChunk.y < 0)
-        {
-            EE_CORE_WARN("Terrain '{}' is outside chunk bounds (negative offset)", name.c_str());
-            return;
-        }
-
-        const uint32_t maxCopyW = chunkPixelSize - uint32_t(offsetInChunk.x);
-        const uint32_t maxCopyH = chunkPixelSize - uint32_t(offsetInChunk.y);
-        const uint32_t copyWidth = std::min(textureWidth, maxCopyW);
-        const uint32_t copyHeight = std::min(textureHeight, maxCopyH);
-        if (copyWidth == 0 || copyHeight == 0)
-        {
-            EE_CORE_WARN("Terrain '{}' has zero copy area into chunk", name.c_str());
-            return;
-        }
-
-        // Expect 4 bpp color source
         EE_CORE_ASSERT(textureData.size() >= size_t(textureWidth) * textureHeight * 4, "terrain textureData too small");
 
-        // Copy RGBA into TerrainData. We skip fully transparent source texels to preserve existing terrain underneath.
-        // If you want transparent areas to clear previous terrain, remove the alpha check and always write.
-        for (uint32_t y = 0; y < copyHeight; ++y)
-        {
-            for (uint32_t x = 0; x < copyWidth; ++x)
+        for (int cy = minChunkY; cy <= maxChunkY; ++cy)
+            for (int cx = minChunkX; cx <= maxChunkX; ++cx)
             {
-                const int dstX = offsetInChunk.x + int(x);
-                const int dstY = offsetInChunk.y + int(y);
+                const glm::ivec2 chunkCoords(cx, cy);
+                TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
+                chunk.TextureCount += 1;
 
-                const size_t dstIdx = (size_t(dstY) * chunkPixelSize + size_t(dstX)) * 4;
-                const size_t srcIdx = (size_t(y) * textureWidth + size_t(x)) * 4;
-
-                EE_CORE_ASSERT(dstIdx + 3 < chunk.TerrainData.size(), "OOB terrain dst");
-                EE_CORE_ASSERT(srcIdx + 3 < textureData.size(), "OOB terrain src");
-
-                const uint8_t r = textureData[srcIdx + 0];
-                const uint8_t g = textureData[srcIdx + 1];
-                const uint8_t b = textureData[srcIdx + 2];
-                const uint8_t a = textureData[srcIdx + 3];
-
-                if (a != 0)
+                const size_t totalPixels = size_t(chunkWpx) * size_t(chunkHpx);
+                if (chunk.TerrainData.empty())
                 {
-                    chunk.TerrainData[dstIdx + 0] = r;
-                    chunk.TerrainData[dstIdx + 1] = g;
-                    chunk.TerrainData[dstIdx + 2] = b;
-                    chunk.TerrainData[dstIdx + 3] = a;
+                    chunk.TerrainData.assign(totalPixels * 4, 0);
+                    if (chunk.Width == 0 || chunk.Height == 0)
+                    {
+                        chunk.Width = uint32_t(chunkWpx);
+                        chunk.Height = uint32_t(chunkHpx);
+                        chunk.IsLoaded = false;
+                        chunk.Name = "Chunk_" + std::to_string(cx) + "_" + std::to_string(cy);
+                        chunk.AssetName = name;
+                        chunk.ID = HashCoords(chunkCoords);
+                        chunk.ChunkCoords = chunkCoords;
+                    }
                 }
-                // else: leave existing terrain as-is under transparent texel
-            }
-        }
 
-        chunk.IsDirty = true; // mark for GPU upload
+                const int chunkX0 = cx * chunkWpx;
+                const int chunkY0 = cy * chunkHpx;
+                const int chunkX1 = chunkX0 + chunkWpx;
+                const int chunkY1 = chunkY0 + chunkHpx;
+
+                const int left = std::max(destX0_global, chunkX0);
+                const int right = std::min(dstX1_global, chunkX1);
+                const int top = std::max(destY0_global, chunkY0);
+                const int bottom = std::min(dstY1_global, chunkY1);
+                if (left >= right || top >= bottom) continue;
+
+                for (int dstY = top; dstY < bottom; ++dstY)
+                {
+                    const int srcY = dstY - destY0_global; // source row 0 = bottom
+                    if (srcY < 0 || srcY >= int(textureHeight)) continue;
+
+                    const int dstY_inChunk = dstY - chunkY0;
+                    const size_t dstRow = size_t(dstY_inChunk) * size_t(chunkWpx) * 4;
+                    const size_t srcRow = size_t(srcY) * size_t(textureWidth) * 4;
+
+                    for (int dstX = left; dstX < right; ++dstX)
+                    {
+                        const int srcX = dstX - destX0_global;
+                        if (srcX < 0 || srcX >= int(textureWidth)) continue;
+
+                        const int dstX_inChunk = dstX - chunkX0;
+
+                        const size_t si = srcRow + size_t(srcX) * 4;
+                        const size_t di = dstRow + size_t(dstX_inChunk) * 4;
+
+                        const uint8_t a = textureData[si + 3];
+                        if (!a) continue;
+
+                        chunk.TerrainData[di + 0] = textureData[si + 0];
+                        chunk.TerrainData[di + 1] = textureData[si + 1];
+                        chunk.TerrainData[di + 2] = textureData[si + 2];
+                        chunk.TerrainData[di + 3] = a;
+                    }
+                }
+
+                chunk.IsDirty = true;
+            }
     }
+
 
  
 
@@ -601,7 +692,7 @@ namespace Engine {
                     continue;
                 }
 
-                glm::ivec2 worldTilePos = MapUtils::GetWorldTileCoords(tile.position, transformComp.Translation);
+                const glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
                 std::vector<uint8_t> pixelData;
                 std::vector<uint8_t> healthData;
                 int width, height;
@@ -610,7 +701,6 @@ namespace Engine {
               
                     //  m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
                      //     width, height);
-
                 UploadTerrainToChunkFromTexture(worldTilePos, tcomp.TileID, tile.name, pixelData,
                     uint32_t(width), uint32_t(height));
                 
@@ -644,6 +734,7 @@ namespace Engine {
                 if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, width, height))
                     continue;
                 EE_CORE_INFO("worldTilePos {}, {}", worldTilePos.x, worldTilePos.y);
+                //DumpRGBA("afterExtract.png", width, height, pixelData);
 
 
                   //  m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,

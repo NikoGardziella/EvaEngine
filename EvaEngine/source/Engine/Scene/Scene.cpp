@@ -366,6 +366,7 @@ namespace Engine {
         // makes sure textures are reloaded to the right registry
         // editor to game
         m_textureStreamingSystem->ResetAllChunks(m_registry);
+        m_gridMap->BuildFromRegistry(m_registry);
         m_textureStreamingSystem->SortIsoTilesByY(m_registry);
         m_textureStreamingSystem->BakeTilesIntoChunks(m_registry);
 		m_textureStreamingSystem->AddChunkEntitiesToRegistry(m_registry);
@@ -585,7 +586,7 @@ namespace Engine {
                     }
                     //glm::ivec2 chunkMinOrigin = glm::floor(glm::vec2(minOrigin) / float(CHUNK_SIZE));
                     //glm::ivec2 tileMinOrigin = chunkMinOrigin * int(CHUNK_SIZE);
-                    m_gridMap->UpdateTiles(minOrigin);
+                    //m_gridMap->UpdateTiles(minOrigin);
                 }
 
                 
