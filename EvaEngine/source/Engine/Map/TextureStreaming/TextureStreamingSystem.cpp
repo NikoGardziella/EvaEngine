@@ -602,7 +602,6 @@ namespace Engine {
                 }
 
                 glm::ivec2 worldTilePos = MapUtils::GetWorldTileCoords(tile.position, transformComp.Translation);
-
                 std::vector<uint8_t> pixelData;
                 std::vector<uint8_t> healthData;
                 int width, height;
@@ -637,19 +636,20 @@ namespace Engine {
                 {
                     continue;
                 }
-                const glm::vec2 ground = glm::vec2(transformComp.Translation) + tile.position;
+                const glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
                 
                 std::vector<uint8_t> pixelData;
                 std::vector<uint8_t> healthData;
                 int width, height;
                 if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, width, height))
                     continue;
+                EE_CORE_INFO("worldTilePos {}, {}", worldTilePos.x, worldTilePos.y);
 
 
                   //  m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
                    //     width, height);
 
-                UploadToChunkFromTexture(ground, tcomp.TileID,tile.name,pixelData,
+                UploadToChunkFromTexture(worldTilePos, tcomp.TileID,tile.name,pixelData,
                     healthData, uint32_t(width), uint32_t(height));
                 
             

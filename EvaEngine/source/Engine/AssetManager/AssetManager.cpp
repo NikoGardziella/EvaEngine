@@ -311,21 +311,21 @@ namespace Engine {
             return false;
         }
 
-        uint32_t texWidth = texture->GetWidth();
-        uint32_t texHeight = texture->GetHeight();
-        constexpr uint32_t channels = 4; // RGBA8 format
+        const uint32_t texWidth = texture->GetWidth();
+        const uint32_t texHeight = texture->GetHeight();
+        constexpr uint32_t channels = 4;
 
-        // Convert normalized UVs to absolute pixel coordinates
-        uint32_t x0 = static_cast<uint32_t>(uv.x * texWidth);
-        uint32_t y0 = static_cast<uint32_t>(uv.y * texHeight);
-        uint32_t x1 = static_cast<uint32_t>(uv.z * texWidth);
-        uint32_t y1 = static_cast<uint32_t>(uv.w * texHeight);
+        // UVs (with inset) -> integer pixel box, then expand by 1 px each side
+        int x0 = int(std::floor(uv.x * texWidth));
+        int y0 = int(std::floor(uv.y * texHeight));
+        int x1 = int(std::ceil(uv.z * texWidth));  // exclusive
+        int y1 = int(std::ceil(uv.w * texHeight)); // exclusive
 
-        if (x1 <= x0 || y1 <= y0 || x1 > texWidth || y1 > texHeight)
-        {
-            EE_CORE_ERROR("Invalid UV bounds for extraction: ({}, {}, {}, {})", uv.x, uv.y, uv.z, uv.w);
-            return false;
-        }
+        // de-inset: bring back the border the atlas removed
+        x0 = std::max(0, x0 - 1);
+        y0 = std::max(0, y0 - 1);
+        x1 = std::min(int(texWidth), x1 + 1);
+        y1 = std::min(int(texHeight), y1 + 1);
 
         outWidth = x1 - x0;
         outHeight = y1 - y0;
@@ -334,24 +334,25 @@ namespace Engine {
         outPixelData.resize(pixelCount * channels);
         outHealthData.resize(pixelCount, 0);
 
-        for (uint32_t y = 0; y < outHeight; ++y)
+        for (int y = 0; y < outHeight; ++y)
         {
-            for (uint32_t x = 0; x < outWidth; ++x)
+            const int srcY = flipVertical ? (y1 - 1 - y) : (y0 + y);
+            const size_t srcRow = size_t(srcY) * texWidth;
+            const size_t dstRow = size_t(y) * outWidth;
+
+            for (int x = 0; x < outWidth; ++x)
             {
-                uint32_t srcX = flipHorizontal ? (x1 - 1 - x) : (x0 + x);
-                uint32_t srcY = flipVertical ? (y1 - 1 - y) : (y0 + y);
+                const int srcX = flipHorizontal ? (x1 - 1 - x) : (x0 + x);
+                const size_t si = (srcRow + size_t(srcX)) * channels;
+                const size_t di = (dstRow + size_t(x)) * channels;
 
-                size_t srcIndex = (srcY * texWidth + srcX) * channels;
-                size_t dstIndex = (y * outWidth + x) * channels;
+                memcpy(&outPixelData[di], &pixelData[si], channels);
 
-                // Copy RGBA
-                memcpy(&outPixelData[dstIndex], &pixelData[srcIndex], channels);
-
-
-                uint8_t alpha = pixelData[srcIndex + 3];
-                outHealthData[y * outWidth + x] = (alpha > 0) ? tile.TileHealth : 0;
+                const uint8_t a = pixelData[si + 3];
+                outHealthData[dstRow + size_t(x)] = a ? tile.TileHealth : 0;
             }
         }
+
 
         return true;
     }
