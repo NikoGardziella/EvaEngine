@@ -1,139 +1,93 @@
 #type compute
 #version 450
+#define GRID_WIDTH 3
+#define GRID_HEIGHT 3
+#define ACTIVE_SLOTS (GRID_WIDTH*GRID_HEIGHT)
+layout(local_size_x=16, local_size_y=16) in;
 
-// Grid config (matches your usage)
-#define GRID_WIDTH   3
-#define GRID_HEIGHT  3
-#define ACTIVE_SLOTS (GRID_WIDTH * GRID_HEIGHT)
+layout(set=0,binding=0, rgba8)   uniform  image2D  u_InputTexture[ACTIVE_SLOTS];  // color
+layout(set=0,binding=1, rgba8ui) uniform uimage2D u_StateImage [ACTIVE_SLOTS];    // R=health, G=timer, B=mask, A=k_prev
 
-layout(local_size_x = 16, local_size_y = 16) in;
-
-// Images
-layout(set = 0, binding = 0, rgba8)   uniform  image2D  u_InputTexture[ACTIVE_SLOTS];   // color: we write effects here
-layout(set = 0, binding = 1, rgba8ui) uniform uimage2D u_HealthImage[ACTIVE_SLOTS];     // R=health, G=timer/sentinel, B/A=prevs
-
-// Push constants (use exactly this layout)
 layout(push_constant) uniform PC {
-    vec2  textureOrigin;
-    float pixelSize;
-    uint  textureIndex;
-
-    uint  defaultTimer;
-    float glowStrength;
-    uint  maxTimer;
-    uint  flags;           // bit0: glow on terrain, bit1: alpha-lift over empty
-
-    vec4  impactTint;      // .rgb used
-    vec4  destroyedTint;   // .rgb used
-    vec4  flashTint;       // reserved (not blended here; we boost strength instead)
-
-    vec4  effectParams0;   // x=flashStrength, y=flickerAmount, z=alphaLiftEmpty, w=curveBoost
+    vec2  textureOrigin;  float pixelSize;   uint  textureIndex;
+    uint  defaultTimer;   float glowStrength; uint  maxTimer; uint  flags;
+    vec4  impactTint;     vec4 destroyedTint; vec4  flashTint;
+    vec4  effectParams0; // x=flash, y=flicker, z=alphaLiftEmpty, w=curveBoost
 } pc;
 
-#define FLAG_GLOW_TERRAIN      (1u << 0)
-#define FLAG_ALPHA_LIFT_EMPTY  (1u << 1)
+#define FLAG_GLOW_TERRAIN      (1u<<0)
+#define FLAG_ALPHA_LIFT_EMPTY  (1u<<1)
 
-void main()
-{
+void main(){
     if (pc.textureIndex >= ACTIVE_SLOTS) return;
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
 
-    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 size = imageSize(u_HealthImage[pc.textureIndex]);
-    if (gid.x >= size.x || gid.y >= size.y) return;
+    ivec2 sz = imageSize(u_StateImage[pc.textureIndex]);
+    if (gid.x>=sz.x || gid.y>=sz.y) return;
 
-    // Load state: R=health, G=timer or sentinel (254/255), B=prev strength (0..255), A=prev alpha-lift (0..255)
-    uvec4 hp = imageLoad(u_HealthImage[pc.textureIndex], gid);
-    uint  H  = hp.r;
-    uint  T0 = hp.g;
-    uint  Kp = hp.b;
-    uint  Ap = hp.a;
+    // Read state (R=health, G=timer, B=mask, A=k_prev)
+    uvec4 st = imageLoad(u_StateImage[pc.textureIndex], gid);
+    uint H   = st.r;
+    uint T0  = st.g;
+    uint M   = st.b; // mask, MUST preserve
+    uint Kp8 = st.a; // previous strength 0..255
 
-    // Load current color (already includes previous frames' effect)
+    // Base color (already has previous effect applied)
     vec4 base = imageLoad(u_InputTexture[pc.textureIndex], gid);
 
-    // Classify the surface under this pixel
-    bool isEmpty   = (base.a < 0.01);       // cleared pixels in color layer
-    bool isTerrain = (!isEmpty) && (H == 0u); // visible but health==0 => terrain (never cleared)
+    bool isEmpty   = (base.a < 0.01);
+    bool isTerrain = (!isEmpty) && (H == 0u);
 
-    // Expand sentinel to active timer and clamp
-    uint impactSeed = max(pc.defaultTimer / 2u, 1u);
-    uint Tcur = (T0 == 255u) ? pc.defaultTimer :
-                (T0 == 254u) ? impactSeed      :
-                                T0;
+    // Expand sentinel -> active timer
+    uint impactSeed = max(pc.defaultTimer/2u, 1u);
+    uint Tcur = (T0==255u) ? pc.defaultTimer :
+                (T0==254u) ? impactSeed      : T0;
     Tcur = min(Tcur, pc.maxTimer);
-    if (Tcur == 0u) {
-        // Nothing to render; keep baselines at zero so no drift
-        if (Kp != 0u || Ap != 0u) {
-            hp.b = 0u; hp.a = 0u;
-            imageStore(u_HealthImage[pc.textureIndex], gid, hp);
-        }
+    if (Tcur == 0u){
+        // keep baselines zeroed; PRESERVE MASK!
+        st.g = 0u; st.a = 0u;           // timer, k_prev
+        st.b = M;                       // mask unchanged
+        imageStore(u_StateImage[pc.textureIndex], gid, st);
         return;
     }
 
-    // If terrain glow is disabled, just count down the timer without writing color/alpha
-    if (isTerrain && ((pc.flags & FLAG_GLOW_TERRAIN) == 0u)) {
-        hp.g = Tcur - 1u;
-        hp.b = 0u;
-        hp.a = 0u;
-        imageStore(u_HealthImage[pc.textureIndex], gid, hp);
-        return;
-    }
+    bool firstArm = (T0==254u || T0==255u);
+    float k_prev = firstArm ? 0.0 : float(Kp8)/255.0;
 
-    // Baselines from previous frame; zero on the first armed frame (when we see a sentinel)
-    bool firstArm = (T0 == 254u || T0 == 255u);
-    float k_prev = firstArm ? 0.0 : float(Kp) / 255.0;
-    float a_prev = firstArm ? 0.0 : float(Ap) / 255.0;
+    // Strength curve
+    float w   = float(Tcur)/float(max(pc.maxTimer,1u));
+    float k0  = max(1.6*w - 0.6*w*w, 0.0) * pc.effectParams0.w;
+    if (firstArm) k0 = clamp(k0 + pc.effectParams0.x, 0.0, 1.0);
 
-    // Strength curve: bright early, then eases out; apply curveBoost and flicker
-    float w   = float(Tcur) / float(max(pc.maxTimer, 1u));
-    float k0  = max(1.6*w - 0.6*w*w, 0.0);   // 0..1-ish
-    k0       *= pc.effectParams0.w;          // curveBoost
+    // Flicker
+    float n = fract(sin(dot(vec3(gid, float(Tcur)), vec3(12.9898,78.233,37.719))) * 43758.5453);
+    float k_cur = clamp(pc.glowStrength * k0 * mix(1.0 - pc.effectParams0.y, 1.0 + pc.effectParams0.y, n), 0.0, 1.0);
 
-    // First-frame flash as a boost to strength (keeps reversibility)
-    if (firstArm) {
-        k0 = clamp(k0 + pc.effectParams0.x, 0.0, 1.0);
-    }
+    // Tint selection
+    bool destroyedVisual = isEmpty && (H==0u);
+    vec3 tint = destroyedVisual ? pc.destroyedTint.rgb : pc.impactTint.rgb;
 
-    // Stable per-pixel flicker
-    float n = fract(sin(dot(vec3(gid, float(Tcur)),
-                            vec3(12.9898, 78.233, 37.719))) * 43758.5453);
-    float flick = mix(1.0 - pc.effectParams0.y, 1.0 + pc.effectParams0.y, n);
-
-    float k_cur = clamp(pc.glowStrength * k0 * flick, 0.0, 1.0);
-
-    // Pick tint: destroyed (empty + H==0) vs impact (everything else)
-    bool destroyedVisual = isEmpty && (H == 0u);
-    vec3 tint = destroyedVisual ? pc.destroyedTint.rgb
-                                : pc.impactTint.rgb;
-
-    // Reversible color write: add (k_cur - k_prev) * tint
+    // Reversible color write
     vec3 outRgb = clamp(base.rgb + (k_cur - k_prev) * tint, 0.0, 1.0);
 
-    // Alpha policy:
-    // - Terrain: never change alpha.
-    // - Destroyed empty: optionally lift alpha so glow shows over holes, then fade back (flag controlled).
+    // Alpha lift (reconstruct a_prev from k_prev)
     float outA = base.a;
-    float a_cur = 0.0;
-    if (!isTerrain) {
-        bool liftEmpty = ((pc.flags & FLAG_ALPHA_LIFT_EMPTY) != 0u);
-        if (destroyedVisual && liftEmpty) {
-            a_cur = k_cur * pc.effectParams0.z; // 0..1 lift
-        }
+    if (!isTerrain){
+        bool liftEmpty = ((pc.flags & FLAG_ALPHA_LIFT_EMPTY)!=0u);
+        float a_prev = (firstArm || !liftEmpty || !destroyedVisual) ? 0.0 : k_prev * pc.effectParams0.z;
+        float a_cur  = (liftEmpty && destroyedVisual) ? (k_cur * pc.effectParams0.z) : 0.0;
         outA = clamp(base.a + (a_cur - a_prev), 0.0, 1.0);
-        Ap   = uint(clamp(round(a_cur * 255.0), 0.0, 255.0));
-    } else {
-        // Terrain: keep baseline at 0
-        Ap = 0u;
     }
 
-    // Store the new color
+    // Write color
     imageStore(u_InputTexture[pc.textureIndex], gid, vec4(outRgb, outA));
 
-    // Countdown and persist new baselines (so the next frame subtracts correctly)
-    uint Tnext = Tcur - 1u;
-    hp.g = Tnext;
-    hp.b = uint(clamp(round(k_cur * 255.0), 0.0, 255.0)); // new k_prev
-    hp.a = Ap;                                           // new a_prev
-    if (Tnext == 0u) { hp.b = 0u; hp.a = 0u; }          // clear when done
-    imageStore(u_HealthImage[pc.textureIndex], gid, hp);
+    // Persist timer and k_prev — PRESERVE mask and health
+    st.g = Tcur - 1u;                                       // timer
+    st.a = uint(clamp(round(k_cur * 255.0), 0.0, 255.0));   // k_prev
+    st.b = M;                                               // mask unchanged
+    // (optional) zero k_prev when done
+    if (st.g == 0u) st.a = 0u;
+
+    imageStore(u_StateImage[pc.textureIndex], gid, st);
 }

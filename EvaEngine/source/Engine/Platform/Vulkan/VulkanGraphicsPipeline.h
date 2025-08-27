@@ -50,11 +50,10 @@ namespace Engine {
 
     struct CollisionPlayerEntitiesGPU {
         glm::vec2 Position;    // 8 bytes
-        float ColliderRadius;          // 4 bytes
+        float ColliderRadius;  // 4 bytes
 
         uint32_t ID_Low;       // 4 bytes
         uint32_t ID_High;      // 4 bytes
-
 
     };
 
@@ -82,9 +81,7 @@ namespace Engine {
         float     PixelSizeWorld;      // world units per pixel
         uint32_t  ChunkSizePixels;     // e.g. 4096
         uint32_t  NumPlayers;          // threads to run
-        float     DeltaTime;           // seconds
-        uint32_t  Mode;                // optional flags
-        uint32_t  _pad0;
+
     };
     static_assert(sizeof(PlayerPC) % 4 == 0, "push constants must be 4-byte aligned");
 

@@ -63,6 +63,8 @@ namespace Engine {
 
 		//bool HasLineOfSight(glm::ivec2 from, glm::ivec2 to);
 
+		std::vector<SubCellOBB>& GetGridSubcells() { return  m_blockedSubCells; }
+
 		static int floorDiv(int a, int b);
 
 		void DrawDebugLine(glm::vec2 from, glm::vec2 to, const glm::vec4& color);

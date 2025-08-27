@@ -1,40 +1,31 @@
 #pragma once
+#include <algorithm>   // std::clamp, std::max
+#include <cmath>       // std::floor
+#include <cstdint>
 #include "entt.hpp"
 #include "Engine.h"
-#include "Engine/Scene/Components/Player/CharacterControllerComponent.h"
+#include <Engine/Map/Grid/GridMap.h>
 
 class PlayerCollisionSystem
 {
-    struct RaycastHit
-    {
-        float t;
-        glm::vec2 normal;
-        bool hit = false;
-    };
-
-    struct SweepResult
-    {
-        bool hit = false;
-        float timeOfImpact = 1.0f;
-        glm::vec2 hitPoint;
-        glm::vec2 normal;
-    };
-
-public:
-	static void UpdatePlayerCollision(entt::registry& registry, float deltaTime, Engine::Scene* scene);
- 
-    //static void ProcessPlayerMovement(Engine::TransformComponent& playerTransform, CharacterControllerComponent& controller, const Engine::CircleCollider2DComponent& playerCollider, const Engine::IDComponent& playerIDComp, const StaticView staticView, float deltaTime);
-
-
-
-
-
 private:
+    struct SweepHit {
+        bool hit = false;
+        float toi = 1.0f;        // time of impact in [0,1]
+        glm::vec2 normal{ 0 };     // world-space unit normal at hit (points out of OBB)
+        glm::vec2 point{ 0 };      // world-space hit point (contact)
+    };
+   
+   
+public:
+    static void UpdatePlayerCollision(entt::registry& registry, float deltaTime, Engine::Scene* scene);
+private:
+    static PlayerCollisionSystem::SweepHit SweepCircleVsOBB(const Engine::SubCellOBB& obb, const glm::vec2& p0, const glm::vec2& delta, float radius, float skin);
 
-    static RaycastHit SweptCircleAABB(glm::vec2 circleCenter, float radius, glm::vec2 velocity,
-        glm::vec2 aabbMin, glm::vec2 aabbMax);
-    
-  
+    static glm::vec2 CollideAndSlideOBBs(const std::vector<Engine::SubCellOBB>& walls, glm::vec2 pos, glm::vec2 delta, float radius);
+    inline static  glm::vec2 perpCCW(const glm::vec2& v) { return glm::vec2(-v.y, v.x); }
+
  
-};
 
+   
+};

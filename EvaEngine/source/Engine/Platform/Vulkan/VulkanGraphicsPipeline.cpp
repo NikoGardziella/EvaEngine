@@ -2192,13 +2192,10 @@ namespace Engine {
             return;
         }
 
-
         // Map buffer memory
         vkMapMemory(m_device, m_playerUniformBuffers[currentFrame].GetMemory(),
             0, size, 0, &data);
-
         memcpy(data, collidingPlayerData.data(), size);
-
         vkUnmapMemory(m_device, m_playerUniformBuffers[currentFrame].GetMemory());
     }
 

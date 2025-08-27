@@ -4,7 +4,7 @@
 #include <mutex>
 #include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
-
+#include "Engine/AssetManager/Utils/AssetManagerUtils.h"
 #include <stb_image.h>
 
 
@@ -294,67 +294,111 @@ namespace Engine {
 
         return true;
     }
-
-
+    // Extracts a tile from the atlas and produces:
+//  - outPixelData : RGBA8 color (as before)
+//  - outHealthData: RGBA8 UINT where R=health, B=collision mask, G/A unused (0)
+//
+// Conventions:
+//  - Row 0 is the bottom (kFlipVertical = true)
+//  - Foot band is BELOW the pivot row (typical “feet”). Flip if your assets expect above-pivot.
+   
     bool AssetManager::ExtractPixelsFromTilePallette(
         const TileInfo& tile,
-        std::vector<uint8_t>& outPixelData,
-        std::vector<uint8_t>& outHealthData,
+        std::vector<uint8_t>& outPixelData,   // RGBA8, row 0 = bottom
+        std::vector<uint8_t>& outHealthData,  // RGBA8: R=health, B=mask, G/A=0
         int& outWidth, int& outHeight)
     {
         Ref<VulkanTexture> atlas = GetTileTextureIconAtlas();
         const auto& pixels = atlas->GetPixelData();
-        if (pixels.empty()) { EE_CORE_ERROR("Atlas has no CPU pixels"); return false; }
+        if (pixels.empty()) {
+            EE_CORE_ERROR("Atlas has no CPU pixels");
+            return false;
+        }
 
         const TileProperties props = AssetManager::GetTileProperties(tile.name);
-        const auto& pr = props.pixelRect; 
+        const auto& pr = props.pixelRect; // x,y,w,h in atlas space
 
         const int x0 = pr.x;
         const int y0 = pr.y;
-        const int w = pr.w;   
-        const int h = pr.h;  
+        const int w = pr.w;
+        const int h = pr.h;
 
         if (w <= 0 || h <= 0 ||
             x0 < 0 || y0 < 0 ||
             x0 + w > int(atlas->GetWidth()) ||
-            y0 + h > int(atlas->GetHeight())) {
+            y0 + h > int(atlas->GetHeight()))
+        {
             EE_CORE_ERROR("Bad pixelRect for '{}'", tile.name.c_str());
             return false;
         }
 
-        constexpr bool kFlipVertical = true;
-        constexpr bool kFlipHorizontal = false;
-
         outWidth = w;
         outHeight = h;
+
         outPixelData.assign(size_t(w) * size_t(h) * 4, 0);
-        outHealthData.assign(size_t(w) * size_t(h), 0);
+        outHealthData.assign(size_t(w) * size_t(h) * 4, 0);
+
+        constexpr int kHealthChan = 0; // R
+        constexpr int kMaskChan = 2; // B
+
+        // Output is bottom-origin so it matches world grid used elsewhere
+        constexpr bool kFlipVertical = true;
+        constexpr bool kFlipHorizontal = false;
 
         const uint32_t A_W = atlas->GetWidth();
         const uint8_t* src = pixels.data();
 
-        for (int y = 0; y < h; ++y) {
+        // Pivot row (from bottom). Clamp so we never go OOB.
+        const int pivotY = std::clamp(int(props.pivotYOffsetPx), 0, h - 1);
+
+        // Select the **foot band below the pivot** by default.
+        const int footRowsBelowPivot = std::clamp(int(props.collisionFootRowsPx), 0, pivotY);
+        const int bandStartY = std::max(0, pivotY - footRowsBelowPivot);
+        const int bandEndY = pivotY; // [start, end)
+
+        for (int y = 0; y < h; ++y)
+        {
             const int sy = kFlipVertical ? (y0 + (h - 1 - y)) : (y0 + y);
             const size_t srcRow = size_t(sy) * size_t(A_W) * 4;
             const size_t dstRow = size_t(y) * size_t(w) * 4;
+            const bool inFootBandY = (y >= bandStartY && y < bandEndY);
 
-            for (int x = 0; x < w; ++x) {
+            for (int x = 0; x < w; ++x)
+            {
                 const int sx = kFlipHorizontal ? (x0 + (w - 1 - x)) : (x0 + x);
                 const size_t si = srcRow + size_t(sx) * 4;
                 const size_t di = dstRow + size_t(x) * 4;
 
+                // Copy color straight
                 outPixelData[di + 0] = src[si + 0];
                 outPixelData[di + 1] = src[si + 1];
                 outPixelData[di + 2] = src[si + 2];
                 outPixelData[di + 3] = src[si + 3];
 
+                // Health R: by default use tile health wherever alpha > 0
                 const uint8_t a = src[si + 3];
-                outHealthData[size_t(y) * size_t(w) + size_t(x)] = a ? tile.TileHealth : 0;
+                uint8_t healthR = (a > 0) ? uint8_t(tile.TileHealth) : uint8_t(0);
+
+                // Collision mask B: independent of alpha, based purely on the foot band
+                uint8_t maskB = 0;
+                if (inFootBandY) {
+                    maskB = 255u;
+
+                    // Ensure collidable even if alpha==0 in this band
+                    if (healthR == 0) healthR = uint8_t(tile.TileHealth);
+                }
+
+                outHealthData[di + kHealthChan] = healthR; // R
+                outHealthData[di + 1] = 0;       // G
+                outHealthData[di + kMaskChan] = maskB;   // B
+                outHealthData[di + 3] = 0;       // A
             }
         }
 
         return true;
     }
+
+
 
 
 
@@ -598,10 +642,20 @@ namespace Engine {
                 };
 
                 const std::string name = t.name;
-
+                int alphaThresh = 8;
                 TileProperties props{};
                 if (auto it = s_tileProperties.find(name); it != s_tileProperties.end())
                     props = it->second;
+
+                if (props.pivotAuto)
+                {
+                    int autoPivotY = 0, autoPivotX = 0;
+                    AssetManagerUtils::ComputePivotFromAlpha(t.pixels, t.width, t.height, alphaThresh, autoPivotY, autoPivotX);
+
+                    props.pivotYOffsetPx = autoPivotY;
+                    props.pivotXCenterOffsetPx = autoPivotX;
+                }
+                
 
                 props.name = name;
                 props.health = (props.health == 0 ? 1u : props.health);
@@ -609,6 +663,20 @@ namespace Engine {
                 props.uv = uv;
 
                 props.pixelRect = { currentX, currentY, t.width, t.height };
+
+
+                if (props.collisionFootRowsPx == 0)
+                {
+                    switch (t.category)
+                    {
+                        case eTileCategory::Buildings: props.collisionFootRowsPx = 32; break;
+                        case eTileCategory::Vehicles:  props.collisionFootRowsPx = 20; break;
+                        case eTileCategory::Terrain:   props.collisionFootRowsPx = 0;  break;
+                        case eTileCategory::Roofs:     props.collisionFootRowsPx = 0;  break;
+                        default:                       props.collisionFootRowsPx = 0;  break;
+                    }
+                }
+
 
                 s_tileProperties[name] = props;
 

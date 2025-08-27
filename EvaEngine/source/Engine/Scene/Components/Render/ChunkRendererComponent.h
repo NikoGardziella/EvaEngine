@@ -10,6 +10,7 @@ namespace Engine {
     {
         Ref<VulkanTexture> Texture;
         Ref<VulkanTexture> HealthTexture;
+        std::vector<uint8_t> HealthData;
         Ref<VulkanTexture> TerrainTexture;
         glm::ivec2 ChunkCoords;
         bool IsLoaded;

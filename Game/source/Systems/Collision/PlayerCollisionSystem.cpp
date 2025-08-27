@@ -3,198 +3,172 @@
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Events/Public/CollisionEvents.h>
+#include <Engine/Scene/Components/Render/ChunkRendererComponent.h>
 
-void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+
+
+
+void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, float dt, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto staticView = registry.view<Engine::TransformComponent, Engine::BoxCollider2DComponent>();
-    auto playerView = registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent>();
+    auto view = registry.view<Engine::TransformComponent,
+        CharacterControllerComponent,
+        Engine::CircleCollider2DComponent>();
 
-    for (auto playerEntity : playerView)
+    for (auto e : view)
     {
-        auto& playerTransform = playerView.get<Engine::TransformComponent>(playerEntity);
-        auto& controller = playerView.get<CharacterControllerComponent>(playerEntity);
-        auto& playerCollider = playerView.get<Engine::CircleCollider2DComponent>(playerEntity);
-        auto& playerIDComp = playerView.get<Engine::IDComponent>(playerEntity);
+        auto& trsformComp = view.get<Engine::TransformComponent>(e);
+        auto& ctrlComp = view.get<CharacterControllerComponent>(e);
+        auto& cir = view.get<Engine::CircleCollider2DComponent>(e);
 
-        glm::vec2 startPos = glm::vec2(playerTransform.Translation);
-        glm::vec2 desiredMove = controller.velocity * deltaTime * controller.speed;
-        glm::vec2 offset = playerCollider.Offset;
-        float radius = playerCollider.Radius;
+        glm::vec2 p0 = glm::vec2(trsformComp.Translation);
+        glm::vec2 delta = ctrlComp.velocity * (ctrlComp.speed * dt); // your move
+        float     R = cir.Radius;
 
-        const int steps = 5;
-        glm::vec2 stepMove = desiredMove / static_cast<float>(steps);
-        glm::vec2 currentPos = startPos;
-        for (int i = 0; i < steps; i++)
-        {
-            glm::vec2 testPos = currentPos + stepMove;
-            glm::vec2 playerCenter = testPos + offset;
-
-            bool collides = false;
-            glm::vec2 firstCollisionPos;
-
-            // Check initial move collision
-            for (const auto& collision : Engine::CollisionResultsCPU::PlayerCollisions)
-            {
-                if (playerIDComp.ID != collision.GetEntityID())
-                    continue;
-
-                glm::vec2 collisionPos = collision.HitPosition;
-                float dist = glm::distance(playerCenter, collisionPos);
-
-                if (dist < radius)
-                {
-                    collides = true;
-                    firstCollisionPos = collisionPos;
-                    break;
-                }
-            }
-
-            if (collides)
-            {
-                glm::vec2 velocityDir = glm::length(stepMove) > 0.001f ? glm::normalize(stepMove) : glm::vec2(0.0f);
-                glm::vec2 pushDir = glm::normalize(playerCenter - firstCollisionPos);
-
-                // Compute slide vector: original minus projection onto obstacle normal
-                glm::vec2 slideDir = velocityDir - glm::dot(velocityDir, pushDir) * pushDir;
-
-                // Try sliding in both directions
-                glm::vec2 slideDirs[2] = {
-                    slideDir,
-                    -slideDir
-                };
-
-                bool slideSucceeded = false;
-
-                for (int dirIndex = 0; dirIndex < 2; ++dirIndex)
-                {
-                    glm::vec2 trySlideDir = slideDirs[dirIndex];
-                    if (glm::length(trySlideDir) < 0.001f)
-                        continue;
-
-                    trySlideDir = glm::normalize(trySlideDir);
-                    glm::vec2 slideMove = trySlideDir * glm::length(stepMove) * 0.9f; // Slightly shorter step to avoid edge snagging
-
-                    glm::vec2 slideTestPos = currentPos + slideMove;
-                    glm::vec2 slideCenter = slideTestPos + offset;
-
-                    bool slideCollides = false;
-                    for (const auto& collision : Engine::CollisionResultsCPU::PlayerCollisions)
-                    {
-                        if (playerIDComp.ID != collision.GetEntityID())
-                            continue;
-
-                        glm::vec2 collisionPos = collision.HitPosition;
-                        float dist = glm::distance(slideCenter, collisionPos);
-
-                        if (dist < radius)
-                        {
-                            slideCollides = true;
-                            break;
-                        }
-                    }
-
-                    if (!slideCollides)
-                    {
-                        currentPos += slideMove;
-                        slideSucceeded = true;
-                        break;
-                    }
-                }
-
-                if (!slideSucceeded)
-                    break; // Neither slide direction worked
-            }
-            else
-            {
-                currentPos = testPos; // No collision, normal step
-            }
-        }
+        glm::vec2 p1 = CollideAndSlideOBBs(scene->GetGrid()->GetGridSubcells(), p0, delta, R);
 
 
-        // Apply final position
-        playerTransform.Translation = glm::vec3(currentPos, playerTransform.Translation.z);
-
-        // Pushback correction (as in your original code)
-        glm::vec2 totalPush(0.0f);
-        int pushCount = 0;
-        glm::vec2 playerCenter = glm::vec2(playerTransform.Translation) + offset;
-        for (const auto& collision : Engine::CollisionResultsCPU::PlayerCollisions)
-        {
-            if (playerIDComp.ID != collision.GetEntityID())
-                continue;
-
-            glm::vec2 collisionPos = collision.HitPosition; // world
-            float dist = glm::distance(playerCenter, collisionPos);
-            if (dist < radius && dist > 1e-5f)
-            {
-                glm::vec2 n = glm::normalize(playerCenter - collisionPos); // outward normal
-                float penetration = radius - dist;
-
-                totalPush += n * penetration;
-                ++pushCount;
-
-                // Remove velocity ONLY if pointing into the surface
-                float vn = glm::dot(controller.velocity, n);
-                if (vn < 0.0f) {
-                    controller.velocity -= n * vn; // subtract negative -> cancels into-wall component
-                }
-            }
-        }
-
-        if (pushCount > 0)
-        {
-            float pushbackStrength = 1.0f;
-            glm::vec2 avgPush = (totalPush / static_cast<float>(pushCount)) * pushbackStrength;
-
-            // Optional: clamp to avoid overshoot jitter
-            float maxStep = radius * 0.5f;
-            if (glm::length2(avgPush) > maxStep * maxStep)
-                avgPush = glm::normalize(avgPush) * maxStep;
-
-            playerTransform.Translation += glm::vec3(avgPush, 0.0f);
-        }
-
+        trsformComp.Translation.x = p1.x;
+        trsformComp.Translation.y = p1.y;
     }
 }
+struct SweepHit {
+    bool hit = false;
+    float toi = 1.0f;
+    glm::vec2 normal{ 0 };
+    glm::vec2 point{ 0 };
+};
 
+inline glm::vec2 perpCCW(const glm::vec2& v) { return { -v.y, v.x }; }
 
-
-
-
-
-
-
-PlayerCollisionSystem::RaycastHit PlayerCollisionSystem::SweptCircleAABB(glm::vec2 circleCenter, float radius, glm::vec2 velocity, glm::vec2 aabbMin, glm::vec2 aabbMax)
+// Sweep a circle vs OBB (expanded by radius). Also handles initial overlap.
+PlayerCollisionSystem::SweepHit PlayerCollisionSystem::SweepCircleVsOBB(const Engine::SubCellOBB& obb,
+    const glm::vec2& p0, const glm::vec2& delta,
+    float radius, float skin = 1e-4f)
 {
-    RaycastHit hit;
+    SweepHit out;
 
-    // Expand AABB by radius
-    aabbMin -= glm::vec2(radius);
-    aabbMax += glm::vec2(radius);
+    // Ensure unit frame
+    glm::vec2 t = glm::normalize(obb.tangent);
+    glm::vec2 n = perpCCW(t);
 
-    glm::vec2 invDir = 1.0f / velocity;
-    glm::vec2 tMin = (aabbMin - circleCenter) * invDir;
-    glm::vec2 tMax = (aabbMax - circleCenter) * invDir;
+    // Transform into OBB local
+    glm::vec2 rel0 = p0 - obb.center;
+    glm::vec2 s0 = { glm::dot(rel0, t), glm::dot(rel0, n) };
+    glm::vec2 v = { glm::dot(delta,  t), glm::dot(delta,  n) };
 
-    if (invDir.x < 0.0f) std::swap(tMin.x, tMax.x);
-    if (invDir.y < 0.0f) std::swap(tMin.y, tMax.y);
+    // Expanded AABB half extents
+    glm::vec2 H = obb.halfExtents + glm::vec2(radius);
 
-    float entry = glm::max(tMin.x, tMin.y);
-    float exit = glm::min(tMax.x, tMax.y);
+    // --- Static overlap: push out along least-penetrating axis
+    bool insideX = std::abs(s0.x) <= H.x;
+    bool insideY = std::abs(s0.y) <= H.y;
+    if (insideX && insideY)
+    {
+        float ox = H.x - std::abs(s0.x);
+        float oy = H.y - std::abs(s0.y);
+        glm::vec2 localN(0);
+        float push = 0.0f;
+        if (ox < oy) { localN = { (s0.x >= 0.f ? 1.f : -1.f), 0.f }; push = ox + skin; }
+        else { localN = { 0.f, (s0.y >= 0.f ? 1.f : -1.f) }; push = oy + skin; }
 
-    if (entry > exit || (tMin.x < 0.0f && tMin.y < 0.0f))
-        return hit;
+        glm::vec2 worldN = glm::normalize(localN.x * t + localN.y * n);
+        out.hit = true;
+        out.toi = 0.0f;
+        out.normal = worldN;                   // points out of OBB
+        out.point = p0 + worldN * push;       // a safe separated position
+        return out;
+    }
 
-    hit.t = entry;
-    hit.hit = true;
+    // --- Dynamic sweep (slabs)
+    float tEnter = 0.f, tExit = 1.f;
+    int enterAxis = -1; // 0=x, 1=y
 
-    // Determine collision normal
-    if (tMin.x > tMin.y)
-        hit.normal = glm::vec2(invDir.x < 0.0f ? 1.0f : -1.0f, 0.0f);
-    else
-        hit.normal = glm::vec2(0.0f, invDir.y < 0.0f ? 1.0f : -1.0f);
+    auto sweep1D = [&](float s, float vs, float h, int axis) {
+        if (std::abs(vs) < 1e-12f) {
+            if (std::abs(s) > h) { tEnter = 1.f; tExit = 0.f; } // miss
+            return;
+        }
+        float inv = 1.f / vs;
+        float t1 = (-h - s) * inv;
+        float t2 = (h - s) * inv;
+        float tin = std::min(t1, t2);
+        float tout = std::max(t1, t2);
+        if (tin > tEnter) { tEnter = tin; enterAxis = axis; }
+        if (tout < tExit) { tExit = tout; }
+        };
 
-    return hit;
+    sweep1D(s0.x, v.x, H.x, 0);
+    sweep1D(s0.y, v.y, H.y, 1);
+
+    if (tEnter > tExit || tExit < 0.f || tEnter > 1.f) return out; // no hit
+
+    out.hit = true;
+    out.toi = glm::clamp(tEnter, 0.f, 1.f);
+
+    // Local entry normal opposes motion on that axis
+    glm::vec2 localN(0);
+    if (enterAxis == 0) localN = { (v.x > 0.f ? -1.f : 1.f), 0.f };
+    else                localN = { 0.f, (v.y > 0.f ? -1.f : 1.f) };
+
+    out.normal = glm::normalize(localN.x * t + localN.y * n);
+
+    glm::vec2 hitLocal = s0 + v * out.toi;
+    out.point = obb.center + t * hitLocal.x + n * hitLocal.y;
+    return out;
 }
+
+glm::vec2 PlayerCollisionSystem::CollideAndSlideOBBs(const std::vector<Engine::SubCellOBB>& walls,
+    glm::vec2 pos, glm::vec2 delta, float radius)
+{
+    glm::vec2 rem = delta;
+    const float skin = 1e-3f * (radius + 1.f);   // tiny constant
+    const int   maxIters = 4;
+
+    for (int iter = 0; iter < maxIters; ++iter)
+    {
+        // Find earliest collision on this segment
+        SweepHit best;
+        for (const auto& obb : walls)
+        {
+            SweepHit h = SweepCircleVsOBB(obb, pos, rem, radius, skin);
+            if (!h.hit) continue;
+
+            // Static overlap path (toi==0): apply separation and keep going
+            if (h.toi == 0.f && glm::length2(h.normal) > 0.f) {
+                pos = h.point;
+                // remove only inward component
+                float vn = glm::dot(rem, h.normal);
+                if (vn < 0.f) rem -= h.normal * vn;
+                continue;
+            }
+
+            if (!best.hit || h.toi < best.toi) best = h;
+        }
+
+        if (!best.hit) { pos += rem; break; }
+
+        // Advance to just before contact
+        float tMove = std::max(0.f, best.toi - 1e-4f);
+        pos += rem * tMove;
+
+        // Leftover motion this iteration
+        glm::vec2 leftover = rem * (1.f - tMove);
+
+        // Remove ONLY the inward normal component (keep tangent + outward)
+        float vn = glm::dot(leftover, best.normal);
+        if (vn < 0.f) leftover -= best.normal * vn;
+
+        // Small, constant nudge off the surface
+        pos += best.normal * skin;
+
+        if (glm::length2(leftover) < 1e-10f) break;
+        rem = leftover;
+    }
+
+    return pos;
+}
+
+
+

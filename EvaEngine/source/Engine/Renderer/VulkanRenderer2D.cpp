@@ -474,8 +474,10 @@ namespace Engine {
 		m_vulkanGraphicsPipelines->UpdateCollisionUniformBuffer(currentFrame, s_CollisionData.CollisionEntities);
 		RecordComputeCommanedBuffer(cmd, m_imageIndex, currentFrame); 
 
-		m_vulkanGraphicsPipelines->UpdatePLayerCollisionUniformBuffer(currentFrame, s_CollisionData.playerEntities);
-		RecordPlayerCommandBuffer(cmd, m_imageIndex, currentFrame);
+
+		// using grid at the moment
+		//m_vulkanGraphicsPipelines->UpdatePLayerCollisionUniformBuffer(currentFrame, s_CollisionData.playerEntities);
+		//RecordPlayerCommandBuffer(cmd, m_imageIndex, currentFrame);
 
 
 
@@ -534,7 +536,7 @@ namespace Engine {
 					// If your CollisionResult has Low/High parts, reconstruct here;
 					// otherwise keep using r.GetProjectileID() if that helper exists.
 					// coll.ProjectileID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
-					coll.ProjectileID = r.GetProjectileID();  // if your CPU-side struct provides it
+					coll.EntityID = r.GetProjectileID();  // if your CPU-side struct provides it
 					coll.HitPosition = r.CollisionPosition;
 					coll.Health = r.Health;        // note: in shader it's HealthAfter
 
@@ -612,10 +614,9 @@ namespace Engine {
 				// If your CollisionResult has Low/High parts, reconstruct here;
 				// otherwise keep using r.GetProjectileID() if that helper exists.
 				// coll.ProjectileID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
-				coll.ProjectileID = r.GetProjectileID();  // if your CPU-side struct provides it
+				coll.EntityID = r.GetProjectileID();  // if your CPU-side struct provides it
 				coll.HitPosition = r.CollisionPosition;
 				coll.Health = r.Health;        // note: in shader it's HealthAfter
-
 				CollisionResultsCPU::PlayerCollisions.push_back(coll);
 			}
 
@@ -1018,13 +1019,11 @@ namespace Engine {
 			pc.WindowOriginWorld = centerHealth.GetTextureOrigin();  // top-left in world-units
 			pc.PixelSizeWorld = centerHealth.GetPixelSize();
 
-			// Supply just the number of players you packed into the SSBO for this pass.
-			// If you always send one player, set to 1.
-			pc.NumPlayers = 1; // TODO: replace if you pack multiple players
+			
+			pc.NumPlayers = PLAYER_COUNT; 
 
 			pc.ChunkSizePixels = TILE_PIXEL_WIDTH * CHUNK_SIZE;
-			pc.DeltaTime = Application::GetDelatime();
-			pc.Mode = 0; // unused or your preferred mode
+			
 		}
 
 		vkCmdPushConstants(cmd,

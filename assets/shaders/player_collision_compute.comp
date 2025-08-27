@@ -1,10 +1,12 @@
 #type compute
 #version 450
 layout(local_size_x = 16, local_size_y = 16) in;
+
 const uint MAX_COLLISION_RESULTS = 64;
 
-// ---- bindings ----
-// set=0, binding=0 : the *single* health image for the middle chunk (rgba8ui)
+// ===== bindings =====
+
+// set=0, binding=0 : middle-chunk health/mask as RGBA8UI
 layout(set=0, binding=0, rgba8ui) uniform uimage2D u_Health;
 
 // set=0, binding=1 : results SSBO
@@ -17,7 +19,6 @@ struct CollisionResult {
     uint HealthAfter;
     uint _pad1;
 };
-
 layout(std430, set=0, binding=1) buffer Results {
     uint collisionCount; uint _padA; uint _padB; uint _padC;
     CollisionResult results[];  // sized by CPU
@@ -25,27 +26,33 @@ layout(std430, set=0, binding=1) buffer Results {
 
 // set=0, binding=2 : players SSBO
 struct PlayerGPU {
-    vec2  Position;    // world
-    float Radius;      // world
+    vec2  Position;  // world
+    float Radius;    // world
     uint  ID_Low;
     uint  ID_High;
 };
 layout(std430, set=0, binding=2) readonly buffer Players { PlayerGPU P[]; };
 
-// ---- push constants ----
+// ===== push constants =====
 layout(push_constant) uniform PC {
-    vec2  WindowOriginWorld;   // top-left of this chunk in world units
-    float PixelSizeWorld;      // world units per pixel
-    uint  ChunkSizePixels;     // e.g. 4096
-    uint  NumPlayers;          // how many PlayerGPU in SSBO
-    // padding / reserved
+    vec2  WindowOriginWorld;  // top-left of this chunk in world units
+    float PixelSizeWorld;     // world units per pixel
+    uint  ChunkSizePixels;    // e.g. 4096 (width == height for your square mapping)
+    uint  NumPlayers;         // number of PlayerGPU entries
 } pc;
 
-// ---- helpers ----
-uvec4 loadHT(ivec2 lp) { return imageLoad(u_Health, lp); }
-bool  hasHP(uvec4 h)   { return h.r > 0u; }
 
-// Circle (center C, radius R) vs *pixel cell* centered at world P with half-size H.
+uvec4 loadHT(ivec2 lp) { return imageLoad(u_Health, lp); }
+
+bool isSolid(uvec4 h)
+{
+    // B channel is the collision mask (foot band), 0..255
+    bool mask = (h.b > 0u);
+    return mask;
+
+}
+
+// Circle (center C, radius R) vs pixel cell centered at world P with half-size H
 bool circleHitsCell(vec2 C, float R, vec2 P, float H)
 {
     vec2 q = abs(C - P) - vec2(H);
@@ -55,52 +62,52 @@ bool circleHitsCell(vec2 C, float R, vec2 P, float H)
 
 bool tryAllocResultIndex(out uint idx)
 {
-    while (true)
+    for (;;)
     {
-        uint cur = atomicAdd(collisionCount, 0u); 
-        if (cur >= MAX_COLLISION_RESULTS)
-        {
-            return false;
-        }
+        uint cur = atomicAdd(collisionCount, 0u);
+        if (cur >= MAX_COLLISION_RESULTS) return false;
 
         uint prev = atomicCompSwap(collisionCount, cur, cur + 1u);
-        if (prev == cur)
-        {
-            idx = cur;
-            return true;
-        }
-         
+        if (prev == cur) { idx = cur; return true; }
     }
 }
 
 void writeContactCapped(PlayerGPU pl, vec2 worldPos, uint hp)
 {
     uint idx;
-    if (!tryAllocResultIndex(idx)) return;   // strictly capped at 64
+    if (!tryAllocResultIndex(idx)) return;
 
     results[idx].collisionDetected    = 1u;
     results[idx].hitProjectileID_Low  = pl.ID_Low;
     results[idx].hitProjectileID_High = pl.ID_High;
     results[idx].CollisionPosition    = worldPos;
-    results[idx].HealthAfter          = hp;
+    results[idx].HealthAfter          = hp;   // R channel value (0..255)
 }
 
 void main()
 {
     ivec2 lp = ivec2(gl_GlobalInvocationID.xy);
     ivec2 sz = imageSize(u_Health);
-    if (lp.x >= sz.x || lp.y >= sz.y) return;
+   // if (lp.x >= sz.x || lp.y >= sz.y) return;
 
+    // Read per-pixel (no filtering)
     uvec4 ht = loadHT(lp);
-    if (!hasHP(ht)) return;
 
+    // Use B channel as the collision mask
+    if (!isSolid(ht))
+    {
+        return;
+    }
+    // Pixel center in world units
     vec2  worldPos = pc.WindowOriginWorld + (vec2(lp) + vec2(0.5)) * pc.PixelSizeWorld;
     float halfCell = 0.5 * pc.PixelSizeWorld;
 
+    // Test against all players in this dispatch
     for (uint i = 0u; i < pc.NumPlayers; ++i)
     {
         if (circleHitsCell(P[i].Position, P[i].Radius, worldPos, halfCell))
         {
+           
             writeContactCapped(P[i], worldPos, ht.r);
         }
     }
