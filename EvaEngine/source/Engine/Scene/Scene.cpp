@@ -426,7 +426,7 @@ namespace Engine {
         */
 
         // get player info
-        auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent>();
+        auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent, SpriteRendererComponent>();
         glm::vec2 playerPos;
         uint64_t playerID = 0;
 
@@ -444,7 +444,12 @@ namespace Engine {
             if (!playerEntity.HasComponent<DriverComponent>())
             {
                 float playerRadius = 0.5f;
-                Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
+                float tiling = 0.5f;
+
+                auto& spriteComp = playerView.get<Engine::SpriteRendererComponent>(entity);
+
+                Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
+               // Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
             }
         }
         m_textureStreamingSystem->Update(playerPos, m_registry);
@@ -649,7 +654,7 @@ namespace Engine {
                 }
 
                 {
-                    EE_PROFILE_SCOPE("Texture update");
+                    EE_PROFILE_SCOPE("Texture update"); // RMEOVE=
 
                     entt::basic_view view = m_registry.view<SpriteRendererComponent, TransformComponent, IDComponent>();
                     glm::vec4 cameraBounds = mainCameraComp.Camera.CalculateCameraWorldBounds(mainCameraComp.Camera, cameraTransform);
@@ -701,16 +706,6 @@ namespace Engine {
                         {
                             //EE_PROFILE_SCOPE("DrawTextureQuad");
 
-                            float tiling = 1.0f;
-                            if (m_registry.any_of<CharacterControllerComponent>(entity) &&
-                                !m_registry.any_of<DriverComponent>(entity))
-                            {
-                                // only render player from here for now
-                                // if player is NOT in vehicle
-                                
-                                Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color = glm::vec4(1));
-
-                            }
 
                             
                             if (m_registry.any_of<VehicleComponent>(entity))
