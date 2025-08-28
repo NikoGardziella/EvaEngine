@@ -5,9 +5,6 @@
 #include <Engine/Scene/SceneSerializer.h>
 
 #include "Systems/Player/CharacterControllerSystem.h"
-
-#include "Systems/Collision/PixelCollisionSystem.h"
-
 #include <glm/ext/matrix_transform.hpp>
 #include "Systems/Combat/ProjectileSystem.h"
 #include "Systems/Collision/PlayerCollisionSystem.h"
@@ -15,7 +12,6 @@
 #include "Systems/Combat/HealthSystem.h"
 #include "Systems/NPC/NpcAIMovementSystem.h"
 #include "Systems/NPC/NPCAIVisionSystem.h"
-#include "Systems/Player/PlayerMovementSystem.h"
 #include "Systems/Player/Camera/PlayerCameraSystem.h"
 #include "Systems/Combat/PlayerWeaponSystem.h"
 #include "Systems/Vehicle/VehicleSystem.h"
@@ -38,13 +34,10 @@ void PixelGame::OnAttach()
 {
 	EE_PROFILE_FUNCTION();
 
-
 	LoadGameAssets();
 
 	m_orthoCameraController.SetZoomLevel(30.0f);
 
-	
-	
 }
 
 void PixelGame::RegisterSystems()
@@ -56,14 +49,16 @@ void PixelGame::RegisterSystems()
 	// 3. apply translation accordingly
 	// 
 	// -----------------------------------------------------------------------------
+	/*
+	*/
 	m_activeScene->RegisterSystem(CharacterControllerSystem::UpdateCharacterControllerSystem);
 
 	m_activeScene->RegisterSystem(PlayerCollisionSystem::UpdatePlayerCollision);
-	m_activeScene->RegisterSystem(PlayerMovementSystem::MovementSystem);
+	//m_activeScene->RegisterSystem(PlayerMovementSystem::MovementSystem);
 	m_activeScene->RegisterSystem(PlayerCameraSystem::UpdatePlayerCameraSystem);
 	m_activeScene->RegisterSystem(PlayerWeaponSystem::UpdatePlayerWeaponSystem);
 
-	m_activeScene->RegisterSystem(PixelCollisionSystem::UpdatePixelCollisionSystem);
+	//m_activeScene->RegisterSystem(PixelCollisionSystem::UpdatePixelCollisionSystem);
 	m_activeScene->RegisterSystem(ProjectileSystem::UpdateProjectileSystem);
 	m_activeScene->RegisterSystem(HealthSystem::UpdateHealthSystem);
 	m_activeScene->RegisterSystem(NpcAIMovementSystem::UpdateNPCAIMovementSystem);
@@ -216,7 +211,6 @@ void PixelGame::CreateGameEntities()
 }
 
 
-// In your DebugPanel or wherever you want to trigger it:
 
 void PixelGame::SpawnChunkGridSprites()
 {

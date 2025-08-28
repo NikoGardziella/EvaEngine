@@ -1,5 +1,5 @@
 #pragma once
-#include "entt.hpp"
+#include <Engine/Scene/Scene.h>
 #include "Engine.h"
 
 
@@ -7,6 +7,6 @@ class NpcAIMovementSystem
 {
 public:
 
-	static void UpdateNPCAIMovementSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
+	static void UpdateNPCAIMovementSystem(float deltaTime, Engine::Scene* scene);
 };
 

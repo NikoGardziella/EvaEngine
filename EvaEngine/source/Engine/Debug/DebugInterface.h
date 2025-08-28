@@ -1,6 +1,6 @@
 #pragma once
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
-#include "entt.hpp"
+
 
 namespace Engine {
 
@@ -8,9 +8,9 @@ namespace Engine {
     {
     public:
         static void SetTextureStreamingSystem(TextureStreamingSystem* system) { s_textureSystem = system; }
-        static void ResetAllTextures(entt::registry& gameRegistry);
+        static void ResetAllTextures(Scene* scene);
 
-        static void DebugDrawChunkOutlines(entt::registry& gameRegistr);
+        static void DebugDrawChunkOutlines(Scene* scene);
         
 
     private:

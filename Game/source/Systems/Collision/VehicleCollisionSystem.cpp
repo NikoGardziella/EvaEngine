@@ -4,59 +4,55 @@
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Events/Public/CollisionEvents.h>
 
-void VehicleCollisionSystem::UpdateVehicleCollision(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+
+void VehicleCollisionSystem::UpdateVehicleCollision(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto vehicleView = registry.view<Engine::TransformComponent, VehicleComponent, Engine::IDComponent>();
-    bool collided = false;
+    // Snapshot GPU collision results for this frame
+    const auto collisions = Engine::CollisionResultsCPU::LatestProjectiles;
 
-    for (auto vehicleEntity : vehicleView)
-    {
-        auto& vehicleTransform = vehicleView.get<Engine::TransformComponent>(vehicleEntity);
-        auto& vehicle = vehicleView.get<VehicleComponent>(vehicleEntity);
-        auto& IDComp = vehicleView.get<Engine::IDComponent>(vehicleEntity);
-
-        for (const auto& collision : Engine::CollisionResultsCPU::LatestProjectiles)
+    scene->ForEach<Engine::TransformComponent, VehicleComponent, Engine::IDComponent>(
+        [&](Engine::Entity vehicleEntity, Engine::TransformComponent& vehicleTransformComp,
+            VehicleComponent& vehicleComp, Engine::IDComponent& vehicleIDComp)
         {
-            if (IDComp.ID != collision.GetEntityID())
-                continue;
-
-            collided = true;
-
-            // Query health of collided object (implement GetObjectHealthByID)
-            uint32_t objectHealth = collision.Health;
-            uint32_t maxHealth = 255;
-
-            float healthRatio = (maxHealth > 0) ? (float)objectHealth / maxHealth : 1.0f;
-
-            float pushbackStrength = 0.8f;
-            float velocityNudge = 0.3f;
-
-            if (healthRatio < 0.10f)
+            // Find the first collision that targets this vehicle
+            for (const auto& col : collisions)
             {
-                float slowFactor = glm::mix(0.9f, 0.5f, healthRatio); // mix(minSlow, maxSlow, ratio)
+                if (vehicleIDComp.ID != col.GetEntityID())
+                    continue;
 
-                // Low health: allow push through, small pushback, mild slow
-                //ApplyPush(vehicleTransform, vehicle, collision.HitPosition, pushbackStrength * 0.3f, velocityNudge * 0.5f);
-                vehicle.CurrentSpeed *= slowFactor;
-                //EE_INFO("low health, healthRatio {}", healthRatio);
+                const uint32_t objectHealth = col.Health;     // remaining HP at hit pixel
+                const uint32_t kMaxHealth = 255;
+                const float    healthRatio = (kMaxHealth > 0)
+                    ? float(objectHealth) / float(kMaxHealth)
+                    : 1.0f;
+
+                // Tunables
+                const float kPushbackStrength = 0.8f;
+                const float kVelocityNudge = 0.3f;
+
+                if (healthRatio < 0.10f)
+                {
+                    // Low health at contact => mostly let vehicle push through
+                    const float slowFactor = glm::mix(0.9f, 0.5f, healthRatio);
+                    vehicleComp.CurrentSpeed *= slowFactor;
+                    // (Optional) tiny nudge/push if you still want feedback:
+                    // ApplyPush(vehicleTransformComp, vehicleComp, col.HitPosition,
+                    //           kPushbackStrength * 0.3f, kVelocityNudge * 0.5f);
+                }
+                else
+                {
+                    // High health => bounce back and slow down more
+                    ApplyPush(vehicleTransformComp, vehicleComp, col.HitPosition,
+                        kPushbackStrength, kVelocityNudge);
+                    vehicleComp.CurrentSpeed *= 0.3f;
+                }
+
+                // Handle only one contact per vehicle per tick (tweak if needed)
+                break;
             }
-            else
-            {
-                // High health: strong pushback, big slow
-                ApplyPush(vehicleTransform, vehicle, collision.HitPosition, pushbackStrength, velocityNudge);
-                vehicle.CurrentSpeed *= 0.3f;
-                //EE_INFO("high health, healthRatio {}", healthRatio);
-            }
-
-            break;
-        }
-
-    }
-
-
-
+        });
 }
 
 

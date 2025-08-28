@@ -3,55 +3,57 @@
 #include "Engine/Scene/Component.h"
 
 #include <glm/glm.hpp>
-#include <glm/gtx/norm.hpp>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include <Engine/Debug/Instrumentor.h>
+#include <Engine/Scene/Scene.h>
 
-void NPCAIVisionSystem::UpdateNPCAIVisionSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+void NPCAIVisionSystem::UpdateNPCAIVisionSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto npcs = registry.view<NPCAIVisionComponent, NPCAIMovementComponent, Engine::TransformComponent>();
-
-    for (auto npcEntity : npcs)
-    {
-        NPCAIVisionComponent& visionComp = registry.get<NPCAIVisionComponent>(npcEntity);
-        NPCAIMovementComponent& aiComp = registry.get<NPCAIMovementComponent>(npcEntity);
-        Engine::TransformComponent& npcTransformComp = registry.get<Engine::TransformComponent>(npcEntity);
-
-        visionComp.VisibleTarget = entt::null;
-
-        // only player has CharacterControllerComponent
-        auto players = registry.view<CharacterControllerComponent, Engine::TransformComponent>();
-
-        for (auto playerEntity : players)
+    scene->ForEach<NPCAIVisionComponent, NPCAIMovementComponent, Engine::TransformComponent>(
+        [&](Engine::Entity npcEntity, NPCAIVisionComponent& visionComp,
+            NPCAIMovementComponent& aiComp, Engine::TransformComponent& npcTransformComp)
         {
-          
-            const auto& playerTransformComp = registry.get<Engine::TransformComponent>(playerEntity);
+            // reset each tick
+            visionComp.VisibleTarget = entt::null;
 
-            glm::vec3 toPlayer = playerTransformComp.Translation - npcTransformComp.Translation;
-            float distSq = glm::dot(toPlayer, toPlayer);
+            // NPC forward direction (top-down, facing by Rotation.z)
+            const float npcYaw = npcTransformComp.Rotation.z;
+            const glm::vec3 npcForward = glm::normalize(glm::vec3(std::cos(npcYaw),
+                std::sin(npcYaw), 0.0f));
 
-            if (distSq > visionComp.ViewRadius * visionComp.ViewRadius)
-                continue;
-            
+            const float viewRadiusSq = visionComp.ViewRadius * visionComp.ViewRadius;
+            const bool  limitByAngle = (visionComp.ViewAngle < 360.0f);
+            const float halfFov = 0.5f * visionComp.ViewAngle;
 
-            //  check view angle
-            if (visionComp.ViewAngle < 360.0f)
-            {
-                glm::vec3 forward = glm::vec3(0, 0, 1);
-                float dot = glm::dot(glm::normalize(toPlayer), forward);
-                float angle = glm::degrees(glm::acos(dot));
-                if (angle > visionComp.ViewAngle * 0.5f)
-                    continue;
-            }
+            bool foundAny = false;
 
-            // raycast for line of sight here
-            // Found target
-            visionComp.VisibleTarget = playerEntity;
-            aiComp.CurrentState = AIState::MoveToTarget;
-            aiComp.TargetPosition = playerTransformComp.Translation;
-            break;
-        }
-    }
+            scene->ForEach<CharacterControllerComponent, Engine::TransformComponent>(
+                [&](Engine::Entity playerEntity,  CharacterControllerComponent& /*playerCtrlComp*/,
+                    Engine::TransformComponent& playerTransformComp)
+                {
+                    if (foundAny) return; // soft "break"
+
+                    const glm::vec3 toPlayer = playerTransformComp.Translation - npcTransformComp.Translation;
+                    const float     distSq = glm::dot(toPlayer, toPlayer);
+                    if (distSq > viewRadiusSq) return;
+
+                    if (limitByAngle)
+                    {
+                        const glm::vec3 toPlayerDir = glm::normalize(glm::vec3(toPlayer.x, toPlayer.y, 0.0f));
+                        const float     cosTheta = glm::clamp(glm::dot(npcForward, toPlayerDir), -1.0f, 1.0f);
+                        const float     angleDeg = glm::degrees(std::acos(cosTheta));
+                        if (angleDeg > halfFov) return;
+                    }
+
+                    // TODO: raycast / LOS check against world if needed
+
+                    // acquire target
+                    visionComp.VisibleTarget = playerEntity;
+                    aiComp.CurrentState = AIState::MoveToTarget;
+                    aiComp.TargetPosition = playerTransformComp.Translation;
+                    foundAny = true;
+                });
+        });
 }

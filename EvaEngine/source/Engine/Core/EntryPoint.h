@@ -34,6 +34,7 @@ int main(int argc, char** argv)
 	EE_PROFILE_END_SESSION();
 
 	EE_PROFILE_BEGIN_SESSION("Shutdown", "EvaEngineProfile-shutdown.json");
+	//app->Close();
 	delete app;
 	EE_PROFILE_END_SESSION();
 

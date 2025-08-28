@@ -1,16 +1,12 @@
 #pragma once
 
-#include "Core.h"
 #include "Engine/Core/Window.h"
 
 #include "Engine/Core/LayerStack.h"
 #include "Engine/Events/Event.h"
 #include "Engine/Events/ApplicationEvent.h"
 #include "Engine/ImGui/ImGuiLayer.h"
-#include "Engine/Renderer/Shader.h"
-#include "Engine/Renderer/Buffer.h"
-#include "Engine/Renderer/VertexArray.h"
-#include "Engine/Renderer/OrthographicCamera.h"
+
 #include "Engine/Core/Timestep.h"
 
 

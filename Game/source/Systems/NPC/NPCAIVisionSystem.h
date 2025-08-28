@@ -1,11 +1,12 @@
 #pragma once
-#include "entt.hpp"
 #include "Engine.h"
 
+
+class Scene;
 class NPCAIVisionSystem
 {
 public:
 
-	static void UpdateNPCAIVisionSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
+	static void UpdateNPCAIVisionSystem(float deltaTime, Engine::Scene* scene);
 };
 

@@ -6,11 +6,11 @@
 // Remove this?!
 
 
-void PlayerMovementSystem::MovementSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+void PlayerMovementSystem::MovementSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto view = registry.view<Engine::TransformComponent, CharacterControllerComponent>();
+    auto view = scene->GetRegistry().view<Engine::TransformComponent, CharacterControllerComponent>();
 
     for (auto entity : view)
     {

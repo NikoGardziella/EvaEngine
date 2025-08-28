@@ -1,20 +1,19 @@
 #include "HealthSystem.h"
 #include "Engine/Scene/Components/Combat/HealthComponent.h"
 #include <Engine/Debug/Instrumentor.h>
+#include <Engine/Scene/Scene.h>
 
 
-void HealthSystem::UpdateHealthSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+void HealthSystem::UpdateHealthSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto view = registry.view<Engine::HealthComponent>();
-    for (auto entity : view)
-    {
-        auto& health = view.get<Engine::HealthComponent>(entity);
-
-        if (health.Current <= 0.0f)
+    scene->ForEach<Engine::HealthComponent>(
+        [scene](Engine::Entity e, Engine::HealthComponent& health)
         {
-            registry.destroy(entity);
-        }
-    }
+            if (health.Current <= 0.0f)
+            {
+                scene->DestroyEntity(e);
+            }
+        });
 }

@@ -3,9 +3,14 @@
 #include "EditorLayer.h"
 
 #include "Engine.h"
-#include "EditorLayer.h"
-//#include "Engine/Core/EntryPoint.h"
 
+
+// ********************************
+// dont remove or you will get:
+// unresolved external symbol main referenced in function "int __cdecl
+// invoke_main(void)" (?invoke_main@@YAHXZ)
+#include "Engine/Core/EntryPoint.h"
+// ********************************
 
 
 namespace Engine {

@@ -1,10 +1,11 @@
 #pragma once
-#include "entt.hpp"
 #include "Engine.h"
 
+
+class Scene;
 class ProjectileSystem
 {
 	public: 
-		static void UpdateProjectileSystem(entt::registry& registry, float deltaTime, Engine::Scene* scen);
+		static void UpdateProjectileSystem(float deltaTime, Engine::Scene* scen);
 };
 

@@ -20,6 +20,8 @@
 #include "Components/Vehicles/VehicleComponent.h"
 #include "Components/Vehicles/DriverComponent.h"
 #include "Components/Projectiles/ProjectileComponent.h"
+#include "Engine/Map/Grid/GridMap.h"
+#include <Engine/Core/UUID.h>
 
 
 namespace Engine {
@@ -365,11 +367,11 @@ namespace Engine {
 
         // makes sure textures are reloaded to the right registry
         // editor to game
-        m_textureStreamingSystem->ResetAllChunks(m_registry);
-        m_gridMap->BuildFromRegistry(m_registry);
-        m_textureStreamingSystem->SortIsoTilesByY(m_registry);
-        m_textureStreamingSystem->BakeTilesIntoChunks(m_registry);
-		m_textureStreamingSystem->AddChunkEntitiesToRegistry(m_registry);
+        m_textureStreamingSystem->ResetAllChunks(this);
+        m_gridMap->BuildFromRegistry(this);
+        m_textureStreamingSystem->SortIsoTilesByY(this);
+        m_textureStreamingSystem->BakeTilesIntoChunks(this);
+		m_textureStreamingSystem->AddChunkEntitiesToRegistry(this);
 
        // m_gridMap->BuildFromRegistry(m_registry);
     }
@@ -452,7 +454,7 @@ namespace Engine {
                // Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
             }
         }
-        m_textureStreamingSystem->Update(playerPos, m_registry);
+        m_textureStreamingSystem->Update(playerPos, this);
 
 
 
@@ -872,7 +874,7 @@ namespace Engine {
         {
             for (auto& system : m_gameplaySystems)
             {
-                system(m_registry, timestep, this);
+                system(timestep, this);
             }
         }
 
@@ -899,7 +901,7 @@ namespace Engine {
 
             }
 
-            m_textureStreamingSystem->Update(playerPos, m_registry);
+            m_textureStreamingSystem->Update(playerPos, this);
         }
 
 
@@ -1144,7 +1146,7 @@ namespace Engine {
 
     }
 
-    void Scene::RegisterSystem(const std::function<void(entt::registry&, float, Scene* scene)>& system)
+    void Scene::RegisterSystem(const std::function<void(float, Scene* scene)>& system)
     {
         m_gameplaySystems.emplace_back(system);
         EE_CORE_INFO("System registered");

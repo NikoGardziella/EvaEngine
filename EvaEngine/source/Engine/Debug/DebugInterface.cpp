@@ -6,14 +6,14 @@ namespace Engine {
 
 	//TextureStreamingSystem* DebugInterface::s_textureSystem = nullptr;
 
-	void Engine::DebugInterface::ResetAllTextures(entt::registry& gameRegistry)
+	void Engine::DebugInterface::ResetAllTextures(Scene* scene)
 	{
 		if (s_textureSystem)
-			s_textureSystem->ResetAllChunks(gameRegistry);
+			s_textureSystem->ResetAllChunks(scene);
 	}
-	void Engine::DebugInterface::DebugDrawChunkOutlines(entt::registry& gameRegistr)
+	void Engine::DebugInterface::DebugDrawChunkOutlines(Scene* scene)
 	{
 		if (s_textureSystem)
-			s_textureSystem->DebugDrawChunkOutlines(gameRegistr);
+			s_textureSystem->DebugDrawChunkOutlines(scene);
 	}
 }

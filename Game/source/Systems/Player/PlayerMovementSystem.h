@@ -1,10 +1,11 @@
 #pragma once
-#include "entt.hpp"
 #include "Engine.h"
 
+
+class Scene;
 class PlayerMovementSystem
 {
 public:
-	static void MovementSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
+	static void MovementSystem(float deltaTime, Engine::Scene* scene);
 };
 

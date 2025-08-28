@@ -6,16 +6,15 @@
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <Engine/Scene/Component.h>
 #include <Engine/Renderer/VulkanRenderer2D.h>
-#include "Engine/Map/TextureStreaming/TextureStreamingUtils.h"
 #include <glm/gtc/matrix_transform.hpp>
-#include <Engine/Map/Utils/IVec2Hasher.h>
-#include <unordered_set>
-#include <Engine/Platform/Vulkan/VulkanTexture.h>
+#include <unordered_set>q
 #include "Engine/Map/Utils/IsoTileUtils.h"
+#include "Engine/Scene/Scene.h"
+
 
 namespace Engine
 {
-    void GridMap::BuildFromRegistry(entt::registry& registry)
+    void GridMap::BuildFromRegistry(Scene* scene)
     {
         m_blockedSubCells.clear();
 
@@ -118,7 +117,7 @@ namespace Engine
             };
 
         // walk tiles and emit sub-cells
-        auto view = registry.view<TileComponent, TransformComponent>();
+        auto view = scene->GetRegistry().view<TileComponent, TransformComponent>();
         for (auto e : view)
         {
             const auto& tc = view.get<TileComponent>(e);

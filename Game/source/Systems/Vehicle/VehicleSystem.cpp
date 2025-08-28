@@ -2,85 +2,81 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Components/Vehicles/VehicleComponent.h>
 #include <Engine/Debug/Instrumentor.h>
+#include <Engine/Scene/Entity.h>
 
-void VehicleSystem::UpdateVehicleSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+void VehicleSystem::UpdateVehicleSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto view = registry.view<VehicleComponent, Engine::TransformComponent, Engine::IDComponent>();
-    // Inside your VehicleSystem update loop
-    for (auto entity : view)
-    {
-        auto& vehicle = view.get<VehicleComponent>(entity);
-        auto& transform = view.get<Engine::TransformComponent>(entity);
-        auto& IDComp = view.get<Engine::IDComponent>(entity);
+    // Tunables
+    constexpr float kLinearFriction = 0.90f;
+    constexpr float kAngularFriction = 0.90f;
+    constexpr float kSteerFactor = 2.0f;
+    constexpr float kSteerSpeedGate = 0.9f;   // only steer when |speed| > gate
+    constexpr float kPushDecayRate = 5.0f;   // larger = faster decay
 
-        const float linearFriction = 0.90f;
-        const float angularFriction = 0.90f;
-
-        // === Speed Calculation ===
-        if (glm::length(vehicle.Velocity) > 0.0f)
+    scene->ForEach<VehicleComponent, Engine::TransformComponent, Engine::IDComponent>(
+        [&](Engine::Entity /*entity*/, VehicleComponent& vehicleComp,
+            Engine::TransformComponent& transformComp, Engine::IDComponent& /*idComp*/)
         {
-            float engineForce = vehicle.Power * glm::sign(vehicle.Velocity.y);
-            float acceleration = engineForce / vehicle.Mass;
-            vehicle.CurrentSpeed += acceleration * deltaTime;
-        }
-        else
-        {
-            // Decelerate when no input
-            float deceleration = vehicle.Deceleration / vehicle.Mass * 100.0f; // arbitrary multiplier
-            if (vehicle.CurrentSpeed > 0.0f)
+            // --- Speed / engine ---
+            if (glm::length(vehicleComp.Velocity) > 0.0f)
             {
-                vehicle.CurrentSpeed -= deceleration * deltaTime;
-                if (vehicle.CurrentSpeed < 0.0f)
-                    vehicle.CurrentSpeed = 0.0f;
+                const float signY = glm::sign(vehicleComp.Velocity.y);            // forward/back input
+                const float engineForce = vehicleComp.Power * signY;
+                const float invMass = (vehicleComp.Mass > 0.0f) ? (1.0f / vehicleComp.Mass) : 0.0f;
+                vehicleComp.CurrentSpeed += (engineForce * invMass) * deltaTime;
             }
-            else if (vehicle.CurrentSpeed < 0.0f)
+            else
             {
-                vehicle.CurrentSpeed += deceleration * deltaTime;
-                if (vehicle.CurrentSpeed > 0.0f)
-                    vehicle.CurrentSpeed = 0.0f;
+                // Passive deceleration when no throttle
+                const float invMass = (vehicleComp.Mass > 0.0f) ? (1.0f / vehicleComp.Mass) : 0.0f;
+                const float decel = vehicleComp.Deceleration * invMass * 100.0f;
+                if (vehicleComp.CurrentSpeed > 0.0f)
+                {
+                    vehicleComp.CurrentSpeed = std::max(0.0f, vehicleComp.CurrentSpeed - decel * deltaTime);
+                }
+                else if (vehicleComp.CurrentSpeed < 0.0f)
+                {
+                    vehicleComp.CurrentSpeed = std::min(0.0f, vehicleComp.CurrentSpeed + decel * deltaTime);
+                }
             }
-        }
 
-        // Clamp speed
-        vehicle.CurrentSpeed = glm::clamp(vehicle.CurrentSpeed, -vehicle.MaxSpeed, vehicle.MaxSpeed);
+            // Clamp max speed
+            vehicleComp.CurrentSpeed = glm::clamp(vehicleComp.CurrentSpeed,
+                -vehicleComp.MaxSpeed,
+                vehicleComp.MaxSpeed);
 
-        // === Pushback ===
-        if (glm::length(vehicle.Pushback) > 0.001f)
-        {
-            transform.Translation += glm::vec3(vehicle.Pushback * deltaTime, 0.0f);
+            // --- External pushback (e.g., from collisions) ---
+            if (glm::length2(vehicleComp.Pushback) > 1e-6f)
+            {
+                transformComp.Translation += glm::vec3(vehicleComp.Pushback * deltaTime, 0.0f);
 
-            // Decay pushback over time
-            float pushDecay = 5.0f; // tweak as needed
-            vehicle.Pushback = glm::mix(vehicle.Pushback, glm::vec2(0.0f), pushDecay * deltaTime);
-        }
-        else
-        {
-            vehicle.Pushback = glm::vec2(0.0f);
-        }
+                // Exponential-like decay (stable in [0,1])
+                const float t = glm::clamp(kPushDecayRate * deltaTime, 0.0f, 1.0f);
+                vehicleComp.Pushback = glm::mix(vehicleComp.Pushback, glm::vec2(0.0f), t);
+            }
+            else
+            {
+                vehicleComp.Pushback = glm::vec2(0.0f);
+            }
 
-        // === Movement and Steering ===
-        float rotationRadians = transform.Rotation.z;
-        glm::vec2 forward = glm::vec2(glm::cos(rotationRadians), glm::sin(rotationRadians));
-        glm::vec2 movement = forward * vehicle.CurrentSpeed * deltaTime;
+            // --- Integrate movement in facing direction ---
+            const float rot = transformComp.Rotation.z;
+            const glm::vec2 forwardDir(std::cos(rot), std::sin(rot));
+            const glm::vec2 deltaPos = forwardDir * vehicleComp.CurrentSpeed * deltaTime;
+            transformComp.Translation += glm::vec3(deltaPos, 0.0f);
 
-        transform.Translation += glm::vec3(movement, 0.0f);
+            // --- Steering (X is left/right input); only when moving enough ---
+            if (std::abs(vehicleComp.CurrentSpeed) > kSteerSpeedGate)
+            {
+                const float steerInput = -vehicleComp.Velocity.x; // left/right
+                transformComp.Rotation.z += (steerInput * kSteerFactor) * deltaTime;
+            }
 
-        if (vehicle.CurrentSpeed > 0.9f || vehicle.CurrentSpeed < -0.9f)
-        {
-            float steering = -vehicle.Velocity.x * 2.0f; // arbitrary factor
-            transform.Rotation.z += steering * deltaTime;
-        }
-
-        // === Friction ===
-        vehicle.Velocity.y *= linearFriction;
-        vehicle.Velocity.x *= angularFriction;
-    }
-
-
-
-
-
+            // --- Input damping (friction-like) ---
+            vehicleComp.Velocity.y *= kLinearFriction;   // throttle/brake fade
+            vehicleComp.Velocity.x *= kAngularFriction;  // steering fade
+        });
 }
 

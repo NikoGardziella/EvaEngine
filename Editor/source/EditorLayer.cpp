@@ -1206,7 +1206,7 @@ namespace Engine {
     {
         if (!m_currentScenePath.empty())
         {
-            EditorDebugUtils::PrintAllEntities(m_sceneHierarchyPanel.GetEditorScene()->GetRegistry());
+            EditorDebugUtils::PrintAllEntities(m_sceneHierarchyPanel.GetEditorScene().get());
 
             SceneSerializer serializer(m_sceneHierarchyPanel.GetEditorScene());
 

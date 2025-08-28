@@ -10,127 +10,119 @@
 #include "Engine/Scene/Entity.h"
 #include <Engine/Scene/Components/Vehicles/VehicleComponent.h>
 #include <Engine/Scene/Components/Vehicles/DriverComponent.h>
+#include <Engine/Scene/Scene.h>
 
-void CharacterControllerSystem::UpdateCharacterControllerSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-   
-    glm::vec2 mouseWorldPosition = glm::vec2(0.0f, 0.0f);
-    {
-        EE_PROFILE_SCOPE("Get Update Runtime Camera");
+    // --- 1) Mouse world position from the primary camera ---
+    glm::vec2 mouseWorldPosition{ 0.0f, 0.0f };
+    bool gotMouse = false;
 
+    scene->ForEach<Engine::TransformComponent, Engine::CameraComponent>(
+        [&](Engine::Entity, Engine::TransformComponent& camXform, Engine::CameraComponent& cam)
         {
-            auto group = registry.group<Engine::TransformComponent, Engine::CameraComponent>();
-            for (auto entity : group)
+            if (gotMouse) return;
+            if (cam.Primary)
             {
-                auto [cameraTransformComp, cameraComp] = group.get<Engine::TransformComponent, Engine::CameraComponent>(entity);
+                mouseWorldPosition = cam.Camera.ScreenToWorld(camXform.GetTransform());
+                gotMouse = true;
+            }
+        });
 
-                if (cameraComp.Primary)
+
+    Engine::Entity playerEntity;
+    scene->ForEach<Engine::TransformComponent, CharacterControllerComponent>(
+        [&](Engine::Entity e,  Engine::TransformComponent& playerXform,
+            CharacterControllerComponent& controller)
+        {
+            playerEntity = e;
+
+            glm::vec2 diff = mouseWorldPosition - glm::vec2(playerXform.Translation);
+            if (glm::length(diff) > 0.0001f)
+            {
+                glm::vec2 dir = glm::normalize(diff);
+                float angle = std::atan2(dir.y, dir.x);
+                playerXform.Rotation.z = angle + glm::radians(220.0f);
+            }
+
+            
+            glm::vec2 inputVelocity{ 0.0f };
+            if (Engine::Input::IsKeyPressed(Engine::Key::A)) inputVelocity.x -= 1.0f;
+            if (Engine::Input::IsKeyPressed(Engine::Key::D)) inputVelocity.x += 1.0f;
+            if (Engine::Input::IsKeyPressed(Engine::Key::W)) inputVelocity.y += 1.0f;
+            if (Engine::Input::IsKeyPressed(Engine::Key::S)) inputVelocity.y -= 1.0f;
+
+            
+            if (playerEntity.HasComponent<DriverComponent>()) 
+            {
+                auto& driver = playerEntity.GetComponent<DriverComponent>();
+                if (driver.Vehicle && driver.Vehicle.HasComponent<VehicleComponent>())
                 {
-                    mouseWorldPosition = cameraComp.Camera.ScreenToWorld(cameraTransformComp.GetTransform());
-                    break;
+                    auto& vehicle = driver.Vehicle.GetComponent<VehicleComponent>();
+                    vehicle.Velocity = inputVelocity;         // steer the vehicle
+                    controller.velocity = glm::vec3(0.0f);    // player stands still while driving
+                    // keep player “inside” vehicle transform:
+                    playerXform.Translation = driver.Vehicle.GetComponent<Engine::TransformComponent>().Translation;
+                }
+                else 
+                {
+                    controller.velocity = glm::vec3(inputVelocity, 0.0f);
                 }
             }
-        }
-    }
-    Engine::Entity playerEntity = Engine::Entity{};
-    auto view = registry.view<Engine::TransformComponent, CharacterControllerComponent>();
-
-    for (auto entity : view)
-    {
-        auto& playerTransformComp = view.get<Engine::TransformComponent>(entity);
-        auto& controllerComp = view.get<CharacterControllerComponent>(entity);
-
-        glm::vec2 diff = glm::vec2(mouseWorldPosition) - glm::vec2(playerTransformComp.Translation);
-
-        if (glm::length(diff) > 0.0001f)
-        {
-            glm::vec2 direction = glm::normalize(diff);
-            float angle = std::atan2(direction.y, direction.x);
-            playerTransformComp.Rotation.z = angle + glm::radians(220.0f);
-        }
-
-        glm::vec2 inputVelocity = { 0.0f, 0.0f };
-        if (Engine::Input::IsKeyPressed(Engine::Key::A)) inputVelocity.x -= 1.0f;
-        if (Engine::Input::IsKeyPressed(Engine::Key::D)) inputVelocity.x += 1.0f;
-        if (Engine::Input::IsKeyPressed(Engine::Key::W)) inputVelocity.y += 1.0f;
-        if (Engine::Input::IsKeyPressed(Engine::Key::S)) inputVelocity.y -= 1.0f;
-
-        playerEntity = Engine::Entity{ entity, scene };
-        if (playerEntity.HasComponent<DriverComponent>())
-        {
-            auto& driverComp = playerEntity.GetComponent<DriverComponent>();
-            if (driverComp.Vehicle.HasComponent<VehicleComponent>())
+            else
             {
-                auto& vehicleComp = driverComp.Vehicle.GetComponent<VehicleComponent>();
-                vehicleComp.Velocity = inputVelocity;
-                controllerComp.velocity = glm::vec3(0);
-                playerTransformComp.Translation = driverComp.Vehicle.GetComponent<Engine::TransformComponent>().Translation;
+                controller.velocity = glm::vec3(inputVelocity, 0.0f);
             }
-        }
-        else
-        {
-            controllerComp.velocity = inputVelocity;
-        }
-    }
+        });
 
-    // Handle enter/exit once per frame
-    if (Engine::Input::IsKeyPressed(Engine::Key::F))
+    // --- 3) Enter / Exit vehicle (press F) ---
+    if (Engine::Input::IsKeyPressed(Engine::Key::F) && playerEntity)
     {
-        float minDistanceToEnterVehicle = 2.0f;
+        constexpr float kEnterDistance = 2.0f;
 
-        auto vehicleView = scene->GetAllEntitiesWith<Engine::TransformComponent, VehicleComponent>();
-        for (auto vehicleEntity : vehicleView)
-        {
-            auto& vehicleTransform = vehicleView.get<Engine::TransformComponent>(vehicleEntity);
-            auto& vehicleComp = vehicleView.get<VehicleComponent>(vehicleEntity);
+        // Player transform once
+        auto& playerXform = playerEntity.GetComponent<Engine::TransformComponent>();
 
-            // Skip if cooldown is active
-            if (vehicleComp.ExitEnterCooldown > 0.0f)
-                continue;
-
-            auto& playerTransform = playerEntity.GetComponent<Engine::TransformComponent>();
-            float distance = glm::distance(vehicleTransform.Translation, playerTransform.Translation);
-
-            if (distance < minDistanceToEnterVehicle)
+        bool handled = false;
+        scene->ForEach<Engine::TransformComponent, VehicleComponent>(
+            [&](Engine::Entity vehEnt, Engine::TransformComponent& vehXform, VehicleComponent& veh)
             {
+                if (handled) return;
+                if (veh.ExitEnterCooldown > 0.0f) return;
+
+                float d = glm::distance(vehXform.Translation, playerXform.Translation);
+                if (d >= kEnterDistance) return;
+
                 if (playerEntity.HasComponent<DriverComponent>())
                 {
-                    // Exit vehicle
-                    auto& driverComp = playerEntity.GetComponent<DriverComponent>();
-                    auto& vehicle = driverComp.Vehicle;
-                    if (vehicle.HasComponent<VehicleComponent>())
+                    // Exit current vehicle
+                    auto& driver = playerEntity.GetComponent<DriverComponent>();
+                    if (driver.Vehicle && driver.Vehicle.HasComponent<VehicleComponent>())
                     {
-                        auto& targetVehicleComp = vehicle.GetComponent<VehicleComponent>();
-                        targetVehicleComp.Driver = Engine::Entity{};
-                        targetVehicleComp.ExitEnterCooldown = 1.0f;
+                        auto& v = driver.Vehicle.GetComponent<VehicleComponent>();
+                        v.Driver = Engine::Entity{};
+                        v.ExitEnterCooldown = 1.0f;
                     }
                     playerEntity.RemoveComponent<DriverComponent>();
                 }
-                else if (!vehicleComp.Driver)
+                else if (!veh.Driver)
                 {
-                    // Enter vehicle
-                    vehicleComp.Driver = playerEntity;
-                    vehicleComp.ExitEnterCooldown = 1.0f;
-                    playerEntity.AddComponent<DriverComponent>(Engine::Entity{ vehicleEntity, scene });
+                    // Enter this vehicle
+                    veh.Driver = playerEntity;
+                    veh.ExitEnterCooldown = 1.0f;
+                    playerEntity.AddComponent<DriverComponent>(Engine::Entity{ vehEnt, scene });
                 }
-                break;
-            }
-        }
+                handled = true;
+            });
     }
 
-    {
-        auto vehicleView = scene->GetAllEntitiesWith<VehicleComponent>();
-        for (auto vehicleEntity : vehicleView)
+    // --- 4) Cooldown tick ---
+    scene->ForEach<VehicleComponent>(
+        [&](Engine::Entity, VehicleComponent& v)
         {
-            auto& vehicleComp = vehicleView.get<VehicleComponent>(vehicleEntity);
-            if (vehicleComp.ExitEnterCooldown > 0.0f)
-                vehicleComp.ExitEnterCooldown -= deltaTime;
-        }
-    }
-
-    
-
+            if (v.ExitEnterCooldown > 0.0f)
+                v.ExitEnterCooldown -= deltaTime;
+        });
 }
-

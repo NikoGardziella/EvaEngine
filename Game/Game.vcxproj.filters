@@ -22,9 +22,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\PixelGame.h" />
-    <ClInclude Include="source\Systems\Collision\PixelCollisionSystem.h">
-      <Filter>Systems\Collision</Filter>
-    </ClInclude>
     <ClInclude Include="source\Systems\Collision\PlayerCollisionSystem.h">
       <Filter>Systems\Collision</Filter>
     </ClInclude>
@@ -58,9 +55,6 @@
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
     <ClCompile Include="source\SandboxApp.cpp" />
-    <ClCompile Include="source\Systems\Collision\PixelCollisionSystem.cpp">
-      <Filter>Systems\Collision</Filter>
-    </ClCompile>
     <ClCompile Include="source\Systems\Collision\PlayerCollisionSystem.cpp">
       <Filter>Systems\Collision</Filter>
     </ClCompile>

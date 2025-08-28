@@ -3,7 +3,7 @@
 // DebugUtils.h
 #pragma once
 
-#include "entt.hpp"
+
 #include "Engine/Core/Log.h"
 #include <Engine/Scene/Component.h>
 #include "Engine/Scene/Entity.h"

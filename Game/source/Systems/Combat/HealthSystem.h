@@ -1,13 +1,13 @@
 #pragma once
 
-#include "entt.hpp"
 #include "Engine.h"
+#include <Engine/Scene/Scene.h>
 
 
 
 class HealthSystem
 {
 public:
-	static void UpdateHealthSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
+	static void UpdateHealthSystem(float deltaTime, Engine::Scene* scene);
 };
 

@@ -1,33 +1,46 @@
 #include "PlayerCameraSystem.h"
+#include <Engine/Scene/Scene.h>
+#include <Engine/Scene/Entity.h>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include <Engine/Debug/Instrumentor.h>
 
-void PlayerCameraSystem::UpdatePlayerCameraSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+
+
+void PlayerCameraSystem::UpdatePlayerCameraSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto view = registry.view<Engine::TransformComponent, CharacterControllerComponent>();
-
-    for (auto entity : view)
+    // Primary camera
+    Engine::Entity cameraEntity = scene->GetPrimaryCameraEntity();
+    if (!cameraEntity)
     {
-        auto& playerTransform = view.get<Engine::TransformComponent>(entity);
-
-        entt::entity cameraEntity = scene->GetPrimaryCameraEntity();
-        if (cameraEntity == entt::null)
-            return;
-
-        Engine::CameraComponent& cameraComp = registry.get<Engine::CameraComponent>(cameraEntity);
-
-        if (cameraComp.FreeCamera)
-            return;
-
-
-        auto& cameraTransform = registry.get<Engine::TransformComponent>(cameraEntity);
-
-        glm::vec3 playerPos = playerTransform.Translation;
-        cameraTransform.Translation.x = glm::mix(cameraTransform.Translation.x, playerPos.x, 5.0f * deltaTime);
-        cameraTransform.Translation.y = glm::mix(cameraTransform.Translation.y, playerPos.y, 5.0f * deltaTime);
-
+        return;
     }
-   
+    Engine::CameraComponent& cameraComp = cameraEntity.GetComponent<Engine::CameraComponent>();
+    if (cameraComp.FreeCamera)
+    {
+        return;
+    }
+
+    Engine::TransformComponent& cameraTransformComp = cameraEntity.GetComponent<Engine::TransformComponent>();
+
+    // Follow the first player we find
+    bool updated = false;
+    scene->ForEach<Engine::TransformComponent , CharacterControllerComponent>(
+        [&](Engine::Entity /*playerEntity*/,
+            Engine::TransformComponent& playerTransformComp,
+            CharacterControllerComponent& /*controllerComp*/)
+        {
+            if (updated) return; // only one
+
+            const glm::vec3 playerPos = playerTransformComp.Translation;
+            const float followLerp = 5.0f;
+
+            cameraTransformComp.Translation.x =
+                glm::mix(cameraTransformComp.Translation.x, playerPos.x, followLerp * deltaTime);
+            cameraTransformComp.Translation.y =
+                glm::mix(cameraTransformComp.Translation.y, playerPos.y, followLerp * deltaTime);
+
+            updated = true;
+        });
 }

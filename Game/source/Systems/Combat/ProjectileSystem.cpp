@@ -3,123 +3,115 @@
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
 #include <Engine/Events/Public/CollisionEvents.h>
 #include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
+#include <Engine/Scene/Scene.h>
 
 
-void ProjectileSystem::UpdateProjectileSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto projectileView = registry.view<Engine::TransformComponent, ProjectileComponent, Engine::IDComponent>();
+    // Cache GPU collision results for this tick
+    const auto gpuCollisions = Engine::CollisionResultsCPU::LatestProjectiles;
 
-    // Cache and clear collision results before loop
-    const auto collisions = Engine::CollisionResultsCPU::LatestProjectiles;
-    //Engine::CollisionResultsCPU::Latest.clear();
+    // Collect projectiles to destroy after iteration (safer with ECS wrappers)
+    std::vector<Engine::Entity> toDestroy;
+    toDestroy.reserve(64);
 
-    for (auto projectileEntity : projectileView)
-    {
-        auto& projectileTransform = projectileView.get<Engine::TransformComponent>(projectileEntity);
-        auto& projectile = projectileView.get<ProjectileComponent>(projectileEntity);
-        auto& IDComp = projectileView.get<Engine::IDComponent>(projectileEntity);
-
-        // Check GPU-reported collisions
-        bool destroyedByCollision = false;
-        for (const auto& col : collisions)
+    // Update & collide all projectiles
+    scene->ForEach<Engine::TransformComponent, ProjectileComponent, Engine::IDComponent>(
+        [&](Engine::Entity projectileEntity, Engine::TransformComponent& projectileTransformComp,
+            ProjectileComponent& projectileComp,  Engine::IDComponent& projectileIdComp)
         {
-            if (IDComp.ID  == col.GetEntityID())
+            for (const auto& col : gpuCollisions)
             {
-				EE_INFO("Projectile collided");
-                registry.destroy(projectileEntity);
-                destroyedByCollision = true;
-                
-                break;
+                if (projectileIdComp.ID == col.GetEntityID())
+                {
+                    EE_INFO("Projectile collided (GPU)");
+                    toDestroy.push_back(projectileEntity);
+                    return; // stop processing this projectile
+                }
             }
-        }
 
-        if (destroyedByCollision)
-            continue;
+            constexpr float kProjectileSpeed = 10.0f;
+            projectileTransformComp.Translation.x += projectileComp.Velocity.x * deltaTime * kProjectileSpeed;
+            projectileTransformComp.Translation.y += projectileComp.Velocity.y * deltaTime * kProjectileSpeed;
 
-        const float projectileSpeed = 10.0f;
-
-        // Move projectile
-        projectileTransform.Translation.x += projectile.Velocity.x * deltaTime * projectileSpeed;
-        projectileTransform.Translation.y += projectile.Velocity.y * deltaTime * projectileSpeed;
-
-        glm::vec2 projPos = {
-            projectileTransform.Translation.x,
-            projectileTransform.Translation.y
-        };
-
-        // Check collisions with entities
-        auto targetView = registry.view<Engine::TransformComponent>();
-
-        for (auto targetEntity : targetView)
-        {
-            if (targetEntity == projectileEntity)
-                continue;
-
-            if (targetEntity == projectile.Owner)
-                continue;
-
-            const auto& targetTransform = targetView.get<Engine::TransformComponent>(targetEntity);
-            glm::vec2 targetPos = {
-                targetTransform.Translation.x,
-                targetTransform.Translation.y
+            const glm::vec2 projectilePos = {
+                projectileTransformComp.Translation.x,
+                projectileTransformComp.Translation.y
             };
 
-            bool hit = false;
+            //  Broad/narrow phase vs scene entities (very simple AABB/circle checks)
+            bool hitSomething = false;
 
-            // Box collider check
-            if (registry.any_of<Engine::BoxCollider2DComponent>(targetEntity))
-            {
-                const auto& box = registry.get<Engine::BoxCollider2DComponent>(targetEntity);
-                glm::vec2 boxSize = box.Size;
-
-                glm::vec2 min = targetPos - boxSize * 0.5f;
-                glm::vec2 max = targetPos + boxSize * 0.5f;
-
-                if (projPos.x >= min.x && projPos.x <= max.x &&
-                    projPos.y >= min.y && projPos.y <= max.y)
+            scene->ForEach<Engine::TransformComponent>(
+                [&](Engine::Entity targetEntity, Engine::TransformComponent& targetTransformComp)
                 {
-                    hit = true;
-                }
-            }
+                    if (hitSomething) return;                          // already hit this frame
+                    if (targetEntity == projectileEntity) return;      // skip self
+                    if (targetEntity == projectileComp.Owner) return;  // skip owner
 
-            // Circle collider check
-            if (!hit && registry.any_of<Engine::CircleCollider2DComponent>(targetEntity))
+                    const glm::vec2 targetPos = {
+                        targetTransformComp.Translation.x,
+                        targetTransformComp.Translation.y
+                    };
+
+                    bool hit = false;
+
+                    // Box collider
+                    if (!hit && targetEntity.HasComponent<Engine::BoxCollider2DComponent>())
+                    {
+                        const auto& box = targetEntity.GetComponent<Engine::BoxCollider2DComponent>();
+                        const glm::vec2 half = 0.5f * box.Size;
+                        const glm::vec2 minB = targetPos - half;
+                        const glm::vec2 maxB = targetPos + half;
+
+                        if (projectilePos.x >= minB.x && projectilePos.x <= maxB.x &&
+                            projectilePos.y >= minB.y && projectilePos.y <= maxB.y)
+                        {
+                            hit = true;
+                        }
+                    }
+
+                    // Circle collider
+                    if (!hit && targetEntity.HasComponent<Engine::CircleCollider2DComponent>())
+                    {
+                        const auto& circle = targetEntity.GetComponent<Engine::CircleCollider2DComponent>();
+                        const float r2 = circle.Radius * circle.Radius;
+                        if (glm::distance2(projectilePos, targetPos) <= r2)
+                        {
+                            hit = true;
+                        }
+                    }
+
+                    if (!hit) return;
+
+                    // 4) Apply damage if available
+                    if (targetEntity.HasComponent<Engine::HealthComponent>())
+                    {
+                        auto& healthComp = targetEntity.GetComponent<Engine::HealthComponent>();
+                        healthComp.Current -= projectileComp.Damage;
+                    }
+
+                    // Mark projectile for destroy
+                    hitSomething = true;
+                    toDestroy.push_back(projectileEntity);
+                });
+
+            if (hitSomething) return;
+
+            // Lifetime expiry
+            projectileComp.LifeTime -= deltaTime;
+            if (projectileComp.LifeTime <= 0.0f)
             {
-                const auto& circle = registry.get<Engine::CircleCollider2DComponent>(targetEntity);
-                float radius = circle.Radius;
-
-                float distSq = glm::distance2(projPos, targetPos);
-                if (distSq <= radius * radius)
-                {
-                    hit = true;
-                }
+                toDestroy.push_back(projectileEntity);
+                return;
             }
+        });
 
-            if (hit)
-            {
-                // Apply damage if target has HealthComponent
-                if (registry.any_of<Engine::HealthComponent>(targetEntity))
-                {
-                    auto& health = registry.get<Engine::HealthComponent>(targetEntity);
-                    health.Current -= projectile.Damage;
-                }
-
-                // Destroy projectile on hit
-                registry.destroy(projectileEntity);
-                break;
-            }
-        }
-
-        // Expire projectile by lifetime
-        if (registry.valid(projectileEntity)) // Check in case it was destroyed above
-        {
-            projectile.LifeTime -= deltaTime;
-            if (projectile.LifeTime <= 0.0f)
-            {
-                registry.destroy(projectileEntity);
-            }
-        }
+    // Destroy all marked projectiles after iteration
+    for (auto& e : toDestroy)
+    {
+        scene->DestroyEntity(e);
     }
 }

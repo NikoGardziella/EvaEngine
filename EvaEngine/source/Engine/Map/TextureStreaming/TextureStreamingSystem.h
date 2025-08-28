@@ -3,9 +3,7 @@
 #include "Engine/Core/Core.h"
 #include <Engine/Core/UUID.h>
 
-#include "entt.hpp"
 #include <Engine/Map/Utils/IVec2Hasher.h>
-#include "Engine/Map/Grid/GridMap.h"
 
 namespace Engine{
 
@@ -39,7 +37,7 @@ namespace Engine{
 
 
 
-
+    class GridMap;
     class Scene;
     class TextureStreamingSystem
     {
@@ -47,7 +45,7 @@ namespace Engine{
         TextureStreamingSystem();
         ~TextureStreamingSystem();
 
-        void TextureStreamingSystem::Update(const glm::vec2& playerPos, entt::registry& gameRegistry);
+        void TextureStreamingSystem::Update(const glm::vec2& playerPos, Scene* scene);
       
 		void TextureStreamingSystem::UploadToChunkFromTexture(const glm::vec2& worldPosition, UUID ID,
             std::string name, const std::vector<uint8_t>& textureData, const std::vector<uint8_t>& healthData, uint32_t textureWidth, uint32_t textureHeight);
@@ -58,26 +56,26 @@ namespace Engine{
 
         void SetGridMap(Ref<GridMap>& gridmap) { m_gridMap = gridmap; }
             
-        void BakeTilesIntoChunks(entt::registry& registry);
-        void SortIsoTilesByY(entt::registry& registry);
-        void AddChunkEntitiesToRegistry(entt::registry& registry);
+        void BakeTilesIntoChunks(Scene* scene);
+        void SortIsoTilesByY(Scene* scene);
+        void AddChunkEntitiesToRegistry(Scene* scene);
         void DebugMarkChunks();
         //debug
-        void ResetAllChunks(entt::registry& gameRegistry);
-        void DebugDrawChunkOutlines(entt::registry& gameRegistry);
+        void ResetAllChunks(Scene* scene);
+        void DebugDrawChunkOutlines(Scene* scene);
         
         
         bool DebugWriteTGA32(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
         bool DebugWritePPM(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
         void DumpRGBA(const std::string& filename, int w, int h, const std::vector<uint8_t>& rgba);
     private:
-        void SortChunksRowMajor(entt::registry& reg);
+        void SortChunksRowMajor(Scene* scene);
         uint64_t HashCoords(const glm::ivec2& coords);
         void FlipChunkHorizontally(TextureChunk& chunk);
         void FlipChunkVertically(TextureChunk& chunk);
-        void LoadChunkToGPU(TextureChunk& chunk, entt::registry& gameRegistry);
+        void LoadChunkToGPU(TextureChunk& chunk, Scene* scene);
 
-        void UnloadChunkFromGPU(TextureChunk& chunk, entt::registry& gameRegistry);
+        void UnloadChunkFromGPU(TextureChunk& chunk, Scene* scene);
 
 
         std::unordered_map<UUID, TextureChunk> m_chunkMap;

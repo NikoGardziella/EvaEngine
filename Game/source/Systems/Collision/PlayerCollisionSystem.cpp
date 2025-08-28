@@ -2,45 +2,31 @@
 #include "Engine/Scene/Scene.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include <Engine/Debug/Instrumentor.h>
-#include <Engine/Events/Public/CollisionEvents.h>
-#include <Engine/Scene/Components/Render/ChunkRendererComponent.h>
+
+#include <Engine/Scene/Scene.h>
 
 
 
-
-void PlayerCollisionSystem::UpdatePlayerCollision(entt::registry& registry, float dt, Engine::Scene* scene)
+void PlayerCollisionSystem::UpdatePlayerCollision(float dt, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto view = registry.view<Engine::TransformComponent,
-        CharacterControllerComponent,
-        Engine::CircleCollider2DComponent>();
+    
+    scene->ForEach<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent >(
+        [&](Engine::Entity e, Engine::TransformComponent& trsformComp, CharacterControllerComponent& ctrlComp, Engine::CircleCollider2DComponent& cir)
+        {
+            
+            glm::vec2 p0 = glm::vec2(trsformComp.Translation);
+            glm::vec2 delta = ctrlComp.velocity * (ctrlComp.speed * dt); // your move
+            float     R = cir.Radius;
 
-    for (auto e : view)
-    {
-        auto& trsformComp = view.get<Engine::TransformComponent>(e);
-        auto& ctrlComp = view.get<CharacterControllerComponent>(e);
-        auto& cir = view.get<Engine::CircleCollider2DComponent>(e);
-
-        glm::vec2 p0 = glm::vec2(trsformComp.Translation);
-        glm::vec2 delta = ctrlComp.velocity * (ctrlComp.speed * dt); // your move
-        float     R = cir.Radius;
-
-        glm::vec2 p1 = CollideAndSlideOBBs(scene->GetGrid()->GetGridSubcells(), p0, delta, R);
+            glm::vec2 p1 = CollideAndSlideOBBs(scene->GetGrid()->GetGridSubcells(), p0, delta, R);
 
 
-        trsformComp.Translation.x = p1.x;
-        trsformComp.Translation.y = p1.y;
-    }
+            trsformComp.Translation.x = p1.x;
+            trsformComp.Translation.y = p1.y;
+        });
 }
-struct SweepHit {
-    bool hit = false;
-    float toi = 1.0f;
-    glm::vec2 normal{ 0 };
-    glm::vec2 point{ 0 };
-};
-
-inline glm::vec2 perpCCW(const glm::vec2& v) { return { -v.y, v.x }; }
 
 // Sweep a circle vs OBB (expanded by radius). Also handles initial overlap.
 PlayerCollisionSystem::SweepHit PlayerCollisionSystem::SweepCircleVsOBB(const Engine::SubCellOBB& obb,

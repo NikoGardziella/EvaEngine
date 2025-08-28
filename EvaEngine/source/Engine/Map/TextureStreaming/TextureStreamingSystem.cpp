@@ -8,8 +8,9 @@
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 #include <Engine/Scene/Components/Render/ChunkRendererComponent.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
-#include <Engine/Scene/Scene.h>
 #include "Engine/Map/Utils/IsoTileUtils.h"
+#include "Engine/Scene/Scene.h"
+#include "Engine/Scene/Entity.h"
 
 
 namespace Engine {
@@ -27,7 +28,7 @@ namespace Engine {
 
     }
 
-    void TextureStreamingSystem::Update(const glm::vec2& playerPos, entt::registry& gameRegistry)
+    void TextureStreamingSystem::Update(const glm::vec2& playerPos, Scene* scene)
     {
         EE_PROFILE_FUNCTION();
 
@@ -45,12 +46,12 @@ namespace Engine {
 
             if (dist <= LOAD_RADIUS && !chunk.IsLoaded)
             {
-                LoadChunkToGPU(chunk, gameRegistry);
+                LoadChunkToGPU(chunk, scene);
                 chunksPackedDirty = true;
             }
             else if (dist > UNLOAD_RADIUS && chunk.IsLoaded)
             {
-                UnloadChunkFromGPU(chunk, gameRegistry);
+                UnloadChunkFromGPU(chunk, scene);
                 chunksPackedDirty = true;
 
             }
@@ -58,7 +59,7 @@ namespace Engine {
 
         if (chunksPackedDirty)
         {
-            SortChunksRowMajor(gameRegistry);
+            SortChunksRowMajor(scene);
         }
 
     }
@@ -374,9 +375,9 @@ namespace Engine {
 
  
 
-    void TextureStreamingSystem::SortChunksRowMajor(entt::registry& reg)
+    void TextureStreamingSystem::SortChunksRowMajor(Scene* scene)
     {
-        reg.sort<ChunkRendererComponent>([](const ChunkRendererComponent& a,
+        scene->GetRegistry().sort<ChunkRendererComponent>([](const ChunkRendererComponent& a,
             const ChunkRendererComponent& b)
             {
                 // Put loaded chunks first
@@ -442,7 +443,7 @@ namespace Engine {
 
 
 
-    void TextureStreamingSystem::LoadChunkToGPU(TextureChunk& chunk, entt::registry& gameRegistry)
+    void TextureStreamingSystem::LoadChunkToGPU(TextureChunk& chunk, Scene* scene)
     {
         EE_PROFILE_FUNCTION();
 
@@ -493,7 +494,7 @@ namespace Engine {
 
       
 
-        auto entityView = gameRegistry.view<IDComponent, SpriteRendererComponent>();
+        auto entityView = scene->GetRegistry().view<IDComponent, SpriteRendererComponent>();
 
         for (auto entity : entityView)
         {
@@ -508,7 +509,7 @@ namespace Engine {
 
         }
 
-        auto chynkentityView = gameRegistry.view<IDComponent, ChunkRendererComponent>();
+        auto chynkentityView = scene->GetRegistry().view<IDComponent, ChunkRendererComponent>();
 
         for (auto entity : chynkentityView)
         {
@@ -530,12 +531,12 @@ namespace Engine {
 
 
 
-    void TextureStreamingSystem::UnloadChunkFromGPU(TextureChunk& chunk, entt::registry& gameRegistry)
+    void TextureStreamingSystem::UnloadChunkFromGPU(TextureChunk& chunk, Scene* scene)
     {
         EE_PROFILE_FUNCTION();
         EE_CORE_INFO("Unloading chunk at coords: {}, {}", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
 
-        auto entityView = gameRegistry.view<IDComponent, SpriteRendererComponent>();
+        auto entityView = scene->GetRegistry().view<IDComponent, SpriteRendererComponent>();
 
         for (auto entity : entityView)
         {
@@ -549,7 +550,7 @@ namespace Engine {
 
         }
 
-        auto chynkentityView = gameRegistry.view<IDComponent, ChunkRendererComponent>();
+        auto chynkentityView = scene->GetRegistry().view<IDComponent, ChunkRendererComponent>();
 
         for (auto entity : chynkentityView)
         {
@@ -574,7 +575,7 @@ namespace Engine {
         chunk.IsLoaded = false;
     }
 
-    void TextureStreamingSystem::ResetAllChunks(entt::registry& gameRegistry)
+    void TextureStreamingSystem::ResetAllChunks(Scene* scene)
     {
         EE_PROFILE_FUNCTION();
         EE_CORE_INFO("Resetting all chunks (scheduled unload)...");
@@ -591,7 +592,7 @@ namespace Engine {
 
         for (auto& [id, chunk] : m_chunkMap)
         {
-            auto chynkentityView = gameRegistry.view<IDComponent, ChunkRendererComponent>();
+            auto chynkentityView = scene->GetRegistry().view<IDComponent, ChunkRendererComponent>();
 
             for (auto entity : chynkentityView)
             {
@@ -610,12 +611,12 @@ namespace Engine {
 		m_chunkMap.clear();
         
     }
-    void TextureStreamingSystem::DebugDrawChunkOutlines(entt::registry& gameRegistry)
+    void TextureStreamingSystem::DebugDrawChunkOutlines(Scene* scene)
     {
         EE_PROFILE_FUNCTION();
         // 1) Find the player's position
         glm::vec2 playerPos{ 0.0f };
-        auto playerView = gameRegistry.view<TransformComponent, CharacterControllerComponent>();
+        auto playerView = scene->GetRegistry().view<TransformComponent, CharacterControllerComponent>();
         for (auto entity : playerView)
         {
             auto& xf = playerView.get<TransformComponent>(entity);
@@ -673,124 +674,132 @@ namespace Engine {
     }
 
 
-    void TextureStreamingSystem::BakeTilesIntoChunks(entt::registry& registry)
+    void TextureStreamingSystem::BakeTilesIntoChunks(Scene* scene)
     {
         EE_PROFILE_FUNCTION();
 
-        auto view = registry.view<TransformComponent, TileComponent>();
-        for (auto entity : view)
-        {
-            auto& transformComp = view.get<TransformComponent>(entity);
-            const auto& tcomp = view.get<TileComponent>(entity);
-
-     
-            for (const TileInfo& tile : tcomp.tiles)
+        // Pass A: bake all TERRAIN tiles first
+        scene->ForEach<TransformComponent, TileComponent>(
+            [&](Engine::Entity entity, TransformComponent& transformComp, TileComponent& tileComp)
             {
-
-                if (tile.Category != eTileCategory::Terrain)
+                for (const TileInfo& tile : tileComp.tiles)
                 {
-                    continue;
+                    if (tile.Category != eTileCategory::Terrain)
+                        continue;
+
+                    const glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
+
+                    std::vector<uint8_t> pixelData;
+                    std::vector<uint8_t> healthData;
+                    int w = 0, h = 0;
+                    if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, w, h))
+                        continue;
+
+                    // If you also mark blocked subtiles, do it here
+                    // m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData, w, h);
+
+                    UploadTerrainToChunkFromTexture(
+                        worldTilePos,
+                        tileComp.TileID,
+                        tile.name,
+                        pixelData,
+                        static_cast<uint32_t>(w),
+                        static_cast<uint32_t>(h));
                 }
-
-                const glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
-                std::vector<uint8_t> pixelData;
-                std::vector<uint8_t> healthData;
-                int width, height;
-                if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, width, height))
-                    continue;
-              
-                    //  m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
-                     //     width, height);
-                UploadTerrainToChunkFromTexture(worldTilePos, tcomp.TileID, tile.name, pixelData,
-                    uint32_t(width), uint32_t(height));
-                
-
-            }
-        }
-
-
-        for (auto entity : view)
-        {
-            // check if this entity has roof tiles.
-            // if it does, make a new roof texture that is combinatio of all roof tiles
-            TextureStreamingUtils::BakeRoofTextureIfNeeded(registry, entity);
-            TextureStreamingUtils::BakeVehicleTextureIfNeeded(registry, entity);
-
-            auto& transformComp = view.get<TransformComponent>(entity);
-            const auto& tcomp = view.get<TileComponent>(entity);
-
-            for (const TileInfo& tile : tcomp.tiles)
-            {
-
-                if (tile.Category == eTileCategory::Terrain)
-                {
-                    continue;
-                }
-                const glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
-                
-                std::vector<uint8_t> pixelData;
-                std::vector<uint8_t> healthData;
-                int width, height;
-                if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, width, height))
-                    continue;
-                EE_CORE_INFO("worldTilePos {}, {}", worldTilePos.x, worldTilePos.y);
-                //DumpRGBA("afterExtract.png", width, height, pixelData);
-
-
-                  //  m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData,
-                   //     width, height);
-
-                UploadToChunkFromTexture(worldTilePos, tcomp.TileID,tile.name,pixelData,
-                    healthData, uint32_t(width), uint32_t(height));
-                
-            
-            }
-        }
-
-        //DebugMarkChunks();
-    }
-
-    void TextureStreamingSystem::SortIsoTilesByY(entt::registry& registry)
-    {
-        // A) Entities: higher Y first (draw earlier)
-        registry.sort<TransformComponent>(
-            [&registry](entt::entity a, entt::entity b)
-            {
-                const auto& ta = registry.get<TransformComponent>(a).Translation;
-                const auto& tb = registry.get<TransformComponent>(b).Translation;
-
-                if (ta.y != tb.y) return ta.y > tb.y;        // DESC by Y
-                return (uint32_t)a < (uint32_t)b;            // stable tie-break
             }
         );
 
-        // B) Tiles within each entity: higher ground Y first (draw earlier)
-        auto view = registry.view<TileComponent, TransformComponent>();
+        // Pass B: per-entity bakes + NON-TERRAIN tiles
+        scene->ForEach<TransformComponent, TileComponent>(
+            [&](Entity entity, TransformComponent& transformComp, TileComponent& tileComp)
+            {
+                // Per-entity baked textures (pass the Entity as requested)
+                TextureStreamingUtils::BakeRoofTextureIfNeeded(scene, entity);
+                TextureStreamingUtils::BakeVehicleTextureIfNeeded(scene, entity);
+
+                for (const TileInfo& tile : tileComp.tiles)
+                {
+                    if (tile.Category == eTileCategory::Terrain)
+                        continue;
+
+                    const glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
+
+                    std::vector<uint8_t> pixelData;
+                    std::vector<uint8_t> healthData;
+                    int w = 0, h = 0;
+                    if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, w, h))
+                        continue;
+
+                    // If you also mark blocked subtiles, do it here
+                    // m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData, w, h);
+
+                    UploadToChunkFromTexture(
+                        worldTilePos,
+                        tileComp.TileID,
+                        tile.name,
+                        pixelData,
+                        healthData,
+                        static_cast<uint32_t>(w),
+                        static_cast<uint32_t>(h));
+                }
+            }
+        );
+
+        // DebugMarkChunks();
+    }
+
+
+    void TextureStreamingSystem::SortIsoTilesByY(Scene* scene)
+    {
+        auto& reg = scene->GetRegistry();
+
+        // A) Sort entities: higher Y first (draw earlier)
+        reg.sort<TransformComponent>(
+            [&reg](entt::entity a, entt::entity b)
+            {
+                const auto& ta = reg.get<TransformComponent>(a).Translation;
+                const auto& tb = reg.get<TransformComponent>(b).Translation;
+
+                if (ta.y != tb.y) {
+                    return ta.y > tb.y; // DESC by Y
+                }
+                // stable tie-break by entity id
+
+                using underlying = std::underlying_type_t<entt::entity>;
+                return static_cast<underlying>(a) < static_cast<underlying>(b);
+
+            }
+        );
+
+        // B) Sort tiles within each entity: higher ground Y first (draw earlier)
+        auto view = reg.view<TileComponent, TransformComponent>();
         for (auto e : view)
         {
-            auto& tc = view.get<TileComponent>(e);
+            auto& tileComp = view.get<TileComponent>(e);
             const auto& tr = view.get<TransformComponent>(e);
 
-            std::stable_sort(tc.tiles.begin(), tc.tiles.end(),
+            std::stable_sort(tileComp.tiles.begin(), tileComp.tiles.end(),
                 [&](const TileInfo& A, const TileInfo& B)
                 {
-                    const float yA = tr.Translation.y + A.position.y; // A/B.position = WORLD delta to GROUND
-                    const float yB = tr.Translation.y + B.position.y;
-                    return yA > yB;                                    // DESC by Y
+                    const float yA = tr.Translation.y + A.position.y; // world Y of tile A’s ground
+                    const float yB = tr.Translation.y + B.position.y; // world Y of tile B’s ground
+                    return yA > yB;                                   // DESC by Y
                 }
             );
         }
     }
 
 
-    void TextureStreamingSystem::AddChunkEntitiesToRegistry(entt::registry& registry)
+
+
+    void TextureStreamingSystem::AddChunkEntitiesToRegistry(Scene* scene)
     {
         EE_PROFILE_FUNCTION();
         for (auto& [uuid, chunk] : m_chunkMap)
         {
             
-            auto entity = registry.create();
-            auto& chunkRenderer = registry.emplace<ChunkRendererComponent>(entity);
+            auto entity = scene->GetRegistry().create();
+            auto& chunkRenderer = scene->GetRegistry().emplace<ChunkRendererComponent>(entity);
             
 			EE_CORE_INFO("Creating chunk entity at position: ({}, {})",
                 chunk.ChunkCoords.x, chunk.ChunkCoords.y);
@@ -798,7 +807,7 @@ namespace Engine {
             IDComponent id;
             id.ID = HashCoords(chunk.ChunkCoords);
 			EE_CORE_INFO("Adding chunk entity with ID: {}", (uint64_t)id.ID);
-            IDComponent& idComp = registry.emplace<IDComponent>(entity);
+            IDComponent& idComp = scene->GetRegistry().emplace<IDComponent>(entity);
             idComp = id;
 
             chunkRenderer.Texture = chunk.GPUTexture;

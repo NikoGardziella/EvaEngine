@@ -1,13 +1,11 @@
 #pragma once
-#include "entt.hpp"
-#include "Engine.h"
-#include <Engine/Scene/Scene.h>
 
 
 
+namespace Engine { class Scene; }
 class VehicleSystem
 {
 public:
-	static void UpdateVehicleSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
+	static void UpdateVehicleSystem(float deltaTime, Engine::Scene* scene);
 };
 

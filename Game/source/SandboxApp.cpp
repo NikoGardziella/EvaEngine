@@ -1,9 +1,6 @@
 #include "Engine.h"
-#include "Engine/Core/Layer.h"
-#include "Engine/Core/EntryPoint.h"
-#include <Engine/Scene/SceneSerializer.h>
+
 #include "Engine/AssetManager/AssetManager.h"
-#include <Engine/Platform/OpenGl/OpenGLShader.h>
 
 #include "PixelGame.h"
 

@@ -6,18 +6,18 @@
 #include "Engine/AssetManager/AssetManager.h"
 #include <Engine/Scene/Components/Render/RoofRenderComponent.h>
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
-#include <Engine/Scene/Entity.h>
+#include "Engine/Scene/Entity.h"
 
 namespace Engine {
 
-    bool TextureStreamingUtils::BakeRoofTextureIfNeeded(entt::registry& registry, entt::entity entity)
+    bool TextureStreamingUtils::BakeRoofTextureIfNeeded(Scene* scene, Entity entity)
     {
         EE_PROFILE_FUNCTION();
-        if (!registry.all_of<TileComponent, TransformComponent>(entity))
+        if (!scene->GetRegistry().all_of<TileComponent, TransformComponent>(entity))
             return false;
 
-        auto& tcomp = registry.get<TileComponent>(entity);
-        auto& xf = registry.get<TransformComponent>(entity);
+        auto& tcomp = scene->GetRegistry().get<TileComponent>(entity);
+        auto& xf = scene->GetRegistry().get<TransformComponent>(entity);
 
         constexpr int TILE_SIZE_PX = TILE_PIXEL_WIDTH;
 
@@ -87,7 +87,7 @@ namespace Engine {
         combinedTexture->SetData(finalPixels.data(), textureSize.x * textureSize.y * 4);
 
         // Store RoofRenderComponent with positive LocalOffset in world units
-        RoofRenderComponent& roofRenderComp = registry.emplace_or_replace<RoofRenderComponent>(entity, RoofRenderComponent{});
+        RoofRenderComponent& roofRenderComp = scene->GetRegistry().emplace_or_replace<RoofRenderComponent>(entity, RoofRenderComponent{});
         roofRenderComp.IsLoaded = true;
         roofRenderComp.Texture = combinedTexture;
 
@@ -102,15 +102,15 @@ namespace Engine {
     }
 
 
-    bool TextureStreamingUtils::BakeVehicleTextureIfNeeded(entt::registry& registry, entt::entity entity)
+    bool TextureStreamingUtils::BakeVehicleTextureIfNeeded(Scene* scene, Entity entity)
     {
         EE_PROFILE_FUNCTION();
 
-        if (!registry.all_of<TileComponent, TransformComponent>(entity))
+        if (!scene->GetRegistry().all_of<TileComponent, TransformComponent>(entity))
             return false;
 
-        auto& tcomp = registry.get<TileComponent>(entity);
-        auto& xf = registry.get<TransformComponent>(entity);
+        auto& tcomp = scene->GetRegistry().get<TileComponent>(entity);
+        auto& xf = scene->GetRegistry().get<TransformComponent>(entity);
 
         constexpr int TILE_SIZE_PX = TILE_PIXEL_WIDTH;
 
@@ -174,7 +174,7 @@ namespace Engine {
         );
         vehicleTexture->SetData(finalPixels.data(), textureSize.x * textureSize.y * 4);
 
-        SpriteRendererComponent& vehicleRender = registry.emplace_or_replace<SpriteRendererComponent>(entity);
+        SpriteRendererComponent& vehicleRender = scene->GetRegistry().emplace_or_replace<SpriteRendererComponent>(entity);
         //vehicleRender.IsLoaded = true;
         vehicleRender.Texture = vehicleTexture;
         vehicleRender.Color = glm::vec4(1);

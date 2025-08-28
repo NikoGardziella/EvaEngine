@@ -132,7 +132,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="source\PixelGame.h" />
-    <ClInclude Include="source\Systems\Collision\PixelCollisionSystem.h" />
     <ClInclude Include="source\Systems\Collision\PlayerCollisionSystem.h" />
     <ClInclude Include="source\Systems\Combat\HealthSystem.h" />
     <ClInclude Include="source\Systems\Combat\PlayerWeaponSystem.h" />
@@ -148,7 +147,6 @@
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
     <ClCompile Include="source\SandboxApp.cpp" />
-    <ClCompile Include="source\Systems\Collision\PixelCollisionSystem.cpp" />
     <ClCompile Include="source\Systems\Collision\PlayerCollisionSystem.cpp" />
     <ClCompile Include="source\Systems\Combat\HealthSystem.cpp" />
     <ClCompile Include="source\Systems\Combat\PlayerWeaponSystem.cpp" />

@@ -2,89 +2,89 @@
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 
 #include <glm/glm.hpp>
-#include <glm/gtx/norm.hpp>
 #include <Engine/Debug/Instrumentor.h>
+#include <Engine/Scene/Scene.h>
 
-void NpcAIMovementSystem::UpdateNPCAIMovementSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+
+void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto view = registry.view<NPCAIMovementComponent, Engine::TransformComponent>();
-
-    for (auto entity : view)
-    {
-        NPCAIMovementComponent& aiComp = view.get<NPCAIMovementComponent>(entity);
-        Engine::TransformComponent& NPCTransformComp = view.get<Engine::TransformComponent>(entity);
-        glm::vec3& NPCpos = NPCTransformComp.Translation;
-
-        switch (aiComp.CurrentState)
+    scene->ForEach<NPCAIMovementComponent, Engine::TransformComponent>(
+        [&](Engine::Entity npcEntity, NPCAIMovementComponent& aiComp,
+            Engine::TransformComponent& npcTransformComp)
         {
-        case AIState::Idle:
-        {
-            aiComp.IdleTimer += deltaTime;
-            if (aiComp.IdleTimer >= aiComp.IdleDuration)
+            glm::vec3& npcPosition = npcTransformComp.Translation;
+
+            switch (aiComp.CurrentState)
             {
-                aiComp.IdleTimer = 0.0f;
-
-                if (!aiComp.PatrolPoints.empty())
+            case AIState::Idle:
+            {
+                aiComp.IdleTimer += deltaTime;
+                if (aiComp.IdleTimer >= aiComp.IdleDuration)
                 {
-                    aiComp.CurrentState = AIState::Patrol;
+                    aiComp.IdleTimer = 0.0f;
+                    if (!aiComp.PatrolPoints.empty())
+                        aiComp.CurrentState = AIState::Patrol;
                 }
-            }
-            break;
-        }
+            } break;
 
-        case AIState::Patrol:
-        {
-            if (aiComp.PatrolPoints.empty())
+            case AIState::Patrol:
             {
-                aiComp.CurrentState = AIState::Idle;
-                break;
-            }
+                if (aiComp.PatrolPoints.empty())
+                {
+                    aiComp.CurrentState = AIState::Idle;
+                    break;
+                }
 
-            glm::vec3 target = aiComp.PatrolPoints[aiComp.CurrentPatrolIndex];
-            glm::vec3 direction = glm::normalize(target - NPCpos);
-            NPCpos += direction * aiComp.MoveSpeed * deltaTime;
+                const glm::vec3 targetPos = aiComp.PatrolPoints[aiComp.CurrentPatrolIndex];
+                const glm::vec3 toTarget = targetPos - npcPosition;
+                const float     dist2 = glm::dot(toTarget, toTarget);
 
-            if (glm::distance2(NPCpos, target) < 0.05f)
+                if (dist2 > 0.0f)
+                {
+                    const glm::vec3 dir = glm::normalize(toTarget);
+                    npcPosition += dir * aiComp.MoveSpeed * deltaTime;
+                }
+
+                if (dist2 < 0.05f) // reached node
+                {
+                    aiComp.CurrentPatrolIndex =
+                        (aiComp.CurrentPatrolIndex + 1) % aiComp.PatrolPoints.size();
+                    aiComp.CurrentState = AIState::Idle;
+                    aiComp.IdleTimer = 0.0f;
+                }
+            } break;
+
+            case AIState::MoveToTarget:
             {
-                aiComp.CurrentPatrolIndex = (aiComp.CurrentPatrolIndex + 1) % aiComp.PatrolPoints.size();
-                aiComp.CurrentState = AIState::Idle;
-                aiComp.IdleTimer = 0.0f;
+                const glm::vec3 toTarget = aiComp.TargetPosition - npcPosition;
+                const float     dist2 = glm::dot(toTarget, toTarget);
+
+                if (dist2 < 1.1f)
+                {
+                    aiComp.CurrentState = AIState::Idle;
+                    aiComp.IdleTimer = 0.0f;
+                    break;
+                }
+
+                // Move
+                glm::vec3 dir = glm::normalize(toTarget);
+                npcPosition += dir * aiComp.MoveSpeed * deltaTime;
+
+                // Smooth face direction (top-down sprite that looks “up” by default)
+                const float currentAngle = npcTransformComp.Rotation.z;
+                float targetAngle = std::atan2(dir.y, dir.x) - glm::radians(90.0f);
+
+                float delta = targetAngle - currentAngle;
+                delta = std::atan2(std::sin(delta), std::cos(delta)); // wrap to [-pi, pi]
+
+                constexpr float kRotationSpeed = 5.0f; // radians/sec
+                const float maxStep = kRotationSpeed * deltaTime;
+                delta = glm::clamp(delta, -maxStep, maxStep);
+
+                npcTransformComp.Rotation.z = currentAngle + delta;
+            } break;
             }
-            break;
-        }
-
-        case AIState::MoveToTarget:
-        {
-            if (glm::distance2(NPCpos, aiComp.TargetPosition) < 1.1f)
-            {
-                aiComp.CurrentState = AIState::Idle;
-                aiComp.IdleTimer = 0.0f;
-                break;
-            }
-
-            glm::vec3 direction = glm::normalize(aiComp.TargetPosition - NPCpos);
-            NPCpos += direction * aiComp.MoveSpeed * deltaTime;
-
-            float currentAngle = NPCTransformComp.Rotation.z;
-            float targetAngle = std::atan2(direction.y, direction.x);
-            float rotationFix = glm::radians(-90.0f);
-            targetAngle -= rotationFix;
-
-            float delta = targetAngle - currentAngle;
-            delta = std::atan2(std::sin(delta), std::cos(delta)); 
-
-            float rotationSpeed = 5.0f; // radians per second
-            float maxStep = rotationSpeed * deltaTime;
-            delta = glm::clamp(delta, -maxStep, maxStep);
-
-            NPCTransformComp.Rotation.z = currentAngle + delta;
-
-
-            
-            break;
-        }
-        }
-    }
+        });
 }

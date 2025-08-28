@@ -5,10 +5,11 @@
 
 namespace Engine {
 
+	class Scene;
 	class EditorDebugUtils
 	{
 	public:
-		static void PrintAllEntities(entt::registry& registry);
+		static void PrintAllEntities(Scene* scene);
 	};
 
 }

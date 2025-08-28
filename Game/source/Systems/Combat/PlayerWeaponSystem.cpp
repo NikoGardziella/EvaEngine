@@ -1,60 +1,64 @@
 #include "PlayerWeaponSystem.h"
-#include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include <Engine/Scene/Components/Combat/WeaponComponent.h>
 #include <Engine/AssetManager/AssetManager.h>
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Scene/Components/Vehicles/DriverComponent.h>
 #include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
+#include <Engine/Scene/Scene.h>
 
 
-void PlayerWeaponSystem::UpdatePlayerWeaponSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene)
+void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime,  Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    auto view = registry.view<Engine::TransformComponent, CharacterControllerComponent, WeaponComponent>();
+    // Mouse world position from the primary camera
+    glm::vec2 mouseWorldPosition{ 0.0f, 0.0f };
+    bool hasPrimaryCamera = false;
 
-    //glm::vec2 mouseScreen = Engine::Input::GetMouseScreenPosition();
-    glm::vec2 mouseWorldPosition = glm::vec2(0.0f, 0.0f);
-    {
-
+    scene->ForEach<Engine::TransformComponent, Engine::CameraComponent>(
+        [&](Engine::Entity /*cameraEntity*/,
+            Engine::TransformComponent& cameraTransformComp,
+            Engine::CameraComponent& cameraComp)
         {
-            auto group = registry.group<Engine::TransformComponent, Engine::CameraComponent>();
-            for (auto entity : group)
+            if (hasPrimaryCamera || !cameraComp.Primary)
             {
-                auto [cameraTransformComp, cameraComp] = group.get<Engine::TransformComponent, Engine::CameraComponent>(entity);
+                return;
+            }
+            mouseWorldPosition = cameraComp.Camera.ScreenToWorld(cameraTransformComp.GetTransform());
+            hasPrimaryCamera = true;
+        });
 
-                if (cameraComp.Primary)
+    // Players with weapons
+    scene->ForEach<Engine::TransformComponent, WeaponComponent>(
+        [&](Engine::Entity playerEntity, Engine::TransformComponent& playerTransformComp, WeaponComponent& weaponComp)
+        {
+            // cooldown tick
+            if (weaponComp.Cooldown > 0.0f)
+                weaponComp.Cooldown -= deltaTime;
+
+            if (!hasPrimaryCamera) return;
+
+            // fire?
+            if (Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0) &&
+                weaponComp.Cooldown <= 0.0f)
+            {
+                const glm::vec2 playerPos = glm::vec2(playerTransformComp.Translation);
+                glm::vec2 dir = mouseWorldPosition - playerPos;
+
+                if (glm::length2(dir) > 1e-10f)
                 {
-                    mouseWorldPosition = cameraComp.Camera.ScreenToWorld(cameraTransformComp.GetTransform());
-                    break;
+                    dir = glm::normalize(dir);
+                    ShootProjectile(playerEntity, playerTransformComp.Translation,
+                        dir, scene, weaponComp);
+
+                    weaponComp.Cooldown = weaponComp.FireRate;
                 }
             }
-        }
-    }
-
-
-    for (auto entity : view)
-    {
-        auto& transform = view.get<Engine::TransformComponent>(entity);
-        auto& weaponCOmp = view.get<WeaponComponent>(entity);
-
-        if (weaponCOmp.Cooldown > 0.0f)
-            weaponCOmp.Cooldown -= deltaTime;
-
-        if (Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0) && weaponCOmp.Cooldown <= 0.0f)
-        {
-            glm::vec2 playerPos = glm::vec2(transform.Translation);
-            glm::vec2 direction = glm::normalize(mouseWorldPosition - playerPos);
-
-            Engine::Entity playerEntity = Engine::Entity{ entity, scene };
-            ShootProjectile(registry, playerEntity, transform.Translation, direction, scene, weaponCOmp);
-
-            weaponCOmp.Cooldown = weaponCOmp.FireRate;
-        }
-    }
+        });
 }
 
-void PlayerWeaponSystem::ShootProjectile(entt::registry& registry, Engine::Entity entity,
+
+void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
     const glm::vec2& position, const glm::vec2& direction, Engine::Scene* scene, const WeaponComponent& weaponComp)
 {
     // disable shooting from a car now

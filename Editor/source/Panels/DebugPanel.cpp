@@ -8,6 +8,7 @@
 #include <Engine/Scene/Component.h>
 #include "Engine/Scene/Entity.h"
 #include "../EditorApp.h"
+#include "Engine/Map/Grid/GridMap.h"
 
 namespace Engine {
    
@@ -39,7 +40,7 @@ namespace Engine {
 
             if (ImGui::Button("Unload all textures"))
             {
-                DebugInterface::ResetAllTextures(m_gameContext->GetRegistry());
+                DebugInterface::ResetAllTextures(m_gameContext.get());
             }
 
 
@@ -92,7 +93,7 @@ namespace Engine {
             
             
 
-            DebugInterface::DebugDrawChunkOutlines(m_gameContext->GetRegistry());
+            DebugInterface::DebugDrawChunkOutlines(m_gameContext.get());
             Engine::VulkanRenderer2D::EndScene();
 
 		}

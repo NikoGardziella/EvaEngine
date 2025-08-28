@@ -1,11 +1,12 @@
 #pragma once
-#include "entt.hpp"
-#include "Engine.h"
+
+
+namespace Engine { class Scene; }
 
 class PlayerCameraSystem
 {
 public:
 
-	static void UpdatePlayerCameraSystem(entt::registry& registry, float deltaTime, Engine::Scene* scene);
+	static void UpdatePlayerCameraSystem(float deltaTime, Engine::Scene* scene);
 };
 

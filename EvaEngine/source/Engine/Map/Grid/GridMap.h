@@ -1,10 +1,9 @@
 #pragma once
 #include <unordered_set>
 #include <glm/glm.hpp>
-#include <entt.hpp>
 #include <Engine/Map/Utils/IVec2Hasher.h>
-#include <Engine/Platform/Vulkan/VulkanTexture.h>
-#include <unordered_map>
+
+
 
 
 namespace Engine {
@@ -42,11 +41,11 @@ namespace Engine {
 
 
 
-
+	class Scene;
 	class GridMap
 	{
 	public:
-		void BuildFromRegistry(entt::registry& registry);
+		void BuildFromRegistry(Scene* scene);
 		void GridMap::MarkBlockedSubtilesFromTexture(const glm::vec2& worldPosition,
 			const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
 

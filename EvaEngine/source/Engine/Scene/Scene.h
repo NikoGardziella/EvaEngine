@@ -1,23 +1,22 @@
 #pragma once
+
+#include <entt.hpp>
 #include "Engine/Core/Timestep.h"
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Core/UUID.h"
 
 #include "box2d/id.h"
-#include "entt.hpp"
-
 #include <functional>
 
 #include "TaskManager/PhysicsTaskScheduler.h"
-#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
-#include <Engine/Map/Grid/GridMap.h>
 
 
 
 namespace Engine {
 
+	class TextureStreamingSystem;
 	class Entity;
-
+	class GridMap;
 	class Scene
 	{
 
@@ -51,6 +50,32 @@ namespace Engine {
 
 		void DuplicateEntity(Entity entity);
 
+		// justa wrapper to make cleaner entt registry query 
+		template<class... Cs, class Fn>
+		void ForEach(Fn&& fn)
+		{
+			auto view = m_registry.view<Cs...>();
+			for (auto e : view)
+			{
+				fn(Entity{ e, this }, view.template get<Cs>(e)...); // passes refs to Cs...
+			}
+		}
+
+		
+
+		// Const variant (if you need read-only iteration)
+		// (Ideally have a ConstEntity wrapper; shown here passing Entity too.)
+		template<class... Cs, class Fn>
+		void ForEachConst(Fn&& fn) const
+		{
+			auto view = m_registry.view<const Cs...>();
+			for (auto e : view)
+			{
+				fn(Entity{ e, const_cast<Scene*>(this) }, view.template get<const Cs&>(e)...);
+			}
+		}
+
+
 		Entity GetPrimaryCameraEntity();
 		TextureStreamingSystem& GetTextureStreamingSystem() { return *m_textureStreamingSystem; }
 
@@ -66,15 +91,7 @@ namespace Engine {
 
 		Ref<GridMap>& GetGrid() { return m_gridMap; }
 
-		/*
-			Engine::Scope<TextureStreamingSystem> ReleaseTextureStreamingSystem()
-			{
-				return std::move(m_textureStreamingSystem);
-			}
-
-		*/
 		void ClearRegistry() { m_registry.clear(); };
-
 		entt::registry& GetRegistry() { return m_registry;  }
 		
 
@@ -84,7 +101,7 @@ namespace Engine {
 		uint32_t GetViewportWidth() { return m_viewportWidth; }
 
 
-		void RegisterSystem(const std::function<void(entt::registry&, float, Scene*)>& system);
+		void RegisterSystem(const std::function<void(float, Scene*)>& system);
 		void SetDebugDrawLOS(bool drawLOS) { m_debugDrawLOS = drawLOS; }
 
 		template<typename... Components>
@@ -122,7 +139,7 @@ namespace Engine {
 
 		PhysicsTaskScheduler m_physicsTaskScheduler;
 
-		std::vector<std::function<void(entt::registry&, float, Scene*)>> m_gameplaySystems;
+		std::vector<std::function<void(float, Scene*)>> m_gameplaySystems;
 
 		Ref<TextureStreamingSystem> m_textureStreamingSystem;
 		Ref<GridMap> m_gridMap;
