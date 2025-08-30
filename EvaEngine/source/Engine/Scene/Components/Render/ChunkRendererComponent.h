@@ -9,7 +9,7 @@ namespace Engine {
     struct ChunkRendererComponent
     {
         Ref<VulkanTexture> Texture;
-        Ref<VulkanTexture> HealthTexture;
+        Ref<VulkanTexture> PropertiesTexture;
         std::vector<uint8_t> HealthData;
         Ref<VulkanTexture> TerrainTexture;
         glm::ivec2 ChunkCoords;

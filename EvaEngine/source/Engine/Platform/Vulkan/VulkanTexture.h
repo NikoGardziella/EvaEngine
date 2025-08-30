@@ -43,8 +43,8 @@ namespace Engine {
         void CreateTextureImage();
         Ref<VulkanTexture> Clone() const;
 
-        const std::vector<uint8_t>& GetPixelData() const { return m_pixelData; }
-		void SetPixelData(const std::vector<uint8_t>& pixelData) { m_pixelData = pixelData; }
+        const std::vector<uint8_t>& GetCPUPixelData() const { return m_CPUpixelData; }
+		void SetCPUPixelData(const std::vector<uint8_t>& pixelData) { m_CPUpixelData = pixelData; }
 
         void SetCheckCollision(bool checkCollision) { m_checkCollision = checkCollision; }
         bool GetCheckCollision() const { return m_checkCollision; }
@@ -75,7 +75,7 @@ namespace Engine {
         VkImage m_image;
         uint32_t m_width;
         uint32_t m_height;
-        std::vector<uint8_t> m_pixelData; // 4 bytes per pixel (RGBA)
+        std::vector<uint8_t> m_CPUpixelData; // 4 bytes per pixel (RGBA)
     private:
         void CreateTextureImage(const std::string& path);
         void CreateTextureImageView();

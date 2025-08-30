@@ -58,23 +58,35 @@ namespace Engine {
     };
 
 
+    // std430 mirror of the GLSL struct (exact byte layout)
     struct CollisionEntitiesGPU {
-        glm::vec2 Position;    // 8 bytes
-        float ColliderRadius;          // 4 bytes
-        uint32_t Type;         // 4 bytes
+        glm::vec2 Position;          //  0..7
+        float     ColliderRadius;    //  8..11
+        uint32_t  Type;              // 12..15
 
-        uint32_t ID_Low;       // 4 bytes
-        uint32_t ID_High;      // 4 bytes
+        uint32_t  ID_Low;            // 16..19
+        uint32_t  ID_High;           // 20..23
 
-        glm::vec2 Size;        // 8 bytes (width, height of box)
-        float Rotation;        // 4 bytes (in radians)
+        glm::vec2 Size;              // 24..31
+        float     Rotation;          // 32..35
 
-        uint32_t Damage;      // 4 bytes 
-        uint32_t DestructionRadius; // 4 
+        uint32_t  Damage;            // 36..39
+        uint32_t  DestructionRadius; // 40..43
 
+        uint32_t  _pad0;             // 44..47  <-- forces EndPos to 8B alignment
+
+        glm::vec2 EndPos;            // 48..55
+        glm::vec2 Dir;               // 56..63
+
+        float     RayLen;            // 64..67
+        float     Z1;                // 68..71
     };
-    static_assert(offsetof(CollisionEntitiesGPU, Damage) == 36);
-    static_assert(sizeof(CollisionEntitiesGPU) == 44, "ProjectileGPU must be 44 bytes");
+    static_assert(sizeof(CollisionEntitiesGPU) == 72, "SSBO stride must be 72");
+    static_assert(offsetof(CollisionEntitiesGPU, EndPos) == 48, "EndPos misaligned");
+    static_assert(offsetof(CollisionEntitiesGPU, Dir) == 56, "Dir misaligned");
+    static_assert(offsetof(CollisionEntitiesGPU, RayLen) == 64, "RayLen misaligned");
+    static_assert(offsetof(CollisionEntitiesGPU, Z1) == 68, "Z1 misaligned");
+
 
     struct PlayerPC {
         glm::vec2 WindowOriginWorld;   // world units

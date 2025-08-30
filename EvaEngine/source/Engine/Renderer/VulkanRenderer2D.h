@@ -76,7 +76,7 @@ namespace Engine {
 
 		std::unordered_map<VulkanTexture*, uint32_t> TextureToSlotMap;
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> TextureSlots;
-		std::array<Ref<VulkanTexture>, GridSize> HealthTextureSlots;
+		std::array<Ref<VulkanTexture>, GridSize> propertiesTextureSlots;
 		std::array<Ref<VulkanTexture>, GridSize> GridTextureSlots;
 		uint32_t TextureSlotIndex = 0;
 		uint32_t GridSlotIndex = 0;
@@ -134,10 +134,12 @@ namespace Engine {
 		glm::vec2 TextureOrigin;   // 8 bytes
 		float PixelSize;           // 4 bytes
 		uint32_t textureIndex;     // 4 bytes
+
 		uint32_t NumProjectiles;
-		uint32_t mode; // 0 = Detect, 1 = Destroy, 2 = Tilemask
+
 		uint32_t ChunkSize; // in pixels
 		uint32_t TileSize; // in pixels
+		uint32_t mode; // 0 = Detect, 1 = Destroy, 2 = Tilemask
 		glm::ivec2 MinTileCoords;
 	
 	};
@@ -183,9 +185,11 @@ namespace Engine {
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
 		
 		static void CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size, float rotation, uint64_t entityID, eCollisionType collisionType, uint32_t damage);
-		static void CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType, uint32_t damage, const uint32_t destructionRadius);
+		static void CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID,
+			eCollisionType collisionType, uint32_t damage, const uint32_t destructionRadius, glm::vec2  projectileDirection,
+			glm::vec2  TargetPositionAtFireTime, float  DistanceToTargetatFireTime, float  TargetPositionHeightZ1);
 		static void CalculatePlayerCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType);
-		static void DrawTextureQuadWithHealth(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
+		static void DrawTextureQuadWithProperties(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
 		static void DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);

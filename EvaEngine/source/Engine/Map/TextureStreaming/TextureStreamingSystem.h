@@ -18,12 +18,12 @@ namespace Engine{
 		std::string AssetName;
         glm::ivec2 ChunkCoords; 
         std::vector<uint8_t> PixelData; 
-        std::vector<uint8_t> HealthData;
+        std::vector<uint8_t> PropertiesData; // RGBA8UI: R=health, G=height, B=mask, A=flags)
         std::vector<uint8_t> TerrainData;
         bool IsDirty = false; // Mark if pixels were modified
         bool IsLoaded = false;
         Engine::Ref<Engine::VulkanTexture> GPUTexture; 
-        Engine::Ref<Engine::VulkanTexture> HealthTexture; 
+        Engine::Ref<Engine::VulkanTexture> PropertiesTexture; 
         Engine::Ref<Engine::VulkanTexture> TerrainTexture; 
 
         uint32_t Width = 0;
@@ -46,9 +46,11 @@ namespace Engine{
         ~TextureStreamingSystem();
 
         void TextureStreamingSystem::Update(const glm::vec2& playerPos, Scene* scene);
-      
+
+
+     
 		void TextureStreamingSystem::UploadToChunkFromTexture(const glm::vec2& worldPosition, UUID ID,
-            std::string name, const std::vector<uint8_t>& textureData, const std::vector<uint8_t>& healthData, uint32_t textureWidth, uint32_t textureHeight);
+            const std::string& name, const std::vector<uint8_t>& textureData, const std::vector<uint8_t>& propertiesData, uint32_t textureWidth, uint32_t textureHeight);
 
         void UploadTerrainToChunkFromTexture(const glm::vec2& worldPosition, UUID ID, std::string name, const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
         

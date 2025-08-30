@@ -165,7 +165,7 @@ namespace Engine {
 		for (uint32_t i = s_VulkanData.GridSlotIndex; i < s_VulkanData.GridSize; i++)
 		{
 			s_VulkanData.GridTextureSlots[i] = s_VulkanData.WhiteTexture;
-			s_VulkanData.HealthTextureSlots[i] = m_dummyTexture;
+			s_VulkanData.propertiesTextureSlots[i] = m_dummyTexture;
 
 			s_VulkanData.GridSlotIndex++;
 		}
@@ -248,18 +248,18 @@ namespace Engine {
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(i, s_VulkanData.GridTextureSlots,
-				s_VulkanData.HealthTextureSlots);
+				s_VulkanData.propertiesTextureSlots);
 		}
 
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			m_vulkanGraphicsPipelines->UpdateEffectsDescriptorSet(i, s_VulkanData.GridTextureSlots,
-				s_VulkanData.HealthTextureSlots);
+				s_VulkanData.propertiesTextureSlots);
 		}
 
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			m_vulkanGraphicsPipelines->UpdatePlayerCollisionDescriptorSet(i, s_VulkanData.HealthTextureSlots);
+			m_vulkanGraphicsPipelines->UpdatePlayerCollisionDescriptorSet(i, s_VulkanData.propertiesTextureSlots);
 		}
 
 
@@ -460,6 +460,14 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
+		void* data = nullptr;
+		VkDeviceSize size = sizeof(CollisionResultBuffer);
+		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
+		std::memset(data, 0, size);
+		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
+
+
+
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
 
 
@@ -480,8 +488,8 @@ namespace Engine {
 		//RecordPlayerCommandBuffer(cmd, m_imageIndex, currentFrame);
 
 
-
-		RecordEffectComputeCommandBuffer(cmd, currentFrame);
+		// needs own image
+		//RecordEffectComputeCommandBuffer(cmd, currentFrame);
 		
 		vkEndCommandBuffer(cmd);
 
@@ -518,43 +526,31 @@ namespace Engine {
 			memcpy(&result, data, sizeof(result));
 			vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
 
-			if (result.collisionCount > 0)
+			const uint32_t base = s_CollisionData.EntitySlotIndex; 
+			const uint32_t nAppended =
+				std::min(result.collisionCount,
+					(uint32_t)MAX_COLLISION_ENTITIES > base
+					? (uint32_t)MAX_COLLISION_ENTITIES - base
+					: 0u);
+
+			CollisionResultsCPU::LatestProjectiles.clear();
+			CollisionResultsCPU::LatestProjectiles.reserve(nAppended);
+
+			for (uint32_t i = 0; i < nAppended; ++i)
 			{
-				EE_CORE_INFO("result.collisionCount {}", result.collisionCount);
-				CollisionResultsCPU::LatestProjectiles.clear();
-				CollisionResultsCPU::LatestProjectiles.reserve(MAX_COLLISION_RESULTS);
+				const auto& r = result.results[base + i];   // <-- start AFTER claim slots
+				if (r.collisionDetected != 1u) continue;    // appended hits set this to 1
 
-				const uint32_t cap = MAX_COLLISION_RESULTS;
-
-				for (uint32_t i = 0; i < cap; ++i)
-				{
-					const auto& r = result.results[i];
-					if (r.collisionDetected == 0)
-						continue;
-
-					Collision coll{};
-					// If your CollisionResult has Low/High parts, reconstruct here;
-					// otherwise keep using r.GetProjectileID() if that helper exists.
-					// coll.ProjectileID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
-					coll.EntityID = r.GetProjectileID();  // if your CPU-side struct provides it
-					coll.HitPosition = r.CollisionPosition;
-					coll.Health = r.Health;        // note: in shader it's HealthAfter
-
-					CollisionResultsCPU::LatestProjectiles.push_back(coll);
-				}
-
-
-			
+				Collision coll{};
+				coll.EntityID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
+				coll.HitPosition = r.CollisionPosition;
+				coll.Health = r.Health;          // note: shader writes HealthAfter
+				CollisionResultsCPU::LatestProjectiles.push_back(coll);
 			}
 			
 			{
+				
 				void* data = nullptr;
-				VkDeviceSize size = sizeof(CollisionResultBuffer);
-				vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
-				std::memset(data, 0, size);
-				vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
-
-				data = nullptr;
 				
 				vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetPlayerCollisionMemory(), 0, size, 0, &data);
 				std::memset(data, 0, size);
@@ -838,10 +834,10 @@ namespace Engine {
 
 		// Use current texture slots for both read and write (in-place compute)
 		std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& computeTextures = s_VulkanData.GridTextureSlots;
-		std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& HealthTextures = s_VulkanData.HealthTextureSlots;
+		std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& propertiesTextures = s_VulkanData.propertiesTextureSlots;
 
 		// Update descriptor set with same textures for read/write
-		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,	computeTextures, HealthTextures);
+		m_vulkanGraphicsPipelines->UpdateComputeDescriptorSet(currentFrame,	computeTextures, propertiesTextures);
 
 		glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 		// Transition textures to GENERAL layout
@@ -876,7 +872,7 @@ namespace Engine {
 
 		for (size_t i = 0; i < CHUNK_GRID_SIZE; i++)
 		{
-			VulkanTexture& healthTex = *HealthTextures[i];
+			VulkanTexture& healthTex = *propertiesTextures[i];
 			if (healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
 			{
 				TransitionImageLayout(commandBuffer,
@@ -917,7 +913,20 @@ namespace Engine {
 			pushconstant.NumProjectiles = s_CollisionData.EntitySlotIndex;
 			pushconstant.ChunkSize = TILE_PIXEL_WIDTH * CHUNK_SIZE;
 			pushconstant.TileSize = TILE_PIXEL_WIDTH;
-			pushconstant.mode = 2;
+			//pushconstant.mode = 0;
+
+			//debug
+			pushconstant.mode = 0;
+			pushconstant.mode |= 1u;   // show start/end/trail
+			//pushconstant.mode |= 8u;   // paint reasons at overlap pixel
+
+			// If you still see "nothing", try:
+			//pushconstant.mode |= 2u;   // ignore Z gate   if you get hits now, Z was the problem
+			// or:
+			//pushconstant.mode |= 4u;   // force solid      if you get hits now, Properties.R was 0
+			// optionally:
+			//pushconstant.mode |= 16u;  // ignore claim     see if something earlier was claiming
+			//pushconstant.mode |= 32u;  // ignore claim     see if something earlier was claiming
 			pushconstant.MinTileCoords = minOrigin * (int)CHUNK_SIZE;
 
 			//EE_CORE_INFO("EntitySlotIndex {}",s_CollisionData.EntitySlotIndex);
@@ -984,7 +993,7 @@ namespace Engine {
 		// }
 
 		// Current grid slots (same arrays you already maintain)
-		auto& healthTex = s_VulkanData.HealthTextureSlots;   // we’ll only bind/use the center (index 4)
+		auto& healthTex = s_VulkanData.propertiesTextureSlots;   // we’ll only bind/use the center (index 4)
 
 		// Center chunk index in 3x3
 		constexpr uint32_t CENTER = 4;
@@ -1088,7 +1097,7 @@ namespace Engine {
 		// Update descriptor set (binding 0 = color images, binding 1 = health images, binding 2 = buffer)
 		m_vulkanGraphicsPipelines->UpdateEffectsDescriptorSet(currentFrame,
 			s_VulkanData.GridTextureSlots,         // COLOR array (u_InputTexture[])
-			s_VulkanData.HealthTextureSlots);  // HEALTH array (u_HealthImage[])
+			s_VulkanData.propertiesTextureSlots);  // HEALTH array (u_HealthImage[])
 
 		// 2) Transition BOTH arrays to GENERAL for storage writes/reads
 		// 2a) Color images (effects shader writes glow here)
@@ -1102,7 +1111,7 @@ namespace Engine {
 		}
 		// 2b) Health images (effects shader reads/writes timer)
 		for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
-			VulkanTexture& healthTex = *s_VulkanData.HealthTextureSlots[i];
+			VulkanTexture& healthTex = *s_VulkanData.propertiesTextureSlots[i];
 			if ( healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
 			{
 				TransitionImageLayout(cmdBuf, healthTex.GetImage(), healthTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_GENERAL);
@@ -1122,7 +1131,7 @@ namespace Engine {
 		// 5) Dispatch once per active texture
 		for (size_t i = 0; i < 9; ++i)
 		{
-			VulkanTexture& healthTex = *s_VulkanData.HealthTextureSlots[i];
+			VulkanTexture& healthTex = *s_VulkanData.propertiesTextureSlots[i];
 			if (!healthTex.GetCheckCollision())
 				continue;
 			
@@ -1153,7 +1162,7 @@ namespace Engine {
 		}
 		// 6b) Health images -> SHADER_READ_ONLY_OPTIMAL (if sampled later; otherwise you could keep GENERAL)
 		for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
-			VulkanTexture& healthTex = *s_VulkanData.HealthTextureSlots[i];
+			VulkanTexture& healthTex = *s_VulkanData.propertiesTextureSlots[i];
 			if (healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 			{
 				TransitionImageLayout(cmdBuf, healthTex.GetImage(), healthTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -1505,7 +1514,10 @@ namespace Engine {
 	}
 
 
-	void VulkanRenderer2D::CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType, uint32_t damage, const uint32_t destructionRadius)
+
+	void VulkanRenderer2D::CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID,
+		eCollisionType collisionType, uint32_t damage, const uint32_t destructionRadius, glm::vec2  projectileDirection,
+		glm::vec2  TargetPositionAtFireTime, float  DistanceToTargetatFireTime, float  TargetPositionHeightZ1)
 	{
 		EE_PROFILE_FUNCTION();
 
@@ -1521,6 +1533,11 @@ namespace Engine {
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].Damage = damage;
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].DestructionRadius = destructionRadius;
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ColliderRadius = colliderRadius;
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].Dir = projectileDirection;
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].EndPos = TargetPositionAtFireTime;
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].RayLen = DistanceToTargetatFireTime;
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].Z1 = TargetPositionHeightZ1;
+
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
 		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
 		s_CollisionData.EntitySlotIndex++;
@@ -1538,7 +1555,7 @@ namespace Engine {
 		s_CollisionData.playerEntities[playerIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
 	}
 
-	void VulkanRenderer2D::DrawTextureQuadWithHealth(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const std::shared_ptr<VulkanTexture>& healthTexture)
+	void VulkanRenderer2D::DrawTextureQuadWithProperties(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const std::shared_ptr<VulkanTexture>& propertiesTexture)
 	{
 		EE_PROFILE_FUNCTION();
 
@@ -1559,7 +1576,7 @@ namespace Engine {
 
 		s_VulkanData.GridTextureSlots[s_VulkanData.GridSlotIndex] = texture;
 		s_VulkanData.TextureSlots[s_VulkanData.GridSlotIndex] = texture;
-		s_VulkanData.HealthTextureSlots[s_VulkanData.GridSlotIndex] = healthTexture;
+		s_VulkanData.propertiesTextureSlots[s_VulkanData.GridSlotIndex] = propertiesTexture;
 
 		s_VulkanData.GridSlotIndex++;
 

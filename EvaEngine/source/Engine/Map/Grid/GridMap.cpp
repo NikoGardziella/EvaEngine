@@ -14,6 +14,8 @@
 
 namespace Engine
 {
+
+
     void GridMap::BuildFromRegistry(Scene* scene)
     {
         m_blockedSubCells.clear();

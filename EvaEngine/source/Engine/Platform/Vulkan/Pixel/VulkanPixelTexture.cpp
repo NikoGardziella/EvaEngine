@@ -21,10 +21,10 @@ namespace Engine {
             return;
 
         size_t index = (y * GetWidth() + x) * 4;
-        m_pixelData[index + 0] = r;
-        m_pixelData[index + 1] = g;
-        m_pixelData[index + 2] = b;
-        m_pixelData[index + 3] = a;
+        m_CPUpixelData[index + 0] = r;
+        m_CPUpixelData[index + 1] = g;
+        m_CPUpixelData[index + 2] = b;
+        m_CPUpixelData[index + 3] = a;
     }
 
     void VulkanPixelTexture::ApplyChanges()
@@ -36,12 +36,12 @@ namespace Engine {
         VulkanBuffer stagingBuffer(
             device,
             physicalDevice,
-            static_cast<VkDeviceSize>(m_pixelData.size()),
+            static_cast<VkDeviceSize>(m_CPUpixelData.size()),
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
 
-        stagingBuffer.SetData(m_pixelData.data(), m_pixelData.size());
+        stagingBuffer.SetData(m_CPUpixelData.data(), m_CPUpixelData.size());
 
         VulkanUtils::TransitionImageLayout(
             m_image, VK_FORMAT_R8G8B8A8_SRGB,
@@ -73,7 +73,7 @@ namespace Engine {
             return;
 
         m_solidMask[y * m_width + x] = 0;
-        m_pixelData[(y * m_width + x) * 4 + 3] = 0; // Set alpha to 0
+        m_CPUpixelData[(y * m_width + x) * 4 + 3] = 0; // Set alpha to 0
         
     }
 }

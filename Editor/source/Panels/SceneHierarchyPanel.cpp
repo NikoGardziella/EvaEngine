@@ -1135,8 +1135,8 @@ namespace Engine {
 
         DrawComponent<ProjectileComponent>("Projectile", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
-                ImGui::DragFloat2("Velocity", glm::value_ptr(component.Velocity));
-                ImGui::DragFloat("Life time", &component.LifeTime, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat2("Velocity", glm::value_ptr(component.Direction));
+                ImGui::DragFloat("Life time", &component.ProjectileMaxRange, 0.01, 0.0f, 1.0f);
                 ImGui::DragFloat("Damage", &component.Damage, 0.01, 0.0f, 1.0f);
 
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };

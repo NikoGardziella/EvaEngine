@@ -214,8 +214,8 @@ namespace Engine {
 
         // Copy pixel data
         stagingBuffer.SetData(pixels, static_cast<size_t>(imageSize));
-        m_pixelData.resize(m_width * m_height * 4);
-        memcpy(m_pixelData.data(), pixels, m_pixelData.size());
+        m_CPUpixelData.resize(m_width * m_height * 4);
+        memcpy(m_CPUpixelData.data(), pixels, m_CPUpixelData.size());
         stbi_image_free(pixels);
 
         // Create the actual Vulkan image

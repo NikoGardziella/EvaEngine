@@ -949,6 +949,11 @@ namespace Engine {
 
     bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
     {
+        if (m_sceneState == eSceneState::Play)
+        {
+            return false;
+        }
+
         if (e.GetMouseButton() == Mouse::Button0)
         {
             std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();

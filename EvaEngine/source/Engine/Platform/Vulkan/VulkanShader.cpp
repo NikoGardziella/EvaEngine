@@ -201,13 +201,14 @@ namespace Engine {
 
     std::string VulkanShader::ReadFile(const std::string& filepath)
     {
-        std::cout << "Reading shader file: " << filepath << std::endl;
+        EE_CORE_INFO("Reading shader file: {}", filepath);
 
         std::ifstream file(filepath, std::ios::ate | std::ios::binary);
 
-        if (!file.is_open()) {
-            std::cerr << "Failed to open file: " << filepath << std::endl;
-            throw std::runtime_error("failed to open file!");
+        if (!file.is_open())
+        {
+            EE_CORE_WARN("failed to open shader file: {}", filepath);
+
         }
 
         size_t fileSize = (size_t)file.tellg();

@@ -428,34 +428,7 @@ namespace Engine {
         */
 
         // get player info
-        auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent, SpriteRendererComponent>();
-        glm::vec2 playerPos;
-        uint64_t playerID = 0;
-
-        Entity playerEntity = Entity{};
-        for (auto entity : playerView)
-        {
-            auto& playerTransform = playerView.get<Engine::TransformComponent>(entity);
-            playerPos.x = playerTransform.Translation.x;
-            playerPos.y = playerTransform.Translation.y;
-
-            auto& playerIDComp = playerView.get<Engine::IDComponent>(entity);
-            playerID = playerIDComp.ID;
-            playerEntity = Entity{ entity, this };
-
-            if (!playerEntity.HasComponent<DriverComponent>())
-            {
-                float playerRadius = 0.5f;
-                float tiling = 0.5f;
-
-                auto& spriteComp = playerView.get<Engine::SpriteRendererComponent>(entity);
-
-                Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
-               // Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
-            }
-        }
-        m_textureStreamingSystem->Update(playerPos, this);
-
+       
 
 
         //************ update scripts *************** // Remove?
@@ -505,6 +478,7 @@ namespace Engine {
                 }
             }
         }
+        glm::vec2 playerPos;
 
         if(mainCamera)
         {   
@@ -525,6 +499,11 @@ namespace Engine {
                         if (!chunkComp.IsLoaded)
                             continue;
 
+                        if (chunkComp.TerrainTexture == nullptr)
+                        {
+                            continue;
+                        }
+
                         glm::vec2 worldPos = glm::vec2(chunkComp.ChunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
                         glm::mat4 model =
                             glm::translate(glm::mat4(1.0f),
@@ -532,15 +511,42 @@ namespace Engine {
                             * glm::scale(glm::mat4(1.0f),
                                 glm::vec3(CHUNK_SIZE, CHUNK_SIZE, 1.0f));
 
-                        if (chunkComp.TerrainTexture == nullptr)
-                        {
-                            continue;
-                        }
+                        
 
                         Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.TerrainTexture);
 
                     }
                 }
+
+                auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent, SpriteRendererComponent>();
+                uint64_t playerID = 0;
+
+                Entity playerEntity = Entity{};
+                for (auto entity : playerView)
+                {
+                    auto& playerTransform = playerView.get<Engine::TransformComponent>(entity);
+                    playerPos.x = playerTransform.Translation.x;
+                    playerPos.y = playerTransform.Translation.y;
+
+                    auto& playerIDComp = playerView.get<Engine::IDComponent>(entity);
+                    playerID = playerIDComp.ID;
+                    playerEntity = Entity{ entity, this };
+
+                    if (!playerEntity.HasComponent<DriverComponent>())
+                    {
+                        float playerRadius = 0.5f;
+                        float tiling = 0.5f;
+
+                        auto& spriteComp = playerView.get<Engine::SpriteRendererComponent>(entity);
+
+                        Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
+                        // Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
+                    }
+                }
+                m_textureStreamingSystem->Update(playerPos, this);
+
+
+
 
 
                 {
@@ -569,14 +575,16 @@ namespace Engine {
                                 * glm::scale(glm::mat4(1.0f),
                                     glm::vec3(CHUNK_SIZE, CHUNK_SIZE, 1.0f));
                            
-                            float pixelSize = (float)CHUNK_SIZE / chunkComp.Texture->GetWidth();;
+                            float pixelSize = (float)CHUNK_SIZE / chunkComp.Texture->GetWidth();
+                
+
                             glm::vec2 textureOrigin;
                             textureOrigin.x = worldPos.x - CHUNK_SIZE * 0.5f;
                             textureOrigin.y = worldPos.y - CHUNK_SIZE * 0.5f;
                             
-                            chunkComp.HealthTexture->SetCheckCollision(true);
-                            chunkComp.HealthTexture->SetTextureOrigin(textureOrigin);
-                            chunkComp.HealthTexture->SetPixelSize(pixelSize);
+                            chunkComp.PropertiesTexture->SetCheckCollision(true);
+                            chunkComp.PropertiesTexture->SetTextureOrigin(textureOrigin);
+                            chunkComp.PropertiesTexture->SetPixelSize(pixelSize);
                             chunkComp.Texture->SetCheckCollision(true);
                             chunkComp.Texture->SetTextureOrigin(textureOrigin);
                             chunkComp.Texture->SetPixelSize(pixelSize);
@@ -586,7 +594,7 @@ namespace Engine {
                             minOrigin.y = std::min(minOrigin.y, chunkComp.ChunkCoords.y);
 
                             //EE_CORE_INFO("minOrigin {}, {}", minOrigin.x, minOrigin.y);
-                           Engine::VulkanRenderer2D::DrawTextureQuadWithHealth(model, chunkComp.Texture, chunkComp.HealthTexture);
+                           Engine::VulkanRenderer2D::DrawTextureQuadWithProperties(model, chunkComp.Texture, chunkComp.PropertiesTexture);
 
                             
                         }
@@ -787,8 +795,11 @@ namespace Engine {
                         projectilePos.x = projectileTransform.Translation.x;
                         projectilePos.y = projectileTransform.Translation.y;
      
-                        
-                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.ProjectileRadius, IDComp.ID, eCollisionType::PROJECTILE, projectile.Damage, projectile.PixelDestructionRadius);
+                        // make struct
+                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.ProjectileRadius, IDComp.ID,
+                            eCollisionType::PROJECTILE, projectile.Damage, projectile.PixelDestructionRadius, projectile.Direction,
+                            projectile.TargetPositionAtFireTime, projectile.DistanceToTargetatFireTime, projectile.TargetPositionHeightZ1);
+
                         Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
 
                     }

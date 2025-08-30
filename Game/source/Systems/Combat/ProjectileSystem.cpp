@@ -33,8 +33,8 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
             }
 
             constexpr float kProjectileSpeed = 10.0f;
-            projectileTransformComp.Translation.x += projectileComp.Velocity.x * deltaTime * kProjectileSpeed;
-            projectileTransformComp.Translation.y += projectileComp.Velocity.y * deltaTime * kProjectileSpeed;
+            projectileTransformComp.Translation.x += projectileComp.Direction.x * deltaTime * kProjectileSpeed;
+            projectileTransformComp.Translation.y += projectileComp.Direction.y * deltaTime * kProjectileSpeed;
 
             const glm::vec2 projectilePos = {
                 projectileTransformComp.Translation.x,
@@ -101,8 +101,10 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
             if (hitSomething) return;
 
             // Lifetime expiry
-            projectileComp.LifeTime -= deltaTime;
-            if (projectileComp.LifeTime <= 0.0f)
+            // this is now in time when it should be distance.
+            // CHANGE 
+            projectileComp.ProjectileMaxRange -= deltaTime;
+            if (projectileComp.ProjectileMaxRange <= 0.0f)
             {
                 toDestroy.push_back(projectileEntity);
                 return;
