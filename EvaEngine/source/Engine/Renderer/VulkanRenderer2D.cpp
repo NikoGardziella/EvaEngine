@@ -917,7 +917,7 @@ namespace Engine {
 
 			//debug
 			pushconstant.mode = 0;
-			pushconstant.mode |= 1u;   // show start/end/trail
+			//pushconstant.mode |= 1u;   // show start/end/trail
 			//pushconstant.mode |= 8u;   // paint reasons at overlap pixel
 
 			// If you still see "nothing", try:

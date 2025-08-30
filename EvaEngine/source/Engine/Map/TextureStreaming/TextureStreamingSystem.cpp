@@ -86,7 +86,7 @@ namespace Engine {
         const int groundPxX = int(std::floor(worldPosition.x * float(CELL)));
         const int groundPxY = int(std::floor(worldPosition.y * float(CELL)));
 
-        // Keep your previous vertical placement convention
+        // Keep  previous vertical placement convention
         const int destX0_global = groundPxX - int(textureWidth) / 2;
         const int destY0_global = groundPxY - 1;
         const int dstX1_global = destX0_global + int(textureWidth);
@@ -245,7 +245,6 @@ namespace Engine {
                             const uint8_t sPa = propertiesData[si + 3];
 
                             // Only stamp properties where source had any coverage.
-                            // If you want to always clear stale areas, remove the sA check and always max/OR.
                             const uint8_t sA8 = textureData.empty() ? 255 : textureData[si + 3];
                             if (sA8 != 0)
                             {

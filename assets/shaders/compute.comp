@@ -316,7 +316,7 @@ void main()
         }
 
         // Z at this pixel: ramp from a fixed start Z toward mouse height
-        const float Z_FIXED = 2.0;
+        const float Z_FIXED = 0.5;
         float zRay = mix(Z_FIXED, proj.Z1, tPixel);
 
         // Texture height at this pixel
