@@ -193,6 +193,125 @@ void appendHit(const ProjectileGPU proj, vec2 worldPos, uint healthAfter)
     results[dst].CollisionPosition    = worldPos;
     results[dst].HealthAfter          = healthAfter;
 }
+
+// Map a pixel coordinate that may spill past the current image into the proper neighbor slot.
+void mapToNeighborSlot(ivec2 localPx, ivec2 curTexSize,
+                       out uint writeSlot, out ivec2 writePx)
+{
+    int gridW = GRID_WIDTH, gridH = GRID_HEIGHT;
+    int cx = int(pc.textureIndex % uint(gridW));
+    int cy = int(pc.textureIndex / uint(gridW));
+
+    int sx = 0, sy = 0;
+    ivec2 p = localPx;
+
+    if      (p.x < 0)             { sx = -1; p.x += curTexSize.x; }
+    else if (p.x >= curTexSize.x) { sx = +1; p.x -= curTexSize.x; }
+
+    if      (p.y < 0)             { sy = -1; p.y += curTexSize.y; }
+    else if (p.y >= curTexSize.y) { sy = +1; p.y -= curTexSize.y; }
+
+    int nx = cx + sx;
+    int ny = cy + sy;
+
+    if (nx < 0 || nx >= gridW || ny < 0 || ny >= gridH)
+    {
+        writeSlot = 0xffffffffu;
+        writePx   = ivec2(0);
+        return;
+    }
+
+    writeSlot = uint(ny * gridW + nx);
+    writePx   = p;
+}
+
+// Brush-based damage/destruction around the hit pixel.
+// - Spills across chunk borders via mapToNeighborSlot
+// - Uses a small Z slack so craters are round even on stepped heights
+// Brush-based damage/destruction around the hit pixel.
+// - Spills across chunk borders via mapToNeighborSlot
+// - Ignores Z for neighbor pixels (keeps round craters on tall sprites)
+void applyDamageBrush(in ProjectileGPU proj,
+                      in ivec2 centerPx,
+                      in float zRayAtCenter,   // unused when ignoring brush Z
+                      in bool forceSol,
+                      in bool igZ)
+{
+    // Toggle if you ever want strict per-neighbor Z again
+    const bool ignoreBrushZ = true;
+
+    // If you store radius in world units, convert with / pc.PixelSize
+    int rpx = int(proj.DestructionRadius);
+    if (rpx < 0) rpx = 0;
+    int r2 = rpx * rpx;
+
+    ivec2 curSize = imageSize(u_InputTexture[pc.textureIndex]);
+
+    for (int oy = -rpx; oy <= rpx; ++oy)
+    for (int ox = -rpx; ox <= rpx; ++ox)
+    {
+        int d2 = ox*ox + oy*oy;
+        if (d2 > r2)
+        {
+            continue;
+        }
+
+        ivec2 pLocal = centerPx + ivec2(ox, oy);
+
+        // Spill to neighbor slots if we cross the edge
+        uint  slot;
+        ivec2 lp;
+        mapToNeighborSlot(pLocal, curSize, slot, lp);
+        if (slot == 0xffffffffu || slot >= ACTIVE_SLOTS)
+        {
+            continue;
+        }
+
+        ivec2 sz = imageSize(u_InputTexture[slot]);
+        if (lp.x < 0 || lp.y < 0 || lp.x >= sz.x || lp.y >= sz.y)
+        {
+            continue;
+        }
+
+        uvec4 qp = imageLoad(u_HealthImage[slot], lp);
+        bool  qSolid = (qp.r > 0u) || forceSol;
+        if (!qSolid)
+        {
+            continue;
+        }
+
+        // Optional strict Z per neighbor (disabled by default)
+        if (!igZ && !ignoreBrushZ)
+        {
+            // Per-neighbor Z: recompute ray Z at neighbor if you re-enable this
+            float qh = float(qp.g) * pc.PixelSize;
+            if (qh < 0.1 * pc.PixelSize) qh = 0.0;
+
+            // Example: small slack to avoid pinholes at the rim
+            float zSlack = 0.5 * pc.PixelSize;
+            if (zRayAtCenter > qh + zSlack)
+            {
+                continue;
+            }
+        }
+
+        // Apply damage / destroy
+        if (proj.Damage >= qp.r)
+        {
+            imageStore(u_InputTexture[slot], lp, vec4(0.0)); // clear color
+            qp.r = 0u;
+            imageStore(u_HealthImage[slot], lp, qp);
+        }
+        else
+        {
+            qp.r -= proj.Damage;
+            imageStore(u_HealthImage[slot], lp, qp);
+        }
+    }
+}
+
+
+
 void main()
 {
     if (pc.textureIndex >= ACTIVE_SLOTS)
@@ -328,18 +447,17 @@ void main()
 
         // Texture-solid and Z pass
         bool textureSolid = (props.r > 0u) || forceSol;
-        bool passZTexture = igZ || (zRay <= hW + EPS_Z);
-
-        // Ground fallback only when not a texture pixel
-        bool groundCandidate = (!textureSolid) && (zRay <= GROUND_Z + GROUND_TOL);
-
-        // If neither case applies, skip
-        if (!passZTexture && !groundCandidate)
+        // Must be an *alive* texel to be hit/destructible
+        if (props.r == 0u && !forceSol)
         {
-            if (why)
-            {
-                imageStore(u_InputTexture[pc.textureIndex], localPx, vec4(1, 1, 0, 1)); // yellow: Z reject
-            }
+            if (why) { imageStore(u_InputTexture[pc.textureIndex], localPx, vec4(0.0, 1.0, 1.0, 1.0)); } // cyan: dead
+            continue;
+        }
+
+        // Z gate (only if alive)
+        if (!igZ && (zRay > hW + EPS_Z))
+        {
+            if (why) { imageStore(u_InputTexture[pc.textureIndex], localPx, vec4(1.0, 1.0, 0.0, 1.0)); } // yellow: above surface
             continue;
         }
 
@@ -374,20 +492,10 @@ void main()
         }
 
         // Apply effect
+        // ---- Apply effect with brush sized by proj.DestructionRadius (pixels)
         if (textureSolid)
         {
-            uint dmg = proj.Damage;
-            if (dmg >= props.r)
-            {
-                clearColor(pc.textureIndex, localPx);
-                props.r = 0u;
-                storeProps(pc.textureIndex, localPx, props);
-            }
-            else
-            {
-                props.r -= dmg;
-                storeProps(pc.textureIndex, localPx, props);
-            }
+            applyDamageBrush(proj, localPx, zRay, forceSol, igZ);
         }
         else
         {
