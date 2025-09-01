@@ -121,7 +121,7 @@ namespace Engine {
                 // Allocate destination buffers on demand
                 if (!textureData.empty() && chunk.PixelData.empty())
                     chunk.PixelData.assign(totalPixels * 4, 0);
-
+                
                 if (!propertiesData.empty() && chunk.PropertiesData.empty())
                     chunk.PropertiesData.assign(totalPixels * 4, 0);
 

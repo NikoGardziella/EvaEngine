@@ -488,8 +488,8 @@ namespace Engine {
 		//RecordPlayerCommandBuffer(cmd, m_imageIndex, currentFrame);
 
 
-		// needs own image
-		//RecordEffectComputeCommandBuffer(cmd, currentFrame);
+		
+		RecordEffectComputeCommandBuffer(cmd, currentFrame);
 		
 		vkEndCommandBuffer(cmd);
 
@@ -927,6 +927,9 @@ namespace Engine {
 			// optionally:
 			//pushconstant.mode |= 16u;  // ignore claim     see if something earlier was claiming
 			//pushconstant.mode |= 32u;  // ignore claim     see if something earlier was claiming
+			//pushconstant.mode |= 128u;  
+			//pushconstant.mode |= 256u;  
+
 			pushconstant.MinTileCoords = minOrigin * (int)CHUNK_SIZE;
 
 			//EE_CORE_INFO("EntitySlotIndex {}",s_CollisionData.EntitySlotIndex);

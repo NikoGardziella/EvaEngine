@@ -240,6 +240,11 @@ namespace Engine {
                 ExpandIncludes(source.substr(nextLinePos, pos - nextLinePos), AssetManager::GetAssetFolderPath() / "shaders");
         }
 
+        if (shaderSources.empty())
+        {
+            EE_CORE_WARN("did you put #type compute / vertex / fragment in shader first row? shaderSources is empty {}", filepath);
+        }
+
         return shaderSources;
     }
 
