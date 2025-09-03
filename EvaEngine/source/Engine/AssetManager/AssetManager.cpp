@@ -395,9 +395,7 @@ namespace Engine {
             }
         }
 
-        EE_CORE_INFO("[EXTRACT:G=alpha] '{}' w={} h={}  alphaCount={}  G>0={}",
-            tile.name.c_str(), w, h, alphaCount, gSetCount);
-
+       
         return true;
     }
 

@@ -792,12 +792,9 @@ namespace Engine {
             auto entity = scene->GetRegistry().create();
             auto& chunkRenderer = scene->GetRegistry().emplace<ChunkRendererComponent>(entity);
             
-			EE_CORE_INFO("Creating chunk entity at position: ({}, {})",
-                chunk.ChunkCoords.x, chunk.ChunkCoords.y);
-
+			
             IDComponent id;
             id.ID = HashCoords(chunk.ChunkCoords);
-			EE_CORE_INFO("Adding chunk entity with ID: {}", (uint64_t)id.ID);
             IDComponent& idComp = scene->GetRegistry().emplace<IDComponent>(entity);
             idComp = id;
 

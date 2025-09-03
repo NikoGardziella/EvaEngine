@@ -570,12 +570,14 @@ namespace Engine {
 			/*
 			for (size_t i = 0; i < totalTiles; i++)
 			{
-				if (gpuBlockedTileMask[i] == 1)
+				if (gpuBlockedTileMask[i] == 2u)
 				{
-					EE_CORE_INFO("BLOCKED tile {}", i);
+					EE_CORE_INFO("destroyed tile {}", i);
 				}
 			}
+			
 			*/
+			
 
 			Engine::TileBlockedMaskCPU::CachedGPUMask = std::move(gpuBlockedTileMask);
 

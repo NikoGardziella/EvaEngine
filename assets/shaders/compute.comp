@@ -24,6 +24,10 @@
 #define MODE_STRIPE_FILL   128u   // paints stripes across the whole image (proves writes)
 #define MODE_SMOKE_HIT     256u // calls brush once at EndPos pixel (proves mapping+brush)
 
+// Bits inside BlockedTileMask[idx]
+#define MASK_ALIVE      1u   // bottom-band AND health > 0
+#define MASK_DESTROYED  2u   // bottom-band AND transitioned to health == 0 this pass
+
 layout(local_size_x = 16, local_size_y = 16) in;
 
 // ---------- images ----------
@@ -147,35 +151,41 @@ ivec2 worldToLocalPx(vec2 world)
 }
 
 
-
-void writeBlockedMaskIfNeeded(ivec2 localPx)
+void writeMaskForSlotPx(uint slot, ivec2 lp, uint bits)
 {
-    int tileSizePx    = int(pc.TileSize);
-    ivec2 tileInChunk = localPx / tileSizePx;
-    ivec2 pxInTile    = localPx - tileInChunk * tileSizePx;
+    const int tileSizePx     = int(pc.TileSize);
+    const int spt            = SUBTILES_PER_TILE;
+    const int tilesPerRow    = int(CHUNK_SIZE) * int(GRID_WIDTH);
+    const int tilesPerCol    = int(CHUNK_SIZE) * int(GRID_HEIGHT);
+    const int subtilesPerRow = tilesPerRow * spt;
+    const int subtilesRows   = tilesPerCol * spt;
 
-    int subDiv    = max(1, tileSizePx / SUBTILES_PER_TILE);
-    ivec2 subtile = ivec2(pxInTile.x / subDiv, pxInTile.y / subDiv);
+    ivec2 tileInSlot = lp / tileSizePx;                   // 0..CHUNK_SIZE-1
+    ivec2 pxInTile   = lp - tileInSlot * tileSizePx;      // 0..tileSizePx-1
 
-    int gridW = GRID_WIDTH, gridH = GRID_HEIGHT;
-    int cx = int(pc.textureIndex % uint(gridW));
-    int cy = int(pc.textureIndex / uint(gridW));
+    // ceil-div to avoid last-pixel overflow
+    const int pxPerSub = max(1, (tileSizePx + spt - 1) / spt);
+    ivec2 subtile = ivec2(pxInTile.x / pxPerSub, pxInTile.y / pxPerSub);
+    subtile = clamp(subtile, ivec2(0), ivec2(spt - 1));
 
-    ivec2 windowTile = ivec2(cx * CHUNK_SIZE + tileInChunk.x,
-                             cy * CHUNK_SIZE + tileInChunk.y);
+    int cx = int(slot % uint(GRID_WIDTH));
+    int cy = int(slot / uint(GRID_WIDTH)); // row-major in the 3x3 window
 
-    const int subtilesPerRow = GRID_WIDTH  * CHUNK_SIZE * SUBTILES_PER_TILE;
-    const int subtilesRows   = GRID_HEIGHT * CHUNK_SIZE * SUBTILES_PER_TILE;
+    ivec2 rel = ivec2(cx * CHUNK_SIZE + tileInSlot.x,
+                      cy * CHUNK_SIZE + tileInSlot.y) * spt + subtile;
 
-    int ix = windowTile.x * SUBTILES_PER_TILE + subtile.x;
-    int iy = windowTile.y * SUBTILES_PER_TILE + subtile.y;
-
-    if (ix >= 0 && iy >= 0 && ix < subtilesPerRow && iy < subtilesRows)
+    if (uint(rel.x) < uint(subtilesPerRow) && uint(rel.y) < uint(subtilesRows))
     {
-        uint idx = uint(iy) * uint(subtilesPerRow) + uint(ix);
-        atomicExchange(blockedMask[idx], 1u);
+        uint idx = uint(rel.y) * uint(subtilesPerRow) + uint(rel.x);
+        atomicOr(blockedMask[idx], bits);
     }
 }
+
+void writeBlockedMaskIfNeeded(ivec2 localPx) // usually ivec2(gl_GlobalInvocationID.xy)
+{
+       writeMaskForSlotPx(pc.textureIndex, localPx, MASK_ALIVE);
+}
+
 
 // distance (world) from point to segment AB
 float distPointToSegment(vec2 P, vec2 A, vec2 B)
@@ -208,28 +218,30 @@ void appendHit(const ProjectileGPU proj, vec2 worldPos, uint healthAfter)
     results[dst].HealthAfter          = healthAfter;
 }
 
-// Map a pixel coordinate that may spill past the current image into the proper neighbor slot.
+// IDENTICAL behavior to your previous working shader.
+// Wraps by ONE chunk using the current slot's real image size.
 void mapToNeighborSlot(ivec2 localPx, ivec2 curTexSize,
                        out uint writeSlot, out ivec2 writePx)
 {
-    int gridW = GRID_WIDTH, gridH = GRID_HEIGHT;
-    int cx = int(pc.textureIndex % uint(gridW));
-    int cy = int(pc.textureIndex / uint(gridW));
+    const int gridW = GRID_WIDTH;
+    const int gridH = GRID_HEIGHT;
+
+    const int cx = int(pc.textureIndex % uint(gridW));
+    const int cy = int(pc.textureIndex / uint(gridW));
 
     int sx = 0, sy = 0;
     ivec2 p = localPx;
 
-    if      (p.x < 0)             { sx = -1; p.x += curTexSize.x; }
-    else if (p.x >= curTexSize.x) { sx = +1; p.x -= curTexSize.x; }
+    if      (p.x < 0)              { sx = -1; p.x += curTexSize.x; }
+    else if (p.x >= curTexSize.x)  { sx = +1; p.x -= curTexSize.x; }
 
-    if      (p.y < 0)             { sy = -1; p.y += curTexSize.y; }
-    else if (p.y >= curTexSize.y) { sy = +1; p.y -= curTexSize.y; }
+    if      (p.y < 0)              { sy = -1; p.y += curTexSize.y; }
+    else if (p.y >= curTexSize.y)  { sy = +1; p.y -= curTexSize.y; }
 
-    int nx = cx + sx;
-    int ny = cy + sy;
+    const int nx = cx + sx;
+    const int ny = cy + sy;
 
-    if (nx < 0 || nx >= gridW || ny < 0 || ny >= gridH)
-    {
+    if (nx < 0 || nx >= gridW || ny < 0 || ny >= gridH) {
         writeSlot = 0xffffffffu;
         writePx   = ivec2(0);
         return;
@@ -238,6 +250,8 @@ void mapToNeighborSlot(ivec2 localPx, ivec2 curTexSize,
     writeSlot = uint(ny * gridW + nx);
     writePx   = p;
 }
+
+
 
 
 // Brush-based damage/destruction around the hit pixel.
@@ -272,7 +286,7 @@ void applyDamageBrush(in ProjectileGPU proj,
         // Handle spill to neighbor slots
         uint  slot;
         ivec2 lp;
-        mapToNeighborSlot(pLocal, curSize, slot, lp);
+        mapToNeighborSlot(pLocal, curSize, slot, lp); 
         if (slot == 0xffffffffu || slot >= ACTIVE_SLOTS) continue;
 
         ivec2 sz = imageSize(u_InputTexture[slot]);
@@ -316,6 +330,8 @@ void applyDamageBrush(in ProjectileGPU proj,
             prop.b = 255u;    // <-- ARM FX for a destruction flash (first-arm sentinel)
             prop.a = 0u;      // prevK reset
             imageStore(u_PropertiesImage[slot], lp, prop);
+
+            writeMaskForSlotPx(slot, lp, MASK_DESTROYED);
         }
         else
         {
@@ -355,8 +371,10 @@ void main()
     uvec4 props    = loadProps(pc.textureIndex, localPx);
     bool  solidRaw = hasHealth(props);
 
+    uint HeightThresholdPx = 20;
+    bool bottomBand  = (props.g <= HeightThresholdPx);
     // Keep writing your blocked mask when a pixel has health
-    if (solidRaw)
+    if (bottomBand  && props.r > 0u)
     {
         writeBlockedMaskIfNeeded(localPx);
     }
@@ -569,25 +587,19 @@ void main()
 
         // Apply effect
         // ---- Apply effect with brush sized by proj.DestructionRadius (pixels)
-        if (textureSolid)
+        applyDamageBrush(proj, localPx, zRay, forceSol, igZ);
+
+        if (viz && (props.r == 0u) && !forceSol)
         {
-            applyDamageBrush(proj, localPx, zRay, forceSol, igZ);
-        }
-        else
-        {
-            // Ground hit visualization (brown)
-            if (viz)
+            int rpx = COLLISION_BRUSH_PX, r2 = rpx * rpx;
+            for (int oy = -rpx; oy <= rpx; ++oy)
+            for (int ox = -rpx; ox <= rpx; ++ox) 
             {
-                int rpx = COLLISION_BRUSH_PX, r2 = rpx * rpx;
-                for (int oy = -rpx; oy <= rpx; ++oy)
-                for (int ox = -rpx; ox <= rpx; ++ox)
+                if (ox*ox + oy*oy > r2) continue;
+                ivec2 q = localPx + ivec2(ox, oy);
+                if (q.x >= 0 && q.y >= 0 && q.x < imgSize.x && q.y < imgSize.y) 
                 {
-                    if (ox*ox + oy*oy > r2) continue;
-                    ivec2 q = localPx + ivec2(ox, oy);
-                    if (q.x >= 0 && q.y >= 0 && q.x < imgSize.x && q.y < imgSize.y)
-                    {
-                        imageStore(u_InputTexture[pc.textureIndex], q, vec4(0.45, 0.3, 0.1, 1.0));
-                    }
+                    imageStore(u_InputTexture[pc.textureIndex], q, vec4(0.45, 0.3, 0.1, 1.0));
                 }
             }
         }

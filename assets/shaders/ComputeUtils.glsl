@@ -2,7 +2,6 @@
 #define MAX_TEXTURES            32
 #define MAX_COLLISION_ENTITIES  64
 #define CHUNK_SIZE              32
-#define SUBTILES_PER_TILE       4
 #define GRID_WIDTH              3
 #define GRID_HEIGHT             3
 #define ACTIVE_SLOTS            (GRID_WIDTH * GRID_HEIGHT)  // 9
