@@ -931,6 +931,7 @@ namespace Engine {
 			//pushconstant.mode |= 32u;  // ignore claim     see if something earlier was claiming
 			//pushconstant.mode |= 128u;  
 			//pushconstant.mode |= 256u;  
+			//pushconstant.mode |= 512u;
 
 			pushconstant.MinTileCoords = minOrigin * (int)CHUNK_SIZE;
 
