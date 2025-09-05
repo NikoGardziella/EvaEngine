@@ -297,8 +297,8 @@ namespace Engine {
 
     bool AssetManager::ExtractPixelsFromTilePallette(
         const TileInfo& tile,
-        std::vector<uint8_t>& outPixelData,         // RGBA8, row 0 = bottom
-        std::vector<uint8_t>& outPropertiesData,    // RGBA8UI: R=health, G=height(=alpha mask), B=mask, A=flags
+        std::vector<uint8_t>& outPixelData,      // RGBA8, row 0 = bottom
+        std::vector<uint8_t>& outPropertiesData, // RGBA8UI: R=health, G=rows-above-pivot, B=aux, A=flags+category
         int& outWidth, int& outHeight)
     {
         Ref<VulkanTexture> atlas = GetTileTextureIconAtlas();
@@ -328,27 +328,45 @@ namespace Engine {
         outPixelData.assign(size_t(w) * size_t(h) * 4, 0);
         outPropertiesData.assign(size_t(w) * size_t(h) * 4, 0);
 
-        // Keep bottom-origin output (matches your uploader/compute)
+        // Output is bottom-origin to match your uploader/compute path.
         constexpr bool kFlipV = true;
         constexpr bool kFlipH = false;
 
-        constexpr uint8_t kFlagSolid = 1u; // A bit 0: solid
-        const uint32_t A_W = atlas->GetWidth();
+        // ------- properties packing (RGBA8UI) -------
+        // R: health (0..255). Set when visible or within foot band; 0 otherwise.
+        // G: rows above pivot: 0 at/under pivot (or invisible), 1..255 above pivot.
+        // B: if Category == dynamicObjects, per-placement objectId (0..255). Else 0.
+        //    (At runtime, when texel dies, compute may reuse B as an FX timer.)
+        // A: flags + category nibble:
+        //    bit0 = FX_ARMED (runtime only — DO NOT set here)
+        //    bit1 = FLAG_ANCHOR (in foot band)
+        //    bit2 = FLAG_SOLID  (collidable)
+        //    bits4..7 = CATEGORY nibble from packCategoryNibble()
+        constexpr uint8_t FX_ARMED = 1u << 0; // (not set here)
+        constexpr uint8_t FLAG_ANCHOR = 1u << 1;
+        constexpr uint8_t FLAG_SOLID = 1u << 2;
+
+        const uint32_t atlasW = atlas->GetWidth();
         const uint8_t* src = pixels.data();
 
-        // Foot band (only affects B; health R still set when alpha>0)
+        // Foot band (only affects flags & guarantees health in that band).
         const int pivotY = std::clamp(int(props.pivotYOffsetPx), 0, h - 1);
         const int footRowsBelowPivot = std::clamp(int(props.collisionFootRowsPx), 0, pivotY);
         const int bandStartY = std::max(0, pivotY - footRowsBelowPivot);
         const int bandEndY = pivotY; // [start, end)
 
-        size_t alphaCount = 0, gSetCount = 0;
+        // If you have a per-placement ID for dynamic objects, set it here; otherwise 0.
+        // e.g. uint8_t objId = static_cast<uint8_t>(tile.InstanceId & 0xFF);
+        const uint8_t objId = 0;
+
+        const uint8_t catNibble = AssetManager::PackCategoryNibble(tile.Category);
 
         for (int y = 0; y < h; ++y)
         {
             const int sy = kFlipV ? (y0 + (h - 1 - y)) : (y0 + y);
-            const size_t srcRow = size_t(sy) * size_t(A_W) * 4;
+            const size_t srcRow = size_t(sy) * size_t(atlasW) * 4;
             const size_t dstRow = size_t(y) * size_t(w) * 4;
+
             const bool inFootBandY = (y >= bandStartY && y < bandEndY);
 
             for (int x = 0; x < w; ++x)
@@ -357,7 +375,7 @@ namespace Engine {
                 const size_t si = srcRow + size_t(sx) * 4;
                 const size_t di = dstRow + size_t(x) * 4;
 
-                // --- Color straight copy ---
+                // --- Color straight copy (RGBA8) ---
                 const uint8_t Ra = src[si + 0];
                 const uint8_t Ga = src[si + 1];
                 const uint8_t Ba = src[si + 2];
@@ -368,36 +386,43 @@ namespace Engine {
                 outPixelData[di + 2] = Ba;
                 outPixelData[di + 3] = Aa;
 
-                // inside ExtractPixelsFromTilePallette() inner loop
-                const uint8_t a = src[si + 3];
-                const bool visible = (a != 0);
+                const bool visible = (Aa != 0);
 
-                // R: health (visible or foot band)
-                uint8_t healthR = visible ? uint8_t(tile.TileHealth) : 0u;
-                if (inFootBandY && healthR == 0u) healthR = uint8_t(tile.TileHealth);
-
-                // G: rows above pivot (1..255), 0 at/under pivot or if not visible
-                uint8_t heightG = 0u;
-                if (visible && y > pivotY) {
-                    const int dy = y - pivotY;                  // rows above pivot
-                    heightG = uint8_t(glm::clamp(dy, 1, 255)); // raw rows
+                // --- R: health ---
+                uint8_t healthR = visible ? static_cast<uint8_t>(tile.TileHealth) : 0u;
+                if (inFootBandY && healthR == 0u) {
+                    // even if invisible (alpha 0), foot-band should still carry health for collision
+                    healthR = static_cast<uint8_t>(tile.TileHealth);
                 }
 
-                // B: mask = foot band;  A: flags = solid
-                uint8_t maskB = inFootBandY ? 255u : 0u;
-                uint8_t flagsA = 1u;
+                // --- G: rows above pivot (1..255), 0 at/under pivot or if invisible ---
+                uint8_t heightG = 0u;
+                if (visible && y > pivotY) {
+                    const int dy = y - pivotY; // rows above pivot
+                    heightG = static_cast<uint8_t>(glm::clamp(dy, 1, 255));
+                }
 
-                outPropertiesData[di + 0] = healthR;
-                outPropertiesData[di + 1] = heightG;  // <— real height again
-                outPropertiesData[di + 2] = maskB;
-                outPropertiesData[di + 3] = flagsA;
+                // --- B: per-instance id only for dynamic objects (alive time); else 0 ---
+                uint8_t propB = (tile.Category == eTileCategory::dynamicObjects) ? objId : 0u;
 
+                // --- A: flags + category nibble ---
+                uint8_t flagsA = 0;
+                if (visible || inFootBandY) flagsA |= FLAG_SOLID;  // collidable while alive/footed
+                if (inFootBandY)            flagsA |= FLAG_ANCHOR; // support/foot pixels
+                // DO NOT set FX_ARMED here (bit0) — that’s a runtime bit used by the FX pass.
+                flagsA |= catNibble; // put category into high nibble
+
+                // write properties
+                outPropertiesData[di + 0] = healthR; // R
+                outPropertiesData[di + 1] = heightG; // G
+                outPropertiesData[di + 2] = propB;   // B (id now; can be reused as FX timer when dead)
+                outPropertiesData[di + 3] = flagsA;  // A (flags + category)
             }
         }
 
-       
         return true;
     }
+
 
 
 
@@ -495,7 +520,8 @@ namespace Engine {
             { eTileCategory::Buildings, "buildings" },
             { eTileCategory::Terrain,   "terrain" },
             { eTileCategory::Roofs,     "roofs" },
-            { eTileCategory::Vehicles,  "vehicles" }
+            { eTileCategory::Vehicles,  "vehicles" },
+            { eTileCategory::dynamicObjects,  "dynamicObjects" }
         };
 
         const fs::path baseTilePath = AssetManager::GetAssetPath("textures/tiles");
@@ -660,6 +686,7 @@ namespace Engine {
                 props.uv = uv;
 
                 props.pixelRect = { currentX, currentY, t.width, t.height };
+                
 
 
                 if (props.collisionFootRowsPx == 0)
@@ -667,6 +694,7 @@ namespace Engine {
                     switch (t.category)
                     {
                         case eTileCategory::Buildings: props.collisionFootRowsPx = 32; break;
+                        case eTileCategory::dynamicObjects: props.collisionFootRowsPx = 32; break;
                         case eTileCategory::Vehicles:  props.collisionFootRowsPx = 20; break;
                         case eTileCategory::Terrain:   props.collisionFootRowsPx = 0;  break;
                         case eTileCategory::Roofs:     props.collisionFootRowsPx = 0;  break;
@@ -768,6 +796,23 @@ namespace Engine {
         {
             s_tileProperties = std::move(loadedTiles);
         }
+    }
+
+    inline uint8_t AssetManager::PackCategoryNibble(eTileCategory c)
+    {
+        // maps category to high nibble (bits 4..7)
+        uint8_t t = 0;
+        switch (c)
+        {
+        case eTileCategory::Default:        t = 1; break;
+        case eTileCategory::Buildings:      t = 2; break;
+        case eTileCategory::Terrain:        t = 3; break;
+        case eTileCategory::Roofs:          t = 4; break;
+        case eTileCategory::Vehicles:       t = 5; break;
+        case eTileCategory::dynamicObjects: t = 6; break;
+        default:                            t = 0; break; // Undefined
+        }
+        return static_cast<uint8_t>(t << 4); // top nibble
     }
 
 

@@ -701,6 +701,7 @@ namespace Engine {
                 destructible, isRoof, tileCategory,
                 tileProps.material, tileProps.health
                 });
+            
             EE_CORE_INFO("adding tile: {}", tc.tiles.size());
         }
         else

@@ -516,7 +516,7 @@ namespace Engine {
 			
 			EE_PROFILE_SCOPE("collision results");
 
-			ReadPlayerCollisionBuffer();
+			//ReadPlayerCollisionBuffer();
 
 			// move this to own method
 			// Read back collision results
@@ -567,6 +567,7 @@ namespace Engine {
 			std::vector<uint32_t> gpuBlockedTileMask(totalTiles);
 			ReadBlockedTileMask(gpuBlockedTileMask, totalTiles);
 			
+			
 			/*
 			for (size_t i = 0; i < totalTiles; i++)
 			{
@@ -575,8 +576,9 @@ namespace Engine {
 					EE_CORE_INFO("destroyed tile {}", i);
 				}
 			}
-			
 			*/
+			
+			
 			
 
 			Engine::TileBlockedMaskCPU::CachedGPUMask = std::move(gpuBlockedTileMask);

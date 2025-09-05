@@ -71,38 +71,31 @@ namespace Engine {
         UUID id,
         const std::string& name,
         const std::vector<uint8_t>& textureData,      // RGBA8, row 0 = bottom (already flipped)
-        const std::vector<uint8_t>& propertiesData,   // RGBA8UI: R=health, G=height, B=mask, A=flags
+        const std::vector<uint8_t>& propertiesData,   // RGBA8UI: R=health, G=height, B=mask/effect scratch, A=[category:flags]
         uint32_t textureWidth,
         uint32_t textureHeight)
     {
         EE_PROFILE_FUNCTION();
 
-        // Square grid (1:1 chunk ratio)
+        // square grid (1:1 chunk ratio)
         const int CELL = int(TILE_PIXEL_WIDTH);
         const int chunkWpx = int(CHUNK_SIZE) * CELL;
         const int chunkHpx = chunkWpx;
 
-        // World -> atlas pixel coords (bottom-origin)
+        // world -> atlas pixel coords (bottom-origin)
         const int groundPxX = int(std::floor(worldPosition.x * float(CELL)));
         const int groundPxY = int(std::floor(worldPosition.y * float(CELL)));
 
-        // Keep  previous vertical placement convention
+        // placement: keep your previous convention
         const int destX0_global = groundPxX - int(textureWidth) / 2;
         const int destY0_global = groundPxY - 1;
         const int dstX1_global = destX0_global + int(textureWidth);
         const int dstY1_global = destY0_global + int(textureHeight);
 
-        auto floorDiv = [](int a, int b)
-            {
-                int q = a / b, r = a % b;
-                if ((r != 0) && ((r > 0) != (b > 0))) --q;
-                return q;
-            };
-
-        const int minChunkX = floorDiv(destX0_global, chunkWpx);
-        const int maxChunkX = floorDiv(dstX1_global - 1, chunkWpx);
-        const int minChunkY = floorDiv(destY0_global, chunkHpx);
-        const int maxChunkY = floorDiv(dstY1_global - 1, chunkHpx);
+        const int minChunkX = TextureStreamingUtils::FloorDiv(destX0_global, chunkWpx);
+        const int maxChunkX = TextureStreamingUtils::FloorDiv(dstX1_global - 1, chunkWpx);
+        const int minChunkY = TextureStreamingUtils::FloorDiv(destY0_global, chunkHpx);
+        const int maxChunkY = TextureStreamingUtils::FloorDiv(dstY1_global - 1, chunkHpx);
 
         if (!textureData.empty())
             EE_CORE_ASSERT(textureData.size() >= size_t(textureWidth) * textureHeight * 4, "textureData too small");
@@ -118,10 +111,10 @@ namespace Engine {
 
                 const size_t totalPixels = size_t(chunkWpx) * size_t(chunkHpx);
 
-                // Allocate destination buffers on demand
+                // allocate destination buffers on demand
                 if (!textureData.empty() && chunk.PixelData.empty())
                     chunk.PixelData.assign(totalPixels * 4, 0);
-                
+
                 if (!propertiesData.empty() && chunk.PropertiesData.empty())
                     chunk.PropertiesData.assign(totalPixels * 4, 0);
 
@@ -137,7 +130,6 @@ namespace Engine {
                 }
                 else
                 {
-                    // Ensure the chunk we are writing matches our layout
                     EE_CORE_ASSERT(chunk.Width == uint32_t(chunkWpx), "Chunk width mismatch");
                     EE_CORE_ASSERT(chunk.Height == uint32_t(chunkHpx), "Chunk height mismatch");
                 }
@@ -155,12 +147,12 @@ namespace Engine {
                     continue;
 
                 bool wroteColor = false;
+                bool wroteProps = false;
 
                 for (int dstY = top; dstY < bottom; ++dstY)
                 {
                     const int srcY = dstY - destY0_global; // source row 0 = bottom
-                    if ((unsigned)srcY >= textureHeight)
-                        continue;
+                    if ((unsigned)srcY >= textureHeight) continue;
 
                     const int dstY_inChunk = dstY - chunkY0;
                     const size_t dstRow = size_t(dstY_inChunk) * size_t(chunkWpx) * 4;
@@ -169,96 +161,53 @@ namespace Engine {
                     for (int dstX = left; dstX < right; ++dstX)
                     {
                         const int srcX = dstX - destX0_global;
-                        if ((unsigned)srcX >= textureWidth)
-                            continue;
+                        if ((unsigned)srcX >= textureWidth) continue;
 
                         const int dstX_inChunk = dstX - chunkX0;
 
                         const size_t si = srcRow + size_t(srcX) * 4;
                         const size_t di = dstRow + size_t(dstX_inChunk) * 4;
 
-                        // ----- COLOR: Non-premultiplied alpha-over (src over dst) -----
+                        // ---------- COLOR ----------
                         if (!textureData.empty())
                         {
-                            // Destination (current chunk)
                             uint8_t& dR = chunk.PixelData[di + 0];
                             uint8_t& dG = chunk.PixelData[di + 1];
                             uint8_t& dB = chunk.PixelData[di + 2];
                             uint8_t& dA = chunk.PixelData[di + 3];
 
-                            // Source
-                            const uint8_t sR8 = textureData[si + 0];
-                            const uint8_t sG8 = textureData[si + 1];
-                            const uint8_t sB8 = textureData[si + 2];
-                            const uint8_t sA8 = textureData[si + 3];
+                            const uint8_t sR = textureData[si + 0];
+                            const uint8_t sG = textureData[si + 1];
+                            const uint8_t sB = textureData[si + 2];
+                            const uint8_t sA = textureData[si + 3];
 
-                            // Early out: if src is fully transparent, keep dst as is
-                            if (sA8 != 0)
-                            {
-                                const float sa = sA8 / 255.0f;
-                                const float da = dA / 255.0f;
-
-                                const float sr = sR8 / 255.0f;
-                                const float sg = sG8 / 255.0f;
-                                const float sb = sB8 / 255.0f;
-
-                                const float dr = dR / 255.0f;
-                                const float dg = dG / 255.0f;
-                                const float db = dB / 255.0f;
-
-                                const float outA = sa + da * (1.0f - sa);
-
-                                float outR = dr;
-                                float outG = dg;
-                                float outB = db;
-
-                                if (outA > 0.0f)
-                                {
-                                    // standard "src over dst" for straight alpha
-                                    const float oneMinusSa = (1.0f - sa);
-                                    outR = (sr * sa + dr * da * oneMinusSa) / outA;
-                                    outG = (sg * sa + dg * da * oneMinusSa) / outA;
-                                    outB = (sb * sa + db * da * oneMinusSa) / outA;
-                                }
-
-                                dR = (uint8_t)std::clamp(outR * 255.0f, 0.0f, 255.0f);
-                                dG = (uint8_t)std::clamp(outG * 255.0f, 0.0f, 255.0f);
-                                dB = (uint8_t)std::clamp(outB * 255.0f, 0.0f, 255.0f);
-                                dA = (uint8_t)std::clamp(outA * 255.0f, 0.0f, 255.0f);
-
-                                wroteColor = true;
-                            }
+                            wroteColor |= TextureStreamingUtils::AlphaOver(sR, sG, sB, sA, dR, dG, dB, dA);
                         }
 
-                        // ----- PROPERTIES: combine from propertiesData if provided -----
+                        // ---------- PROPERTIES ----------
                         if (!propertiesData.empty())
                         {
-                            // We favor "more solid / taller / broader mask" by max, and OR flags
                             uint8_t& dPr = chunk.PropertiesData[di + 0]; // Health
-                            uint8_t& dPg = chunk.PropertiesData[di + 1]; // Height
-                            uint8_t& dPb = chunk.PropertiesData[di + 2]; // Mask
-                            uint8_t& dPa = chunk.PropertiesData[di + 3]; // Flags
+                            uint8_t& dPg = chunk.PropertiesData[di + 1]; // Height (rows above pivot)
+                            uint8_t& dPb = chunk.PropertiesData[di + 2]; // Mask / effect scratch
+                            uint8_t& dPa = chunk.PropertiesData[di + 3]; // A = [category:flags]
 
                             const uint8_t sPr = propertiesData[si + 0];
                             const uint8_t sPg = propertiesData[si + 1];
                             const uint8_t sPb = propertiesData[si + 2];
                             const uint8_t sPa = propertiesData[si + 3];
 
-                            // Only stamp properties where source had any coverage.
-                            const uint8_t sA8 = textureData.empty() ? 255 : textureData[si + 3];
-                            if (sA8 != 0)
-                            {
-                                dPr = std::max(dPr, sPr);        // Health: keep higher
-                                dPg = std::max(dPg, sPg);        // Height: keep higher row-above-pivot
-                                dPb = std::max(dPb, sPb);        // Mask: keep max coverage
-                                dPa = uint8_t(dPa | sPa);        // Flags: bitwise OR
-                            }
+                            // coverage gate: follow texture alpha if available; else assume covered
+                            const uint8_t sAcov = textureData.empty() ? 255 : textureData[si + 3];
+
+                            wroteProps |= TextureStreamingUtils::MergePropertiesPixel(sPr, sPg, sPb, sPa, sAcov,
+                                dPr, dPg, dPb, dPa);
                         }
                     }
                 }
 
-                if (wroteColor)
-                    chunk.IsDirty = true;
+                if (wroteColor || wroteProps)
+                    chunk.IsDirty = true; // or split into PixelDirty / PropertiesDirty if you have separate uploads
             }
     }
 

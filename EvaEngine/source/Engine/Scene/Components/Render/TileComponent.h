@@ -29,7 +29,8 @@ namespace Engine {
         Buildings,
         Terrain,
         Roofs,
-        Vehicles
+        Vehicles,
+        dynamicObjects
     };
 
 
@@ -73,6 +74,7 @@ namespace Engine {
         case eTileCategory::Terrain:   return "Terrain";
         case eTileCategory::Roofs:     return "Roofs";
         case eTileCategory::Vehicles:  return "Vehicles";
+        case eTileCategory::dynamicObjects:  return "dynamicObjects";
 
         default: return "Unknown";
         }
@@ -116,6 +118,7 @@ namespace Engine {
         if (str == "Terrain") return eTileCategory::Terrain;
         if (str == "Roofs") return eTileCategory::Roofs;
         if (str == "Vehicles") return eTileCategory::Vehicles;
+        if (str == "dynamicObjects") return eTileCategory::dynamicObjects;
         return eTileCategory::Undefined;
     }
 

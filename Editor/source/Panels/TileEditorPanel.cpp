@@ -29,7 +29,9 @@ namespace Engine {
             { "Buildings", eTileCategory::Buildings },
             { "Terrain",   eTileCategory::Terrain },
             { "Roofs",     eTileCategory::Roofs },
-            { "Vehicles",  eTileCategory::Vehicles }
+            { "Vehicles",  eTileCategory::Vehicles },
+            { "dynamicObjects",  eTileCategory::dynamicObjects
+ }
         };
 
         // Thumbnail metrics for iso tiles (height = width * 256/128)

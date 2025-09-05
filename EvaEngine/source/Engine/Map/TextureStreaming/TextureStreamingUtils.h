@@ -12,6 +12,11 @@ namespace Engine {
 	public:
 		static bool BakeRoofTextureIfNeeded(Scene* scene, Entity entity);
 		static bool BakeVehicleTextureIfNeeded(Scene* scene, Entity entity);
+		static int FloorDiv(int a, int b);
+		static void UnpackCategoryFlags(uint8_t a, uint8_t& category, uint8_t& flags);
+		static uint8_t PackCategoryFlags(uint8_t category, uint8_t flags);
+		static bool AlphaOver(uint8_t sR, uint8_t sG, uint8_t sB, uint8_t sA, uint8_t& dR, uint8_t& dG, uint8_t& dB, uint8_t& dA);
+		static bool MergePropertiesPixel(uint8_t sPr, uint8_t sPg, uint8_t sPb, uint8_t sPa, uint8_t sCoverageA, uint8_t& dPr, uint8_t& dPg, uint8_t& dPb, uint8_t& dPa);
 	};
 
 

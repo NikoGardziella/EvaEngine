@@ -17,6 +17,7 @@ namespace Engine {
     struct TileProperties {
         uint32_t        health = 0;
         eTileMaterial   material = eTileMaterial::None;
+        eTileCategory   category = eTileCategory::Default;
         std::string     name;
         glm::vec4       uv = glm::vec4(0);
         PixelRect       pixelRect{};

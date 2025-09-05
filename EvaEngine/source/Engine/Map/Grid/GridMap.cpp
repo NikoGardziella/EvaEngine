@@ -289,7 +289,8 @@ namespace Engine
         // 1) Project AABB corners onto OBB axes (T,N) and test overlap with [-hx,hx] & [-hy,hy]
         glm::vec2 ac[4] = { {bmin.x,bmin.y},{bmax.x,bmin.y},{bmax.x,bmax.y},{bmin.x,bmax.y} };
         float minU = +FLT_MAX, maxU = -FLT_MAX, minV = +FLT_MAX, maxV = -FLT_MAX;
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 4; ++i) 
+        {
             glm::vec2 d = ac[i] - obb.center;
             float u = glm::dot(d, T);
             float v = glm::dot(d, N);
@@ -306,7 +307,8 @@ namespace Engine
             c + T * hx + N * hy, c - T * hx + N * hy
         };
         float ominX = +FLT_MAX, omaxX = -FLT_MAX, ominY = +FLT_MAX, omaxY = -FLT_MAX;
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 4; ++i)
+        {
             ominX = std::min(ominX, oc[i].x); omaxX = std::max(omaxX, oc[i].x);
             ominY = std::min(ominY, oc[i].y); omaxY = std::max(omaxY, oc[i].y);
         }
