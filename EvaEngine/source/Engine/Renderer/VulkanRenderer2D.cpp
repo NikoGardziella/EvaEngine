@@ -20,6 +20,7 @@ namespace Engine {
 
 	//VulkanRenderer2D::SceneData* VulkanRenderer2D::m_sceneData = new SceneData();
 	Engine::VulkanRenderer2DData Engine::VulkanRenderer2D::s_VulkanData;
+	Engine::VulkanBindlessRenderer2DData Engine::VulkanRenderer2D::s_VulkanBindlessData;
 	Engine::VulkanRenderer2DProjectileData Engine::VulkanRenderer2D::s_VulkanProjectileData;
 
 	CollisionData Engine::VulkanRenderer2D::s_CollisionData;
@@ -319,6 +320,11 @@ namespace Engine {
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
+		VulkanBindlessDescriptorSetRenderer bindless = m_vulkanGraphicsPipelines->GetBindless();
+		bindless.SetCurrentFrameIndex(currentFrame);
+		ConsumeDestructibleQueue(cmd, currentFrame);
+
+		
 		//move somewhere
 		s_CollisionData.EntitySlotIndex = 0;
 		s_VulkanData.TextureSlotIndex = CHUNK_GRID_SIZE;
@@ -326,6 +332,7 @@ namespace Engine {
 		s_VulkanProjectileData.TextureSlotIndex = 1;
 		s_VulkanData.TextureToSlotMap.clear();
 		g_PerFrameGarbage[s_VulkanData.CurrentFrame].OldTextures.clear();
+		s_VulkanBindlessData.submitQueues[currentFrame].clear();
 
 
 		// --- Begin render pass ---
@@ -356,6 +363,7 @@ namespace Engine {
 		// --- Bind pipeline and draw ---
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetGamePipeline());
 
+		
 
 	}
 
@@ -709,6 +717,9 @@ namespace Engine {
 		RecordLineCommanedBuffer(cmd, m_imageIndex, currentFrame);
 
 
+		m_vulkanGraphicsPipelines->GetBindless().RecordTiles(cmd, currentFrame,
+			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent());
+
 	}
 
 	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
@@ -817,13 +828,13 @@ namespace Engine {
 
 	}
 
+
 	void VulkanRenderer2D::RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
 
 		
 		EE_PROFILE_FUNCTION();
 
-	
 
 		// only reset when needed?
 		uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
@@ -915,7 +926,7 @@ namespace Engine {
 			pushconstant.PixelSize = tex.GetPixelSize();
 			pushconstant.textureIndex = static_cast<uint32_t>(i);
 			pushconstant.NumProjectiles = s_CollisionData.EntitySlotIndex;
-			pushconstant.ChunkSize = TILE_PIXEL_WIDTH * CHUNK_SIZE;
+			pushconstant.ChunkSize = TILE_PIXEL_WIDTH * CHUNK_SIZE; // unused for now
 			pushconstant.TileSize = TILE_PIXEL_WIDTH;
 			//pushconstant.mode = 0;
 
@@ -1212,6 +1223,49 @@ namespace Engine {
 
 		s_VulkanData.Stats.DrawCalls++;
 
+	}
+
+	void VulkanRenderer2D::ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex)
+	{
+		auto& submitQueu = s_VulkanBindlessData.submitQueues[frameIndex];
+
+
+		
+		// Tell the bindless manager we’re building this frame
+		m_vulkanGraphicsPipelines->GetBindless().BeginFrame(frameIndex, uploadCB);
+
+		auto Mix = [](uint64_t x) {
+			x += 0x9e3779b97f4a7c15ull;
+			x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ull;
+			x = (x ^ (x >> 27)) * 0x94d049bb133111ebull;
+			return x ^ (x >> 31);
+			};
+
+		for (const auto& s : submitQueu)
+		{
+			// Get entt::entity from your Entity wrapper
+			
+			// Stable UID: entity + local grid + nameHash
+			uint64_t entID = s.entityID;
+
+			uint64_t uid = 14695981039346656037ull;
+			uid ^= (Mix(entID) + (uid << 6) + (uid >> 2));
+			uid ^= (Mix((uint64_t)glm::round(s.localPos.x)) + (uid << 6) + (uid >> 2));
+			uid ^= (Mix((uint64_t)glm::round(s.localPos.y)) + (uid << 6) + (uid >> 2));
+			uid ^= (Mix(s.nameHash) + (uid << 6) + (uid >> 2));
+
+			// Ensure this tile has its own color layer (slot); records atlas->layer copy
+			uint32_t slot = m_vulkanGraphicsPipelines->GetBindless().EnsureTileResident(uid, s.atlasUV, uploadCB);
+
+			// Append an instance (sample 0..1 UV from uColor[slot])
+			m_vulkanGraphicsPipelines->GetBindless().AddInstance(
+				/*worldPos*/ s.worldPos + s.localPos,
+				/*zKey   */ s.worldPos.y * 1024.0f + s.zBias,
+				/*slot   */ slot);
+		}
+
+		// Upload SSBO + bind binding=2 for this frame
+		m_vulkanGraphicsPipelines->GetBindless().EndFrameAndUpload(frameIndex);
 	}
 
 	void VulkanRenderer2D::RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
@@ -1815,6 +1869,7 @@ namespace Engine {
 
 	}
 
+
 	void VulkanRenderer2D::DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color)
 	{
 		const float aspect = 2.0f;                 // 128x256
@@ -1972,6 +2027,17 @@ namespace Engine {
 		// Flush the batch
 		
 		
+	}
+
+	void VulkanRenderer2D::SubmitDestructibleTile(UUID entityID, const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias)
+	{
+		const size_t fi = static_cast<size_t>(s_VulkanData.CurrentFrame) % MAX_FRAMES_IN_FLIGHT;
+
+		// Get the vector for this frame
+		std::vector<DestructibleSubmit>& submitQueue = s_VulkanBindlessData.submitQueues[fi];
+
+		// Push one item
+		submitQueue.emplace_back(DestructibleSubmit{ entityID, worldPos, localPos, atlasUV, nameHash, zBias });
 	}
 
 	

@@ -9,7 +9,7 @@
 namespace Engine {
 	
 	// 3 sub-segments along one chosen side of a cell
-	static constexpr int SUBDIVS = 2;
+	static constexpr int SUBDIVS = GRID_SUBDIVISIONS;
 	struct SubCellOBB {
 		glm::vec2 center;       // world-space center
 		glm::vec2 halfExtents;  // {half-length along edge, half-thickness}
@@ -50,7 +50,7 @@ namespace Engine {
 		static glm::vec2 PerpCCW(const glm::vec2& v);
 		static bool OBBvsAABB(const SubCellOBB& obb, const glm::vec2& bmin, const glm::vec2& bmax);
 		static void SubtileAABB(const glm::ivec2& gs, float subtileSize, glm::vec2& bmin, glm::vec2& bmax);
-
+		static float PxToWorld(float px) { return px / float(TILE_PIXEL_WIDTH); }
 
 	private:
 		enum class TileDir : uint8_t { North, East, South, West };
@@ -76,7 +76,7 @@ namespace Engine {
 			}
 		};
 
-		enum : uint32_t { MASK_ALIVE = 1u, MASK_DESTROYED = 2u };
+		enum : uint32_t { MASK_ALIVE = 1u, MASK_DESTROYED = 2u , MASK_DYNFOOT_HIT = 4u};
 
 
 	private:

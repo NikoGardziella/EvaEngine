@@ -65,7 +65,6 @@ namespace Engine {
 
     }
 
-
     void TextureStreamingSystem::UploadToChunkFromTexture(
         const glm::vec2& worldPosition,
         UUID id,
@@ -98,9 +97,13 @@ namespace Engine {
         const int maxChunkY = TextureStreamingUtils::FloorDiv(dstY1_global - 1, chunkHpx);
 
         if (!textureData.empty())
+        {
             EE_CORE_ASSERT(textureData.size() >= size_t(textureWidth) * textureHeight * 4, "textureData too small");
+        }
         if (!propertiesData.empty())
+        {
             EE_CORE_ASSERT(propertiesData.size() >= size_t(textureWidth) * textureHeight * 4, "propertiesData too small");
+        }
 
         for (int cy = minChunkY; cy <= maxChunkY; ++cy)
             for (int cx = minChunkX; cx <= maxChunkX; ++cx)
@@ -113,10 +116,13 @@ namespace Engine {
 
                 // allocate destination buffers on demand
                 if (!textureData.empty() && chunk.PixelData.empty())
+                {
                     chunk.PixelData.assign(totalPixels * 4, 0);
-
+                }
                 if (!propertiesData.empty() && chunk.PropertiesData.empty())
+                {
                     chunk.PropertiesData.assign(totalPixels * 4, 0);
+                }
 
                 if (chunk.Width == 0 || chunk.Height == 0)
                 {
@@ -144,7 +150,9 @@ namespace Engine {
                 const int top = std::max(destY0_global, chunkY0);
                 const int bottom = std::min(dstY1_global, chunkY1);
                 if (left >= right || top >= bottom)
+                {
                     continue;
+                }
 
                 bool wroteColor = false;
                 bool wroteProps = false;
@@ -152,7 +160,10 @@ namespace Engine {
                 for (int dstY = top; dstY < bottom; ++dstY)
                 {
                     const int srcY = dstY - destY0_global; // source row 0 = bottom
-                    if ((unsigned)srcY >= textureHeight) continue;
+                    if ((unsigned)srcY >= textureHeight)
+                    {
+                        continue;
+                    }
 
                     const int dstY_inChunk = dstY - chunkY0;
                     const size_t dstRow = size_t(dstY_inChunk) * size_t(chunkWpx) * 4;
@@ -161,7 +172,10 @@ namespace Engine {
                     for (int dstX = left; dstX < right; ++dstX)
                     {
                         const int srcX = dstX - destX0_global;
-                        if ((unsigned)srcX >= textureWidth) continue;
+                        if ((unsigned)srcX >= textureWidth)
+                        {
+                            continue;
+                        }
 
                         const int dstX_inChunk = dstX - chunkX0;
 
@@ -200,16 +214,21 @@ namespace Engine {
                             // coverage gate: follow texture alpha if available; else assume covered
                             const uint8_t sAcov = textureData.empty() ? 255 : textureData[si + 3];
 
-                            wroteProps |= TextureStreamingUtils::MergePropertiesPixel(sPr, sPg, sPb, sPa, sAcov,
-                                dPr, dPg, dPb, dPa);
+                            wroteProps |= TextureStreamingUtils::MergePropertiesPixel(
+                                sPr, sPg, sPb, sPa, sAcov,
+                                dPr, dPg, dPb, dPa
+                            );
                         }
                     }
                 }
 
                 if (wroteColor || wroteProps)
-                    chunk.IsDirty = true; // or split into PixelDirty / PropertiesDirty if you have separate uploads
+                {
+                    chunk.IsDirty = true;
+                }
             }
     }
+
 
 
 
@@ -656,10 +675,11 @@ namespace Engine {
                 // Per-entity baked textures (pass the Entity as requested)
                 TextureStreamingUtils::BakeRoofTextureIfNeeded(scene, entity);
                 TextureStreamingUtils::BakeVehicleTextureIfNeeded(scene, entity);
-
+                TextureStreamingUtils::BakeDynamicObjectIfNeeded(scene, entity);
                 for (const TileInfo& tile : tileComp.tiles)
                 {
-                    if (tile.Category == eTileCategory::Terrain)
+                    if (tile.Category == eTileCategory::Terrain ||
+                        tile.Category == eTileCategory::dynamicObjects)
                         continue;
 
                     const glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;

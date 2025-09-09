@@ -14,28 +14,28 @@
 
 namespace Engine
 {
-
-
     void GridMap::BuildFromRegistry(Scene* scene)
     {
         m_blockedSubCells.clear();
 
-        // --- measure iso diamond in your world units ---
-        const glm::vec2 g00 = IsoTileUtils::IsoToWorldGround({ 0, 0 });
-        const glm::vec2 gE = IsoTileUtils::IsoToWorldGround({ 1, -1 }); // east neighbor
-        const glm::vec2 gS = IsoTileUtils::IsoToWorldGround({ 1,  1 }); // south neighbor
-        const float CELL_W = std::abs(gE.x - g00.x);  // full diamond width
-        const float CELL_H = std::abs(gS.y - g00.y);  // full diamond height
+        // --- measure iso diamond in world units (unchanged) ---
+        const glm::vec2 g00 = IsoTileUtils::IsoToWorldGround({ 0,0 });
+        const glm::vec2 gE = IsoTileUtils::IsoToWorldGround({ 1,-1 }); // east neighbor
+        const glm::vec2 gS = IsoTileUtils::IsoToWorldGround({ 1, 1 }); // south neighbor
+        const float CELL_W = std::abs(gE.x - g00.x);   // full diamond width
+        const float CELL_H = std::abs(gS.y - g00.y);   // full diamond height
         if (CELL_W <= 0.f || CELL_H <= 0.f) return;
 
-        // sub-cell layout
-        constexpr int   SUBS = SUBDIVS;         // 3 segments along the edge
-        constexpr float SHRINK_ALONG = 0.96f;    // tiny shrink along edge to avoid overlap
-        const     float HALF_THICK = 0.5f * (0.22f * std::min(CELL_W, CELL_H)); // strip thickness/2
+        // --- shared shaping constants ---
+        constexpr int   SUBS = SUBDIVS;          // same edge segmentation you use for walls
+        constexpr float SHRINK_ALONG = 0.96f;            // tiny shrink to avoid overlap
+        const     float HALF_THICK_W = 0.5f * (0.22f * std::min(CELL_W, CELL_H)); // wall strip half-thickness
+
+        // For centered props we usually want a smaller footprint:
+        const     float CENTER_HALF_THICK = 0.5f * (0.12f * std::min(CELL_W, CELL_H)); // prop strip half-thickness
 
         enum class FootSide : uint8_t { North, East, South, West };
 
-        // parse side from tile name ("..._N", "..._E", "..._S", "..._W")
         auto parseSide = [](const std::string& name) -> FootSide {
             auto pos = name.find_last_of('_');
             if (pos != std::string::npos && pos + 1 < name.size()) {
@@ -45,13 +45,9 @@ namespace Engine
                 if (c == 'S') return FootSide::South;
                 if (c == 'W') return FootSide::West;
             }
-            return FootSide::South; // sensible default
+            return FootSide::South;
             };
 
-        // pick the edge *segment* for each side (90° CW vs your previous mapping)
-        // Diamond vertices from ground S (south tip):
-        //   N(0,-CELL_H), E(+W/2,-H/2), S(0,0), W(-W/2,-H/2)
-        // Edges: N?E, E?S, S?W, W?N (clockwise)
         auto edgeForSide = [&](FootSide side, const glm::vec2& S,
             glm::vec2& A, glm::vec2& B)
             {
@@ -60,22 +56,23 @@ namespace Engine
                 const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
 
                 switch (side) {
-                case FootSide::North: A = N; B = E; break; // use top-right edge
+                case FootSide::North: A = N; B = E; break; // top-right edge
                 case FootSide::East:  A = E; B = S; break; // right edge
                 case FootSide::South: A = S; B = W; break; // bottom-left edge
                 case FootSide::West:  A = W; B = N; break; // left edge
                 }
             };
 
-        auto emitSubcellsOnEdge = [&](const glm::ivec2& cell, FootSide side)
+        // --- existing walls: emit strips along a tile edge ---
+        auto emitEdgeSubcellsOnSide = [&](const glm::ivec2& cell, FootSide side)
             {
                 const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
 
-                // vertices (for centroid / inward normal)
+                // diamond vertices + centroid
                 const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
                 const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
                 const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
-                const glm::vec2 C = (E + W + N + S) * 0.25f; // diamond centroid
+                const glm::vec2 C = (E + W + N + S) * 0.25f;
 
                 glm::vec2 A{}, B{};
                 edgeForSide(side, S, A, B);
@@ -84,12 +81,11 @@ namespace Engine
                 const float     L = glm::length(e);
                 if (L <= 1e-6f) return;
 
-                const glm::vec2 T = e / L;               // tangent along the edge
+                const glm::vec2 T = e / L;                // tangent along edge
                 glm::vec2       Nin = glm::vec2(-T.y, T.x); // left normal
 
-                // make normal point inward (towards centroid)
-                const glm::vec2 midEdge = 0.5f * (A + B);
-                if (glm::dot(Nin, C - midEdge) < 0.0f) Nin = -Nin;
+                // Make normal point inward (toward centroid)
+                if (glm::dot(Nin, C - 0.5f * (A + B)) < 0.0f) Nin = -Nin;
 
                 const float segLen = L / float(SUBS);
                 const float halfAlong = 0.5f * segLen * SHRINK_ALONG;
@@ -99,26 +95,78 @@ namespace Engine
                     const float t0 = float(s) * segLen;
                     const float t1 = float(s + 1) * segLen;
                     const float tm = 0.5f * (t0 + t1);
-                    const glm::vec2 P = A + T * tm;                  // mid point on edge
+                    const glm::vec2 P = A + T * tm;
 
                     SubCellOBB obb;
-                    obb.center = P + Nin * HALF_THICK;          // push inward
-                    obb.halfExtents = { halfAlong, HALF_THICK };
-                    obb.tangent = T;                             // orientation
+                    obb.center = P + Nin * HALF_THICK_W;
+                    obb.halfExtents = { halfAlong, HALF_THICK_W };
+                    obb.tangent = T;
                     m_blockedSubCells.push_back(obb);
                 }
             };
+
+        // centered strip (for slender props: lamps, posts, benches) ---
+        // widthFrac: 0..1 of tile width across the “horizontal” axis (E<->W)
+        // thickFrac: 0..1 of tile min dimension for the orthogonal thickness
+        auto emitCenteredStrip = [&](const glm::ivec2& cell,
+            float widthFrac,
+            float thickFrac,
+            float yNudgePx /* NEW: positive pushes DOWN if +Y is down */)
+            {
+                const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
+                const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
+                const glm::vec2 C = (E + W + N + S) * 0.25f;
+
+                const glm::vec2 T = glm::normalize(E - W);
+                const float halfAlong = 0.5f * widthFrac * 0.5f * CELL_W;
+                const float halfThick = 0.5f * thickFrac * std::min(CELL_W, CELL_H);
+
+                SubCellOBB obb;
+                obb.center = C + glm::vec2(0.0f, PxToWorld(yNudgePx)); // <<< vertical nudge here
+                obb.halfExtents = { halfAlong, halfThick };
+                obb.tangent = T;
+                m_blockedSubCells.push_back(obb);
+            };
+
+        // --- OPTIONAL: centered “disc” approximated by 2 strips (good for round poles) ---
+        auto emitCenteredDiscApprox = [&](const glm::ivec2& cell, float radiusFrac /*~0.18f*/)
+            {
+                const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
+                const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
+                const glm::vec2 C = (E + W + N + S) * 0.25f;
+
+                const float R = radiusFrac * 0.5f * std::min(CELL_W, CELL_H);
+
+                // Two orthogonal strips crossing at C
+                auto pushStrip = [&](const glm::vec2& T)
+                    {
+                        SubCellOBB obb;
+                        obb.center = C;
+                        obb.tangent = glm::normalize(T);
+                        obb.halfExtents = { R, 0.5f * R };
+                        m_blockedSubCells.push_back(obb);
+                    };
+
+                pushStrip(E - W);     // “horizontal”
+                pushStrip(N - S);     // “vertical”
+            };
+
+        // Per-side anchor correction used for walls (leave as-is)
         auto sideIsoOffset = [](FootSide s) -> glm::ivec2 {
             switch (s) {
-            case FootSide::North: return { +1, +1 };  // DR one cell (matches what fixed N/S for you)
-            case FootSide::South: return { +1, +1 };  // DR one cell
-            case FootSide::East:  return { 0, +1 };  // EAST neighbor in iso (u+1, v-1)
-            case FootSide::West:  return { +2, +1 };  // WEST neighbor in iso (u-1, v+1)
+            case FootSide::North: return { +1, +1 };
+            case FootSide::South: return { +1, +1 };
+            case FootSide::East:  return { 0, +1 };
+            case FootSide::West:  return { +2, +1 };
             }
             return { 0,0 };
             };
 
-        // walk tiles and emit sub-cells
+        // --- Walk tiles and emit collision sub-cells ---
         auto view = scene->GetRegistry().view<TileComponent, TransformComponent>();
         for (auto e : view)
         {
@@ -127,23 +175,41 @@ namespace Engine
 
             for (const auto& t : tc.tiles)
             {
-                if (t.Category != eTileCategory::Buildings) continue;
+                // Tile ground = entity anchor + local placement
+                const glm::vec2 ground = glm::vec2(tr.Translation) + t.position;
+                glm::ivec2 cell = IsoTileUtils::WorldToIsoCell(ground);
 
-                // ground = entity anchor + local world delta you stored
-                const glm::vec2  ground = glm::vec2(tr.Translation) + t.position;
-                glm::ivec2       cell = IsoTileUtils::WorldToIsoCell(ground);
+                if (t.Category == eTileCategory::Buildings)
+                {
+                    FootSide side = parseSide(t.name);
+                    cell += sideIsoOffset(side);           // edge anchoring like your walls
+                    emitEdgeSubcellsOnSide(cell, side);
+                }
+                
+                else if (t.Category == eTileCategory::dynamicObjects)
+                {
+                    // Defaults that work well for lamps/signs; make these data-driven later:
+                    // If you already computed a per-tile foot width in ExtractPixelsFromTilePallette,
+                    // map it to a fraction and use it here instead of the constants below.
+                    constexpr float kDefaultWidthFrac = 0.35f; // 35% of tile width
+                    constexpr float kDefaultThickFrac = 0.12f; // 12% of min(CELL_W,H)
+                    constexpr float yNudgePx = 90.f; // 12% of min(CELL_W,H)
+                    constexpr bool  kUseDiscForPosts = false; // flip true for poles/trees
 
-                FootSide side = parseSide(t.name);
-
-                // <<< per-side anchor correction >>>
-                cell += sideIsoOffset(side);
-
-                emitSubcellsOnEdge(cell, side);
+                    if (kUseDiscForPosts)
+                    {
+                        emitCenteredDiscApprox(cell, 0.18f);
+                    }
+                    else
+                    {
+                        emitCenteredStrip(cell, kDefaultWidthFrac, kDefaultThickFrac, yNudgePx);
+                    }
+                }
+                
+                
             }
         }
     }
-
-
 
 
 
@@ -349,8 +415,10 @@ namespace Engine
         for (uint32_t i = 0; i < mask.size(); ++i)
         {
             const uint32_t bits = mask[i];
+
             if ((bits & MASK_DESTROYED) == 0u) continue;
 
+           
             // Subtile inside the 3x3 window
             const glm::ivec2 rel = { int(i % subtilesPerRow), int(i / subtilesPerRow) };
 

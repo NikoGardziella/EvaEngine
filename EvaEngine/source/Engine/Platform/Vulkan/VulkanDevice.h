@@ -43,7 +43,7 @@ namespace Engine {
 
         bool m_enableValidationLayers = true;
 
-        const std::vector<const char*> m_deviceExtensions =
+        std::vector<const char*> m_deviceExtensions =
         {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
         };

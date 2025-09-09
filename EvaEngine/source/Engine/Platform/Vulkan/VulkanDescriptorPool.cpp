@@ -24,7 +24,14 @@ namespace Engine {
         {
             throw std::runtime_error("failed to create descriptor pool!");
         }
+
+
+        // Bindless descriptor set
+
+
+
     }
+
 
     VulkanDescriptorPool::~VulkanDescriptorPool()
     {
@@ -34,7 +41,8 @@ namespace Engine {
 
     void VulkanDescriptorPool::Destroy()
     {
-       vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
+        vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
     }
+
 
 }

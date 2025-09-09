@@ -1649,6 +1649,9 @@
     <ClInclude Include="source\Engine\Map\Grid\TileCollisionMask.h" />
     <ClInclude Include="source\Engine\Map\Utils\IsoTileUtils.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\DynamicObjectRenderComp.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.h" />
+    <ClInclude Include="source\Engine\Math\HashUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1854,6 +1857,7 @@
     <ClCompile Include="source\Engine\AssetManager\Utils\TileSerializer.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\TileCollisionMask.cpp" />
     <ClCompile Include="source\Engine\AssetManager\Utils\AssetManagerUtils.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">
@@ -1892,5 +1896,6 @@
     <None Include="..\assets\shaders\Effect_shader.comp" />
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\player_collision_compute.comp" />
+    <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
   </ItemGroup>
 </Project>

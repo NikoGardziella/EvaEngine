@@ -10,6 +10,7 @@ namespace Engine {
 	class TextureStreamingUtils
 	{
 	public:
+		static bool BakeDynamicObjectIfNeeded(Scene* scene, Entity entity);
 		static bool BakeRoofTextureIfNeeded(Scene* scene, Entity entity);
 		static bool BakeVehicleTextureIfNeeded(Scene* scene, Entity entity);
 		static int FloorDiv(int a, int b);

@@ -6,7 +6,7 @@
 #define MAX_TEXTURES            32
 #define MAX_COLLISION_ENTITIES  64
 #define CHUNK_SIZE              32
-#define SUBTILES_PER_TILE       4
+#define SUBTILES_PER_TILE       3 // dont forget to modify in core.h as well
 #define GRID_WIDTH              3
 #define GRID_HEIGHT             3
 #define ACTIVE_SLOTS            (GRID_WIDTH * GRID_HEIGHT)
@@ -16,8 +16,18 @@
 #define PROJ_RADIUS_IS_PIXELS 0
 
 // mask bits in BlockedTileMask
-const uint MASK_ALIVE      = 1u;
-const uint MASK_DESTROYED  = 2u;
+const uint MASK_ALIVE         = 1u;
+const uint MASK_DESTROYED     = 2u;
+const uint MASK_DYNFOOT_HIT   = 4u;
+
+// Category codes must match CPU
+const uint CAT_Undefined     = 0u;
+const uint CAT_Default       = 1u;
+const uint CAT_Buildings     = 2u;
+const uint CAT_Terrain       = 3u;
+const uint CAT_Roofs         = 4u;
+const uint CAT_Vehicles      = 5u;
+const uint CAT_Dynamic       = 6u;  // enum class eTileCategory::dynamicObjects
 
 // FX flag in props.a
 const uint FX_ARMED        = 1u;
@@ -73,7 +83,7 @@ layout(push_constant) uniform PushConstants {
     uint  TextureIndex;        // 0..8
 
     uint  NumProjectiles;
-    uint  ChunkSizePixels;     // e.g. 512
+    uint  ChunkSizePixels;     // e.g. 512 unused
     uint  TileSizePixels;      // e.g. 128
 
     uint  Mode;              // lower 2 bits = falloff mode
@@ -87,6 +97,22 @@ void  clearColor(uint slot, ivec2 px)        { imageStore(u_InputTexture[slot], 
 
 bool hasHealth(uvec4 ht) { return (ht.r > 0u); }
 
+uint GetCategory(uvec4 props)
+{
+    return (props.a >> 4u) & 0xFu; // high nibble
+}
+
+bool IsDynamic(uvec4 props)
+{
+    return GetCategory(props) == CAT_Dynamic;
+}
+
+bool IsFootBand(uvec4 props)
+{
+    // heuristic foot band: small G means near/below pivot
+    const uint HeightThresholdPx = 20u;  // tweak as needed
+    return props.g <= HeightThresholdPx;
+}
 // world center of a local pixel
 vec2 pixelCenterWorld(ivec2 lp) {
     return pc.TextureOriginWorld + (vec2(lp) + vec2(0.5)) * pc.PixelSizeWorld;
@@ -239,7 +265,7 @@ void rearmGlow_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht, uint seed)
 void destroyPixel_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht)
 {
     clearColor(slot, px);
-    ht.r = 0u;                 // dead
+    ht.r = 0u;
     if (fx)
     {
         uint s = min(20u, 255u);
@@ -248,8 +274,16 @@ void destroyPixel_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht)
     }
     storeHT(slot, px, ht);
 
-    // mark destroyed subtile
+    // Mark generic destroyed
     writeMaskForSlotPx(slot, px, MASK_DESTROYED);
+
+    // if this texel belongs to a dynamic object’s foot, mark the special bit too
+    // We must re-read props to evaluate category/foot band (ht is already updated).
+    uvec4 propsNow = imageLoad(u_PropertiesImage[slot], px);
+    if (IsDynamic(propsNow) && IsFootBand(propsNow))
+    {
+        writeMaskForSlotPx(slot, px, MASK_DYNFOOT_HIT);
+    }
 }
 
 // Partial damage does NOT arm FX
@@ -261,7 +295,13 @@ void applyDamage_fx(bool /*fx*/, uint slot, ivec2 px, inout uvec4 ht, uint damag
         clearColor(slot, px);
         ht.r = 0u;
         storeHT(slot, px, ht);
-        writeMaskForSlotPx(slot, px, MASK_DESTROYED); // safety mark
+        writeMaskForSlotPx(slot, px, MASK_DESTROYED);
+
+        uvec4 propsNow = imageLoad(u_PropertiesImage[slot], px);
+        if (IsDynamic(propsNow) && IsFootBand(propsNow))
+        {
+            writeMaskForSlotPx(slot, px, MASK_DYNFOOT_HIT);
+        }
     }
     else 
     {
@@ -402,7 +442,6 @@ void main()
     uvec4 centerHT     = loadHT(pc.TextureIndex, localPx);
     uint  centerHealth = centerHT.r;
     bool  centerHasHP  = (centerHealth > 0u);
-
 
     // no need to write alive pixels now
     // write ALIVE for bottom band (so CPU has baseline footprint)

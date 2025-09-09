@@ -10,6 +10,8 @@
 
 #include "vulkan/vulkan.h"
 #include <Engine/Events/Public/CollisionEvents.h>
+#include <Engine/Scene/Entity.h>
+#include <vector>
 
 namespace Engine {
 
@@ -97,6 +99,20 @@ namespace Engine {
 
 	};
 
+	struct DestructibleSubmit {
+		UUID		 entityID;
+		glm::vec2    worldPos;   // center in world units
+		glm::vec2    localPos;   // tile's local pos in entity space (for UID)
+		glm::vec4    atlasUV;    // UNFLIPPED source UV in the atlas
+		uint64_t     nameHash;   // hash of t.name to avoid storing strings
+		float        zBias = 0.0f;
+	};
+
+	struct VulkanBindlessRenderer2DData
+	{
+		std::array<std::vector<DestructibleSubmit>, 3> submitQueues{};
+
+	};
 
 	struct CollisionData
 	{
@@ -195,13 +211,16 @@ namespace Engine {
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID = -1);
-		static void DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color);
+		static void DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color = glm::vec4(1));
 		static void DrawTile(const glm::vec3& transform, const glm::vec4& uv, const glm::vec4& color);
 		static void BeginScene(const Camera& camera, const glm::mat4& transform);
 		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(glm::mat4 viewProjectionMatrix);
 		static void BeginScene();
 		static void EndScene();
+
+		static void VulkanRenderer2D::SubmitDestructibleTile(UUID entityID, const glm::vec2& worldPos,
+			const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias);
 
 
 		static Renderer2D::Statistics GetStats();
@@ -220,12 +239,11 @@ namespace Engine {
 		void RecordPlayerCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
-
+		void ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex);
 		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
 		void CreateSyncObjects();
 
 
-		// I dont use this at the moment, but they might come in handy later
 		void TransitionImageLayout(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 	private:
@@ -259,6 +277,7 @@ namespace Engine {
 		uint32_t inputIndex = 0;
 		uint32_t outputIndex = 0;
 		static VulkanRenderer2DData s_VulkanData;
+		static VulkanBindlessRenderer2DData s_VulkanBindlessData;
 		static VulkanRenderer2DProjectileData s_VulkanProjectileData;
 		static CollisionData s_CollisionData;
 		static EffectPushConstants s_effectPushConstants;

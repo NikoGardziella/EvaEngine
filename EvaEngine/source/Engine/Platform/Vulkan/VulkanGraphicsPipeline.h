@@ -4,13 +4,13 @@
 #include "VulkanShader.h"
 #include "VulkanTexture.h"
 #include "Engine/Platform/Vulkan/VulkanContext.h"
-#include "Pixel/VulkanPixelTexture.h"
 
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <glm/glm.hpp>
 #include <cstddef>
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
+#include "VulkanBindlessDescriptorSet.h"
 
 
 namespace Engine {
@@ -233,8 +233,10 @@ namespace Engine {
 
        // StorageImage GetOutputImage() { return m_outputTextureImage; }
 
-    private:
+    VulkanBindlessDescriptorSetRenderer& GetBindless() const { EE_CORE_ASSERT(m_bindlessDescitproSet); return *m_bindlessDescitproSet; }
 
+
+    private:
         void CreateGameGraphicsPipeline(VkRenderPass renderPass);
         void CreateLineGraphicsPipeline(VkRenderPass renderPass);
         void CreateEffectsPipelineLayout();
@@ -357,6 +359,8 @@ namespace Engine {
         Ref<VulkanTexture> m_whiteTexture;
         Ref<VulkanTexture> m_dummyTexture;
 
+
+        Ref<VulkanBindlessDescriptorSetRenderer> m_bindlessDescitproSet;
     };
 
 }

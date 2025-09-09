@@ -22,6 +22,9 @@ namespace Engine {
     VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanContext& vulkanContext)
 
     {
+
+
+
 		m_swapchainExtent = vulkanContext.GetVulkanSwapchain().GetSwapchainExtent();
 	
 		m_device = vulkanContext.GetDeviceManager().GetDevice();
@@ -133,6 +136,7 @@ namespace Engine {
         // 7. Remaining descriptor sets that depend on pipelines (if any)
         CreateComputeDescriptorSet();
 
+        m_bindlessDescitproSet = std::make_shared<VulkanBindlessDescriptorSetRenderer>(m_device, false);
 
         AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
 

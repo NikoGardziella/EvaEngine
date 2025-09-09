@@ -70,7 +70,7 @@ void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
     Engine::Entity& projectileEntity = scene->CreateEntity("Projectile");
 
     Engine::TransformComponent& transformComp = projectileEntity.AddComponent<Engine::TransformComponent>();
-	float projectileMaxRange = 10.0f; // fix this
+	float projectileMaxRange = 3.0f; // fix this
     float projectileRadius = 0.1f;
     ProjectileComponent& projectileComp = projectileEntity.AddComponent<ProjectileComponent>(direction, projectileMaxRange);
     projectileComp.Damage = weaponComp.Damage;

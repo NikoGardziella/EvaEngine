@@ -22,6 +22,7 @@
 #include "Components/Projectiles/ProjectileComponent.h"
 #include "Engine/Map/Grid/GridMap.h"
 #include <Engine/Core/UUID.h>
+#include "Components/Render/DynamicObjectRenderComp.h"
 
 
 namespace Engine {
@@ -367,11 +368,11 @@ namespace Engine {
 
         // makes sure textures are reloaded to the right registry
         // editor to game
-        m_textureStreamingSystem->ResetAllChunks(this);
+        //m_textureStreamingSystem->ResetAllChunks(this);
         m_gridMap->BuildFromRegistry(this);
         m_textureStreamingSystem->SortIsoTilesByY(this);
-        m_textureStreamingSystem->BakeTilesIntoChunks(this);
-		m_textureStreamingSystem->AddChunkEntitiesToRegistry(this);
+       // m_textureStreamingSystem->BakeTilesIntoChunks(this);
+		//m_textureStreamingSystem->AddChunkEntitiesToRegistry(this);
 
        // m_gridMap->BuildFromRegistry(m_registry);
     }
@@ -545,7 +546,34 @@ namespace Engine {
                 }
                 m_textureStreamingSystem->Update(playerPos, this);
 
+                this->ForEach<TransformComponent, DynamicObjectRenderComp>(
+                    [&](Entity, TransformComponent& tr, DynamicObjectRenderComp& dyn)
+                    {
+                        if (!dyn.IsLoaded || !dyn.Texture || !dyn.PropertiesTexture) return;
 
+                        const float pxWorld = float(TILE_SIZE) / float(TILE_PIXEL_WIDTH);
+
+                        // Entity anchor is bottom-center. Our baked origin is bottom-left relative to the anchor.
+                        glm::vec2 anchor = glm::vec2(tr.Translation);        // your bottom-center ground anchor
+                        glm::vec2 randomOffset = glm::vec2(0.5f, 1.0f);  // to bottom left tile 128 x 256
+                        glm::vec2 originBL = anchor + dyn.OriginBLWorld + randomOffset;       // place bottom-left in world
+
+                        // (optional) snap to pixel grid
+                        originBL = glm::round(originBL / pxWorld) * pxWorld;
+
+                        glm::mat4 model =
+                            glm::translate(glm::mat4(1.0f), glm::vec3(originBL, 0.0f)) *
+                            glm::scale(glm::mat4(1.0f), glm::vec3(dyn.WorldSize, 1.0f));
+
+                        dyn.PropertiesTexture->SetTextureOrigin(originBL);
+                        dyn.PropertiesTexture->SetPixelSize(pxWorld);
+                        dyn.PropertiesTexture->SetCheckCollision(true);
+                        dyn.Texture->SetTextureOrigin(originBL);
+                        dyn.Texture->SetPixelSize(pxWorld);
+                        dyn.Texture->SetCheckCollision(true);
+
+                        //VulkanRenderer2D::DrawTextureQuadWithProperties(model, dyn.Texture, dyn.PropertiesTexture);
+                    });
 
 
 
@@ -594,11 +622,43 @@ namespace Engine {
                             minOrigin.y = std::min(minOrigin.y, chunkComp.ChunkCoords.y);
 
                             //EE_CORE_INFO("minOrigin {}, {}", minOrigin.x, minOrigin.y);
-                           Engine::VulkanRenderer2D::DrawTextureQuadWithProperties(model, chunkComp.Texture, chunkComp.PropertiesTexture);
+                          // Engine::VulkanRenderer2D::DrawTextureQuadWithProperties(model, chunkComp.Texture, chunkComp.PropertiesTexture);
 
                             
                         }
                     }
+                    {
+
+
+                        auto view = m_registry.view<TileComponent, TransformComponent, IDComponent>();
+                        view.use<TransformComponent>(); // this ensured the draw order!
+                        for (auto entity : view)
+                        {
+
+                            TileComponent& tileComponent = view.get<TileComponent>(entity);
+                            IDComponent& idComponent = view.get<IDComponent>(entity);
+                            TransformComponent& transformComponent = view.get<TransformComponent>(entity);
+
+                            const float step = float(TILE_SIZE);
+                            for (size_t i = 0; i < tileComponent.tiles.size(); i++)
+                            {
+                                if (tileComponent.tiles[i].Category == eTileCategory::Terrain)
+                                {
+                                    // skip terrain and draw everything else 
+                                    continue;
+                                }
+                                
+                                // Use flippedUV for rendering, don't overwrite original UV
+                                float zBias = 0.01f;
+                                VulkanRenderer2D::SubmitDestructibleTile(idComponent.ID, transformComponent.Translation,
+                                    tileComponent.tiles[i].position, tileComponent.tiles[i].UV, tileComponent.tiles[i].NameHash, zBias);
+                            }
+
+                        }
+
+                    }
+
+
                     //glm::ivec2 chunkMinOrigin = glm::floor(glm::vec2(minOrigin) / float(CHUNK_SIZE));
                     //glm::ivec2 tileMinOrigin = chunkMinOrigin * int(CHUNK_SIZE);
                     m_gridMap->UpdateTiles(minOrigin);

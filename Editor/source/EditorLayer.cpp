@@ -30,6 +30,7 @@
 #include "Panels/Utils/EditorDebugUtils.h"
 #include <Engine/Renderer/VulkanRenderer2D.h>
 #include <algorithm>
+#include "Engine/Math/HashUtils.h"
 
 namespace Engine {
 
@@ -661,12 +662,11 @@ namespace Engine {
         // Duplicate check (compare iso cells)
         auto& registry = m_editor->GetGameLayer()->GetActiveGameScene()->GetRegistry();
         {
-            auto view = registry.view<TileComponent, TransformComponent>();
+            auto view = registry.view<TileComponent, TransformComponent, IDComponent>();
             for (auto entity : view)
             {
                 const auto& tc = view.get<TileComponent>(entity);
                 const auto& tr = view.get<TransformComponent>(entity);
-
                 for (const auto& tinfo : tc.tiles)
                 {
                     glm::vec2 tileGround = glm::vec2(tr.Translation) + tinfo.position; 
@@ -685,21 +685,24 @@ namespace Engine {
         bool isRoof = (tileCategory == eTileCategory::Roofs);
         TileProperties& tileProps = m_tileEditorPanel.GetSelectedTileProperties();
 
+
         // Place
         if (m_selectedEntity)
         {
             auto& tr = m_selectedEntity.GetComponent<TransformComponent>();
+            auto& idComp = m_selectedEntity.GetComponent<IDComponent>();
             glm::ivec2 baseIso = IsoTileUtils::WorldToIsoCellInt(glm::vec2(tr.Translation));
             glm::ivec2 localIso = isoCell - baseIso;
 
             // Store WORLD delta to the target cell's **ground**
-            glm::vec2 deltaGround = IsoTileUtils::IsoDeltaToWorldDeltaGround(localIso);
+            const glm::vec2 deltaGround = IsoTileUtils::IsoDeltaToWorldDeltaGround(localIso);
+            uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, deltaGround, float(TILE_SIZE));
 
             auto& tc = m_selectedEntity.GetComponent<TileComponent>();
             tc.tiles.push_back(TileInfo{
                 deltaGround, UV, selectedTileName,
                 destructible, isRoof, tileCategory,
-                tileProps.material, tileProps.health
+                tileProps.material, tileProps.health ,tileID
                 });
             
             EE_CORE_INFO("adding tile: {}", tc.tiles.size());
@@ -708,9 +711,12 @@ namespace Engine {
         {
             // New entity anchored at **ground**
             Entity e = m_editor->GetGameLayer()->GetActiveGameScene()->CreateEntity();
-            auto& tr = e.AddComponent<TransformComponent>();
+            TransformComponent& tr = e.AddComponent<TransformComponent>();
+            IDComponent& idComp = e.GetComponent<IDComponent>();
+
             tr.Translation.x = groundPos.x;
             tr.Translation.y = groundPos.y;
+            uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, groundPos, float(TILE_SIZE));
 
             auto& tc = e.AddComponent<TileComponent>();
             tc.tiles.push_back(TileInfo{

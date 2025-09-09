@@ -146,6 +146,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Math\HashUtils.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\TileSerializer.h" />
     <ClInclude Include="source\Engine\Map\Grid\GridMap.h" />
@@ -229,6 +231,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\ChunkRendererComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\DynamicObjectRenderComp.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\RoofRenderComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\TileComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Vehicles\DriverComponent.h" />
@@ -663,6 +666,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.cpp" />
     <ClCompile Include="source\Engine\AssetManager\Utils\AssetManagerUtils.cpp" />
     <ClCompile Include="source\Engine\AssetManager\Utils\TileSerializer.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp" />
@@ -738,6 +742,7 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
     <None Include="..\assets\shaders\Circle_shader.glsl" />
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\Effect_shader.comp" />

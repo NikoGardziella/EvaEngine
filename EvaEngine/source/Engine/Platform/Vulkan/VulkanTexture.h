@@ -20,6 +20,8 @@ namespace Engine {
         void SetWidth(uint32_t width) { m_width = width; }
         virtual uint32_t GetHeight() const override { return m_height; }
         void SetHeight(uint32_t height) { m_height = height; }
+        VkExtent3D GetExtent() const { return { m_width, m_height, 1 }; }
+        VkExtent2D GetExtent2D() const { return { m_width, m_height }; }
 
         virtual void Bind(uint32_t slot = 0) const override;
         virtual uint32_t GetRendererID() const override { return 0; }

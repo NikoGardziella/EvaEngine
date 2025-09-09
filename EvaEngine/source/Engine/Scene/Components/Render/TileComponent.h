@@ -35,22 +35,23 @@ namespace Engine {
 
 
     struct TileInfo {
-        glm::vec2 position; // local position within group
-        glm::vec4 UV;
+        glm::vec2   position; // local position within group
+        glm::vec4   UV;
         std::string name;
-        bool IsDestructible;
-        bool IsRoof;
+        uint64_t    NameHash;
+        bool        IsDestructible;
+        bool        IsRoof;
         eTileCategory Category;
         eTileMaterial Material;
-        uint32_t TileHealth;
+        uint32_t    TileHealth;
         TileInfo(const glm::vec2& pos = glm::vec2(0.0f), const glm::vec4& uvCoords = glm::vec4(0.0f),
             const std::string& tileName = "", bool destructible = false, bool roof = false,
             eTileCategory category = eTileCategory::Undefined, eTileMaterial material = eTileMaterial::Undefined,
-            uint32_t tileHealth = 1
+            uint32_t tileHealth = 1, uint64_t  nameHash = 0
         )
 			: position(pos), UV(uvCoords), name(tileName),
             IsDestructible(destructible), IsRoof(roof), Category(category),
-            Material(material), TileHealth(tileHealth)
+            Material(material), TileHealth(tileHealth), NameHash(nameHash)
         {
 		}
     };
