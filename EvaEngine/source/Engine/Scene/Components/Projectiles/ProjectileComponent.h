@@ -12,6 +12,7 @@ struct ProjectileComponent
     float      Damage = 10.0f;
     float      ProjectileRadius = 0.1f;
     float      TargetPositionHeightZ1;
+    float      ProjectileSped;
     uint32_t   PixelDestructionRadius = 1; 
     Engine::Entity   Owner;
 

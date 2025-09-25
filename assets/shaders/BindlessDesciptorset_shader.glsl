@@ -40,7 +40,7 @@ void main() {
     gl_Position = pc.VP * vec4(pos, 0.0, 1.0);
 
     // Flip V (old path used flipped UVs)
-    vUV   = vec2(q.x, 1.0 - q.y);
+    vUV   = vec2(q.x, q.y);
     vSlot = inst[i].slot;
 }
 

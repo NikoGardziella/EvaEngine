@@ -23,6 +23,7 @@
 #include "Engine/Map/Grid/GridMap.h"
 #include <Engine/Core/UUID.h>
 #include "Components/Render/DynamicObjectRenderComp.h"
+#include "Engine/Map/Tile/TileManager.h"
 
 
 namespace Engine {
@@ -72,6 +73,8 @@ namespace Engine {
         m_registry = entt::registry();
         m_gridMap = std::make_shared<GridMap>();
         m_textureStreamingSystem = std::make_unique<TextureStreamingSystem>();
+        m_tileMananger = std::make_unique<TileManager>();
+
         m_textureStreamingSystem->SetGridMap(m_gridMap);
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
 
@@ -371,6 +374,9 @@ namespace Engine {
         //m_textureStreamingSystem->ResetAllChunks(this);
         m_gridMap->BuildFromRegistry(this);
         m_textureStreamingSystem->SortIsoTilesByY(this);
+        m_tileMananger->BuildTemplatesForScene(this);
+
+
        // m_textureStreamingSystem->BakeTilesIntoChunks(this);
 		//m_textureStreamingSystem->AddChunkEntitiesToRegistry(this);
 
@@ -449,13 +455,7 @@ namespace Engine {
                 });
         }
 
-        // ******** update physics ************
-        if (isPlaying)
-        {
-            // Remove Box 2d physics
-            UpdatePhysics(timestep);
-        }
-
+       
 
         Camera* mainCamera = nullptr;
         CameraComponent& mainCameraComp = CameraComponent{};
@@ -650,6 +650,7 @@ namespace Engine {
                                 
                                 // Use flippedUV for rendering, don't overwrite original UV
                                 float zBias = 0.01f;
+
                                 VulkanRenderer2D::SubmitDestructibleTile(idComponent.ID, transformComponent.Translation,
                                     tileComponent.tiles[i].position, tileComponent.tiles[i].UV, tileComponent.tiles[i].NameHash, zBias);
                             }
@@ -658,7 +659,7 @@ namespace Engine {
 
                     }
 
-
+                    m_tileMananger->StreamInitialResidency(this);
                     //glm::ivec2 chunkMinOrigin = glm::floor(glm::vec2(minOrigin) / float(CHUNK_SIZE));
                     //glm::ivec2 tileMinOrigin = chunkMinOrigin * int(CHUNK_SIZE);
                     m_gridMap->UpdateTiles(minOrigin);
@@ -1189,33 +1190,7 @@ namespace Engine {
         return {};
     }
 
-    
-    void Scene::UpdatePhysics(Timestep timestep)
-    {
-        EE_PROFILE_FUNCTION();
-        const int32_t subStepCount = 4;
-        float physicsStep = 1.0f / 60.0f;
-
-        // update physics
-        b2World_Step(m_worldId, physicsStep, subStepCount);
-        auto view = m_registry.view<RigidBody2DComponent>();
-        for (auto e : view)
-        {
-            Entity entity = { e, this };
-            TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
-            auto& rb2dComp = entity.GetComponent<RigidBody2DComponent>();
-
-            b2BodyId bodyId = rb2dComp.RuntimeBody;
-
-            b2Vec2 position = b2Body_GetPosition(bodyId);
-            transformComp.Translation = { position.x, position.y, 0.0f };
-
-            b2Rot rotation = b2Body_GetRotation(bodyId);
-            transformComp.Rotation.z = std::atan2(rotation.s, rotation.c);
-
-        }
-
-    }
+  
 
     void Scene::RegisterSystem(const std::function<void(float, Scene* scene)>& system)
     {

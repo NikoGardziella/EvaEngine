@@ -148,17 +148,38 @@ namespace Engine {
 
     }
 
-    void VulkanContext::CreateDescriptorPool()
-    {
+    void VulkanContext::CreateDescriptorPool() {
         EE_CORE_WARN("descriptor pool size not optimized, YET");
-        // Adjust the numbers as needed to ensure the pool is large enough for both normal rendering and ImGui
-        uint32_t maxSets = 200; // Total number of descriptor sets
-        uint32_t maxUniformBuffers = 100; // Number of uniform buffers
-        uint32_t maxCombinedImageSamplers = 100; // Number of combined image samplers
 
-        m_descriptorPool = std::make_shared<VulkanDescriptorPool>(m_deviceManager->GetDevice(), maxSets, maxUniformBuffers, maxCombinedImageSamplers);
-		m_lineDescriptorPool = std::make_shared<VulkanDescriptorPool>(m_deviceManager->GetDevice(), maxSets, maxUniformBuffers, maxCombinedImageSamplers);
+        VkDevice dev = m_deviceManager->GetDevice();
+
+        // General graphics pool
+        uint32_t maxSets = 200;
+        uint32_t maxUniformBuffers = 100;
+        uint32_t maxCombinedImageSamplers = 100;
+        VkDescriptorPoolSize generalSizes[2];
+        generalSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;        generalSizes[0].descriptorCount = maxUniformBuffers;
+        generalSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; generalSizes[1].descriptorCount = maxCombinedImageSamplers;
+
+        m_descriptorPool = std::make_shared<VulkanDescriptorPool>(dev, maxSets, generalSizes, 2, 0);
+        m_lineDescriptorPool = std::make_shared<VulkanDescriptorPool>(dev, maxSets, generalSizes, 2, 0);
+
+        // Compute/bindless pool
+        uint32_t maxResidentLayers = 1024;
+        uint32_t framesInFlight = MAX_FRAMES_IN_FLIGHT;
+
+        // if you actually use update-after-bind, set the flag; otherwise 0
+        VkDescriptorPoolCreateFlags computeFlags = 0; // or VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT
+
+        // adjust sizes to what your compute/bindless uses
+        VkDescriptorPoolSize computeSizes[3];
+        computeSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;  computeSizes[0].descriptorCount = maxResidentLayers * framesInFlight * 2; // color + props
+        computeSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; computeSizes[1].descriptorCount = framesInFlight * 3; // results + projectiles + mask
+        computeSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; computeSizes[2].descriptorCount = maxResidentLayers * framesInFlight; // if graphics samples color array
+
+        m_computeDescPool = std::make_shared<VulkanDescriptorPool>(dev, framesInFlight, computeSizes, 3, computeFlags);
     }
+
 
 
     void VulkanContext::CreateGraphicsQueue()

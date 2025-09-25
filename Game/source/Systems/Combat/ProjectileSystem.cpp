@@ -32,9 +32,8 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                 }
             }
 
-            constexpr float kProjectileSpeed = 10.0f;
-            projectileTransformComp.Translation.x += projectileComp.Direction.x * deltaTime * kProjectileSpeed;
-            projectileTransformComp.Translation.y += projectileComp.Direction.y * deltaTime * kProjectileSpeed;
+            projectileTransformComp.Translation.x += projectileComp.Direction.x * deltaTime * projectileComp.ProjectileSped;
+            projectileTransformComp.Translation.y += projectileComp.Direction.y * deltaTime * projectileComp.ProjectileSped;
 
             const glm::vec2 projectilePos = {
                 projectileTransformComp.Translation.x,

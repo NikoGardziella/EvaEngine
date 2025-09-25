@@ -162,7 +162,6 @@ namespace Engine {
         ~VulkanGraphicsPipeline();
 
         void UpdatePresentDescriptorSet(uint32_t imageIndex);
-        void UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>  input, std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> healthTextures);
         void UpdatePlayerCollisionDescriptorSet(uint32_t frameIndex,const  std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> healthTextures);
         void UpdateProjectileDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_PROJECTILES>& textures);
        
@@ -184,10 +183,10 @@ namespace Engine {
 
 
 
+
         VkPipeline GetGamePipeline() const { return m_gameGraphicsPipeline; }
         VkPipeline GetPresentPipeline() const { return m_presentPipeline; }
 		VkPipeline GetLinePipeline() const { return m_linePipeline; }
-		VkPipeline GetComputePipeline() const { return m_computePipeline; }
 		VkPipeline GetProjectilePipeline() const { return m_projectilePipeline; }
         VkPipeline GetEffectsPipeline() const { return m_effectsPipeline; }
         VkPipeline GetPlayerCollisionComputePipeline() const { return m_playerCollisionPipeline; }
@@ -196,7 +195,6 @@ namespace Engine {
         VkPipelineLayout GetGamePipelineLayout() const { return m_gamePipelineLayout; }
         VkPipelineLayout GetPresentPipelineLayout() const { return m_presentPipelineLayout; }
 		VkPipelineLayout GetLinePipelineLayout() const { return m_linePipelineLayout; }
-		VkPipelineLayout GetComputePipelineLayout() const { return m_computePipelineLayout; }
 		VkPipelineLayout GetProjectilePipelineLayout() const { return m_projectilePipelineLayout; }
         VkPipelineLayout GetEffectsPipelineLayout() const { return m_effectsPipelineLayout; }
         VkPipelineLayout GetPlayerCollisionComputePipelineLayout() const { return m_playerCollisionPipelineLayout; }
@@ -205,7 +203,6 @@ namespace Engine {
         VkDescriptorSet GetGameDescriptorSet(size_t frameIndex) { return m_gameDescriptorSets[frameIndex]; }
         VkDescriptorSet GetCameraDescriptorSet(size_t frameIndex) { return m_cameraDescriptorSets[frameIndex]; }
         VkDescriptorSet GetPresentDescriptorSet(size_t frameIndex) { return m_presentDescriptorSets[frameIndex]; }
-		VkDescriptorSet GetComputeDescriptorSet(size_t frameIndex) { return m_computeDescriptorSet[frameIndex]; }
 		VkDescriptorSet GetProjectileDescriptorSet(size_t frameIndex) { return m_projectileDescriptorSet[frameIndex]; }
         VkDescriptorSet GetLineDescriptorSet(size_t frameIndex) { return m_lineDescriptorSet[frameIndex]; }
         VkDescriptorSet GetEffectsDescriptorSet(size_t frameIndex) { return m_effectsDescriptorSet[frameIndex]; }
@@ -217,7 +214,7 @@ namespace Engine {
         VulkanBuffer GetPlayerCollisionUniformBuffer(uint32_t imageIndex) { return m_playerUniformBuffers[imageIndex]; }
         VulkanBuffer GetTextureInfoUniformBuffer(uint32_t imageIndex) { return m_textureUniformBuffers[imageIndex]; }
 
-        VkBuffer GetGPUCollisionBuffer() const { return m_GPUCollisionresultBufferBuffer; }
+        VkBuffer GetGPUCollisionResultBuffer() const { return m_GPUCollisionresultBufferBuffer; }
         VkDeviceMemory GetGPUCollisionMemory() const { return m_GPUCollisionresultBufferMemory; }
         
         VkBuffer GetPLayerollisionBuffer() const { return m_playerCollisionresultBufferBuffer; }
@@ -233,7 +230,6 @@ namespace Engine {
 
        // StorageImage GetOutputImage() { return m_outputTextureImage; }
 
-    VulkanBindlessDescriptorSetRenderer& GetBindless() const { EE_CORE_ASSERT(m_bindlessDescitproSet); return *m_bindlessDescitproSet; }
 
 
     private:
@@ -241,7 +237,6 @@ namespace Engine {
         void CreateLineGraphicsPipeline(VkRenderPass renderPass);
         void CreateEffectsPipelineLayout();
         void CreateEffectsPipeline();
-        void CreateComputeGraphicsPipeline();
         void CreatePlayerCollisionDescriptorSetLayout();
         void CreatePlayerCollisionPipeline();
         void CreatePresentGraphicsPipeline(VkRenderPass renderPass);
@@ -250,7 +245,6 @@ namespace Engine {
         void CreatePlayerCollisionPipelineLayout();
         void CreateDescriptorSetLayouts();
         void CreateEffectsDescriptorSetLayout();
-        void CreateComputeArrayDescriptorSetLayout();
         void CreateProjectileDescriptorSetLayout();
         void CreatePresentGameDescriptorPool();
         void CreateGameDescriptorSet();
@@ -262,7 +256,6 @@ namespace Engine {
         void CreatePresentSampler();
         void CreateCameraDescriptorSetLayout();
         void CreateCameraDescriptorSet();
-        void CreateComputeDescriptorSet();
         void CreatePlayerCollisionResultBuffer();
         void CreateGPUCollisionResultBuffer();
         void CreateBlockedTileMaskBuffer();
@@ -276,7 +269,6 @@ namespace Engine {
         VkPipeline m_gameGraphicsPipeline;
         VkPipeline m_presentPipeline;
         VkPipeline m_linePipeline;
-        VkPipeline m_computePipeline;
         VkPipeline m_effectsPipeline;
         VkPipeline m_projectilePipeline;
         VkPipeline m_playerCollisionPipeline;
@@ -285,7 +277,6 @@ namespace Engine {
         VkPipelineLayout m_linePipelineLayout;
         VkPipelineLayout m_imguiPipelineLayout;
         VkPipelineLayout m_presentPipelineLayout;
-        VkPipelineLayout m_computePipelineLayout;
         VkPipelineLayout m_effectsPipelineLayout;
         VkPipelineLayout m_playerCollisionPipelineLayout;
 
@@ -294,8 +285,6 @@ namespace Engine {
         VkDescriptorSetLayout m_lineDescriptorSetLayout;
         VkDescriptorSetLayout m_projectileDescriptorSetLayout;
         VkDescriptorSetLayout m_cameraDescriptorSetLayout;
-        VkDescriptorSetLayout m_computeDescriptorSetLayout;
-        VkDescriptorSetLayout m_computeArrayDescriptorSetLayout;
         VkDescriptorSetLayout m_effectsDescriptorSetLayout;
         VkDescriptorSetLayout m_playerCollisionDescriptorSetLayout;
 
@@ -303,7 +292,6 @@ namespace Engine {
 
         std::vector<VkDescriptorSet> m_lineDescriptorSet;
         std::vector<VkDescriptorSet> m_projectileDescriptorSet;
-        std::vector<VkDescriptorSet> m_computeDescriptorSet;
         std::vector<VkDescriptorSet> m_effectsDescriptorSet;
         std::vector<VkDescriptorSet> m_gameDescriptorSets;
         std::vector<VkDescriptorSet> m_cameraDescriptorSets;
@@ -321,7 +309,6 @@ namespace Engine {
         Ref<VulkanShader> m_lineShader;
         Ref<VulkanShader> m_vulkanRenderShader;
         Ref<VulkanShader> m_vulkanProjectileRenderShader;
-        Ref<VulkanShader> m_computeShader;
         Ref<VulkanShader> m_playerCollisionComputeShader;
         Ref<VulkanShader> m_effectShader;
         VkSampler m_presentSampler;
@@ -360,7 +347,6 @@ namespace Engine {
         Ref<VulkanTexture> m_dummyTexture;
 
 
-        Ref<VulkanBindlessDescriptorSetRenderer> m_bindlessDescitproSet;
     };
 
 }

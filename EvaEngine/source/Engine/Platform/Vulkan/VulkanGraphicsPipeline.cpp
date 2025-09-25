@@ -34,7 +34,6 @@ namespace Engine {
         m_pixelGameShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/PixelGameShader.GLSL").string());
         m_fullscreenShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/fullscreen_shader.GLSL").string());
         m_lineShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Line_shader.GLSL").string());
-        m_computeShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/compute.comp").string());
         m_playerCollisionComputeShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/player_collision_compute.comp").string());
         m_effectShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Effect_shader.comp").string());
 
@@ -103,7 +102,8 @@ namespace Engine {
         CreateDescriptorSetLayouts();          // game pipeline set layouts
         CreateProjectileDescriptorSetLayout();
         CreateCameraDescriptorSetLayout();
-        CreateComputeArrayDescriptorSetLayout();
+
+        
         CreateEffectsDescriptorSetLayout();
         CreatePlayerCollisionDescriptorSetLayout();
         // 3. Descriptor pool(s)
@@ -127,16 +127,14 @@ namespace Engine {
         // 6. Graphics/compute pipelines 
         CreateLineGraphicsPipeline(vulkanContext.GetGameRenderPass());
         CreateGameGraphicsPipeline(vulkanContext.GetGameRenderPass());
-        CreateComputeGraphicsPipeline();
         CreatePlayerCollisionPipeline();
         CreateEffectsPipeline();
         CreatePresentGraphicsPipeline(vulkanContext.GetPresentRenderPass());
         CreateProjectileGraphicsPipeline(vulkanContext.GetGameRenderPass());
 
         // 7. Remaining descriptor sets that depend on pipelines (if any)
-        CreateComputeDescriptorSet();
+        
 
-        m_bindlessDescitproSet = std::make_shared<VulkanBindlessDescriptorSetRenderer>(m_device, false);
 
         AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
 
@@ -150,13 +148,11 @@ namespace Engine {
         vkDestroyPipeline(m_device, m_gameGraphicsPipeline, nullptr);
         vkDestroyPipeline(m_device, m_presentPipeline, nullptr);
         vkDestroyPipeline(m_device, m_linePipeline, nullptr);
-        vkDestroyPipeline(m_device, m_computePipeline, nullptr);
         vkDestroyPipeline(m_device, m_projectilePipeline, nullptr);
         vkDestroyPipelineLayout(m_device, m_gamePipelineLayout, nullptr);
         vkDestroyPipelineLayout(m_device, m_imguiPipelineLayout, nullptr);
         vkDestroyPipelineLayout(m_device, m_linePipelineLayout, nullptr);
         vkDestroyPipelineLayout(m_device, m_presentPipelineLayout, nullptr);
-        vkDestroyPipelineLayout(m_device, m_computePipelineLayout, nullptr);
     }
 
  
@@ -546,36 +542,6 @@ namespace Engine {
         vkDestroyShaderModule(m_device, m_effectShader->GetComputeshaderModule(), nullptr);
     }
 
-
-    void VulkanGraphicsPipeline::CreateComputeGraphicsPipeline()
-    {
-        VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
-        computeShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        computeShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-        computeShaderStageInfo.module = m_computeShader->GetComputeshaderModule();
-        computeShaderStageInfo.pName = "main";
-
-        VkPushConstantRange pushConstantRange{};
-        pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        pushConstantRange.offset = 0;
-		pushConstantRange.size = sizeof(PushConstants); 
-
-        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &m_computeArrayDescriptorSetLayout;
-        pipelineLayoutInfo.pushConstantRangeCount = 1;
-        pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-
-        vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_computePipelineLayout);
-
-        VkComputePipelineCreateInfo computePipelineInfo{};
-        computePipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-        computePipelineInfo.stage = computeShaderStageInfo;
-        computePipelineInfo.layout = m_computePipelineLayout;
-
-        vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &computePipelineInfo, nullptr, &m_computePipeline);
-    }
 
     static VkShaderModule CreateShaderModule(VkDevice device, const std::vector<uint32_t>& spirv)
     {
@@ -1133,56 +1099,7 @@ namespace Engine {
         }
     }
 
-
-    void VulkanGraphicsPipeline::CreateComputeArrayDescriptorSetLayout()
-    {
-        std::array<VkDescriptorSetLayoutBinding, 5> bindings{};
-
-        // Binding 0: input textures
-        bindings[0].binding = 0;
-        bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        bindings[0].descriptorCount = CHUNK_GRID_SIZE;
-        bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        bindings[0].pImmutableSamplers = nullptr;
-
-        // Binding 1: health
-        bindings[1].binding = 1;
-        bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        bindings[1].descriptorCount = CHUNK_GRID_SIZE;
-        bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        bindings[1].pImmutableSamplers = nullptr;
-
-        bindings[2].binding = 2;
-        bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        bindings[2].descriptorCount = 1;
-        bindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        bindings[2].pImmutableSamplers = nullptr;
-
-        // Binding 3: projectile SSBO
-        bindings[3].binding = 3;
-        bindings[3].descriptorCount = 1;
-        bindings[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        bindings[3].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        bindings[3].pImmutableSamplers = nullptr;
-
-        // destroyed tiles mask
-        bindings[4].binding = 4;
-        bindings[4].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        bindings[4].descriptorCount = 1;
-        bindings[4].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        bindings[4].pImmutableSamplers = nullptr;
-
-
-
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-        layoutInfo.pBindings = bindings.data();
-
-        VkResult result = vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_computeArrayDescriptorSetLayout);
-        EE_CORE_ASSERT(result == VK_SUCCESS, "Failed to create compute descriptor set layout");
-    }
-
+    
 
 
     void VulkanGraphicsPipeline::CreateProjectileDescriptorSetLayout()
@@ -1494,6 +1411,9 @@ namespace Engine {
 
 
 
+
+
+
     void VulkanGraphicsPipeline::CreatePresentDescriptorSet()
     {
 
@@ -1546,68 +1466,9 @@ namespace Engine {
     }
 
   
-    void VulkanGraphicsPipeline::UpdateComputeDescriptorSet(uint32_t frameIndex, std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> inputTextures, std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> healthTextures)
-    {
 
-        std::vector<VkDescriptorImageInfo> inputImageInfos;
-        std::vector<VkDescriptorImageInfo> healthImageInfos;
+    
 
-        // first 9 are the chunks
-        inputImageInfos.reserve(CHUNK_GRID_SIZE);
-        healthImageInfos.reserve(CHUNK_GRID_SIZE);
-
-        for (const auto& tex : inputTextures)
-        {
-            VkDescriptorImageInfo info{};
-            info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            info.imageView = tex->GetImageView();
-            info.sampler = VK_NULL_HANDLE;
-            inputImageInfos.push_back(info);
-        }
-
-       
-        for (const auto& tex : healthTextures)
-        {
-            VkDescriptorImageInfo info{};
-            info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-            info.imageView = tex->GetImageView();
-            info.sampler = VK_NULL_HANDLE;
-            healthImageInfos.push_back(info);
-
-        }
-
-
-        std::vector<VkWriteDescriptorSet> descriptorWrites;
-
-        // Input
-        VkWriteDescriptorSet inputWrite{};
-        inputWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        inputWrite.dstSet = m_computeDescriptorSet[frameIndex];
-        inputWrite.dstBinding = 0;
-        inputWrite.descriptorCount = static_cast<uint32_t>(inputImageInfos.size());
-        inputWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        inputWrite.pImageInfo = inputImageInfos.data();
-        descriptorWrites.push_back(inputWrite);
-
-       
-        // Health (conditionally)
-        if (!healthImageInfos.empty())
-        {
-            VkWriteDescriptorSet healthWrite{};
-            healthWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            healthWrite.dstSet = m_computeDescriptorSet[frameIndex];
-            healthWrite.dstBinding = 1;
-            healthWrite.descriptorCount = static_cast<uint32_t>(healthImageInfos.size());
-            healthWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            healthWrite.pImageInfo = healthImageInfos.data();
-            descriptorWrites.push_back(healthWrite);
-        }
-
-        vkUpdateDescriptorSets(m_device,
-            static_cast<uint32_t>(descriptorWrites.size()),
-            descriptorWrites.data(),
-            0, nullptr);
-    }
 
     void VulkanGraphicsPipeline::UpdatePlayerCollisionDescriptorSet(uint32_t frameIndex, const  std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> healthTextures)
     {
@@ -1806,78 +1667,6 @@ namespace Engine {
     }
 
 
-    void VulkanGraphicsPipeline::CreateComputeDescriptorSet()
-    {
-        m_computeDescriptorSet.resize(MAX_FRAMES_IN_FLIGHT);
-
-        std::vector<VkDescriptorSetLayout> layouts(m_computeDescriptorSet.size(), m_computeArrayDescriptorSetLayout);
-
-        VkDescriptorSetAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = m_descriptorPool;
-        allocInfo.descriptorSetCount = static_cast<uint32_t>(layouts.size());
-        allocInfo.pSetLayouts = layouts.data();
-
-        VkResult allocResult = vkAllocateDescriptorSets(m_device, &allocInfo, m_computeDescriptorSet.data());
-        EE_CORE_ASSERT(allocResult == VK_SUCCESS, "Failed to allocate compute descriptor sets!");
-
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-        {
-     
-            VkDescriptorBufferInfo resultBufferInfo{};
-            resultBufferInfo.buffer = m_GPUCollisionresultBufferBuffer;
-            resultBufferInfo.offset = 0;
-            resultBufferInfo.range = sizeof(CollisionResultBuffer);
-
-            VkDescriptorBufferInfo bulletBufferInfo{};
-            bulletBufferInfo.buffer = m_bulletUniformBuffers[i].GetBuffer(); 
-            bulletBufferInfo.offset = 0;
-            bulletBufferInfo.range = sizeof(CollisionEntitiesGPU) * MAX_COLLISION_ENTITIES;
-
-            VkDescriptorBufferInfo destroyedTileMaskInfo{};
-            destroyedTileMaskInfo.buffer = m_blockedTileMaskBuffer;
-            destroyedTileMaskInfo.offset = 0;
-
-            uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
-            uint32_t tilesPerMask = tilesPerRow * tilesPerRow;
-            destroyedTileMaskInfo.range = sizeof(uint32_t) * tilesPerMask;
-
-            std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
-
-            // dstBinding = 0 u_InputTexture and 1 u_OutputTexture
-            // are updated every frame so no need to do it here
-
-            // Binding 2: result buffer
-            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = m_computeDescriptorSet[i];
-            descriptorWrites[0].dstBinding = 2;
-            descriptorWrites[0].descriptorCount = 1;
-            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            descriptorWrites[0].pBufferInfo = &resultBufferInfo;
-
-            //  Binding 3: bullet buffer (SSBO)
-            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = m_computeDescriptorSet[i];
-            descriptorWrites[1].dstBinding = 3;
-            descriptorWrites[1].descriptorCount = 1;
-            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            descriptorWrites[1].pBufferInfo = &bulletBufferInfo;
-
-            descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[2].dstSet = m_computeDescriptorSet[i];
-            descriptorWrites[2].dstBinding = 4;
-            descriptorWrites[2].descriptorCount = 1;
-            descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            descriptorWrites[2].pBufferInfo = &destroyedTileMaskInfo;
-
-
-
-            vkUpdateDescriptorSets(m_device,
-                static_cast<uint32_t>(descriptorWrites.size()),
-                descriptorWrites.data(),
-                0, nullptr);
-        }
-    }
 
     void VulkanGraphicsPipeline::CreatePlayerCollisionResultBuffer()
     {

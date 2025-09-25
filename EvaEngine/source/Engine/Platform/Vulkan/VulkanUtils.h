@@ -44,6 +44,9 @@ namespace Engine {
 
        EffectPushConstants MakeDefaultEffectsState();
 
+       void BarrierColorReadOnlyToGeneral(VkCommandBuffer cmd, VkImage colorArray, uint32_t layer);
+       void BarrierPropsComputeToFragVisibility(VkCommandBuffer cmd, VkImage propsArray, uint32_t layer);
+       void BarrierColorGeneralToReadOnly(VkCommandBuffer cmd, VkImage colorArray, uint32_t layer);
 	}
 
 	

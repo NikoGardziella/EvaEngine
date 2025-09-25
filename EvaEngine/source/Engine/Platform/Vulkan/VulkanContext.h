@@ -82,6 +82,7 @@ namespace Engine {
         VkCommandBuffer& GetCommandBuffer(uint32_t imageIndex) { return m_commandBuffers[imageIndex]; }
         VkDescriptorPool GetDescriptorPool() { return m_descriptorPool->GetDescriptorPool(); }
         VkDescriptorPool GetLineDescriptorPool() { return m_lineDescriptorPool->GetDescriptorPool(); }
+        VkDescriptorPool GetComputeDescriptorPool() { return m_computeDescPool->GetDescriptorPool(); }
 		VkDescriptorPool& GetImGuiDescriptorPool() { return m_imguiDescriptorPool; }
 		VkSampler& GetSampler() { return m_sampler; }
     private:
@@ -119,6 +120,7 @@ namespace Engine {
         VulkanDevice* m_deviceManager;
 		Ref<VulkanDescriptorPool> m_descriptorPool;
 		Ref<VulkanDescriptorPool> m_lineDescriptorPool;
+		Ref<VulkanDescriptorPool> m_computeDescPool;
         VkDescriptorPool m_imguiDescriptorPool;
 
         VulkanSwapchain* m_swapchain;

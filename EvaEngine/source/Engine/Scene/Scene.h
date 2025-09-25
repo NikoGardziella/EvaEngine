@@ -14,6 +14,7 @@
 
 namespace Engine {
 
+	class TileManager;
 	class TextureStreamingSystem;
 	class Entity;
 	class GridMap;
@@ -63,6 +64,7 @@ namespace Engine {
 
 		
 
+
 		// Const variant (if you need read-only iteration)
 		// (Ideally have a ConstEntity wrapper; shown here passing Entity too.)
 		template<class... Cs, class Fn>
@@ -71,7 +73,7 @@ namespace Engine {
 			auto view = m_registry.view<const Cs...>();
 			for (auto e : view)
 			{
-				fn(Entity{ e, const_cast<Scene*>(this) }, view.template get<const Cs&>(e)...);
+				fn(Entity{ e, const_cast<Scene*>(this) }, view.template get<const Cs>(e)...);
 			}
 		}
 
@@ -115,7 +117,6 @@ namespace Engine {
 		//template<typename T>
 		//void OnComponentAdded(Entity entity, T& component);
 
-		void UpdatePhysics(Timestep timestep);
 
 
 
@@ -142,6 +143,7 @@ namespace Engine {
 		std::vector<std::function<void(float, Scene*)>> m_gameplaySystems;
 
 		Ref<TextureStreamingSystem> m_textureStreamingSystem;
+		Ref<TileManager> m_tileMananger;
 		Ref<GridMap> m_gridMap;
 		bool m_debugDrawLOS = false;
 

@@ -12,6 +12,7 @@
 #include "Engine/Scene/Scene.h"
 #include "Engine/Scene/Entity.h"
 #include <utility>
+#include <Engine/Map/Utils/IVec2Hasher.h>
 
 
 namespace Engine {

@@ -8,12 +8,12 @@
 #include "Engine/Math/HashUtils.h"
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 #include <Engine.h>
+#include <Engine/Renderer/VulkanRenderer2D.h>
 
 namespace Engine {
 
     using std::uint32_t;
 
-    VulkanBindlessDescriptorSetRenderer::VulkanBindlessDescriptorSetRenderer() {}
     VulkanBindlessDescriptorSetRenderer::VulkanBindlessDescriptorSetRenderer(VkDevice device, bool uab)
     {
         Init(device, uab);
@@ -28,22 +28,32 @@ namespace Engine {
         m_bindlessDescriptorsShader = std::make_shared<VulkanShader>(
             AssetManager::GetAssetPath("shaders/BindlessDesciptorset_shader.GLSL").string());
 
+        m_computeShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/compute.comp").string());
+
+
         CreateTileSampler(device);
         CreateBindlessSetLayout(device, updateAfterBindSupported);
+        CreateComputeArrayDescriptorSetLayout(1024, false);
+
+
+        CreateComputeDescriptorSet(ctx->GetComputeDescriptorPool());
         CreateBindlessPoolAndSet(device, updateAfterBindSupported);
         CreateTilesPipelineLayout(device);
+        CreateComputeGraphicsPipeline();
+       
+
         CreateTilesPipeline(device, ctx->GetPresentRenderPass());
-        // Shader just for reference if you load it here
        
         // Instance buffers
-        const uint32_t maxInstances = 4096; // tune as needed
+        const uint32_t maxInstances = 4096; 
         CreateInstanceBuffers(device, ctx->GetDeviceManager().GetPhysicalDevice(), m_instanceBuffer, maxInstances);
 
         EE_CORE_WARN("get this value from assset manager");
-        m_atlasExtent = { 1024 , 1029, 1 }; // fallback; set via SetAtlasExtent() for correctness
+        m_atlasExtent = { 1024 , 1029, 1 }; // fallback;
 
         // Create the color array (one layer per resident tile)
         CreateColorArray(device, ctx->GetDeviceManager().GetPhysicalDevice());
+        CreatePropsArray(device, ctx->GetDeviceManager().GetPhysicalDevice());
 
         auto atlas = AssetManager::GetTileTextureIconAtlas();
 
@@ -57,9 +67,9 @@ namespace Engine {
 
     void VulkanBindlessDescriptorSetRenderer::Shutdown(VkDevice device)
     {
-        m_colorLayerPool.Shutdown(device);
+        m_colorLayerPool.Destroy();
         if (m_colorArrayImage)
-        {
+ {
             vkDestroyImage(device, m_colorArrayImage, nullptr);
             m_colorArrayImage = VK_NULL_HANDLE;
         }
@@ -99,6 +109,10 @@ namespace Engine {
             if (m_instanceBuffer.buf[i]) vkDestroyBuffer(device, m_instanceBuffer.buf[i], nullptr);
             if (m_instanceBuffer.mem[i]) vkFreeMemory(device, m_instanceBuffer.mem[i], nullptr);
         }
+
+        vkDestroyPipeline(m_device, m_computePipeline, nullptr);
+        vkDestroyPipelineLayout(m_device, m_computePipelineLayout, nullptr);
+
     }
 
     
@@ -280,9 +294,12 @@ namespace Engine {
 
     void VulkanBindlessDescriptorSetRenderer::EndFrameAndUpload(uint32_t frameIndex)
     {
-        // sort for painter’s order
+        // sort for draw top to down.
         std::stable_sort(m_instances.begin(), m_instances.end(),
-            [](auto& a, auto& b) { return a.zSortKey < b.zSortKey; });
+            [](auto& a, auto& b)
+            {
+                return a.zSortKey > b.zSortKey;
+            });
 
         const size_t bytes = m_instances.size() * sizeof(RenderInstance);
         EE_CORE_ASSERT(bytes <= m_instanceBuffer.capacityBytes, "Instance buffer overflow");
@@ -376,6 +393,8 @@ namespace Engine {
             vkMapMemory(dev, out.mem[i], 0, out.capacityBytes, 0, &out.mapped[i]);
         }
     }
+
+
     void VulkanBindlessDescriptorSetRenderer::CreateColorArray(VkDevice dev, VkPhysicalDevice phys)
     {
         const VkImageUsageFlags usage =
@@ -488,8 +507,63 @@ namespace Engine {
 
 
         // --- Initialize  layer pool with the real layer count ---
-        m_colorLayerPool.Init(dev, m_colorArrayImage, m_arrayLayerCount);
+        m_colorLayerPool.Init(dev, m_colorArrayImage, VK_FORMAT_R8G8B8A8_UNORM, m_arrayLayerCount);
     }
+
+
+    void VulkanBindlessDescriptorSetRenderer::CreatePropsArray(VkDevice dev, VkPhysicalDevice phys)
+    {
+        VkImageCreateInfo ci{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+        ci.imageType = VK_IMAGE_TYPE_2D;
+        ci.format = VK_FORMAT_R8G8B8A8_UINT;
+        ci.extent = { m_tileW, m_tileH, 1 };
+        ci.mipLevels = 1;
+        ci.arrayLayers = m_arrayLayerCount;               // e.g. 1024
+        ci.samples = VK_SAMPLE_COUNT_1_BIT;
+        ci.tiling = VK_IMAGE_TILING_OPTIMAL;
+        ci.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        ci.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+        vkCreateImage(dev, &ci, nullptr, &m_propsArrayImage);
+
+        VkMemoryRequirements req{};
+        vkGetImageMemoryRequirements(dev, m_propsArrayImage, &req);
+
+        uint32_t typeIndex = VulkanContext::Get()->FindMemoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        VkMemoryAllocateInfo ai{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+        ai.allocationSize = req.size;
+        ai.memoryTypeIndex = typeIndex;
+        vkAllocateMemory(dev, &ai, nullptr, &m_propsArrayMem);
+        vkBindImageMemory(dev, m_propsArrayImage, m_propsArrayMem, 0);
+
+        // One-time transition: ALL layers UNDEFINED -> GENERAL
+        VkCommandBuffer cmd = VulkanContext::Get()->BeginSingleTimeCommands();
+
+        VkImageMemoryBarrier barrier{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+        barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.image = m_propsArrayImage;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseMipLevel = 0;
+        barrier.subresourceRange.levelCount = 1;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = m_arrayLayerCount;
+
+        vkCmdPipelineBarrier(cmd,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+        VulkanContext::Get()->EndSingleTimeCommands(cmd);
+
+        // Make per-layer views with the SAME format as the image (UINT!)
+        m_propsLayerPool.Init(dev, m_propsArrayImage, VK_FORMAT_R8G8B8A8_UINT, m_arrayLayerCount);
+    }
+
 
 
 
@@ -510,34 +584,6 @@ namespace Engine {
         return v;
     }
 
-    void VulkanBindlessDescriptorSetRenderer::ColorLayerPool::Init(VkDevice dev, VkImage img, uint32_t layerCount)
-    {
-        device = dev; image = img;
-        views.resize(layerCount);
-        freeList.reserve(layerCount);
-        for (uint32_t i = 0; i < layerCount; ++i)
-        {
-            views[i] = Make2DLayerView(dev, img, format, i);
-            freeList.push_back(i);
-        }
-    }
-
-    void VulkanBindlessDescriptorSetRenderer::ColorLayerPool::Shutdown(VkDevice dev)
-    {
-        for (auto v : views) if (v) vkDestroyImageView(dev, v, nullptr);
-        views.clear(); freeList.clear();
-    }
-
-    uint32_t VulkanBindlessDescriptorSetRenderer::ColorLayerPool::Acquire()
-    {
-        EE_CORE_ASSERT(!freeList.empty(), "ColorLayerPool exhausted");
-        uint32_t i = freeList.back(); freeList.pop_back(); return i;
-    }
-
-    void VulkanBindlessDescriptorSetRenderer::ColorLayerPool::Release(uint32_t i)
-    {
-        freeList.push_back(i);
-    }
 
 
     // ----- Descriptor writes
@@ -644,33 +690,124 @@ namespace Engine {
         r.baseArrayLayer = layer; r.layerCount = 1;
         TransitionImage(cmd, img, oldLayout, newLayout, r);
     }
-    uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResident(
-        uint64_t uid, const glm::vec4& atlasUV, VkCommandBuffer uploadCB)
+
+    uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResidentFromRaw(
+        uint64_t uid,
+        const uint8_t* colorData, size_t colorSize,
+        const uint8_t* propsData, size_t propsSize,
+        VkCommandBuffer uploadCB)
     {
         if (auto it = m_tileToSlot.find(uid); it != m_tileToSlot.end())
             return it->second;
 
+        // sanity
+        const size_t expect = size_t(m_tileW) * size_t(m_tileH) * 4;
+        EE_CORE_ASSERT(colorData && propsData, "null input");
+        EE_CORE_ASSERT(colorSize == expect && propsSize == expect, "bad blob sizes");
+
         const uint32_t slot = m_colorLayerPool.Acquire();
-        EE_CORE_ASSERT(slot < m_arrayLayerCount, "slot out of range");
-        VkImageView view = m_colorLayerPool.View(slot);
+        VkImageView colorView = m_colorLayerPool.View(slot);
+        VkImageView propsView = m_propsLayerPool.View(slot);
 
-        // Copy atlas patch -> array layer (outside render pass)
-        CopyFromAtlasUVToLayer(uploadCB, AssetManager::GetTileTextureIconAtlas()->GetImage(),
-            atlasUV, m_colorArrayImage, slot, m_tileW, m_tileH);
+        // Upload pixels
+        UploadToArrayLayerViaStaging_ST(
+            colorData, colorSize,
+            m_colorArrayImage,
+            /*currentLayout*/ VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,  // or VK_IMAGE_LAYOUT_UNDEFINED on very first upload
+            /*finalLayout  */ VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            /*layer*/ slot,
+            /*w*/ m_tileW, /*h*/ m_tileH);
 
-        // Write descriptors for *every* per-frame set (since UPDATE_AFTER_BIND is off)
-        for (uint32_t f = 0; f < 3; ++f)
+        // Props array: STORAGE image for compute, keep layers in GENERAL
+        UploadToArrayLayerViaStaging_ST(
+            propsData, propsSize,
+            m_propsArrayImage,
+            /*currentLayout*/ VK_IMAGE_LAYOUT_GENERAL,                   // or VK_IMAGE_LAYOUT_UNDEFINED on very first upload
+            /*finalLayout  */ VK_IMAGE_LAYOUT_GENERAL,
+            /*layer*/ slot,
+            /*w*/ m_tileW, /*h*/ m_tileH);
+        // Write descriptors for all frames (since you disabled update-after-bind)
+        for (uint32_t f = 0; f < MAX_FRAMES_IN_FLIGHT; ++f)
         {
-            WriteCombinedImageSampler(m_device, m_bindlessSet[f], /*binding=*/0, /*arrayIndex=*/slot,
-                m_tileSampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            WriteCombinedImageSampler(m_device, m_bindlessSet[f], 0, slot, m_tileSampler,
+                colorView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-            WriteStorageImage(m_device, m_bindlessSet[f], /*binding=*/1, /*arrayIndex=*/slot,
-                view, VK_IMAGE_LAYOUT_GENERAL);
+            ComputeWriteImageSlot(f, slot, colorView, propsView);
         }
 
         m_tileToSlot.emplace(uid, slot);
         return slot;
     }
+
+
+    void VulkanBindlessDescriptorSetRenderer::ComputeWriteImageSlot(uint32_t frameIndex,
+        uint32_t arrayIndex,      // = slot
+        VkImageView colorView,    // rgba8
+        VkImageView propsView)    // rgba8ui
+    {
+        // binding 0: color (STORAGE_IMAGE array)
+        VkDescriptorImageInfo color{};
+        color.imageView = colorView;
+        color.imageLayout = VK_IMAGE_LAYOUT_GENERAL; // compute writes in GENERAL
+
+        VkWriteDescriptorSet w0{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        w0.dstSet = m_computeDescriptorSet[frameIndex];
+        w0.dstBinding = 0;
+        w0.dstArrayElement = arrayIndex;
+        w0.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        w0.descriptorCount = 1;
+        w0.pImageInfo = &color;
+
+        // binding 1: props (STORAGE_IMAGE array)
+        VkDescriptorImageInfo props{};
+        props.imageView = propsView;
+        props.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+        VkWriteDescriptorSet w1{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        w1.dstSet = m_computeDescriptorSet[frameIndex];
+        w1.dstBinding = 1;
+        w1.dstArrayElement = arrayIndex;
+        w1.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        w1.descriptorCount = 1;
+        w1.pImageInfo = &props;
+
+        VkWriteDescriptorSet writes[2] = { w0, w1 };
+        vkUpdateDescriptorSets(m_device, 2, writes, 0, nullptr);
+    }
+
+    void VulkanBindlessDescriptorSetRenderer::ComputeBindBuffers(uint32_t frameIndex,
+        VkBuffer resultsBuf, VkDeviceSize resultsSize, VkBuffer projectilesBuf, VkDeviceSize projSize,
+        VkBuffer blockedMaskBuf, VkDeviceSize maskSize)
+    {
+        VkDescriptorBufferInfo rbi{ resultsBuf,     0, resultsSize };
+        VkDescriptorBufferInfo pbi{ projectilesBuf, 0, projSize };
+        VkDescriptorBufferInfo mbi{ blockedMaskBuf, 0, maskSize };
+
+        VkWriteDescriptorSet wr{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        wr.dstSet = m_computeDescriptorSet[frameIndex];
+        wr.dstBinding = 2;
+        wr.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        wr.descriptorCount = 1;
+        wr.pBufferInfo = &rbi;
+
+        VkWriteDescriptorSet wp{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        wp.dstSet = m_computeDescriptorSet[frameIndex];
+        wp.dstBinding = 3;
+        wp.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        wp.descriptorCount = 1;
+        wp.pBufferInfo = &pbi;
+
+        VkWriteDescriptorSet wm{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        wm.dstSet = m_computeDescriptorSet[frameIndex];
+        wm.dstBinding = 4;
+        wm.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        wm.descriptorCount = 1;
+        wm.pBufferInfo = &mbi;
+
+        VkWriteDescriptorSet writes[3] = { wr, wp, wm };
+        vkUpdateDescriptorSets(m_device, 3, writes, 0, nullptr);
+    }
+
 
 
     void VulkanBindlessDescriptorSetRenderer::CopyFromAtlasUVToLayer( VkCommandBuffer cmd, VkImage atlas, 
@@ -701,9 +838,115 @@ namespace Engine {
             layer);
     }
 
+    // Upload a tightly-packed RGBA8 (numBytes = width*height*4) into dstImage array[layer].
+    // - cmd must be a begun command buffer OUTSIDE any render pass.
+    // - finalLayout is usually VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL for color,
+    //   or VK_IMAGE_LAYOUT_GENERAL for props (if you want compute to write this frame).
+    // Helper: upload a *whole* RGBA8 tile into a single array layer, using a one-off CB.
+    void VulkanBindlessDescriptorSetRenderer::UploadToArrayLayerViaStaging_ST(
+        const void* srcData, size_t numBytes,
+        VkImage dstImage, VkImageLayout currentLayout, VkImageLayout finalLayout,
+        uint32_t layer, uint32_t width, uint32_t height)
+    {
+        VkDevice device = m_device;
+        const size_t expected = size_t(width) * size_t(height) * 4;
+        EE_CORE_ASSERT(numBytes >= expected, "Upload size too small");
+
+        // 1) staging buffer
+        VkBuffer staging = VK_NULL_HANDLE;
+        VkDeviceMemory stagingMem = VK_NULL_HANDLE;
+
+        VkBufferCreateInfo bc = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+        bc.size = expected; bc.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; bc.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        EE_CORE_ASSERT(vkCreateBuffer(device, &bc, nullptr, &staging) == VK_SUCCESS, "Create staging failed");
+
+        VkMemoryRequirements req; vkGetBufferMemoryRequirements(device, staging, &req);
+        uint32_t typeIndex = VulkanContext::Get()->FindMemoryType(req.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+        VkMemoryAllocateInfo ai = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+        ai.allocationSize = req.size; ai.memoryTypeIndex = typeIndex;
+        EE_CORE_ASSERT(vkAllocateMemory(device, &ai, nullptr, &stagingMem) == VK_SUCCESS, "Alloc staging failed");
+        EE_CORE_ASSERT(vkBindBufferMemory(device, staging, stagingMem, 0) == VK_SUCCESS, "Bind staging failed");
+
+        void* mapped = nullptr;
+        EE_CORE_ASSERT(vkMapMemory(device, stagingMem, 0, expected, 0, &mapped) == VK_SUCCESS, "Map staging failed");
+        std::memcpy(mapped, srcData, expected);
+        vkUnmapMemory(device, stagingMem);
+
+        // 2) begin one-off CB
+        VkCommandBuffer cmd = VulkanContext::Get()->BeginSingleTimeCommands();
+
+        // 3) layer -> TRANSFER_DST_OPTIMAL (from currentLayout you pass in)
+        {
+            VkImageMemoryBarrier b = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+            b.srcAccessMask = 0;
+            b.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            b.oldLayout = currentLayout;                   // pass UNDEFINED for first upload, GENERAL/READ_ONLY on reupload
+            b.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            b.image = dstImage;
+            b.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            b.subresourceRange.baseMipLevel = 0;
+            b.subresourceRange.levelCount = 1;
+            b.subresourceRange.baseArrayLayer = layer;
+            b.subresourceRange.layerCount = 1;
+
+            vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                0, 0, nullptr, 0, nullptr, 1, &b);
+        }
+
+        // 4) copy buffer -> image (that layer)
+        VkBufferImageCopy region = {};
+        region.bufferOffset = 0;
+        region.bufferRowLength = 0;     // tightly packed
+        region.bufferImageHeight = 0;   // tightly packed
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = layer;
+        region.imageSubresource.layerCount = 1;
+        region.imageOffset = { 0, 0, 0 };
+        region.imageExtent = { width, height, 1 };
+
+        vkCmdCopyBufferToImage(cmd, staging, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+        // 5) layer -> finalLayout (READ_ONLY for color array; GENERAL for props array)
+        {
+            VkImageMemoryBarrier b = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+            b.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            b.dstAccessMask = (finalLayout == VK_IMAGE_LAYOUT_GENERAL)
+                ? (VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT)
+                : VK_ACCESS_SHADER_READ_BIT;
+            b.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            b.newLayout = finalLayout;
+            b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            b.image = dstImage;
+            b.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            b.subresourceRange.baseMipLevel = 0;
+            b.subresourceRange.levelCount = 1;
+            b.subresourceRange.baseArrayLayer = layer;
+            b.subresourceRange.layerCount = 1;
+
+            VkPipelineStageFlags dstStage = (finalLayout == VK_IMAGE_LAYOUT_GENERAL)
+                ? (VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+                : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+            vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, dstStage, 0, 0, nullptr, 0, nullptr, 1, &b);
+        }
+
+        // 6) submit+wait (this ensures GPU is done with 'staging'), then free staging.
+        VulkanContext::Get()->EndSingleTimeCommands(cmd);
+        vkDestroyBuffer(device, staging, nullptr);
+        vkFreeMemory(device, stagingMem, nullptr);
+    }
+
+
+
     bool VulkanBindlessDescriptorSetRenderer::IsInsideView(const Camera&, glm::vec2) const
     {
-        // TODO: plug your real culling here
+        // TODO: plug real culling here
         return true;
     }
 
@@ -731,5 +974,172 @@ namespace Engine {
         vkCmdDraw(cmd, /*vertexCount*/4, /*instanceCount*/m_drawCount, 0, 0);
     }
 
+        // Called when a tile UID first appears in view.
+    // uploadCmd: a command buffer you’ll submit BEFORE the draw that uses this tile.
+    uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResident(
+        uint64_t uid,  const glm::vec4& atlasUV,   // uv.x, uv.y = TOP-LEFT in atlas (min); uv.z/w ignored if tiles are fixed size
+        VkCommandBuffer uploadCmd)  // recorded BEFORE render pass
+    {
+        if (auto it = m_tileToSlot.find(uid); it != m_tileToSlot.end())
+            return it->second;
 
+        // 1) Acquire a free array layer (= bindless slot)
+        const uint32_t layer = m_colorLayerPool.Acquire();
+        VkImageView colorView = m_colorLayerPool.View(layer);
+
+        // 2) Copy atlas patch -> this array layer (does proper per-image/per-layer barriers)
+        //    Make sure this uses your real atlas image:
+        VkImage atlasImg = AssetManager::GetTileTextureIconAtlas()->GetImage();
+        CopyFromAtlasUVToLayer(uploadCmd,
+            atlasImg,
+            atlasUV,              // expects uv.x/uv.y to be pixel-aligned top-left
+            m_colorArrayImage,
+            layer,
+            m_tileW, m_tileH);    // e.g. 128 x 256
+
+        // 3) Descriptor writes
+        // If you DO NOT use update-after-bind, write this slot into ALL per-frame sets here.
+        for (uint32_t f = 0; f < MAX_FRAMES_IN_FLIGHT; ++f)
+        {
+            // binding 0: sampled for graphics
+            WriteCombinedImageSampler(m_device, m_bindlessSet[f],
+                /*binding*/0, /*arrayIndex*/layer,
+                m_tileSampler, colorView,
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+            // If your compute pass writes to COLOR, also expose it as STORAGE_IMAGE (same view):
+            // WriteStorageImage(m_device, m_bindlessSet[f],
+            //     /*binding*/1, /*arrayIndex*/layer,
+            //     colorView, VK_IMAGE_LAYOUT_GENERAL);
+        }
+
+        m_tileToSlot.emplace(uid, layer);
+        return layer;
+    }
+
+    void VulkanBindlessDescriptorSetRenderer::CreateComputeDescriptorSet(VkDescriptorPool computeDescriptorPool)
+    {
+
+
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_computeDescriptorSetLayout);
+
+        VkDescriptorSetAllocateInfo ai{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+        ai.descriptorPool = computeDescriptorPool;
+        ai.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+        ai.pSetLayouts = layouts.data();
+
+        VkResult r = vkAllocateDescriptorSets(m_device, &ai, m_computeDescriptorSet.data());
+        EE_CORE_ASSERT(r == VK_SUCCESS, "Failed to allocate compute descriptor sets");
+    }
+
+    void VulkanBindlessDescriptorSetRenderer::CreateComputeArrayDescriptorSetLayout(
+        uint32_t maxResidentLayers, bool updateAfterBindSupported)
+    {
+        // 0: COLOR  (rgba8)   STORAGE image, bindless array
+        // 1: PROPS  (rgba8ui) STORAGE image, bindless array
+        // 2: ResultBuffer      SSBO (1)
+        // 3: Projectiles       SSBO (1)
+        // 4: BlockedTileMask   SSBO (1)
+
+        std::array<VkDescriptorSetLayoutBinding, 5> bindings{};
+
+        // binding 0: color image array (compute writes)
+        bindings[0].binding = 0;
+        bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        bindings[0].descriptorCount = maxResidentLayers;     // bindless array size
+        bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        bindings[0].pImmutableSamplers = nullptr;
+
+        // binding 1: properties/health image array (compute reads/writes)
+        bindings[1].binding = 1;
+        bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        bindings[1].descriptorCount = maxResidentLayers;     // bindless array size
+        bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        bindings[1].pImmutableSamplers = nullptr;
+
+        // binding 2: results SSBO
+        bindings[2].binding = 2;
+        bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bindings[2].descriptorCount = 1;
+        bindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        bindings[2].pImmutableSamplers = nullptr;
+
+        // binding 3: projectiles SSBO
+        bindings[3].binding = 3;
+        bindings[3].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bindings[3].descriptorCount = 1;
+        bindings[3].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        bindings[3].pImmutableSamplers = nullptr;
+
+        // binding 4: blocked mask SSBO
+        bindings[4].binding = 4;
+        bindings[4].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bindings[4].descriptorCount = 1;
+        bindings[4].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        bindings[4].pImmutableSamplers = nullptr;
+
+        // Descriptor indexing binding flags:
+        // - PARTIALLY_BOUND lets you leave unused array elements unwritten.
+        // - UPDATE_AFTER_BIND is optional; only use if you actually enabled it at device creation.
+        std::array<VkDescriptorBindingFlags, 5> bflags{};
+        bflags[0] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
+            (updateAfterBindSupported ? VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT : 0);
+        bflags[1] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
+            (updateAfterBindSupported ? VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT : 0);
+        // buffers don’t need special flags
+        bflags[2] = 0;
+        bflags[3] = 0;
+        bflags[4] = 0;
+
+        VkDescriptorSetLayoutBindingFlagsCreateInfo flagsCI{
+            VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO
+        };
+        flagsCI.bindingCount = static_cast<uint32_t>(bflags.size());
+        flagsCI.pBindingFlags = bflags.data();
+
+        VkDescriptorSetLayoutCreateInfo layoutInfo{
+            VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO
+        };
+        layoutInfo.pNext = &flagsCI;                             // descriptor indexing flags
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
+        layoutInfo.flags = updateAfterBindSupported
+            ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT
+            : 0;
+
+        VkResult res = vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_computeDescriptorSetLayout);
+        EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to create compute descriptor set layout");
+    }
+
+
+
+    void VulkanBindlessDescriptorSetRenderer::CreateComputeGraphicsPipeline()
+    {
+        VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
+        computeShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        computeShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+        computeShaderStageInfo.module = m_computeShader->GetComputeshaderModule();
+        computeShaderStageInfo.pName = "main";
+
+        VkPushConstantRange pushConstantRange{};
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        pushConstantRange.offset = 0;
+        pushConstantRange.size = sizeof(ComputePC);
+
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutInfo.setLayoutCount = 1;
+        pipelineLayoutInfo.pSetLayouts = &m_computeDescriptorSetLayout;
+        pipelineLayoutInfo.pushConstantRangeCount = 1;
+        pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+
+        vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_computePipelineLayout);
+
+        VkComputePipelineCreateInfo computePipelineInfo{};
+        computePipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+        computePipelineInfo.stage = computeShaderStageInfo;
+        computePipelineInfo.layout = m_computePipelineLayout;
+
+        vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &computePipelineInfo, nullptr, &m_computePipeline);
+    }
 } 

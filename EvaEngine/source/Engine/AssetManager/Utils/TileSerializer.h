@@ -29,6 +29,12 @@ namespace Engine {
         bool            pivotAuto = true;
     };
 
+    struct TileSource {
+        int width = 0;
+        int height = 0;
+        std::vector<uint8_t> rgba; // RGBA8, size = width*height*4, top-left origin
+    };
+
     class TileSerializer {
     public:
         static void LoadAllTiles(std::unordered_map<std::string, TileProperties>& tiles);

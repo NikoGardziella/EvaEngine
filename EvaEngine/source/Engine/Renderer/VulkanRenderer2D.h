@@ -12,6 +12,7 @@
 #include <Engine/Events/Public/CollisionEvents.h>
 #include <Engine/Scene/Entity.h>
 #include <vector>
+#include <Engine/Platform/Vulkan/VulkanBindlessDescriptorSet.h>
 
 namespace Engine {
 
@@ -98,6 +99,7 @@ namespace Engine {
 		uint32_t CurrentFrame = 0;
 
 	};
+	struct SlotContentRect { glm::ivec2 minPx; glm::ivec2 sizePx; };
 
 	struct DestructibleSubmit {
 		UUID		 entityID;
@@ -111,6 +113,9 @@ namespace Engine {
 	struct VulkanBindlessRenderer2DData
 	{
 		std::array<std::vector<DestructibleSubmit>, 3> submitQueues{};
+		std::vector<glm::vec2> m_slotOriginWorld;
+		std::vector<SlotContentRect> m_slotContentRect;
+
 
 	};
 
@@ -145,19 +150,14 @@ namespace Engine {
 	static_assert(sizeof(EffectPushConstants) == 96, "PC size must be 96 bytes");
 
 
-	struct PushConstants
-	{
-		glm::vec2 TextureOrigin;   // 8 bytes
-		float PixelSize;           // 4 bytes
-		uint32_t textureIndex;     // 4 bytes
-
-		uint32_t NumProjectiles;
-
-		uint32_t ChunkSize; // in pixels
-		uint32_t TileSize; // in pixels
-		uint32_t mode; // 0 = Detect, 1 = Destroy, 2 = Tilemask
-		glm::ivec2 MinTileCoords;
-	
+	// C++ (matches GLSL layout+offsets; total = 96 bytes)
+	struct ComputePC {
+		glm::vec2  TextureOriginWorld; // TOP-LEFT of the tile in world units
+		float      PixelSizeWorld;     // world units per pixel (same X/Y in shader)
+		uint32_t   TextureIndex;       // = slot
+		uint32_t   NumProjectiles;
+		uint32_t   TileSizePixels;     // tile width in texels (e.g. 128)
+		
 	};
 
 	struct PerFrameGarbage
@@ -222,9 +222,14 @@ namespace Engine {
 		static void VulkanRenderer2D::SubmitDestructibleTile(UUID entityID, const glm::vec2& worldPos,
 			const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias);
 
+		static void SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin);
+
+		static void SetSlotContentRect(uint32_t slot, glm::ivec2 minPx, glm::ivec2 sizePx);
+
 
 		static Renderer2D::Statistics GetStats();
 		static EffectPushConstants& GetEffects() { return s_effectPushConstants;  }
+		static Ref<VulkanBindlessDescriptorSetRenderer>& GetBindlessDescriptorSetRenderer() { return s_bindlessDescitproSet;  }
 
 		static void ResetStats();
 
@@ -235,7 +240,9 @@ namespace Engine {
 		void RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordProjectileDrawCommands(VkCommandBuffer cmd, uint32_t frameIndex, uint32_t currentFrame);
 		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
-		void RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
+		//void RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
+		void RecordComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
+		void DispatchDamageForTile(VkCommandBuffer cmd, uint32_t frameIndex, const ComputePC& pc, VkImage colorArray, VkImage propsArray);
 		void RecordPlayerCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
@@ -286,6 +293,7 @@ namespace Engine {
 		//CollisionTexture s_CollisionTextures;
 		Ref<VulkanTexture> m_dummyTexture;
 
+		static Ref<VulkanBindlessDescriptorSetRenderer> s_bindlessDescitproSet;
 
 	};
 

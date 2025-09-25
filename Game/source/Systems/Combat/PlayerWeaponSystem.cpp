@@ -80,6 +80,7 @@ void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
     projectileComp.TargetPositionHeightZ1 = SampleHeightAt(scene, mouseWorldPosition, 1);
     projectileComp.DistanceToTargetatFireTime = glm::distance(mouseWorldPosition, playerPosition);
     projectileComp.TargetPositionAtFireTime = mouseWorldPosition;
+    projectileComp.ProjectileSped = weaponComp.ProjectileSpeed;
     EE_INFO("projectileComp.TargetPositionHeightZ1, {}", projectileComp.TargetPositionHeightZ1);
     Engine::SpriteRendererComponent& spriteComp = projectileEntity.AddComponent<Engine::SpriteRendererComponent>();
     spriteComp.Texture = Engine::AssetManager::GetTexture("bullet");
@@ -90,66 +91,84 @@ void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
     EE_ASSERT((projectileComp.DistanceToTargetatFireTime > 0.0f), "RayLen must be > 0");
 }
 
-float PlayerWeaponSystem::SampleHeightAt(Engine::Scene* scene,
-    const glm::vec2& worldXY, int radiusPx /*=0*/)
+float SampleHeightAt_FromTileCenterFudged(
+    const glm::vec2& worldXY,
+    const glm::vec2& tileCenter,
+    const glm::vec2& tileSizeWorld,
+    float pxWorld,
+    const glm::vec2& originBiasWorld = glm::vec2(0.5f, 0.0f), // <- your current bias
+    bool snapToTexelCenters = true)
 {
-    // 1 G unit = 1 pixel row in world
-    const float heightWorldPerUnit = 1.0f / float(TILE_PIXEL_WIDTH);
+    // nominal TL from center (Y up)
+    const glm::vec2 originTL_nominal = tileCenter + glm::vec2(-0.5f * tileSizeWorld.x,
+        +0.5f * tileSizeWorld.y);
 
-    // Square grid (matches uploader)
-    const int CELL = int(TILE_PIXEL_WIDTH);
-    const int CHUNK = int(CHUNK_SIZE) * CELL;
+    // apply the same bias you used when pushing to compute (center - bias)
+    const glm::vec2 originTL = originTL_nominal - originBiasWorld;
 
-    // World ? atlas pixels (bottom-origin)
-    const int px = int(std::floor(worldXY.x * float(CELL)));
-    const int py = int(std::floor(worldXY.y * float(CELL)));
+    // bottom edge in world
+    const float bottomY = originTL.y - tileSizeWorld.y;
 
-    uint8_t maxG = 0;
-    bool done = false;
+    // raw height above bottom
+    float h = worldXY.y - bottomY;
 
-    scene->ForEach<Engine::ChunkRendererComponent>(
-        [&](Engine::Entity /*e*/, Engine::ChunkRendererComponent& chunkComp)
+    // optional: snap to texel centers to avoid half-texel drift
+    if (snapToTexelCenters && pxWorld > 0.0f)
+    {
+        float rows = h / pxWorld;
+        rows = std::floor(rows) + 0.5f; // center of the row
+        h = rows * pxWorld;
+    }
+
+    // clamp to the tile’s vertical span
+    if (h < 0.0f) h = 0.0f;
+    if (h > tileSizeWorld.y) h = tileSizeWorld.y;
+    return h;
+}
+float PlayerWeaponSystem::SampleHeightAt(Engine::Scene* scene,
+    const glm::vec2& worldXY,
+    int /*radiusPx*/ /*=0*/)
+{
+    // World-units per pixel (X), keep consistent with compute/render
+    const float pxWorld = float(TILE_SIZE) / float(TILE_PIXEL_WIDTH);
+
+    // Tile size in world units (assumes all tiles are the same pixel size)
+    const glm::vec2 tileSizeWorld = {
+        float(TILE_PIXEL_WIDTH) * pxWorld,
+        float(TILE_PIXEL_HEIGHT) * pxWorld
+    };
+
+    // Must match the bias you used for compute:
+    // m_slotOriginWorld[slot] = center - vec2(0.5f, 0.0f)
+    const glm::vec2 originBiasWorld(0.5f, 0.0f);
+
+    bool  hit = false;
+    float best = 0.0f;
+
+    scene->ForEachConst<Engine::TransformComponent, Engine::TileComponent>(
+        [&](Engine::Entity, const Engine::TransformComponent& tr, const Engine::TileComponent& tc)
         {
-            if (done) return;
-            if (!chunkComp.PropertiesTexture) return;
-
-            int w = chunkComp.PropertiesTexture->GetWidth();
-            int h = chunkComp.PropertiesTexture->GetHeight();
-            if (w <= 0) w = CHUNK;
-            if (h <= 0) h = CHUNK;
-
-            const glm::ivec2 cc = chunkComp.ChunkCoords;
-            const int x0 = cc.x * CHUNK;
-            const int y0 = cc.y * CHUNK;
-            const int x1 = x0 + w;
-            const int y1 = y0 + h;
-            if (px < x0 || px >= x1 || py < y0 || py >= y1) return;
-
-            const std::vector<uint8_t>& cpu = chunkComp.PropertiesTexture->GetCPUPixelData();
-            const size_t needBytes = size_t(w) * size_t(h) * 4;
-            if (cpu.size() < needBytes) { done = true; return; }
-
-            const int lx = px - x0;
-            const int ly = py - y0;
-
-            const int r = std::max(0, radiusPx);
-            for (int oy = -r; oy <= r; ++oy)
+            // Loop *all* tiles in this entity
+            for (const Engine::TileInfo& t : tc.tiles)
             {
-                const int y = ly + oy;
-                if ((unsigned)y >= (unsigned)h) continue;
-                const size_t row = size_t(y) * size_t(w) * 4;
+                // Your render path uses: tileCenter = entity center + local tile offset
+                glm::vec2 tileCenter = glm::vec2(tr.Translation) + t.position;
+                tileCenter = glm::vec2(tr.Translation) + glm::vec2(0.0f, 0.5f * tileSizeWorld.y);
 
-                for (int ox = -r; ox <= r; ++ox)
-                {
-                    const int x = lx + ox;
-                    if ((unsigned)x >= (unsigned)w) continue;
+                // Quick world AABB reject around this *individual* tile
+                const glm::vec2 minW = tileCenter - 0.5f * tileSizeWorld;
+                const glm::vec2 maxW = tileCenter + 0.5f * tileSizeWorld;
+                if (worldXY.x < minW.x || worldXY.x >= maxW.x ||
+                    worldXY.y < minW.y || worldXY.y >= maxW.y)
+                    continue;
 
-                    const uint8_t g = cpu[row + size_t(x) * 4 + 1]; // G channel
-                    if (g > maxG) maxG = g;
-                }
+                // Geometry-only height above bottom, using the SAME bias as compute
+                const float h = SampleHeightAt_FromTileCenterFudged(
+                    worldXY, tileCenter, tileSizeWorld, pxWorld, originBiasWorld, /*snap*/ true);
+
+                if (!hit || h > best) { best = h; hit = true; }
             }
-            done = true;
         });
 
-    return float(maxG) * heightWorldPerUnit;
+    return hit ? best : 0.0f;
 }

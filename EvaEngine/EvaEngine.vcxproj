@@ -146,6 +146,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h" />
     <ClInclude Include="source\Engine\Math\HashUtils.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h" />
@@ -245,6 +246,8 @@
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />
     <ClInclude Include="source\Engine\Utils\PlatformUtils.h" />
     <ClInclude Include="source\pch.h" />
+    <ClInclude Include="source\Engine\Map\Tile\TileManager.h" />
+    <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h" />
     <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="vendor\enkiTS\box2d\src\TaskScheduler.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
@@ -666,6 +669,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.cpp" />
     <ClCompile Include="source\Engine\AssetManager\Utils\AssetManagerUtils.cpp" />
     <ClCompile Include="source\Engine\AssetManager\Utils\TileSerializer.cpp" />
@@ -737,6 +741,8 @@
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp" />
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
@@ -753,7 +759,9 @@
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />
-    <None Include="..\assets\shaders\compute.comp" />
+    <CustomBuild Include="..\assets\shaders\compute.comp">
+      <FileType>Document</FileType>
+    </CustomBuild>
     <None Include="..\assets\shaders\fullscreen_shader.glsl" />
     <None Include="..\assets\shaders\imgui_shader.glsl" />
     <None Include="..\assets\shaders\testShader.glsl" />

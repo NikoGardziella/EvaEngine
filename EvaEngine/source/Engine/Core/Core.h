@@ -93,12 +93,15 @@ constexpr size_t TILE_PIXEL_HEIGHT = 256;
 
 constexpr float GRID_TILE_W = (float)TILE_SIZE;           // diamond width
 constexpr float GRID_TILE_H = GRID_TILE_W * 0.5f; // diamond height = 64
-
 constexpr size_t CHUNK_SIZE = 32; // Tiles in a chunk
+constexpr size_t GRID_SUBDIVISIONS = 3;
+constexpr size_t MAX_RESIDENT_LAYERS = 1024;
+
+
+
 constexpr size_t PLAYER_COUNT = 1; // Tiles in a chunk
 
 // GRID dont forget to modify in shader as well 
-constexpr size_t GRID_SUBDIVISIONS = 3;
 //effects
 constexpr size_t MAX_EXPLOSIONS = 32;
 

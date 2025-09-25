@@ -389,15 +389,17 @@ namespace Engine {
                 const bool visible = (Aa != 0);
 
                 // --- R: health ---
-                uint8_t healthR = visible ? static_cast<uint8_t>(tile.TileHealth) : 0u;
-                if (inFootBandY && healthR == 0u) {
+                uint8_t healthR =  0u;
+                if (visible)
+                {
                     // even if invisible (alpha 0), foot-band should still carry health for collision
                     healthR = static_cast<uint8_t>(tile.TileHealth);
                 }
 
                 // --- G: rows above pivot (1..255), 0 at/under pivot or if invisible ---
                 uint8_t heightG = 0u;
-                if (visible && y > pivotY) {
+                if (visible && y > pivotY) 
+                {
                     const int dy = y - pivotY; // rows above pivot
                     heightG = static_cast<uint8_t>(glm::clamp(dy, 1, 255));
                 }

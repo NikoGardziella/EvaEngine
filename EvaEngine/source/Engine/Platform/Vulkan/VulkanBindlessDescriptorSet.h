@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <entt.hpp>
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include "LayerPool/LayerPool.h"
 
 namespace Engine {
 
@@ -45,9 +46,9 @@ namespace Engine {
         void Init(VkDevice device, bool updateAfterBindSupported);
         void Shutdown(VkDevice device);
 
-       
+
         void BeginFrame(uint32_t frameIndex, VkCommandBuffer uploadCB);
-        void AddInstance(glm::vec2 worldPos,float zSortKey, uint32_t slot, uint32_t flags = 0);
+        void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, uint32_t flags = 0);
         void EndFrameAndUpload(uint32_t frameIndex);
 
         // Call once after swapchain/device init
@@ -59,17 +60,26 @@ namespace Engine {
         void SetCurrentFrameIndex(uint32_t fi) { m_currentFrame = fi; }
 
         // Build visible instances and stream into SSBO; updates binding 2 for this frame
-        void BuildInstancesFull(const Camera& cam, int frameIndex, entt::registry& registry);
-        uint32_t EnsureTileResident(uint64_t uid, const glm::vec4& atlasUV, VkCommandBuffer uploadCB);
         void RecordTiles(VkCommandBuffer cmd, uint32_t frameIndex, const glm::mat4& VP, VkExtent2D fbExtent);
+        uint32_t EnsureTileResident(uint64_t uid, const glm::vec4& atlasUV, VkCommandBuffer uploadCmd);
+        uint32_t EnsureTileResidentFromRaw(uint64_t uid, const uint8_t* colorData, size_t colorSize, const uint8_t* propsData, size_t propsSize, VkCommandBuffer uploadCB);
+        void ComputeBindBuffers(uint32_t frameIndex, VkBuffer resultsBuf, VkDeviceSize resultsSize, VkBuffer projectilesBuf, VkDeviceSize projSize, VkBuffer blockedMaskBuf, VkDeviceSize maskSize);
 
         // Accessors for your render code
         VkDescriptorSetLayout GetSetLayout() const { return m_bindlessSetLayout; }
         VkPipelineLayout      GetPipelineLayout() const { return m_tilesPipelineLayout; }
+        VkPipelineLayout      GetComputePipelineLayout() const { return m_computePipelineLayout; }
+        VkPipeline            GetComputePipeline() const   { return m_computePipeline; }
+
         VkDescriptorSet       GetSetForFrame(uint32_t f) const { return m_bindlessSet[f]; }
+        VkDescriptorSet       GetSetForComputeFrame(uint32_t f) const { return m_computeDescriptorSet[f]; }
         VkSampler             GetTileSampler() const { return m_tileSampler; }
         uint32_t              GetDrawCount() const { return m_drawCount; }
         VkBuffer              GetInstanceBuffer(uint32_t f) const { return m_instanceBuffer.buf[f]; }
+        VkImage               GetColorImageArray() const { return      m_colorArrayImage; }
+        VkImage               GetPropsArrayImage() const { return      m_propsArrayImage; }
+
+        std::unordered_map<uint64_t, uint32_t>& GetTileToSlotMap() { return  m_tileToSlot; }
 
     private:
         // ----- internal helpers
@@ -79,8 +89,15 @@ namespace Engine {
         void CreateBindlessPoolAndSet(VkDevice device, bool updateAfterBindSupported);
         void CreateTilesPipelineLayout(VkDevice device);
         void CreateInstanceBuffers(VkDevice dev, VkPhysicalDevice phys, InstanceBuffer& out, size_t maxInstances);
+        void CreateComputeDescriptorSet(VkDescriptorPool computeDescriptorPool);
+        void CreateComputeArrayDescriptorSetLayout(uint32_t maxResidentLayers, bool updateAfterBindSupported);
+        void CreateComputeGraphicsPipeline();
 
         void CreateColorArray(VkDevice dev, VkPhysicalDevice phys); // one 2D array image, per-layer views
+
+        void CreatePropsArray(VkDevice dev, VkPhysicalDevice phys);
+
+        void ComputeWriteImageSlot(uint32_t frameIndex, uint32_t arrayIndex, VkImageView colorView, VkImageView propsView);
 
         void CopyFromAtlasUVToLayer(VkCommandBuffer cmd, VkImage atlas, const glm::vec4& uv,
             VkImage dstArray, uint32_t layer, uint32_t tileW, uint32_t tileH);
@@ -103,6 +120,12 @@ namespace Engine {
             VkImageLayout oldLayout, VkImageLayout newLayout,
             uint32_t layer);
 
+
+
+        void UploadToArrayLayerViaStaging(VkCommandBuffer cmd, const void* srcData, size_t numBytes, VkImage dstImage, VkFormat, uint32_t layer, uint32_t width, uint32_t height, VkImageLayout finalLayout);
+
+        void UploadToArrayLayerViaStaging_ST(const void* srcData, size_t numBytes, VkImage dstImage, VkImageLayout currentLayout, VkImageLayout finalLayout, uint32_t layer, uint32_t width, uint32_t height);
+
         // Simple helpers you can replace with your own
         bool IsInsideView(const Camera& cam, glm::vec2 worldPos) const; // TODO: implement properly
         void SubmitTile(uint64_t entID, entt::entity e, const glm::vec2& worldPosCenter, const glm::vec4& atlasUV, const std::string& name, const glm::vec2& localPos);
@@ -116,12 +139,21 @@ namespace Engine {
         VkDevice m_device = VK_NULL_HANDLE;
 
         // Descriptor stuff
-        VkDescriptorSetLayout m_bindlessSetLayout = VK_NULL_HANDLE;
         VkDescriptorPool      m_descPool = VK_NULL_HANDLE;   // Vulkan pool
         std::array<VkDescriptorSet, FRAMES_IN_FLIGHT> m_bindlessSet{};
+        std::array<VkDescriptorSet, FRAMES_IN_FLIGHT> m_computeDescriptorSet;
+        VkDescriptorSetLayout m_bindlessSetLayout = VK_NULL_HANDLE;
+        VkDescriptorSetLayout m_computeDescriptorSetLayout;
+
+
+        VkPipelineLayout      m_computePipelineLayout;
         VkPipelineLayout      m_tilesPipelineLayout = VK_NULL_HANDLE;
+
+        VkPipeline            m_computePipeline;
         VkPipeline            m_tilesPipeline = VK_NULL_HANDLE;
         VkSampler             m_tileSampler = VK_NULL_HANDLE;
+
+        Ref<VulkanShader> m_computeShader;
 
         // Shaders / pipeline (you instantiate your pipeline elsewhere)
         std::shared_ptr<VulkanShader> m_bindlessDescriptorsShader;
@@ -140,23 +172,17 @@ namespace Engine {
 
         // Per-tile color array (one layer per resident tile)
         VkImage        m_colorArrayImage = VK_NULL_HANDLE;
+        VkImage        m_propsArrayImage = VK_NULL_HANDLE;
         VkDeviceMemory m_colorArrayMem = VK_NULL_HANDLE;
+        VkDeviceMemory m_propsArrayMem = VK_NULL_HANDLE;
         uint32_t       m_tileW = 128;
         uint32_t     m_tileH = 256; 
 
         // Per-layer views + freelist
-        struct ColorLayerPool {
-            VkDevice device{};
-            VkImage  image{};
-            VkFormat format{ VK_FORMAT_R8G8B8A8_UNORM };
-            std::vector<uint32_t>    freeList;
-            std::vector<VkImageView> views;
-            void Init(VkDevice dev, VkImage img, uint32_t layerCount);
-            void Shutdown(VkDevice dev);
-            uint32_t Acquire();
-            void Release(uint32_t i);
-            VkImageView View(uint32_t i) const { return views[i]; }
-        } m_colorLayerPool;
+        
+
+        LayerPool m_colorLayerPool;
+        LayerPool m_propsLayerPool;
 
         // Residency map: tile UID -> slot (layer)
         std::unordered_map<uint64_t, uint32_t> m_tileToSlot;

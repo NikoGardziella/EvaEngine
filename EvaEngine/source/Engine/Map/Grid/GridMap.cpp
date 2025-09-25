@@ -390,40 +390,41 @@ namespace Engine
         bmin = glm::vec2(gs) * subtileSize;
         bmax = bmin + glm::vec2(subtileSize);
     }
-    
-    void GridMap::UpdateTiles(const glm::ivec2& minOrigin)
+
+
+    void GridMap::UpdateTiles(const glm::ivec2& tileIndex) // origin
     {
         EE_PROFILE_FUNCTION();
 
         const auto& mask = TileBlockedMaskCPU::CachedGPUMask;
-        if (mask.empty()) return;
+        if (mask.empty())
+        {
+            return;
+        }
 
-      
-        const uint32_t spt = GRID_SUBDIVISIONS; // SUBTILES_PER_TILE
-        const uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH;
-        const uint32_t tilesPerCol = CHUNK_SIZE * CHUNK_GRID_WIDTH;
-        const uint32_t subtilesPerRow = tilesPerRow * spt;
-        (void)tilesPerCol; // rows count not needed explicitly
+        const uint32_t spt = GRID_SUBDIVISIONS;      // SUBTILES_PER_TILE
+       // EE_ASSERT(mask.size() == spt * spt && "Per-tile mask must be spt*spt");
 
-        const float tileWorld = float(TILE_SIZE);           
+        const float tileWorld = float(TILE_SIZE);
         const float subtileSize = tileWorld / float(spt);
 
         // Mark OBBs to remove
         std::vector<uint8_t> kill(m_blockedSubCells.size(), 0);
 
-        // Walk GPU mask: only care about DESTROYED bit
+        // Walk the per-tile GPU mask: only care about DESTROYED bit
         for (uint32_t i = 0; i < mask.size(); ++i)
         {
             const uint32_t bits = mask[i];
+            if ((bits & MASK_DESTROYED) == 0u)
+            {
+                continue;
+            }
 
-            if ((bits & MASK_DESTROYED) == 0u) continue;
+            // Subtile index inside THIS tile (row-major)
+            const glm::ivec2 rel = { int(i % spt), int(i / spt) };
 
-           
-            // Subtile inside the 3x3 window
-            const glm::ivec2 rel = { int(i % subtilesPerRow), int(i / subtilesPerRow) };
-
-            // Convert to global AA-subtile coord (matches shader write)
-            const glm::ivec2 gs = minOrigin * int(CHUNK_SIZE * spt) + rel;
+            // Convert to GLOBAL subtile coordinates: each tile spans 'spt' subtiles
+            const glm::ivec2 gs = tileIndex * int(spt) + rel;
 
             // World AABB of that subtile
             glm::vec2 bmin, bmax;
@@ -443,19 +444,18 @@ namespace Engine
             }
         }
 
-        // Compact m_blockedSubCells by removing killed entries (stable order not required)
+        // Compact m_blockedSubCells by removing killed entries
         size_t w = 0;
         for (size_t k = 0; k < m_blockedSubCells.size(); ++k)
         {
             if (!kill[k])
             {
-
                 m_blockedSubCells[w++] = m_blockedSubCells[k];
             }
-
         }
         m_blockedSubCells.resize(w);
     }
+
 
 
 
