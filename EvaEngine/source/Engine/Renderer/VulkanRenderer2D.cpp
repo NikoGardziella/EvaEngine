@@ -270,7 +270,6 @@ namespace Engine {
 
 
 		s_VulkanBindlessData.m_slotOriginWorld.resize(MAX_RESIDENT_LAYERS);
-		s_VulkanBindlessData.m_slotContentRect.resize(MAX_RESIDENT_LAYERS);
 	}
 
 	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
@@ -309,7 +308,7 @@ namespace Engine {
 		}
 
 
-
+		/*
 		// Record Game Pass
 		vkResetCommandBuffer(cmd, 0);
 
@@ -318,6 +317,7 @@ namespace Engine {
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
+		*/
 
 		s_bindlessDescitproSet->SetCurrentFrameIndex(currentFrame);
 		ConsumeDestructibleQueue(cmd, currentFrame);
@@ -497,6 +497,7 @@ namespace Engine {
 		
 		RecordEffectComputeCommandBuffer(cmd, currentFrame);
 		
+		/*
 		vkEndCommandBuffer(cmd);
 
 		VkSubmitInfo submitInfo{};
@@ -516,6 +517,7 @@ namespace Engine {
 			vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
 		}
+		*/
 
 
 		{
@@ -1024,6 +1026,7 @@ namespace Engine {
 
 	void VulkanRenderer2D::RecordComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
 	{
+
 		// 0) Bind compute pipeline + its bindless compute set
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
 			s_bindlessDescitproSet->GetComputePipeline());
@@ -1072,12 +1075,7 @@ namespace Engine {
 		{
 			
 
-			// ---- Content rect (fallback to full tile) ----
-			SlotContentRect r = s_VulkanBindlessData.m_slotContentRect[slot];
-			if (r.sizePx.x <= 0 || r.sizePx.y <= 0) {
-				r.minPx = { 0, 0 };
-				r.sizePx = { tileW, tileH };
-			}
+			
 
 			// ---- Build push constants ----
 			ComputePC pc{};
@@ -2168,15 +2166,16 @@ namespace Engine {
 		
 	}
 
-	void VulkanRenderer2D::SubmitDestructibleTile(UUID entityID, const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias)
+	void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias)
 	{
+
 		const size_t fi = static_cast<size_t>(s_VulkanData.CurrentFrame) % MAX_FRAMES_IN_FLIGHT;
 
 		// Get the vector for this frame
 		std::vector<DestructibleSubmit>& submitQueue = s_VulkanBindlessData.submitQueues[fi];
 
 		// Push one item
-		submitQueue.emplace_back(DestructibleSubmit{ entityID, worldPos, localPos, atlasUV, nameHash, zBias });
+		submitQueue.emplace_back(DestructibleSubmit{worldPos, localPos, atlasUV, nameHash, zBias });
 	
 		
 	}
@@ -2185,12 +2184,6 @@ namespace Engine {
 	{
 		
 		s_VulkanBindlessData.m_slotOriginWorld[slot] = origin;
-	}
-
-	void VulkanRenderer2D::SetSlotContentRect(uint32_t slot, glm::ivec2 minPx, glm::ivec2 sizePx)
-	{
-
-		s_VulkanBindlessData.m_slotContentRect[slot] = SlotContentRect{ minPx, sizePx };
 	}
 
 	

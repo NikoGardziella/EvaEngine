@@ -595,6 +595,7 @@ namespace Engine {
     void VulkanBindlessDescriptorSetRenderer::WriteCombinedImageSampler( VkDevice device, VkDescriptorSet set, uint32_t binding,
         uint32_t arrayIndex, VkSampler sampler, VkImageView view, VkImageLayout layout)
     {
+        EE_PROFILE_FUNCTION();
 
         
         VkDescriptorImageInfo info{};
@@ -696,12 +697,16 @@ namespace Engine {
         TransitionImage(cmd, img, oldLayout, newLayout, r);
     }
 
+
     uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResidentFromRaw(
         uint64_t uid,
         const uint8_t* colorData, size_t colorSize,
         const uint8_t* propsData, size_t propsSize,
         VkCommandBuffer uploadCB)
     {
+
+        EE_PROFILE_FUNCTION();
+
         if (auto it = m_tileToSlot.find(uid); it != m_tileToSlot.end())
             return it->second;
 
@@ -731,6 +736,7 @@ namespace Engine {
             /*finalLayout  */ VK_IMAGE_LAYOUT_GENERAL,
             /*layer*/ slot,
             /*w*/ m_tileW, /*h*/ m_tileH);
+
         // Write descriptors for all frames (since you disabled update-after-bind)
         for (uint32_t f = 0; f < MAX_FRAMES_IN_FLIGHT; ++f)
         {
@@ -750,6 +756,9 @@ namespace Engine {
         VkImageView colorView,    // rgba8
         VkImageView propsView)    // rgba8ui
     {
+
+        EE_PROFILE_FUNCTION();
+
         // binding 0: color (STORAGE_IMAGE array)
         VkDescriptorImageInfo color{};
         color.imageView = colorView;
@@ -851,6 +860,8 @@ namespace Engine {
         VkImage dstImage, VkImageLayout currentLayout, VkImageLayout finalLayout,
         uint32_t layer, uint32_t width, uint32_t height)
     {
+        EE_PROFILE_FUNCTION();
+
         VkDevice device = m_device;
         const size_t expected = size_t(width) * size_t(height) * 4;
         EE_CORE_ASSERT(numBytes >= expected, "Upload size too small");

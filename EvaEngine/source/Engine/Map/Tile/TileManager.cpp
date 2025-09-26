@@ -13,21 +13,27 @@ namespace Engine {
 
     void TileManager::StreamInitialResidency(Scene* scene)
     {
+        EE_PROFILE_FUNCTION();
 
-        m_centerByUID.clear();
-        scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
-            [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& id) {
+        {
+            EE_PROFILE_SCOPE("get tile center");
+
+            m_centerByUID.clear();
+            scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
+                [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& id) {
                 
-                for (size_t i = 0; i < tc.tiles.size(); ++i)
-                {
-                    const TileInfo& t = tc.tiles[i];
-                    if (t.Category == eTileCategory::Terrain) continue;
+                    for (size_t i = 0; i < tc.tiles.size(); ++i)
+                    {
+                        const TileInfo& t = tc.tiles[i];
+                        if (t.Category == eTileCategory::Terrain) continue;
 
-                    glm::vec2 center = glm::vec2(tr.Translation) + t.position;
-                    m_centerByUID[t.UID] = center;
+                        glm::vec2 center = glm::vec2(tr.Translation) + t.position;
+                        m_centerByUID[t.UID] = center; // cache thios
 
-                }
-            });
+                    }
+                });
+
+        }
 
         VulkanContext* ctx = VulkanContext::Get();
         VkCommandBuffer cb = ctx->BeginSingleTimeCommands();
@@ -53,8 +59,7 @@ namespace Engine {
             glm::vec2 origin = BottomLeftFromCenter(center, m_tileWorldW, m_tileWorldH);
 
 
-            ContentRect rc = ComputeOpaqueBounds(col.rgba, TILE_PIXEL_HEIGHT, TILE_PIXEL_WIDTH);
-            VulkanRenderer2D::SetSlotContentRect(slot, { rc.x, rc.y }, { rc.w, rc.h });
+        
         }
 
         ctx->EndSingleTimeCommands(cb);

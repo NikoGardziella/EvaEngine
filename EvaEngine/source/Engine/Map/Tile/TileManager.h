@@ -44,6 +44,8 @@ namespace Engine {
 
 		static ContentRect ComputeOpaqueBounds(const std::vector<uint8_t>& rgba, int w, int h, uint8_t alphaMin = 1)
 		{
+			EE_PROFILE_FUNCTION();
+
 			int minx = w, miny = h, maxx = -1, maxy = -1;
 			for (int y = 0; y < h; ++y)
 			{

@@ -102,7 +102,6 @@ namespace Engine {
 	struct SlotContentRect { glm::ivec2 minPx; glm::ivec2 sizePx; };
 
 	struct DestructibleSubmit {
-		UUID		 entityID;
 		glm::vec2    worldPos;   // center in world units
 		glm::vec2    localPos;   // tile's local pos in entity space (for UID)
 		glm::vec4    atlasUV;    // UNFLIPPED source UV in the atlas
@@ -114,7 +113,6 @@ namespace Engine {
 	{
 		std::array<std::vector<DestructibleSubmit>, 3> submitQueues{};
 		std::vector<glm::vec2> m_slotOriginWorld;
-		std::vector<SlotContentRect> m_slotContentRect;
 
 
 	};
@@ -219,7 +217,7 @@ namespace Engine {
 		static void BeginScene();
 		static void EndScene();
 
-		static void VulkanRenderer2D::SubmitDestructibleTile(UUID entityID, const glm::vec2& worldPos,
+		static void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos,
 			const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias);
 
 		static void SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin);

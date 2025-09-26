@@ -380,6 +380,7 @@ namespace Engine {
 
         m_textureStreamingSystem->BakeTilesIntoChunks(this); // terrain
 		m_textureStreamingSystem->AddChunkEntitiesToRegistry(this); 
+        m_tileMananger->StreamInitialResidency(this);
 
        // m_gridMap->BuildFromRegistry(m_registry);
     }
@@ -633,38 +634,34 @@ namespace Engine {
                     }
                     */
                     {
+                        EE_PROFILE_SCOPE("tile render");
 
-
-                        auto view = m_registry.view<TileComponent, TransformComponent, IDComponent>();
-                        view.use<TransformComponent>(); // this ensured the draw order!
-                        for (auto entity : view)
-                        {
-
-                            TileComponent& tileComponent = view.get<TileComponent>(entity);
-                            IDComponent& idComponent = view.get<IDComponent>(entity);
-                            TransformComponent& transformComponent = view.get<TransformComponent>(entity);
-
-                            const float step = float(TILE_SIZE);
-                            for (size_t i = 0; i < tileComponent.tiles.size(); i++)
+                        // Minimal: uses your Scene::ForEachConst helper
+                        ForEachConst<TransformComponent, TileComponent>(
+                            [&](Entity e, const TransformComponent& tr, const TileComponent& tc)
                             {
-                                if (tileComponent.tiles[i].Category == eTileCategory::Terrain)
+                                for (const TileInfo& t : tc.tiles)
                                 {
-                                    // skip terrain and draw everything else 
-                                    continue;
+                                    if (t.Category == eTileCategory::Terrain)
+                                        continue; // skip terrain
+
+
+                                    // Trivial submit: NO residency work here, just append an instance
+                                    VulkanRenderer2D::SubmitDestructibleTile(
+                                        tr.Translation,   // entity world origin
+                                        t.position,       // tile local offset
+                                        t.UV,
+                                        t.UID,            // precomputed UID → slot resolved elsewhere
+                                        0.01f             // zBias
+                                    );
                                 }
-                                
-                                // Use flippedUV for rendering, don't overwrite original UV
-                                float zBias = 0.01f;
+                            });
 
-                                VulkanRenderer2D::SubmitDestructibleTile(idComponent.ID, transformComponent.Translation,
-                                    tileComponent.tiles[i].position, tileComponent.tiles[i].UV, tileComponent.tiles[i].UID, zBias);
-                            }
-
-                        }
+                        ///EE_CORE_INFO("tile count: {}", tileCount);
 
                     }
 
-                    m_tileMananger->StreamInitialResidency(this);
+                    //m_tileMananger->StreamInitialResidency(this);
                     //glm::ivec2 chunkMinOrigin = glm::floor(glm::vec2(minOrigin) / float(CHUNK_SIZE));
                     //glm::ivec2 tileMinOrigin = chunkMinOrigin * int(CHUNK_SIZE);
                     m_gridMap->UpdateTiles(minOrigin);
