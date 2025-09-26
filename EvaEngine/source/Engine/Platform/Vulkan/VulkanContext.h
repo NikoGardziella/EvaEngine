@@ -83,6 +83,7 @@ namespace Engine {
         VkDescriptorPool GetDescriptorPool() { return m_descriptorPool->GetDescriptorPool(); }
         VkDescriptorPool GetLineDescriptorPool() { return m_lineDescriptorPool->GetDescriptorPool(); }
         VkDescriptorPool GetComputeDescriptorPool() { return m_computeDescPool->GetDescriptorPool(); }
+        VkDescriptorPool GetEffectDescriptorPool() { return m_effectDescPool->GetDescriptorPool(); }
 		VkDescriptorPool& GetImGuiDescriptorPool() { return m_imguiDescriptorPool; }
 		VkSampler& GetSampler() { return m_sampler; }
     private:
@@ -121,6 +122,7 @@ namespace Engine {
 		Ref<VulkanDescriptorPool> m_descriptorPool;
 		Ref<VulkanDescriptorPool> m_lineDescriptorPool;
 		Ref<VulkanDescriptorPool> m_computeDescPool;
+		Ref<VulkanDescriptorPool> m_effectDescPool;
         VkDescriptorPool m_imguiDescriptorPool;
 
         VulkanSwapchain* m_swapchain;

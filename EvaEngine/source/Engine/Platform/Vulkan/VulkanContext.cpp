@@ -178,6 +178,7 @@ namespace Engine {
         computeSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; computeSizes[2].descriptorCount = maxResidentLayers * framesInFlight; // if graphics samples color array
 
         m_computeDescPool = std::make_shared<VulkanDescriptorPool>(dev, framesInFlight, computeSizes, 3, computeFlags);
+        m_effectDescPool = std::make_shared<VulkanDescriptorPool>(dev, framesInFlight, computeSizes, 3, computeFlags);
     }
 
 

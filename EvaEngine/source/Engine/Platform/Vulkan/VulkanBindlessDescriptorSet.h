@@ -39,7 +39,6 @@ namespace Engine {
         static constexpr uint32_t FRAMES_IN_FLIGHT = 3;
         static constexpr uint32_t MAX_RESIDENT = 2048; // keep under per-stage limits
 
-        VulkanBindlessDescriptorSetRenderer();
         VulkanBindlessDescriptorSetRenderer(VkDevice device, bool updateAfterBindSupported);
         ~VulkanBindlessDescriptorSetRenderer();
 
@@ -69,10 +68,14 @@ namespace Engine {
         VkDescriptorSetLayout GetSetLayout() const { return m_bindlessSetLayout; }
         VkPipelineLayout      GetPipelineLayout() const { return m_tilesPipelineLayout; }
         VkPipelineLayout      GetComputePipelineLayout() const { return m_computePipelineLayout; }
-        VkPipeline            GetComputePipeline() const   { return m_computePipeline; }
+        VkPipelineLayout      GetEffectsPipelineLayout() const { return m_effectsPipelineLayout; }
 
+        VkPipeline            GetComputePipeline() const   { return m_computePipeline; }
+        VkPipeline            GetEffectsPipeline() const { return m_effectsPipeline; }
+
+        VkDescriptorSet       GetEffectsDescriptorSet(size_t frameIndex) { return m_effectsDescriptorSet[frameIndex]; }
         VkDescriptorSet       GetSetForFrame(uint32_t f) const { return m_bindlessSet[f]; }
-        VkDescriptorSet       GetSetForComputeFrame(uint32_t f) const { return m_computeDescriptorSet[f]; }
+        VkDescriptorSet       GetComputeDescriptorSetFrame(uint32_t f) const { return m_computeDescriptorSet[f]; }
         VkSampler             GetTileSampler() const { return m_tileSampler; }
         uint32_t              GetDrawCount() const { return m_drawCount; }
         VkBuffer              GetInstanceBuffer(uint32_t f) const { return m_instanceBuffer.buf[f]; }
@@ -92,6 +95,11 @@ namespace Engine {
         void CreateComputeDescriptorSet(VkDescriptorPool computeDescriptorPool);
         void CreateComputeArrayDescriptorSetLayout(uint32_t maxResidentLayers, bool updateAfterBindSupported);
         void CreateComputeGraphicsPipeline();
+
+        void CreateEffectsDescriptorSetLayout();
+        void CreateEffectsPipeline();
+        void CreateEffectsPipelineLayout();
+        void CreateEffectsDescriptorSets(VkDescriptorPool computeDescriptorPool);
 
         void CreateColorArray(VkDevice dev, VkPhysicalDevice phys); // one 2D array image, per-layer views
 
@@ -122,17 +130,12 @@ namespace Engine {
 
 
 
-        void UploadToArrayLayerViaStaging(VkCommandBuffer cmd, const void* srcData, size_t numBytes, VkImage dstImage, VkFormat, uint32_t layer, uint32_t width, uint32_t height, VkImageLayout finalLayout);
 
         void UploadToArrayLayerViaStaging_ST(const void* srcData, size_t numBytes, VkImage dstImage, VkImageLayout currentLayout, VkImageLayout finalLayout, uint32_t layer, uint32_t width, uint32_t height);
 
         // Simple helpers you can replace with your own
         bool IsInsideView(const Camera& cam, glm::vec2 worldPos) const; // TODO: implement properly
-        void SubmitTile(uint64_t entID, entt::entity e, const glm::vec2& worldPosCenter, const glm::vec4& atlasUV, const std::string& name, const glm::vec2& localPos);
-        float LayerBiasFor(const TileInfo& t) const
-        {
-            return  1.5f; 
-        }
+    
 
     private:
         // Device references
@@ -142,18 +145,24 @@ namespace Engine {
         VkDescriptorPool      m_descPool = VK_NULL_HANDLE;   // Vulkan pool
         std::array<VkDescriptorSet, FRAMES_IN_FLIGHT> m_bindlessSet{};
         std::array<VkDescriptorSet, FRAMES_IN_FLIGHT> m_computeDescriptorSet;
+        std::array<VkDescriptorSet, FRAMES_IN_FLIGHT> m_effectsDescriptorSet;
+
+        VkDescriptorSetLayout m_effectsDescriptorSetLayout; // remove?
         VkDescriptorSetLayout m_bindlessSetLayout = VK_NULL_HANDLE;
         VkDescriptorSetLayout m_computeDescriptorSetLayout;
 
 
         VkPipelineLayout      m_computePipelineLayout;
         VkPipelineLayout      m_tilesPipelineLayout = VK_NULL_HANDLE;
+        VkPipelineLayout      m_effectsPipelineLayout;
 
+        VkPipeline            m_effectsPipeline;
         VkPipeline            m_computePipeline;
         VkPipeline            m_tilesPipeline = VK_NULL_HANDLE;
         VkSampler             m_tileSampler = VK_NULL_HANDLE;
 
         Ref<VulkanShader> m_computeShader;
+        Ref<VulkanShader> m_effectShader;
 
         // Shaders / pipeline (you instantiate your pipeline elsewhere)
         std::shared_ptr<VulkanShader> m_bindlessDescriptorsShader;

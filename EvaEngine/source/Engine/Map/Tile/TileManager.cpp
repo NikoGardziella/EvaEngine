@@ -31,13 +31,7 @@ namespace Engine {
         VulkanContext* ctx = VulkanContext::Get();
         VkCommandBuffer cb = ctx->BeginSingleTimeCommands();
 
-       /*
-        if (!m_colorByUID.empty())
-        {
-            const auto& first = m_colorByUID.begin()->second;
-            VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->SetTileDimensions(first.w, first.h);
-        }
-       */
+     
 
         // For each UID we’ve prepared, upload once and write descriptors.
         for (const auto& [uid, col] : m_colorByUID)

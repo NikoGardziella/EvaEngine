@@ -29,18 +29,21 @@ namespace Engine {
             AssetManager::GetAssetPath("shaders/BindlessDesciptorset_shader.GLSL").string());
 
         m_computeShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/compute.comp").string());
+        m_effectShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Effect_shader.comp").string());
 
 
         CreateTileSampler(device);
         CreateBindlessSetLayout(device, updateAfterBindSupported);
         CreateComputeArrayDescriptorSetLayout(1024, false);
-
+        CreateEffectsDescriptorSetLayout();
 
         CreateComputeDescriptorSet(ctx->GetComputeDescriptorPool());
+        CreateEffectsDescriptorSets(ctx->GetEffectDescriptorPool());
         CreateBindlessPoolAndSet(device, updateAfterBindSupported);
+        CreateEffectsPipelineLayout();
         CreateTilesPipelineLayout(device);
         CreateComputeGraphicsPipeline();
-       
+        CreateEffectsPipeline();
 
         CreateTilesPipeline(device, ctx->GetPresentRenderPass());
        
@@ -518,10 +521,12 @@ namespace Engine {
         ci.format = VK_FORMAT_R8G8B8A8_UINT;
         ci.extent = { m_tileW, m_tileH, 1 };
         ci.mipLevels = 1;
-        ci.arrayLayers = m_arrayLayerCount;               // e.g. 1024
+        ci.arrayLayers = m_arrayLayerCount;
         ci.samples = VK_SAMPLE_COUNT_1_BIT;
         ci.tiling = VK_IMAGE_TILING_OPTIMAL;
-        ci.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        ci.usage = VK_IMAGE_USAGE_STORAGE_BIT |
+            VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+            VK_IMAGE_USAGE_SAMPLED_BIT; // for effects
         ci.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
         vkCreateImage(dev, &ci, nullptr, &m_propsArrayImage);
@@ -841,8 +846,6 @@ namespace Engine {
     // Upload a tightly-packed RGBA8 (numBytes = width*height*4) into dstImage array[layer].
     // - cmd must be a begun command buffer OUTSIDE any render pass.
     // - finalLayout is usually VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL for color,
-    //   or VK_IMAGE_LAYOUT_GENERAL for props (if you want compute to write this frame).
-    // Helper: upload a *whole* RGBA8 tile into a single array layer, using a one-off CB.
     void VulkanBindlessDescriptorSetRenderer::UploadToArrayLayerViaStaging_ST(
         const void* srcData, size_t numBytes,
         VkImage dstImage, VkImageLayout currentLayout, VkImageLayout finalLayout,
@@ -974,10 +977,10 @@ namespace Engine {
         vkCmdDraw(cmd, /*vertexCount*/4, /*instanceCount*/m_drawCount, 0, 0);
     }
 
-        // Called when a tile UID first appears in view.
-    // uploadCmd: a command buffer you’ll submit BEFORE the draw that uses this tile.
+    // Called when a tile UID first appears in view.
+    // uploadCmd: a command buffer submit BEFORE the draw that uses this tile.
     uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResident(
-        uint64_t uid,  const glm::vec4& atlasUV,   // uv.x, uv.y = TOP-LEFT in atlas (min); uv.z/w ignored if tiles are fixed size
+        uint64_t uid,  const glm::vec4& atlasUV,   // uv.x, uv.y = TOP-LEFT in atlas (min);
         VkCommandBuffer uploadCmd)  // recorded BEFORE render pass
     {
         if (auto it = m_tileToSlot.find(uid); it != m_tileToSlot.end())
@@ -1141,5 +1144,120 @@ namespace Engine {
         computePipelineInfo.layout = m_computePipelineLayout;
 
         vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &computePipelineInfo, nullptr, &m_computePipeline);
+    }
+
+
+
+
+    void VulkanBindlessDescriptorSetRenderer::CreateEffectsPipeline()
+    {
+
+        // Describe the shader stage
+        VkPipelineShaderStageCreateInfo shaderStageInfo{};
+        shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        shaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+        shaderStageInfo.module = m_effectShader->GetComputeshaderModule();
+        shaderStageInfo.pName = "main";
+
+        // Set up the compute pipeline creation info
+        VkComputePipelineCreateInfo pipelineInfo{};
+        pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+        pipelineInfo.stage = shaderStageInfo;
+        pipelineInfo.layout = m_effectsPipelineLayout;
+        pipelineInfo.flags = 0;
+
+        if (vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_effectsPipeline) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "failed to create effects graphics pipeline!");
+        }
+
+        // Clean up shader module after pipeline creation
+        vkDestroyShaderModule(m_device, m_effectShader->GetComputeshaderModule(), nullptr);
+    }
+
+    void VulkanBindlessDescriptorSetRenderer::CreateEffectsPipelineLayout()
+    {
+        // Define the push constant range used by the compute shader
+        VkPushConstantRange pushRange{};
+        pushRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        pushRange.offset = 0;
+        pushRange.size = sizeof(EffectPushConstants);
+
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutInfo.setLayoutCount = 1;
+        pipelineLayoutInfo.pSetLayouts = &m_computeDescriptorSetLayout;
+        pipelineLayoutInfo.pushConstantRangeCount = 1;
+        pipelineLayoutInfo.pPushConstantRanges = &pushRange;
+
+        if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_effectsPipelineLayout) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "failed to create effects pipeline layout!");
+        }
+    }
+
+
+    void VulkanBindlessDescriptorSetRenderer::CreateEffectsDescriptorSetLayout()
+    {
+        EE_CORE_WARN("hard coded descriptorCount");
+        // Binding 0: array of storage images for color (u_InputTexture[MAX_TEXTURES])
+        VkDescriptorSetLayoutBinding colorBinding{};
+        colorBinding.binding = 0;
+        colorBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        colorBinding.descriptorCount = 1024;
+        colorBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        colorBinding.pImmutableSamplers = nullptr;               // storage images don't use samplers
+
+        // Binding 1: array of storage images for health/timer (u_HealthImage[MAX_TEXTURES])
+        VkDescriptorSetLayoutBinding healthBinding{};
+        healthBinding.binding = 1;
+        healthBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        healthBinding.descriptorCount = 1024;
+        healthBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        healthBinding.pImmutableSamplers = nullptr;
+
+        // Binding 2: (optional) storage buffer for explosion events
+        VkDescriptorSetLayoutBinding bufferBinding{};
+        bufferBinding.binding = 2;
+        bufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bufferBinding.descriptorCount = 1;
+        bufferBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        bufferBinding.pImmutableSamplers = nullptr;
+
+        std::array<VkDescriptorSetLayoutBinding, 3> bindings = {
+            colorBinding, healthBinding, bufferBinding
+        };
+
+
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.pNext = nullptr; // &extFlags if using the optional block above
+        layoutInfo.flags = 0;       // or VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT if using update-after-bind
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.pBindings = bindings.data();
+
+        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_effectsDescriptorSetLayout) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT(false, "Failed to create effects descriptor set layout!");
+        }
+    }
+
+
+    void VulkanBindlessDescriptorSetRenderer::CreateEffectsDescriptorSets(VkDescriptorPool computeDescriptorPool)
+    {
+
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_effectsDescriptorSetLayout);
+
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = computeDescriptorPool;
+        allocInfo.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+        allocInfo.pSetLayouts = layouts.data();
+
+        if (vkAllocateDescriptorSets(m_device, &allocInfo, m_effectsDescriptorSet.data()) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate effects descriptor sets");
+        }
+
     }
 } 

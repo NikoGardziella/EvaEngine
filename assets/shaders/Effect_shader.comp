@@ -1,14 +1,16 @@
 #type compute
 #version 450
-#define GRID_WIDTH  3
-#define GRID_HEIGHT 3
-#define ACTIVE_SLOTS (GRID_WIDTH*GRID_HEIGHT)
-layout(local_size_x=16, local_size_y=16) in;
+#extension GL_EXT_nonuniform_qualifier : require
 
-layout(set=0,binding=0, rgba8)   uniform  image2D  u_InputTexture[ACTIVE_SLOTS];
-layout(set=0,binding=1, rgba8ui) uniform uimage2D u_PropertiesImage[ACTIVE_SLOTS];
+layout(local_size_x = 16, local_size_y = 16) in;
 
-layout(push_constant) uniform EffectPushConstants {
+// Bindless arrays: match your collision pass
+layout(set=0, binding=0, rgba8)   uniform  image2D  uColor[];
+layout(set=0, binding=1, rgba8ui) uniform uimage2D uProps[];
+
+// Push constants: keep your fields/names so CPU code doesnâ€™t change
+layout(push_constant) uniform EffectPushConstants
+{
     vec2  textureOrigin;
     float pixelSize;
     uint  textureIndex;
@@ -19,38 +21,41 @@ layout(push_constant) uniform EffectPushConstants {
     uint  flags;
 
     vec4  impactTint;     // mid phase color
-    vec4  destroyedTint;  // late phase (we’ll force alpha=0)
+    vec4  destroyedTint;  // late phase
     vec4  flashTint;      // early flash
 
     // x=flashStrength(unused), y=flickerAmount[0..1], z=alphaLift(unused here), w=curveBoost
     vec4  effectParams0;
 } pc;
 
+// must match collision write
 const uint FX_ARMED = 1u;
 
 float noiseF(ivec2 p, uint t)
 {
-    return fract(sin(dot(vec3(p, int(t)), vec3(12.9898,78.233,37.719))) * 43758.5453);
+    return fract(sin(dot(vec3(p, int(t)), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
 }
 
-// Smooth, non-linear intensity from timer
 float curveStrength(uint timer, float curveBoost)
 {
     float denom = max(float(pc.defaultTimer), 1.0);
     float w = clamp(float(timer) / denom, 0.0, 1.0);
-    float k = max(1.6*w - 0.6*w*w, 0.0);
+    float k = max(1.6 * w - 0.6 * w * w, 0.0);
     return k * curveBoost;
 }
 
-void main() 
+void main()
 {
-    if (pc.textureIndex >= ACTIVE_SLOTS) return;
-
     ivec2 px = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 sz = imageSize(u_InputTexture[pc.textureIndex]);
-    if (px.x < 0 || px.y < 0 || px.x >= sz.x || px.y >= sz.y) return;
 
-    uvec4 props = imageLoad(u_PropertiesImage[pc.textureIndex], px);
+    ivec2 sz = imageSize(uColor[nonuniformEXT(pc.textureIndex)]);
+    if (px.x < 0 || px.y < 0 || px.x >= sz.x || px.y >= sz.y)
+    {
+        return;
+    }
+
+    uvec4 props = imageLoad(uProps[nonuniformEXT(pc.textureIndex)], px);
+
 
     // Only draw over EMPTY texels that were armed by the collision pass
     if (props.r == 0u && (props.a & FX_ARMED) != 0u)
@@ -60,19 +65,19 @@ void main()
         // If timer is 0, clear and disarm (ensures full transparency)
         if (cur == 0u)
         {
-            imageStore(u_InputTexture[pc.textureIndex], px, vec4(0.0));
+            imageStore(uColor[nonuniformEXT(pc.textureIndex)], px, vec4(0.0));
             props.a &= ~FX_ARMED;
-            imageStore(u_PropertiesImage[pc.textureIndex], px, props);
+            imageStore(uProps[nonuniformEXT(pc.textureIndex)], px, props);
             return;
         }
 
         // Phase mapping (long mid-phase so fade happens gradually)
         float t = clamp(float(cur) / max(float(pc.defaultTimer), 1.0), 0.0, 1.0);
         const float t1 = 0.85; // flash -> impact
-        const float t2 = 0.10; // impact->destroyed (alpha=0 in destroyed)
+        const float t2 = 0.10; // impact -> destroyed
 
         vec3  tint;
-        float phaseAlpha;  // phase alpha (1 in early/mid, 0 in destroyed)
+        float phaseAlpha;
 
         if (t > t1)
         {
@@ -87,32 +92,31 @@ void main()
         }
         else
         {
-            // destroyed phase -> fully transparent
-            // keep tint for consistency, but alpha=0 makes it invisible
             tint       = pc.destroyedTint.rgb;
-            phaseAlpha = 0.0;  // <- key: destroyed is transparent
+            phaseAlpha = 0.0; // destroyed phase is transparent
         }
 
-        // Intensity & flicker (no alpha-lift so it can reach 0)
         float strength = curveStrength(cur, pc.effectParams0.w) * pc.glowStrength;
         float flicker  = mix(1.0, noiseF(px, cur), clamp(pc.effectParams0.y, 0.0, 1.0));
         float m        = clamp(strength * flicker, 0.0, 1.0);
 
-        // Absolute overlay: write *this frame’s* color/alpha only (no accumulation)
         float a = m * phaseAlpha;
         vec4 overlay = vec4(tint * a, a);
-        imageStore(u_InputTexture[pc.textureIndex], px, overlay);
 
-        // Decay timer and clear on last tick
-        const uint DECAY = max(1u, pc.defaultTimer / 90u);  // slower decay -> smoother fade
+        // Absolute overlay this frame (no accumulation)
+        imageStore(uColor[nonuniformEXT(pc.textureIndex)], px, overlay);
+
+        // Decay timer and clear when done
+        const uint DECAY = max(1u, pc.defaultTimer / 90u);
         uint next = (cur > DECAY) ? (cur - DECAY) : 0u;
         props.b = next;
+
         if (next == 0u)
         {
             props.a &= ~FX_ARMED;
-            // ensure final frame is fully cleared
-            imageStore(u_InputTexture[pc.textureIndex], px, vec4(0.0));
+            imageStore(uColor[nonuniformEXT(pc.textureIndex)], px, vec4(0.0));
         }
-        imageStore(u_PropertiesImage[pc.textureIndex], px, props);
+
+        imageStore(uProps[nonuniformEXT(pc.textureIndex)], px, props);
     }
 }

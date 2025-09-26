@@ -249,11 +249,7 @@ namespace Engine {
 
 	
 
-		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			m_vulkanGraphicsPipelines->UpdateEffectsDescriptorSet(i, s_VulkanData.GridTextureSlots,
-				s_VulkanData.propertiesTextureSlots);
-		}
+		
 
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
@@ -1031,7 +1027,7 @@ namespace Engine {
 		// 0) Bind compute pipeline + its bindless compute set
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
 			s_bindlessDescitproSet->GetComputePipeline());
-		VkDescriptorSet set0 = s_bindlessDescitproSet->GetSetForComputeFrame(frameIndex);
+		VkDescriptorSet set0 = s_bindlessDescitproSet->GetComputeDescriptorSetFrame(frameIndex);
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
 			s_bindlessDescitproSet->GetComputePipelineLayout(),
 			0, 1, &set0, 0, nullptr);
@@ -1110,11 +1106,13 @@ namespace Engine {
 			const uint32_t gy = CeilDiv(TILE_PIXEL_HEIGHT, kLocalY);
 			vkCmdDispatch(cmd, gx, gy, 1);
 
+			/*
 			// ---- Back to read-only for the graphics pass ----
 			BarrierLayer(cmd, colorArray, slot,
 				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
+			*/
 		}
 
 
@@ -1224,98 +1222,111 @@ namespace Engine {
 	}
 
 
-
-	void VulkanRenderer2D::RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame)
+	void VulkanRenderer2D::RecordEffectComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
 	{
 		EE_PROFILE_FUNCTION();
 
-
-
-
-		// 1) Reset the explosion counter at the start of the pass
+		// --- 0) Reset any effect counters (unchanged)
 		{
 			void* data = nullptr;
-			vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetEffectsBufferMemory(), 0, sizeof(uint32_t), 0, &data);
+			vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetEffectsBufferMemory(),
+				0, sizeof(uint32_t), 0, &data);
 			*reinterpret_cast<uint32_t*>(data) = 0u;
 			vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetEffectsBufferMemory());
 		}
 
-		// Update descriptor set (binding 0 = color images, binding 1 = health images, binding 2 = buffer)
-		m_vulkanGraphicsPipelines->UpdateEffectsDescriptorSet(currentFrame,
-			s_VulkanData.GridTextureSlots,         // COLOR array (u_InputTexture[])
-			s_VulkanData.propertiesTextureSlots);  // HEALTH array (u_HealthImage[])
+		// --- 1) Bind the EFFECTS pipeline
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
+			s_bindlessDescitproSet->GetEffectsPipeline());
 
-		// 2) Transition BOTH arrays to GENERAL for storage writes/reads
-		// 2a) Color images (effects shader writes glow here)
-		for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
-			VulkanTexture& colorTex = *s_VulkanData.GridTextureSlots[i];
-			if (colorTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
-			{
-				TransitionImageLayout(cmdBuf, colorTex.GetImage(), colorTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_GENERAL);
-				colorTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
-			}
-		}
-		// 2b) Health images (effects shader reads/writes timer)
-		for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
-			VulkanTexture& healthTex = *s_VulkanData.propertiesTextureSlots[i];
-			if ( healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
-			{
-				TransitionImageLayout(cmdBuf, healthTex.GetImage(), healthTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_GENERAL);
-				healthTex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
-			}
-		}
+		// --- 2) Bind the SAME bindless descriptor set you use for collision (uColor[], uProps[])
+		//         (Assumes the effects pipeline layout matches the bindless layout: binding 0 = color[], 1 = props[])
+		VkDescriptorSet set0 = s_bindlessDescitproSet->GetComputeDescriptorSetFrame(frameIndex);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
+			s_bindlessDescitproSet->GetEffectsPipelineLayout(),
+			0, 1, &set0, 0, nullptr);
 
-		// 3) Bind the effects compute pipeline
-		vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, m_vulkanGraphicsPipelines->GetEffectsPipeline());
-
-		// 4) Bind the effects descriptor set
-		VkDescriptorSet dset = m_vulkanGraphicsPipelines->GetEffectsDescriptorSet(currentFrame);
-		vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE,
-			m_vulkanGraphicsPipelines->GetEffectsPipelineLayout(),
-			0, 1, &dset, 0, nullptr);
-
-		// 5) Dispatch once per active texture
-		for (size_t i = 0; i < 9; ++i)
+		// --- 3) Gather active slots (tiles) just like in collision pass
+		std::unordered_set<uint32_t> uniqueSlots;
+		uniqueSlots.reserve(s_bindlessDescitproSet->GetTileToSlotMap().size());
+		for (const auto& kv : s_bindlessDescitproSet->GetTileToSlotMap())
 		{
-			VulkanTexture& healthTex = *s_VulkanData.propertiesTextureSlots[i];
-			if (!healthTex.GetCheckCollision())
-				continue;
-			
-
-			// then per texture dispatch you only change:
-			s_effectPushConstants.textureIndex = i;
-			s_effectPushConstants.textureOrigin = healthTex.GetTextureOrigin();
-			s_effectPushConstants.pixelSize = healthTex.GetPixelSize();
-
-			
-			vkCmdPushConstants(cmdBuf,
-				m_vulkanGraphicsPipelines->GetEffectsPipelineLayout(),
-				VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(EffectPushConstants), &s_effectPushConstants);
-
-			uint32_t groupX = (healthTex.GetWidth() + 15) / 16;
-			uint32_t groupY = (healthTex.GetHeight() + 15) / 16;
-			vkCmdDispatch(cmdBuf, groupX, groupY, 1);
+			uniqueSlots.insert(kv.second);
 		}
 
-		// 6) Transition BOTH arrays back for sampling
-		// 6a) Color images -> SHADER_READ_ONLY_OPTIMAL (fragment sampling)
-		for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
-			VulkanTexture& colorTex = *s_VulkanData.GridTextureSlots[i];
-			if (colorTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-				TransitionImageLayout(cmdBuf, colorTex.GetImage(), colorTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-				colorTex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			}
-		}
-		// 6b) Health images -> SHADER_READ_ONLY_OPTIMAL (if sampled later; otherwise you could keep GENERAL)
-		for (size_t i = 0; i < CHUNK_GRID_SIZE; ++i) {
-			VulkanTexture& healthTex = *s_VulkanData.propertiesTextureSlots[i];
-			if (healthTex.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-			{
-				TransitionImageLayout(cmdBuf, healthTex.GetImage(), healthTex.GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-				healthTex.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			}
+		const int   tileW = TILE_PIXEL_WIDTH;
+		const int   tileH = TILE_PIXEL_HEIGHT;
+		const float pixelSizeWorld = (tileW > 0) ? float(TILE_SIZE) / float(tileW) : 1.0f;
+
+		// local size matches shader (16x16)
+		static constexpr uint32_t kLocalX = 16;
+		static constexpr uint32_t kLocalY = 16;
+		auto CeilDiv = [](uint32_t n, uint32_t d) { return (n + d - 1) / d; };
+
+		// For per-layer barriers
+		VkImage colorArray = s_bindlessDescitproSet->GetColorImageArray();
+		VkImage propsArray = s_bindlessDescitproSet->GetPropsArrayImage();
+
+		// --- 4) Dispatch per active slot
+		for (uint32_t slot : uniqueSlots)
+		{
+			// Build push constants for THIS tile
+			EffectPushConstants pc{};
+			pc.textureIndex = slot;
+			pc.textureOrigin = s_VulkanBindlessData.m_slotOriginWorld[slot]; // top-left in world
+			pc.pixelSize = pixelSizeWorld;
+
+			// keep your effect params:
+			pc.defaultTimer = s_effectPushConstants.defaultTimer;
+			pc.glowStrength = s_effectPushConstants.glowStrength;
+			pc.maxTimer = s_effectPushConstants.maxTimer;
+			pc.flags = s_effectPushConstants.flags;
+			pc.impactTint = s_effectPushConstants.impactTint;
+			pc.destroyedTint = s_effectPushConstants.destroyedTint;
+			pc.flashTint = s_effectPushConstants.flashTint;
+			pc.effectParams0 = s_effectPushConstants.effectParams0;
+
+			/*
+			// Transition layer 'slot' of both arrays to GENERAL for R/W
+			BarrierLayer(cmd, colorArray, slot,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
+			*/
+
+			/*
+			BarrierLayer(cmd, propsArray, slot,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
+
+			*/
+			// Push constants
+			vkCmdPushConstants(cmd,
+				s_bindlessDescitproSet->GetEffectsPipelineLayout(),
+				VK_SHADER_STAGE_COMPUTE_BIT,
+				0, sizeof(EffectPushConstants), &pc);
+
+			// Dispatch full tile (or use a content rect if you have one)
+			const uint32_t gx = CeilDiv(uint32_t(tileW), kLocalX);
+			const uint32_t gy = CeilDiv(uint32_t(tileH), kLocalY);
+			vkCmdDispatch(cmd, gx, gy, 1);
+
+			// Transition back to read-only for graphics sampling
+			BarrierLayer(cmd, colorArray, slot,
+				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
+
+			/*
+			BarrierLayer(cmd, propsArray, slot,
+				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
+			*/
 		}
 	}
+
 
 
 
