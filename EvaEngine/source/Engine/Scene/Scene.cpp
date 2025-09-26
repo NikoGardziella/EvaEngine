@@ -652,7 +652,7 @@ namespace Engine {
                                 float zBias = 0.01f;
 
                                 VulkanRenderer2D::SubmitDestructibleTile(idComponent.ID, transformComponent.Translation,
-                                    tileComponent.tiles[i].position, tileComponent.tiles[i].UV, tileComponent.tiles[i].NameHash, zBias);
+                                    tileComponent.tiles[i].position, tileComponent.tiles[i].UV, tileComponent.tiles[i].UID, zBias);
                             }
 
                         }

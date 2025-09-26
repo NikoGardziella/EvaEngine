@@ -38,7 +38,7 @@ namespace Engine {
         glm::vec2   position; // local position within group
         glm::vec4   UV;
         std::string name;
-        uint64_t    NameHash;
+        uint64_t    UID;
         bool        IsDestructible;
         bool        IsRoof;
         eTileCategory Category;
@@ -47,11 +47,11 @@ namespace Engine {
         TileInfo(const glm::vec2& pos = glm::vec2(0.0f), const glm::vec4& uvCoords = glm::vec4(0.0f),
             const std::string& tileName = "", bool destructible = false, bool roof = false,
             eTileCategory category = eTileCategory::Undefined, eTileMaterial material = eTileMaterial::Undefined,
-            uint32_t tileHealth = 1, uint64_t  nameHash = 0
+            uint32_t tileHealth = 1, uint64_t  uid = 0
         )
 			: position(pos), UV(uvCoords), name(tileName),
             IsDestructible(destructible), IsRoof(roof), Category(category),
-            Material(material), TileHealth(tileHealth), NameHash(nameHash)
+            Material(material), TileHealth(tileHealth), UID(uid)
         {
 		}
     };

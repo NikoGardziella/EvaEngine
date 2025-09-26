@@ -1376,7 +1376,7 @@ namespace Engine {
 			const DestructibleSubmit& s = q[i];
 
 			glm::ivec2 qpos = HashUtils::QuantizeToTile(s.localPos, float(TILE_SIZE));
-			const uint64_t uid = HashUtils::MakeTileUID(s.entityID, glm::vec2(qpos), float(TILE_SIZE), 0u, s.nameHash);
+			const uint64_t uid = s.nameHash;
 
 			const uint32_t slot = s_bindlessDescitproSet->EnsureTileResident(uid, s.atlasUV, uploadCB);
 

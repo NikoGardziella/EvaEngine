@@ -106,7 +106,7 @@ namespace Engine {
 		glm::vec2    worldPos;   // center in world units
 		glm::vec2    localPos;   // tile's local pos in entity space (for UID)
 		glm::vec4    atlasUV;    // UNFLIPPED source UV in the atlas
-		uint64_t     nameHash;   // hash of t.name to avoid storing strings
+		uint64_t     nameHash;   // hash of t.name to avoid storing strings // UID
 		float        zBias = 0.0f;
 	};
 

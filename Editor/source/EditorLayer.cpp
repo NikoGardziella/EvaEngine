@@ -716,13 +716,13 @@ namespace Engine {
 
             tr.Translation.x = groundPos.x;
             tr.Translation.y = groundPos.y;
-            uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, groundPos, float(TILE_SIZE));
+            uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, glm::vec2(0.0f), float(TILE_SIZE));
 
             auto& tc = e.AddComponent<TileComponent>();
             tc.tiles.push_back(TileInfo{
                 glm::vec2(0.0f), UV, selectedTileName,
                 destructible, isRoof, tileCategory,
-                tileProps.material, tileProps.health
+                tileProps.material, tileProps.health, tileID
                 });
 
             m_selectedEntity = e;

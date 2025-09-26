@@ -17,14 +17,15 @@ namespace Engine {
         m_centerByUID.clear();
         scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
             [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& id) {
+                
                 for (size_t i = 0; i < tc.tiles.size(); ++i)
                 {
                     const TileInfo& t = tc.tiles[i];
                     if (t.Category == eTileCategory::Terrain) continue;
 
                     glm::vec2 center = glm::vec2(tr.Translation) + t.position;
-                    uint64_t uid = HashUtils::MakeTileUID((uint64_t)id.ID, t.position, float(TILE_SIZE), 0, t.NameHash);
-                    m_centerByUID[uid] = center;
+                    m_centerByUID[t.UID] = center;
+
                 }
             });
 
@@ -47,7 +48,7 @@ namespace Engine {
             uint32_t slot = VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EnsureTileResidentFromRaw(uid,
                 col.rgba.data(), col.rgba.size(), pr.rgba.data(), pr.rgba.size(), cb);
 
-            std::unordered_map<uint64_t, glm::vec2>::const_iterator cit = m_centerByUID.find(uid);
+            std::unordered_map<uint64_t, glm::vec2>::const_iterator cit = m_centerByUID.find(uid);  
             glm::vec2 center = cit->second;
             glm::vec2 origin = BottomLeftFromCenter(center, m_tileWorldW, m_tileWorldH);
 
@@ -72,7 +73,7 @@ namespace Engine {
                     }
        
                     // If not set, compute it here the same when placing tiles.
-                    uint64_t uid = t.NameHash;
+                    uint64_t uid = t.UID;
                     if (!uid)
                     {
                         // deltaGround == t.position in your layout
