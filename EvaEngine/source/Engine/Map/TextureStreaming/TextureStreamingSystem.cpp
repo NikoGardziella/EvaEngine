@@ -66,6 +66,14 @@ namespace Engine {
 
     }
 
+    void TextureStreamingSystem::UnloadAllChunks(Scene* scene)
+    {
+        for (auto& [id, chunk] : m_chunkMap)
+        {
+            UnloadChunkFromGPU(chunk, scene);
+        }
+    }
+
     void TextureStreamingSystem::UploadToChunkFromTexture(
         const glm::vec2& worldPosition,
         UUID id,
@@ -411,11 +419,7 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        if (chunk.PixelData.empty())
-        {
-			EE_CORE_ERROR("Chunk pixel data is empty for: {}", chunk.Name);
-            return;
-        }
+
         constexpr int CHUNK_RES = CHUNK_SIZE; // Assuming square chunks
 
         
@@ -431,6 +435,14 @@ namespace Engine {
 
         }
 
+
+        /// ************** ONLY TERRAIN FOR NOW ******************
+        // perhaphs move terrain to tiles as well
+       /*
+        if (chunk.PixelData.empty())
+        {
+            return;
+        }
 
         if (!chunk.PropertiesData.empty())
         {
@@ -453,6 +465,7 @@ namespace Engine {
 
 		chunk.GPUTexture->SetData(chunk.PixelData.data(), chunk.Height * chunk.Width * 4);
 
+       */
 
 
 
@@ -481,9 +494,9 @@ namespace Engine {
             auto [IDComp, chunkRendComp] = chynkentityView.get<IDComponent, ChunkRendererComponent>(entity);
             if (chunkRendComp.ChunkCoords == chunk.ChunkCoords)
             {
-                chunkRendComp.Texture = chunk.GPUTexture;
-                chunkRendComp.PropertiesTexture = chunk.PropertiesTexture;
-                chunkRendComp.PropertiesTexture->SetCPUPixelData(std::move(chunk.PropertiesData));
+                //chunkRendComp.Texture = chunk.GPUTexture;
+               // chunkRendComp.PropertiesTexture = chunk.PropertiesTexture;
+              //  chunkRendComp.PropertiesTexture->SetCPUPixelData(std::move(chunk.PropertiesData));
                 chunkRendComp.TerrainTexture = chunk.TerrainTexture;
                 chunkRendComp.IsLoaded = true;
                 chunk.GPUTexture = nullptr;
@@ -527,10 +540,11 @@ namespace Engine {
                 // This Texture is still in s_VulkanData.TextureSlotIndex 
                 // which means it would be rendered inside REcordCommands()
                 // this will prevent it. Feels a bit crappy fix but lets see.
-                chunkRendComp.Texture->SetCheckCollision(false);
+                //chunkRendComp.Texture->SetCheckCollision(false);
 
                 chunkRendComp.Texture = nullptr;
                 chunkRendComp.PropertiesTexture = nullptr;
+                chunkRendComp.TerrainTexture = nullptr;
                 chunkRendComp.IsLoaded = false;
                 break;
             }
@@ -668,6 +682,10 @@ namespace Engine {
                 }
             }
         );
+
+
+        // ********* ONLY USE TERRAIN FOR NOW *********
+        return;
 
         // Pass B: per-entity bakes + NON-TERRAIN tiles
         scene->ForEach<TransformComponent, TileComponent>(

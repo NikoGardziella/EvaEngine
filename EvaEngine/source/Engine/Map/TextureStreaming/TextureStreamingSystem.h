@@ -46,6 +46,8 @@ namespace Engine{
 
         void TextureStreamingSystem::Update(const glm::vec2& playerPos, Scene* scene);
 
+        void UnloadAllChunks(Scene* scene);
+
 
      
 		void TextureStreamingSystem::UploadToChunkFromTexture(const glm::vec2& worldPosition, UUID ID,

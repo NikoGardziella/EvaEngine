@@ -374,11 +374,12 @@ namespace Engine {
         //m_textureStreamingSystem->ResetAllChunks(this);
         m_gridMap->BuildFromRegistry(this);
         m_textureStreamingSystem->SortIsoTilesByY(this);
+
         m_tileMananger->BuildTemplatesForScene(this);
 
 
-       // m_textureStreamingSystem->BakeTilesIntoChunks(this);
-		//m_textureStreamingSystem->AddChunkEntitiesToRegistry(this);
+        m_textureStreamingSystem->BakeTilesIntoChunks(this); // terrain
+		m_textureStreamingSystem->AddChunkEntitiesToRegistry(this); 
 
        // m_gridMap->BuildFromRegistry(m_registry);
     }
@@ -392,6 +393,8 @@ namespace Engine {
         b2DestroyWorld(m_worldId);
 
         m_gridMap->Clear();
+
+        m_textureStreamingSystem->UnloadAllChunks(this);
     }
 
     void Scene::PauseRuntime()
@@ -578,6 +581,7 @@ namespace Engine {
 
 
                 {
+                    /*
                     EE_PROFILE_SCOPE("chunk render");
                     glm::ivec2 minOrigin = glm::ivec2(std::numeric_limits<int>::max());
 
@@ -627,6 +631,7 @@ namespace Engine {
                             
                         }
                     }
+                    */
                     {
 
 
@@ -973,7 +978,7 @@ namespace Engine {
 
             }
 
-            m_textureStreamingSystem->Update(playerPos, this);
+           // m_textureStreamingSystem->Update(playerPos, this);
         }
 
 
