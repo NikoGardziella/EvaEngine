@@ -1,11 +1,3 @@
-// ---------- config ----------
-#define MAX_TEXTURES            32
-#define MAX_COLLISION_ENTITIES  64
-#define CHUNK_SIZE              32
-#define GRID_WIDTH              3
-#define GRID_HEIGHT             3
-#define ACTIVE_SLOTS            (GRID_WIDTH * GRID_HEIGHT)  // 9
-
 bool pointInRotatedBox(vec2 p, vec2 c, vec2 halfSize, float rot);
 
 bool pointInRotatedBox(vec2 p, vec2 c, vec2 halfSize, float rot)

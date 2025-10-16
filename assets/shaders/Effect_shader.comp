@@ -4,119 +4,717 @@
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
-// Bindless arrays: match your collision pass
+// ---- bindless tile images (same bindings as collision pass) ----
 layout(set=0, binding=0, rgba8)   uniform  image2D  uColor[];
-layout(set=0, binding=1, rgba8ui) uniform uimage2D uProps[];
+layout(set=0, binding=1, rgba8ui) uniform uimage2D uProps[];   // R=health, G=height, B=mask, A=flags (fx bits, etc.)
 
-// Push constants: keep your fields/names so CPU code doesn’t change
-layout(push_constant) uniform EffectPushConstants
-{
-    vec2  textureOrigin;
-    float pixelSize;
-    uint  textureIndex;
+// ---- collision results SSBO (unchanged layout) ----
+#define MAX_COLLISION_ENTITIES 32
+#define MAX_VISUALEFFECT_TEXTRUES 32 // now terrain
 
-    uint  defaultTimer;   // seed / normalization
-    float glowStrength;   // global gain
-    uint  maxTimer;       // (unused here)
-    uint  flags;
+struct CollisionResult {
+    uint collisionDetected;
+    uint hitProjectileID_Low;
+    uint hitProjectileID_High;
+    uint _pad0;                // (used by you to store TextureIndex)
+    vec2 CollisionPosition;    // world position
+    uint HealthAfter;
+    uint _pad1;                // packed (x,y) in 16:16
+};
 
-    vec4  impactTint;     // mid phase color
-    vec4  destroyedTint;  // late phase
-    vec4  flashTint;      // early flash
+layout(std430, set=0, binding=2) readonly buffer ResultBuffer {
+    uint collisionCount; uint _padA; uint _padB; uint _padC;
+    CollisionResult results[MAX_COLLISION_ENTITIES];
+};
 
-    // x=flashStrength(unused), y=flickerAmount[0..1], z=alphaLift(unused here), w=curveBoost
-    vec4  effectParams0;
+layout(set=0, binding=5, rgba8) uniform image2D uFX[MAX_VISUALEFFECT_TEXTRUES];
+
+// ---- push constants (unchanged) ----
+layout(push_constant) uniform EffectPC {
+    vec2  textureOrigin;   // 0..7
+    float pixelSize;       // 8..11
+    uint  TextureIndex;    // 12..15
+    uint  defaultTimer;    // 16..19
+    float glowStrength;    // 20..23
+    uint  maxTimer;        // 24..27
+    uint  flags;           // 28..31
+    vec4  impactTint;      // 32..47
+    vec4  destroyedTint;   // 48..63
+    vec4  flashTint;       // 64..79
+    vec4  effectParams0;   // 80..95
+    float hitRadiusWS;     // 96..99
+    uint  hitDamage;       // 100..103
+    uint fxIdx;           // 104..107
+    uint mode; // 0 = destruction and effect, 1 = effect fade,
+    vec2  fxTextureOrigin; // **starts at 112 due to 8-byte alignment**
 } pc;
 
-// must match collision write
-const uint FX_ARMED = 1u;
+// ---- FX flags / constants ----
+const uint FX_ARMED       = 1u;         // bit in props.a we’ll set to signal glow
+const uint NO_CLAIM       = 0xFFFFFFFFu;
+const uint FLAG_GLOW_TERRAIN = 1u;      // if nonzero, terrain edges get glow
 
-float noiseF(ivec2 p, uint t)
-{
-    return fract(sin(dot(vec3(p, int(t)), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+// ==================== helpers used by explosion/impact ====================
+
+// Load/store props (R=health, G=height, B=mask, A=flags)
+uvec4 loadHT(uint slot, ivec2 p) {
+    return imageLoad(uProps[nonuniformEXT(slot)], p);
+}
+void storeHT(uint slot, ivec2 p, uvec4 v) {
+    imageStore(uProps[nonuniformEXT(slot)], p, v);
 }
 
-float curveStrength(uint timer, float curveBoost)
+// Health presence
+bool hasHealth(uvec4 ht) { return ht.r > 0u; }
+bool flagGlowTerrain()    { return (pc.flags & 0x1u) != 0u; } // bit 0
+bool flagAlphaLiftEmpty() { return (pc.flags & 0x2u) != 0u; } // bit 1
+
+// Arm/refresh a local glow FX flag + lightweight timer encoding in mask’s upper bits.
+// B is a generic mask; we’ll add a tiny countdown in its upper nibble without clobbering low bits.
+void rearmGlow_fx(bool enable, uint slot, ivec2 p, uvec4 ht, uint ticks)
 {
-    float denom = max(float(pc.defaultTimer), 1.0);
-    float w = clamp(float(timer) / denom, 0.0, 1.0);
-    float k = max(1.6 * w - 0.6 * w * w, 0.0);
-    return k * curveBoost;
+    if (!enable) return;
+    // Set FX bit in flags (A)
+    ht.a |= FX_ARMED;
+
+    // Encode a small timer (0..15) into high nibble of B (non-destructive to low 4 bits)
+    uint lowNibble  = (ht.b & 0x0Fu);
+    uint timerNibble= uint(min(ticks, 15u)) << 4;
+    ht.b = (timerNibble | lowNibble);
+
+    storeHT(slot, p, ht);
 }
+
+// Damage application (reduce health, clamp >= 0). No visuals here; just data.
+void applyDamage_fx(uint slot, ivec2 p, uvec4 ht, uint dmg)
+{
+    if (dmg == 0u) return;
+
+    uint take = min(dmg, ht.r);   // how much we can actually remove
+    ht.r -= take;                 // saturated because of min
+    ht.a |= FX_ARMED;             // mark for FX
+    storeHT(slot, p, ht);
+}
+
+// Destroy pixel: zero health and clear the color’s alpha (remove the material pixel).
+void destroyPixel_fx(uint slot, ivec2 p, uvec4 ht)
+{
+    ht.r = 0u;
+    ht.a |= FX_ARMED;
+    storeHT(slot, p, ht);
+
+    vec4 c = imageLoad(uColor[nonuniformEXT(slot)], p);
+
+    // Option A: tint RGB but KEEP alpha 0.0  -> visible scorch but still a hole
+    //vec3 newRGB = mix(c.rgb, pc.destroyedTint.rgb, 0.25);
+    //imageStore(uColor[nonuniformEXT(slot)], p, vec4(newRGB, 0.0));
+
+    // Option B (stricter): make it fully transparent (no tint on destroyed pixels)
+     imageStore(uColor[nonuniformEXT(slot)], p, vec4(0.0, 0.0, 0.0, 0.0));
+}
+
+
+// Falloff mode + curve
+uint getFalloffMode() {
+    // You can route from pc.flags or effectParams0 if you like.
+    // 0 = smoothstep-ish; 1 = linear; 2 = squared
+    return 1u;
+}
+float falloffWeight(float t, uint mode)
+{
+    t = clamp(t, 0.0, 1.0);
+    if (mode == 1u) { return 1.0 - t; }
+    if (mode == 2u) { float x = 1.0 - t; return x * x; }
+    // default: smooth-ish
+    float x = 1.0 - t;
+    return x * x * (3.0 - 2.0 * x); // smoothstep(0,1,1-t)
+}
+
+// =============== debug helpers (unchanged from your version) ===============
+ivec2 unpackPx16(uint packed) { return ivec2(int(packed & 0xFFFFu), int(packed >> 16)); }
+
+uint getFXSlot() { return uint(clamp(pc.fxIdx, 0.0, 31.0) + 0.5); }
+
+ivec2 tilePx_to_fxPx(ivec2 pTile){
+    vec2 worldP = pc.textureOrigin + (vec2(pTile)+0.5)*pc.pixelSize;
+    vec2 qF     = (worldP - pc.fxTextureOrigin) / pc.pixelSize; // same scale
+    return ivec2(int(floor(qF.x+0.5)), int(floor(qF.y+0.5)));
+}
+
+void debugDot(ivec2 px, vec3 col)
+{
+    vec4 c = imageLoad(uColor[nonuniformEXT(pc.TextureIndex)], px);
+    vec3 outc = max(c.rgb, col);
+    imageStore(uColor[nonuniformEXT(pc.TextureIndex)], px, vec4(outc, 1.0));
+}
+void debugCross(ivec2 px, vec3 col)
+{
+    ivec2 sz = imageSize(uColor[nonuniformEXT(pc.TextureIndex)]);
+    for (int dy = -2; dy <= 2; ++dy) {
+        ivec2 p = px + ivec2(0, dy);
+        if (p.x >= 0 && p.y >= 0 && p.x < sz.x && p.y < sz.y) debugDot(p, col);
+    }
+    for (int dx = -2; dx <= 2; ++dx) {
+        ivec2 p = px + ivec2(dx, 0);
+        if (p.x >= 0 && p.y >= 0 && p.x < sz.x && p.y < sz.y) debugDot(p, col);
+    }
+}
+
+
+// Map world position 'W' into the correct FX image (3x3 neighbors) and draw the same cross
+void debugCrossFX_World(vec2 W)
+{
+    if (pc.fxIdx >= MAX_VISUALEFFECT_TEXTRUES) return;
+
+    uint  FX0 = pc.fxIdx;
+    ivec2 fs0 = imageSize(uFX[nonuniformEXT(FX0)]);
+    vec2  qF  = (W - pc.fxTextureOrigin) / pc.pixelSize;
+
+    // figure out neighbor offset (-1,0,+1) if W spills into adjacent FX cell
+    int dx = int(floor(qF.x / float(fs0.x)));
+    int dy = int(floor(qF.y / float(fs0.y)));
+    // if your FX grid is Y-up, uncomment this:
+    dy = -dy;
+
+    int FXn = int(FX0) + dx + dy * 3;
+    //if (FXn < 0 || FXn >= int(MAX_VISUALEFFECT_TEXTRUES)) return;
+
+    ivec2 fs = imageSize(uFX[nonuniformEXT(uint(FXn))]);
+
+    // local pixel in that neighbor cell
+    float qx = qF.x - float(dx * fs0.x);
+    float qy = qF.y - float(dy * fs0.y);
+    ivec2 qCenter = ivec2(int(floor(qx + 0.5)), int(floor(qy + 0.5)));
+   // if (qCenter.x < 0 || qCenter.y < 0 || qCenter.x >= fs.x || qCenter.y >= fs.y) return;
+
+    // draw cross (same as above)
+    const vec4 COL = vec4(1.0, 0.5, 0.0, 1.0);
+    const int  R   = 10;
+    for (int d = -R; d <= R; ++d)
+    {
+        ivec2 q = qCenter + ivec2(0, d);
+        if (q.x >= 0 && q.y >= 0 && q.x < fs.x && q.y < fs.y)
+            imageStore(uFX[nonuniformEXT(uint(FXn))], q, COL);
+    }
+    for (int d = -R; d <= R; ++d)
+    {
+        ivec2 q = qCenter + ivec2(d, 0);
+        if (q.x >= 0 && q.y >= 0 && q.x < fs.x && q.y < fs.y)
+            imageStore(uFX[nonuniformEXT(uint(FXn))], q, COL);
+    }
+}
+
+void putFX(uint FX, ivec2 q, vec4 col)
+{
+    ivec2 fs = imageSize(uFX[nonuniformEXT(FX)]);
+    if (q.x >= 0 && q.y >= 0 && q.x < fs.x && q.y < fs.y)
+        imageStore(uFX[nonuniformEXT(FX)], q, col);
+}
+
+void debugCrossFX_at(uint FX, ivec2 qCenter)
+{
+    ivec2 fs = imageSize(uFX[nonuniformEXT(FX)]);
+    const vec4 COL = vec4(1.0, 0.55, 0.0, 1.0); // orange
+    const int  R   = 12;                        // arm half-length
+    // horizontal + vertical arms
+    for (int d = -R; d <= R; ++d)
+    {
+        putFX(FX, qCenter + ivec2(d, 0), COL);
+        putFX(FX, qCenter + ivec2(0, d), COL);
+    }
+}
+
+
+void blendFX(ivec2 pTile, vec3 rgb, float a)
+{
+    uint  FX = getFXSlot();
+    ivec2 q  = tilePx_to_fxPx(pTile);
+    ivec2 fs = imageSize(uFX[nonuniformEXT(FX)]);
+    if (q.x < 0 || q.y < 0 || q.x >= fs.x || q.y >= fs.y) return;
+
+    vec4 dst   = imageLoad(uFX[nonuniformEXT(FX)], q);
+    vec3 outRGB= max(dst.rgb, rgb);                 // sticky lighten
+    float outA = max(dst.a, max(a, 0.85));          // ensure it’s visible
+    imageStore(uFX[nonuniformEXT(FX)], q, vec4(1.0, 0.1, 0.1, 0.85));
+}
+
+// ==================== Explosion + Impact ====================
+struct ProjectileGPU {
+    float DestructionRadius;  // pixels
+    uint  Damage;             // HP units
+};
+
+//  a flag toggle near your other flags:
+
+
+void processExplosionDiskFalloff(const ProjectileGPU proj, ivec2 centerPx, ivec2 curSize)
+{
+    const uint TILE = pc.TextureIndex;
+
+    // 1) robust radius
+    int r  = max(1, int(ceil(proj.DestructionRadius)));
+    int r2 = r * r;
+
+    // 2) dumb solid disk + fixed dmg to prove it works
+    const uint dmg = 10u;
+
+    for (int dy = -r; dy <= r; ++dy) {
+        int y = centerPx.y + dy; if (y < 0 || y >= curSize.y) continue;
+        int dy2 = dy*dy;
+        int dxMax = int(floor(sqrt(float(r2 - dy2))));
+        for (int dx = -dxMax; dx <= dxMax; ++dx)
+        {
+            int x = centerPx.x + dx;
+            if (x < 0 || x >= curSize.x) continue;
+
+            ivec2 p = ivec2(x,y);
+
+            uvec4 ht  = loadHT(TILE, p);
+            if (ht.r == 0u) continue;            // only change pixels that actually have HP
+
+            if (dmg >= ht.r)
+            {
+                destroyPixel_fx(TILE, p, ht);
+            }
+            else
+            {
+                applyDamage_fx(TILE, p, ht, dmg);
+            }
+
+            // DEBUG: mark modified pixels in magenta so you see the exact area
+            vec4 c = imageLoad(uColor[nonuniformEXT(TILE)], p);
+
+            if(ht.r == 0u)
+            {
+                //imageStore(uColor[nonuniformEXT(TILE)], p, vec4(max(c.rgb, vec3(1,0,1)), 1.0));
+            }
+            else
+            {
+               // imageStore(uColor[nonuniformEXT(TILE)], p, vec4(max(c.rgb, vec3(0,1,0)), 1.0));
+            }
+        }
+    }
+}
+
+
+// Exact world-space raster: same result across adjacent tiles.
+void processExplosionDiskFalloff_WorldExact(vec2 W, float radiusW, uint dmgPerHit)
+{
+    const uint TILE = pc.TextureIndex;
+    ivec2  tileSz   = imageSize(uColor[nonuniformEXT(TILE)]);
+    vec2   minW     = pc.textureOrigin;
+    vec2   pxW      = vec2(pc.pixelSize);           // world units per pixel (x==y)
+
+    // Compute the pixel bounding box of the circle in THIS tile (half-open max)
+    float x0W = W.x - radiusW, x1W = W.x + radiusW;
+    float y0W = W.y - radiusW, y1W = W.y + radiusW;
+
+    // Convert to pixel indices in this tile. Use ceil for min, floor for max, and clamp.
+    int ix0 = int(ceil((x0W - minW.x) / pxW.x));
+    int ix1 = int(floor((x1W - minW.x) / pxW.x));
+    int iy0 = int(ceil((y0W - minW.y) / pxW.y));
+    int iy1 = int(floor((y1W - minW.y) / pxW.y));
+
+    ix0 = clamp(ix0, 0, tileSz.x - 1);
+    ix1 = clamp(ix1, 0, tileSz.x - 1);
+    iy0 = clamp(iy0, 0, tileSz.y - 1);
+    iy1 = clamp(iy1, 0, tileSz.y - 1);
+    if (ix1 < ix0 || iy1 < iy0) return; // nothing in this tile
+
+    float r2 = radiusW * radiusW;
+
+    for (int y = iy0; y <= iy1; ++y)
+    for (int x = ix0; x <= ix1; ++x)
+    {
+        // Center of this texel in WORLD
+        vec2 P = minW + (vec2(x, y) + 0.5) * pxW;
+
+        // Inside circle?
+        vec2 d = P - W;
+        if (dot(d, d) > r2) continue;
+
+        ivec2 p = ivec2(x, y);
+
+        // Gameplay: read current
+        uvec4 ht = imageLoad(uProps[nonuniformEXT(TILE)], p); // R=HP, A=flags
+        vec4  c  = imageLoad(uColor[nonuniformEXT(TILE)], p); // A=material present if >0
+
+        bool hasHP   = (ht.r > 0u);
+        bool terrain = (c.a > 0.0) && !hasHP;
+
+        if (hasHP) {
+            uint h = ht.r;
+            if (dmgPerHit >= h) {
+                // destroy
+                ht.r = 0u; ht.a |= FX_ARMED; imageStore(uProps[nonuniformEXT(TILE)], p, ht);
+                imageStore(uColor[nonuniformEXT(TILE)], p, vec4(0.0)); // fully hole
+            } else {
+                // damage
+                ht.r = h - dmgPerHit; ht.a |= FX_ARMED; imageStore(uProps[nonuniformEXT(TILE)], p, ht);
+            }
+        }
+        // else: terrain or empty — leave as-is unless you want terrain scorch logic here
+    }
+}
+
+void doImpactAtPixel(const ProjectileGPU proj, ivec2 pHit, ivec2 curSize)
+{
+    const uint TILE = pc.TextureIndex;
+
+    // Gameplay at the hit
+    uvec4 ht  = loadHT(TILE, pHit);
+    vec4  col = imageLoad(uColor[nonuniformEXT(TILE)], pHit);
+    bool  hadHP   = hasHealth(ht);
+    bool  terrain = (col.a > 0.0) && !hadHP;
+
+    if (hadHP) {
+        if (proj.Damage < ht.r) {
+            applyDamage_fx(TILE, pHit, ht, proj.Damage);
+        } else {
+            destroyPixel_fx(TILE, pHit, ht);
+        }
+    }
+
+    // Re-read to decide FX
+    vec4  col1 = imageLoad(uColor[nonuniformEXT(TILE)], pHit);
+    uvec4 ht1  = loadHT(TILE, pHit);
+    bool  hasHP1 = hasHealth(ht1);
+    bool  empty1 = (col1.a <= 0.0) && !hasHP1;
+
+    if (empty1 || (terrain && flagGlowTerrain())) {
+        // Strong persistent mark at impact
+        blendFX(pHit, pc.flashTint.rgb, 1.0);
+    }
+
+    // Area effect
+    processExplosionDiskFalloff(proj, pHit, curSize);
+}
+
+
+
+
+bool circleIntersectsRect(vec2 cW, float rW, vec2 minW, vec2 maxW)
+{
+    vec2 mn = min(minW, maxW);
+    vec2 mx = max(minW, maxW);
+    vec2 clamped = clamp(cW, mn, mx);
+    vec2 d = cW - clamped;
+    return dot(d, d) <= rW*rW + 1e-6;
+}
+
+// Map TILE pixel -> FX texel (returns false if outside 3×3 FX block)
+bool mapTilePxToFX(ivec2 pTile, out uint FX, out ivec2 qPixel)
+{
+    // 1) Tile pixel -> world
+    vec2 W = pc.textureOrigin + (vec2(pTile) + 0.5) * pc.pixelSize;
+
+    // 2) World -> base FX local (can be OOB if W is in neighbor cell)
+    uint  FX0 = (pc.fxIdx < MAX_VISUALEFFECT_TEXTRUES) ? pc.fxIdx : 0u;
+    ivec2 fs0 = imageSize(uFX[nonuniformEXT(FX0)]);
+    vec2  qF  = (W - pc.fxTextureOrigin) / pc.pixelSize;
+
+    // 3) Which neighbor FX cell? (-1,0,+1)
+    int dx = int(floor(qF.x / float(fs0.x)));
+    int dy = int(floor(qF.y / float(fs0.y)));
+    // If your FX grid is Y-up, flip: dy = -dy;
+
+    int FXn = int(FX0) + dx + dy * 3;
+    if (FXn < 0 || FXn >= int(MAX_VISUALEFFECT_TEXTRUES)) return false;
+
+    // 4) Local pixel in that neighbor FX cell
+    float qx = qF.x - float(dx * fs0.x);
+    float qy = qF.y - float(dy * fs0.y);
+    ivec2 q0 = ivec2(int(floor(qx + 0.5)), int(floor(qy + 0.5)));
+
+    ivec2 fs = imageSize(uFX[nonuniformEXT(uint(FXn))]);
+    if (q0.x < 0 || q0.y < 0 || q0.x >= fs.x || q0.y >= fs.y) return false;
+
+    FX     = uint(FXn);
+    qPixel = q0;
+    return true;
+}
+
+// Convenience: TILE pixel -> FX UV (0..1) + FX index
+bool mapTilePxToFX_UV(ivec2 pTile, out uint FX, out vec2 uv)
+{
+    ivec2 q;
+    if (!mapTilePxToFX(pTile, FX, q)) return false;
+    ivec2 fs = imageSize(uFX[nonuniformEXT(FX)]);
+    uv = (vec2(q) + 0.5) / vec2(fs);
+    return true;
+}
+
+// (Optional) Map WORLD position -> FX texel directly
+// Map WORLD pos -> FX index + FX pixel (handles 3×3 neighbors)
+// Set true if your world +Y points DOWN on screen. If +Y is UP (typical), leave false.
+const bool WORLD_Y_DOWN = true;
+
+// Map world pos W into one of the 3×3 FX images around pc.fxIdx.
+// Returns FX index, *unflipped* pixel in that FX, and that FX's size.
+bool mapWorldToFX(vec2 W, out uint FX, out ivec2 qPix, out ivec2 fsOut)
+{
+    uint  FX0 = (pc.fxIdx < MAX_VISUALEFFECT_TEXTRUES) ? pc.fxIdx : 0u;
+    ivec2 fs0 = imageSize(uFX[nonuniformEXT(FX0)]);
+
+    // pixel coords in the *base* cell (can be negative / > fs0)
+    vec2 qF = (W - pc.fxTextureOrigin) / pc.pixelSize;
+
+    // which neighbor cell (-1,0,+1) in x/y
+    float cx = float(fs0.x);
+    float cy = float(fs0.y);
+    int dx = int(floor(qF.x / cx + 1e-6));
+    int dy = int(floor(qF.y / cy + 1e-6));
+
+    // If your 3×3 indexing is Y-up, invert dy so “up” picks the row above.
+    if (!WORLD_Y_DOWN) dy = -dy;
+
+    int FXn = int(FX0) + dx + dy * 3;
+    if (FXn < 0 || FXn >= int(MAX_VISUALEFFECT_TEXTRUES)) return false;
+
+    // local pixel inside that neighbor (unflipped)
+    float qx = qF.x - float(dx) * cx;
+    float qy = qF.y - float((WORLD_Y_DOWN ? dy : -dy)) * cy;  // undo the row shift in world sense
+    ivec2 q0 = ivec2(round(vec2(qx, qy)));                    // round() handles negatives correctly
+
+    ivec2 fsN = imageSize(uFX[nonuniformEXT(uint(FXn))]);
+    if (q0.x < 0 || q0.y < 0 || q0.x >= fsN.x || q0.y >= fsN.y) return false;
+
+    FX    = uint(FXn);
+    qPix  = q0;         // unflipped pixel in FXn
+    fsOut = fsN;
+    return true;
+}
+
+
+// draw a filled disk into uFX[FX] at qCenter with radius R
+void drawDiskFX_at(uint FX, ivec2 qCenter, int R, vec4 col)
+{
+    ivec2 fs = imageSize(uFX[nonuniformEXT(FX)]);
+    for (int oy = -R; oy <= R; ++oy)
+    for (int ox = -R; ox <= R; ++ox) {
+        if (ox*ox + oy*oy > R*R) continue;
+        ivec2 q = qCenter + ivec2(ox, oy);
+        if (q.x>=0 && q.y>=0 && q.x<fs.x && q.y<fs.y)
+            imageStore(uFX[nonuniformEXT(FX)], q, col);
+    }
+}
+
+
+
+const bool FLIP_IN_COMPUTE = false; // set false if you flip in fragment
+
+ivec2 flipY(ivec2 q, ivec2 fs){
+    return FLIP_IN_COMPUTE ? ivec2(q.x, fs.y - 1 - q.y) : q;
+}
+
+void drawBlock(uint FX, ivec2 topLeft, int W, int H, vec4 col){
+    ivec2 fs = imageSize(uFX[nonuniformEXT(FX)]);
+    for (int y=0; y<H; ++y)
+    for (int x=0; x<W; ++x) {
+        ivec2 q = topLeft + ivec2(x,y);
+        if (q.x>=0 && q.y>=0 && q.x<fs.x && q.y<fs.y)
+            imageStore(uFX[nonuniformEXT(FX)], q, col);
+    }
+}
+
+void drawCross(uint FX, ivec2 c, int R, vec4 col)
+{
+    ivec2 fs = imageSize(uFX[nonuniformEXT(FX)]);
+    for (int d=-R; d<=R; ++d) {
+        ivec2 a = c + ivec2(d,0), b = c + ivec2(0,d);
+        if (a.x>=0&&a.y>=0&&a.x<fs.x&&a.y<fs.y) imageStore(uFX[nonuniformEXT(FX)], a, col);
+        if (b.x>=0&&b.y>=0&&b.x<fs.x&&b.y<fs.y) imageStore(uFX[nonuniformEXT(FX)], b, col);
+    }
+}
+
+
+
+
+void fadeFXTexture(uint FX)
+{
+    ivec2 fs = imageSize(uFX[nonuniformEXT(FX)]);
+    if (fs.x <= 0 || fs.y <= 0) return;
+
+    // fade factor per frame (bigger maxTimer => slower fade)
+    float T    = max(1.0, float(pc.maxTimer));
+    float keep = 1.0 - (1.0 / T);                  // e.g. T=120 => ~0.992
+    keep = clamp(keep * clamp(pc.glowStrength, 0.25, 2.0), 0.0, 1.0);
+
+    // cover the whole FX image using the dispatch grid as a stride
+    uvec2 stride = gl_NumWorkGroups.xy * gl_WorkGroupSize.xy;
+    uvec2 start  = gl_GlobalInvocationID.xy;
+
+    for (uint y = start.y; y < uint(fs.y); y += stride.y)
+    for (uint x = start.x; x < uint(fs.x); x += stride.x)
+    {
+        ivec2 q = ivec2(int(x), int(y));
+        vec4  d = imageLoad(uFX[nonuniformEXT(FX)], q);
+        d.rgb *= keep;
+        d.a   *= keep;
+        if (d.a < 1.0/255.0) d = vec4(0.0);
+        imageStore(uFX[nonuniformEXT(FX)], q, d);
+    }
+}
+
+void drawCrossTile(ivec2 center, int R, vec4 col) 
+{
+    ivec2 sz = imageSize(uColor[nonuniformEXT(pc.TextureIndex)]);
+    for (int d = -R; d <= R; ++d)
+    {
+        ivec2 a = center + ivec2(d, 0);
+        ivec2 b = center + ivec2(0, d);
+        if (a.x >= 0 && a.y >= 0 && a.x < sz.x && a.y < sz.y) imageStore(uColor[nonuniformEXT(pc.TextureIndex)], a, col);
+        if (b.x >= 0 && b.y >= 0 && b.x < sz.x && b.y < sz.y) imageStore(uColor[nonuniformEXT(pc.TextureIndex)], b, col);
+    }
+}
+
+
+void drawHealthOverlay(uint TILE)
+{
+    ivec2 ts = imageSize(uColor[nonuniformEXT(TILE)]);
+    if (ts.x <= 0 || ts.y <= 0) return;
+
+    // stride so a small dispatch still covers the whole tile
+    uvec2 stride = gl_NumWorkGroups.xy * gl_WorkGroupSize.xy;
+    uvec2 start  = gl_GlobalInvocationID.xy;
+
+    // Use a sane max-HP (put yours in pc.effectParams0.x)
+    float maxHP = max(pc.effectParams0.x, 1.0); // avoid div-by-zero
+
+    for (uint y = start.y; y < uint(ts.y); y += stride.y)
+    for (uint x = start.x; x < uint(ts.x); x += stride.x)
+    {
+        ivec2 p  = ivec2(int(x), int(y));
+        uvec4 ht = imageLoad(uProps[nonuniformEXT(TILE)], p); // R = health
+
+        // Skip non-HP pixels (terrain/empty). Comment this out if you want to tint those too.
+        if (ht.r == 0u) continue;
+
+        float t = clamp(float(ht.r) / maxHP, 0.0, 1.0); // 0..1 health
+        vec3  heat = mix(vec3(1.0, 0.0, 0.0),  // red = low
+                         vec3(0.0, 1.0, 0.0),  // green = high
+                         t);
+
+        vec4 src   = imageLoad(uColor[nonuniformEXT(TILE)], p);
+        float k    = 0.7;
+        vec3  outRGB = mix(src.rgb, heat, k);
+        imageStore(uColor[nonuniformEXT(TILE)], p, vec4(outRGB , src.a));
+    }
+}
+
+
+
+
 
 void main()
 {
-    ivec2 px = ivec2(gl_GlobalInvocationID.xy);
 
-    ivec2 sz = imageSize(uColor[nonuniformEXT(pc.textureIndex)]);
-    if (px.x < 0 || px.y < 0 || px.x >= sz.x || px.y >= sz.y)
-    {
+
+    if(pc.fxIdx < 9 + 1)
         return;
-    }
 
-    uvec4 props = imageLoad(uProps[nonuniformEXT(pc.textureIndex)], px);
-
-
-    // Only draw over EMPTY texels that were armed by the collision pass
-    if (props.r == 0u && (props.a & FX_ARMED) != 0u)
+    if(pc.mode == 1)
     {
-        uint cur = props.b;
+        // second pass for fading effect. 
+      
+        fadeFXTexture(pc.fxIdx);
+        return; // 
+    }
+    
 
-        // If timer is 0, clear and disarm (ensures full transparency)
-        if (cur == 0u)
+
+    const uint  TILE   = pc.TextureIndex;
+    ivec2       tileSz = imageSize(uColor[nonuniformEXT(TILE)]);
+    vec2        rectMinW = pc.textureOrigin;
+    vec2        rectMaxW = rectMinW + vec2(tileSz) * pc.pixelSize;
+
+    const float eps = 1e-6; // world units, tiny
+    vec2 minE = rectMinW - vec2(eps);
+    vec2 maxE = rectMaxW + vec2(eps);
+    // half-open rect: [min, max-eps] to avoid double ownership on the max edge
+    vec2 maxHalfOpen = maxE - vec2(eps);
+
+     if (gl_GlobalInvocationID.xy != uvec2(0)) return;
+
+
+    uint count = min(collisionCount, MAX_COLLISION_ENTITIES);
+    for (uint i = 0u; i < count; ++i)
+    {
+        //if (results[i].collisionDetected == 0xFFFFFFFFu) continue;
+
+        // World-space impact center and radius
+        vec2  W        = results[i].CollisionPosition;
+        float radiusW  = pc.hitRadiusWS;
+
+        // Skip tiles the AoE doesn't touch
+        if (!circleIntersectsRect(W, radiusW, rectMinW, rectMaxW)) continue;
+
+        
+        // Convert to this tile's pixel center
+        vec2  centerPxF = (W - rectMinW) / pc.pixelSize;
+        ivec2 centerPx  = ivec2(floor(centerPxF));
+        centerPx = clamp(centerPx, ivec2(0), tileSz - ivec2(1));
+
+       /// imageStore(uColor[nonuniformEXT(TILE)], centerPx, vec4(1,0,1, 1.0));
+
+        // Radius in pixels (for destruction + FX)
+        float radiusPxF = (pc.pixelSize > 0.0) ? (radiusW / pc.pixelSize) : radiusW;
+
+        int   R         = max(1, int(round(radiusPxF)));
+        // --------- Area destruction on THIS tile ---------
+        ProjectileGPU proj;
+        proj.DestructionRadius = float(R);
+        proj.Damage            = pc.hitDamage;
+
+       // processExplosionDiskFalloff(proj, centerPx, tileSz);
+       processExplosionDiskFalloff_WorldExact(W, radiusW, pc.hitDamage);
+
+        //return; // disble effect
+
+        // --------- FX: paint a persistent disk in the correct FX texture ---------
         {
-            imageStore(uColor[nonuniformEXT(pc.textureIndex)], px, vec4(0.0));
-            props.a &= ~FX_ARMED;
-            imageStore(uProps[nonuniformEXT(pc.textureIndex)], px, props);
-            return;
+            uint  FXn;
+            ivec2 qCenter;   // unflipped pixel in FXn
+            ivec2 fsN;       // size of FXn
+            if (mapWorldToFX(W, FXn, qCenter, fsN))
+            {
+                // If you flip in compute, do it here using the TARGET FX size.
+                ivec2 qDrawC = flipY(qCenter, fsN);
+
+                // Tight disk fill (matches destruction radius)
+               // Tight disk fill (matches destruction radius)
+                int r2 = R * R;
+                int y0 = max(qDrawC.y - R, 0);
+                int y1 = min(qDrawC.y + R, fsN.y - 1);
+
+                bool liftAlpha = ((pc.flags & 0x2u) != 0u);  // your "Alpha-lift over Empty" editor flag (bit 1)
+                float targetA  = liftAlpha ? 0.9 : 0.0;
+
+                // Scale brightness by glowStrength to let you tune in UI
+                vec3 stampRGB = clamp(mix(pc.impactTint.rgb, pc.destroyedTint.rgb, 0.0) * max(pc.glowStrength, 0.1), 0.0, 1.0);
+
+                for (int y = y0; y <= y1; ++y)
+                {
+                    int dy    = y - qDrawC.y;
+                    int dxMax = int(floor(sqrt(max(0.0, float(r2 - dy*dy)))));
+                    int x0    = max(qDrawC.x - dxMax, 0);
+                    int x1    = min(qDrawC.x + dxMax, fsN.x - 1);
+
+                    for (int x = x0; x <= x1; ++x)
+                    {
+                        ivec2 q = ivec2(x, y);
+
+                        // IMPORTANT: write to the mapped target FXn, not pc.fxIdx
+                        vec4 dst = imageLoad(uFX[nonuniformEXT(pc.fxIdx)], q);
+
+                        vec3 outRGB = max(dst.rgb, stampRGB);                    // sticky lighten
+                        float outA  = liftAlpha ? max(dst.a, targetA) : dst.a;   // optional alpha-lift
+
+                        imageStore(uFX[nonuniformEXT(pc.fxIdx)], q, vec4(outRGB, outA));
+                    }
+                }
+
+            }
         }
-
-        // Phase mapping (long mid-phase so fade happens gradually)
-        float t = clamp(float(cur) / max(float(pc.defaultTimer), 1.0), 0.0, 1.0);
-        const float t1 = 0.85; // flash -> impact
-        const float t2 = 0.10; // impact -> destroyed
-
-        vec3  tint;
-        float phaseAlpha;
-
-        if (t > t1)
-        {
-            float s = smoothstep(t1, 1.0, t);
-            tint       = mix(pc.impactTint.rgb, pc.flashTint.rgb, s);
-            phaseAlpha = 1.0;
-        }
-        else if (t > t2)
-        {
-            tint       = pc.impactTint.rgb;
-            phaseAlpha = 1.0;
-        }
-        else
-        {
-            tint       = pc.destroyedTint.rgb;
-            phaseAlpha = 0.0; // destroyed phase is transparent
-        }
-
-        float strength = curveStrength(cur, pc.effectParams0.w) * pc.glowStrength;
-        float flicker  = mix(1.0, noiseF(px, cur), clamp(pc.effectParams0.y, 0.0, 1.0));
-        float m        = clamp(strength * flicker, 0.0, 1.0);
-
-        float a = m * phaseAlpha;
-        vec4 overlay = vec4(tint * a, a);
-
-        // Absolute overlay this frame (no accumulation)
-        imageStore(uColor[nonuniformEXT(pc.textureIndex)], px, overlay);
-
-        // Decay timer and clear when done
-        const uint DECAY = max(1u, pc.defaultTimer / 90u);
-        uint next = (cur > DECAY) ? (cur - DECAY) : 0u;
-        props.b = next;
-
-        if (next == 0u)
-        {
-            props.a &= ~FX_ARMED;
-            imageStore(uColor[nonuniformEXT(pc.textureIndex)], px, vec4(0.0));
-        }
-
-        imageStore(uProps[nonuniformEXT(pc.textureIndex)], px, props);
     }
 }

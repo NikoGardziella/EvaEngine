@@ -9,6 +9,7 @@
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 #include <Engine.h>
 #include <Engine/Renderer/VulkanRenderer2D.h>
+#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 
 namespace Engine {
 
@@ -956,7 +957,31 @@ namespace Engine {
         vkFreeMemory(device, stagingMem, nullptr);
     }
 
+    void VulkanBindlessDescriptorSetRenderer::UpdateEffectImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures)
+    {
+        std::array<VkDescriptorImageInfo, MAX_TEXTURES> imageInfos{};
+        for (uint32_t i = 0; i < MAX_TEXTURES; ++i)
+        {
+           // uint32_t usedTextureSlots = 1; // player only. This is crap. change it.
+            //uint32_t index = i + CHUNK_GRID_SIZE + usedTextureSlots;
+            imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+            imageInfos[i].imageView = textures[i]->GetImageView();
+            imageInfos[i].sampler = VK_NULL_HANDLE;
 
+        }
+
+
+        VkWriteDescriptorSet write{};
+        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write.dstSet = m_computeDescriptorSet[frameIndex];
+        write.dstBinding = 5;
+        write.dstArrayElement = 0;
+        write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        write.descriptorCount = static_cast<uint32_t>(imageInfos.size());
+        write.pImageInfo = imageInfos.data();
+
+        vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+    }
 
     bool VulkanBindlessDescriptorSetRenderer::IsInsideView(const Camera&, glm::vec2) const
     {
@@ -1054,8 +1079,9 @@ namespace Engine {
         // 2: ResultBuffer      SSBO (1)
         // 3: Projectiles       SSBO (1)
         // 4: BlockedTileMask   SSBO (1)
+        // 5: effects  (rgba8ui) STORAGE image, array
 
-        std::array<VkDescriptorSetLayoutBinding, 5> bindings{};
+        std::array<VkDescriptorSetLayoutBinding, 6> bindings{};
 
         // binding 0: color image array (compute writes)
         bindings[0].binding = 0;
@@ -1092,10 +1118,17 @@ namespace Engine {
         bindings[4].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         bindings[4].pImmutableSamplers = nullptr;
 
+        // effects
+        bindings[5].binding = 5;
+        bindings[5].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        bindings[5].descriptorCount = 32;
+        bindings[5].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        bindings[5].pImmutableSamplers = nullptr;
+
         // Descriptor indexing binding flags:
         // - PARTIALLY_BOUND lets you leave unused array elements unwritten.
         // - UPDATE_AFTER_BIND is optional; only use if you actually enabled it at device creation.
-        std::array<VkDescriptorBindingFlags, 5> bflags{};
+        std::array<VkDescriptorBindingFlags, 6> bflags{};
         bflags[0] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
             (updateAfterBindSupported ? VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT : 0);
         bflags[1] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
@@ -1104,6 +1137,7 @@ namespace Engine {
         bflags[2] = 0;
         bflags[3] = 0;
         bflags[4] = 0;
+        bflags[5] = 0;
 
         VkDescriptorSetLayoutBindingFlagsCreateInfo flagsCI{
             VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO
@@ -1114,6 +1148,7 @@ namespace Engine {
         VkDescriptorSetLayoutCreateInfo layoutInfo{
             VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO
         };
+
         layoutInfo.pNext = &flagsCI;                             // descriptor indexing flags
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
         layoutInfo.pBindings = bindings.data();
@@ -1121,7 +1156,7 @@ namespace Engine {
             ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT
             : 0;
 
-        VkResult res = vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_computeDescriptorSetLayout);
+         VkResult res = vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_computeDescriptorSetLayout);
         EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to create compute descriptor set layout");
     }
 
@@ -1207,52 +1242,62 @@ namespace Engine {
         }
     }
 
-
     void VulkanBindlessDescriptorSetRenderer::CreateEffectsDescriptorSetLayout()
     {
-        EE_CORE_WARN("hard coded descriptorCount");
-        // Binding 0: array of storage images for color (u_InputTexture[MAX_TEXTURES])
+        // Reuse the SAME set as your compute pass, just append binding 5 for FX grid.
+        // (If this is the compute set layout itself, include all bindings 0..5 here.)
+
         VkDescriptorSetLayoutBinding colorBinding{};
         colorBinding.binding = 0;
         colorBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        colorBinding.descriptorCount = 1024;
+        colorBinding.descriptorCount = 1024; // your bindless layers
         colorBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        colorBinding.pImmutableSamplers = nullptr;               // storage images don't use samplers
 
-        // Binding 1: array of storage images for health/timer (u_HealthImage[MAX_TEXTURES])
-        VkDescriptorSetLayoutBinding healthBinding{};
-        healthBinding.binding = 1;
-        healthBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        healthBinding.descriptorCount = 1024;
-        healthBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        healthBinding.pImmutableSamplers = nullptr;
+        VkDescriptorSetLayoutBinding propsBinding{};
+        propsBinding.binding = 1;
+        propsBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        propsBinding.descriptorCount = 1024;
+        propsBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-        // Binding 2: (optional) storage buffer for explosion events
-        VkDescriptorSetLayoutBinding bufferBinding{};
-        bufferBinding.binding = 2;
-        bufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        bufferBinding.descriptorCount = 1;
-        bufferBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        bufferBinding.pImmutableSamplers = nullptr;
+        VkDescriptorSetLayoutBinding resultsBinding{};
+        resultsBinding.binding = 2;                   // SSBO
+        resultsBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        resultsBinding.descriptorCount = 1;
+        resultsBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-        std::array<VkDescriptorSetLayoutBinding, 3> bindings = {
-            colorBinding, healthBinding, bufferBinding
+        VkDescriptorSetLayoutBinding projectilesBinding{};
+        projectilesBinding.binding = 3;               // SSBO
+        projectilesBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        projectilesBinding.descriptorCount = 1;
+        projectilesBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+        VkDescriptorSetLayoutBinding blockedMaskBinding{};
+        blockedMaskBinding.binding = 4;               // SSBO
+        blockedMaskBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        blockedMaskBinding.descriptorCount = 1;
+        blockedMaskBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+        VkDescriptorSetLayoutBinding fxGridBinding{};
+        fxGridBinding.binding = 5;
+        fxGridBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        fxGridBinding.descriptorCount = 9;            // exactly 9
+        fxGridBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+        std::array<VkDescriptorSetLayoutBinding, 6> bindings = {
+            colorBinding, propsBinding, resultsBinding,
+            projectilesBinding, blockedMaskBinding, fxGridBinding
         };
 
+        VkDescriptorSetLayoutCreateInfo info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+        info.bindingCount = (uint32_t)bindings.size();
+        info.pBindings = bindings.data();
 
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.pNext = nullptr; // &extFlags if using the optional block above
-        layoutInfo.flags = 0;       // or VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT if using update-after-bind
-        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-        layoutInfo.pBindings = bindings.data();
-
-        if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_effectsDescriptorSetLayout) != VK_SUCCESS)
+        if (vkCreateDescriptorSetLayout(m_device, &info, nullptr, &m_effectsDescriptorSetLayout) != VK_SUCCESS)
         {
             EE_CORE_ASSERT(false, "Failed to create effects descriptor set layout!");
         }
-    }
 
+    }
 
     void VulkanBindlessDescriptorSetRenderer::CreateEffectsDescriptorSets(VkDescriptorPool computeDescriptorPool)
     {

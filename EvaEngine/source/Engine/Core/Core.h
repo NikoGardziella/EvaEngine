@@ -87,7 +87,7 @@ constexpr size_t TILE_SIZE = 1;
 constexpr size_t MAX_TEXTURES = 32;
 constexpr size_t MAX_PROJECTILES = 32;
 constexpr size_t MAX_COLLISION_ENTITIES = 32; // projectiles and player
-constexpr size_t MAX_COLLISION_RESULTS = 64; 
+constexpr size_t MAX_COLLISION_RESULTS = 32; 
 constexpr size_t TILE_PIXEL_WIDTH = 128;
 constexpr size_t TILE_PIXEL_HEIGHT = 256;
 

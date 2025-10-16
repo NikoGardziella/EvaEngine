@@ -54,25 +54,14 @@ layout(location=0) out       vec4 outColor;
 
 // Bindless arrays (match your descriptor set 0 layout)
 layout(set=0, binding=0) uniform sampler2D uColor[];          // COMBINED_IMAGE_SAMPLER[]
-// Optional health/damage mask per tile layer (rgba8 storage)
-#ifdef USE_HEALTH
-layout(set=0, binding=1, rgba8) uniform image2D uHealth[];    // STORAGE_IMAGE[]
-#endif
+
 
 void main()
 {
     vec4 base = texture(uColor[nonuniformEXT(vSlot)], vUV);
     if (base.a <= 0.001) discard;
 
-#ifdef USE_HEALTH
-    // Modulate alpha by a per-pixel health mask (R channel), if you keep one
-    ivec2 ts = textureSize(uColor[nonuniformEXT(vSlot)], 0);
-    ivec2 p  = ivec2(vUV * vec2(ts));
-    float hp = imageLoad(uHealth[nonuniformEXT(vSlot)], p).r;  // 0..1
-    base.a *= clamp(hp, 0.0, 1.0);
-    // Optional scorch tint:
-    // base.rgb = mix(base.rgb, vec3(0.35, 0.25, 0.15), 1.0 - hp);
-#endif
+
 
     outColor = base;
 }

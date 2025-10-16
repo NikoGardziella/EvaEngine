@@ -202,3 +202,9 @@
 {
 
 ebuild completed at 13.53 and took 02:26,381 minutes
+}
+03.10.2025
+{
+
+    when endpos is not in current tile, USE DISTANCe to endpos . 
+}

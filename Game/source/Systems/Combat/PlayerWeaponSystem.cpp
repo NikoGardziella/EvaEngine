@@ -72,6 +72,10 @@ void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
     Engine::TransformComponent& transformComp = projectileEntity.AddComponent<Engine::TransformComponent>();
 	float projectileMaxRange = 3.0f; // fix this
     float projectileRadius = 0.1f;
+    
+
+   
+
     ProjectileComponent& projectileComp = projectileEntity.AddComponent<ProjectileComponent>(direction, projectileMaxRange);
     projectileComp.Damage = weaponComp.Damage;
     projectileComp.ProjectileRadius = projectileRadius;
@@ -125,22 +129,36 @@ float SampleHeightAt_FromTileCenterFudged(
     if (h > tileSizeWorld.y) h = tileSizeWorld.y;
     return h;
 }
-float PlayerWeaponSystem::SampleHeightAt(Engine::Scene* scene,
+
+inline float clampf(float v, float a, float b) { return v < a ? a : (v > b ? b : v); }
+
+float SampleHeightAt_FromBottomLeft(
     const glm::vec2& worldXY,
-    int /*radiusPx*/ /*=0*/)
+    const glm::vec2& originBL,          // bottom-left of the tile
+    float tileWorldH,
+    float pxWorldY,                      // world units per texel row
+    bool snapToTexelCenters = true)
 {
-    // World-units per pixel (X), keep consistent with compute/render
-    const float pxWorld = float(TILE_SIZE) / float(TILE_PIXEL_WIDTH);
+    // height above bottom edge
+    float h = worldXY.y - originBL.y;
 
-    // Tile size in world units (assumes all tiles are the same pixel size)
-    const glm::vec2 tileSizeWorld = {
-        float(TILE_PIXEL_WIDTH) * pxWorld,
-        float(TILE_PIXEL_HEIGHT) * pxWorld
-    };
+    if (snapToTexelCenters && pxWorldY > 0.0f) {
+        float rows = h / pxWorldY;
+        rows = std::floor(rows) + 0.5f; // center of the row
+        h = rows * pxWorldY;
+    }
 
-    // Must match the bias you used for compute:
-    // m_slotOriginWorld[slot] = center - vec2(0.5f, 0.0f)
-    const glm::vec2 originBiasWorld(0.5f, 0.0f);
+    return clampf(h, 0.0f, tileWorldH);
+}
+
+float PlayerWeaponSystem::SampleHeightAt(Engine::Scene* scene, const glm::vec2& worldXY, int /*radiusPx*/)
+{
+    // World-units per pixel (separate X/Y!)
+    const float pxWorldX = float(TILE_SIZE) / float(TILE_PIXEL_WIDTH);
+    const float pxWorldY = float(TILE_SIZE) / float(TILE_PIXEL_HEIGHT);
+
+    const float tileWorldW = float(TILE_PIXEL_WIDTH) * pxWorldX;
+    const float tileWorldH = float(TILE_PIXEL_HEIGHT) * pxWorldY;
 
     bool  hit = false;
     float best = 0.0f;
@@ -148,23 +166,21 @@ float PlayerWeaponSystem::SampleHeightAt(Engine::Scene* scene,
     scene->ForEachConst<Engine::TransformComponent, Engine::TileComponent>(
         [&](Engine::Entity, const Engine::TransformComponent& tr, const Engine::TileComponent& tc)
         {
-            // Loop *all* tiles in this entity
             for (const Engine::TileInfo& t : tc.tiles)
             {
-                // Your render path uses: tileCenter = entity center + local tile offset
+                // correct center (don’t overwrite it!)
                 glm::vec2 tileCenter = glm::vec2(tr.Translation) + t.position;
-                tileCenter = glm::vec2(tr.Translation) + glm::vec2(0.0f, 0.5f * tileSizeWorld.y);
 
-                // Quick world AABB reject around this *individual* tile
-                const glm::vec2 minW = tileCenter - 0.5f * tileSizeWorld;
-                const glm::vec2 maxW = tileCenter + 0.5f * tileSizeWorld;
+                glm::vec2 originBL = tileCenter - 0.5f * glm::vec2(tileWorldW, tileWorldH);
+                glm::vec2 minW = originBL;
+                glm::vec2 maxW = originBL + glm::vec2(tileWorldW, tileWorldH);
+
+                // open max-edges to avoid double-ownership on borders
                 if (worldXY.x < minW.x || worldXY.x >= maxW.x ||
                     worldXY.y < minW.y || worldXY.y >= maxW.y)
                     continue;
 
-                // Geometry-only height above bottom, using the SAME bias as compute
-                const float h = SampleHeightAt_FromTileCenterFudged(
-                    worldXY, tileCenter, tileSizeWorld, pxWorld, originBiasWorld, /*snap*/ true);
+                float h = SampleHeightAt_FromBottomLeft(worldXY, originBL, tileWorldH, pxWorldY, /*snap*/true);
 
                 if (!hit || h > best) { best = h; hit = true; }
             }

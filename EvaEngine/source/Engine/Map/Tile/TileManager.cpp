@@ -10,8 +10,11 @@
 namespace Engine {
 
    
-
-    void TileManager::StreamInitialResidency(Scene* scene)
+    // Build / UID map -> open one - shot CB -> upload color / props to array
+    // layers & write descriptors -> cache per - slot origin / content rect -> submit & wait.
+    //After this, per frame  only submit instances;
+    // does not scale for very large maps. need to rebuild this 
+    void TileManager::BuildInitialResidency(Scene* scene)
     {
         EE_PROFILE_FUNCTION();
 
@@ -67,6 +70,8 @@ namespace Engine {
 
     void TileManager::BuildTemplatesForScene(Scene* scene)
     {
+
+
         scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
             [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& idComp)
             {

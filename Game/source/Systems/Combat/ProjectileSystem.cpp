@@ -4,6 +4,7 @@
 #include <Engine/Events/Public/CollisionEvents.h>
 #include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
 #include <Engine/Scene/Scene.h>
+#include <Engine/Core/Log.h>
 
 
 void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* scene)
@@ -28,7 +29,6 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                 {
                     EE_INFO("Projectile collided (GPU)");
                     toDestroy.push_back(projectileEntity);
-                    return; // stop processing this projectile
                 }
             }
 

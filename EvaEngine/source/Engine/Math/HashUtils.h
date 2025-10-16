@@ -46,19 +46,31 @@ namespace HashUtils
     }
 
     // Main: entity + local tile coords -> 64-bit UID
-    inline static  uint64_t MakeTileUID(const uint64_t entID, const glm::vec2& localPos,
-        float tileSizeWorld, uint32_t layerOrVariant = 0, uint64_t nameHash = 0)
+    inline static uint64_t MakeTileUID(uint64_t entID,
+        const glm::vec2& localPos,
+        float tileSizeWorld,
+        uint32_t layerOrVariant = 0,
+        uint64_t nameHash = 0)
     {
+        auto normBits = [](float f) -> uint32_t {
+            // collapse -0.0 to +0.0 and sanitize non-finite
+            if (!std::isfinite(f)) f = 0.0f;
+            if (f == 0.0f) f = 0.0f;
+            return glm::floatBitsToUint(f);
+            };
+
         uint64_t h = 0xcbf29ce484222325ull; // seed
-        const glm::ivec2 t = QuantizeToTile(localPos, tileSizeWorld);
 
         HashCombine(h, entID);
-        HashCombine(h, (uint64_t)(uint32_t)t.x);
-        HashCombine(h, (uint64_t)(uint32_t)t.y);
+        HashCombine(h, (uint64_t)normBits(localPos.x));
+        HashCombine(h, (uint64_t)normBits(localPos.y));
+        HashCombine(h, (uint64_t)normBits(tileSizeWorld)); // include if different tile sizes possible
         HashCombine(h, (uint64_t)layerOrVariant);
         HashCombine(h, nameHash);
-        return h ? h : 1ull; // avoid 0 if you use 0 as "invalid"
+
+        return h ? h : 1ull; // avoid 0 as "invalid"
     }
+
 
     // Convenience if you just want “entity + index in vector”
     template<typename IDComponent>

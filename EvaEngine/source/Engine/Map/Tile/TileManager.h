@@ -14,7 +14,7 @@ namespace Engine {
 
 
 
-		void StreamInitialResidency(Scene* scene);
+		void BuildInitialResidency(Scene* scene);
 
 		void BuildTemplatesForScene(Scene* scene);
 		void SetTileWorldSize(float w, float h)

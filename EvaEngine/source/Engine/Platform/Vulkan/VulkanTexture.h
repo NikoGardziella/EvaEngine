@@ -42,6 +42,7 @@ namespace Engine {
         void SetTextureID(uint32_t textureID) { m_TextureID = textureID; }
 
         virtual void SetData(void* data, uint32_t size) override;
+        void ResetData() const;
         void CreateTextureImage();
         Ref<VulkanTexture> Clone() const;
 

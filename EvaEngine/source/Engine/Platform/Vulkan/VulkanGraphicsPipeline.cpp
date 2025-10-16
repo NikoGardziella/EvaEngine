@@ -1326,6 +1326,7 @@ namespace Engine {
         std::array<VkDescriptorImageInfo, MAX_TEXTURES> imageInfos{};
         for (uint32_t i = 0; i < MAX_TEXTURES; ++i)
         {
+
             imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfos[i].imageView = textures[i]->GetImageView();
             imageInfos[i].sampler = textures[i]->GetSampler();
@@ -1344,6 +1345,9 @@ namespace Engine {
 
         vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
     }
+
+
+   
     
     void VulkanGraphicsPipeline::UpdateProjectileDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_PROJECTILES>& textures)
     {

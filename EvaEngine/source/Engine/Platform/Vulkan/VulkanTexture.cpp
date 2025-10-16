@@ -126,6 +126,53 @@ namespace Engine {
     }
 
 
+    void VulkanTexture::ResetData() const
+    {
+        auto* ctx = VulkanContext::Get();
+        VkCommandBuffer cmd = ctx->BeginSingleTimeCommands();
+
+        VkImageSubresourceRange range{};
+        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        range.baseMipLevel = 0;
+        range.levelCount = 1;
+        range.baseArrayLayer = 0;
+        range.layerCount = 1;
+
+        // UNDEFINED -> TRANSFER_DST_OPTIMAL
+        VkImageMemoryBarrier toClear{ VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+        toClear.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        toClear.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        toClear.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        toClear.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        toClear.image = m_image;
+        toClear.subresourceRange = range;
+        toClear.srcAccessMask = 0;
+        toClear.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+        vkCmdPipelineBarrier(cmd,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+            0, 0, nullptr, 0, nullptr, 1, &toClear);
+
+        // Clear -> transparent
+        VkClearColorValue clear = { {0.0f, 0.0f, 0.0f, 0.0f} };
+        vkCmdClearColorImage(cmd, m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear, 1, &range);
+
+        // TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL (for your first graphics pass)
+        VkImageMemoryBarrier toSample = toClear;
+        toSample.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        toSample.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        toSample.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        toSample.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        vkCmdPipelineBarrier(cmd,
+            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            0, 0, nullptr, 0, nullptr, 1, &toSample);
+
+        ctx->EndSingleTimeCommands(cmd);
+    }
+
+
+
 
 
     void VulkanTexture::CreateTextureImage()

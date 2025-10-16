@@ -79,9 +79,11 @@ namespace Engine {
 
 		std::unordered_map<VulkanTexture*, uint32_t> TextureToSlotMap;
 		std::array<Ref<VulkanTexture>, MaxTextureSlots> TextureSlots;
+		std::array<Ref<VulkanTexture>, GridSize> VisualEffectsTextureSlots;
 		std::array<Ref<VulkanTexture>, GridSize> propertiesTextureSlots;
 		std::array<Ref<VulkanTexture>, GridSize> GridTextureSlots;
 		uint32_t TextureSlotIndex = 0;
+		uint32_t VisualTextureSlotIndex = 0;
 		uint32_t GridSlotIndex = 0;
 		//uint32_t HealthTextureSlotIndex = 0;
 
@@ -127,26 +129,29 @@ namespace Engine {
 	};
 
 	// Effect push constants for glow-only pass
-	struct EffectPushConstants
-	{
-		glm::vec2  textureOrigin;
-		float      pixelSize;
-		uint32_t   textureIndex;
+	struct EffectPushConstants {
+		glm::vec2  textureOrigin;   // 0..7
+		float      pixelSize;       // 8..11
+		uint32_t   textureIndex;    // 12..15
 
-		uint32_t   defaultTimer;
-		float      glowStrength;
-		uint32_t   maxTimer;
-		uint32_t   flags;           // bit0: glow on terrain, bit1: alpha-lift over empty
+		uint32_t   defaultTimer;    // 16..19
+		float      glowStrength;    // 20..23
+		uint32_t   maxTimer;        // 24..27
+		uint32_t   flags;           // 28..31
 
-		glm::vec4  impactTint;      // rgb
-		glm::vec4  destroyedTint;   // rgb
-		glm::vec4  flashTint;       // rgb (reserved)
+		glm::vec4  impactTint;      // 32..47
+		glm::vec4  destroyedTint;   // 48..63
+		glm::vec4  flashTint;       // 64..79
+		glm::vec4  effectParams0;   // 80..95
 
-		glm::vec4  effectParams0;   // x=flashStrength, y=flickerAmount, z=alphaLiftEmpty, w=curveBoost
+		float      hitRadiusWS;     // 96..99
+		uint32_t   hitDamage;       // 100..103
+		uint32_t      fxIdx;           // 104..107
+
+		uint32_t   mode;
+		glm::vec2  fxTextureOrigin; // 112..119
 	};
-
-	static_assert(sizeof(EffectPushConstants) == 96, "PC size must be 96 bytes");
-
+	//static_assert(offsetof(EffectPushConstants, fxTextureOrigin) == 112, "pad needed");
 
 	// C++ (matches GLSL layout+offsets; total = 96 bytes)
 	struct ComputePC {
@@ -158,10 +163,6 @@ namespace Engine {
 		
 	};
 
-	struct PerFrameGarbage
-	{
-		std::vector<std::shared_ptr<VulkanTexture>> OldTextures;
-	};
 
 	
 
@@ -205,6 +206,7 @@ namespace Engine {
 		static void CalculatePlayerCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType);
 		static void DrawTextureQuadWithProperties(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
+		static void DrawVisualEffectTexture(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture);
 		static void DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
@@ -242,6 +244,7 @@ namespace Engine {
 		void RecordComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
 		void DispatchDamageForTile(VkCommandBuffer cmd, uint32_t frameIndex, const ComputePC& pc, VkImage colorArray, VkImage propsArray);
 		void RecordPlayerCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame);
+		static void BuildAffectedTilesCPU(const std::vector<glm::vec2>& hitPositionsW, const std::vector<float>& radiiW, const std::unordered_set<uint32_t>& candidateSlots, float pixelSizeWorld, int tileW, int tileH, std::vector<uint32_t>& outSlots);
 		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex);

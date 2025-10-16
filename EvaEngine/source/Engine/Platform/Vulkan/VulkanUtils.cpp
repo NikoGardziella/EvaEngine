@@ -513,7 +513,7 @@ namespace Engine {
         pc.flashTint = { 1.00f, 0.98f, 0.90f, 1.0f }; // white-hot flash
 
         // x=flashStrength, y=flickerAmount, z=alphaLiftEmpty, w=curveBoost
-        pc.effectParams0 = { 0.60f, 0.08f, 0.90f, 1.20f };
+        //pc.effectParams0 = { 0.60f, 0.08f, 0.90f, 1.20f };
 
         return pc;
     }
@@ -571,6 +571,39 @@ namespace Engine {
             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
             0, 0, nullptr, 0, nullptr, 1, &b);
     }
+
+
+
+    uint32_t VulkanUtils::TileToFXIndex(const glm::vec2& tileOriginW,
+        const glm::vec2& fxGridTopLeftW,
+        float pixelSizeW,
+        int fxPxW, int fxPxH,
+        bool worldYDown)
+    {
+        const float cellW = pixelSizeW * float(fxPxW); // e.g., 4096 * pixelSize
+        const float cellH = pixelSizeW * float(fxPxH); // e.g., 4096 * pixelSize
+        const float eps = 1e-4f;
+
+        int gx = int(std::floor((tileOriginW.x - fxGridTopLeftW.x) / cellW + eps));
+
+        int gy;
+        if (worldYDown) {
+            gy = int(std::floor((tileOriginW.y - fxGridTopLeftW.y) / cellH + eps));
+        }
+        else {
+            // Y-up: top-left has MAX Y
+            gy = int(std::floor((fxGridTopLeftW.y - tileOriginW.y) / cellH + eps));
+        }
+
+        // Accept edge cases that land exactly on the right/bottom border
+        if (gx == 3) gx = 2;
+        if (gy == 3) gy = 2;
+
+        if ((unsigned)gx >= 3u || (unsigned)gy >= 3u) return 0xFFFFFFFFu;
+        return uint32_t(gy * 3 + gx); // row-major 0..8
+    }
+
+
 
 } 
 

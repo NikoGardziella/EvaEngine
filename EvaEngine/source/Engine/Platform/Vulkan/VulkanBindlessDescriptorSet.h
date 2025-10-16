@@ -8,6 +8,7 @@
 #include <entt.hpp>
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include "LayerPool/LayerPool.h"
+#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 
 namespace Engine {
 
@@ -56,6 +57,9 @@ namespace Engine {
 
         // Per-frame
         void SetUploadCmdThisFrame(VkCommandBuffer cb) { m_uploadCmdThisFrame = cb; }
+        void UpdateEffectImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
+
+
         void SetCurrentFrameIndex(uint32_t fi) { m_currentFrame = fi; }
 
         // Build visible instances and stream into SSBO; updates binding 2 for this frame
@@ -185,7 +189,7 @@ namespace Engine {
         VkDeviceMemory m_colorArrayMem = VK_NULL_HANDLE;
         VkDeviceMemory m_propsArrayMem = VK_NULL_HANDLE;
         uint32_t       m_tileW = 128;
-        uint32_t     m_tileH = 256; 
+        uint32_t       m_tileH = 256; 
 
         // Per-layer views + freelist
         
@@ -197,4 +201,4 @@ namespace Engine {
         std::unordered_map<uint64_t, uint32_t> m_tileToSlot;
     };
 
-} // namespace Engine
+} 

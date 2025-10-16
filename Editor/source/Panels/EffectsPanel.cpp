@@ -89,37 +89,47 @@ namespace Engine {
             }
         }
     }
-
     void EffectsPanel::DrawFlags()
     {
         if (ImGui::CollapsingHeader("Flags", ImGuiTreeNodeFlags_DefaultOpen))
         {
             // bit 0 = glow on terrain
             // bit 1 = alpha-lift over empty
+            // bits 2..3 = DEBUG MODE (0=normal, 1=solid, 2=checker, 3=rings)
+            constexpr uint32_t FLAG_GLOW_TERRAIN = 1u << 0;
+            constexpr uint32_t FLAG_ALPHA_LIFT = 1u << 1;
+            constexpr uint32_t DBG_SHIFT = 2u;
+            constexpr uint32_t DBG_MASK = 0x3u << DBG_SHIFT;
+
             uint32_t flags = m_state->flags;
 
-            bool glowTerrain = (flags & 0x1u) != 0u;
-            bool alphaLift = (flags & 0x2u) != 0u;
+            bool glowTerrain = (flags & FLAG_GLOW_TERRAIN) != 0u;
+            bool alphaLift = (flags & FLAG_ALPHA_LIFT) != 0u;
+            int  dbgMode = int((flags & DBG_MASK) >> DBG_SHIFT); // 0..3
 
             if (ImGui::Checkbox("Glow on Terrain (bit 0)", &glowTerrain))
-            {
-                if (glowTerrain) flags |= 0x1u; else flags &= ~0x1u;
-            }
+                flags = glowTerrain ? (flags | FLAG_GLOW_TERRAIN) : (flags & ~FLAG_GLOW_TERRAIN);
+
             if (ImGui::Checkbox("Alpha-lift over Empty (bit 1)", &alphaLift))
+                flags = alphaLift ? (flags | FLAG_ALPHA_LIFT) : (flags & ~FLAG_ALPHA_LIFT);
+
+            const char* dbgItems[] = { "Normal", "Solid Fill", "Checker", "Rings at Collisions" };
+            if (ImGui::Combo("Debug Mode (bits 2..3)", &dbgMode, dbgItems, IM_ARRAYSIZE(dbgItems)))
             {
-                if (alphaLift) flags |= 0x2u; else flags &= ~0x2u;
+                flags = (flags & ~DBG_MASK) | ((uint32_t(dbgMode) << DBG_SHIFT) & DBG_MASK);
             }
 
             m_state->flags = flags;
         }
     }
 
+
     void EffectsPanel::DrawColors()
     {
         if (ImGui::CollapsingHeader("Colors", ImGuiTreeNodeFlags_DefaultOpen))
         {
             float impact[3] = { m_state->impactTint.x,    m_state->impactTint.y,    m_state->impactTint.z };
-            float destroyed[3] = { m_state->destroyedTint.x, m_state->destroyedTint.y, m_state->destroyedTint.z };
+            float destroyed[4] = { m_state->destroyedTint.x, m_state->destroyedTint.y, m_state->destroyedTint.z,m_state->destroyedTint.w };
             float flash[3] = { m_state->flashTint.x,     m_state->flashTint.y,     m_state->flashTint.z };
 
             // HDR + float to avoid sRGB clamping perception
@@ -131,11 +141,12 @@ namespace Engine {
                 m_state->impactTint.y = impact[1];
                 m_state->impactTint.z = impact[2];
             }
-            if (ImGui::ColorEdit3("Destroyed Tint", destroyed, flags))
+            if (ImGui::ColorEdit4("Destroyed Tint", destroyed, flags))
             {
                 m_state->destroyedTint.x = destroyed[0];
                 m_state->destroyedTint.y = destroyed[1];
                 m_state->destroyedTint.z = destroyed[2];
+                m_state->destroyedTint.w = destroyed[3];
             }
             if (ImGui::ColorEdit3("Flash Tint (reserved)", flash, flags))
             {

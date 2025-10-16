@@ -380,7 +380,7 @@ namespace Engine {
 
         m_textureStreamingSystem->BakeTilesIntoChunks(this); // terrain
 		m_textureStreamingSystem->AddChunkEntitiesToRegistry(this); 
-        m_tileMananger->StreamInitialResidency(this);
+        m_tileMananger->BuildInitialResidency(this);
 
        // m_gridMap->BuildFromRegistry(m_registry);
     }
@@ -484,6 +484,32 @@ namespace Engine {
             }
         }
         glm::vec2 playerPos;
+        auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent, SpriteRendererComponent>();
+        uint64_t playerID = 0;
+
+        Entity playerEntity = Entity{};
+        for (auto entity : playerView)
+        {
+            auto& playerTransform = playerView.get<Engine::TransformComponent>(entity);
+            playerPos.x = playerTransform.Translation.x;
+            playerPos.y = playerTransform.Translation.y;
+
+            auto& playerIDComp = playerView.get<Engine::IDComponent>(entity);
+            playerID = playerIDComp.ID;
+            playerEntity = Entity{ entity, this };
+
+            if (!playerEntity.HasComponent<DriverComponent>())
+            {
+                float playerRadius = 0.5f;
+                float tiling = 0.5f;
+
+                auto& spriteComp = playerView.get<Engine::SpriteRendererComponent>(entity);
+
+                Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
+                // Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
+            }
+        }
+        m_textureStreamingSystem->Update(playerPos, this);
 
         if(mainCamera)
         {   
@@ -508,8 +534,12 @@ namespace Engine {
                         {
                             continue;
                         }
+                        
 
                         glm::vec2 worldPos = glm::vec2(chunkComp.ChunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
+                        chunkComp.TerrainTexture->SetTextureOrigin(worldPos);
+                       // chunkComp.VisualEffectTexture->SetTextureOrigin(worldPos);
+
                         glm::mat4 model =
                             glm::translate(glm::mat4(1.0f),
                                 glm::vec3(worldPos.x, worldPos.y, 0.0f))
@@ -518,38 +548,15 @@ namespace Engine {
 
                         
 
+                        //Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.VisualEffectTexture);
                         Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.TerrainTexture);
 
+
                     }
                 }
 
-                auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent, SpriteRendererComponent>();
-                uint64_t playerID = 0;
 
-                Entity playerEntity = Entity{};
-                for (auto entity : playerView)
-                {
-                    auto& playerTransform = playerView.get<Engine::TransformComponent>(entity);
-                    playerPos.x = playerTransform.Translation.x;
-                    playerPos.y = playerTransform.Translation.y;
-
-                    auto& playerIDComp = playerView.get<Engine::IDComponent>(entity);
-                    playerID = playerIDComp.ID;
-                    playerEntity = Entity{ entity, this };
-
-                    if (!playerEntity.HasComponent<DriverComponent>())
-                    {
-                        float playerRadius = 0.5f;
-                        float tiling = 0.5f;
-
-                        auto& spriteComp = playerView.get<Engine::SpriteRendererComponent>(entity);
-
-                        Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
-                        // Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
-                    }
-                }
-                m_textureStreamingSystem->Update(playerPos, this);
-
+                
                 this->ForEach<TransformComponent, DynamicObjectRenderComp>(
                     [&](Entity, TransformComponent& tr, DynamicObjectRenderComp& dyn)
                     {
@@ -931,6 +938,45 @@ namespace Engine {
                 }
 
             }
+
+
+            {
+                // render visual effects last on top of everything else
+                EE_PROFILE_SCOPE("Update visual effects");
+
+                entt::basic_view view = m_registry.view<ChunkRendererComponent>();
+                for (auto entity : view)
+                {
+                    ChunkRendererComponent& chunkComp = view.get<ChunkRendererComponent>(entity);
+                    {
+                        if (!chunkComp.IsLoaded)
+                            continue;
+
+                        if (chunkComp.TerrainTexture == nullptr)
+                        {
+                            continue;
+                        }
+
+                        glm::vec2 worldPos = glm::vec2(chunkComp.ChunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
+                        
+                        chunkComp.VisualEffectTexture->SetTextureOrigin(worldPos);
+                        
+                        glm::mat4 model =
+                            glm::translate(glm::mat4(1.0f),
+                                glm::vec3(worldPos.x, worldPos.y, 0.0f))
+                            * glm::scale(glm::mat4(1.0f),
+                                glm::vec3(CHUNK_SIZE, CHUNK_SIZE, 1.0f));
+
+
+
+                        Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.VisualEffectTexture);
+                        //Engine::VulkanRenderer2D::DrawVisualEffectTexture(model, chunkComp.VisualEffectTexture);
+
+                    }
+                }
+
+            }
+
 
             //Engine::Renderer::DrawFrame();
             Engine::VulkanRenderer2D::EndScene();

@@ -421,6 +421,7 @@ namespace Engine {
 
 
         constexpr int CHUNK_RES = CHUNK_SIZE; // Assuming square chunks
+       // EE_CORE_INFO("Loading chunk at coords: {}, {}", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
 
         
         if (!chunk.TerrainData.empty())
@@ -498,6 +499,12 @@ namespace Engine {
                // chunkRendComp.PropertiesTexture = chunk.PropertiesTexture;
               //  chunkRendComp.PropertiesTexture->SetCPUPixelData(std::move(chunk.PropertiesData));
                 chunkRendComp.TerrainTexture = chunk.TerrainTexture;
+                chunkRendComp.VisualEffectTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UNORM);
+                
+                
+                //chunkRendComp.VisualEffectTexture = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8G8B8A8_UINT);
+                chunkRendComp.VisualEffectTexture->ResetData(); // set everything to 0 so nothing gets rendered at start
+                
                 chunkRendComp.IsLoaded = true;
                 chunk.GPUTexture = nullptr;
                 break;
@@ -512,7 +519,7 @@ namespace Engine {
     void TextureStreamingSystem::UnloadChunkFromGPU(TextureChunk& chunk, Scene* scene)
     {
         EE_PROFILE_FUNCTION();
-        EE_CORE_INFO("Unloading chunk at coords: {}, {}", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
+        //EE_CORE_INFO("Unloading chunk at coords: {}, {}", chunk.ChunkCoords.x, chunk.ChunkCoords.y);
 
         auto entityView = scene->GetRegistry().view<IDComponent, SpriteRendererComponent>();
 
@@ -545,6 +552,7 @@ namespace Engine {
                 chunkRendComp.Texture = nullptr;
                 chunkRendComp.PropertiesTexture = nullptr;
                 chunkRendComp.TerrainTexture = nullptr;
+                chunkRendComp.VisualEffectTexture = nullptr;
                 chunkRendComp.IsLoaded = false;
                 break;
             }
@@ -590,6 +598,8 @@ namespace Engine {
 		m_chunkMap.clear();
         
     }
+
+
     void TextureStreamingSystem::DebugDrawChunkOutlines(Scene* scene)
     {
         EE_PROFILE_FUNCTION();
@@ -604,10 +614,16 @@ namespace Engine {
         }
 
         constexpr float cs = float(CHUNK_SIZE);
-        constexpr int DEBUG_RADIUS = 1;
-
+        constexpr int DEBUG_RADIUS = 2;
+       
+      
         glm::ivec2 playerChunk = glm::floor(playerPos / cs);
         std::unordered_set<glm::ivec2, IVec2Hasher> loadedCoords;
+        for (const auto& [coord, chunk] : m_chunkMap)
+        {
+            if (chunk.IsLoaded)
+                loadedCoords.insert(chunk.ChunkCoords);
+        }
         glm::vec2 halfChunkOffset = glm::vec2(cs * 0.5f);
 
         // 2) Draw nearby unloaded chunks in red
@@ -615,41 +631,39 @@ namespace Engine {
         {
             for (int dx = -DEBUG_RADIUS; dx <= DEBUG_RADIUS; ++dx)
             {
-                glm::ivec2 coords = playerChunk + glm::ivec2(dx, dy);
+                const glm::ivec2 coords = playerChunk + glm::ivec2(dx, dy);
 
                 if (loadedCoords.count(coords) > 0)
                     continue;
 
-                glm::vec2 origin = glm::vec2(coords) * cs - halfChunkOffset;
-                glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(origin, 0.0f)) *
+                // Center-based unit-rect transform (matches your green version)
+                const glm::vec2 center = (glm::vec2(coords) + glm::vec2(0.5f)) * cs;
+                glm::mat4 transform =
+                    glm::translate(glm::mat4(1.0f), glm::vec3(center, 0.0f)) *
                     glm::scale(glm::mat4(1.0f), glm::vec3(cs, cs, 1.0f));
 
-                glm::vec4 color = glm::vec4(1, 0, 0, 1); // Red = not loaded
+                const glm::vec4 color = glm::vec4(1, 0, 0, 1); // Red = not loaded
                 Engine::VulkanRenderer2D::DrawLineRect(transform, color, -1);
             }
         }
 
         // 3) Draw loaded chunks in green if near player
+
         for (const auto& [coord, chunk] : m_chunkMap)
         {
-            if (chunk.IsLoaded)
-            {
-                glm::ivec2 chunkCoords = chunk.ChunkCoords;
-                loadedCoords.insert(chunkCoords);
+            if (!chunk.IsLoaded) continue;
 
-                // Only draw if near player
-                glm::ivec2 delta = chunkCoords - playerChunk;
-                if (abs(delta.x) > DEBUG_RADIUS || abs(delta.y) > DEBUG_RADIUS)
-                    continue;
+            const glm::ivec2 delta = chunk.ChunkCoords - playerChunk;
+            if (abs(delta.x) > DEBUG_RADIUS || abs(delta.y) > DEBUG_RADIUS) continue;
 
-                glm::vec2 origin = glm::vec2(chunkCoords) * cs - halfChunkOffset;
-                glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(origin, 0.0f)) *
-                    glm::scale(glm::mat4(1.0f), glm::vec3(cs, cs, 1.0f));
+            const glm::vec2 center = (glm::vec2(chunk.ChunkCoords) + glm::vec2(0.5f)) * cs;
+            glm::mat4 debugChunkTransform = glm::translate(glm::mat4(1.0f), glm::vec3(center, 0.0f)) *
+                glm::scale(glm::mat4(1.0f), glm::vec3(cs, cs, 1.0f));
 
-                glm::vec4 color = glm::vec4(0, 1, 0, 1); // Green = loaded
-                Engine::VulkanRenderer2D::DrawLineRect(transform, color, -1);
-            }
+            glm::vec4 loadedChunkColor = glm::vec4({ 0, 1, 0, 1 });
+            VulkanRenderer2D::DrawLineRect(debugChunkTransform, loadedChunkColor, -1);
         }
+
     }
 
 

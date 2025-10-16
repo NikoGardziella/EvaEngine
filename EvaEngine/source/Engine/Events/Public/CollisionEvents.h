@@ -29,6 +29,5 @@ namespace Engine
     struct CollisionResultsCPU
     {
         static inline std::vector<Collision> LatestProjectiles;
-        static inline std::vector<Collision> PlayerCollisions;
     };
 }

@@ -472,6 +472,7 @@ namespace Engine
 		glm::vec3 b(to, 0.1f);
 		Engine::VulkanRenderer2D::DrawLine(a, b, color, -1);
 	}
+
     void GridMap::DrawDebugBlockedTiles() const
     {
         EE_PROFILE_FUNCTION();
