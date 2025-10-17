@@ -671,9 +671,7 @@ namespace Engine {
         DrawComponent<WeaponComponent>("Weapon", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
 
-                if (ImGui::IsItemHovered())
-                    ImGui::SetTooltip("Radius in world units");
-
+               
                 {
                     const uint32_t minD = 0;
                     const uint32_t maxD = 256;
@@ -686,6 +684,8 @@ namespace Engine {
                 ImGui::DragFloat("Projectile Speed", &component.ProjectileSpeed, 0.1f, 0.0f, 100.0f);
                 ImGui::DragFloat("Destruction Radius (world)", &component.DestructionRadius,
                     0.01f, 0.0f, 100.0f, "%.3f");
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("Radius in world units");
 
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID),
                  m_sceneHierarchyPanelScene.get()
