@@ -10,7 +10,7 @@ layout(set=0, binding=1, rgba8ui) uniform uimage2D uProps[];   // R=health, G=he
 
 // ---- collision results SSBO (unchanged layout) ----
 #define MAX_COLLISION_ENTITIES 32
-#define MAX_VISUALEFFECT_TEXTRUES 32 // now terrain
+#define MAX_VISUALEFFECT_TEXTRUES 9
 
 struct CollisionResult {
     uint collisionDetected;
@@ -608,10 +608,6 @@ void drawHealthOverlay(uint TILE)
 
 void main()
 {
-
-
-    if(pc.fxIdx < 9 + 1)
-        return;
 
     if(pc.mode == 1)
     {

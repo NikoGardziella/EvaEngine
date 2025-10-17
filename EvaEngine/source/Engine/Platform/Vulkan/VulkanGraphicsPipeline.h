@@ -165,7 +165,7 @@ namespace Engine {
         void UpdatePlayerCollisionDescriptorSet(uint32_t frameIndex,const  std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE> healthTextures);
         void UpdateProjectileDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_PROJECTILES>& textures);
        
-        void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
+        void UpdateGameDrawAndVisualImagesDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures, const std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& visualTextures);
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::vector<Ref<VulkanTexture>>& textures);
 
 

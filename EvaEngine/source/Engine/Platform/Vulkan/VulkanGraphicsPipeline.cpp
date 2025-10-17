@@ -1321,15 +1321,27 @@ namespace Engine {
     }
 
 
-    void VulkanGraphicsPipeline::UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures)
+    void VulkanGraphicsPipeline::UpdateGameDrawAndVisualImagesDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, 
+        MAX_TEXTURES>& textures, const std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& visualTextures)
     {
         std::array<VkDescriptorImageInfo, MAX_TEXTURES> imageInfos{};
+        uint32_t visulTextureIndex = 0;
         for (uint32_t i = 0; i < MAX_TEXTURES; ++i)
         {
-
-            imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfos[i].imageView = textures[i]->GetImageView();
-            imageInfos[i].sampler = textures[i]->GetSampler();
+            if (i < MAX_TEXTURES - CHUNK_GRID_SIZE)
+            {
+                imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                imageInfos[i].imageView = textures[i]->GetImageView();
+                imageInfos[i].sampler = textures[i]->GetSampler();
+            }
+            else
+            {
+                //add visual texture to the back of the array for now
+                imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                imageInfos[i].imageView = visualTextures[visulTextureIndex]->GetImageView();
+                imageInfos[i].sampler = visualTextures[visulTextureIndex]->GetSampler();
+                visulTextureIndex++;
+            }
 
         }
 

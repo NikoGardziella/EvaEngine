@@ -57,7 +57,7 @@ namespace Engine {
 
         // Per-frame
         void SetUploadCmdThisFrame(VkCommandBuffer cb) { m_uploadCmdThisFrame = cb; }
-        void UpdateEffectImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures);
+        void UpdateEffectImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, CHUNK_GRID_WIDTH* CHUNK_GRID_WIDTH>& textures);
 
 
         void SetCurrentFrameIndex(uint32_t fi) { m_currentFrame = fi; }

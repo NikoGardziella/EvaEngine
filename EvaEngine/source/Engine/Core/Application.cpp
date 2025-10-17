@@ -117,8 +117,8 @@ namespace Engine
 			}
 			
 
-			m_window->OnUpdate();
 
+			m_window->OnUpdate();
 			Renderer::EndFrame();
 
 			

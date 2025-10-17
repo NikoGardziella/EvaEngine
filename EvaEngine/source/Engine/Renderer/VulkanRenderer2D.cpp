@@ -168,7 +168,7 @@ namespace Engine {
 		{
 			s_VulkanData.GridTextureSlots[i] = s_VulkanData.WhiteTexture;
 			s_VulkanData.propertiesTextureSlots[i] = m_dummyTexture;
-			s_VulkanData.VisualEffectsTextureSlots[i] = m_dummyTexture;
+			s_VulkanData.VisualEffectsTextureSlots[i] = s_VulkanData.WhiteTexture;
 
 			s_VulkanData.GridSlotIndex++;
 		}
@@ -176,7 +176,7 @@ namespace Engine {
 
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(i, s_VulkanData.TextureSlots);
+			m_vulkanGraphicsPipelines->UpdateGameDrawAndVisualImagesDescriptorSets(i, s_VulkanData.TextureSlots, s_VulkanData.VisualEffectsTextureSlots);
 		}
 		s_VulkanData.TextureSlotIndex = CHUNK_GRID_SIZE;
 		s_VulkanData.GridSlotIndex = 0;
@@ -293,7 +293,7 @@ namespace Engine {
 	void VulkanRenderer2D::EndFrame(uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
-		s_bindlessDescitproSet->UpdateEffectImageDescriptorSets(currentFrame, s_VulkanData.TextureSlots);
+		s_bindlessDescitproSet->UpdateEffectImageDescriptorSets(currentFrame, s_VulkanData.VisualEffectsTextureSlots);
 
 		CalculateCollisionFrame(currentFrame);
 		s_VulkanData.CurrentFrame = currentFrame;
@@ -403,7 +403,7 @@ namespace Engine {
 			
 
 		}
-		m_vulkanGraphicsPipelines->UpdateTrackedImageDescriptorSets(currentFrame, s_VulkanData.TextureSlots);
+		m_vulkanGraphicsPipelines->UpdateGameDrawAndVisualImagesDescriptorSets(currentFrame, s_VulkanData.TextureSlots, s_VulkanData.VisualEffectsTextureSlots);
 		m_vulkanGraphicsPipelines->UpdateProjectileDescriptorSets(currentFrame, s_VulkanProjectileData.TextureSlots);
 
 
@@ -505,7 +505,7 @@ namespace Engine {
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
-
+		// projectiles
 		m_vulkanGraphicsPipelines->UpdateCollisionUniformBuffer(currentFrame, s_CollisionData.CollisionEntities);
 		RecordComputeCommandBuffer(cmd, currentFrame);
 
@@ -1092,9 +1092,6 @@ namespace Engine {
 
 		for (uint32_t slot : uniqueSlots)
 		{
-			
-
-			
 
 			// ---- Build push constants ----
 			ComputePC pc{};
@@ -1356,7 +1353,7 @@ namespace Engine {
 		radiiW.reserve(numberOfCollisions);
 
 		// this should be tested with two collisions in one frame
-		for (uint32_t i = 0; i < 2; ++i)
+		for (uint32_t i = 0; i < numberOfCollisions; ++i)
 		{
 			const auto& r = collisionResult.results[i];
 
@@ -1420,12 +1417,7 @@ namespace Engine {
 		VkImage propsArray = s_bindlessDescitproSet->GetPropsArrayImage();
 
 
-		std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>  fxTextures;
-		for (size_t i = 0; i < CHUNK_GRID_SIZE; i++)
-		{
-			uint32_t usedTextureslots = 1; // now only player. this is crap. Make it better
-			fxTextures[i] = s_VulkanData.TextureSlots[i + CHUNK_GRID_SIZE + usedTextureslots];
-		}
+		
 
 
 		std::vector<uint32_t> affectedSlots;
@@ -1460,7 +1452,7 @@ namespace Engine {
 		// Make sure that first 9 TextureSlots are where you want to write the the effects
 		for (size_t i = 0; i < CHUNK_GRID_SIZE; i++)
 		{
-			VulkanTexture& tex = *fxTextures[i];
+			VulkanTexture& tex = *s_VulkanData.VisualEffectsTextureSlots[i];
 
 			
 				glm::vec2 texOriginW = tex.GetTextureOrigin(); 
@@ -1485,8 +1477,8 @@ namespace Engine {
 		{
 			EE_CORE_INFO("affectedSlots count: {}", affectedSlots.size());
 			glm::vec2 tileOriginW = s_VulkanBindlessData.m_slotOriginWorld[slot];
-			const int    FX_TEXTURE_HEIGHT = fxTextures[0]->GetHeight(); // they should be same size all
-			const int    FX_TEXTURE_WIDTH = fxTextures[0]->GetWidth();
+			const int    FX_TEXTURE_HEIGHT = s_VulkanData.VisualEffectsTextureSlots[0]->GetHeight(); // they should be same size all
+			const int    FX_TEXTURE_WIDTH = s_VulkanData.VisualEffectsTextureSlots[0]->GetWidth();
 
 			uint32_t fxIdx = VulkanUtils::TileToFXIndex(tileOriginW, fxGridTopLeftW, pixelSizeWorld,
 				FX_TEXTURE_WIDTH, FX_TEXTURE_HEIGHT, /*worldYDown=*/false);
@@ -1522,10 +1514,10 @@ namespace Engine {
 			pc.flashTint = s_effectPushConstants.flashTint;
 			pc.effectParams0 = s_effectPushConstants.effectParams0;
 
-			glm::vec2 texOriginW = fxTextures[fxIdx]->GetTextureOrigin();
+			glm::vec2 texOriginW = s_VulkanData.VisualEffectsTextureSlots[fxIdx]->GetTextureOrigin();
 
 			uint32_t usedTextureSlotse = 1;
-			pc.fxIdx = fxIdx + CHUNK_GRID_SIZE + usedTextureSlotse;
+			pc.fxIdx = fxIdx;
 
 
 
@@ -1615,8 +1607,8 @@ namespace Engine {
 		for (size_t fxIdx = 0; fxIdx < CHUNK_GRID_SIZE; fxIdx++)
 		{
 
-			const int    FX_TEXTURE_HEIGHT = fxTextures[0]->GetHeight(); // they should be same size all
-			const int    FX_TEXTURE_WIDTH = fxTextures[0]->GetWidth();
+			const int    FX_TEXTURE_HEIGHT = s_VulkanData.VisualEffectsTextureSlots[0]->GetHeight(); // they should be same size all
+			const int    FX_TEXTURE_WIDTH = s_VulkanData.VisualEffectsTextureSlots[0]->GetWidth();
 
 			
 			//EE_CORE_INFO("tileOriginW: {} | {}", tileOriginW.x , tileOriginW.y);
@@ -1640,10 +1632,10 @@ namespace Engine {
 			pc.flashTint = s_effectPushConstants.flashTint;
 			pc.effectParams0 = s_effectPushConstants.effectParams0;
 			pc.mode = 1;
-			glm::vec2 texOriginW = fxTextures[fxIdx]->GetTextureOrigin();
+			glm::vec2 texOriginW = s_VulkanData.VisualEffectsTextureSlots[fxIdx]->GetTextureOrigin();
 
 			uint32_t usedTextureSlotse = 1;
-			pc.fxIdx = fxIdx + CHUNK_GRID_SIZE + usedTextureSlotse; // shit offset for now
+			pc.fxIdx = fxIdx; // shit offset for now
 
 
 
@@ -2210,9 +2202,19 @@ namespace Engine {
 
 		if (s_VulkanData.TextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
 		{
-			//EE_CORE_ASSERT(false, "Texture slot index exceeded maximum limit!");
+			EE_CORE_WARN("Texture slot index exceeded maximum limit!");
 			return;
 		}
+
+
+		if (s_VulkanData.TextureSlotIndex + s_VulkanData.VisualTextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
+		{
+			// im add visual textures at the back of textureslots.
+			EE_CORE_WARN("VisualTextureSlotIndex + TextureSlotIndex slot index exceeded maximum limit!");
+			return;
+		}
+		
+
 
 
 		// Try to get texture slot from map

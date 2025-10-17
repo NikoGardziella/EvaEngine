@@ -957,10 +957,10 @@ namespace Engine {
         vkFreeMemory(device, stagingMem, nullptr);
     }
 
-    void VulkanBindlessDescriptorSetRenderer::UpdateEffectImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures)
+    void VulkanBindlessDescriptorSetRenderer::UpdateEffectImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, CHUNK_GRID_WIDTH* CHUNK_GRID_WIDTH>& textures)
     {
-        std::array<VkDescriptorImageInfo, MAX_TEXTURES> imageInfos{};
-        for (uint32_t i = 0; i < MAX_TEXTURES; ++i)
+        std::array<VkDescriptorImageInfo, CHUNK_GRID_WIDTH* CHUNK_GRID_WIDTH> imageInfos{};
+        for (uint32_t i = 0; i < CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH; ++i)
         {
            // uint32_t usedTextureSlots = 1; // player only. This is crap. change it.
             //uint32_t index = i + CHUNK_GRID_SIZE + usedTextureSlots;
@@ -1121,7 +1121,7 @@ namespace Engine {
         // effects
         bindings[5].binding = 5;
         bindings[5].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        bindings[5].descriptorCount = 32;
+        bindings[5].descriptorCount = CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH; // 3x3 grid 
         bindings[5].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
         bindings[5].pImmutableSamplers = nullptr;
 
