@@ -239,12 +239,12 @@ void blendFX(ivec2 pTile, vec3 rgb, float a)
 }
 
 // ==================== Explosion + Impact ====================
-struct ProjectileGPU {
+struct ProjectileGPU
+{
     float DestructionRadius;  // pixels
     uint  Damage;             // HP units
 };
 
-//  a flag toggle near your other flags:
 
 
 void processExplosionDiskFalloff(const ProjectileGPU proj, ivec2 centerPx, ivec2 curSize)
@@ -284,14 +284,7 @@ void processExplosionDiskFalloff(const ProjectileGPU proj, ivec2 centerPx, ivec2
             // DEBUG: mark modified pixels in magenta so you see the exact area
             vec4 c = imageLoad(uColor[nonuniformEXT(TILE)], p);
 
-            if(ht.r == 0u)
-            {
-                //imageStore(uColor[nonuniformEXT(TILE)], p, vec4(max(c.rgb, vec3(1,0,1)), 1.0));
-            }
-            else
-            {
-               // imageStore(uColor[nonuniformEXT(TILE)], p, vec4(max(c.rgb, vec3(0,1,0)), 1.0));
-            }
+           
         }
     }
 }
@@ -342,18 +335,25 @@ void processExplosionDiskFalloff_WorldExact(vec2 W, float radiusW, uint dmgPerHi
         bool hasHP   = (ht.r > 0u);
         bool terrain = (c.a > 0.0) && !hasHP;
 
-        if (hasHP) {
+        if (hasHP)
+        {
             uint h = ht.r;
-            if (dmgPerHit >= h) {
+            if (dmgPerHit >= h)
+            {
                 // destroy
-                ht.r = 0u; ht.a |= FX_ARMED; imageStore(uProps[nonuniformEXT(TILE)], p, ht);
-                imageStore(uColor[nonuniformEXT(TILE)], p, vec4(0.0)); // fully hole
-            } else {
+                ht.r = 0u;
+                ht.a |= FX_ARMED;
+                imageStore(uProps[nonuniformEXT(TILE)], p, ht);
+                imageStore(uColor[nonuniformEXT(TILE)], p, vec4(0.0));
+            }
+            else
+            {
                 // damage
-                ht.r = h - dmgPerHit; ht.a |= FX_ARMED; imageStore(uProps[nonuniformEXT(TILE)], p, ht);
+                ht.r = h - dmgPerHit;
+                ht.a |= FX_ARMED;
+                imageStore(uProps[nonuniformEXT(TILE)], p, ht);
             }
         }
-        // else: terrain or empty — leave as-is unless you want terrain scorch logic here
     }
 }
 
@@ -603,89 +603,63 @@ void drawHealthOverlay(uint TILE)
 }
 
 
-
-
-
 void main()
 {
-
     if(pc.mode == 1)
     {
         // second pass for fading effect.      
         fadeFXTexture(pc.fxIdx);
         return; 
     }
-    
-
 
     const uint  TILE   = pc.TextureIndex;
     ivec2       tileSz = imageSize(uColor[nonuniformEXT(TILE)]);
     vec2        rectMinW = pc.textureOrigin;
     vec2        rectMaxW = rectMinW + vec2(tileSz) * pc.pixelSize;
 
-    const float eps = 1e-6; // world units, tiny
-    vec2 minE = rectMinW - vec2(eps);
-    vec2 maxE = rectMaxW + vec2(eps);
-    // half-open rect: [min, max-eps] to avoid double ownership on the max edge
-    vec2 maxHalfOpen = maxE - vec2(eps);
-
-     if (gl_GlobalInvocationID.xy != uvec2(0)) return;
-
+    if (gl_GlobalInvocationID.xy != uvec2(0)) return;
 
     uint count = min(collisionCount, MAX_COLLISION_ENTITIES);
     for (uint i = 0u; i < count; ++i)
     {
-        //if (results[i].collisionDetected == 0xFFFFFFFFu) continue;
-
         // World-space impact center and radius
-        vec2  W        = results[i].CollisionPosition;
+        vec2  WorldPos        = results[i].CollisionPosition;
         float radiusW  = pc.hitRadiusWS;
 
         // Skip tiles the AoE doesn't touch
-        if (!circleIntersectsRect(W, radiusW, rectMinW, rectMaxW)) continue;
 
-        
         // Convert to this tile's pixel center
-        vec2  centerPxF = (W - rectMinW) / pc.pixelSize;
+        vec2  centerPxF = (WorldPos - rectMinW) / pc.pixelSize;
         ivec2 centerPx  = ivec2(floor(centerPxF));
         centerPx = clamp(centerPx, ivec2(0), tileSz - ivec2(1));
 
-       /// imageStore(uColor[nonuniformEXT(TILE)], centerPx, vec4(1,0,1, 1.0));
-
         // Radius in pixels (for destruction + FX)
         float radiusPxF = (pc.pixelSize > 0.0) ? (radiusW / pc.pixelSize) : radiusW;
-
         int   R         = max(1, int(round(radiusPxF)));
+
         // --------- Area destruction on THIS tile ---------
         ProjectileGPU proj;
         proj.DestructionRadius = float(R);
         proj.Damage            = pc.hitDamage;
-
-       // processExplosionDiskFalloff(proj, centerPx, tileSz);
-       processExplosionDiskFalloff_WorldExact(W, radiusW, pc.hitDamage);
-
-        //return; // disble effect
+        processExplosionDiskFalloff_WorldExact(WorldPos, radiusW, pc.hitDamage);
 
         // --------- FX: paint a persistent disk in the correct FX texture ---------
         {
             uint  FXn;
             ivec2 qCenter;   // unflipped pixel in FXn
             ivec2 fsN;       // size of FXn
-            if (mapWorldToFX(W, FXn, qCenter, fsN))
+            if (mapWorldToFX(WorldPos, FXn, qCenter, fsN))
             {
-                // If you flip in compute, do it here using the TARGET FX size.
                 ivec2 qDrawC = flipY(qCenter, fsN);
 
-                // Tight disk fill (matches destruction radius)
-               // Tight disk fill (matches destruction radius)
                 int r2 = R * R;
                 int y0 = max(qDrawC.y - R, 0);
                 int y1 = min(qDrawC.y + R, fsN.y - 1);
 
-                bool liftAlpha = ((pc.flags & 0x2u) != 0u);  // your "Alpha-lift over Empty" editor flag (bit 1)
+                bool liftAlpha = ((pc.flags & 0x2u) != 0u);
                 float targetA  = liftAlpha ? 0.9 : 0.0;
 
-                // Scale brightness by glowStrength to let you tune in UI
+                // Scale brightness by glowStrength
                 vec3 stampRGB = clamp(mix(pc.impactTint.rgb, pc.destroyedTint.rgb, 0.0) * max(pc.glowStrength, 0.1), 0.0, 1.0);
 
                 for (int y = y0; y <= y1; ++y)
@@ -699,11 +673,10 @@ void main()
                     {
                         ivec2 q = ivec2(x, y);
 
-                        // IMPORTANT: write to the mapped target FXn, not pc.fxIdx
                         vec4 dst = imageLoad(uFX[nonuniformEXT(pc.fxIdx)], q);
 
-                        vec3 outRGB = max(dst.rgb, stampRGB);                    // sticky lighten
-                        float outA  = liftAlpha ? max(dst.a, targetA) : dst.a;   // optional alpha-lift
+                        vec3 outRGB = max(dst.rgb, stampRGB);
+                        float outA  = liftAlpha ? max(dst.a, targetA) : dst.a;
 
                         imageStore(uFX[nonuniformEXT(pc.fxIdx)], q, vec4(outRGB, outA));
                     }
