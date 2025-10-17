@@ -670,11 +670,22 @@ namespace Engine {
 
         DrawComponent<WeaponComponent>("Weapon", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
-                ImGui::DragFloat("Damage", &component.Damage, 0.1f, 0.0f, 100.0f);
+
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("Radius in world units");
+
+                {
+                    const uint32_t minD = 0;
+                    const uint32_t maxD = 256;
+                    // step = 1.0f, display as unsigned
+                    ImGui::DragScalar("Damage", ImGuiDataType_U32, &component.Damage,
+                        1.0f, &minD, &maxD, "%u");
+                }
                 ImGui::DragFloat("Fire Rate", &component.FireRate, 0.1f, 0.1f, 100.0f);
                 ImGui::DragFloat("Cooldown", &component.Cooldown, 0.1f, 0.0f, 100.0f);
                 ImGui::DragFloat("Projectile Speed", &component.ProjectileSpeed, 0.1f, 0.0f, 100.0f);
-                ImGui::DragInt("Destruction Radius in Pixels", &component.DestructionRadius, 1.0f, 0, 10000);
+                ImGui::DragFloat("Destruction Radius (world)", &component.DestructionRadius,
+                    0.01f, 0.0f, 100.0f, "%.3f");
 
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID),
                  m_sceneHierarchyPanelScene.get()
@@ -1135,10 +1146,16 @@ namespace Engine {
 
         DrawComponent<ProjectileComponent>("Projectile", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
+                
                 ImGui::DragFloat2("Velocity", glm::value_ptr(component.Direction));
                 ImGui::DragFloat("Life time", &component.ProjectileMaxRange, 0.01, 0.0f, 1.0f);
-                ImGui::DragFloat("Damage", &component.Damage, 0.01, 0.0f, 1.0f);
-
+                {
+                    const uint32_t minD = 0;
+                    const uint32_t maxD = 256;
+                    // step = 1.0f, display as unsigned
+                    ImGui::DragScalar("Damage", ImGuiDataType_U32, &component.Damage,
+                        1.0f, &minD, &maxD, "%u");
+                }
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (newEntity)
                 {

@@ -34,13 +34,13 @@ layout(set=0, binding=1, rgba8ui) uniform uimage2D uProps[];
 
 // SSBOs
 struct CollisionResult {
-    uint collisionDetected;
+    uint collisionDetected; // aka key ?!
     uint hitProjectileID_Low;
     uint hitProjectileID_High;
-    uint _pad0;
+    float DestructionRadius;
     vec2 CollisionPosition;
     uint HealthAfter;
-    uint _pad1;
+    uint Damage;
 };
 
 struct ProjectileGPU {
@@ -52,7 +52,7 @@ struct ProjectileGPU {
     vec2  Size;
     float Rotation;
     uint  Damage;
-    uint  DestructionRadius;
+    float DestructionRadius;
     uint  _pad0;
     vec2  EndPos;
     vec2  Dir;              // arbitrary length
@@ -103,28 +103,6 @@ uint packKey(float tNorm)
     uint  dist = uint(floor(tf * 16777215.0 + 0.5)); // 24 bits
     return (dist << 8) | (pc.TextureIndex & 0xFFu);  // low 8 bits = tile tie-breaker
 }
-
-// Try to become the winner for projectile i at param tHit.
-// If we improved the key, also publish winner tile + hit info into the CLAIM slot.
-bool updateClaimIfBetter(uint i, float tHit, vec2 hitW, ivec2 hitPx, const ProjectileGPU proj, uint healthAfter)
-{
-    uint k   = packKey(tHit);
-    uint old = atomicMin(CLAIM(i).collisionDetected, k);
-    if (k < old) {
-        // we are the new best — publish winner info into the claim slot
-        CLAIM(i).hitProjectileID_Low  = proj.ID_Low;
-        CLAIM(i).hitProjectileID_High = proj.ID_High;
-        CLAIM(i).CollisionPosition    = hitW;
-        CLAIM(i).HealthAfter          = healthAfter;
-        // stash winner tile + pixel in padding
-        CLAIM(i)._pad0 = pc.TextureIndex;      // winner tile
-        CLAIM(i)._pad1 = (uint(hitPx.y) << 16) | uint(hitPx.x); // pack px
-        memoryBarrierBuffer();                 // make publication visible
-        return true; // “currently best”
-    }
-    return false; // not better than current best
-}
-
 
 
 vec2 pixelCenterWorld(ivec2 lp) {
@@ -538,27 +516,26 @@ uint makeKey(float t, bool aimed, float L)
 uint packPx16(ivec2 px) { return (uint(px.x) & 0xFFFFu) | (uint(px.y) << 16); }
 
 // Write the winner info into the claim slot (results[i])
-void writeClaimMeta(uint i, uint slot, ivec2 px, vec2 posW, uint healthAfter)
+void writeClaimMeta(uint i, CollisionResult result)
  {
-    ProjectileGPU proj = data[i]; // fix
 
     atomicAdd(collisionCount, 1u);
     
-    results[i]._pad0             = slot;                 // winner tile slot
-    results[i]._pad1             = packPx16(px);         // winner pixel (x|y)
-    results[i].CollisionPosition = posW;                 // where the hit is
-    results[i].HealthAfter       = healthAfter;          // optional payload
-    results[i].hitProjectileID_Low  = proj.ID_Low;
-    results[i].hitProjectileID_High = proj.ID_High;
+    results[i].Damage               = result.Damage;                 
+    results[i].DestructionRadius    = result.DestructionRadius;        
+    results[i].CollisionPosition    = result.CollisionPosition;
+    results[i].HealthAfter          = result.HealthAfter;          
+    results[i].hitProjectileID_Low  = result.hitProjectileID_Low;
+    results[i].hitProjectileID_High = result.hitProjectileID_High;
 }
 
 // Atomic “min” claim: CPU must prefill results[i].collisionDetected = 0xFFFFFFFFu
-void tryClaimMin(uint i, uint key, uint slot, ivec2 px, vec2 posW, uint healthAfter) 
+void tryClaimMin(uint i, uint key, CollisionResult result) 
 {
     uint old = atomicMin(results[i].collisionDetected, key);
     if (key < old)
     {
-        writeClaimMeta(i, slot, px, posW, healthAfter);
+        writeClaimMeta(i,  result);
         memoryBarrierBuffer(); // ensure metadata visible to later passes
     }
 }
@@ -632,7 +609,16 @@ void main()
 
             //  replace claimOnce+writeCollisionEvent with the min-key claim:
             uint key = makeKey(tTarget, /*aimed*/true, L);
-            tryClaimMin(i, key, pc.TextureIndex, pEnd, Pcenter, centerHT.r);
+
+            CollisionResult result;
+            result.hitProjectileID_Low = proj.ID_Low;
+            result.hitProjectileID_High = proj.ID_High;
+            result.DestructionRadius = proj.DestructionRadius;
+            result.CollisionPosition = worldPos;
+            result.HealthAfter = centerHT.r;
+            result.Damage = proj.Damage;
+
+            tryClaimMin(i, key, result);
 
             // optional visual in the collision pass
             // debugCross(pEnd, vec3(0.9, 0.1, 0.1));
@@ -696,7 +682,16 @@ void main()
 
             // Earliest candidate wins globally (compare on entry param t0)
             uint key = makeKey(t0, /*aimed*/false, L);
-            tryClaimMin(i, key, pc.TextureIndex, localPx, worldPos, centerHT.r);
+            CollisionResult result;
+
+            result.hitProjectileID_Low = proj.ID_Low;
+            result.hitProjectileID_High = proj.ID_High;
+            result.DestructionRadius = proj.DestructionRadius;
+            result.CollisionPosition = worldPos;
+            result.HealthAfter = centerHT.r;
+            result.Damage = proj.Damage;
+
+            tryClaimMin(i, key, result);
 
             
         }

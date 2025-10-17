@@ -1260,47 +1260,59 @@ namespace Engine {
 		return glm::dot(d, d) <= rW * rW + 1e-6f;
 	}
 
-	// Build a compact list of only the tiles that the explosion circle touches
-	 void VulkanRenderer2D::BuildAffectedTilesCPU(
-		const std::vector<glm::vec2>& hitPositionsW, // world hits this frame
-		const std::vector<float>& radiiW,        // same length as hits
-		const std::unordered_set<uint32_t>& candidateSlots,  // e.g. your visible/active slots
-		float pixelSizeWorld, int tileW, int tileH,
-		std::vector<uint32_t>& outSlots)
-	{
-		outSlots.clear();
-		outSlots.reserve(candidateSlots.size());
 
-		// De-dupe while building
-		std::unordered_set<uint32_t> used;
-		used.reserve(candidateSlots.size());
+	void VulkanRenderer2D::BuildAffectedTilesCPU(
+		const std::vector<glm::vec2>& hitPositionsW,          // world hits this frame
+		const std::vector<float>& radiiW,                 // same length as hits
+		const std::vector<uint32_t>& damagesW,               // same length as hits
+		const std::unordered_set<uint32_t>& candidateSlots,   // visible/active slots
+		float pixelSizeWorld, int tileW, int tileH,
+		std::vector<AffectedTile>& outTiles)
+	{
+		outTiles.clear();
+		outTiles.reserve(candidateSlots.size());
+
+		if (hitPositionsW.empty() || radiiW.size() != hitPositionsW.size() || damagesW.size() != hitPositionsW.size())
+			return; // nothing to do or mismatched inputs
 
 		for (uint32_t slot : candidateSlots)
 		{
 			// Tile AABB in world
-			glm::vec2 minW = s_VulkanBindlessData.m_slotOriginWorld[slot]; // top-left in world
-			glm::vec2 maxW = minW + glm::vec2(tileW, tileH) * pixelSizeWorld;
+			const glm::vec2 minW = s_VulkanBindlessData.m_slotOriginWorld[slot]; // top-left in world
+			const glm::vec2 maxW = minW + glm::vec2(tileW, tileH) * pixelSizeWorld;
 
-			// If *any* hit intersects this tile AABB, include it once
-			bool touched = false;
+			uint32_t totalDamage = 0.0f;
+			float maxRadius = 0.0f;
+			bool  touched = false;
+
+			// Accumulate all hits that touch this tile
 			for (size_t i = 0; i < hitPositionsW.size(); ++i)
 			{
-				if (CircleIntersectsRect(hitPositionsW[i], radiiW[i], minW, maxW)) {
-					touched = true; break;
+				if (CircleIntersectsRect(hitPositionsW[i], radiiW[i], minW, maxW))
+				{
+					touched = true;
+					totalDamage += damagesW[i];
+					if (radiiW[i] > maxRadius) maxRadius = radiiW[i];
 				}
 			}
-			if (touched && used.insert(slot).second)
-				outSlots.push_back(slot);
+
+			if (touched)
+			{
+				outTiles.push_back(AffectedTile{
+					slot = slot,
+					totalDamage = totalDamage,
+					maxRadius = maxRadius
+					});
+			}
 		}
 	}
-
 
 
 	void VulkanRenderer2D::RecordEffectComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
 	{
 		EE_PROFILE_FUNCTION();
 
-		// --- 0) Reset any effect counters (unchanged)
+		// Reset any effects
 		{
 			void* data = nullptr;
 			vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetEffectsBufferMemory(),
@@ -1315,27 +1327,21 @@ namespace Engine {
 		}
 
 
-		// --- 1) Bind the EFFECTS pipeline
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
 			s_bindlessDescitproSet->GetEffectsPipeline());
 
-		// --- 2) Bind the SAME bindless descriptor set you use for collision (uColor[], uProps[])
-		//         (Assumes the effects pipeline layout matches the bindless layout: binding 0 = color[], 1 = props[])
 		VkDescriptorSet set0 = s_bindlessDescitproSet->GetComputeDescriptorSetFrame(frameIndex);
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
 			s_bindlessDescitproSet->GetEffectsPipelineLayout(), 0, 1, &set0, 0, nullptr);
 
-		// --- 3) Gather active slots (tiles) just like in collision pass
+		//Gather active slots
 		std::unordered_set<uint32_t> uniqueSlots;
 		uniqueSlots.reserve(s_bindlessDescitproSet->GetTileToSlotMap().size());
-
-		
 
 		for (const auto& kv : s_bindlessDescitproSet->GetTileToSlotMap())
 		{
 			uniqueSlots.insert(kv.second);
 		}
-
 
 		CollisionResultBuffer           collisionResult = {};
 		void* data = nullptr;
@@ -1349,6 +1355,7 @@ namespace Engine {
 		CollisionResultsCPU::LatestProjectiles.reserve(MAX_COLLISION_RESULTS);
 		std::vector<glm::vec2> hitsW;
 		std::vector<float>     radiiW;
+		std::vector<uint32_t>     damages;
 		hitsW.reserve(numberOfCollisions);
 		radiiW.reserve(numberOfCollisions);
 
@@ -1372,17 +1379,17 @@ namespace Engine {
 			coll.Health = r.Health;
 			CollisionResultsCPU::LatestProjectiles.push_back(coll);
 
-
 			const glm::vec2 W = r.CollisionPosition;
-			const float     R = 2.1f; // or per-hit radius if you have it
+			const float     R = r.DestructionRadius;
+			uint32_t damage = r.Damage;
 			hitsW.push_back(W);
 			radiiW.push_back(R);
+			damages.push_back(damage);
 		}
 
 		data = nullptr;
 		VkDeviceSize size = sizeof(CollisionResultBuffer);
 		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
-
 		// zero everything
 		std::memset(data, 0, size);
 
@@ -1390,15 +1397,13 @@ namespace Engine {
 		auto* buf = reinterpret_cast<CollisionResultBuffer*>(data);
 		for (uint32_t i = 0; i < 32; ++i) {
 			buf->results[i].collisionDetected = 0xFFFFFFFFu; // NO_CLAIM
-			buf->results[i]._padding0 = 0xFFFFFFFFu;             // optional, nice to have
-			buf->results[i]._padding2 = 0u;
+			buf->results[i].DestructionRadius = 0xFFFFFFFFu; // optional, nice to have
+			buf->results[i].Damage = 0u;
 		}
-		// leave collisionCount at 0 (we’re not appending events in this scheme)
 
 		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
 
 
-	
 		const int FX_W = 4096;               // FX texture width in pixels
 		const int FX_H = 4096;
 		const int   tileW = TILE_PIXEL_WIDTH;
@@ -1416,92 +1421,48 @@ namespace Engine {
 		VkImage colorArray = s_bindlessDescitproSet->GetColorImageArray();
 		VkImage propsArray = s_bindlessDescitproSet->GetPropsArrayImage();
 
+		std::vector<AffectedTile> affectedTiles;
+		BuildAffectedTilesCPU(hitsW, radiiW, damages, uniqueSlots, 
+			pixelSizeWorld, tileW, tileH, affectedTiles);
 
-		
-
-
-		std::vector<uint32_t> affectedSlots;
-		BuildAffectedTilesCPU(hitsW, radiiW,
-			uniqueSlots,          // your visible/active tiles
-			pixelSizeWorld, tileW, tileH,
-			affectedSlots);
-
-
-		/*
-		// Transition textures to GENERAL layout
-		for (size_t i = 0; i < CHUNK_GRID_SIZE; i++)
-		{
-			VulkanTexture& tex = *s_VulkanData.VisualEffectsTextureSlots[i];
-
-			if (tex.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL)
-			{
-				TransitionImageLayout(cmd,
-					tex.GetImage(),
-					tex.GetCurrentLayout(),
-					VK_IMAGE_LAYOUT_GENERAL);
-				tex.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
-
-			}
-		}
-		*/
 		const bool yDown = false;
-
 		glm::vec2 fxGridTopLeftW(std::numeric_limits<float>::infinity(),
 			yDown ? std::numeric_limits<float>::infinity()
 			: -std::numeric_limits<float>::infinity());		// Transition textures to GENERAL layout
-		// Make sure that first 9 TextureSlots are where you want to write the the effects
+
 		for (size_t i = 0; i < CHUNK_GRID_SIZE; i++)
 		{
 			VulkanTexture& tex = *s_VulkanData.VisualEffectsTextureSlots[i];
+			glm::vec2 texOriginW = tex.GetTextureOrigin(); 
+			texOriginW.x = texOriginW.x - 0.5f * CHUNK_SIZE;
+			texOriginW.y = texOriginW.y + 0.5f * CHUNK_SIZE;
 
-			
-				glm::vec2 texOriginW = tex.GetTextureOrigin(); 
-				//EE_CORE_INFO("texOriginW: {} | {}", texOriginW.x, texOriginW.y);
-
-				texOriginW.x = texOriginW.x - 0.5f * CHUNK_SIZE;
-				texOriginW.y = texOriginW.y + 0.5f * CHUNK_SIZE;
-
-				fxGridTopLeftW.x = std::min(fxGridTopLeftW.x, texOriginW.x);
-				fxGridTopLeftW.y = yDown ? std::min(fxGridTopLeftW.y, texOriginW.y)
-					: std::max(fxGridTopLeftW.y, texOriginW.y);
-
-
-
-			
+			fxGridTopLeftW.x = std::min(fxGridTopLeftW.x, texOriginW.x);
+			fxGridTopLeftW.y = yDown ? std::min(fxGridTopLeftW.y, texOriginW.y)
+				: std::max(fxGridTopLeftW.y, texOriginW.y);
+	
 		}
 
 		
-
-		// --- 4) Dispatch per active slot
-		for (uint32_t slot : affectedSlots)
+		//  Dispatch tiles that were affected by collision/destruction
+		for (AffectedTile tile : affectedTiles)
 		{
-			EE_CORE_INFO("affectedSlots count: {}", affectedSlots.size());
-			glm::vec2 tileOriginW = s_VulkanBindlessData.m_slotOriginWorld[slot];
+			glm::vec2 tileOriginW = s_VulkanBindlessData.m_slotOriginWorld[tile.slot];
 			const int    FX_TEXTURE_HEIGHT = s_VulkanData.VisualEffectsTextureSlots[0]->GetHeight(); // they should be same size all
 			const int    FX_TEXTURE_WIDTH = s_VulkanData.VisualEffectsTextureSlots[0]->GetWidth();
 
 			uint32_t fxIdx = VulkanUtils::TileToFXIndex(tileOriginW, fxGridTopLeftW, pixelSizeWorld,
 				FX_TEXTURE_WIDTH, FX_TEXTURE_HEIGHT, /*worldYDown=*/false);
-			//EE_CORE_INFO("tileOriginW: {} | {}", tileOriginW.x , tileOriginW.y);
-			//EE_CORE_INFO("fxGridTopLeftW: {} | {}", fxGridTopLeftW.x , fxGridTopLeftW.y);
-
 			if (fxIdx > CHUNK_GRID_SIZE)
 			{
-				/*
 				// tile is not inside the grid.
-				BarrierLayer(cmd, colorArray, slot,
-					VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-					VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
-
-				*/
 				continue;
 			}
 
 			// Build push constants for THIS tile
 			EffectPushConstants pc{};
-			pc.textureIndex = slot;
-			pc.textureOrigin = s_VulkanBindlessData.m_slotOriginWorld[slot]; // top-left in world
+			pc.textureIndex = tile.slot;
+			pc.textureOrigin = s_VulkanBindlessData.m_slotOriginWorld[tile.slot]; // top-left in world
 			pc.pixelSize = pixelSizeWorld;
 
 			// keep your effect params:
@@ -1515,54 +1476,21 @@ namespace Engine {
 			pc.effectParams0 = s_effectPushConstants.effectParams0;
 
 			glm::vec2 texOriginW = s_VulkanData.VisualEffectsTextureSlots[fxIdx]->GetTextureOrigin();
-
-			uint32_t usedTextureSlotse = 1;
 			pc.fxIdx = fxIdx;
-
-
 
 			const int col = fxIdx % 3;
 			const int row = fxIdx / 3;
 			const float fxPxW = pixelSizeWorld;
 			
-
 			glm::vec2 cellSizeW = glm::vec2(FX_TEXTURE_WIDTH, FX_TEXTURE_HEIGHT) * fxPxW;
 			glm::vec2 topLeftW = fxGridTopLeftW
 				+ glm::vec2(col * cellSizeW.x, -row /* flip y */  * cellSizeW.y);
 
-			//EE_CORE_INFO("texOriginW: {} | {}", texOriginW.x, texOriginW.y);
-			//convert Topleft
-			
 			pc.fxTextureOrigin = topLeftW;
+			pc.hitDamage = tile.totalDamage;
+			pc.hitRadiusWS = tile.maxRadius;
+			pc.mode = 0; // destruction and init effect
 
-			
-			//EE_CORE_INFO("slot: {},", slot);
-			//EE_CORE_INFO("fxIdx: {},", fxIdx);
-			///EE_CORE_INFO("pc.fxTextureOrigin: {} | {}", pc.fxTextureOrigin.x, pc.fxTextureOrigin.y);
-			
-
-			//if (!collisions.empty())
-			{
-				pc.hitDamage = 100;
-				pc.hitRadiusWS = 2.1f;
-				pc.mode = 0;
-
-			}
-			/*
-			// Transition layer 'slot' of both arrays to GENERAL for R/W
-			BarrierLayer(cmd, colorArray, slot,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
-			*/
-
-			/*
-			BarrierLayer(cmd, propsArray, slot,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
-
-			*/
 			// Push constants
 			vkCmdPushConstants(cmd,
 				s_bindlessDescitproSet->GetEffectsPipelineLayout(),
@@ -1573,28 +1501,12 @@ namespace Engine {
 			const uint32_t gx = CeilDiv(uint32_t(tileW), kLocalX);
 			const uint32_t gy = CeilDiv(uint32_t(tileH), kLocalY);
 			vkCmdDispatch(cmd, gx, gy, 1);
-
-			// Transition back to read-only for graphics sampling
-			
-			/*
-			BarrierLayer(cmd, colorArray, slot,
-				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
-
-			*/
-			/*
-			BarrierLayer(cmd, propsArray, slot,
-				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
-			*/
+		
 		}
-		/*
-		*/
+
 		for (uint32_t slot : uniqueSlots)
 		{
-			
+			// transition of all images
 			BarrierLayer(cmd, colorArray, slot,
 				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
@@ -1606,13 +1518,12 @@ namespace Engine {
 		// Second pass to fade visual effect
 		for (size_t fxIdx = 0; fxIdx < CHUNK_GRID_SIZE; fxIdx++)
 		{
-
 			const int    FX_TEXTURE_HEIGHT = s_VulkanData.VisualEffectsTextureSlots[0]->GetHeight(); // they should be same size all
 			const int    FX_TEXTURE_WIDTH = s_VulkanData.VisualEffectsTextureSlots[0]->GetWidth();
 
 			EffectPushConstants pc{};		
-			pc.mode = 1;
-			pc.fxIdx = fxIdx; // shit offset for now
+			pc.mode = 1; // effect fade
+			pc.fxIdx = fxIdx;
 			pc.glowStrength = s_effectPushConstants.glowStrength;
 			pc.maxTimer = s_effectPushConstants.maxTimer;
 
@@ -1622,16 +1533,11 @@ namespace Engine {
 				VK_SHADER_STAGE_COMPUTE_BIT,
 				0, sizeof(EffectPushConstants), &pc);
 
-			// Dispatch full tile (or use a content rect if you have one)
+			// Dispatch visual effect texture
 			const uint32_t gx = (FX_TEXTURE_HEIGHT + 16 - 1) / 16;
 			const uint32_t gy = (FX_TEXTURE_WIDTH + 16 - 1) / 16;
 			vkCmdDispatch(cmd, gx, gy, 1);
-
-		}
-
-		/*
-		*/
-		
+		}	
 	}
 
 
@@ -2024,7 +1930,7 @@ namespace Engine {
 
 
 	void VulkanRenderer2D::CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID,
-		eCollisionType collisionType, uint32_t damage, const uint32_t destructionRadius, glm::vec2  projectileDirection,
+		eCollisionType collisionType, uint32_t damage, const float destructionRadius, glm::vec2  projectileDirection,
 		glm::vec2  TargetPositionAtFireTime, float  DistanceToTargetatFireTime, float  TargetPositionHeightZ1)
 	{
 		EE_PROFILE_FUNCTION();

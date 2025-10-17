@@ -26,11 +26,11 @@ namespace Engine {
         uint32_t collisionDetected = 0;
         uint32_t hitProjectileID_Low;
         uint32_t hitProjectileID_High;
-        uint32_t _padding0 = 0; // Pad to 16-byte boundary
+        float    DestructionRadius = 0; // Pad to 16-byte boundary
 
         glm::vec2 CollisionPosition;
         uint32_t Health = 0;
-        uint32_t _padding2 = 0;
+        uint32_t Damage = 0;
 
         uint64_t GetProjectileID() const
         {
@@ -71,7 +71,7 @@ namespace Engine {
         float     Rotation;          // 32..35
 
         uint32_t  Damage;            // 36..39
-        uint32_t  DestructionRadius; // 40..43
+        float     DestructionRadius; // 40..43
 
         uint32_t  _pad0;             // 44..47  <-- forces EndPos to 8B alignment
 

@@ -9,11 +9,11 @@ struct ProjectileComponent
     glm::vec2  TargetPositionAtFireTime;   // where mouse was on shoot
     float      DistanceToTargetatFireTime;
     float      ProjectileMaxRange;   // range
-    float      Damage = 10.0f;
+    uint32_t   Damage = 1;
     float      ProjectileRadius = 0.1f;
     float      TargetPositionHeightZ1;
     float      ProjectileSped;
-    uint32_t   PixelDestructionRadius = 1; 
+    float      DestructionRadius = 0.1f; 
     Engine::Entity   Owner;
 
     ProjectileComponent() = default;

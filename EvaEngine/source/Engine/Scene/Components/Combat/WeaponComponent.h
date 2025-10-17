@@ -3,11 +3,11 @@
 
 struct WeaponComponent
 {
-    float       Damage = 10.0f;
+    uint32_t    Damage = 1;
     float       FireRate = 1.0f;
     float       Cooldown = 0.0f;
     float       ProjectileSpeed = 20.0f;
-    int         DestructionRadius = TILE_PIXEL_WIDTH / 15;
+    float       DestructionRadius = 0.1f; // world tile 
     bool        IsFiring = false;
 
     WeaponComponent() = default;

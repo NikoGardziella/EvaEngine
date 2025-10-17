@@ -79,7 +79,7 @@ void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
     ProjectileComponent& projectileComp = projectileEntity.AddComponent<ProjectileComponent>(direction, projectileMaxRange);
     projectileComp.Damage = weaponComp.Damage;
     projectileComp.ProjectileRadius = projectileRadius;
-    projectileComp.PixelDestructionRadius = weaponComp.DestructionRadius;
+    projectileComp.DestructionRadius = weaponComp.DestructionRadius;
     projectileComp.Owner = entity;
     projectileComp.TargetPositionHeightZ1 = SampleHeightAt(scene, mouseWorldPosition, 1);
     projectileComp.DistanceToTargetatFireTime = glm::distance(mouseWorldPosition, playerPosition);

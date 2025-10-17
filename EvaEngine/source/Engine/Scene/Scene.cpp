@@ -867,7 +867,7 @@ namespace Engine {
      
                         // make struct
                         Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.ProjectileRadius, IDComp.ID,
-                            eCollisionType::PROJECTILE, projectile.Damage, projectile.PixelDestructionRadius, projectile.Direction,
+                            eCollisionType::PROJECTILE, projectile.Damage, projectile.DestructionRadius, projectile.Direction,
                             projectile.TargetPositionAtFireTime, projectile.DistanceToTargetatFireTime, projectile.TargetPositionHeightZ1);
 
                         Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);

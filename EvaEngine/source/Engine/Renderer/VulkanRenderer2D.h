@@ -164,12 +164,14 @@ namespace Engine {
 	};
 
 
-	
 
-	struct CollisionTexture
+	struct AffectedTile
 	{
-		Ref<VulkanTexture> Textures[2]; // Ping-pong images
+		uint32_t slot = 0;
+		uint32_t    totalDamage = 0.0f; // sum of damage of all hits affecting this tile
+		float    maxRadius = 0.0f; // max radius among hits affecting this tile
 	};
+
 
 
 	class VulkanRenderer2D
@@ -201,7 +203,7 @@ namespace Engine {
 		
 		static void CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size, float rotation, uint64_t entityID, eCollisionType collisionType, uint32_t damage);
 		static void CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID,
-			eCollisionType collisionType, uint32_t damage, const uint32_t destructionRadius, glm::vec2  projectileDirection,
+			eCollisionType collisionType, uint32_t damage, const float destructionRadius, glm::vec2  projectileDirection,
 			glm::vec2  TargetPositionAtFireTime, float  DistanceToTargetatFireTime, float  TargetPositionHeightZ1);
 		static void CalculatePlayerCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType);
 		static void DrawTextureQuadWithProperties(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
@@ -245,6 +247,7 @@ namespace Engine {
 		void DispatchDamageForTile(VkCommandBuffer cmd, uint32_t frameIndex, const ComputePC& pc, VkImage colorArray, VkImage propsArray);
 		void RecordPlayerCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame);
 		static void BuildAffectedTilesCPU(const std::vector<glm::vec2>& hitPositionsW, const std::vector<float>& radiiW, const std::unordered_set<uint32_t>& candidateSlots, float pixelSizeWorld, int tileW, int tileH, std::vector<uint32_t>& outSlots);
+		void BuildAffectedTilesCPU(const std::vector<glm::vec2>& hitPositionsW, const std::vector<float>& radiiW, const std::vector<uint32_t>& damagesW, const std::unordered_set<uint32_t>& candidateSlots, float pixelSizeWorld, int tileW, int tileH, std::vector<AffectedTile>& outTiles);
 		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex);
