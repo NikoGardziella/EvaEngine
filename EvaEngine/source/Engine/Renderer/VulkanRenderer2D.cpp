@@ -1603,83 +1603,19 @@ namespace Engine {
 		}
 
 
-		// --- 4) Dispatch per active slot
+		// Second pass to fade visual effect
 		for (size_t fxIdx = 0; fxIdx < CHUNK_GRID_SIZE; fxIdx++)
 		{
 
 			const int    FX_TEXTURE_HEIGHT = s_VulkanData.VisualEffectsTextureSlots[0]->GetHeight(); // they should be same size all
 			const int    FX_TEXTURE_WIDTH = s_VulkanData.VisualEffectsTextureSlots[0]->GetWidth();
 
-			
-			//EE_CORE_INFO("tileOriginW: {} | {}", tileOriginW.x , tileOriginW.y);
-			//EE_CORE_INFO("fxGridTopLeftW: {} | {}", fxGridTopLeftW.x , fxGridTopLeftW.y);
-
-		
-
-			// Build push constants for THIS tile
-			EffectPushConstants pc{};
-			pc.textureIndex = 0;
-			pc.textureOrigin = s_VulkanBindlessData.m_slotOriginWorld[0]; // top-left in world
-			pc.pixelSize = pixelSizeWorld;
-
-			// keep your effect params:
-			pc.defaultTimer = s_effectPushConstants.defaultTimer;
+			EffectPushConstants pc{};		
+			pc.mode = 1;
+			pc.fxIdx = fxIdx; // shit offset for now
 			pc.glowStrength = s_effectPushConstants.glowStrength;
 			pc.maxTimer = s_effectPushConstants.maxTimer;
-			pc.flags = s_effectPushConstants.flags;
-			pc.impactTint = s_effectPushConstants.impactTint;
-			pc.destroyedTint = s_effectPushConstants.destroyedTint;
-			pc.flashTint = s_effectPushConstants.flashTint;
-			pc.effectParams0 = s_effectPushConstants.effectParams0;
-			pc.mode = 1;
-			glm::vec2 texOriginW = s_VulkanData.VisualEffectsTextureSlots[fxIdx]->GetTextureOrigin();
 
-			uint32_t usedTextureSlotse = 1;
-			pc.fxIdx = fxIdx; // shit offset for now
-
-
-
-			const int col = fxIdx % 3;
-			const int row = fxIdx / 3;
-			const float fxPxW = pixelSizeWorld;
-
-
-			glm::vec2 cellSizeW = glm::vec2(FX_TEXTURE_WIDTH, FX_TEXTURE_HEIGHT) * fxPxW;
-			glm::vec2 topLeftW = fxGridTopLeftW
-				+ glm::vec2(col * cellSizeW.x, -row /* flip y */ * cellSizeW.y);
-
-			//EE_CORE_INFO("texOriginW: {} | {}", texOriginW.x, texOriginW.y);
-			//convert Topleft
-
-			pc.fxTextureOrigin = topLeftW;
-
-
-			//EE_CORE_INFO("slot: {},", slot);
-			//EE_CORE_INFO("fxIdx: {},", fxIdx);
-			///EE_CORE_INFO("pc.fxTextureOrigin: {} | {}", pc.fxTextureOrigin.x, pc.fxTextureOrigin.y);
-
-
-			//if (!collisions.empty())
-			{
-				pc.hitDamage = 1;
-				pc.hitRadiusWS = 0.5f;
-
-			}
-			/*
-			// Transition layer 'slot' of both arrays to GENERAL for R/W
-			BarrierLayer(cmd, colorArray, slot,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
-			*/
-
-			/*
-			BarrierLayer(cmd, propsArray, slot,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
-
-			*/
 			// Push constants
 			vkCmdPushConstants(cmd,
 				s_bindlessDescitproSet->GetEffectsPipelineLayout(),
@@ -1691,13 +1627,6 @@ namespace Engine {
 			const uint32_t gy = (FX_TEXTURE_WIDTH + 16 - 1) / 16;
 			vkCmdDispatch(cmd, gx, gy, 1);
 
-			
-			/*
-			BarrierLayer(cmd, propsArray, slot,
-				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
-			*/
 		}
 
 		/*

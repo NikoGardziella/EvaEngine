@@ -611,10 +611,9 @@ void main()
 
     if(pc.mode == 1)
     {
-        // second pass for fading effect. 
-      
+        // second pass for fading effect.      
         fadeFXTexture(pc.fxIdx);
-        return; // 
+        return; 
     }
     
 
