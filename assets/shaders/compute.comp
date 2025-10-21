@@ -615,7 +615,19 @@ void main()
             result.hitProjectileID_High = proj.ID_High;
             result.DestructionRadius = proj.DestructionRadius;
             result.CollisionPosition = worldPos;
-            result.HealthAfter = centerHT.r;
+            
+            uint healthAfterHit = centerHT.r;
+
+            if(proj.Damage > healthAfterHit)
+            {
+                healthAfterHit = 0;
+            }
+            else
+            {
+                healthAfterHit = healthAfterHit - proj.Damage;
+            }
+
+            result.HealthAfter = healthAfterHit;
             result.Damage = proj.Damage;
 
             tryClaimMin(i, key, result);

@@ -105,9 +105,7 @@ namespace Engine
                 }
             };
 
-        // centered strip (for slender props: lamps, posts, benches) ---
-        // widthFrac: 0..1 of tile width across the “horizontal” axis (E<->W)
-        // thickFrac: 0..1 of tile min dimension for the orthogonal thickness
+
         auto emitCenteredStrip = [&](const glm::ivec2& cell,
             float widthFrac,
             float thickFrac,
@@ -130,7 +128,6 @@ namespace Engine
                 m_blockedSubCells.push_back(obb);
             };
 
-        // --- OPTIONAL: centered “disc” approximated by 2 strips (good for round poles) ---
         auto emitCenteredDiscApprox = [&](const glm::ivec2& cell, float radiusFrac /*~0.18f*/)
             {
                 const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
@@ -253,10 +250,6 @@ namespace Engine
         return false;
 	}
 
-	void GridMap::Clear()
-	{
-		//m_blockedTiles.clear();
-	}
 
 
     bool GridMap::HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw)
@@ -337,122 +330,71 @@ namespace Engine
         return true;
     }
 
-   glm::vec2 GridMap::PerpCCW(const glm::vec2& v)
-   {
-       return { -v.y, v.x };
-   }
 
-    // SAT: OBB vs axis-aligned AABB
-    bool GridMap::OBBvsAABB(const SubCellOBB& obb, const glm::vec2& bmin, const glm::vec2& bmax)
-    {
-        // OBB basis
-        glm::vec2 T = obb.tangent;
-        float tl = glm::length(T);
-        if (tl < 1e-8f) T = { 1,0 }; else T /= tl;
-        glm::vec2 N = PerpCCW(T);
-        const float hx = obb.halfExtents.x, hy = obb.halfExtents.y;
-
-        // 1) Project AABB corners onto OBB axes (T,N) and test overlap with [-hx,hx] & [-hy,hy]
-        glm::vec2 ac[4] = { {bmin.x,bmin.y},{bmax.x,bmin.y},{bmax.x,bmax.y},{bmin.x,bmax.y} };
-        float minU = +FLT_MAX, maxU = -FLT_MAX, minV = +FLT_MAX, maxV = -FLT_MAX;
-        for (int i = 0; i < 4; ++i) 
-        {
-            glm::vec2 d = ac[i] - obb.center;
-            float u = glm::dot(d, T);
-            float v = glm::dot(d, N);
-            minU = std::min(minU, u); maxU = std::max(maxU, u);
-            minV = std::min(minV, v); maxV = std::max(maxV, v);
-        }
-        if (maxU < -hx || minU > hx) return false; // separated on T
-        if (maxV < -hy || minV > hy) return false; // separated on N
-
-        // 2) Project OBB corners onto world X and Y, compare with [bmin,bmax]
-        glm::vec2 c = obb.center;
-        glm::vec2 oc[4] = {
-            c - T * hx - N * hy, c + T * hx - N * hy,
-            c + T * hx + N * hy, c - T * hx + N * hy
-        };
-        float ominX = +FLT_MAX, omaxX = -FLT_MAX, ominY = +FLT_MAX, omaxY = -FLT_MAX;
-        for (int i = 0; i < 4; ++i)
-        {
-            ominX = std::min(ominX, oc[i].x); omaxX = std::max(omaxX, oc[i].x);
-            ominY = std::min(ominY, oc[i].y); omaxY = std::max(omaxY, oc[i].y);
-        }
-        if (omaxX < bmin.x || ominX > bmax.x) return false; // separated on world X
-        if (omaxY < bmin.y || ominY > bmax.y) return false; // separated on world Y
-
-        return true; // overlaps on all 4 SAT axes
-    }
-
-    void GridMap::SubtileAABB(const glm::ivec2& gs, float subtileSize,
-        glm::vec2& bmin, glm::vec2& bmax)
-    {
-        bmin = glm::vec2(gs) * subtileSize;
-        bmax = bmin + glm::vec2(subtileSize);
-    }
-
-
-    void GridMap::UpdateTiles(const glm::ivec2& tileIndex) // origin
+    void GridMap::UpdateTiles() // origin tile
     {
         EE_PROFILE_FUNCTION();
 
-        const auto& mask = TileBlockedMaskCPU::CachedGPUMask;
-        if (mask.empty())
-        {
+        const auto& hits = Engine::CollisionResultsCPU::LatestProjectiles;
+        if (hits.empty() || m_blockedSubCells.empty())
             return;
-        }
 
-        const uint32_t spt = GRID_SUBDIVISIONS;      // SUBTILES_PER_TILE
-       // EE_ASSERT(mask.size() == spt * spt && "Per-tile mask must be spt*spt");
+        // Gather circles in world space (center, radius)
+        struct Circle { glm::vec2 C; float R; };
+        std::vector<Circle> circles;
+        circles.reserve(hits.size());
 
-        const float tileWorld = float(TILE_SIZE);
-        const float subtileSize = tileWorld / float(spt);
-
-        // Mark OBBs to remove
-        std::vector<uint8_t> kill(m_blockedSubCells.size(), 0);
-
-        // Walk the per-tile GPU mask: only care about DESTROYED bit
-        for (uint32_t i = 0; i < mask.size(); ++i)
+        for (const auto& r : hits)
         {
-            const uint32_t bits = mask[i];
-            if ((bits & MASK_DESTROYED) == 0u)
+            if (r.Health > 0)
             {
+                // tile was not destroyed.
+                // yet the destruction might extend and this does not remove grid
                 continue;
             }
 
-            // Subtile index inside THIS tile (row-major)
-            const glm::ivec2 rel = { int(i % spt), int(i / spt) };
-
-            // Convert to GLOBAL subtile coordinates: each tile spans 'spt' subtiles
-            const glm::ivec2 gs = tileIndex * int(spt) + rel;
-
-            // World AABB of that subtile
-            glm::vec2 bmin, bmax;
-            SubtileAABB(gs, subtileSize, bmin, bmax);
-
-            // Test against every live subcell; mark for removal on overlap
-            for (size_t k = 0; k < m_blockedSubCells.size(); ++k)
-            {
-                if (kill[k])
-                {
-                    continue;
-                }
-                if (OBBvsAABB(m_blockedSubCells[k], bmin, bmax))
-                {
-                    kill[k] = 1;
-                }
-            }
+            circles.push_back({ r.HitPosition, r.RadiusWS });
         }
+        if (circles.empty())
+            return;
 
-        // Compact m_blockedSubCells by removing killed entries
-        size_t w = 0;
-        for (size_t k = 0; k < m_blockedSubCells.size(); ++k)
+        
+        if (circles.empty())
+            return;
+
+        // Mark-and-compact removal
+        std::vector<uint8_t> kill(m_blockedSubCells.size(), 0);
+
+        for (size_t i = 0; i < m_blockedSubCells.size(); ++i)
         {
-            if (!kill[k])
+            if (kill[i]) continue;
+
+            const SubCellOBB& obb = m_blockedSubCells[i];
+
+            // Coarse cull: OBB AABB vs circle AABB
+            glm::vec2 obbMin, obbMax;
+            GridUtils::OBB_ComputeAABB(obb, obbMin, obbMax);
+
+            for (const auto& c : circles)
             {
-                m_blockedSubCells[w++] = m_blockedSubCells[k];
+                glm::vec2 cMin = c.C - glm::vec2(c.R);
+                glm::vec2 cMax = c.C + glm::vec2(c.R);
+
+                if (!GridUtils::AABBoverlap(obbMin, obbMax, cMin, cMax))
+                    continue;
+
+                if (GridUtils::OBB_IntersectsCircle(obb, c.C, c.R))
+                {
+                    kill[i] = 1;
+                    break;
+                }
             }
         }
+
+        // In-place compact
+        size_t w = 0;
+        for (size_t i = 0; i < m_blockedSubCells.size(); ++i)
+            if (!kill[i]) m_blockedSubCells[w++] = m_blockedSubCells[i];
         m_blockedSubCells.resize(w);
     }
 

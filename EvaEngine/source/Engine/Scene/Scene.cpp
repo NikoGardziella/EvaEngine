@@ -393,7 +393,6 @@ namespace Engine {
     {
         b2DestroyWorld(m_worldId);
 
-        m_gridMap->Clear();
 
         m_textureStreamingSystem->UnloadAllChunks(this);
     }
@@ -671,12 +670,12 @@ namespace Engine {
                     //m_tileMananger->StreamInitialResidency(this);
                     //glm::ivec2 chunkMinOrigin = glm::floor(glm::vec2(minOrigin) / float(CHUNK_SIZE));
                     //glm::ivec2 tileMinOrigin = chunkMinOrigin * int(CHUNK_SIZE);
-                    m_gridMap->UpdateTiles(minOrigin);
                 }
 
                 
               
             
+                    m_gridMap->UpdateTiles();
 
 
 

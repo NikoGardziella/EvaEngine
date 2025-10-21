@@ -2,6 +2,7 @@
 
 #include "Engine.h"
 #include <Engine/Map/Grid/GridMap.h>
+#include "Engine/Map/Grid/GridUtils/GridUtils.h"
 
 
 class Scene;

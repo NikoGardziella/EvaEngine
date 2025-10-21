@@ -2,19 +2,13 @@
 #include <unordered_set>
 #include <glm/glm.hpp>
 #include <Engine/Map/Utils/IVec2Hasher.h>
-
-
-
+#include <vector>
+#include "Engine/Map/Grid/GridUtils/GridUtils.h"
 
 namespace Engine {
 	
 	// 3 sub-segments along one chosen side of a cell
 	static constexpr int SUBDIVS = GRID_SUBDIVISIONS;
-	struct SubCellOBB {
-		glm::vec2 center;       // world-space center
-		glm::vec2 halfExtents;  // {half-length along edge, half-thickness}
-		glm::vec2 tangent;      // unit vector along the edge (A->B)
-	};
 
 	
 
@@ -28,12 +22,12 @@ namespace Engine {
 
 		bool IsBlocked(glm::ivec2 worldTileCoords) const;
 
-		void Clear();
+		
 
 		bool HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw);
 
 
-		void UpdateTiles(const glm::ivec2& centerChunkCoord);
+		void UpdateTiles();
 
 		//void UpdateLOSBlockedTilesFromHealthTexture(const VulkanTexture& healthTexture);
 
@@ -47,15 +41,11 @@ namespace Engine {
 
 		void DrawDebugBlockedTiles() const;
 	private:
-		static glm::vec2 PerpCCW(const glm::vec2& v);
-		static bool OBBvsAABB(const SubCellOBB& obb, const glm::vec2& bmin, const glm::vec2& bmax);
-		static void SubtileAABB(const glm::ivec2& gs, float subtileSize, glm::vec2& bmin, glm::vec2& bmax);
 		static float PxToWorld(float px) { return px / float(TILE_PIXEL_WIDTH); }
 
-	private:
+	public:
 		enum class TileDir : uint8_t { North, East, South, West };
 
-		enum class FootSide : uint8_t { South = 0, North = 1, East = 2, West = 3 };
 
 		struct FootSegKey {
 			glm::ivec2 cell;   // iso cell (u,v)
@@ -76,13 +66,13 @@ namespace Engine {
 			}
 		};
 
-		enum : uint32_t { MASK_ALIVE = 1u, MASK_DESTROYED = 2u , MASK_DYNFOOT_HIT = 4u};
+		enum : uint32_t { MASK_ALIVE = 1u, MASK_DESTROYED = 2u, MASK_DYNFOOT_HIT = 4u };
 
 
 	private:
-		// remove
+		// remove // update LOS before
 		std::unordered_set<glm::ivec2, IVec2Hasher, IVec2Equal> m_blockedTiles;
-		std::vector<SubCellOBB> m_blockedSubCells; 
+		std::vector<Engine::SubCellOBB> m_blockedSubCells; 
 	};
 }
 

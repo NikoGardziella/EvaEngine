@@ -1377,6 +1377,7 @@ namespace Engine {
 			coll.EntityID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
 			coll.HitPosition = r.CollisionPosition;
 			coll.Health = r.Health;
+			coll.RadiusWS = r.DestructionRadius;
 			CollisionResultsCPU::LatestProjectiles.push_back(coll);
 
 			const glm::vec2 W = r.CollisionPosition;

@@ -8,6 +8,7 @@ namespace Engine
 	{
 		uint64_t EntityID = 0;
 		uint32_t Health = 0;
+		float RadiusWS;
 		int TargetID = 0;
 		glm::vec2 HitPosition = { 0.0f, 0.0f };
 		glm::vec2 HitNormal = { 0.0f, 0.0f };

@@ -146,6 +146,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h" />
     <ClInclude Include="source\Engine\Math\HashUtils.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.h" />
@@ -669,6 +670,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.cpp" />
     <ClCompile Include="source\Engine\AssetManager\Utils\AssetManagerUtils.cpp" />

@@ -1655,6 +1655,7 @@
     <ClInclude Include="source\Engine\Map\Tile\TileManager.h" />
     <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h" />
+    <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1864,6 +1865,7 @@
     <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.cpp" />
+    <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">
