@@ -417,6 +417,27 @@ namespace Engine {
 		RecordPresentDrawCommands(cmd, m_imageIndex, currentFrame);
 		RecordEditorDrawCommands(cmd, m_imageIndex, currentFrame);
 
+		/*
+		VkBufferMemoryBarrier b2{};
+		b2.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		b2.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		b2.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT; // or HOST_READ if mapping directly
+		b2.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		b2.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		b2.buffer = m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer();;
+		b2.offset = 0;
+		b2.size = VK_WHOLE_SIZE;
+
+		vkCmdPipelineBarrier(cmd,
+			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+			VK_PIPELINE_STAGE_TRANSFER_BIT,          // or VK_PIPELINE_STAGE_HOST_BIT if no copy
+			0,
+			0, nullptr,
+			1, &b2,
+			0, nullptr);
+
+		*/
+
 		vkEndCommandBuffer(cmd);
 
 		// Submit
@@ -470,7 +491,6 @@ namespace Engine {
 	
 
 
-		
 
 
 		
@@ -505,6 +525,28 @@ namespace Engine {
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
+		RecordClearDirtyOut(cmd);
+
+		/*
+		VkBufferMemoryBarrier b{};
+		b.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		b.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		b.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+		b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		b.buffer = m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer();
+		b.offset = 0;
+		b.size = VK_WHOLE_SIZE;
+
+		vkCmdPipelineBarrier(cmd,
+			VK_PIPELINE_STAGE_TRANSFER_BIT,          // srcStage
+			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,    // dstStage
+			0,
+			0, nullptr,                              // memory barriers
+			1, &b,                                   // buffer barriers
+			0, nullptr);
+
+		*/
 		// projectiles
 		m_vulkanGraphicsPipelines->UpdateCollisionUniformBuffer(currentFrame, s_CollisionData.CollisionEntities);
 		RecordComputeCommandBuffer(cmd, currentFrame);
@@ -592,9 +634,10 @@ namespace Engine {
 			uint32_t totalTiles = tilesPerRow * tilesPerRow;
 
 			std::vector<uint32_t> gpuBlockedTileMask(totalTiles);
-			ReadBlockedTileMask(gpuBlockedTileMask, totalTiles);
+			//ReadBlockedTileMask(gpuBlockedTileMask, totalTiles);
 			
-			
+			ProcessDirtyOutThisFrame();
+
 			/*
 			for (size_t i = 0; i < totalTiles; i++)
 			{
@@ -663,6 +706,90 @@ namespace Engine {
 		memcpy(outDestroyedMask.data(), data, sizeof(uint32_t) * count);
 
 		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory());
+	}
+
+
+	bool VulkanRenderer2D::ReadDirtyOut(std::vector<DirtyRectCPU>& outRects,
+		std::vector<uint32_t>* outCenterZero /*=nullptr*/)
+	{
+		VkDeviceMemory mem = m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory();
+
+		// Map the whole allocation to avoid size mismatches
+		void* base = nullptr;
+		if (vkMapMemory(m_device, mem, 0, VK_WHOLE_SIZE, 0, &base) != VK_SUCCESS)
+			return false;
+
+		auto* bytes = static_cast<uint8_t*>(base);
+		auto* header = reinterpret_cast<const DirtyOutHeader*>(bytes + Engine::VulkanGraphicsPipeline::OFF_HEADER);
+		auto* rects = reinterpret_cast<const DirtyRectCPU*>(bytes + Engine::VulkanGraphicsPipeline::OFF_RECTS);
+		auto* center = reinterpret_cast<const uint32_t*>(bytes + Engine::VulkanGraphicsPipeline::OFF_CENTERZERO);
+
+		// Clamp to capacity to avoid reading past the fixed array
+		const uint32_t maxRects = static_cast<uint32_t>(Engine::VulkanGraphicsPipeline::SIZE_RECTS / sizeof(DirtyRectCPU));
+		const uint32_t n = std::min(header->count, maxRects);
+
+		// Copy rects
+		outRects.resize(n);
+		if (n) {
+			std::memcpy(outRects.data(), rects, n * sizeof(DirtyRectCPU));
+		}
+
+		// Optional: copy per-tile centerZero array (NUM_TILES u32)
+		if (outCenterZero)
+		{
+			const uint32_t numTiles = static_cast<uint32_t>(Engine::VulkanGraphicsPipeline::SIZE_CENTERZERO / sizeof(uint32_t));
+			outCenterZero->resize(numTiles);
+			if (numTiles)
+			{
+				std::memcpy(outCenterZero->data(), center, numTiles * sizeof(uint32_t));
+			}
+		}
+
+		vkUnmapMemory(m_device, mem);
+
+		if (header->overflow)
+		{
+			
+			 EE_CORE_WARN("DirtyOut overflow: some rects were dropped this frame.");
+		}
+		return true;
+	}
+
+
+
+	void VulkanRenderer2D::ProcessDirtyOutThisFrame()
+	{
+		// 1) Read GPU-written rects into CPU vectors
+		std::vector<DirtyRectCPU> rectsCPU;
+		std::vector<DirtyRect>    rects;
+		std::vector<uint32_t>     centerZero; // pass nullptr if you didn't include centerZero[]
+		if (!ReadDirtyOut(rectsCPU, /*outCenterZero=*/nullptr))   // or &centerZero
+			return;
+		rects.resize(rectsCPU.size());
+		// 2) Consume them
+
+		for (size_t i = 0; i < rectsCPU.size(); i++)
+		{
+			rects[i].tileIdx = rectsCPU[i].tileIdx;
+			rects[i].maxCell = rectsCPU[i].maxCell;
+			rects[i].minCell = rectsCPU[i].minCell;
+			rects[i].topLeft = s_VulkanBindlessData.m_slotOriginWorld[rects[i].tileIdx];
+			
+		}
+		
+		Engine::TileBlockedMaskCPU::DirtRects = std::move(rects);
+
+	}
+
+	void VulkanRenderer2D::RecordClearDirtyOut(VkCommandBuffer cmd)
+	{
+		// Reset header
+		vkCmdFillBuffer(cmd, m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer(), Engine::VulkanGraphicsPipeline::OFF_HEADER + 0, 4, 0u); // count = 0
+		vkCmdFillBuffer(cmd, m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer(), Engine::VulkanGraphicsPipeline::OFF_HEADER + 4, 4, 0u); // overflow = 0
+
+		// Reset per-tile arrays you rely on this frame
+		vkCmdFillBuffer(cmd, m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer(), Engine::VulkanGraphicsPipeline::OFF_TICKETS, Engine::VulkanGraphicsPipeline::SIZE_TICKETS, 0u);
+
 	}
 
 
@@ -1056,9 +1183,8 @@ namespace Engine {
 
 		// 1) Bind buffers (results/projectiles/mask) for this frame
 		VkBuffer blockedMaskBuffer = m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer();
-		uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
-		uint32_t tilesPerMask = tilesPerRow * tilesPerRow;
-		VkDeviceSize blockedMaskBufferSize = sizeof(uint32_t) * tilesPerMask;
+	
+		VkDeviceSize blockedMaskBufferSize = Engine::VulkanGraphicsPipeline::DIRTYOUT_TOTAL;
 
 		VkBuffer collisionResultBuffer = m_vulkanGraphicsPipelines->GetGPUCollisionResultBuffer();
 		VkDeviceSize collisionResultBufferSize = sizeof(CollisionResultBuffer);

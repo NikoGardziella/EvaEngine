@@ -7,11 +7,18 @@
 
 #include <glm/glm.hpp> // Use <glm/glm.hpp> instead of <glm/fwd.hpp>
 #include <Engine/Map/Utils/IVec2Hasher.h>
+#include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
 
 namespace Engine
 {
 	struct TileBlockedMaskCPU
 	{
+
+		// Static variables (declared here, defined in .cpp)
+		static std::vector<uint32_t> CachedGPUMask;
+		static std::vector<DirtyRect> DirtRects;
+		static uint32_t ChunkSize;
+
 		struct TileMask
 		{
 			std::vector<uint32_t> Mask;
@@ -40,11 +47,9 @@ namespace Engine
 				return Mask[y * ChunkSize + x];
 			}
 		};
-
-		// Static variables (declared here, defined in .cpp)
 		static std::unordered_map<glm::ivec2, TileMask, IVec2Hasher> ChunkMasks;
-		static std::vector<uint32_t> CachedGPUMask;
-		static uint32_t ChunkSize;
+
+	
 
 		// Static methods
 		static void Resize(uint32_t chunkSize)

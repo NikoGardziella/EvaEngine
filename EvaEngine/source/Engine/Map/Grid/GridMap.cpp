@@ -329,77 +329,98 @@ namespace Engine
 
         return true;
     }
-
-
-    void GridMap::UpdateTiles() // origin tile
+    void GridMap::UpdateTiles()
     {
         EE_PROFILE_FUNCTION();
 
-        const auto& hits = Engine::CollisionResultsCPU::LatestProjectiles;
-        if (hits.empty() || m_blockedSubCells.empty())
-            return;
+        const auto& rects = Engine::TileBlockedMaskCPU::DirtRects;
+        if (rects.empty() || m_blockedSubCells.empty()) return;
 
-        // Gather circles in world space (center, radius)
-        struct Circle { glm::vec2 C; float R; };
-        std::vector<Circle> circles;
-        circles.reserve(hits.size());
+        m_debugRects.clear();
 
-        for (const auto& r : hits)
-        {
-            if (r.Health > 0)
-            {
-                // tile was not destroyed.
-                // yet the destruction might extend and this does not remove grid
-                continue;
-            }
+        // ---- Tunables ----
+        static constexpr float DIRTY_CELLS_PER_TILE = 16.0f;
+        static constexpr float INSET_FRAC_PER_AXIS = 0.50f; // shrink dirty rect by N % of 1 cell on each side
+        static constexpr float MIN_OVERLAP_FRAC = 0.45f; // require >=N% of subcell AABB overlapped
 
-            circles.push_back({ r.HitPosition, r.RadiusWS });
-        }
-        if (circles.empty())
-            return;
+        const glm::vec2 tileSizeW = glm::vec2(float(TILE_SIZE));
+        const glm::vec2 cellSizeW = tileSizeW / DIRTY_CELLS_PER_TILE;
 
-        
-        if (circles.empty())
-            return;
+        // >>> Your desired physical shift of the DESTRUCTION rects <<<
+        // If your Y is up, use +; if screen-space Y-down, flip the sign.
+        const glm::vec2 testBias = glm::vec2(0.0f, 0.3f * float(TILE_SIZE));
 
-        // Mark-and-compact removal
         std::vector<uint8_t> kill(m_blockedSubCells.size(), 0);
 
-        for (size_t i = 0; i < m_blockedSubCells.size(); ++i)
+        auto aabbOverlapArea = [](const glm::vec2& a0, const glm::vec2& a1,
+            const glm::vec2& b0, const glm::vec2& b1) -> float {
+                float dx = std::max(0.f, std::min(a1.x, b1.x) - std::max(a0.x, b0.x));
+                float dy = std::max(0.f, std::min(a1.y, b1.y) - std::max(a0.y, b0.y));
+                return dx * dy;
+            };
+        auto aabbArea = [](const glm::vec2& m, const glm::vec2& M) -> float {
+            return std::max(0.f, M.x - m.x) * std::max(0.f, M.y - m.y);
+            };
+
+        for (const auto& r : rects)
         {
-            if (kill[i]) continue;
+            const glm::vec2 tileMinW = r.topLeft;
 
-            const SubCellOBB& obb = m_blockedSubCells[i];
+            // Rect in WORLD (unbiased first)
+            glm::vec2 wmin = tileMinW + glm::vec2(r.minCell) * cellSizeW;
+            glm::vec2 wmax = tileMinW + glm::vec2(r.maxCell) * cellSizeW;
+            if (wmin.x > wmax.x) std::swap(wmin.x, wmax.x);
+            if (wmin.y > wmax.y) std::swap(wmin.y, wmax.y);
 
-            // Coarse cull: OBB AABB vs circle AABB
-            glm::vec2 obbMin, obbMax;
-            GridUtils::OBB_ComputeAABB(obb, obbMin, obbMax);
+            // Inset (guard grazing)
+            const glm::vec2 inset = INSET_FRAC_PER_AXIS * cellSizeW;
+            glm::vec2 wminS = wmin + inset;
+            glm::vec2 wmaxS = wmax - inset;
+            wminS = glm::min(wminS, wmaxS);
 
-            for (const auto& c : circles)
+            // >>> Apply the SAME bias to the rect for testing & drawing <<<
+            const glm::vec2 rMinT = wminS + testBias;
+            const glm::vec2 rMaxT = wmaxS + testBias;
+
+            // Debug draw at the true (biased) physical location
+            PushDirtyDebugRectWorld(rMinT, rMaxT, { 0.2f, 0.5f, 1.0f, 1.0f });
+
+            for (size_t i = 0; i < m_blockedSubCells.size(); ++i)
             {
-                glm::vec2 cMin = c.C - glm::vec2(c.R);
-                glm::vec2 cMax = c.C + glm::vec2(c.R);
+                if (kill[i]) continue;
 
-                if (!GridUtils::AABBoverlap(obbMin, obbMax, cMin, cMax))
-                    continue;
+                glm::vec2 obbMinW, obbMaxW;
+                GridUtils::OBB_ComputeAABB(m_blockedSubCells[i], obbMinW, obbMaxW);
+                if (obbMinW.x > obbMaxW.x) std::swap(obbMinW.x, obbMaxW.x);
+                if (obbMinW.y > obbMaxW.y) std::swap(obbMinW.y, obbMaxW.y);
 
-                if (GridUtils::OBB_IntersectsCircle(obb, c.C, c.R))
-                {
-                    kill[i] = 1;
-                    break;
-                }
+                // >>> Apply the SAME bias to the SUBCELL AABB *for the test only* <<<
+                // (This does not change stored subcells; it’s just local variables.)
+                const glm::vec2 sMinT = obbMinW + testBias;
+                const glm::vec2 sMaxT = obbMaxW + testBias;
+
+                // Quick separation with small epsilon
+                constexpr float eps = 1e-6f;
+                const bool sep =
+                    (sMaxT.x < rMinT.x + eps) || (sMinT.x > rMaxT.x - eps) ||
+                    (sMaxT.y < rMinT.y + eps) || (sMinT.y > rMaxT.y - eps);
+                if (sep) continue;
+
+                // Area guard
+                const float ovA = aabbOverlapArea(sMinT, sMaxT, rMinT, rMaxT);
+                const float obA = aabbArea(sMinT, sMaxT);
+                if (!(obA > 0.f) || (ovA / obA) < MIN_OVERLAP_FRAC) continue;
+
+                kill[i] = 1;
             }
         }
 
-        // In-place compact
+        // Compact
         size_t w = 0;
         for (size_t i = 0; i < m_blockedSubCells.size(); ++i)
             if (!kill[i]) m_blockedSubCells[w++] = m_blockedSubCells[i];
         m_blockedSubCells.resize(w);
     }
-
-
-
 
 
 
@@ -419,9 +440,16 @@ namespace Engine
     {
         EE_PROFILE_FUNCTION();
 
+        for (const auto& r : m_debugRects)
+        {
+            DrawAABB_LineRect(r.minW, r.maxW, r.color);
+        }
+
         const glm::vec4 outline = { 0.2f, 1.0f, 0.3f, 0.95f };
         const glm::vec4 fill = { 0.2f, 1.0f, 0.3f, 0.35f };
         const float z = 0.002f;
+
+
 
         for (const SubCellOBB& obb : m_blockedSubCells)
         {
@@ -450,8 +478,7 @@ namespace Engine
 
             glm::mat4 model = M * S;
 
-            // Optional fill:
-            // Engine::VulkanRenderer2D::DrawQuad(model, fill);
+            
             Engine::VulkanRenderer2D::DrawLineRect(model, outline, -1.0f);
 
             // (Optional) draw the edge centerline to visually confirm orientation:
@@ -461,5 +488,28 @@ namespace Engine
         }
     }
 
+    inline void GridMap::DrawAABB_LineRect(const glm::vec2& wmin,
+        const glm::vec2& wmax,
+        const glm::vec4& color)
+    {
+        glm::vec2 a = wmin, b = wmax;
+        if (a.x > b.x) std::swap(a.x, b.x);
+        if (a.y > b.y) std::swap(a.y, b.y);
+
+        const glm::vec2 size = glm::max(b - a, glm::vec2(1e-6f));
+        const glm::vec2 center = 0.5f * (a + b);
+
+        // For centered unit quad: translate to center, then scale
+        const glm::mat4 M = glm::translate(glm::mat4(1.f), glm::vec3(center, 0.f))
+            * glm::scale(glm::mat4(1.f), glm::vec3(size, 1.f));
+
+        Engine::VulkanRenderer2D::DrawLineRect(M, color);
+    }
+
+    inline void GridMap::PushDirtyDebugRectWorld(const glm::vec2& wmin, const glm::vec2& wmax, const glm::vec4& color)
+    {
+
+        m_debugRects.push_back({ wmin, wmax, color });
+    }
 
 }

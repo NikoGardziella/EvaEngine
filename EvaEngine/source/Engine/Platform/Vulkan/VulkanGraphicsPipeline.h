@@ -87,6 +87,37 @@ namespace Engine {
     static_assert(offsetof(CollisionEntitiesGPU, RayLen) == 64, "RayLen misaligned");
     static_assert(offsetof(CollisionEntitiesGPU, Z1) == 68, "Z1 misaligned");
 
+    struct alignas(8) DirtyRect
+    {
+        uint32_t      tileIdx;   
+        glm::uvec2    minCell;   
+        glm::uvec2    maxCell;   
+        glm::vec2    topLeft;   
+    };
+
+    struct alignas(8) DirtyRectCPU
+    {
+        uint32_t      tileIdx;   // offset 0
+        uint32_t      _pad;      // offset 4 (pads to 8 for the uvec2)
+        glm::uvec2    minCell;   // offset 8
+        glm::uvec2    maxCell;   // offset 16
+    };
+    static_assert(sizeof(DirtyRectCPU) == 24, "DirtyRectCPU must be 24 bytes");
+
+    struct DirtyOutHeader
+    {
+        uint32_t count;
+        uint32_t overflow;
+    };
+    static_assert(sizeof(DirtyOutHeader) == 8, "DirtyOutHeader must be 8 bytes");
+
+    struct DirtyOutView
+    {
+        const DirtyOutHeader* header = nullptr;         // 8 bytes
+        const DirtyRectCPU* rects = nullptr;         // MAX_RECTS entries
+        const uint32_t* tickets = nullptr;        // NUM_TILES entries (optional)
+        const uint32_t* centerZero = nullptr;     // NUM_TILES entries (optional)
+    };
 
     struct PlayerPC {
         glm::vec2 WindowOriginWorld;   // world units
@@ -335,7 +366,20 @@ namespace Engine {
         Ref<VulkanTexture> m_dummyTexture;
 
 
-    };
+    public:
+
+        static constexpr VkDeviceSize OFF_HEADER = 0;                           // count, overflow (8 bytes)
+        static constexpr VkDeviceSize OFF_RECTS = OFF_HEADER + 8;              // 8
+        static constexpr VkDeviceSize SIZE_RECTS = VkDeviceSize(MAX_RECTS) * sizeof(DirtyRectCPU);
+        static constexpr VkDeviceSize OFF_TICKETS = OFF_RECTS + SIZE_RECTS;
+        static constexpr VkDeviceSize SIZE_TICKETS = VkDeviceSize(MAX_RESIDENT_LAYERS) * 4;
+        static constexpr VkDeviceSize OFF_CENTERZERO = OFF_TICKETS + SIZE_TICKETS;
+        static constexpr VkDeviceSize SIZE_CENTERZERO = VkDeviceSize(MAX_RESIDENT_LAYERS) * 4;
+        static constexpr VkDeviceSize DIRTYOUT_TOTAL = OFF_CENTERZERO + SIZE_CENTERZERO;
+
+
+
+};
 
 }
 

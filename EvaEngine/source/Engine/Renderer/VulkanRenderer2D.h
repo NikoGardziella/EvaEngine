@@ -119,6 +119,7 @@ namespace Engine {
 
 	};
 
+
 	struct CollisionData
 	{
 
@@ -191,6 +192,9 @@ namespace Engine {
 		void CalculateCollisionFrame(uint32_t currentFrame);
 		void ReadPlayerCollisionBuffer();
 		void ReadBlockedTileMask(std::vector<uint32_t>& outDestroyedMask, uint32_t count);
+		bool ReadDirtyOut(std::vector<DirtyRectCPU>& outRects, std::vector<uint32_t>* outCenterZero);
+		void ProcessDirtyOutThisFrame();
+		void RecordClearDirtyOut(VkCommandBuffer cmd);
 		void DeviceWaitIdle();
 
 		static void StartBatch();
@@ -298,6 +302,8 @@ namespace Engine {
 		Ref<VulkanTexture> m_dummyTexture;
 
 		static Ref<VulkanBindlessDescriptorSetRenderer> s_bindlessDescitproSet;
+
+
 
 	};
 

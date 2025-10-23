@@ -1555,22 +1555,27 @@ namespace Engine {
 
     }
 
+
+
+
     void VulkanGraphicsPipeline::CreateBlockedTileMaskBuffer()
     {
         VkDevice device = m_device;
+
+        // Create buffer sized for DirtyOut (binding=4)
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-
-        uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
-        uint32_t tilesPerMask = tilesPerRow * tilesPerRow;
-        bufferInfo.size = sizeof(uint32_t) * tilesPerMask;
-        bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        bufferInfo.size = DIRTYOUT_TOTAL;
+        bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+            | VK_BUFFER_USAGE_TRANSFER_DST_BIT   // for vkCmdFillBuffer clears
+            | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  // if you copy to staging
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if (vkCreateBuffer(device, &bufferInfo, nullptr, &m_blockedTileMaskBuffer) != VK_SUCCESS)
-            throw std::runtime_error("Failed to create destroyed tile mask buffer");
+            throw std::runtime_error("Failed to create DirtyOut buffer (binding=4)");
 
-        VkMemoryRequirements memRequirements;
+        // Allocate (host-visible like your original; switch to DEVICE_LOCAL if you adopt staging)
+        VkMemoryRequirements memRequirements{};
         vkGetBufferMemoryRequirements(device, m_blockedTileMaskBuffer, &memRequirements);
 
         VkMemoryAllocateInfo allocInfo{};
@@ -1582,10 +1587,12 @@ namespace Engine {
         );
 
         if (vkAllocateMemory(device, &allocInfo, nullptr, &m_blockedTileMaskMemory) != VK_SUCCESS)
-            throw std::runtime_error("Failed to allocate destroyed tile mask memory");
+            throw std::runtime_error("Failed to allocate DirtyOut buffer memory");
 
-        vkBindBufferMemory(device, m_blockedTileMaskBuffer, m_blockedTileMaskMemory, 0);
+        if (vkBindBufferMemory(device, m_blockedTileMaskBuffer, m_blockedTileMaskMemory, 0) != VK_SUCCESS)
+            throw std::runtime_error("Failed to bind DirtyOut buffer memory");
     }
+
 
 
     void VulkanGraphicsPipeline::CreateExplosionBuffer()

@@ -699,11 +699,8 @@ namespace Engine {
     }
 
 
-    uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResidentFromRaw(
-        uint64_t uid,
-        const uint8_t* colorData, size_t colorSize,
-        const uint8_t* propsData, size_t propsSize,
-        VkCommandBuffer uploadCB)
+    uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResidentFromRaw(uint64_t uid, const uint8_t* colorData,
+        size_t colorSize,  const uint8_t* propsData, size_t propsSize, VkCommandBuffer uploadCB)
     {
 
         EE_PROFILE_FUNCTION();

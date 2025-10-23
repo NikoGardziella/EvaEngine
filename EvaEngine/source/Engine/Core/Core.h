@@ -12,6 +12,7 @@
 #include <filesystem>
 
 
+
 #ifdef EE_PLATFORM_WINDOWS
     #if EE_DYNAMIC_LINK
         #ifdef EE_BUILD_DLL
@@ -98,6 +99,9 @@ constexpr size_t GRID_SUBDIVISIONS = 3;
 constexpr size_t MAX_RESIDENT_LAYERS = 1024;
 
 
+// ---- Dirty rect subdivision used by the shader (keep 16 here) ----
+static constexpr float DIRTY_CELLS_PER_TILE = 16.0f;
+constexpr uint32_t MAX_RECTS = 4096; // compute binding=4
 
 constexpr size_t PLAYER_COUNT = 1; // Tiles in a chunk
 

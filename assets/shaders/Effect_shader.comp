@@ -11,6 +11,10 @@ layout(set=0, binding=1, rgba8ui) uniform uimage2D uProps[];   // R=health, G=he
 // ---- collision results SSBO (unchanged layout) ----
 #define MAX_COLLISION_ENTITIES 32
 #define MAX_VISUALEFFECT_TEXTRUES 9
+#define MAX_RECTS  4096u
+#define NUM_TILES  1024u
+
+
 
 struct CollisionResult {
     uint collisionDetected;
@@ -26,6 +30,22 @@ layout(std430, set=0, binding=2) readonly buffer ResultBuffer {
     uint collisionCount; uint _padA; uint _padB; uint _padC;
     CollisionResult results[MAX_COLLISION_ENTITIES];
 };
+struct DirtyRect
+{
+    uint  tileIdx;   // 4
+    uvec2 minCell;   // 8  (aligned 8)
+    uvec2 maxCell;   // 8  (aligned 8)  -> sizeof(DirtyRect) = 24 bytes in std430
+};
+
+layout(std430, set=0, binding=4) buffer DirtyOut {
+    // Header
+    uint      count;                 // atomic append cursor
+    uint      overflow;              // set to 1 if out of space
+    DirtyRect rects[MAX_RECTS];
+    // Per-tile data
+    uint      tickets[NUM_TILES];    // frameStamp per tile for per-frame dedupe
+
+} gDirty;
 
 layout(set=0, binding=5, rgba8) uniform image2D uFX[MAX_VISUALEFFECT_TEXTRUES];
 
@@ -56,6 +76,34 @@ const uint FLAG_GLOW_TERRAIN = 1u;      // if nonzero, terrain edges get glow
 
 // ==================== helpers used by explosion/impact ====================
 
+uvec2 quantize16_min(ivec2 px, ivec2 texSz) 
+{
+    // floor
+    vec2 f = vec2(px) * (16.0 / vec2(max(texSz, ivec2(1))));
+    ivec2 c = ivec2(floor(f));
+    return uvec2(clamp(c, ivec2(0), ivec2(16)));
+}
+uvec2 quantize16_max_exclusive(ivec2 pxExclusive, ivec2 texSz)
+{
+    // ceil
+    vec2 f = vec2(pxExclusive) * (16.0 / vec2(max(texSz, ivec2(1))));
+    ivec2 c = ivec2(ceil(f));
+    return uvec2(clamp(c, ivec2(0), ivec2(16)));
+}
+
+void appendDirtyRect(uint tile, uvec2 c0, uvec2 c1)
+{
+    if (any(greaterThanEqual(c0, c1))) return; // empty
+    uint idx = atomicAdd(gDirty.count, 1u);
+    if (idx >= MAX_RECTS)
+    {
+        gDirty.overflow = 1u;
+        return;
+    }
+    gDirty.rects[idx].tileIdx = tile;
+    gDirty.rects[idx].minCell = c0;
+    gDirty.rects[idx].maxCell = c1;
+}
 // Load/store props (R=health, G=height, B=mask, A=flags)
 uvec4 loadHT(uint slot, ivec2 p) {
     return imageLoad(uProps[nonuniformEXT(slot)], p);
@@ -289,73 +337,88 @@ void processExplosionDiskFalloff(const ProjectileGPU proj, ivec2 centerPx, ivec2
     }
 }
 
-
-// Exact world-space raster: same result across adjacent tiles.
 void processExplosionDiskFalloff_WorldExact(vec2 W, float radiusW, uint dmgPerHit)
 {
     const uint TILE = pc.TextureIndex;
-    ivec2  tileSz   = imageSize(uColor[nonuniformEXT(TILE)]);
-    vec2   minW     = pc.textureOrigin;
-    vec2   pxW      = vec2(pc.pixelSize);           // world units per pixel (x==y)
+    ivec2 tileSz    = imageSize(uColor[nonuniformEXT(TILE)]);
+    vec2  minW      = pc.textureOrigin;
+    vec2  pxW       = vec2(pc.pixelSize);
 
-    // Compute the pixel bounding box of the circle in THIS tile (half-open max)
+    // Compute pixel bounds of circle in THIS tile
     float x0W = W.x - radiusW, x1W = W.x + radiusW;
     float y0W = W.y - radiusW, y1W = W.y + radiusW;
 
-    // Convert to pixel indices in this tile. Use ceil for min, floor for max, and clamp.
-    int ix0 = int(ceil((x0W - minW.x) / pxW.x));
+    int ix0 = int(ceil ((x0W - minW.x) / pxW.x));
     int ix1 = int(floor((x1W - minW.x) / pxW.x));
-    int iy0 = int(ceil((y0W - minW.y) / pxW.y));
+    int iy0 = int(ceil ((y0W - minW.y) / pxW.y));
     int iy1 = int(floor((y1W - minW.y) / pxW.y));
 
     ix0 = clamp(ix0, 0, tileSz.x - 1);
     ix1 = clamp(ix1, 0, tileSz.x - 1);
     iy0 = clamp(iy0, 0, tileSz.y - 1);
     iy1 = clamp(iy1, 0, tileSz.y - 1);
-    if (ix1 < ix0 || iy1 < iy0) return; // nothing in this tile
+    if (ix1 < ix0 || iy1 < iy0) return;
 
     float r2 = radiusW * radiusW;
+
+    // Track only solid->empty transitions for ONE emit at the end
+    bool  anyZero = false;
+    ivec2 aabbMin = ivec2(  0x7FFFFFFF);
+    ivec2 aabbMax = ivec2(- 0x7FFFFFFF); // exclusive max in pixels
 
     for (int y = iy0; y <= iy1; ++y)
     for (int x = ix0; x <= ix1; ++x)
     {
-        // Center of this texel in WORLD
         vec2 P = minW + (vec2(x, y) + 0.5) * pxW;
-
-        // Inside circle?
         vec2 d = P - W;
-        if (dot(d, d) > r2) continue;
+        if (dot(d,d) > r2) continue;
 
         ivec2 p = ivec2(x, y);
 
-        // Gameplay: read current
         uvec4 ht = imageLoad(uProps[nonuniformEXT(TILE)], p); // R=HP, A=flags
-        vec4  c  = imageLoad(uColor[nonuniformEXT(TILE)], p); // A=material present if >0
+        vec4  c  = imageLoad(uColor[nonuniformEXT(TILE)], p); // A>0 => material present
 
-        bool hasHP   = (ht.r > 0u);
-        bool terrain = (c.a > 0.0) && !hasHP;
-
-        if (hasHP)
+        if (ht.r > 0u)
         {
-            uint h = ht.r;
-            if (dmgPerHit >= h)
+            if (dmgPerHit >= ht.r)
             {
-                // destroy
-                ht.r = 0u;
+                // solid -> empty
+                ht.r  = 0u;
                 ht.a |= FX_ARMED;
                 imageStore(uProps[nonuniformEXT(TILE)], p, ht);
                 imageStore(uColor[nonuniformEXT(TILE)], p, vec4(0.0));
+
+                anyZero = true;
+                // grow EXCLUSIVE max
+                aabbMin = min(aabbMin, p);
+                aabbMax = max(aabbMax, p + ivec2(1));
             }
             else
             {
-                // damage
-                ht.r = h - dmgPerHit;
+                // damage only
+                ht.r  = ht.r - dmgPerHit;
                 ht.a |= FX_ARMED;
                 imageStore(uProps[nonuniformEXT(TILE)], p, ht);
             }
         }
     }
+
+    // Emit ONE coarse rect (quantized 16x16) if we zeroed any pixels
+    if (anyZero)
+    {
+        // clamp AABB to tile (safety)
+        aabbMin = clamp(aabbMin, ivec2(0), tileSz);
+        aabbMax = clamp(aabbMax, ivec2(0), tileSz);
+
+        uvec2 c0 = quantize16_min(aabbMin, tileSz);           // inclusive
+        uvec2 c1 = quantize16_max_exclusive(aabbMax, tileSz); // exclusive
+
+       
+
+        appendDirtyRect(TILE, c0, c1);
+    }
 }
+
 
 void doImpactAtPixel(const ProjectileGPU proj, ivec2 pHit, ivec2 curSize)
 {

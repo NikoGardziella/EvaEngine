@@ -8,6 +8,8 @@
 #define MAX_COLLISION_ENTITIES  32
 #define SUBTILES_PER_TILE       3
 #define FLAG_GLOW_TERRAIN       1
+#define MAX_RECTS  4096u
+#define NUM_TILES  1024u
 
 // BlockedTileMask bits
 const uint MASK_ALIVE       = 1u;
@@ -70,8 +72,24 @@ layout(std430, set=0, binding=2) buffer ResultBuffer {
 
 layout(std430, set=0, binding=3) readonly buffer Projectiles { ProjectileGPU data[]; };
 
-// NOTE: This buffer is assumed to be sized per tile: SUBTILES_PER_TILE^2 entries per tile dispatch.
-layout(std430, set=0, binding=4) buffer BlockedTileMask { uint blockedMask[]; };
+
+struct DirtyRect
+{
+    uint  tileIdx;   // 4
+    uvec2 minCell;   // 8  (aligned 8)
+    uvec2 maxCell;   // 8  (aligned 8)  -> sizeof(DirtyRect) = 24 bytes in std430
+};
+
+layout(std430, set=0, binding=4) buffer DirtyOut {
+    // Header
+    uint      count;                 // atomic append cursor
+    uint      overflow;              // set to 1 if out of space
+    DirtyRect rects[MAX_RECTS];
+    // Per-tile data
+    uint      tickets[NUM_TILES];    // frameStamp per tile for per-frame dedupe
+
+};
+
 layout(set=0, binding=5, rgba8) uniform image2D uFX[];
 
 // Push constants
@@ -147,7 +165,6 @@ void writeBlockedMaskIfNeeded(ivec2 lp, uint bits)
     const int pxPerSub = max(1, int(pc.TileSizePixels) / spt);
     ivec2 subtile = clamp(lp / pxPerSub, ivec2(0), ivec2(spt-1));
     uint idx = uint(subtile.y * spt + subtile.x);
-    atomicOr(blockedMask[idx], bits);
 }
 
 // Results / claim
@@ -204,11 +221,7 @@ void destroyPixel_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht)
     storeHT(slot, px, ht);
 
     // masks (tile-local)
-    writeBlockedMaskIfNeeded(px, MASK_DESTROYED);
-
-    uvec4 propsNow = imageLoad(uProps[nonuniformEXT(slot)], px);
-    if (IsDynamic(propsNow) && IsFootBand(propsNow))
-        writeBlockedMaskIfNeeded(px, MASK_DYNFOOT_HIT);
+    
 }
 void applyDamage_fx(bool /*fx*/, uint slot, ivec2 px, inout uvec4 ht, uint damage)
 {
@@ -218,11 +231,9 @@ void applyDamage_fx(bool /*fx*/, uint slot, ivec2 px, inout uvec4 ht, uint damag
         clearColor(slot, px);
         ht.r = 0u;
         storeHT(slot, px, ht);
-        writeBlockedMaskIfNeeded(px, MASK_DESTROYED);
 
         uvec4 propsNow = imageLoad(uProps[nonuniformEXT(slot)], px);
-        if (IsDynamic(propsNow) && IsFootBand(propsNow))
-            writeBlockedMaskIfNeeded(px, MASK_DYNFOOT_HIT);
+      
     }
     else
     {
