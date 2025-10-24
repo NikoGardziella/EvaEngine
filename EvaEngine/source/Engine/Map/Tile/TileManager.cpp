@@ -57,12 +57,7 @@ namespace Engine {
             uint32_t slot = VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EnsureTileResidentFromRaw(uid,
                 col.rgba.data(), col.rgba.size(), pr.rgba.data(), pr.rgba.size(), cb);
 
-            std::unordered_map<uint64_t, glm::vec2>::const_iterator cit = m_centerByUID.find(uid);  
-            glm::vec2 center = cit->second;
-            glm::vec2 origin = BottomLeftFromCenter(center, m_tileWorldW, m_tileWorldH);
 
-
-        
         }
 
         ctx->EndSingleTimeCommands(cb);

@@ -8,6 +8,7 @@
 #include <glm/glm.hpp> // Use <glm/glm.hpp> instead of <glm/fwd.hpp>
 #include <Engine/Map/Utils/IVec2Hasher.h>
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
+#include <Engine/Renderer/Utils/DeltaBitReader.h>
 
 namespace Engine
 {
@@ -17,6 +18,8 @@ namespace Engine
 		// Static variables (declared here, defined in .cpp)
 		static std::vector<uint32_t> CachedGPUMask;
 		static std::vector<DirtyRect> DirtRects;
+		static std::vector<DirtyTileRuntime> TileBlockedMaskCPU::DirtyTileRuntime;
+
 		static uint32_t ChunkSize;
 
 		struct TileMask

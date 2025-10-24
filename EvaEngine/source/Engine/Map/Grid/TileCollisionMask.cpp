@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "TileCollisionMask.h"
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
+#include <Engine/Renderer/Utils/DeltaBitReader.h>
 
 namespace Engine
 {
@@ -9,4 +10,5 @@ namespace Engine
 	std::unordered_map<glm::ivec2, TileBlockedMaskCPU::TileMask, IVec2Hasher> TileBlockedMaskCPU::ChunkMasks;
 	std::vector<uint32_t> TileBlockedMaskCPU::CachedGPUMask;
 	std::vector<DirtyRect> TileBlockedMaskCPU::DirtRects;
+	std::vector<DirtyTileRuntime> TileBlockedMaskCPU::DirtyTileRuntime;
 }

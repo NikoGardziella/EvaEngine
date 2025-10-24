@@ -53,7 +53,7 @@ namespace Engine {
         CreateInstanceBuffers(device, ctx->GetDeviceManager().GetPhysicalDevice(), m_instanceBuffer, maxInstances);
 
         EE_CORE_WARN("get this value from assset manager");
-        m_atlasExtent = { 1024 , 1029, 1 }; // fallback;
+        m_atlasExtent = { 0 , 0, 1 }; // fallback;
 
         // Create the color array (one layer per resident tile)
         CreateColorArray(device, ctx->GetDeviceManager().GetPhysicalDevice());

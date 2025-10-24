@@ -289,8 +289,9 @@ namespace Engine {
 		uint32_t m_firstIndex = 0;
 		uint32_t m_vertexOffset = 0;
 
-		uint32_t inputIndex = 0;
-		uint32_t outputIndex = 0;
+
+		std::vector<uint32_t> m_activeSlots = {};
+
 		static VulkanRenderer2DData s_VulkanData;
 		static VulkanBindlessRenderer2DData s_VulkanBindlessData;
 		static VulkanRenderer2DProjectileData s_VulkanProjectileData;

@@ -11,7 +11,12 @@ layout(set=0, binding=1, rgba8ui) uniform uimage2D uProps[];   // R=health, G=he
 // ---- collision results SSBO (unchanged layout) ----
 #define MAX_COLLISION_ENTITIES 32
 #define MAX_VISUALEFFECT_TEXTRUES 9
-#define MAX_RECTS  4096u
+
+const uint TILE_W = 128u;
+const uint TILE_H = 256u;
+const uint WORD_BITS = 32u;
+const uint PIXELS_PER_TILE = TILE_W * TILE_H;
+const uint WORDS_PER_TILE  = (PIXELS_PER_TILE + WORD_BITS - 1u) / WORD_BITS;
 #define NUM_TILES  1024u
 
 
@@ -30,22 +35,27 @@ layout(std430, set=0, binding=2) readonly buffer ResultBuffer {
     uint collisionCount; uint _padA; uint _padB; uint _padC;
     CollisionResult results[MAX_COLLISION_ENTITIES];
 };
-struct DirtyRect
+
+layout(std430, set=0, binding=4) buffer TileDeltaBits {
+    // Flattened as [tile][WORDS_PER_TILE]
+    uint words[NUM_TILES * WORDS_PER_TILE];
+} gDelta;
+
+uint pixelIndex(uvec2 px) { return px.y * TILE_W + px.x; }
+
+// Slot slice base index
+uint sliceBase(uint slot) { return slot * WORDS_PER_TILE; }
+
+// Mark exactly those pixels whose HEALTH BECAME ZERO THIS PASS
+void mark_zero_pixel(uint slot, uvec2 px)
 {
-    uint  tileIdx;   // 4
-    uvec2 minCell;   // 8  (aligned 8)
-    uvec2 maxCell;   // 8  (aligned 8)  -> sizeof(DirtyRect) = 24 bytes in std430
-};
+    uint idx = pixelIndex(px);
+    uint w   = idx >> 5;
+    uint b   = idx & 31u;
+    atomicOr(gDelta.words[sliceBase(slot) + w], (1u << b));
+}
 
-layout(std430, set=0, binding=4) buffer DirtyOut {
-    // Header
-    uint      count;                 // atomic append cursor
-    uint      overflow;              // set to 1 if out of space
-    DirtyRect rects[MAX_RECTS];
-    // Per-tile data
-    uint      tickets[NUM_TILES];    // frameStamp per tile for per-frame dedupe
 
-} gDirty;
 
 layout(set=0, binding=5, rgba8) uniform image2D uFX[MAX_VISUALEFFECT_TEXTRUES];
 
@@ -76,34 +86,9 @@ const uint FLAG_GLOW_TERRAIN = 1u;      // if nonzero, terrain edges get glow
 
 // ==================== helpers used by explosion/impact ====================
 
-uvec2 quantize16_min(ivec2 px, ivec2 texSz) 
-{
-    // floor
-    vec2 f = vec2(px) * (16.0 / vec2(max(texSz, ivec2(1))));
-    ivec2 c = ivec2(floor(f));
-    return uvec2(clamp(c, ivec2(0), ivec2(16)));
-}
-uvec2 quantize16_max_exclusive(ivec2 pxExclusive, ivec2 texSz)
-{
-    // ceil
-    vec2 f = vec2(pxExclusive) * (16.0 / vec2(max(texSz, ivec2(1))));
-    ivec2 c = ivec2(ceil(f));
-    return uvec2(clamp(c, ivec2(0), ivec2(16)));
-}
 
-void appendDirtyRect(uint tile, uvec2 c0, uvec2 c1)
-{
-    if (any(greaterThanEqual(c0, c1))) return; // empty
-    uint idx = atomicAdd(gDirty.count, 1u);
-    if (idx >= MAX_RECTS)
-    {
-        gDirty.overflow = 1u;
-        return;
-    }
-    gDirty.rects[idx].tileIdx = tile;
-    gDirty.rects[idx].minCell = c0;
-    gDirty.rects[idx].maxCell = c1;
-}
+
+
 // Load/store props (R=health, G=height, B=mask, A=flags)
 uvec4 loadHT(uint slot, ivec2 p) {
     return imageLoad(uProps[nonuniformEXT(slot)], p);
@@ -388,10 +373,7 @@ void processExplosionDiskFalloff_WorldExact(vec2 W, float radiusW, uint dmgPerHi
                 imageStore(uProps[nonuniformEXT(TILE)], p, ht);
                 imageStore(uColor[nonuniformEXT(TILE)], p, vec4(0.0));
 
-                anyZero = true;
-                // grow EXCLUSIVE max
-                aabbMin = min(aabbMin, p);
-                aabbMax = max(aabbMax, p + ivec2(1));
+                mark_zero_pixel(TILE, p); // binding 4
             }
             else
             {
@@ -403,20 +385,7 @@ void processExplosionDiskFalloff_WorldExact(vec2 W, float radiusW, uint dmgPerHi
         }
     }
 
-    // Emit ONE coarse rect (quantized 16x16) if we zeroed any pixels
-    if (anyZero)
-    {
-        // clamp AABB to tile (safety)
-        aabbMin = clamp(aabbMin, ivec2(0), tileSz);
-        aabbMax = clamp(aabbMax, ivec2(0), tileSz);
 
-        uvec2 c0 = quantize16_min(aabbMin, tileSz);           // inclusive
-        uvec2 c1 = quantize16_max_exclusive(aabbMax, tileSz); // exclusive
-
-       
-
-        appendDirtyRect(TILE, c0, c1);
-    }
 }
 
 

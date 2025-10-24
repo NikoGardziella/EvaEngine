@@ -27,6 +27,8 @@ namespace Engine {
 
 		bool HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw);
 
+		void UpdateTilesForTile(const glm::vec2& tileMinW);
+
 
 		void UpdateTiles();
 

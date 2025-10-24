@@ -16,6 +16,7 @@
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 #include "Engine/Core/Application.h"
 #include <Engine/Math/HashUtils.h>
+#include "Utils/DeltaBitReader.h"
 
 namespace Engine {
 
@@ -709,51 +710,42 @@ namespace Engine {
 	}
 
 
-	bool VulkanRenderer2D::ReadDirtyOut(std::vector<DirtyRectCPU>& outRects,
-		std::vector<uint32_t>* outCenterZero /*=nullptr*/)
+	bool VulkanRenderer2D::ReadDirtyOut(std::vector<DirtyRectCPU>& /*outRects*/,
+		std::vector<uint32_t>* /*outCenterZero*/)
 	{
-		VkDeviceMemory mem = m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory();
 
-		// Map the whole allocation to avoid size mismatches
-		void* base = nullptr;
-		if (vkMapMemory(m_device, mem, 0, VK_WHOLE_SIZE, 0, &base) != VK_SUCCESS)
+
+		if (m_activeSlots.empty())
+			return true;
+
+		DeltaBitReader reader;
+		if (!reader.Map(m_device,
+			m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory(),(uint32_t)MAX_RESIDENT_LAYERS))
+		{
 			return false;
-
-		auto* bytes = static_cast<uint8_t*>(base);
-		auto* header = reinterpret_cast<const DirtyOutHeader*>(bytes + Engine::VulkanGraphicsPipeline::OFF_HEADER);
-		auto* rects = reinterpret_cast<const DirtyRectCPU*>(bytes + Engine::VulkanGraphicsPipeline::OFF_RECTS);
-		auto* center = reinterpret_cast<const uint32_t*>(bytes + Engine::VulkanGraphicsPipeline::OFF_CENTERZERO);
-
-		// Clamp to capacity to avoid reading past the fixed array
-		const uint32_t maxRects = static_cast<uint32_t>(Engine::VulkanGraphicsPipeline::SIZE_RECTS / sizeof(DirtyRectCPU));
-		const uint32_t n = std::min(header->count, maxRects);
-
-		// Copy rects
-		outRects.resize(n);
-		if (n) {
-			std::memcpy(outRects.data(), rects, n * sizeof(DirtyRectCPU));
 		}
 
-		// Optional: copy per-tile centerZero array (NUM_TILES u32)
-		if (outCenterZero)
+		if (Engine::TileBlockedMaskCPU::DirtyTileRuntime.size() < reader.NumTiles())
+			Engine::TileBlockedMaskCPU::DirtyTileRuntime.resize(reader.NumTiles());
+
+		for (uint32_t i = 0; i < (uint32_t)m_activeSlots.size(); ++i)
 		{
-			const uint32_t numTiles = static_cast<uint32_t>(Engine::VulkanGraphicsPipeline::SIZE_CENTERZERO / sizeof(uint32_t));
-			outCenterZero->resize(numTiles);
-			if (numTiles)
-			{
-				std::memcpy(outCenterZero->data(), center, numTiles * sizeof(uint32_t));
-			}
+			const uint32_t slotId = m_activeSlots[i];
+
+			if (!reader.Any(slotId)) continue;
+
+			DirtyTileRuntime& rt = Engine::TileBlockedMaskCPU::DirtyTileRuntime[slotId];
+			reader.MergeIntoAlive(slotId, rt);
+
+			rt.topLeft = s_VulkanBindlessData.m_slotOriginWorld[slotId];
+
+
 		}
 
-		vkUnmapMemory(m_device, mem);
-
-		if (header->overflow)
-		{
-			
-			 EE_CORE_WARN("DirtyOut overflow: some rects were dropped this frame.");
-		}
+		reader.Unmap();
 		return true;
 	}
+
 
 
 
@@ -783,14 +775,13 @@ namespace Engine {
 
 	void VulkanRenderer2D::RecordClearDirtyOut(VkCommandBuffer cmd)
 	{
-		// Reset header
-		vkCmdFillBuffer(cmd, m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer(), Engine::VulkanGraphicsPipeline::OFF_HEADER + 0, 4, 0u); // count = 0
-		vkCmdFillBuffer(cmd, m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer(), Engine::VulkanGraphicsPipeline::OFF_HEADER + 4, 4, 0u); // overflow = 0
+		// Clear the whole delta-bitset buffer (one contiguous slice per tile)
+		VkBuffer buf = m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer();
+		vkCmdFillBuffer(cmd, buf, 0, Engine::VulkanGraphicsPipeline::DIRTYOUT_TOTAL, 0u);
 
-		// Reset per-tile arrays you rely on this frame
-		vkCmdFillBuffer(cmd, m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer(), Engine::VulkanGraphicsPipeline::OFF_TICKETS, Engine::VulkanGraphicsPipeline::SIZE_TICKETS, 0u);
 
 	}
+
 
 
 	void VulkanRenderer2D::DeviceWaitIdle()
@@ -1551,6 +1542,12 @@ namespace Engine {
 		std::vector<AffectedTile> affectedTiles;
 		BuildAffectedTilesCPU(hitsW, radiiW, damages, uniqueSlots, 
 			pixelSizeWorld, tileW, tileH, affectedTiles);
+		m_activeSlots.resize(affectedTiles.size());
+
+		for (size_t i = 0; i < affectedTiles.size(); i++)
+		{
+			m_activeSlots[i] = affectedTiles[i].slot;
+		}
 
 		const bool yDown = false;
 		glm::vec2 fxGridTopLeftW(std::numeric_limits<float>::infinity(),

@@ -10,6 +10,7 @@
 #include <unordered_set>q
 #include "Engine/Map/Utils/IsoTileUtils.h"
 #include "Engine/Scene/Scene.h"
+#include <Engine/Renderer/Utils/DeltaBitReader.h>
 
 
 namespace Engine
@@ -329,93 +330,104 @@ namespace Engine
 
         return true;
     }
+
+
     void GridMap::UpdateTiles()
     {
         EE_PROFILE_FUNCTION();
 
-        const auto& rects = Engine::TileBlockedMaskCPU::DirtRects;
-        if (rects.empty() || m_blockedSubCells.empty()) return;
+        std::vector<DirtyTileRuntime>& Tiles = Engine::TileBlockedMaskCPU::DirtyTileRuntime;
+        if (Tiles.empty() || m_blockedSubCells.empty())
+            return;
 
-        m_debugRects.clear();
+        static constexpr float MIN_DEAD_FRAC = 0.45f;  // >=N% of overlapped pixels dead -> kill subcell
+        static constexpr float INSET_FRAC = 0.50f;  // inset AABB by 0.5 px (per axis) to avoid grazing
 
-        // ---- Tunables ----
-        static constexpr float DIRTY_CELLS_PER_TILE = 16.0f;
-        static constexpr float INSET_FRAC_PER_AXIS = 0.50f; // shrink dirty rect by N % of 1 cell on each side
-        static constexpr float MIN_OVERLAP_FRAC = 0.45f; // require >=N% of subcell AABB overlapped
+        const glm::vec2 tileSizeW = glm::vec2(float(TILE_SIZE), float(TILE_SIZE));
 
-        const glm::vec2 tileSizeW = glm::vec2(float(TILE_SIZE));
-        const glm::vec2 cellSizeW = tileSizeW / DIRTY_CELLS_PER_TILE;
 
-        // >>> Your desired physical shift of the DESTRUCTION rects <<<
-        // If your Y is up, use +; if screen-space Y-down, flip the sign.
-        const glm::vec2 testBias = glm::vec2(0.0f, 0.3f * float(TILE_SIZE));
+        const int   TILE_PIX_W = TILE_PIXEL_WIDTH;   // e.g. 128
+        const int   TILE_PIX_H = TILE_PIXEL_HEIGHT;  // e.g. 256
+        const float pxW = tileSizeW.x / float(TILE_PIX_W);
+        const float pxH = tileSizeW.y / float(TILE_PIX_H);
+        
 
         std::vector<uint8_t> kill(m_blockedSubCells.size(), 0);
 
-        auto aabbOverlapArea = [](const glm::vec2& a0, const glm::vec2& a1,
-            const glm::vec2& b0, const glm::vec2& b1) -> float {
-                float dx = std::max(0.f, std::min(a1.x, b1.x) - std::max(a0.x, b0.x));
-                float dy = std::max(0.f, std::min(a1.y, b1.y) - std::max(a0.y, b0.y));
-                return dx * dy;
-            };
-        auto aabbArea = [](const glm::vec2& m, const glm::vec2& M) -> float {
-            return std::max(0.f, M.x - m.x) * std::max(0.f, M.y - m.y);
-            };
-
-        for (const auto& r : rects)
+        // For each tile that has a delta/alive mask, test all subcells against it
+        for (const auto& tr : Tiles)
         {
-            const glm::vec2 tileMinW = r.topLeft;
+            if (tr.aliveBits.empty())
+                continue;
 
-            // Rect in WORLD (unbiased first)
-            glm::vec2 wmin = tileMinW + glm::vec2(r.minCell) * cellSizeW;
-            glm::vec2 wmax = tileMinW + glm::vec2(r.maxCell) * cellSizeW;
-            if (wmin.x > wmax.x) std::swap(wmin.x, wmax.x);
-            if (wmin.y > wmax.y) std::swap(wmin.y, wmax.y);
+            const glm::vec2 tileMinW = tr.topLeft;
+            const glm::vec2 tileMaxW = tileMinW + tileSizeW;
 
-            // Inset (guard grazing)
-            const glm::vec2 inset = INSET_FRAC_PER_AXIS * cellSizeW;
-            glm::vec2 wminS = wmin + inset;
-            glm::vec2 wmaxS = wmax - inset;
-            wminS = glm::min(wminS, wmaxS);
+            
+            auto isDead = [&](int x, int y) -> bool {
+                if ((unsigned)x >= (unsigned)TILE_PIX_W || (unsigned)y >= (unsigned)TILE_PIX_H) return false;
+                const int idx = y * TILE_PIX_W + x;
+                const int byteIdx = idx >> 3;
+                const int bit = idx & 7;
+                return (tr.aliveBits[byteIdx] & (1u << bit)) == 0;
+                };
 
-            // >>> Apply the SAME bias to the rect for testing & drawing <<<
-            const glm::vec2 rMinT = wminS + testBias;
-            const glm::vec2 rMaxT = wmaxS + testBias;
-
-            // Debug draw at the true (biased) physical location
-            PushDirtyDebugRectWorld(rMinT, rMaxT, { 0.2f, 0.5f, 1.0f, 1.0f });
-
+            // Test each subcell AABB against this tile's dead mask
             for (size_t i = 0; i < m_blockedSubCells.size(); ++i)
             {
                 if (kill[i]) continue;
 
-                glm::vec2 obbMinW, obbMaxW;
-                GridUtils::OBB_ComputeAABB(m_blockedSubCells[i], obbMinW, obbMaxW);
-                if (obbMinW.x > obbMaxW.x) std::swap(obbMinW.x, obbMaxW.x);
-                if (obbMinW.y > obbMaxW.y) std::swap(obbMinW.y, obbMaxW.y);
+                glm::vec2 scMinW, scMaxW;
+                GridUtils::OBB_ComputeAABB(m_blockedSubCells[i], scMinW, scMaxW);
+                if (scMinW.x > scMaxW.x) std::swap(scMinW.x, scMaxW.x);
+                if (scMinW.y > scMaxW.y) std::swap(scMinW.y, scMaxW.y);
 
-                // >>> Apply the SAME bias to the SUBCELL AABB *for the test only* <<<
-                // (This does not change stored subcells; it’s just local variables.)
-                const glm::vec2 sMinT = obbMinW + testBias;
-                const glm::vec2 sMaxT = obbMaxW + testBias;
+                uint32_t anotherGeniusOffset = -0.5f;
+                scMinW.y += anotherGeniusOffset;
 
-                // Quick separation with small epsilon
-                constexpr float eps = 1e-6f;
-                const bool sep =
-                    (sMaxT.x < rMinT.x + eps) || (sMinT.x > rMaxT.x - eps) ||
-                    (sMaxT.y < rMinT.y + eps) || (sMinT.y > rMaxT.y - eps);
-                if (sep) continue;
+                // Early reject: no overlap with this tile
+                if (scMaxW.x <= tileMinW.x || scMinW.x >= tileMaxW.x ||
+                    scMaxW.y <= tileMinW.y || scMinW.y >= tileMaxW.y)
+                    continue;
 
-                // Area guard
-                const float ovA = aabbOverlapArea(sMinT, sMaxT, rMinT, rMaxT);
-                const float obA = aabbArea(sMinT, sMaxT);
-                if (!(obA > 0.f) || (ovA / obA) < MIN_OVERLAP_FRAC) continue;
+                // Overlap in world with tile bounds
+                glm::vec2 ovMinW = glm::max(scMinW, tileMinW);
+                glm::vec2 ovMaxW = glm::min(scMaxW, tileMaxW);
+                if (ovMinW.x >= ovMaxW.x || ovMinW.y >= ovMaxW.y) continue;
 
-                kill[i] = 1;
+                // Inset by fraction of a pixel to avoid grazing
+                const glm::vec2 insetW(INSET_FRAC * pxW, INSET_FRAC * pxH);
+                ovMinW += insetW;
+                ovMaxW -= insetW;
+                if (ovMinW.x >= ovMaxW.x || ovMinW.y >= ovMaxW.y) continue;
+
+                // Convert world overlap to tile pixel rect [x0,x1)×[y0,y1)
+                int x0 = (int)std::floor((ovMinW.x - tileMinW.x) / pxW);
+                int y0 = (int)std::floor((ovMinW.y - tileMinW.y) / pxH);
+                int x1 = (int)std::ceil((ovMaxW.x - tileMinW.x) / pxW);
+                int y1 = (int)std::ceil((ovMaxW.y - tileMinW.y) / pxH);
+
+                x0 = std::clamp(x0, 0, TILE_PIX_W);  x1 = std::clamp(x1, 0, TILE_PIX_W);
+                y0 = std::clamp(y0, 0, TILE_PIX_H);  y1 = std::clamp(y1, 0, TILE_PIX_H);
+                if (x1 <= x0 || y1 <= y0) continue;
+
+                // Vote to kill if enough dead pixels in the overlapped region
+                const int total = (x1 - x0) * (y1 - y0);
+                const int needDead = std::max(1, int(std::ceil(MIN_DEAD_FRAC * float(total))));
+                int deadCount = 0;
+
+                for (int y = y0; y < y1 && deadCount < needDead; ++y) {
+                    for (int x = x0; x < x1 && deadCount < needDead; ++x) {
+                        if (isDead(x, y)) ++deadCount;
+                    }
+                }
+
+                if (deadCount >= needDead) {
+                    kill[i] = 1;
+                }
             }
         }
 
-        // Compact
         size_t w = 0;
         for (size_t i = 0; i < m_blockedSubCells.size(); ++i)
             if (!kill[i]) m_blockedSubCells[w++] = m_blockedSubCells[i];

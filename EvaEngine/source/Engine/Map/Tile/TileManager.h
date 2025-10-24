@@ -68,6 +68,7 @@ namespace Engine {
 		{
 			return glm::vec2(center.x - 0.5f * w, center.y - 0.5f * h);
 		}
+
 		struct ColorTemplate { int w = 0, h = 0; std::vector<uint8_t> rgba; };              // RGBA8 bottom-origin
 		struct PropsTemplate { int w = 0, h = 0; std::vector<uint8_t> rgba; std::vector<uint8_t> aliveMask; uint8_t catNibble = 0; };
 		// GA: interleaved G,A (2 bytes/px). aliveMask: (visible || footBand) from atlas+props.

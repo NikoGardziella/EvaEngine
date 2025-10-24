@@ -368,14 +368,18 @@ namespace Engine {
 
     public:
 
-        static constexpr VkDeviceSize OFF_HEADER = 0;                           // count, overflow (8 bytes)
-        static constexpr VkDeviceSize OFF_RECTS = OFF_HEADER + 8;              // 8
-        static constexpr VkDeviceSize SIZE_RECTS = VkDeviceSize(MAX_RECTS) * sizeof(DirtyRectCPU);
-        static constexpr VkDeviceSize OFF_TICKETS = OFF_RECTS + SIZE_RECTS;
-        static constexpr VkDeviceSize SIZE_TICKETS = VkDeviceSize(MAX_RESIDENT_LAYERS) * 4;
-        static constexpr VkDeviceSize OFF_CENTERZERO = OFF_TICKETS + SIZE_TICKETS;
-        static constexpr VkDeviceSize SIZE_CENTERZERO = VkDeviceSize(MAX_RESIDENT_LAYERS) * 4;
-        static constexpr VkDeviceSize DIRTYOUT_TOTAL = OFF_CENTERZERO + SIZE_CENTERZERO;
+        // --- per-tile delta bitset layout (binding = 4) ---
+
+
+        static constexpr uint32_t PIXELS_PER_TILE = TILE_PIXEL_WIDTH * TILE_PIXEL_HEIGHT;                         // 32,768
+        static constexpr uint32_t WORDS_PER_TILE = (PIXELS_PER_TILE + WORD_BITS - 1) / 32;  // 1024
+        static constexpr VkDeviceSize TILEDELTA_SLICE_BYTES = WORDS_PER_TILE * sizeof(uint32_t); // 4096 B
+
+        // NUM_TILES should match your bindless slot count (ACTIVE_SLOTS / CHUNK_GRID_SIZE etc.)
+        static constexpr uint32_t NUM_TILES = MAX_RESIDENT_LAYERS;
+
+        // This is what your CreateBlockedTileMaskBuffer() already uses:
+        static constexpr VkDeviceSize DIRTYOUT_TOTAL = VkDeviceSize(NUM_TILES) * TILEDELTA_SLICE_BYTES;
 
 
 

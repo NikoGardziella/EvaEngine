@@ -1562,19 +1562,19 @@ namespace Engine {
     {
         VkDevice device = m_device;
 
-        // Create buffer sized for DirtyOut (binding=4)
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size = DIRTYOUT_TOTAL;
+        bufferInfo.size = DIRTYOUT_TOTAL; // now equals NUM_TILES * WORDS_PER_TILE * 4
         bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
-            | VK_BUFFER_USAGE_TRANSFER_DST_BIT   // for vkCmdFillBuffer clears
-            | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  // if you copy to staging
+            | VK_BUFFER_USAGE_TRANSFER_DST_BIT   // vkCmdFillBuffer per-slice clears
+            | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  // optional: copy to staging if you prefer
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if (vkCreateBuffer(device, &bufferInfo, nullptr, &m_blockedTileMaskBuffer) != VK_SUCCESS)
-            throw std::runtime_error("Failed to create DirtyOut buffer (binding=4)");
+        {
+            EE_CORE_ASSERT("Failed to create DirtyOut buffer (binding=4)");
+        }
 
-        // Allocate (host-visible like your original; switch to DEVICE_LOCAL if you adopt staging)
         VkMemoryRequirements memRequirements{};
         vkGetBufferMemoryRequirements(device, m_blockedTileMaskBuffer, &memRequirements);
 
@@ -1587,10 +1587,14 @@ namespace Engine {
         );
 
         if (vkAllocateMemory(device, &allocInfo, nullptr, &m_blockedTileMaskMemory) != VK_SUCCESS)
-            throw std::runtime_error("Failed to allocate DirtyOut buffer memory");
+        {
+            EE_CORE_ASSERT("Failed to allocate DirtyOut buffer memory");
+        }
 
         if (vkBindBufferMemory(device, m_blockedTileMaskBuffer, m_blockedTileMaskMemory, 0) != VK_SUCCESS)
-            throw std::runtime_error("Failed to bind DirtyOut buffer memory");
+        {
+            EE_CORE_ASSERT("Failed to bind DirtyOut buffer memory");
+        }
     }
 
 
@@ -1625,8 +1629,10 @@ namespace Engine {
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-        if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_explosionBufferMemory) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate explosion buffer memory");
+        if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_explosionBufferMemory) != VK_SUCCESS)
+        {
+            EE_CORE_ASSERT("failed to allocate explosion buffer memory");
+
         }
 
         vkBindBufferMemory(m_device, m_explosionBuffer, m_explosionBufferMemory, 0);
