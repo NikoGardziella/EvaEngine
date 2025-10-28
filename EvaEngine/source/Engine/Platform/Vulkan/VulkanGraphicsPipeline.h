@@ -241,8 +241,8 @@ namespace Engine {
         VulkanBuffer GetPlayerCollisionUniformBuffer(uint32_t imageIndex) { return m_playerUniformBuffers[imageIndex]; }
         VulkanBuffer GetTextureInfoUniformBuffer(uint32_t imageIndex) { return m_textureUniformBuffers[imageIndex]; }
 
-        VkBuffer GetGPUCollisionResultBuffer() const { return m_GPUCollisionresultBufferBuffer; }
-        VkDeviceMemory GetGPUCollisionMemory() const { return m_GPUCollisionresultBufferMemory; }
+        VkBuffer GetGPUCollisionResultBuffer(uint32_t frameIndex) { return m_GPUCollisionresultBufferBuffer[frameIndex]; }
+        VkDeviceMemory GetGPUCollisionMemory(uint32_t frameIndex) const { return m_GPUCollisionresultBufferMemory[frameIndex]; }
         
         VkBuffer GetPLayerollisionBuffer() const { return m_playerCollisionresultBufferBuffer; }
         VkDeviceMemory GetPlayerCollisionMemory() const { return m_playerCollisionresultBufferMemory; }
@@ -282,6 +282,7 @@ namespace Engine {
         void CreateCameraDescriptorSet();
         void CreatePlayerCollisionResultBuffer();
         void CreateGPUCollisionResultBuffer();
+        void DestroyGPUCollisionResultBuffers();
         void CreateBlockedTileMaskBuffer();
         void CreateExplosionBuffer();
         StorageImage CreateStorageImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkFormat format, VkCommandPool commandPool, VkQueue graphicsQueue);
@@ -344,8 +345,8 @@ namespace Engine {
       // StorageImage  m_outputTextureImage;
 
 
-        VkBuffer m_GPUCollisionresultBufferBuffer;
-        VkDeviceMemory  m_GPUCollisionresultBufferMemory;
+        std::array<VkBuffer, MAX_FRAMES_IN_FLIGHT> m_GPUCollisionresultBufferBuffer;
+        std::array<VkDeviceMemory, MAX_FRAMES_IN_FLIGHT>   m_GPUCollisionresultBufferMemory;
 
         VkBuffer m_playerCollisionresultBufferBuffer;
         VkDeviceMemory  m_playerCollisionresultBufferMemory;

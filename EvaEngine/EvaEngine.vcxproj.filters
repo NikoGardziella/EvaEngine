@@ -1656,9 +1656,9 @@
     <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h" />
     <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
-    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
-    <ClInclude Include="source\Engine\Map\Tile\DetachedPieceTag.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
+    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
+    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1869,8 +1869,9 @@
     <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp" />
-    <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
     <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">

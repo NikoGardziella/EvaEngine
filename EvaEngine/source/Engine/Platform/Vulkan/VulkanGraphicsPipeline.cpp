@@ -148,6 +148,7 @@ namespace Engine {
         vkDestroyPipelineLayout(m_device, m_imguiPipelineLayout, nullptr);
         vkDestroyPipelineLayout(m_device, m_linePipelineLayout, nullptr);
         vkDestroyPipelineLayout(m_device, m_presentPipelineLayout, nullptr);
+        DestroyGPUCollisionResultBuffers();
     }
 
  
@@ -1533,26 +1534,98 @@ namespace Engine {
 
     void VulkanGraphicsPipeline::CreateGPUCollisionResultBuffer()
     {
-        VkBufferCreateInfo bufferInfo{};
-        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size = sizeof(CollisionResultBuffer);
-        bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        const VkDevice device = m_device;
+        const VkDeviceSize bufSize = sizeof(CollisionResultBuffer);
 
-        vkCreateBuffer(m_device, &bufferInfo, nullptr, &m_GPUCollisionresultBufferBuffer);
+        for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+        {
+            // Buffer
+            VkBufferCreateInfo bufferInfo{};
+            bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            bufferInfo.size = bufSize;
+            bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT; // add TRANSFER_DST if you really copy into it
+            bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        // Allocate memory (host visible + coherent)
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(m_device, m_GPUCollisionresultBufferBuffer, &memRequirements);
+            if (vkCreateBuffer(device, &bufferInfo, nullptr, &m_GPUCollisionresultBufferBuffer[i]) != VK_SUCCESS)
+            {
+                EE_CORE_ASSERT("Failed to create GPUCollisionResult buffer");
+                return;
+            }
 
-        VkMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size; 
-        allocInfo.memoryTypeIndex = VulkanContext::Get()->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            // Memory requirements
+            VkMemoryRequirements memReq{};
+            vkGetBufferMemoryRequirements(device, m_GPUCollisionresultBufferBuffer[i], &memReq);
 
-        vkAllocateMemory(m_device, &allocInfo, nullptr, &m_GPUCollisionresultBufferMemory);
-        vkBindBufferMemory(m_device, m_GPUCollisionresultBufferBuffer, m_GPUCollisionresultBufferMemory, 0);
+            // Allocate (HOST_VISIBLE, prefer HOST_COHERENT)
+            VkMemoryAllocateInfo allocInfo{};
+            allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocInfo.allocationSize = memReq.size;
+            allocInfo.memoryTypeIndex =
+                VulkanContext::Get()->FindMemoryType(
+                    memReq.memoryTypeBits,
+                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                );
 
+            if (vkAllocateMemory(device, &allocInfo, nullptr, &m_GPUCollisionresultBufferMemory[i]) != VK_SUCCESS)
+            {
+                EE_CORE_ASSERT("Failed to allocate GPUCollisionResult buffer memory");
+                return;
+            }
+
+            if (vkBindBufferMemory(device, m_GPUCollisionresultBufferBuffer[i], m_GPUCollisionresultBufferMemory[i], 0) != VK_SUCCESS)
+            {
+                EE_CORE_ASSERT("Failed to bind GPUCollisionResult buffer memory");
+                return;
+            }
+
+            void* ptr = nullptr;
+            if (vkMapMemory(device, m_GPUCollisionresultBufferMemory[i], 0, bufSize, 0, &ptr) == VK_SUCCESS && ptr)
+            {
+                std::memset(ptr, 0, bufSize);
+
+                auto* hdr = reinterpret_cast<CollisionResultBuffer*>(ptr);
+                hdr->collisionCount = 0;
+                for (uint32_t j = 0; j < MAX_COLLISION_RESULTS; ++j)
+                {
+                    hdr->results[j].collisionDetected = 0xFFFFFFFFu; // NO_CLAIM
+                    hdr->results[j].DestructionRadius = 0xFFFFFFFFu;
+                    hdr->results[j].Damage = 0u;
+                }
+
+                VkMappedMemoryRange fl{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
+                fl.memory = m_GPUCollisionresultBufferMemory[i];
+                fl.offset = 0;
+                fl.size = bufSize;
+                vkFlushMappedMemoryRanges(device, 1, &fl);
+
+                vkUnmapMemory(device, m_GPUCollisionresultBufferMemory[i]);
+            }
+            else
+            {
+                EE_CORE_ASSERT("Failed to map GPUCollisionResult buffer for init");
+                return;
+            }
+
+            
+        }
+    }
+
+    void VulkanGraphicsPipeline::DestroyGPUCollisionResultBuffers()
+    {
+        const VkDevice device = m_device;
+        for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+        {
+            if (m_GPUCollisionresultBufferMemory[i])
+            {
+                vkFreeMemory(device, m_GPUCollisionresultBufferMemory[i], nullptr);
+                m_GPUCollisionresultBufferMemory[i] = VK_NULL_HANDLE;
+            }
+            if (m_GPUCollisionresultBufferBuffer[i])
+            {
+                vkDestroyBuffer(device, m_GPUCollisionresultBufferBuffer[i], nullptr);
+                m_GPUCollisionresultBufferBuffer[i] = VK_NULL_HANDLE;
+            }
+        }
     }
 
 
@@ -1811,11 +1884,10 @@ namespace Engine {
 
         void* data;
         VkDeviceSize size = sizeof(CollisionEntitiesGPU) * collidingEntityData.size();
-        if (size <= 0) // this probably does not work
+        if (collidingEntityData.empty())
         {
             return;
         }
-
       
         // Map buffer memory
         vkMapMemory(m_device, m_bulletUniformBuffers[currentFrame].GetMemory(),

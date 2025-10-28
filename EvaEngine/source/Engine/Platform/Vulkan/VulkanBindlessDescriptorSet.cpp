@@ -35,7 +35,7 @@ namespace Engine {
 
         CreateTileSampler(device);
         CreateBindlessSetLayout(device, updateAfterBindSupported);
-        CreateComputeArrayDescriptorSetLayout(1024, false);
+        CreateComputeArrayDescriptorSetLayout(MAX_RESIDENT_LAYERS, false);
         CreateEffectsDescriptorSetLayout();
 
         CreateComputeDescriptorSet(ctx->GetComputeDescriptorPool());
@@ -735,7 +735,7 @@ namespace Engine {
             /*layer*/ slot,
             /*w*/ m_tileW, /*h*/ m_tileH);
 
-        // Write descriptors for all frames (since you disabled update-after-bind)
+        // Write descriptors for all frames 
         for (uint32_t f = 0; f < MAX_FRAMES_IN_FLIGHT; ++f)
         {
             WriteCombinedImageSampler(m_device, m_bindlessSet[f], 0, slot, m_tileSampler,
@@ -785,6 +785,28 @@ namespace Engine {
 
         VkWriteDescriptorSet writes[2] = { w0, w1 };
         vkUpdateDescriptorSets(m_device, 2, writes, 0, nullptr);
+
+        //***** effects **********
+        VkWriteDescriptorSet wEffects0{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        wEffects0.dstSet = m_effectsDescriptorSet[frameIndex];
+        wEffects0.dstBinding = 0;
+        wEffects0.dstArrayElement = arrayIndex;
+        wEffects0.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        wEffects0.descriptorCount = 1;
+        wEffects0.pImageInfo = &color;
+
+       
+        VkWriteDescriptorSet wEffect1{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        wEffect1.dstSet = m_effectsDescriptorSet[frameIndex];
+        wEffect1.dstBinding = 1;
+        wEffect1.dstArrayElement = arrayIndex;
+        wEffect1.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        wEffect1.descriptorCount = 1;
+        wEffect1.pImageInfo = &props;
+
+        VkWriteDescriptorSet writesEffect[2] = { wEffects0, wEffect1 };
+        vkUpdateDescriptorSets(m_device, 2, writesEffect, 0, nullptr);
+
     }
 
     void VulkanBindlessDescriptorSetRenderer::ComputeBindBuffers(uint32_t frameIndex,
@@ -819,6 +841,63 @@ namespace Engine {
         VkWriteDescriptorSet writes[3] = { wr, wp, wm };
         vkUpdateDescriptorSets(m_device, 3, writes, 0, nullptr);
     }
+
+
+    void VulkanBindlessDescriptorSetRenderer::EffectsBindBuffers(uint32_t frameIndex,
+        VkBuffer resultsBuf, VkDeviceSize resultsSize, VkBuffer projectilesBuf, VkDeviceSize projSize,
+        VkBuffer blockedMaskBuf, VkDeviceSize maskSize)
+    {
+        VkDescriptorBufferInfo rbi{ resultsBuf,     0, resultsSize };
+        VkDescriptorBufferInfo pbi{ projectilesBuf, 0, projSize };
+        VkDescriptorBufferInfo mbi{ blockedMaskBuf, 0, maskSize };
+
+        VkWriteDescriptorSet wr{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        wr.dstSet = m_effectsDescriptorSet[frameIndex];
+        wr.dstBinding = 2;
+        wr.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        wr.descriptorCount = 1;
+        wr.pBufferInfo = &rbi;
+
+        VkWriteDescriptorSet wp{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        wp.dstSet = m_effectsDescriptorSet[frameIndex];
+        wp.dstBinding = 3;
+        wp.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        wp.descriptorCount = 1;
+        wp.pBufferInfo = &pbi;
+
+        VkWriteDescriptorSet wm{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        wm.dstSet = m_effectsDescriptorSet[frameIndex];
+        wm.dstBinding = 4;
+        wm.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        wm.descriptorCount = 1;
+        wm.pBufferInfo = &mbi;
+
+        VkWriteDescriptorSet writes[3] = { wr, wp, wm };
+        vkUpdateDescriptorSets(m_device, 3, writes, 0, nullptr);
+    }
+
+    void VulkanBindlessDescriptorSetRenderer::UpdateCollisionResultDescriptor(uint32_t frameIndex,
+        VkDescriptorSet dstSet, VkBuffer resultsBuf)
+    {
+       
+
+        VkDescriptorBufferInfo dbi{};
+        dbi.buffer = resultsBuf;
+        dbi.offset = 0;
+        dbi.range = sizeof(CollisionResultBuffer);
+
+        VkWriteDescriptorSet write{};
+        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write.dstSet = dstSet;
+        write.dstBinding = 2;
+        write.dstArrayElement = 0;
+        write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        write.descriptorCount = 1;
+        write.pBufferInfo = &dbi;
+
+        vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+    }
+
 
 
 
@@ -970,7 +1049,7 @@ namespace Engine {
 
         VkWriteDescriptorSet write{};
         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        write.dstSet = m_computeDescriptorSet[frameIndex];
+        write.dstSet = m_effectsDescriptorSet[frameIndex];
         write.dstBinding = 5;
         write.dstArrayElement = 0;
         write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
@@ -1153,8 +1232,10 @@ namespace Engine {
             ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT
             : 0;
 
-         VkResult res = vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_computeDescriptorSetLayout);
+        VkResult res = vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_computeDescriptorSetLayout);
         EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to create compute descriptor set layout");
+
+      
     }
 
 
@@ -1239,6 +1320,7 @@ namespace Engine {
         }
     }
 
+
     void VulkanBindlessDescriptorSetRenderer::CreateEffectsDescriptorSetLayout()
     {
         // Reuse the SAME set as your compute pass, just append binding 5 for FX grid.
@@ -1247,13 +1329,13 @@ namespace Engine {
         VkDescriptorSetLayoutBinding colorBinding{};
         colorBinding.binding = 0;
         colorBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        colorBinding.descriptorCount = 1024; // your bindless layers
+        colorBinding.descriptorCount = MAX_RESIDENT_LAYERS;
         colorBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
         VkDescriptorSetLayoutBinding propsBinding{};
         propsBinding.binding = 1;
         propsBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        propsBinding.descriptorCount = 1024;
+        propsBinding.descriptorCount = MAX_RESIDENT_LAYERS;
         propsBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
         VkDescriptorSetLayoutBinding resultsBinding{};
@@ -1299,7 +1381,7 @@ namespace Engine {
     void VulkanBindlessDescriptorSetRenderer::CreateEffectsDescriptorSets(VkDescriptorPool computeDescriptorPool)
     {
 
-        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_effectsDescriptorSetLayout);
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_computeDescriptorSetLayout);
 
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;

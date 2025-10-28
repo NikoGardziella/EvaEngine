@@ -68,6 +68,10 @@ namespace Engine {
         uint32_t EnsureTileResidentFromRaw(uint64_t uid, const uint8_t* colorData, size_t colorSize, const uint8_t* propsData, size_t propsSize, VkCommandBuffer uploadCB);
         void ComputeBindBuffers(uint32_t frameIndex, VkBuffer resultsBuf, VkDeviceSize resultsSize, VkBuffer projectilesBuf, VkDeviceSize projSize, VkBuffer blockedMaskBuf, VkDeviceSize maskSize);
 
+        void EffectsBindBuffers(uint32_t frameIndex, VkBuffer resultsBuf, VkDeviceSize resultsSize, VkBuffer projectilesBuf, VkDeviceSize projSize, VkBuffer blockedMaskBuf, VkDeviceSize maskSize);
+
+        void UpdateCollisionResultDescriptor(uint32_t frameIndex, VkDescriptorSet dstSet, VkBuffer resultsBuf);
+
         // Accessors for your render code
         VkDescriptorSetLayout GetSetLayout() const { return m_bindlessSetLayout; }
         VkPipelineLayout      GetPipelineLayout() const { return m_tilesPipelineLayout; }

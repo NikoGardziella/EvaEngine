@@ -192,6 +192,8 @@ bool writeCollisionEvent(uint producerSlot, const ProjectileGPU proj,
     uint idx = atomicAdd(collisionCount, 1u);
     if (idx >= MAX_COLLISION_ENTITIES) return false;
 
+
+
     results[idx].collisionDetected    = 1u;
     results[idx].hitProjectileID_Low  = proj.ID_Low;
     results[idx].hitProjectileID_High = proj.ID_High;
@@ -531,7 +533,6 @@ void writeClaimMeta(uint i, CollisionResult result)
  {
 
     atomicAdd(collisionCount, 1u);
-    
     results[i].Damage               = result.Damage;                 
     results[i].DestructionRadius    = result.DestructionRadius;        
     results[i].CollisionPosition    = result.CollisionPosition;

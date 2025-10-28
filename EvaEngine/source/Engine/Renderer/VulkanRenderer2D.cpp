@@ -271,31 +271,115 @@ namespace Engine {
 
 
 		s_VulkanBindlessData.m_slotOriginWorld.resize(MAX_RESIDENT_LAYERS);
+
+
+
+
+		
+
 	}
 
+
+	
 	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
 	{
+		
+		ReadAndResetCollisionBuffer(currentFrame);
 
-
-		EE_PROFILE_FUNCTION();
-		// clear old textures when GPU is done with them
-		// Sync
-	
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
 		StartBatch();
-		
-		
-		
+
 
 	}
+
+	void VulkanRenderer2D::ReadAndResetCollisionBuffer(uint32_t currentFrame)
+	{
+		const uint32_t readIdx = (currentFrame + MAX_FRAMES_IN_FLIGHT - 1) % MAX_FRAMES_IN_FLIGHT;
+		const uint32_t writeIdx = currentFrame;
+
+		// 0) Ensure previous frame that produced readIdx is DONE before mapping it.
+		vkWaitForFences(m_device, 1, &m_inFlightFences[readIdx], VK_TRUE, UINT64_MAX);
+
+		// 1) READ results from readIdx ( previous frame)
+		CollisionResultBuffer collisionResult{};
+		{
+			void* p = nullptr;
+			VkDeviceSize sz = sizeof(CollisionResultBuffer);
+			if (vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(readIdx), 0, sz, 0, &p) == VK_SUCCESS && p)
+			{
+				VkMappedMemoryRange inv{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
+				inv.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+				inv.memory = m_vulkanGraphicsPipelines->GetGPUCollisionMemory(readIdx);
+				inv.offset = 0; inv.size = sz;
+				vkInvalidateMappedMemoryRanges(m_device, 1, &inv);
+
+				std::memcpy(&collisionResult, p, sz);
+				vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(readIdx));
+			}
+		}
+
+		// 2) Convert to CPU vectors
+		CollisionResultsCPU::LatestProjectiles.clear();
+		m_hitsW.clear(); m_radiiW.clear(); m_damages.clear();
+		{
+			const uint32_t count = std::min(collisionResult.collisionCount, (uint32_t)MAX_COLLISION_RESULTS);
+			for (uint32_t i = 0; i < count; ++i)
+			{
+				const auto& r = collisionResult.results[i];
+
+				if (r.collisionDetected == 0xFFFFFFFFu)
+				{
+					continue;
+				}
+				EE_CORE_INFO("collision at world {} | {}", r.CollisionPosition.x, r.CollisionPosition.y);
+
+				// for effects pass
+				m_hitsW.push_back(r.CollisionPosition);
+				m_radiiW.push_back(r.DestructionRadius);
+				m_damages.push_back(r.Damage);
+
+				// for projectilSystem, grid, etc.
+				Collision coll{};
+				coll.EntityID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
+				coll.HitPosition = r.CollisionPosition;
+				coll.Health = r.Health;
+				coll.RadiusWS = r.DestructionRadius;
+				CollisionResultsCPU::LatestProjectiles.push_back(coll);
+			}
+		}
+
+		// 3) Reset writeIdx buffer for this frame’s compute
+		{
+			void* p = nullptr;
+			VkDeviceSize sz = sizeof(CollisionResultBuffer);
+			if (vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(writeIdx), 0, sz, 0, &p) == VK_SUCCESS && p)
+			{
+				std::memset(p, 0, sz);
+				auto* buf = reinterpret_cast<CollisionResultBuffer*>(p);
+				buf->collisionCount = 0;
+				for (uint32_t i = 0; i < MAX_COLLISION_RESULTS; ++i)
+				{
+					buf->results[i].collisionDetected = 0xFFFFFFFFu;
+					buf->results[i].DestructionRadius = 0xFFFFFFFFu;
+					buf->results[i].Damage = 0u;
+				}
+				VkMappedMemoryRange fl{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
+				fl.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+				fl.memory = m_vulkanGraphicsPipelines->GetGPUCollisionMemory(writeIdx);
+				fl.offset = 0; fl.size = sz;
+				vkFlushMappedMemoryRanges(m_device, 1, &fl);
+				vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(writeIdx));
+			}
+		}
+	}
+
 
 	void VulkanRenderer2D::EndFrame(uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
-		s_bindlessDescitproSet->UpdateEffectImageDescriptorSets(currentFrame, s_VulkanData.VisualEffectsTextureSlots);
-
+		
 		CalculateCollisionFrame(currentFrame);
 		s_VulkanData.CurrentFrame = currentFrame;
 
@@ -408,7 +492,6 @@ namespace Engine {
 		m_vulkanGraphicsPipelines->UpdateProjectileDescriptorSets(currentFrame, s_VulkanProjectileData.TextureSlots);
 
 
-		
 		Draw();
 		
 
@@ -418,26 +501,6 @@ namespace Engine {
 		RecordPresentDrawCommands(cmd, m_imageIndex, currentFrame);
 		RecordEditorDrawCommands(cmd, m_imageIndex, currentFrame);
 
-		/*
-		VkBufferMemoryBarrier b2{};
-		b2.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-		b2.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-		b2.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT; // or HOST_READ if mapping directly
-		b2.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		b2.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		b2.buffer = m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer();;
-		b2.offset = 0;
-		b2.size = VK_WHOLE_SIZE;
-
-		vkCmdPipelineBarrier(cmd,
-			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,          // or VK_PIPELINE_STAGE_HOST_BIT if no copy
-			0,
-			0, nullptr,
-			1, &b2,
-			0, nullptr);
-
-		*/
 
 		vkEndCommandBuffer(cmd);
 
@@ -489,13 +552,6 @@ namespace Engine {
 			EE_CORE_ASSERT(false, "Failed to present swapchain image!");
 		}
 
-	
-
-
-
-
-		
-
 
 	}
 
@@ -503,19 +559,7 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-		/*
-		void* data = nullptr;
-		VkDeviceSize size = sizeof(CollisionResultBuffer);
-		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
-		std::memset(data, 0xFFFFFFFFu, size);
-		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
-		
-		*/
-		
-
-
 		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
-		// Clear counter
 		
 
 		vkResetCommandBuffer(cmd, 0);
@@ -526,178 +570,65 @@ namespace Engine {
 
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
-		RecordClearDirtyOut(cmd);
 
-		/*
-		VkBufferMemoryBarrier b{};
-		b.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-		b.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		b.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-		b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		b.buffer = m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer();
-		b.offset = 0;
-		b.size = VK_WHOLE_SIZE;
+		{
+			 // reset blocked tiles buffer
+			RecordClearDirtyOut(cmd);
+		}
 
-		vkCmdPipelineBarrier(cmd,
-			VK_PIPELINE_STAGE_TRANSFER_BIT,          // srcStage
-			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,    // dstStage
-			0,
-			0, nullptr,                              // memory barriers
-			1, &b,                                   // buffer barriers
-			0, nullptr);
 
-		*/
-		// projectiles
-		m_vulkanGraphicsPipelines->UpdateCollisionUniformBuffer(currentFrame, s_CollisionData.CollisionEntities);
+		{
+			 //*********** update descriptor sets ***********
+			m_vulkanGraphicsPipelines->UpdateCollisionUniformBuffer(currentFrame, s_CollisionData.CollisionEntities);
+			
+			// combine this to the next
+
+			// 1) Bind buffers (results/projectiles/mask) for this frame
+			VkBuffer blockedMaskBuffer = m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer();
+
+			VkDeviceSize blockedMaskBufferSize = Engine::VulkanGraphicsPipeline::DIRTYOUT_TOTAL;
+
+			VkBuffer collisionResultBuffer = m_vulkanGraphicsPipelines->GetGPUCollisionResultBuffer(currentFrame);
+			VkDeviceSize collisionResultBufferSize = sizeof(CollisionResultBuffer);
+
+			VkBuffer projectileBuffer = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(currentFrame).GetBuffer();
+			VkDeviceSize projectileBufferSize = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(currentFrame).size;
+
+			s_bindlessDescitproSet->ComputeBindBuffers(currentFrame,
+				collisionResultBuffer, collisionResultBufferSize,
+				projectileBuffer, projectileBufferSize,
+				blockedMaskBuffer, blockedMaskBufferSize);
+
+
+
+			// this could be more explicit 
+			const uint32_t readIdx = (currentFrame + MAX_FRAMES_IN_FLIGHT - 1) % MAX_FRAMES_IN_FLIGHT;
+			VkBuffer previousFrameCollisionResultBuffer = m_vulkanGraphicsPipelines->GetGPUCollisionResultBuffer(readIdx);
+
+			s_bindlessDescitproSet->EffectsBindBuffers(currentFrame,
+				previousFrameCollisionResultBuffer, collisionResultBufferSize,
+				projectileBuffer, projectileBufferSize,
+				blockedMaskBuffer, blockedMaskBufferSize);
+			s_bindlessDescitproSet->UpdateEffectImageDescriptorSets(currentFrame, s_VulkanData.VisualEffectsTextureSlots);
+
+	
+		}
+
 		RecordComputeCommandBuffer(cmd, currentFrame);
 
-
-		// using grid at the moment
-		//m_vulkanGraphicsPipelines->UpdatePLayerCollisionUniformBuffer(currentFrame, s_CollisionData.playerEntities);
-		//RecordPlayerCommandBuffer(cmd, m_imageIndex, currentFrame);
-		
-		/*
-		*/
-		{
-			// barrier so that effects can see the results of compute
-			VkBufferMemoryBarrier b{};
-			b.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-			b.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-			b.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			b.buffer = m_vulkanGraphicsPipelines->GetGPUCollisionResultBuffer(); 
-			b.offset = 0;
-			b.size = VK_WHOLE_SIZE;
-
-			vkCmdPipelineBarrier(cmd,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				0, 0, nullptr, 1, &b, 0, nullptr);
-
-
-			RecordEffectComputeCommandBuffer(cmd, currentFrame);
-
-		}
-
-		
-		
-		/*
-		vkEndCommandBuffer(cmd);
-
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &cmd;
-
-		if (vkQueueSubmit(m_vulkanContext->GetGraphicsQueue(), 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS)
-		{
-			EE_CORE_ASSERT(false, "Failed to submit compute command buffer!");
-		}
-
-		{
-			EE_PROFILE_SCOPE("FENCES");
-			// Wait for compute to finish before reading buffer (optional, or use fence wait elsewhere)
-			vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-			vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
-
-		}
-		*/
-
-
-		{
-			
-			EE_PROFILE_SCOPE("collision results");
-
-			//ReadPlayerCollisionBuffer();
-
-			// move this to own method
-			// Read back collision results
-			
-			 
-			{
-				// reset player collision. remove?
-				void* data = nullptr;
-				VkDeviceSize size = sizeof(CollisionResultBuffer);
-
-				vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetPlayerCollisionMemory(), 0, size, 0, &data);
-				std::memset(data, 0, size);
-				vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetPlayerCollisionMemory());
-			}
-
-		}
+		RecordEffectComputeCommandBuffer(cmd, currentFrame);
 
 
 		{
 			EE_PROFILE_SCOPE("blocked tiles buffer");
-			uint32_t tilesPerRow = CHUNK_SIZE * CHUNK_GRID_WIDTH * GRID_SUBDIVISIONS;
-			uint32_t totalTiles = tilesPerRow * tilesPerRow;
-
-			std::vector<uint32_t> gpuBlockedTileMask(totalTiles);
-			//ReadBlockedTileMask(gpuBlockedTileMask, totalTiles);
 			
 			ProcessDirtyOutThisFrame();
-
-			/*
-			for (size_t i = 0; i < totalTiles; i++)
-			{
-				if (gpuBlockedTileMask[i] == 2u)
-				{
-					EE_CORE_INFO("destroyed tile {}", i);
-				}
-			}
-			*/
-			
-			
-			
-
-			Engine::TileBlockedMaskCPU::CachedGPUMask = std::move(gpuBlockedTileMask);
-
 		}
 
 
 	}
 
-	/*
-	void VulkanRenderer2D::ReadPlayerCollisionBuffer()
-	{
-		CollisionResultBuffer result = {};
-		void* data = nullptr;
-		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetPlayerCollisionMemory(), 0, sizeof(result), 0, &data);
-		memcpy(&result, data, sizeof(result));
-		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetPlayerCollisionMemory());
 
-		if (result.collisionCount > 0)
-		{
-			CollisionResultsCPU::PlayerCollisions.clear();
-			CollisionResultsCPU::PlayerCollisions.reserve(MAX_COLLISION_RESULTS);
-
-			const uint32_t cap = MAX_COLLISION_RESULTS;
-
-			for (uint32_t i = 0; i < cap; ++i)
-			{
-				const auto& r = result.results[i];
-				if (r.collisionDetected == 0)
-					continue;
-
-				Collision coll{};
-				// If your CollisionResult has Low/High parts, reconstruct here;
-				// otherwise keep using r.GetProjectileID() if that helper exists.
-				// coll.ProjectileID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
-				coll.EntityID = r.GetProjectileID();  // if your CPU-side struct provides it
-				coll.HitPosition = r.CollisionPosition;
-				coll.Health = r.Health;        // note: in shader it's HealthAfter
-				CollisionResultsCPU::PlayerCollisions.push_back(coll);
-			}
-
-
-
-		}
-
-	}
-
-	*/
 	void VulkanRenderer2D::ReadBlockedTileMask(std::vector<uint32_t>& outDestroyedMask, uint32_t count)
 	{
 		void* data;
@@ -778,7 +709,6 @@ namespace Engine {
 		// Clear the whole delta-bitset buffer (one contiguous slice per tile)
 		VkBuffer buf = m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer();
 		vkCmdFillBuffer(cmd, buf, 0, Engine::VulkanGraphicsPipeline::DIRTYOUT_TOTAL, 0u);
-
 
 	}
 
@@ -1163,32 +1093,18 @@ namespace Engine {
 
 	void VulkanRenderer2D::RecordComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
 	{
-
 		// 0) Bind compute pipeline + its bindless compute set
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
 			s_bindlessDescitproSet->GetComputePipeline());
-		VkDescriptorSet set0 = s_bindlessDescitproSet->GetComputeDescriptorSetFrame(frameIndex);
+
+		VkDescriptorSet effectsDescriptorSet = s_bindlessDescitproSet->GetComputeDescriptorSetFrame(frameIndex);
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
 			s_bindlessDescitproSet->GetComputePipelineLayout(),
-			0, 1, &set0, 0, nullptr);
+			0, 1, &effectsDescriptorSet, 0, nullptr);
 
-		// 1) Bind buffers (results/projectiles/mask) for this frame
-		VkBuffer blockedMaskBuffer = m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer();
-	
-		VkDeviceSize blockedMaskBufferSize = Engine::VulkanGraphicsPipeline::DIRTYOUT_TOTAL;
-
-		VkBuffer collisionResultBuffer = m_vulkanGraphicsPipelines->GetGPUCollisionResultBuffer();
-		VkDeviceSize collisionResultBufferSize = sizeof(CollisionResultBuffer);
-
-		VkBuffer projectileBuffer = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(frameIndex).GetBuffer();
-		VkDeviceSize projectileBufferSize = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(frameIndex).size;
-
-		s_bindlessDescitproSet->ComputeBindBuffers(frameIndex,
-			collisionResultBuffer, collisionResultBufferSize,
-			projectileBuffer, projectileBufferSize,
-			blockedMaskBuffer, blockedMaskBufferSize);
-
-		// 2) Dispatch once per slot we rendered this frame
+		
+		
+		// Dispatch once per slot we rendered this frame
 		VkImage colorArray = s_bindlessDescitproSet->GetColorImageArray();
 		VkImage propsArray = s_bindlessDescitproSet->GetPropsArrayImage(); // stays GENERAL; no barrier needed here
 
@@ -1209,31 +1125,24 @@ namespace Engine {
 
 		for (uint32_t slot : uniqueSlots)
 		{
-
 			// ---- Build push constants ----
 			ComputePC pc{};
 			pc.TextureIndex = slot;
 			pc.TextureOriginWorld = s_VulkanBindlessData.m_slotOriginWorld[slot]; // TOP-LEFT in world
 			pc.PixelSizeWorld = pixelSizeWorld;                                // world/px
 			pc.NumProjectiles = s_CollisionData.EntitySlotIndex;
-			pc.TileSizePixels = static_cast<uint32_t>(tileW);                  // tile width (e.g. 128)
-		
-
+			pc.TileSizePixels = static_cast<uint32_t>(tileW);                  // tile width (e.g. 128)		
 			// ---- Transition color layer for compute (props array should already be GENERAL) ----
 			BarrierLayer(cmd, colorArray, slot,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
 				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
 
-
-
 			// ---- Push & dispatch over the CONTENT area (no rectMin; shader uses contentMinPx+lid) ----
 			vkCmdPushConstants(cmd,
 				s_bindlessDescitproSet->GetComputePipelineLayout(),
 				VK_SHADER_STAGE_COMPUTE_BIT,
 				0, sizeof(ComputePC), &pc);
-
-
 			
 			const uint32_t gx = CeilDiv(TILE_PIXEL_WIDTH, kLocalX);
 			const uint32_t gy = CeilDiv(TILE_PIXEL_HEIGHT, kLocalY);
@@ -1442,12 +1351,12 @@ namespace Engine {
 		{
 			return;
 		}
-
-
+		
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
 			s_bindlessDescitproSet->GetEffectsPipeline());
 
-		VkDescriptorSet set0 = s_bindlessDescitproSet->GetComputeDescriptorSetFrame(frameIndex);
+
+		VkDescriptorSet set0 = s_bindlessDescitproSet->GetEffectsDescriptorSet(frameIndex);
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
 			s_bindlessDescitproSet->GetEffectsPipelineLayout(), 0, 1, &set0, 0, nullptr);
 
@@ -1460,76 +1369,10 @@ namespace Engine {
 			uniqueSlots.insert(kv.second);
 		}
 
-		CollisionResultBuffer           collisionResult = {};
-		void* data = nullptr;
-		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, sizeof(collisionResult), 0, &data);
-		memcpy(&collisionResult, data, sizeof(collisionResult));
-		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
-
-		const uint32_t numberOfCollisions = std::min(collisionResult.collisionCount, (uint32_t)MAX_COLLISION_RESULTS);
-
-		CollisionResultsCPU::LatestProjectiles.clear();
-		CollisionResultsCPU::LatestProjectiles.reserve(MAX_COLLISION_RESULTS);
-		std::vector<glm::vec2> hitsW;
-		std::vector<float>     radiiW;
-		std::vector<uint32_t>     damages;
-		hitsW.reserve(numberOfCollisions);
-		radiiW.reserve(numberOfCollisions);
-
-		// this should be tested with two collisions in one frame
-		for (uint32_t i = 0; i < numberOfCollisions; ++i)
-		{
-			const auto& r = collisionResult.results[i];
-
-			if (r.collisionDetected == 0xFFFFFFFFu) continue;
-
-			if (collisionResult.collisionCount > 1)
-			{
-				EE_CORE_INFO("test more than one collision: {}", r.collisionDetected);
-
-			}
-
-			EE_CORE_INFO("collided to slot: {}, position {}, {}", r.collisionDetected, r.CollisionPosition.x, r.CollisionPosition.y);
-			Collision coll{};
-			coll.EntityID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
-			coll.HitPosition = r.CollisionPosition;
-			coll.Health = r.Health;
-			coll.RadiusWS = r.DestructionRadius;
-			CollisionResultsCPU::LatestProjectiles.push_back(coll);
-
-			const glm::vec2 W = r.CollisionPosition;
-			const float     R = r.DestructionRadius;
-			uint32_t damage = r.Damage;
-			hitsW.push_back(W);
-			radiiW.push_back(R);
-			damages.push_back(damage);
-		}
-
-		data = nullptr;
-		VkDeviceSize size = sizeof(CollisionResultBuffer);
-		vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(), 0, size, 0, &data);
-		// zero everything
-		std::memset(data, 0, size);
-
-		// then set the claim sentinels for active projectiles
-		auto* buf = reinterpret_cast<CollisionResultBuffer*>(data);
-		for (uint32_t i = 0; i < 32; ++i) {
-			buf->results[i].collisionDetected = 0xFFFFFFFFu; // NO_CLAIM
-			buf->results[i].DestructionRadius = 0xFFFFFFFFu; // optional, nice to have
-			buf->results[i].Damage = 0u;
-		}
-
-		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory());
-
-
-		const int FX_W = 4096;               // FX texture width in pixels
-		const int FX_H = 4096;
 		const int   tileW = TILE_PIXEL_WIDTH;
 		const int   tileH = TILE_PIXEL_HEIGHT;
 		const float pixelSizeWorld = (tileW > 0) ? float(TILE_SIZE) / float(tileW) : 1.0f;
-		const float fxCellW_World = FX_W * pixelSizeWorld;
-		const float fxCellH_World = FX_H * pixelSizeWorld;
-
+	
 		// local size matches shader (16x16)
 		static constexpr uint32_t kLocalX = 16;
 		static constexpr uint32_t kLocalY = 16;
@@ -1540,7 +1383,7 @@ namespace Engine {
 		VkImage propsArray = s_bindlessDescitproSet->GetPropsArrayImage();
 
 		std::vector<AffectedTile> affectedTiles;
-		BuildAffectedTilesCPU(hitsW, radiiW, damages, uniqueSlots, 
+		BuildAffectedTilesCPU(m_hitsW, m_radiiW, m_damages, uniqueSlots, 
 			pixelSizeWorld, tileW, tileH, affectedTiles);
 		m_activeSlots.resize(affectedTiles.size());
 
@@ -1663,9 +1506,6 @@ namespace Engine {
 			vkCmdDispatch(cmd, gx, gy, 1);
 		}	
 	}
-
-
-
 
 
 

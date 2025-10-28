@@ -84,6 +84,8 @@
 
 //#define MAX_TEXTURES = 512
 
+const int MAX_FRAMES_IN_FLIGHT = 3;
+
 constexpr size_t TILE_SIZE = 1;
 constexpr size_t MAX_TEXTURES = 32;
 constexpr size_t MAX_PROJECTILES = 32;

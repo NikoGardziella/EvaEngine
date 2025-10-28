@@ -500,7 +500,12 @@ namespace Engine {
               //  chunkRendComp.PropertiesTexture->SetCPUPixelData(std::move(chunk.PropertiesData));
                 chunkRendComp.TerrainTexture = chunk.TerrainTexture;
                 chunkRendComp.VisualEffectTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UNORM);
-                
+               
+                /*
+                VulkanUtils::TransitionImageLayout(chunkRendComp.VisualEffectTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
+                    VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                chunkRendComp.VisualEffectTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                */
                 
                 //chunkRendComp.VisualEffectTexture = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8G8B8A8_UINT);
                 chunkRendComp.VisualEffectTexture->ResetData(); // set everything to 0 so nothing gets rendered at start

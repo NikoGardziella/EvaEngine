@@ -160,8 +160,7 @@ namespace Engine {
 		float      PixelSizeWorld;     // world units per pixel (same X/Y in shader)
 		uint32_t   TextureIndex;       // = slot
 		uint32_t   NumProjectiles;
-		uint32_t   TileSizePixels;     // tile width in texels (e.g. 128)
-		
+		uint32_t   TileSizePixels;     // tile width in texels (e.g. 128)	
 	};
 
 
@@ -183,6 +182,7 @@ namespace Engine {
 
 		void Init();
 		void DrawFrame(uint32_t currentFrame);
+		void ReadAndResetCollisionBuffer(uint32_t currentFrame);
 		void BeginFrame(uint32_t currentFrame);
 		void BeginPass(VkCommandBuffer cmd, uint32_t currentFrame);
 		void EndFrame(uint32_t currentFrame);
@@ -289,6 +289,10 @@ namespace Engine {
 		uint32_t m_firstIndex = 0;
 		uint32_t m_vertexOffset = 0;
 
+		uint32_t m_lastEffectsFrameProcessed = UINT32_MAX;
+		std::vector<glm::vec2> m_hitsW;
+		std::vector<float>     m_radiiW;
+		std::vector<uint32_t>  m_damages;
 
 		std::vector<uint32_t> m_activeSlots = {};
 
