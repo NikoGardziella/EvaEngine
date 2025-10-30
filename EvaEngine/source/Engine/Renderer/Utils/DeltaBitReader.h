@@ -2,103 +2,92 @@
 #include <vulkan/vulkan.h>
 #include <cstdint>
 #include <vector>
-#include <algorithm>
-
-#if __has_include(<bit>)
-#include <bit>
-#define DBR_HAS_COUNTR_ZERO 1
-#else
-#define DBR_HAS_COUNTR_ZERO 0
-#endif
+#include <functional>
 #include <glm/glm.hpp>
+
 
 namespace Engine {
 
 
 
-    struct DirtyTileRuntime {
-        std::vector<uint8_t> aliveBits; 
-        glm::vec2            topLeft;
+    struct DirtyTileRuntime
+    {
+        // World-space origin of this tile 
+        glm::vec2 topLeft = { 0.0f, 0.0f };
+        uint32_t slot = 0;
+        // Packed alive bits, 1 bit per pixel, length = WORDS_PER_TILE uint32_t words.
+        // Bit 1 == pixel alive, Bit 0 == dead.
+        std::vector<uint32_t> aliveWords;
+
+        // Cached counters/flags you might want to keep on CPU.
+        uint32_t aliveCount = 0;   
     };
 
+    // Simple reader that memory-maps a HOST_VISIBLE|HOST_COHERENT SSBO with packed alive bits.
+    // Bit 1 == alive. Bit 0 == dead.
     class DeltaBitReader {
     public:
-        // Must match your shader constants
-        static constexpr uint32_t TILE_W = 128;
-        static constexpr uint32_t TILE_H = 256;
-        static constexpr uint32_t WORD_BITS = 32;
-        static constexpr uint32_t PIXELS_PER_TILE = TILE_W * TILE_H;
-        static constexpr uint32_t WORDS_PER_TILE = (PIXELS_PER_TILE + WORD_BITS - 1) / 32;
-
         DeltaBitReader() = default;
 
-        // Map/unmap the SSBO memory (binding=4). numTiles = slot count (e.g., ACTIVE_SLOTS).
-        bool Map(VkDevice device, VkDeviceMemory memory, uint32_t numTiles);
+        // Map the SSBO memory.
+        // - memory: VkDeviceMemory bound to the SSBO range
+        // - offsetBytes: byte offset inside 'memory' where the bitset starts (usually 0)
+        // - numTiles, tileW, tileH: must match the shader
+        bool Map(VkDevice device,
+            VkDeviceMemory memory,
+            uint32_t numTiles,
+            uint32_t tileW,
+            uint32_t tileH,
+            VkDeviceSize offsetBytes = 0);
+
         void Unmap();
 
-        // Pointer to the WORDS_PER_TILE words for a tile (slot)
-        inline const uint32_t* Slice(uint32_t tileIdx) const {
-            return m_base + tileIdx * WORDS_PER_TILE;
-        }
+        // Quick checks / access
+        uint32_t NumTiles()     const { return m_numTiles; }
+        uint32_t TileW()        const { return m_tileW; }
+        uint32_t TileH()        const { return m_tileH; }
+        uint32_t WordsPerTile() const { return m_wordsPerTile; }
 
-        // Quick check: any bit set in this slice?
+        // Returns true if any alive bit in this tile is set.
         bool Any(uint32_t tileIdx) const;
 
-        // Iterate set pixels that became zero this frame: calls cb(px, py) for each
-        template <class F>
-        inline void ForEachSetPixel(uint32_t tileIdx, F&& cb) const {
-            const uint32_t* s = Slice(tileIdx);
-            for (uint32_t w = 0; w < WORDS_PER_TILE; ++w) {
-                uint32_t word = s[w];
-                while (word) {
-                    uint32_t b;
-#if DBR_HAS_COUNTR_ZERO && defined(__cpp_lib_bitops)
-                    b = std::countr_zero(word);
-#elif defined(__GNUG__) || defined(__clang__)
-                    b = __builtin_ctz(word);
-#elif defined(_MSC_VER)
-                    unsigned long tz;
-                    _BitScanForward(&tz, word);
-                    b = (uint32_t)tz;
-#else
-                    // Portable fallback
-                    b = 0;
-                    while (b < 32 && ((word & (1u << b)) == 0)) ++b;
-#endif
-                    word &= (word - 1);               // clear lowest set bit
-                    uint32_t idx = (w << 5) + b;      // w*32 + b
-                    if (idx >= PIXELS_PER_TILE) break;
-                    uint32_t px = idx % TILE_W;
-                    uint32_t py = idx / TILE_W;
-                    cb(px, py);
-                }
-            }
-        }
+        bool FindFirstNonZeroTile(uint32_t& outTileIdx) const;
 
-        // Merge slice -> alive bitset (clear bits for pixels that died)
-        void MergeIntoAlive(uint32_t tileIdx, DirtyTileRuntime& t) const;
+        // Count alive bits in a tile.
+        uint32_t CountAlive(uint32_t tileIdx) const;
 
-        // Build one dirty-cell bbox [minCell, maxCellHalfOpen] for this slice (optional)
-        bool DirtyCellsBBox(uint32_t tileIdx,
-            uint32_t DIRTY_CELLS_PER_TILE,
-            uint32_t& outMinX, uint32_t& outMinY,
-            uint32_t& outMaxX, uint32_t& outMaxY) const;
+        // Pointer to packed words for a tile (length = WordsPerTile()).
+        const uint32_t* GetTileWords(uint32_t tileIdx) const;
 
-        inline uint32_t NumTiles() const { return m_numTiles; }
+        // Iterate all set pixels (alive == 1) for a tile, calling f(px, py).
+        void ForEachSetPixel(uint32_t tileIdx,
+            const std::function<void(uint32_t /*px*/, uint32_t /*py*/)>& f) const;
+
+        // Build a coarse AABB in tile pixel space of alive bits.
+        // Returns false if empty. On success, outputs inclusive bounds.
+        bool AliveBBox(uint32_t tileIdx, int& minx, int& miny, int& maxx, int& maxy) const;
+
+        // Convenience: copy this tile's words into a vector (resizes as needed).
+        void CopyTileWords(uint32_t tileIdx, std::vector<uint32_t>& outWords) const;
 
     private:
-        static inline void EnsureAliveAllocated(DirtyTileRuntime& t) {
-            const size_t need = (PIXELS_PER_TILE + 7) / 8;
-            if (t.aliveBits.size() != need) t.aliveBits.assign(need, 0xFF);
-        }
+        static uint32_t DivCeil(uint32_t a, uint32_t b) { return (a + b - 1u) / b; }
+        static uint32_t Popcnt32(uint32_t v);
+
+        // Base pointer to the first word of tile 'tileIdx'
+        const uint32_t* Slice(uint32_t tileIdx) const;
 
     private:
         VkDevice        m_device = VK_NULL_HANDLE;
         VkDeviceMemory  m_memory = VK_NULL_HANDLE;
-        void* m_mapped = nullptr;
-        const uint32_t* m_base = nullptr;
+        void* m_mappedRaw = nullptr;     // base of mapped region (offset already applied)
+        const uint32_t* m_base = nullptr;     // typed view of m_mappedRaw
+
         uint32_t        m_numTiles = 0;
+        uint32_t        m_tileW = 0;
+        uint32_t        m_tileH = 0;
+        uint32_t        m_wordsPerTile = 0;
+        VkDeviceSize    m_offsetBytes = 0;
     };
 
-
-}
+} 

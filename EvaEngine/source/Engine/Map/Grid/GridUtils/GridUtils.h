@@ -7,6 +7,7 @@ namespace Engine
 		glm::vec2 center;       // world-space center
 		glm::vec2 halfExtents;  // {half-length along edge, half-thickness}
 		glm::vec2 tangent;      // unit vector along the edge (A->B)
+		uint32_t  TileSlot;
 	};
 
 

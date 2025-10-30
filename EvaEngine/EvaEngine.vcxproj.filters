@@ -1656,9 +1656,9 @@
     <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h" />
     <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
+    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
+    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
-    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
-    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">

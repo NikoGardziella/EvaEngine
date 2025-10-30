@@ -18,7 +18,7 @@ namespace Engine
 		// Static variables (declared here, defined in .cpp)
 		static std::vector<uint32_t> CachedGPUMask;
 		static std::vector<DirtyRect> DirtRects;
-		static std::vector<DirtyTileRuntime> TileBlockedMaskCPU::DirtyTileRuntime;
+		static std::vector<DirtyTileRuntime> DirtyTileRuntime;
 
 		static uint32_t ChunkSize;
 

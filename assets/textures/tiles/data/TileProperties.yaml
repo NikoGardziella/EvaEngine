@@ -1,8 +1,8 @@
 Wall_B1_E:
   Name: Wall_B1_E
-  Health: 100
+  Health: 1
   Material: 4
-  UV: [0.37939453, 0.0029126215, 0.50341797, 0.49805826]
+  UV: [0.1274414, 0.5009718, 0.25146484, 0.7487852]
 Wall C1_E:
   Name: Wall C1_E
   Health: 1

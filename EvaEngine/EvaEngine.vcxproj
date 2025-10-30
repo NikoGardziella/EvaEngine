@@ -146,7 +146,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
     <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
@@ -673,7 +672,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
     <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp" />

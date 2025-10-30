@@ -10,14 +10,21 @@
 #include <unordered_set>q
 #include "Engine/Map/Utils/IsoTileUtils.h"
 #include "Engine/Scene/Scene.h"
-#include <Engine/Renderer/Utils/DeltaBitReader.h>
+#include "Engine/Map/Grid/TileCollisionMask.h"
 
 
 namespace Engine
 {
+
+    inline static uint64_t PackXY(int x, int y) {
+        return (uint64_t)(uint32_t)x | ((uint64_t)(uint32_t)y << 32);
+    }
+
+     
     void GridMap::BuildFromRegistry(Scene* scene)
     {
         m_blockedSubCells.clear();
+        m_cellToSubcells.clear();
 
         // --- measure iso diamond in world units (unchanged) ---
         const glm::vec2 g00 = IsoTileUtils::IsoToWorldGround({ 0,0 });
@@ -65,7 +72,7 @@ namespace Engine
             };
 
         // --- existing walls: emit strips along a tile edge ---
-        auto emitEdgeSubcellsOnSide = [&](const glm::ivec2& cell, FootSide side)
+        auto emitEdgeSubcellsOnSide = [&](const glm::ivec2& cell, FootSide side, uint32_t slot)
             {
                 const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
 
@@ -73,6 +80,8 @@ namespace Engine
                 const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
                 const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
                 const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
+            
+
                 const glm::vec2 C = (E + W + N + S) * 0.25f;
 
                 glm::vec2 A{}, B{};
@@ -102,7 +111,10 @@ namespace Engine
                     obb.center = P + Nin * HALF_THICK_W;
                     obb.halfExtents = { halfAlong, HALF_THICK_W };
                     obb.tangent = T;
+                    obb.TileSlot = slot;
                     m_blockedSubCells.push_back(obb);
+
+                    
                 }
             };
 
@@ -110,7 +122,8 @@ namespace Engine
         auto emitCenteredStrip = [&](const glm::ivec2& cell,
             float widthFrac,
             float thickFrac,
-            float yNudgePx /* NEW: positive pushes DOWN if +Y is down */)
+            float yNudgePx /* NEW: positive pushes DOWN if +Y is down */,
+            uint32_t slot)
             {
                 const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
                 const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
@@ -126,10 +139,12 @@ namespace Engine
                 obb.center = C + glm::vec2(0.0f, PxToWorld(yNudgePx)); // <<< vertical nudge here
                 obb.halfExtents = { halfAlong, halfThick };
                 obb.tangent = T;
+                obb.TileSlot = slot;
                 m_blockedSubCells.push_back(obb);
+
             };
 
-        auto emitCenteredDiscApprox = [&](const glm::ivec2& cell, float radiusFrac /*~0.18f*/)
+        auto emitCenteredDiscApprox = [&](const glm::ivec2& cell, float radiusFrac /*~0.18f*/, uint32_t slot)
             {
                 const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
                 const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
@@ -140,17 +155,21 @@ namespace Engine
                 const float R = radiusFrac * 0.5f * std::min(CELL_W, CELL_H);
 
                 // Two orthogonal strips crossing at C
-                auto pushStrip = [&](const glm::vec2& T)
+                auto pushStrip = [&](const glm::vec2& T, uint32_t slot)
                     {
                         SubCellOBB obb;
                         obb.center = C;
                         obb.tangent = glm::normalize(T);
                         obb.halfExtents = { R, 0.5f * R };
+                        obb.TileSlot = slot;
                         m_blockedSubCells.push_back(obb);
+
+
                     };
 
-                pushStrip(E - W);     // “horizontal”
-                pushStrip(N - S);     // “vertical”
+                pushStrip(E - W, slot);     // “horizontal”
+                pushStrip(N - S,slot);     // “vertical”
+
             };
 
         // Per-side anchor correction used for walls (leave as-is)
@@ -158,7 +177,7 @@ namespace Engine
             switch (s) {
             case FootSide::North: return { +1, +1 };
             case FootSide::South: return { +1, +1 };
-            case FootSide::East:  return { 0, +1 };
+            case FootSide::East:  return {  0, +1 };
             case FootSide::West:  return { +2, +1 };
             }
             return { 0,0 };
@@ -181,7 +200,7 @@ namespace Engine
                 {
                     FootSide side = parseSide(t.name);
                     cell += sideIsoOffset(side);           // edge anchoring like your walls
-                    emitEdgeSubcellsOnSide(cell, side);
+                    emitEdgeSubcellsOnSide(cell, side, t.Slot);
                 }
                 
                 else if (t.Category == eTileCategory::dynamicObjects)
@@ -196,17 +215,19 @@ namespace Engine
 
                     if (kUseDiscForPosts)
                     {
-                        emitCenteredDiscApprox(cell, 0.18f);
+                        emitCenteredDiscApprox(cell, 0.18f, t.Slot);
                     }
                     else
                     {
-                        emitCenteredStrip(cell, kDefaultWidthFrac, kDefaultThickFrac, yNudgePx);
+                        emitCenteredStrip(cell, kDefaultWidthFrac, kDefaultThickFrac, yNudgePx, t.Slot);
                     }
                 }
                 
                 
             }
         }
+
+        
     }
 
 
@@ -330,111 +351,163 @@ namespace Engine
 
         return true;
     }
+    // -------- helper: compact + remap buckets (keys unchanged) --------
+    void GridMap::CompactSubcellsPreserveBuckets(const std::vector<uint8_t>& kill)
+    {
+        const int N = (int)m_blockedSubCells.size();
+        if (N == 0) return;
 
+        std::vector<int> remap(N, -1);
+        int w = 0;
+        for (int i = 0; i < N; ++i) {
+            if (!kill[i]) {
+                if (w != i) m_blockedSubCells[w] = m_blockedSubCells[i];
+                remap[i] = w++;
+            }
+        }
+        m_blockedSubCells.resize(w);
 
+        for (auto& kv : m_cellToSubcells)
+        {
+            auto& vec = kv.second;
+            int out = 0;
+            for (int idx : vec)
+            {
+                if ((unsigned)idx >= (unsigned)N) continue;
+                int ni = remap[idx];
+                if (ni != -1) vec[out++] = ni;
+            }
+            vec.resize(out);
+        }
+    }
     void GridMap::UpdateTiles()
     {
         EE_PROFILE_FUNCTION();
 
-        std::vector<DirtyTileRuntime>& Tiles = Engine::TileBlockedMaskCPU::DirtyTileRuntime;
-        if (Tiles.empty() || m_blockedSubCells.empty())
+        const auto& tiles = Engine::TileBlockedMaskCPU::DirtyTileRuntime;
+        if (tiles.empty() || m_blockedSubCells.empty())
             return;
 
-        static constexpr float MIN_DEAD_FRAC = 0.45f;  // >=N% of overlapped pixels dead -> kill subcell
-        static constexpr float INSET_FRAC = 0.50f;  // inset AABB by 0.5 px (per axis) to avoid grazing
+        // Tunables
+        static constexpr float MIN_DEAD_FRAC = 0.50f; // >=50% of inside pixels dead -> delete
+        static constexpr int   MIN_DEAD_ABS = 3;     // at least a few pixels must be dead
 
-        const glm::vec2 tileSizeW = glm::vec2(float(TILE_SIZE), float(TILE_SIZE));
+        // Tile footprint in world units (must match destructible)
+        const glm::vec2 tileSizeW((float)TILE_SIZE, (float)TILE_SIZE);
 
+        // Texture resolution
+        const int TPW = TILE_PIXEL_WIDTH;
+        const int TPH = TILE_PIXEL_HEIGHT;
 
-        const int   TILE_PIX_W = TILE_PIXEL_WIDTH;   // e.g. 128
-        const int   TILE_PIX_H = TILE_PIXEL_HEIGHT;  // e.g. 256
-        const float pxW = tileSizeW.x / float(TILE_PIX_W);
-        const float pxH = tileSizeW.y / float(TILE_PIX_H);
-        
+        // Bitfield helpers (aliveWords: 1=alive, 0=dead)
+        auto maskOK = [&](const std::vector<uint32_t>& words)->bool {
+            const int need = ((TPW * TPH) + 31) / 32;
+            return (int)words.size() >= need;
+            };
+        auto isDead = [&](const std::vector<uint32_t>& words, int x, int y)->bool {
+            if ((unsigned)x >= (unsigned)TPW || (unsigned)y >= (unsigned)TPH) return false;
+            const int idx = y * TPW + x;
+            const int word = idx >> 5;
+            const int bit = idx & 31;
+            return (((words[word] >> bit) & 1u) == 0u);
+            };
 
+        // Build kill flags
         std::vector<uint8_t> kill(m_blockedSubCells.size(), 0);
 
-        // For each tile that has a delta/alive mask, test all subcells against it
-        for (const auto& tr : Tiles)
+        for (const auto& tr : tiles)
         {
-            if (tr.aliveBits.empty())
-                continue;
+            if (!maskOK(tr.aliveWords)) continue;
 
+            // World -> this tile's pixel space
             const glm::vec2 tileMinW = tr.topLeft;
-            const glm::vec2 tileMaxW = tileMinW + tileSizeW;
+            const float sx = float(TPW) / tileSizeW.x; // 1 / pxW
+            const float sy = float(TPH) / tileSizeW.y; // 1 / pxH
 
-            
-            auto isDead = [&](int x, int y) -> bool {
-                if ((unsigned)x >= (unsigned)TILE_PIX_W || (unsigned)y >= (unsigned)TILE_PIX_H) return false;
-                const int idx = y * TILE_PIX_W + x;
-                const int byteIdx = idx >> 3;
-                const int bit = idx & 7;
-                return (tr.aliveBits[byteIdx] & (1u << bit)) == 0;
+            auto WorldToPx = [&](const glm::vec2& Pw)->glm::vec2 {
+                return { (Pw.x - tileMinW.x) * sx, (Pw.y - tileMinW.y) * sy };
                 };
 
-            // Test each subcell AABB against this tile's dead mask
-            for (size_t i = 0; i < m_blockedSubCells.size(); ++i)
+            // Iterate only subcells that belong to this slot
+            for (size_t si = 0; si < m_blockedSubCells.size(); ++si)
             {
-                if (kill[i]) continue;
+                if (kill[si]) continue;
+                const SubCellOBB& obb = m_blockedSubCells[si];
+                if (obb.TileSlot != tr.slot) continue;
 
-                glm::vec2 scMinW, scMaxW;
-                GridUtils::OBB_ComputeAABB(m_blockedSubCells[i], scMinW, scMaxW);
-                if (scMinW.x > scMaxW.x) std::swap(scMinW.x, scMaxW.x);
-                if (scMinW.y > scMaxW.y) std::swap(scMinW.y, scMaxW.y);
-
-                uint32_t anotherGeniusOffset = -0.5f;
-                scMinW.y += anotherGeniusOffset;
-
-                // Early reject: no overlap with this tile
-                if (scMaxW.x <= tileMinW.x || scMinW.x >= tileMaxW.x ||
-                    scMaxW.y <= tileMinW.y || scMinW.y >= tileMaxW.y)
+                // Ownership guard: subcell center must lie inside THIS tile AABB
+                const glm::vec2 cW = obb.center;
+                if (cW.x < tileMinW.x || cW.y < tileMinW.y ||
+                    cW.x >= tileMinW.x + tileSizeW.x || cW.y >= tileMinW.y + tileSizeW.y)
                     continue;
 
-                // Overlap in world with tile bounds
-                glm::vec2 ovMinW = glm::max(scMinW, tileMinW);
-                glm::vec2 ovMaxW = glm::min(scMaxW, tileMaxW);
-                if (ovMinW.x >= ovMaxW.x || ovMinW.y >= ovMaxW.y) continue;
+                // Compute OBB frame in pixel space (handles non-uniform scale)
+                glm::vec2 T = obb.tangent;
+                float tlen = glm::length(T);
+                if (tlen < 1e-8f) T = { 1,0 }; else T /= tlen;
+                glm::vec2 N = { -T.y, T.x };
 
-                // Inset by fraction of a pixel to avoid grazing
-                const glm::vec2 insetW(INSET_FRAC * pxW, INSET_FRAC * pxH);
-                ovMinW += insetW;
-                ovMaxW -= insetW;
-                if (ovMinW.x >= ovMaxW.x || ovMinW.y >= ovMaxW.y) continue;
+                glm::vec2 Cpx = WorldToPx(obb.center);
+                glm::vec2 Tpx = { T.x * sx, T.y * sy };
+                glm::vec2 Npx = { N.x * sx, N.y * sy };
 
-                // Convert world overlap to tile pixel rect [x0,x1)×[y0,y1)
-                int x0 = (int)std::floor((ovMinW.x - tileMinW.x) / pxW);
-                int y0 = (int)std::floor((ovMinW.y - tileMinW.y) / pxH);
-                int x1 = (int)std::ceil((ovMaxW.x - tileMinW.x) / pxW);
-                int y1 = (int)std::ceil((ovMaxW.y - tileMinW.y) / pxH);
+                float lenTpx = glm::length(Tpx);
+                float lenNpx = glm::length(Npx);
+                if (lenTpx < 1e-12f || lenNpx < 1e-12f) continue;
 
-                x0 = std::clamp(x0, 0, TILE_PIX_W);  x1 = std::clamp(x1, 0, TILE_PIX_W);
-                y0 = std::clamp(y0, 0, TILE_PIX_H);  y1 = std::clamp(y1, 0, TILE_PIX_H);
+                glm::vec2 Tpx_hat = Tpx / lenTpx;
+                glm::vec2 Npx_hat = Npx / lenNpx;
+                float hx_px = obb.halfExtents.x * lenTpx;
+                float hy_px = obb.halfExtents.y * lenNpx;
+
+                // OBB AABB in pixel space -> integer window
+                auto corner = [&](float su, float sv)->glm::vec2 {
+                    return Cpx + Tpx_hat * (su * hx_px) + Npx_hat * (sv * hy_px);
+                    };
+                glm::vec2 c0 = corner(-1, -1), c1 = corner(+1, -1);
+                glm::vec2 c2 = corner(+1, +1), c3 = corner(-1, +1);
+                float minx = std::min(std::min(c0.x, c1.x), std::min(c2.x, c3.x));
+                float maxx = std::max(std::max(c0.x, c1.x), std::max(c2.x, c3.x));
+                float miny = std::min(std::min(c0.y, c1.y), std::min(c2.y, c3.y));
+                float maxy = std::max(std::max(c0.y, c1.y), std::max(c2.y, c3.y));
+
+                int x0 = std::clamp((int)std::floor(minx), 0, TPW);
+                int x1 = std::clamp((int)std::ceil(maxx), 0, TPW);
+                int y0 = std::clamp((int)std::floor(miny), 0, TPH);
+                int y1 = std::clamp((int)std::ceil(maxy), 0, TPH);
                 if (x1 <= x0 || y1 <= y0) continue;
 
-                // Vote to kill if enough dead pixels in the overlapped region
-                const int total = (x1 - x0) * (y1 - y0);
-                const int needDead = std::max(1, int(std::ceil(MIN_DEAD_FRAC * float(total))));
+                // Count dead pixel centers inside OBB
+                const int totalWin = (x1 - x0) * (y1 - y0);
+                const int needDead = std::max(MIN_DEAD_ABS, int(std::ceil(MIN_DEAD_FRAC * float(totalWin))));
                 int deadCount = 0;
 
-                for (int y = y0; y < y1 && deadCount < needDead; ++y) {
-                    for (int x = x0; x < x1 && deadCount < needDead; ++x) {
-                        if (isDead(x, y)) ++deadCount;
+                for (int py = y0; py < y1 && deadCount < needDead; ++py)
+                {
+                    const float cy = float(py) + 0.5f;
+                    for (int px = x0; px < x1 && deadCount < needDead; ++px)
+                    {
+                        const float cx = float(px) + 0.5f;
+                        glm::vec2 d = { cx - Cpx.x, cy - Cpx.y };
+                        const float u = glm::dot(d, Tpx_hat);
+                        const float v = glm::dot(d, Npx_hat);
+                        if (std::abs(u) <= hx_px && std::abs(v) <= hy_px) {
+                            if (isDead(tr.aliveWords, px, py)) ++deadCount;
+                        }
                     }
                 }
 
-                if (deadCount >= needDead) {
-                    kill[i] = 1;
-                }
+                if (deadCount >= needDead)
+                    kill[si] = 1;
             }
         }
 
+        // Compact deleted subcells in-place
         size_t w = 0;
         for (size_t i = 0; i < m_blockedSubCells.size(); ++i)
             if (!kill[i]) m_blockedSubCells[w++] = m_blockedSubCells[i];
         m_blockedSubCells.resize(w);
     }
-
-
 
 
 

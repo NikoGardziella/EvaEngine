@@ -57,11 +57,26 @@ namespace Engine {
             uint32_t slot = VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EnsureTileResidentFromRaw(uid,
                 col.rgba.data(), col.rgba.size(), pr.rgba.data(), pr.rgba.size(), cb);
 
+            m_slotByUID[uid] = slot;
 
         }
 
+
         ctx->EndSingleTimeCommands(cb);
+
+
+        scene->ForEach<TileComponent>([&](Entity e, TileComponent& tc)
+            {
+            for (auto& t : tc.tiles)
+            {
+                auto it = m_slotByUID.find(t.UID);
+                if (it != m_slotByUID.end()) t.Slot = it->second;
+            }
+            });
+
     }
+
+
 
     void TileManager::BuildTemplatesForScene(Scene* scene)
     {

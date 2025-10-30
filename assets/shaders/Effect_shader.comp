@@ -37,24 +37,31 @@ layout(std430, set=0, binding=2) readonly buffer ResultBuffer {
 };
 
 layout(std430, set=0, binding=4) buffer TileDeltaBits {
-    // Flattened as [tile][WORDS_PER_TILE]
-    uint words[NUM_TILES * WORDS_PER_TILE];
-} gDelta;
+    
+    uint words[];
+} gAlive;
 
 uint pixelIndex(uvec2 px) { return px.y * TILE_W + px.x; }
 
 // Slot slice base index
-uint sliceBase(uint slot) { return slot * WORDS_PER_TILE; }
+uint sliceBase(uint tile) { return tile * WORDS_PER_TILE; }
 
-// Mark exactly those pixels whose HEALTH BECAME ZERO THIS PASS
-void mark_zero_pixel(uint slot, uvec2 px)
+void mark_alive_pixel(uint tile, uvec2 px)
+{
+    uint idx = px.y * TILE_W + px.x;
+    uint w   = idx >> 5;        // /32
+    uint b   = idx & 31u;       // %32
+    atomicOr(gAlive.words[sliceBase(tile) + w], (1u << b));
+}
+
+bool is_alive(uint slot, uvec2 px)
 {
     uint idx = pixelIndex(px);
     uint w   = idx >> 5;
     uint b   = idx & 31u;
-    atomicOr(gDelta.words[sliceBase(slot) + w], (1u << b));
+    uint word = gAlive.words[sliceBase(slot) + w];
+    return ((word >> b) & 1u) != 0u;
 }
-
 
 
 layout(set=0, binding=5, rgba8) uniform image2D uFX[MAX_VISUALEFFECT_TEXTRUES];
@@ -372,8 +379,9 @@ void processExplosionDiskFalloff_WorldExact(vec2 W, float radiusW, uint dmgPerHi
                 ht.a |= FX_ARMED;
                 imageStore(uProps[nonuniformEXT(TILE)], p, ht);
                 imageStore(uColor[nonuniformEXT(TILE)], p, vec4(0.0));
+                atomicOr(gAlive.words[pc.TextureIndex * WORDS_PER_TILE + 0u], 1u);
+                memoryBarrierBuffer();
 
-                mark_zero_pixel(TILE, p); // binding 4
             }
             else
             {
@@ -634,6 +642,22 @@ void drawHealthOverlay(uint TILE)
     }
 }
 
+void markAlivePixelsTile(uint tile, ivec2 tileSz, bool doBufBarrier)
+{
+    memoryBarrierImage();
+
+    for (int y = 0; y < tileSz.y; ++y)
+    for (int x = 0; x < tileSz.x; ++x)
+    {
+        uint health = imageLoad(uProps[nonuniformEXT(tile)], ivec2(x, y)).r;
+        if (health > 0u)
+            mark_alive_pixel(tile, uvec2(x, y));
+    }
+
+    if (doBufBarrier) memoryBarrierBuffer();
+}
+
+
 
 void main()
 {
@@ -643,6 +667,8 @@ void main()
         fadeFXTexture(pc.fxIdx);
         return; 
     }
+
+   
 
     const uint  TILE   = pc.TextureIndex;
     ivec2       tileSz = imageSize(uColor[nonuniformEXT(TILE)]);
@@ -674,6 +700,9 @@ void main()
         proj.DestructionRadius = float(R);
         proj.Damage            = pc.hitDamage;
         processExplosionDiskFalloff_WorldExact(WorldPos, radiusW, pc.hitDamage);
+
+
+        markAlivePixelsTile(TILE, tileSz, false);
 
         // --------- FX: paint a persistent disk in the correct FX texture ---------
         {

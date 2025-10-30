@@ -73,6 +73,8 @@ namespace Engine {
 		struct PropsTemplate { int w = 0, h = 0; std::vector<uint8_t> rgba; std::vector<uint8_t> aliveMask; uint8_t catNibble = 0; };
 		// GA: interleaved G,A (2 bytes/px). aliveMask: (visible || footBand) from atlas+props.
 		std::unordered_map<uint64_t, glm::vec2> m_centerByUID; 
+		std::unordered_map<uint64_t, uint32_t> m_slotByUID;
+
 		std::unordered_map<uint64_t, ColorTemplate> m_colorByUID;
 		std::unordered_map<uint64_t, PropsTemplate> m_propsByUID;
 		std::vector<glm::vec2> m_slotOriginWorld; 

@@ -192,9 +192,9 @@ namespace Engine {
 		void CalculateCollisionFrame(uint32_t currentFrame);
 		void ReadPlayerCollisionBuffer();
 		void ReadBlockedTileMask(std::vector<uint32_t>& outDestroyedMask, uint32_t count);
-		bool ReadDirtyOut(std::vector<DirtyRectCPU>& outRects, std::vector<uint32_t>* outCenterZero);
+		bool ReadDirtyOut();
 		void ProcessDirtyOutThisFrame();
-		void RecordClearDirtyOut(VkCommandBuffer cmd);
+		bool ClearAliveBitsHost();
 		void DeviceWaitIdle();
 
 		static void StartBatch();
@@ -289,7 +289,7 @@ namespace Engine {
 		uint32_t m_firstIndex = 0;
 		uint32_t m_vertexOffset = 0;
 
-		uint32_t m_lastEffectsFrameProcessed = UINT32_MAX;
+		// effects shader
 		std::vector<glm::vec2> m_hitsW;
 		std::vector<float>     m_radiiW;
 		std::vector<uint32_t>  m_damages;
@@ -309,7 +309,7 @@ namespace Engine {
 		static Ref<VulkanBindlessDescriptorSetRenderer> s_bindlessDescitproSet;
 
 
-
+	
 	};
 
 

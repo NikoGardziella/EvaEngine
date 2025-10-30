@@ -275,16 +275,23 @@ namespace Engine {
 
 
 
-		
 
 	}
+
+
 
 
 	
 	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
 	{
+
+		TileBlockedMaskCPU::DirtyTileRuntime.clear();
 		
 		ReadAndResetCollisionBuffer(currentFrame);
+
+		ReadDirtyOut();
+
+		ClearAliveBitsHost();
 
 		vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
@@ -571,10 +578,7 @@ namespace Engine {
 		vkBeginCommandBuffer(cmd, &beginInfo);
 
 
-		{
-			 // reset blocked tiles buffer
-			RecordClearDirtyOut(cmd);
-		}
+		
 
 
 		{
@@ -605,11 +609,12 @@ namespace Engine {
 			const uint32_t readIdx = (currentFrame + MAX_FRAMES_IN_FLIGHT - 1) % MAX_FRAMES_IN_FLIGHT;
 			VkBuffer previousFrameCollisionResultBuffer = m_vulkanGraphicsPipelines->GetGPUCollisionResultBuffer(readIdx);
 
+			s_bindlessDescitproSet->UpdateEffectImageDescriptorSets(currentFrame, s_VulkanData.VisualEffectsTextureSlots);
+			
 			s_bindlessDescitproSet->EffectsBindBuffers(currentFrame,
 				previousFrameCollisionResultBuffer, collisionResultBufferSize,
 				projectileBuffer, projectileBufferSize,
 				blockedMaskBuffer, blockedMaskBufferSize);
-			s_bindlessDescitproSet->UpdateEffectImageDescriptorSets(currentFrame, s_VulkanData.VisualEffectsTextureSlots);
 
 	
 		}
@@ -622,7 +627,7 @@ namespace Engine {
 		{
 			EE_PROFILE_SCOPE("blocked tiles buffer");
 			
-			ProcessDirtyOutThisFrame();
+			//ProcessDirtyOutThisFrame();
 		}
 
 
@@ -640,37 +645,63 @@ namespace Engine {
 		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory());
 	}
 
+	static void DebugDumpFirstWords(const Engine::DeltaBitReader& rdr, uint32_t slot, uint32_t count = 500) {
+		auto* w = rdr.GetTileWords(slot);
+		if (!w) { printf("slot %u: null slice\n", slot); return; }
+		printf("slot %u: first %u words:", slot, count);
+		for (uint32_t i = 0; i < count; ++i) printf(" %08X", w[i]);
+		printf("\n");
+	}
 
-	bool VulkanRenderer2D::ReadDirtyOut(std::vector<DirtyRectCPU>& /*outRects*/,
-		std::vector<uint32_t>* /*outCenterZero*/)
+	bool VulkanRenderer2D::ReadDirtyOut()
 	{
-
-
 		if (m_activeSlots.empty())
 			return true;
 
-		DeltaBitReader reader;
+		Engine::DeltaBitReader reader;
+		const uint32_t numTiles = MAX_RESIDENT_LAYERS;      // must match the SSBO layout
+		const uint32_t tileW = TILE_PIXEL_WIDTH;         // must match shader
+		const uint32_t tileH = TILE_PIXEL_HEIGHT;        // must match shader
+
 		if (!reader.Map(m_device,
-			m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory(),(uint32_t)MAX_RESIDENT_LAYERS))
+			m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory(), // HOST_VISIBLE memory
+			numTiles, tileW, tileH,
+			/*offsetBytes=*/0))
 		{
 			return false;
 		}
 
-		if (Engine::TileBlockedMaskCPU::DirtyTileRuntime.size() < reader.NumTiles())
-			Engine::TileBlockedMaskCPU::DirtyTileRuntime.resize(reader.NumTiles());
+		
+
+		// Keep this as "affected tiles only"
+		Engine::TileBlockedMaskCPU::DirtyTileRuntime.clear();
+		Engine::TileBlockedMaskCPU::DirtyTileRuntime.reserve(m_activeSlots.size());
 
 		for (uint32_t i = 0; i < (uint32_t)m_activeSlots.size(); ++i)
 		{
 			const uint32_t slotId = m_activeSlots[i];
 
-			if (!reader.Any(slotId)) continue;
+			if (!reader.Any(slotId))
+			{
+				continue;
+			}
 
-			DirtyTileRuntime& rt = Engine::TileBlockedMaskCPU::DirtyTileRuntime[slotId];
-			reader.MergeIntoAlive(slotId, rt);
+			const uint32_t* w = reader.GetTileWords(slotId);
+			//EE_CORE_INFO("slot {} first words: {} , {}", slotId, w[0], w[1]);
 
+			DirtyTileRuntime rt{}; // see typedef below
+			rt.slot = slotId;
 			rt.topLeft = s_VulkanBindlessData.m_slotOriginWorld[slotId];
 
+			// copy packed words (1 bit per pixel: 1 == alive)
+			reader.CopyTileWords(slotId, rt.aliveWords);
 
+			rt.aliveCount = reader.CountAlive(slotId);
+			
+			EE_CORE_INFO("alive count: {}, alive words count{}, slot {}, top left: {} | {}",
+				rt.aliveCount, rt.aliveWords.size(), rt.slot, rt.topLeft.x, rt.topLeft.y);
+
+			Engine::TileBlockedMaskCPU::DirtyTileRuntime.push_back(std::move(rt));
 		}
 
 		reader.Unmap();
@@ -680,36 +711,33 @@ namespace Engine {
 
 
 
+
 	void VulkanRenderer2D::ProcessDirtyOutThisFrame()
 	{
-		// 1) Read GPU-written rects into CPU vectors
-		std::vector<DirtyRectCPU> rectsCPU;
-		std::vector<DirtyRect>    rects;
-		std::vector<uint32_t>     centerZero; // pass nullptr if you didn't include centerZero[]
-		if (!ReadDirtyOut(rectsCPU, /*outCenterZero=*/nullptr))   // or &centerZero
-			return;
-		rects.resize(rectsCPU.size());
-		// 2) Consume them
-
-		for (size_t i = 0; i < rectsCPU.size(); i++)
-		{
-			rects[i].tileIdx = rectsCPU[i].tileIdx;
-			rects[i].maxCell = rectsCPU[i].maxCell;
-			rects[i].minCell = rectsCPU[i].minCell;
-			rects[i].topLeft = s_VulkanBindlessData.m_slotOriginWorld[rects[i].tileIdx];
-			
-		}
 		
-		Engine::TileBlockedMaskCPU::DirtRects = std::move(rects);
-
 	}
 
-	void VulkanRenderer2D::RecordClearDirtyOut(VkCommandBuffer cmd)
-	{
-		// Clear the whole delta-bitset buffer (one contiguous slice per tile)
-		VkBuffer buf = m_vulkanGraphicsPipelines->GetBlockedTileMaskBuffer();
-		vkCmdFillBuffer(cmd, buf, 0, Engine::VulkanGraphicsPipeline::DIRTYOUT_TOTAL, 0u);
 
+
+	bool VulkanRenderer2D::ClearAliveBitsHost()
+	{
+		// The SAME buffer/memory/offset you bind at set=0,binding=4
+		VkDeviceMemory mem = m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory();
+		VkDeviceSize   off = 0;  // usually 0
+		VkDeviceSize   bytes = Engine::VulkanGraphicsPipeline::DIRTYOUT_TOTAL;       
+
+		EE_CORE_ASSERT(mem != VK_NULL_HANDLE, "Alive/BlockedTileMask memory is null");
+		EE_CORE_ASSERT((off % 4) == 0 && (bytes % 4) == 0, "offset/size must be 4-byte aligned");
+
+	
+		void* p = nullptr;
+		VkResult r = vkMapMemory(m_device, mem, off, bytes, 0, &p);
+		if (r != VK_SUCCESS) return false;
+
+		std::memset(p, 0, static_cast<size_t>(bytes));
+
+		vkUnmapMemory(m_device, mem);
+		return true;
 	}
 
 
@@ -1286,6 +1314,19 @@ namespace Engine {
 		return glm::dot(d, d) <= rW * rW + 1e-6f;
 	}
 
+	inline bool CircleIntersectsRect_HalfOpen(
+		const glm::vec2& C, float r,
+		const glm::vec2& minW, const glm::vec2& maxW_inclusive // original
+	) {
+		// make right/bottom edges exclusive via tiny shrink
+		const float eps = 1e-6f;
+		const glm::vec2 maxW = maxW_inclusive - glm::vec2(eps);
+
+		// closest point on [min, max) box to the circle center
+		glm::vec2 q = glm::clamp(C, minW, maxW);
+		glm::vec2 d = C - q;
+		return glm::dot(d, d) <= r * r;
+	}
 
 	void VulkanRenderer2D::BuildAffectedTilesCPU(
 		const std::vector<glm::vec2>& hitPositionsW,          // world hits this frame
@@ -1314,11 +1355,10 @@ namespace Engine {
 			// Accumulate all hits that touch this tile
 			for (size_t i = 0; i < hitPositionsW.size(); ++i)
 			{
-				if (CircleIntersectsRect(hitPositionsW[i], radiiW[i], minW, maxW))
-				{
+				if (CircleIntersectsRect_HalfOpen(hitPositionsW[i], radiiW[i], minW, maxW)) {
 					touched = true;
 					totalDamage += damagesW[i];
-					if (radiiW[i] > maxRadius) maxRadius = radiiW[i];
+					maxRadius = std::max(maxRadius, radiiW[i]);
 				}
 			}
 
@@ -1386,10 +1426,16 @@ namespace Engine {
 		BuildAffectedTilesCPU(m_hitsW, m_radiiW, m_damages, uniqueSlots, 
 			pixelSizeWorld, tileW, tileH, affectedTiles);
 		m_activeSlots.resize(affectedTiles.size());
+		
 
 		for (size_t i = 0; i < affectedTiles.size(); i++)
 		{
 			m_activeSlots[i] = affectedTiles[i].slot;
+		}
+
+		if (affectedTiles.size() > 0)
+		{
+			EE_CORE_INFO("affected tiles count: {}", affectedTiles.size());
 		}
 
 		const bool yDown = false;
@@ -1411,6 +1457,7 @@ namespace Engine {
 		}
 
 		
+
 		//  Dispatch tiles that were affected by collision/destruction
 		for (AffectedTile tile : affectedTiles)
 		{
@@ -1467,7 +1514,7 @@ namespace Engine {
 			// Dispatch full tile (or use a content rect if you have one)
 			const uint32_t gx = CeilDiv(uint32_t(tileW), kLocalX);
 			const uint32_t gy = CeilDiv(uint32_t(tileH), kLocalY);
-			vkCmdDispatch(cmd, gx, gy, 1);
+			vkCmdDispatch(cmd, 1, 1, 1);
 		
 		}
 

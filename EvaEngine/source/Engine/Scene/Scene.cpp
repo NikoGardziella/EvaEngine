@@ -372,15 +372,15 @@ namespace Engine {
         // makes sure textures are reloaded to the right registry
         // editor to game
         //m_textureStreamingSystem->ResetAllChunks(this);
-        m_gridMap->BuildFromRegistry(this);
         m_textureStreamingSystem->SortIsoTilesByY(this);
 
         m_tileMananger->BuildTemplatesForScene(this);
+        m_tileMananger->BuildInitialResidency(this);
+        m_gridMap->BuildFromRegistry(this);
 
 
         m_textureStreamingSystem->BakeTilesIntoChunks(this); // terrain
 		m_textureStreamingSystem->AddChunkEntitiesToRegistry(this); 
-        m_tileMananger->BuildInitialResidency(this);
 
        // m_gridMap->BuildFromRegistry(m_registry);
     }
@@ -641,6 +641,8 @@ namespace Engine {
                     */
                     {
                         EE_PROFILE_SCOPE("tile render");
+                        glm::vec2 minWorld = { std::numeric_limits<float>::infinity(),
+                          std::numeric_limits<float>::infinity() };
 
                         // Minimal: uses your Scene::ForEachConst helper
                         ForEachConst<TransformComponent, TileComponent>(
@@ -660,6 +662,8 @@ namespace Engine {
                                         t.UID,            // precomputed UID → slot resolved elsewhere
                                         0.01f             // zBias
                                     );
+                                    minWorld.x = std::min(minWorld.x, tr.Translation.x);
+                                    minWorld.y = std::min(minWorld.y, tr.Translation.y);
                                 }
                             });
 
@@ -670,12 +674,13 @@ namespace Engine {
                     //m_tileMananger->StreamInitialResidency(this);
                     //glm::ivec2 chunkMinOrigin = glm::floor(glm::vec2(minOrigin) / float(CHUNK_SIZE));
                     //glm::ivec2 tileMinOrigin = chunkMinOrigin * int(CHUNK_SIZE);
+                    m_gridMap->UpdateTiles();
+
                 }
 
                 
               
             
-                    m_gridMap->UpdateTiles();
 
 
 

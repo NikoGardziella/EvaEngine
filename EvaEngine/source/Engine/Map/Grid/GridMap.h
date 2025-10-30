@@ -5,6 +5,7 @@
 #include <vector>
 #include "Engine/Map/Grid/GridUtils/GridUtils.h"
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
+#include <Engine/Core/Core.h>
 
 namespace Engine {
 	
@@ -18,6 +19,7 @@ namespace Engine {
 	{
 	public:
 		void BuildFromRegistry(Scene* scene);
+		void RebuildSlotToSubcellLUT();
 		void GridMap::MarkBlockedSubtilesFromTexture(const glm::vec2& worldPosition,
 			const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
 
@@ -26,6 +28,10 @@ namespace Engine {
 		
 
 		bool HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw);
+
+		void CompactSubcellsPreserveBuckets(const std::vector<uint8_t>& kill);
+
+		bool MarkSubcellHit(uint32_t slot, uint32_t subIdx);
 
 		void UpdateTilesForTile(const glm::vec2& tileMinW);
 
@@ -79,7 +85,11 @@ namespace Engine {
 		// remove // update LOS before
 		std::unordered_set<glm::ivec2, IVec2Hasher, IVec2Equal> m_blockedTiles;
 		std::vector<Engine::SubCellOBB> m_blockedSubCells; 
-		std::vector<uint8_t> m_subcellHitCount;
+		std::unordered_map<uint64_t, std::vector<int>> m_cellToSubcells;
+
+		std::vector<glm::vec2> m_subMin, m_subMax;
+
+		std::vector<uint32_t> m_subcellHitCount;
 		struct DebugAABB {
 			glm::vec2 minW;
 			glm::vec2 maxW;
