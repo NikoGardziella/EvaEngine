@@ -82,7 +82,7 @@ namespace Engine
                 const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
             
 
-                const glm::vec2 C = (E + W + N + S) * 0.25f;
+                const glm::vec2 C = (E + W + N + S);
 
                 glm::vec2 A{}, B{};
                 edgeForSide(side, S, A, B);
@@ -351,35 +351,7 @@ namespace Engine
 
         return true;
     }
-    // -------- helper: compact + remap buckets (keys unchanged) --------
-    void GridMap::CompactSubcellsPreserveBuckets(const std::vector<uint8_t>& kill)
-    {
-        const int N = (int)m_blockedSubCells.size();
-        if (N == 0) return;
-
-        std::vector<int> remap(N, -1);
-        int w = 0;
-        for (int i = 0; i < N; ++i) {
-            if (!kill[i]) {
-                if (w != i) m_blockedSubCells[w] = m_blockedSubCells[i];
-                remap[i] = w++;
-            }
-        }
-        m_blockedSubCells.resize(w);
-
-        for (auto& kv : m_cellToSubcells)
-        {
-            auto& vec = kv.second;
-            int out = 0;
-            for (int idx : vec)
-            {
-                if ((unsigned)idx >= (unsigned)N) continue;
-                int ni = remap[idx];
-                if (ni != -1) vec[out++] = ni;
-            }
-            vec.resize(out);
-        }
-    }
+   
     void GridMap::UpdateTiles()
     {
         EE_PROFILE_FUNCTION();
