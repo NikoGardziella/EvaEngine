@@ -35,6 +35,7 @@ namespace Engine {
         m_fullscreenShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/fullscreen_shader.GLSL").string());
         m_lineShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Line_shader.GLSL").string());
         m_playerCollisionComputeShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/player_collision_compute.comp").string());
+        m_clearMaskComputeShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/clearMaskCompute.comp").string());
 
         m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
@@ -96,18 +97,22 @@ namespace Engine {
         CreatePlayerCollisionResultBuffer();
         CreateBlockedTileMaskBuffer();
         CreateExplosionBuffer();
+        CreateClearMaskBuffer();
 
-        // 2. Descriptor set layouts (these describe what resources your pipelines expect)
-        CreateDescriptorSetLayouts();          // game pipeline set layouts
+        CreateDescriptorSetLayouts(); 
         CreateProjectileDescriptorSetLayout();
         CreateCameraDescriptorSetLayout();
-
+        CreateClearMaskDescriptorSetLayout();
         
         CreatePlayerCollisionDescriptorSetLayout();
+
         // 3. Descriptor pool(s)
         CreatePresentGameDescriptorPool();     // must be created before allocating any descriptor sets
+        CreateClearMaskDescriptorPool();
+
 
         // 4. Allocate descriptor sets
+        AllocateClearMaskDescriptorSets();
         CreateGameDescriptorSet();
         CreateProjectileDescriptorSet();
         CreateCameraDescriptorSet();
@@ -118,7 +123,7 @@ namespace Engine {
         // 5. Pipeline layouts (depend on descriptor set layouts and push constants)
         CreatePresentPipelineLayout();
         CreatePlayerCollisionPipelineLayout();
-
+        CreateClearMaskPipelineLayout();
 
         // 6. Graphics/compute pipelines 
         CreateLineGraphicsPipeline(vulkanContext.GetGameRenderPass());
@@ -126,7 +131,7 @@ namespace Engine {
         CreatePlayerCollisionPipeline();
         CreatePresentGraphicsPipeline(vulkanContext.GetPresentRenderPass());
         CreateProjectileGraphicsPipeline(vulkanContext.GetGameRenderPass());
-
+        CreateClearMaskPipeline();
         // 7. Remaining descriptor sets that depend on pipelines (if any)
         
 
@@ -492,6 +497,23 @@ namespace Engine {
     }
 
    
+    void VulkanGraphicsPipeline::CreateClearMaskPipeline()
+    {
+        EE_CORE_ASSERT(m_clearMaskPipelineLayout != VK_NULL_HANDLE, "ClearMask pipeline layout missing!");
+        EE_CORE_ASSERT(m_clearMaskComputeShader->GetComputeshaderModule() != VK_NULL_HANDLE, "ClearMask compute shader module is null!");
+
+        VkPipelineShaderStageCreateInfo stage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
+        stage.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+        stage.module = m_clearMaskComputeShader->GetComputeshaderModule();
+        stage.pName = "main";
+
+        VkComputePipelineCreateInfo ci{ VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
+        ci.stage = stage;
+        ci.layout = m_clearMaskPipelineLayout;
+
+        VkResult res = vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &ci, nullptr, &m_clearMaskPipeline);
+        EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to create ClearMask compute pipeline!");
+    }
 
 
 
@@ -860,6 +882,28 @@ namespace Engine {
         EE_CORE_ASSERT(r == VK_SUCCESS, "Failed to create PlayerCollision pipeline layout");
     }
 
+    void VulkanGraphicsPipeline::CreateClearMaskPipelineLayout()
+    {
+        EE_CORE_ASSERT(m_clearMaskDescriptorSetLayout != VK_NULL_HANDLE, "ClearMask set layout missing!");
+
+        VkPushConstantRange pcr{};
+        pcr.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+        pcr.offset = 0;
+        pcr.size = sizeof(ClearMaskPC);
+
+        VkDescriptorSetLayout setLayouts[1] = { m_clearMaskDescriptorSetLayout };
+
+        VkPipelineLayoutCreateInfo plci{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
+        plci.setLayoutCount = 1;                 // only this set=0 for the clear pass
+        plci.pSetLayouts = setLayouts;
+        plci.pushConstantRangeCount = 1;
+        plci.pPushConstantRanges = &pcr;
+
+        VkResult res = vkCreatePipelineLayout(m_device, &plci, nullptr, &m_clearMaskPipelineLayout);
+        EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to create ClearMask pipeline layout!");
+    }
+
+
 
 
     void VulkanGraphicsPipeline::CreateDescriptorSetLayouts()
@@ -1040,6 +1084,39 @@ namespace Engine {
         }
     }
 
+    void VulkanGraphicsPipeline::CreateClearMaskDescriptorSetLayout()
+    {
+        // clear one tile at time 
+        VkDescriptorSetLayoutBinding b0{}; // uColor
+        b0.binding = 0;
+        b0.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        b0.descriptorCount = 1;
+        b0.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+        VkDescriptorSetLayoutBinding b1{}; // uProps
+        b1.binding = 1;
+        b1.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        b1.descriptorCount = 1;
+        b1.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+        VkDescriptorSetLayoutBinding b2{}; // mask SSBO
+        b2.binding = 2;
+        b2.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        b2.descriptorCount = 1;
+        b2.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+        VkDescriptorSetLayoutBinding bindings[] = { b0, b1, b2 };
+
+        VkDescriptorSetLayoutCreateInfo ci{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+        ci.bindingCount = (uint32_t)std::size(bindings);
+        ci.pBindings = bindings;
+
+        if (vkCreateDescriptorSetLayout(m_device, &ci, nullptr, &m_clearMaskDescriptorSetLayout) != VK_SUCCESS)
+            EE_CORE_ASSERT(false, "Failed to create ClearMask descriptor set layout!");
+    }
+
+
+
 
 
 
@@ -1059,6 +1136,48 @@ namespace Engine {
     }
 
 
+    void VulkanGraphicsPipeline::CreateClearMaskDescriptorPool()
+    {
+        // Each set needs: 2x STORAGE_IMAGE + 1x STORAGE_BUFFER
+        const uint32_t sets = MAX_FRAMES_IN_FLIGHT;           // allocate one per frame
+        const uint32_t slack = 4;                  // small safety margin
+
+        VkDescriptorPoolSize sizes[2]{};
+        sizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        sizes[0].descriptorCount = sets * 2 + slack;      // uColor + uProps
+        sizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        sizes[1].descriptorCount = sets * 1 + slack;      // mask SSBO
+
+        VkDescriptorPoolCreateInfo ci{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+        ci.maxSets = sets + slack;                  // sets capacity
+        ci.poolSizeCount = 2;
+        ci.pPoolSizes = sizes;
+        // Optional: allow freeing individual sets
+        // ci.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+
+        VkResult res = vkCreateDescriptorPool(m_device, &ci, nullptr, &m_clearMaskDescriptorPool);
+        EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to create ClearMask descriptor pool!");
+    }
+
+
+
+
+    void VulkanGraphicsPipeline::AllocateClearMaskDescriptorSets()
+    {
+        EE_CORE_ASSERT(m_clearMaskDescriptorSetLayout != VK_NULL_HANDLE, "ClearMask descriptor set layout missing!");
+        EE_CORE_ASSERT(m_clearMaskDescriptorPool != VK_NULL_HANDLE, "ClearMask descriptor pool missing!");
+
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_clearMaskDescriptorSetLayout);
+
+        VkDescriptorSetAllocateInfo ai{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+        ai.descriptorPool = m_clearMaskDescriptorPool;
+        ai.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+        ai.pSetLayouts = layouts.data();
+
+        m_clearMaskDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+        VkResult res = vkAllocateDescriptorSets(m_device, &ai, m_clearMaskDescriptorSets.data());
+        EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to allocate ClearMask descriptor sets!");
+    }
 
     void VulkanGraphicsPipeline::CreateGameDescriptorSet()
     {
@@ -1087,6 +1206,8 @@ namespace Engine {
         }
         //UpdateCameraUBODescriptorSets();
     }
+
+
     void VulkanGraphicsPipeline::CreateProjectileDescriptorSet()
     {
         m_projectileDescriptorSet.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1532,6 +1653,53 @@ namespace Engine {
 
     }
 
+    void VulkanGraphicsPipeline::CreateClearMaskBuffer()
+    {
+        constexpr uint32_t W = TILE_PIXEL_WIDTH;
+        constexpr uint32_t H = TILE_PIXEL_HEIGHT;
+
+        const size_t bitsPerTile = size_t(W) * size_t(H);
+        const size_t wordsPerTile = (bitsPerTile + 31) / 32;
+        const VkDeviceSize bytesPerTile = VkDeviceSize(wordsPerTile * sizeof(uint32_t));
+
+        VkDeviceSize bufferSize = bytesPerTile * MAX_TILES_IN_CLEAR_BUFFER;
+
+        // Respect device alignment (useful if you suballocate per tile)
+        VkPhysicalDeviceProperties props{};
+        vkGetPhysicalDeviceProperties(VulkanContext::Get()->GetDeviceManager().GetPhysicalDevice(), &props);
+        const VkDeviceSize align = std::max<VkDeviceSize>(256, props.limits.minStorageBufferOffsetAlignment);
+        bufferSize = VulkanUtils::AlignUp(bufferSize, align);
+
+        // Create buffer
+        VkBufferCreateInfo bufferInfo{ };
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = bufferSize;
+        bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT; // SSBO + (optional) copies
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        VkResult res = vkCreateBuffer(m_device, &bufferInfo, nullptr, &m_clearMaskBufferBuffer);
+        EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to create ClearMask SSBO buffer!");
+
+        // Allocate memory (host-visible + coherent so we can memcpy without flush)
+        VkMemoryRequirements memReq{};
+        vkGetBufferMemoryRequirements(m_device, m_clearMaskBufferBuffer, &memReq);
+
+        VkMemoryAllocateInfo allocInfo{ };
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memReq.size;
+        allocInfo.memoryTypeIndex = VulkanContext::Get()->FindMemoryType(
+            memReq.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        );
+
+        res = vkAllocateMemory(m_device, &allocInfo, nullptr, &m_clearMaskBufferMemory);
+        EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to allocate ClearMask SSBO memory!");
+
+        res = vkBindBufferMemory(m_device, m_clearMaskBufferBuffer, m_clearMaskBufferMemory, 0);
+        EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to bind ClearMask SSBO memory!");
+    }
+
+
     void VulkanGraphicsPipeline::CreateGPUCollisionResultBuffer()
     {
         const VkDevice device = m_device;
@@ -1866,6 +2034,13 @@ namespace Engine {
         return result;
     }
 
+    void VulkanGraphicsPipeline::UploadClearMaskSingle(const std::vector<uint32_t>& words)
+    {
+        void* data;
+        vkMapMemory(m_device, m_clearMaskBufferMemory, 0, words.size() * sizeof(uint32_t), 0, &data);
+        memcpy(data, words.data(), words.size() * sizeof(uint32_t));
+        vkUnmapMemory(m_device, m_clearMaskBufferMemory);
+    }
 
 
     void VulkanGraphicsPipeline::UpdateCameraUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix)
@@ -1926,4 +2101,52 @@ namespace Engine {
         memcpy(data, &textureInfo, sizeof(TextureInfo));
         vkUnmapMemory(m_device, m_textureUniformBuffers[currentFrame].GetMemory());
     }
+
+    void VulkanGraphicsPipeline::UpdateClearMaskDescriptorSet(uint32_t currentFrame, VkImageView colorView,
+        VkImageView propsView)
+    {
+        VkDescriptorImageInfo imgColor{};
+        imgColor.imageView = colorView;
+        imgColor.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+        VkDescriptorImageInfo imgProps{};
+        imgProps.imageView = propsView;
+        imgProps.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+        VkWriteDescriptorSet writes[3]{};
+
+        // binding 0: uColor
+        writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[0].dstSet = m_clearMaskDescriptorSets[currentFrame];
+        writes[0].dstBinding = 0;
+        writes[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        writes[0].descriptorCount = 1;
+        writes[0].pImageInfo = &imgColor;
+
+        // binding 1: uProps
+        writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[1].dstSet = m_clearMaskDescriptorSets[currentFrame];;
+        writes[1].dstBinding = 1;
+        writes[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        writes[1].descriptorCount = 1;
+        writes[1].pImageInfo = &imgProps;
+
+
+        VkDescriptorBufferInfo clearMaskInfo{};
+        clearMaskInfo.buffer = m_clearMaskBufferBuffer;
+        clearMaskInfo.offset = 0;               
+        clearMaskInfo.range = VK_WHOLE_SIZE;
+
+        // binding 2: mask SSBO
+        writes[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[2].dstSet = m_clearMaskDescriptorSets[currentFrame];;
+        writes[2].dstBinding = 2;
+        writes[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        writes[2].descriptorCount = 1;
+        writes[2].pBufferInfo = &clearMaskInfo;
+
+        vkUpdateDescriptorSets(m_device, (uint32_t)std::size(writes), writes, 0, nullptr);
+    }
+
+
 }

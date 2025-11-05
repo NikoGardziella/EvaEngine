@@ -24,6 +24,7 @@ namespace Engine {
 	Engine::VulkanRenderer2DData Engine::VulkanRenderer2D::s_VulkanData;
 	Engine::VulkanBindlessRenderer2DData Engine::VulkanRenderer2D::s_VulkanBindlessData;
 	Engine::VulkanRenderer2DProjectileData Engine::VulkanRenderer2D::s_VulkanProjectileData;
+	Engine::VulkanRenderer2DTileDestructionData Engine::VulkanRenderer2D::s_VulkanTilesToDestroyData;
 	Ref<VulkanBindlessDescriptorSetRenderer> VulkanRenderer2D::s_bindlessDescitproSet;
 	CollisionData Engine::VulkanRenderer2D::s_CollisionData;
 
@@ -340,7 +341,7 @@ namespace Engine {
 				{
 					continue;
 				}
-				EE_CORE_INFO("collision at world {} | {}", r.CollisionPosition.x, r.CollisionPosition.y);
+				//EE_CORE_INFO("collision at world {} | {}", r.CollisionPosition.x, r.CollisionPosition.y);
 
 				// for effects pass
 				m_hitsW.push_back(r.CollisionPosition);
@@ -623,7 +624,6 @@ namespace Engine {
 
 		RecordEffectComputeCommandBuffer(cmd, currentFrame);
 
-
 		{
 			EE_PROFILE_SCOPE("blocked tiles buffer");
 			
@@ -674,7 +674,6 @@ namespace Engine {
 		
 
 		// Keep this as "affected tiles only"
-		Engine::TileBlockedMaskCPU::DirtyTileRuntime.clear();
 		Engine::TileBlockedMaskCPU::DirtyTileRuntime.reserve(m_activeSlots.size());
 
 		for (uint32_t i = 0; i < (uint32_t)m_activeSlots.size(); ++i)
@@ -698,8 +697,8 @@ namespace Engine {
 
 			rt.aliveCount = reader.CountAlive(slotId);
 			
-			EE_CORE_INFO("alive count: {}, alive words count{}, slot {}, top left: {} | {}",
-				rt.aliveCount, rt.aliveWords.size(), rt.slot, rt.topLeft.x, rt.topLeft.y);
+			//EE_CORE_INFO("alive count: {}, alive words count{}, slot {}, top left: {} | {}",
+			//	rt.aliveCount, rt.aliveWords.size(), rt.slot, rt.topLeft.x, rt.topLeft.y);
 
 			Engine::TileBlockedMaskCPU::DirtyTileRuntime.push_back(std::move(rt));
 		}
@@ -710,12 +709,6 @@ namespace Engine {
 
 
 
-
-
-	void VulkanRenderer2D::ProcessDirtyOutThisFrame()
-	{
-		
-	}
 
 
 
@@ -1433,10 +1426,7 @@ namespace Engine {
 			m_activeSlots[i] = affectedTiles[i].slot;
 		}
 
-		if (affectedTiles.size() > 0)
-		{
-			EE_CORE_INFO("affected tiles count: {}", affectedTiles.size());
-		}
+		
 
 		const bool yDown = false;
 		glm::vec2 fxGridTopLeftW(std::numeric_limits<float>::infinity(),
@@ -1518,8 +1508,32 @@ namespace Engine {
 		
 		}
 
+
+		auto& queue = s_VulkanTilesToDestroyData.TilesDestroyQueu;
+		for (const auto& job : queue)
+		{
+			const uint32_t slot = job.slot;
+			const uint32_t gx = CeilDiv(uint32_t(tileW), kLocalX);
+			const uint32_t gy = CeilDiv(uint32_t(tileH), kLocalY);
+			EffectPushConstants pc{};
+			pc.textureIndex = slot;
+			pc.newSlot = job.newSlot;
+			pc.mode = 2;
+			pc.cutY = job.cutY;
+			vkCmdPushConstants(cmd,
+				s_bindlessDescitproSet->GetEffectsPipelineLayout(),
+				VK_SHADER_STAGE_COMPUTE_BIT,
+				0, sizeof(EffectPushConstants), &pc);
+			vkCmdDispatch(cmd, gx, gy, 1);
+		}
+
+		queue.clear();
+
+
 		for (uint32_t slot : uniqueSlots)
 		{
+			/*
+			*/
 			// transition of all images
 			BarrierLayer(cmd, colorArray, slot,
 				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -1553,6 +1567,95 @@ namespace Engine {
 			vkCmdDispatch(cmd, gx, gy, 1);
 		}	
 	}
+
+
+	void VulkanRenderer2D::RecordClearTextureComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
+	{
+		EE_PROFILE_FUNCTION();
+
+		auto& queue = s_VulkanTilesToDestroyData.TilesDestroyQueu;
+		if (queue.empty())
+		{
+
+
+			return;
+		}
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
+			m_vulkanGraphicsPipelines->GetClearMaskComputePipeline());
+
+		VkDescriptorSet set0 = m_vulkanGraphicsPipelines->GetClearMaskComputeDescriptorSet(frameIndex);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
+			m_vulkanGraphicsPipelines->GetClearMaskComputePipelineLayout(),
+			0, 1, &set0, 0, nullptr);
+
+		const uint32_t tileW = TILE_PIXEL_WIDTH;
+		const uint32_t tileH = TILE_PIXEL_HEIGHT;
+		const uint32_t gx = (tileW + 15) / 16;
+		const uint32_t gy = (tileH + 15) / 16;
+
+		VkImage colorArray = s_bindlessDescitproSet->GetColorImageArray();
+		VkImage propsArray = s_bindlessDescitproSet->GetPropsArrayImage();
+
+		for (const auto& job : queue)
+		{
+			const uint32_t slot = job.slot;
+			/*
+			*/
+			// 2) Transition ONLY this layer to GENERAL for compute writes
+			
+			/*
+			*/
+			BarrierLayer(cmd, colorArray, slot,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
+
+		
+			/*
+			BarrierLayer(cmd, propsArray, slot,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
+
+			*/
+			
+			m_vulkanGraphicsPipelines->UpdateClearMaskDescriptorSet(frameIndex,
+				s_bindlessDescitproSet->GetColorImageView(slot),
+				s_bindlessDescitproSet->GetCPropsImageView(slot));
+
+			// 3) Push constants selecting the tile (and clear mode/flags)
+			ClearMaskPC pc{};
+			pc.ClearFlags = 0u;         // as needed
+			pc.CutY = job.cutY;
+			pc.Width = TILE_PIXEL_WIDTH;
+			pc.Height = TILE_PIXEL_HEIGHT;
+
+			vkCmdPushConstants(cmd,
+				m_vulkanGraphicsPipelines->GetClearMaskComputePipelineLayout(),
+				VK_SHADER_STAGE_COMPUTE_BIT,
+				0, sizeof(ClearMaskPC), &pc);
+
+			// 4) Dispatch
+			vkCmdDispatch(cmd, gx, gy, 1);
+
+			// 5) Transition back to SRV for later graphics reads
+			BarrierLayer(cmd, colorArray, slot,
+				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
+
+			/*
+			BarrierLayer(cmd, propsArray, slot,
+				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
+			*/
+		}
+
+		queue.clear();
+	}
+
+
 
 
 
@@ -1589,29 +1692,32 @@ namespace Engine {
 
 	void VulkanRenderer2D::ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex)
 	{
-		std::vector<DestructibleSubmit>& q = s_VulkanBindlessData.submitQueues[frameIndex];
+		EE_PROFILE_FUNCTION();
+		std::vector<DestructibleSubmit>& queu = s_VulkanBindlessData.submitQueues[frameIndex];
 		s_bindlessDescitproSet->BeginFrame(frameIndex, uploadCB);
 
 		const float tileWorldW = float(TILE_SIZE);
 		const float tileWorldH = float(TILE_SIZE);
-
-		for (size_t i = 0; i < q.size(); ++i)
+		
+		for (size_t i = 0; i < queu.size(); ++i)
 		{
-			const DestructibleSubmit& s = q[i];
+			
 
-			glm::ivec2 qpos = HashUtils::QuantizeToTile(s.localPos, float(TILE_SIZE));
-			const uint64_t uid = s.nameHash;
+			const DestructibleSubmit& submitTile = queu[i];
 
-			const uint32_t slot = s_bindlessDescitproSet->EnsureTileResident(uid, s.atlasUV, uploadCB);
+			glm::ivec2 qpos = HashUtils::QuantizeToTile(submitTile.localPos, float(TILE_SIZE));
+			const uint64_t uid = submitTile.nameHash;
+
+			const uint32_t slot = s_bindlessDescitproSet->EnsureTileResident(uid, submitTile.atlasUV, uploadCB);
 
 			// CENTER is provided by you:
-			const glm::vec2 center = s.worldPos + s.localPos;
+			const glm::vec2 center = submitTile.worldPos + submitTile.localPos;
 
 			// Painter’s order: sort by “ground” (bottom edge) Y
 			const float groundY = center.y * tileWorldH;
 			const uint32_t h32 = (uint32_t)((uid ^ (uid >> 32)) * 0x9E3779B1u);
 			const float tie = float(h32 & 0x3FF) * 1e-4f;
-			const float zKey = groundY * 1024.0f + s.zBias + tie;
+			const float zKey = groundY * 1024.0f + submitTile.zBias + tie;
 
 			// Pass the real world size so the quad matches exactly
 			s_bindlessDescitproSet->AddInstance(center, zKey, slot, 0u);
@@ -1625,7 +1731,7 @@ namespace Engine {
 		}
 		s_bindlessDescitproSet->EndFrameAndUpload(frameIndex);
 
-		q.clear();
+		queu.clear();
 	}
 
 
@@ -2413,6 +2519,20 @@ namespace Engine {
 
 		s_VulkanData.QuadIndexCount += 6;
 	}
+
+	void VulkanRenderer2D::RemoveTilePixels(const uint32_t slot, const uint32_t newSlot, const std::vector<uint32_t>& words, const int cutY)
+	{
+		TileToDestroy tileToDestroy;
+		tileToDestroy.slot = slot;
+		tileToDestroy.newSlot = newSlot;
+		tileToDestroy.words = words;
+		tileToDestroy.cutY = cutY;
+
+		s_VulkanTilesToDestroyData.TilesDestroyQueu.emplace_back(std::move(tileToDestroy));
+		s_VulkanTilesToDestroyData.TileToDestroyIndex++;
+	}
+
+
 
 
 	void VulkanRenderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)

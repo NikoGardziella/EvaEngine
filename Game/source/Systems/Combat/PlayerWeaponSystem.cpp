@@ -85,7 +85,7 @@ void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
     projectileComp.DistanceToTargetatFireTime = glm::distance(mouseWorldPosition, playerPosition);
     projectileComp.TargetPositionAtFireTime = mouseWorldPosition;
     projectileComp.ProjectileSped = weaponComp.ProjectileSpeed;
-    EE_INFO("projectileComp.TargetPositionHeightZ1, {}", projectileComp.TargetPositionHeightZ1);
+   // EE_INFO("projectileComp.TargetPositionHeightZ1, {}", projectileComp.TargetPositionHeightZ1);
     Engine::SpriteRendererComponent& spriteComp = projectileEntity.AddComponent<Engine::SpriteRendererComponent>();
     spriteComp.Texture = Engine::AssetManager::GetTexture("bullet");
     transformComp.Translation = glm::vec3(playerPosition, 0.0f);

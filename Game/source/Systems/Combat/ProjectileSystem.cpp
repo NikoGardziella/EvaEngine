@@ -27,7 +27,7 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
             {
                 if (projectileIdComp.ID == col.GetEntityID())
                 {
-                    EE_INFO("Projectile collided (GPU)");
+                    //EE_INFO("Projectile collided (GPU)");
                     toDestroy.push_back(projectileEntity);
                 }
             }

@@ -99,6 +99,7 @@ constexpr float GRID_TILE_H = GRID_TILE_W * 0.5f; // diamond height = 64
 constexpr size_t CHUNK_SIZE = 32; // Tiles in a chunk
 constexpr size_t GRID_SUBDIVISIONS = 3;
 constexpr size_t MAX_RESIDENT_LAYERS = 1024;
+constexpr size_t MAX_TILES_IN_CLEAR_BUFFER = 16;
 
 
 // ---- Dirty rect subdivision used by the shader (keep 16 here) ----

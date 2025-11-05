@@ -232,6 +232,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\ChunkRendererComponent.h" />
@@ -756,6 +757,7 @@
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
     <None Include="..\assets\shaders\Circle_shader.glsl" />
+    <None Include="..\assets\shaders\clearMaskCompute.comp" />
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\Effect_shader.comp" />
     <None Include="..\assets\shaders\FlatColor.glsl" />

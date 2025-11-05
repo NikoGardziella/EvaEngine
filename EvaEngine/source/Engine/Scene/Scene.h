@@ -9,6 +9,7 @@
 #include <functional>
 
 #include "TaskManager/PhysicsTaskScheduler.h"
+#include <Engine/Map/Tile/DestrutibleTileSystem.h>
 
 
 
@@ -145,6 +146,7 @@ namespace Engine {
 		Ref<TextureStreamingSystem> m_textureStreamingSystem;
 		Ref<TileManager> m_tileMananger;
 		Ref<GridMap> m_gridMap;
+		DestructibleTileSystem m_destructibleTileSystem;
 		bool m_debugDrawLOS = false;
 
 		friend class Entity;

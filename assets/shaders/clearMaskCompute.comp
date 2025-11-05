@@ -1,0 +1,53 @@
+#type compute
+#version 450
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(set=0,binding=0, rgba8)   uniform  image2D  uColor;
+layout(set=0,binding=1, rgba8ui) uniform uimage2D uProps;
+layout(std430, set=0,binding=2) readonly buffer ClearMaskBuf { uint words[]; } gMask;
+
+layout(push_constant) uniform ClearPC {
+    uint width;
+    uint height;
+    uint lsbFirst;   // 0 or 1
+    uint clearFlags; // low 8 bits used
+    uint cutY;       // 0xFFFFFFFFu disables
+} pc;
+
+bool maskHas(uvec2 p, uint W, uint H, bool lsbFirst) {
+    if (p.x >= W || p.y >= H) return false;
+    uint idx = p.y * W + p.x;
+    uint w = idx >> 5;
+    uint b = idx & 31u;
+    if (!lsbFirst) b = 31u - b;
+    return ((gMask.words[w] >> b) & 1u) != 0u;
+}
+
+void main() {
+
+    uvec2 stride = gl_NumWorkGroups.xy * gl_WorkGroupSize.xy;
+    uvec2 start  = gl_GlobalInvocationID.xy;
+
+    ivec2 sz = imageSize(uColor);
+    if (gl_GlobalInvocationID.xy == uvec2(0))
+    {
+        imageStore(uColor, ivec2(0,0), vec4(1,0,1,1));
+    }
+
+    imageStore(uColor, ivec2(0,0), vec4(1,0,1,1));
+    return;
+    for (uint y=start.y; y<pc.height; y+=stride.y) {
+        if (pc.cutY != 0xFFFFFFFFu && y < pc.cutY) continue;
+        for (uint x=start.x; x<pc.width; x+=stride.x) {
+            if (!maskHas(uvec2(x,y), pc.width, pc.height, (pc.lsbFirst!=0u))) continue;
+
+            ivec2 p = ivec2(x,y);
+            uvec4 pr = imageLoad(uProps, p);
+            pr.r = 0u;
+            pr.b |= (pc.clearFlags & 0xFFu);
+            imageStore(uProps, p, pr);
+
+            imageStore(uColor, p, vec4(0.0));
+        }
+    }
+}

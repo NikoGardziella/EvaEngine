@@ -38,7 +38,7 @@ namespace Engine {
     class VulkanBindlessDescriptorSetRenderer {
     public:
         static constexpr uint32_t FRAMES_IN_FLIGHT = 3;
-        static constexpr uint32_t MAX_RESIDENT = 2048; // keep under per-stage limits
+        static constexpr uint32_t MAX_RESIDENT = MAX_RESIDENT_LAYERS; // keep under per-stage limits
 
         VulkanBindlessDescriptorSetRenderer(VkDevice device, bool updateAfterBindSupported);
         ~VulkanBindlessDescriptorSetRenderer();
@@ -89,6 +89,9 @@ namespace Engine {
         VkBuffer              GetInstanceBuffer(uint32_t f) const { return m_instanceBuffer.buf[f]; }
         VkImage               GetColorImageArray() const { return      m_colorArrayImage; }
         VkImage               GetPropsArrayImage() const { return      m_propsArrayImage; }
+
+        VkImageView         GetColorImageView(uint32_t slot) const  { return m_colorLayerPool.View(slot); }
+        VkImageView         GetCPropsImageView(uint32_t slot) const  { return m_propsLayerPool.View(slot); }
 
         std::unordered_map<uint64_t, uint32_t>& GetTileToSlotMap() { return  m_tileToSlot; }
 

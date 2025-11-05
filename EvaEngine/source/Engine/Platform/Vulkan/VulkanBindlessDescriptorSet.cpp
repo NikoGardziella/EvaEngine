@@ -1091,8 +1091,7 @@ namespace Engine {
 
     // Called when a tile UID first appears in view.
     // uploadCmd: a command buffer submit BEFORE the draw that uses this tile.
-    uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResident(
-        uint64_t uid,  const glm::vec4& atlasUV,   // uv.x, uv.y = TOP-LEFT in atlas (min);
+    uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResident(uint64_t uid,  const glm::vec4& atlasUV,   // uv.x, uv.y = TOP-LEFT in atlas (min);
         VkCommandBuffer uploadCmd)  // recorded BEFORE render pass
     {
         if (auto it = m_tileToSlot.find(uid); it != m_tileToSlot.end())

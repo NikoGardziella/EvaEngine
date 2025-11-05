@@ -1,10 +1,10 @@
 Scene: My Scene
 Entities:
-  - ID: 4996901354491892081
+  - ID: 18221737202018423911
     TagComponent:
       Tag: Entity
     TransformComponent:
-      Translation: [-2, 3.5, 0]
+      Translation: [-3.5, 2.25, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TileComponent:
@@ -12,23 +12,14 @@ Entities:
       Texture: ""
       Tiles:
         - Position: [0, 0]
-          UV: [0.1274414, 0.5009718, 0.25146484, 0.7487852]
-          Name: Wall_B1_E
-          IsDestructible: true
+          UV: [0.1274414, 0.75072885, 0.25146484, 0.99854225]
+          Name: StreetLamp 1_E
+          IsDestructible: false
           IsRoof: false
-          Category: Buildings
-          Material: Concrete
+          Category: dynamicObjects
+          Material: Default
           Health: 1
-          UID: 14680276584965946138
-        - Position: [0.5, -0.25]
-          UV: [0.1274414, 0.5009718, 0.25146484, 0.7487852]
-          Name: Wall_B1_E
-          IsDestructible: true
-          IsRoof: false
-          Category: Buildings
-          Material: Concrete
-          Health: 1
-          UID: 5756924061794800005
+          UID: 13130214826304718861
   - ID: 300291308
     TagComponent:
       Tag: Entity

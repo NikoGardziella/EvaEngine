@@ -659,7 +659,7 @@ namespace Engine {
                                         tr.Translation,   // entity world origin
                                         t.position,       // tile local offset
                                         t.UV,
-                                        t.UID,            // precomputed UID → slot resolved elsewhere
+                                        t.UID,            // precomputed UID  slot resolved elsewhere
                                         0.01f             // zBias
                                     );
                                     minWorld.x = std::min(minWorld.x, tr.Translation.x);
@@ -674,16 +674,13 @@ namespace Engine {
                     //m_tileMananger->StreamInitialResidency(this);
                     //glm::ivec2 chunkMinOrigin = glm::floor(glm::vec2(minOrigin) / float(CHUNK_SIZE));
                     //glm::ivec2 tileMinOrigin = chunkMinOrigin * int(CHUNK_SIZE);
-                    m_gridMap->UpdateTiles();
 
                 }
 
-                
+                    m_gridMap->UpdateTiles();
+                    m_destructibleTileSystem.OnTilesUpdated(this);
               
             
-
-
-
                 {
                     EE_PROFILE_SCOPE("roof render");
 

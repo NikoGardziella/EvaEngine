@@ -572,7 +572,10 @@ namespace Engine {
             0, 0, nullptr, 0, nullptr, 1, &b);
     }
 
-
+    VkDeviceSize VulkanUtils::AlignUp(VkDeviceSize v, VkDeviceSize a)
+    {
+        return (v + (a - 1)) & ~(a - 1);
+    }
 
     uint32_t VulkanUtils::TileToFXIndex(const glm::vec2& tileOriginW,
         const glm::vec2& fxGridTopLeftW,

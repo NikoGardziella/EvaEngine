@@ -129,7 +129,7 @@ namespace Engine
                 const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
                 const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
                 const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
-                const glm::vec2 C = (E + W + N + S) * 0.25f;
+                const glm::vec2 C = (E + W + N + S) * 0.25f;;
 
                 const glm::vec2 T = glm::normalize(E - W);
                 const float halfAlong = 0.5f * widthFrac * 0.5f * CELL_W;
@@ -233,10 +233,8 @@ namespace Engine
 
 
 
-    void GridMap::MarkBlockedSubtilesFromTexture(
-        const glm::vec2& worldPosition, // tile position in world units (e.g., (5, 10))
-        const std::vector<uint8_t>& textureData,
-        uint32_t textureWidth, uint32_t textureHeight)
+    void GridMap::MarkBlockedSubtilesFromTexture( const glm::vec2& worldPosition,
+        const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight)
     {
 
         for (uint32_t y = 0; y < textureHeight; ++y)

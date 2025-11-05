@@ -33,6 +33,7 @@ namespace Engine {
        void BarrierColorReadOnlyToGeneral(VkCommandBuffer cmd, VkImage colorArray, uint32_t layer);
        void BarrierPropsComputeToFragVisibility(VkCommandBuffer cmd, VkImage propsArray, uint32_t layer);
        void BarrierColorGeneralToReadOnly(VkCommandBuffer cmd, VkImage colorArray, uint32_t layer);
+       VkDeviceSize AlignUp(VkDeviceSize v, VkDeviceSize a);
        uint32_t TileToFXIndex(const glm::vec2& tileOriginW, const glm::vec2& fxGridTopLeftW, float pixelSizeW, int tilePxW, int tilePxH, bool worldYDown);
 	}
 

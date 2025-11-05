@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Systems\Physics\PhysicsSystem.h" />
     <ClInclude Include="source\PixelGame.h" />
     <ClInclude Include="source\Systems\Collision\PlayerCollisionSystem.h" />
     <ClInclude Include="source\Systems\Combat\HealthSystem.h" />
@@ -145,6 +146,7 @@
     <ClInclude Include="source\Systems\Collision\VehicleCollisionSystem.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Systems\Physics\PhysicsSystem.cpp" />
     <ClCompile Include="source\PixelGame.cpp" />
     <ClCompile Include="source\SandboxApp.cpp" />
     <ClCompile Include="source\Systems\Collision\PlayerCollisionSystem.cpp" />

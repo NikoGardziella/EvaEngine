@@ -48,6 +48,20 @@ namespace Engine {
 		glm::vec3 QuadVertexPositions[4];
 	};
 
+	struct TileToDestroy
+	{
+		uint32_t slot;
+		uint32_t newSlot;
+		std::vector<uint32_t> words;
+		int cutY;
+	};
+
+	struct VulkanRenderer2DTileDestructionData
+	{
+		std::vector<TileToDestroy> TilesDestroyQueu;
+		uint32_t TileToDestroyIndex = 0; 
+
+	};
 
 	struct VulkanRenderer2DData
 	{
@@ -151,6 +165,8 @@ namespace Engine {
 
 		uint32_t   mode;
 		glm::vec2  fxTextureOrigin; // 112..119
+		uint32_t   cutY;
+		uint32_t   newSlot;
 	};
 	//static_assert(offsetof(EffectPushConstants, fxTextureOrigin) == 112, "pad needed");
 
@@ -164,6 +180,14 @@ namespace Engine {
 	};
 
 
+	struct ClearMaskPC {
+		uint32_t Width;       // TILE_PIXEL_WIDTH
+		uint32_t Height;      // TILE_PIXEL_HEIGHT
+		uint32_t LsbFirst;    // 0 or 1
+		uint32_t ClearFlags;  // 0 or your tag
+		uint32_t CutY;        // (uint32_t)cutY or 0xFFFFFFFF
+	};
+	static_assert(sizeof(ClearMaskPC) % 4 == 0, "Push constants must be 4-byte aligned");
 
 	struct AffectedTile
 	{
@@ -219,6 +243,7 @@ namespace Engine {
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID = -1);
 		static void DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color = glm::vec4(1));
 		static void DrawTile(const glm::vec3& transform, const glm::vec4& uv, const glm::vec4& color);
+		static void RemoveTilePixels(const uint32_t slot, const uint32_t newSlot, const std::vector<uint32_t>& words, const int cutY);
 		static void BeginScene(const Camera& camera, const glm::mat4& transform);
 		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(glm::mat4 viewProjectionMatrix);
@@ -248,11 +273,10 @@ namespace Engine {
 		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		//void RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
-		void DispatchDamageForTile(VkCommandBuffer cmd, uint32_t frameIndex, const ComputePC& pc, VkImage colorArray, VkImage propsArray);
 		void RecordPlayerCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame);
-		static void BuildAffectedTilesCPU(const std::vector<glm::vec2>& hitPositionsW, const std::vector<float>& radiiW, const std::unordered_set<uint32_t>& candidateSlots, float pixelSizeWorld, int tileW, int tileH, std::vector<uint32_t>& outSlots);
 		void BuildAffectedTilesCPU(const std::vector<glm::vec2>& hitPositionsW, const std::vector<float>& radiiW, const std::vector<uint32_t>& damagesW, const std::unordered_set<uint32_t>& candidateSlots, float pixelSizeWorld, int tileW, int tileH, std::vector<AffectedTile>& outTiles);
 		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
+		void RecordClearTextureComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex);
 		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
@@ -299,6 +323,7 @@ namespace Engine {
 		static VulkanRenderer2DData s_VulkanData;
 		static VulkanBindlessRenderer2DData s_VulkanBindlessData;
 		static VulkanRenderer2DProjectileData s_VulkanProjectileData;
+		static VulkanRenderer2DTileDestructionData s_VulkanTilesToDestroyData;
 		static CollisionData s_CollisionData;
 		static EffectPushConstants s_effectPushConstants;
 		//static const uint32_t MaxTextures = 10;

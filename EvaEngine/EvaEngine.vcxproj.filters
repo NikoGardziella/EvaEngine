@@ -1659,6 +1659,7 @@
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1908,6 +1909,7 @@
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\player_collision_compute.comp" />
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
+    <None Include="..\assets\shaders\clearMaskCompute.comp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\assets\shaders\compute.comp">

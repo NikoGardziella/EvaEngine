@@ -84,6 +84,8 @@ layout(push_constant) uniform EffectPC {
     uint fxIdx;           // 104..107
     uint mode; // 0 = destruction and effect, 1 = effect fade,
     vec2  fxTextureOrigin; // **starts at 112 due to 8-byte alignment**
+    uint cutY;
+    uint newSlot;
 } pc;
 
 // ---- FX flags / constants ----
@@ -658,6 +660,37 @@ void markAlivePixelsTile(uint tile, ivec2 tileSz, bool doBufBarrier)
 }
 
 
+// Clear path (mode == 2)
+void splitCopyInPlace_mode2(uint srcSlot, uint dstSlot, uint cutY)
+{
+    uvec2 gid = gl_GlobalInvocationID.xy;
+
+    ivec2 sz = imageSize(uColor[nonuniformEXT(srcSlot)]);
+    if (gid.x >= uint(sz.x) || gid.y >= uint(sz.y)) return;
+
+    ivec2 p = ivec2(gid);
+
+    if (gid.y >= cutY) {
+        // copy bottom from src -> dst at the same y, then clear old bottom
+        vec4  c  = imageLoad(uColor[nonuniformEXT(srcSlot)], p);
+        uvec4 pr = imageLoad(uProps[nonuniformEXT(srcSlot)], p);
+
+        imageStore(uColor[nonuniformEXT(dstSlot)], p, c);
+        imageStore(uProps[nonuniformEXT(dstSlot)], p, pr);
+
+        // clear old bottom (color to 0; mark dead in props.r)
+        imageStore(uColor[nonuniformEXT(srcSlot)], p, vec4(0.0));
+        pr.r = 0u;
+        imageStore(uProps[nonuniformEXT(srcSlot)], p, pr);
+    } else {
+        // clear new top (everything above the cut on the new tile)
+        imageStore(uColor[nonuniformEXT(dstSlot)], p, vec4(0.0));
+        // if only R channel encodes “alive”, zero that and leave others (GBA) as-is if needed
+        uvec4 prd = imageLoad(uProps[nonuniformEXT(dstSlot)], p);
+        prd.r = 0u;
+        imageStore(uProps[nonuniformEXT(dstSlot)], p, prd);
+    }
+}
 
 void main()
 {
@@ -668,7 +701,13 @@ void main()
         return; 
     }
 
-   
+    if (pc.mode == 2u)
+    {
+        splitCopyInPlace_mode2(pc.TextureIndex, pc.newSlot, pc.cutY);
+        return;
+    }
+
+
 
     const uint  TILE   = pc.TextureIndex;
     ivec2       tileSz = imageSize(uColor[nonuniformEXT(TILE)]);

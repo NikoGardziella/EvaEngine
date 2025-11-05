@@ -211,6 +211,8 @@ namespace Engine {
 
         void UpdateTextureUniformBuffer(uint32_t currentFrame, const glm::ivec2& textureSize);
 
+        void UpdateClearMaskDescriptorSet(uint32_t currentFrame, VkImageView colorView, VkImageView propsView);
+
 
 
 
@@ -219,6 +221,7 @@ namespace Engine {
 		VkPipeline GetLinePipeline() const { return m_linePipeline; }
 		VkPipeline GetProjectilePipeline() const { return m_projectilePipeline; }
         VkPipeline GetPlayerCollisionComputePipeline() const { return m_playerCollisionPipeline; }
+        VkPipeline GetClearMaskComputePipeline() const { return m_clearMaskPipeline; }
 
 
         VkPipelineLayout GetGamePipelineLayout() const { return m_gamePipelineLayout; }
@@ -226,6 +229,7 @@ namespace Engine {
 		VkPipelineLayout GetLinePipelineLayout() const { return m_linePipelineLayout; }
 		VkPipelineLayout GetProjectilePipelineLayout() const { return m_projectilePipelineLayout; }
         VkPipelineLayout GetPlayerCollisionComputePipelineLayout() const { return m_playerCollisionPipelineLayout; }
+        VkPipelineLayout GetClearMaskComputePipelineLayout() const { return m_clearMaskPipelineLayout; }
 
 
         VkDescriptorSet GetGameDescriptorSet(size_t frameIndex) { return m_gameDescriptorSets[frameIndex]; }
@@ -234,6 +238,7 @@ namespace Engine {
 		VkDescriptorSet GetProjectileDescriptorSet(size_t frameIndex) { return m_projectileDescriptorSet[frameIndex]; }
         VkDescriptorSet GetLineDescriptorSet(size_t frameIndex) { return m_lineDescriptorSet[frameIndex]; }
         VkDescriptorSet GetPlayerCollisionComputeDescriptorSet(size_t frameIndex) { return m_playerCollisionDescriptorSets[frameIndex]; }
+        VkDescriptorSet GetClearMaskComputeDescriptorSet(size_t frameIndex) { return m_clearMaskDescriptorSets[frameIndex]; }
 
         VkSampler& GetPresentSampler() { return m_presentSampler; }
 
@@ -244,6 +249,7 @@ namespace Engine {
         VkBuffer GetGPUCollisionResultBuffer(uint32_t frameIndex) { return m_GPUCollisionresultBufferBuffer[frameIndex]; }
         VkDeviceMemory GetGPUCollisionMemory(uint32_t frameIndex) const { return m_GPUCollisionresultBufferMemory[frameIndex]; }
         
+        VkBuffer GetClearMaskBuffer() const { return m_clearMaskBufferBuffer; }
         VkBuffer GetPLayerollisionBuffer() const { return m_playerCollisionresultBufferBuffer; }
         VkDeviceMemory GetPlayerCollisionMemory() const { return m_playerCollisionresultBufferMemory; }
 
@@ -262,6 +268,8 @@ namespace Engine {
     private:
         void CreateGameGraphicsPipeline(VkRenderPass renderPass);
         void CreateLineGraphicsPipeline(VkRenderPass renderPass);
+
+        void CreateClearMaskPipeline();
       
         void CreatePlayerCollisionDescriptorSetLayout();
         void CreatePlayerCollisionPipeline();
@@ -269,9 +277,13 @@ namespace Engine {
         void CreateProjectileGraphicsPipeline(VkRenderPass renderPass);
         void CreatePresentPipelineLayout();
         void CreatePlayerCollisionPipelineLayout();
+        void CreateClearMaskPipelineLayout();
         void CreateDescriptorSetLayouts();
         void CreateProjectileDescriptorSetLayout();
+        void CreateClearMaskDescriptorSetLayout();
         void CreatePresentGameDescriptorPool();
+        void CreateClearMaskDescriptorPool();
+        void AllocateClearMaskDescriptorSets();
         void CreateGameDescriptorSet();
         void CreateProjectileDescriptorSet();
         void CreateLineDescriptorSet();
@@ -281,11 +293,14 @@ namespace Engine {
         void CreateCameraDescriptorSetLayout();
         void CreateCameraDescriptorSet();
         void CreatePlayerCollisionResultBuffer();
+        void CreateClearMaskBuffer();
         void CreateGPUCollisionResultBuffer();
         void DestroyGPUCollisionResultBuffers();
         void CreateBlockedTileMaskBuffer();
         void CreateExplosionBuffer();
         StorageImage CreateStorageImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkFormat format, VkCommandPool commandPool, VkQueue graphicsQueue);
+
+        void UploadClearMaskSingle(const std::vector<uint32_t>& words);
 
     private:
 
@@ -296,12 +311,14 @@ namespace Engine {
         VkPipeline m_linePipeline;
         VkPipeline m_projectilePipeline;
         VkPipeline m_playerCollisionPipeline;
+        VkPipeline m_clearMaskPipeline;
         VkPipelineLayout m_gamePipelineLayout;
         VkPipelineLayout m_projectilePipelineLayout;
         VkPipelineLayout m_linePipelineLayout;
         VkPipelineLayout m_imguiPipelineLayout;
         VkPipelineLayout m_presentPipelineLayout;
         VkPipelineLayout m_playerCollisionPipelineLayout;
+        VkPipelineLayout m_clearMaskPipelineLayout;
 
         VkDescriptorSetLayout m_gameDescriptorSetLayout;
         VkDescriptorSetLayout m_presentDescriptorSetLayout;
@@ -309,8 +326,10 @@ namespace Engine {
         VkDescriptorSetLayout m_projectileDescriptorSetLayout;
         VkDescriptorSetLayout m_cameraDescriptorSetLayout;
         VkDescriptorSetLayout m_playerCollisionDescriptorSetLayout;
+        VkDescriptorSetLayout m_clearMaskDescriptorSetLayout;
 
         VkDescriptorPool m_presentGamedescriptorPool;
+        VkDescriptorPool m_clearMaskDescriptorPool;
 
         std::vector<VkDescriptorSet> m_lineDescriptorSet;
         std::vector<VkDescriptorSet> m_projectileDescriptorSet;
@@ -318,6 +337,8 @@ namespace Engine {
         std::vector<VkDescriptorSet> m_cameraDescriptorSets;
         std::vector<VkDescriptorSet> m_presentDescriptorSets;
         std::vector<VkDescriptorSet> m_playerCollisionDescriptorSets;
+        std::vector<VkDescriptorSet> m_clearMaskDescriptorSets;
+
         VkDescriptorPool m_descriptorPool;
 		VkDescriptorPool m_lineDescriptorPool;
         std::vector<VulkanBuffer> m_uniformBuffers;
@@ -331,6 +352,7 @@ namespace Engine {
         Ref<VulkanShader> m_vulkanRenderShader;
         Ref<VulkanShader> m_vulkanProjectileRenderShader;
         Ref<VulkanShader> m_playerCollisionComputeShader;
+        Ref<VulkanShader> m_clearMaskComputeShader;
         VkSampler m_presentSampler;
 
         std::vector<VkDynamicState> m_dynamicStates =
@@ -351,6 +373,9 @@ namespace Engine {
         VkBuffer m_playerCollisionresultBufferBuffer;
         VkDeviceMemory  m_playerCollisionresultBufferMemory;
 
+        
+        VkBuffer m_clearMaskBufferBuffer;
+        VkDeviceMemory  m_clearMaskBufferMemory;
 
 
         VkBuffer m_explosionBuffer;

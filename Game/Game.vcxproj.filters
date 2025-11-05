@@ -51,6 +51,7 @@
     </ClInclude>
     <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
     <ClInclude Include="source\Systems\Collision\VehicleCollisionSystem.h" />
+    <ClInclude Include="source\Systems\Physics\PhysicsSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -84,5 +85,6 @@
     </ClCompile>
     <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp" />
     <ClCompile Include="source\Systems\Collision\VehicleCollisionSystem.cpp" />
+    <ClCompile Include="source\Systems\Physics\PhysicsSystem.cpp" />
   </ItemGroup>
 </Project>
