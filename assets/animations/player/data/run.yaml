@@ -1,0 +1,27 @@
+  
+# animations/player/spritesheet/run.yaml
+pack: "player"
+action: "Run"
+texture: "PlayerRunAnimation"
+
+# sprite cell size (pixels)
+frameSizePx: { w: 128, h: 128 }
+
+# grid layout
+grid:
+  cols: 15        # frames per direction
+  rows: 8         # directions
+  order: [E, SE, S, SW, W, NW, N, NE]
+
+# timing
+fps: 12           # change as you like
+loop: true
+
+# world anchoring
+pivotPx: { x: 64, y: 127 }  # bottom-center (feet)
+pixelsPerUnit: 64           # match your world scale
+
+# optional per-frame events (example)
+events:
+  - { frame: 3, name: "footstep" }
+  - { frame: 10, name: "footstep" }

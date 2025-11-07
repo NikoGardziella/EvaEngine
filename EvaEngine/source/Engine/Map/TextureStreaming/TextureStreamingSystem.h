@@ -11,26 +11,6 @@ namespace Engine{
     const int CHUNK_GRID_WIDTH = LOAD_RADIUS * 2 + 1;
     const int CHUNK_GRID_SIZE = CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH;
 
-    struct TextureChunk {
-        UUID ID;
-		std::string Name;
-		std::string AssetName;
-        glm::ivec2 ChunkCoords; 
-        std::vector<uint8_t> PixelData; 
-        std::vector<uint8_t> PropertiesData; // RGBA8UI: R=health, G=height, B=mask, A=flags)
-        std::vector<uint8_t> TerrainData;
-        bool IsDirty = false; // Mark if pixels were modified
-        bool IsLoaded = false;
-        Engine::Ref<Engine::VulkanTexture> GPUTexture; 
-        Engine::Ref<Engine::VulkanTexture> PropertiesTexture; 
-        Engine::Ref<Engine::VulkanTexture> TerrainTexture; 
-
-        uint32_t Width = 0;
-        uint32_t Height = 0;
-        uint32_t TextureCount = 0;
-
-    
-    };
 
 
 
@@ -40,6 +20,30 @@ namespace Engine{
     class Scene;
     class TextureStreamingSystem
     {
+
+    private:
+
+        struct TextureChunk {
+            UUID ID;
+            std::string Name;
+            std::string AssetName;
+            glm::ivec2 ChunkCoords;
+            std::vector<uint8_t> PixelData;
+            std::vector<uint8_t> PropertiesData; // RGBA8UI: R=health, G=height, B=mask, A=flags)
+            std::vector<uint8_t> TerrainData;
+            bool IsDirty = false; // Mark if pixels were modified
+            bool IsLoaded = false;
+            Engine::Ref<Engine::VulkanTexture> GPUTexture;
+            Engine::Ref<Engine::VulkanTexture> PropertiesTexture;
+            Engine::Ref<Engine::VulkanTexture> TerrainTexture;
+
+            uint32_t Width = 0;
+            uint32_t Height = 0;
+            uint32_t TextureCount = 0;
+
+
+        };
+
     public:
         TextureStreamingSystem();
         ~TextureStreamingSystem();
