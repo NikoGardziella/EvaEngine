@@ -92,4 +92,12 @@ namespace HashUtils
         return h;
     }
 
+    inline uint32_t Hash32(std::string_view s) noexcept {
+        const uint32_t fnv_prime = 16777619u;
+        uint32_t hash = 2166136261u;
+        for (unsigned char c : s) { hash ^= c; hash *= fnv_prime; }
+        return hash ? hash : 1u;
+    }
+
+
 }

@@ -12,6 +12,9 @@
 
 
 namespace Engine {
+
+ 
+
     class AssetManager
     {
     public:
@@ -52,7 +55,7 @@ namespace Engine {
 
         static uint8_t PackCategoryNibble(eTileCategory c);
 
-
+       
 
 		static const std::unordered_map<std::string, glm::vec4>& AssetManager::GetTileTextureAtalsUVs() { return  s_tileUVMap; }
         static VkDeviceSize s_totalTextureMemory;

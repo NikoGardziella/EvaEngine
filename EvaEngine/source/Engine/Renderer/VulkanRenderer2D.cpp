@@ -25,7 +25,7 @@ namespace Engine {
 	Engine::VulkanBindlessRenderer2DData Engine::VulkanRenderer2D::s_VulkanBindlessData;
 	Engine::VulkanRenderer2DProjectileData Engine::VulkanRenderer2D::s_VulkanProjectileData;
 	Engine::VulkanRenderer2DTileDestructionData Engine::VulkanRenderer2D::s_VulkanTilesToDestroyData;
-	Ref<VulkanBindlessDescriptorSetRenderer> VulkanRenderer2D::s_bindlessDescitproSet;
+	Ref<VulkanBindlessDescriptorSetRenderer> VulkanRenderer2D::s_bindlessDescitproRenderer;
 	CollisionData Engine::VulkanRenderer2D::s_CollisionData;
 
 	EffectPushConstants VulkanRenderer2D::s_effectPushConstants{
@@ -154,6 +154,7 @@ namespace Engine {
 		AssetManager::AddTexture("objects_plant", Engine::AssetManager::GetAssetPath("textures/objects_plant.png").string(), false);
 		AssetManager::AddTexture("car_0001", Engine::AssetManager::GetAssetPath("textures/car_0001.png").string(), false);
 		AssetManager::AddTexture("house", Engine::AssetManager::GetAssetPath("textures/house.png").string(), false);
+		AssetManager::AddTexture("PlayerRunAnimation", Engine::AssetManager::GetAssetPath("animations/player/spritesheet/Run.png").string(), false);
 
 		
 		m_dummyTexture = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8G8B8A8_UINT);
@@ -268,13 +269,13 @@ namespace Engine {
 		s_effectPushConstants = VulkanUtils::MakeDefaultEffectsState();
 
 
-		s_bindlessDescitproSet = std::make_shared<VulkanBindlessDescriptorSetRenderer>(m_device, false);
+		s_bindlessDescitproRenderer = std::make_shared<VulkanBindlessDescriptorSetRenderer>(m_device, false);
 
 
 		s_VulkanBindlessData.m_slotOriginWorld.resize(MAX_RESIDENT_LAYERS);
 
 
-
+		
 
 
 	}
@@ -425,9 +426,10 @@ namespace Engine {
 		vkBeginCommandBuffer(cmd, &beginInfo);
 		*/
 
-		s_bindlessDescitproSet->SetCurrentFrameIndex(currentFrame);
+		s_bindlessDescitproRenderer->SetCurrentFrameIndex(currentFrame);
 		ConsumeDestructibleQueue(cmd, currentFrame);
-
+		ConsumeAnimationQueue(currentFrame);
+		s_bindlessDescitproRenderer->EndFrameAndUpload(currentFrame);
 
 		//move somewhere
 		s_CollisionData.EntitySlotIndex = 0;
@@ -599,7 +601,7 @@ namespace Engine {
 			VkBuffer projectileBuffer = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(currentFrame).GetBuffer();
 			VkDeviceSize projectileBufferSize = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(currentFrame).size;
 
-			s_bindlessDescitproSet->ComputeBindBuffers(currentFrame,
+			s_bindlessDescitproRenderer->ComputeBindBuffers(currentFrame,
 				collisionResultBuffer, collisionResultBufferSize,
 				projectileBuffer, projectileBufferSize,
 				blockedMaskBuffer, blockedMaskBufferSize);
@@ -610,9 +612,9 @@ namespace Engine {
 			const uint32_t readIdx = (currentFrame + MAX_FRAMES_IN_FLIGHT - 1) % MAX_FRAMES_IN_FLIGHT;
 			VkBuffer previousFrameCollisionResultBuffer = m_vulkanGraphicsPipelines->GetGPUCollisionResultBuffer(readIdx);
 
-			s_bindlessDescitproSet->UpdateEffectImageDescriptorSets(currentFrame, s_VulkanData.VisualEffectsTextureSlots);
+			s_bindlessDescitproRenderer->UpdateEffectImageDescriptorSets(currentFrame, s_VulkanData.VisualEffectsTextureSlots);
 			
-			s_bindlessDescitproSet->EffectsBindBuffers(currentFrame,
+			s_bindlessDescitproRenderer->EffectsBindBuffers(currentFrame,
 				previousFrameCollisionResultBuffer, collisionResultBufferSize,
 				projectileBuffer, projectileBufferSize,
 				blockedMaskBuffer, blockedMaskBufferSize);
@@ -805,7 +807,7 @@ namespace Engine {
 		RecordLineCommanedBuffer(cmd, m_imageIndex, currentFrame);
 
 
-		s_bindlessDescitproSet->RecordTiles(cmd, currentFrame,
+		s_bindlessDescitproRenderer->RecordTiles(cmd, currentFrame,
 			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent());
 
 	}
@@ -1116,23 +1118,23 @@ namespace Engine {
 	{
 		// 0) Bind compute pipeline + its bindless compute set
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
-			s_bindlessDescitproSet->GetComputePipeline());
+			s_bindlessDescitproRenderer->GetComputePipeline());
 
-		VkDescriptorSet effectsDescriptorSet = s_bindlessDescitproSet->GetComputeDescriptorSetFrame(frameIndex);
+		VkDescriptorSet effectsDescriptorSet = s_bindlessDescitproRenderer->GetComputeDescriptorSetFrame(frameIndex);
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
-			s_bindlessDescitproSet->GetComputePipelineLayout(),
+			s_bindlessDescitproRenderer->GetComputePipelineLayout(),
 			0, 1, &effectsDescriptorSet, 0, nullptr);
 
 		
 		
 		// Dispatch once per slot we rendered this frame
-		VkImage colorArray = s_bindlessDescitproSet->GetColorImageArray();
-		VkImage propsArray = s_bindlessDescitproSet->GetPropsArrayImage(); // stays GENERAL; no barrier needed here
+		VkImage colorArray = s_bindlessDescitproRenderer->GetColorImageArray();
+		VkImage propsArray = s_bindlessDescitproRenderer->GetPropsArrayImage(); // stays GENERAL; no barrier needed here
 
 		// Dedup slots (m_tileToSlot is uid -> slot)
 		std::unordered_set<uint32_t> uniqueSlots;
-		uniqueSlots.reserve(s_bindlessDescitproSet->GetTileToSlotMap().size());
-		for (const std::pair<const uint64_t, uint32_t>& kv : s_bindlessDescitproSet->GetTileToSlotMap())
+		uniqueSlots.reserve(s_bindlessDescitproRenderer->GetTileToSlotMap().size());
+		for (const std::pair<const uint64_t, uint32_t>& kv : s_bindlessDescitproRenderer->GetTileToSlotMap())
 			uniqueSlots.insert(kv.second);
 
 		const int tileW = TILE_PIXEL_WIDTH;
@@ -1161,7 +1163,7 @@ namespace Engine {
 
 			// ---- Push & dispatch over the CONTENT area (no rectMin; shader uses contentMinPx+lid) ----
 			vkCmdPushConstants(cmd,
-				s_bindlessDescitproSet->GetComputePipelineLayout(),
+				s_bindlessDescitproRenderer->GetComputePipelineLayout(),
 				VK_SHADER_STAGE_COMPUTE_BIT,
 				0, sizeof(ComputePC), &pc);
 			
@@ -1202,14 +1204,6 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-		// --- (Optional) If you use a separate results buffer for player collisions, clear it here ---
-		// {
-		//     void* data = nullptr;
-		//     VkDeviceSize size = sizeof(CollisionResultBuffer);
-		//     vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory_Player(), 0, size, 0, &data);
-		//     std::memset(data, 0, size);
-		//     vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory_Player());
-		// }
 
 		// Current grid slots (same arrays you already maintain)
 		auto& healthTex = s_VulkanData.propertiesTextureSlots;   // we’ll only bind/use the center (index 4)
@@ -1380,24 +1374,24 @@ namespace Engine {
 			vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetEffectsBufferMemory());
 		}
 
-		if (s_bindlessDescitproSet->GetTileToSlotMap().empty())
+		if (s_bindlessDescitproRenderer->GetTileToSlotMap().empty())
 		{
 			return;
 		}
 		
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
-			s_bindlessDescitproSet->GetEffectsPipeline());
+			s_bindlessDescitproRenderer->GetEffectsPipeline());
 
 
-		VkDescriptorSet set0 = s_bindlessDescitproSet->GetEffectsDescriptorSet(frameIndex);
+		VkDescriptorSet set0 = s_bindlessDescitproRenderer->GetEffectsDescriptorSet(frameIndex);
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
-			s_bindlessDescitproSet->GetEffectsPipelineLayout(), 0, 1, &set0, 0, nullptr);
+			s_bindlessDescitproRenderer->GetEffectsPipelineLayout(), 0, 1, &set0, 0, nullptr);
 
 		//Gather active slots
 		std::unordered_set<uint32_t> uniqueSlots;
-		uniqueSlots.reserve(s_bindlessDescitproSet->GetTileToSlotMap().size());
+		uniqueSlots.reserve(s_bindlessDescitproRenderer->GetTileToSlotMap().size());
 
-		for (const auto& kv : s_bindlessDescitproSet->GetTileToSlotMap())
+		for (const auto& kv : s_bindlessDescitproRenderer->GetTileToSlotMap())
 		{
 			uniqueSlots.insert(kv.second);
 		}
@@ -1412,8 +1406,8 @@ namespace Engine {
 		auto CeilDiv = [](uint32_t n, uint32_t d) { return (n + d - 1) / d; };
 
 		// For per-layer barriers
-		VkImage colorArray = s_bindlessDescitproSet->GetColorImageArray();
-		VkImage propsArray = s_bindlessDescitproSet->GetPropsArrayImage();
+		VkImage colorArray = s_bindlessDescitproRenderer->GetColorImageArray();
+		VkImage propsArray = s_bindlessDescitproRenderer->GetPropsArrayImage();
 
 		std::vector<AffectedTile> affectedTiles;
 		BuildAffectedTilesCPU(m_hitsW, m_radiiW, m_damages, uniqueSlots, 
@@ -1497,7 +1491,7 @@ namespace Engine {
 
 			// Push constants
 			vkCmdPushConstants(cmd,
-				s_bindlessDescitproSet->GetEffectsPipelineLayout(),
+				s_bindlessDescitproRenderer->GetEffectsPipelineLayout(),
 				VK_SHADER_STAGE_COMPUTE_BIT,
 				0, sizeof(EffectPushConstants), &pc);
 
@@ -1521,7 +1515,7 @@ namespace Engine {
 			pc.mode = 2;
 			pc.cutY = job.cutY;
 			vkCmdPushConstants(cmd,
-				s_bindlessDescitproSet->GetEffectsPipelineLayout(),
+				s_bindlessDescitproRenderer->GetEffectsPipelineLayout(),
 				VK_SHADER_STAGE_COMPUTE_BIT,
 				0, sizeof(EffectPushConstants), &pc);
 			vkCmdDispatch(cmd, gx, gy, 1);
@@ -1557,7 +1551,7 @@ namespace Engine {
 
 			// Push constants
 			vkCmdPushConstants(cmd,
-				s_bindlessDescitproSet->GetEffectsPipelineLayout(),
+				s_bindlessDescitproRenderer->GetEffectsPipelineLayout(),
 				VK_SHADER_STAGE_COMPUTE_BIT,
 				0, sizeof(EffectPushConstants), &pc);
 
@@ -1593,8 +1587,8 @@ namespace Engine {
 		const uint32_t gx = (tileW + 15) / 16;
 		const uint32_t gy = (tileH + 15) / 16;
 
-		VkImage colorArray = s_bindlessDescitproSet->GetColorImageArray();
-		VkImage propsArray = s_bindlessDescitproSet->GetPropsArrayImage();
+		VkImage colorArray = s_bindlessDescitproRenderer->GetColorImageArray();
+		VkImage propsArray = s_bindlessDescitproRenderer->GetPropsArrayImage();
 
 		for (const auto& job : queue)
 		{
@@ -1620,8 +1614,8 @@ namespace Engine {
 			*/
 			
 			m_vulkanGraphicsPipelines->UpdateClearMaskDescriptorSet(frameIndex,
-				s_bindlessDescitproSet->GetColorImageView(slot),
-				s_bindlessDescitproSet->GetCPropsImageView(slot));
+				s_bindlessDescitproRenderer->GetColorImageView(slot),
+				s_bindlessDescitproRenderer->GetCPropsImageView(slot));
 
 			// 3) Push constants selecting the tile (and clear mode/flags)
 			ClearMaskPC pc{};
@@ -1690,11 +1684,12 @@ namespace Engine {
 
 	}
 
+
 	void VulkanRenderer2D::ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex)
 	{
 		EE_PROFILE_FUNCTION();
 		std::vector<DestructibleSubmit>& queu = s_VulkanBindlessData.submitQueues[frameIndex];
-		s_bindlessDescitproSet->BeginFrame(frameIndex, uploadCB);
+		s_bindlessDescitproRenderer->BeginFrame(frameIndex, uploadCB);
 
 		const float tileWorldW = float(TILE_SIZE);
 		const float tileWorldH = float(TILE_SIZE);
@@ -1708,7 +1703,7 @@ namespace Engine {
 			glm::ivec2 qpos = HashUtils::QuantizeToTile(submitTile.localPos, float(TILE_SIZE));
 			const uint64_t uid = submitTile.nameHash;
 
-			const uint32_t slot = s_bindlessDescitproSet->EnsureTileResident(uid, submitTile.atlasUV, uploadCB);
+			const uint32_t slot = s_bindlessDescitproRenderer->EnsureTileResident(uid, submitTile.atlasUV, uploadCB);
 
 			// CENTER is provided by you:
 			const glm::vec2 center = submitTile.worldPos + submitTile.localPos;
@@ -1720,7 +1715,7 @@ namespace Engine {
 			const float zKey = groundY * 1024.0f + submitTile.zBias + tie;
 
 			// Pass the real world size so the quad matches exactly
-			s_bindlessDescitproSet->AddInstance(center, zKey, slot, 0u);
+			s_bindlessDescitproRenderer->AddInstance(center, zKey, slot, 0u);
 
 			// Compute wants bottom-left in world units
 			const float tileWorldW = float(TILE_SIZE);
@@ -1729,9 +1724,21 @@ namespace Engine {
 
 			s_VulkanBindlessData.m_slotOriginWorld[slot] = center - randomOffset;
 		}
-		s_bindlessDescitproSet->EndFrameAndUpload(frameIndex);
 
 		queu.clear();
+	}
+
+	void VulkanRenderer2D::ConsumeAnimationQueue(uint32_t frameIndex)
+	{
+		auto& animationQueu = s_VulkanBindlessData.spriteSubmitQueues[frameIndex];
+	
+		
+		for (const SpriteSubmit& s : animationQueu)
+		{
+			s_bindlessDescitproRenderer->AddSpriteInstance(s.center, s.zKey, s.slot, s.uvMin16, s.uvMax16, s.sizeWorld);
+		}
+
+		animationQueu.clear();
 	}
 
 
@@ -2589,6 +2596,14 @@ namespace Engine {
 		submitQueue.emplace_back(DestructibleSubmit{worldPos, localPos, atlasUV, nameHash, zBias });
 	
 		
+	}
+
+	void VulkanRenderer2D::SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot,
+		glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld)
+	{
+		const size_t fi = static_cast<size_t>(s_VulkanData.CurrentFrame) % MAX_FRAMES_IN_FLIGHT;
+		auto& q = s_VulkanBindlessData.spriteSubmitQueues[fi];
+		q.emplace_back(SpriteSubmit{ worldCenter, zKey, spriteSlot, uvMin16, uvMax16, sizeWorld });
 	}
 
 	void VulkanRenderer2D::SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin)

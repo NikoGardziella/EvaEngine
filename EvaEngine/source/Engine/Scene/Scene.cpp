@@ -24,6 +24,8 @@
 #include <Engine/Core/UUID.h>
 #include "Components/Render/DynamicObjectRenderComp.h"
 #include "Engine/Map/Tile/TileManager.h"
+#include <Engine/Animation/AnimationSystem.h>
+#include "Components/Animation/AnimationComponent.h"
 
 
 namespace Engine {
@@ -74,6 +76,8 @@ namespace Engine {
         m_gridMap = std::make_shared<GridMap>();
         m_textureStreamingSystem = std::make_unique<TextureStreamingSystem>();
         m_tileMananger = std::make_unique<TileManager>();
+        m_animationBank = std::make_unique<AnimationBank>();
+        m_animationSystem = std::make_unique<AnimationSystem>(*m_animationBank);
 
         m_textureStreamingSystem->SetGridMap(m_gridMap);
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
@@ -504,11 +508,24 @@ namespace Engine {
 
                 auto& spriteComp = playerView.get<Engine::SpriteRendererComponent>(entity);
 
-                Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
+                if (!playerEntity.HasComponent<AnimationComponent>())
+                {
+                    auto clipId = m_animationBank->LoadClipFromYaml("animations/player/data/run.yaml");
+                    auto& animComp = playerEntity.AddComponent<AnimationComponent>();
+                    animComp.clipId = clipId;
+                    animComp.dirMode = 1;
+
+                    auto& animStateComp = playerEntity.AddComponent<AnimatorStateComponent>();
+                }
+
+
+                //Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
                 // Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
             }
         }
         m_textureStreamingSystem->Update(playerPos, this);
+
+        m_animationSystem->Update(timestep, this);
 
         if(mainCamera)
         {   
@@ -854,7 +871,7 @@ namespace Engine {
 
                 }
                 {
-                    //EE_PROFILE_SCOPE("Projectiles and Player");
+                    //EE_PROFILE_SCOPE("Projectiles");
 
                     auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent, SpriteRendererComponent>();
 

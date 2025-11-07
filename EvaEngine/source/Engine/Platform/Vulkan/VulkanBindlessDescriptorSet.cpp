@@ -129,12 +129,40 @@ namespace Engine {
         m_drawCount = 0;
     }
 
+    void VulkanBindlessDescriptorSetRenderer::AddSpriteInstance(
+        glm::vec2 worldCenter, float zKey, uint32_t spriteSlot,
+        glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld)
+    {
+        RenderInstance I{};
+        I.worldPos = worldCenter;          // using the “center” convention you fixed
+        I.size = sizeWorld;
+        I.zSortKey = zKey;
+        I.slot = spriteSlot;
+        I.flags = 1u;                   // bit0 => use binding 3 (uSprites[])
+        I._pad = 0;
+        I.uvMin16 = uvMin16;
+        I.uvMax16 = uvMax16;
+        m_instances.push_back(I);
+    }
+
+
     void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, uint32_t flags)
     {
         glm::vec2 size = glm::vec2(TILE_SIZE, TILE_SIZE * 2); // 1:2 ratio per tile
-        RenderInstance I{ worldPos, size, zSortKey, slot, flags, 0 };
+
+        RenderInstance I{};
+        I.worldPos = worldPos;   // center point (as before)
+        I.size = size;
+        I.zSortKey = zSortKey;
+        I.slot = slot;
+        I.flags = (flags & ~1u);              // ensure isSprite = 0 for tiles
+        I._pad = 0;
+        I.uvMin16 = { 0u, 0u };                 // full texture UVs
+        I.uvMax16 = { 65535u, 65535u };
+
         m_instances.push_back(I);
     }
+
 
     void VulkanBindlessDescriptorSetRenderer::CreateTileSampler(VkDevice device)
     {
@@ -152,54 +180,65 @@ namespace Engine {
 
         }
     }
-
     void VulkanBindlessDescriptorSetRenderer::CreateBindlessSetLayout(VkDevice device, bool updateAfterBindSupported)
     {
+        // binding 0: tiles sampled array (you already have this)
         VkDescriptorSetLayoutBinding bColor{};
         bColor.binding = 0;
         bColor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         bColor.descriptorCount = MAX_RESIDENT;
         bColor.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
+        // binding 1: storage images (compute writes) — keep as-is
         VkDescriptorSetLayoutBinding bStorage{};
         bStorage.binding = 1;
         bStorage.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
         bStorage.descriptorCount = MAX_RESIDENT;
         bStorage.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
+        // binding 2: instances SSBO — keep as-is
         VkDescriptorSetLayoutBinding bInstances{};
         bInstances.binding = 2;
         bInstances.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         bInstances.descriptorCount = 1;
         bInstances.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
-        VkDescriptorSetLayoutBinding bindings[3] = { bColor, bStorage, bInstances };
+        // NEW: binding 3: spritesheets sampled array
+        VkDescriptorSetLayoutBinding bSprites{};
+        bSprites.binding = 3;
+        bSprites.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        bSprites.descriptorCount = MAX_SPRITESHEETS;        
+        bSprites.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;  
 
-        VkDescriptorBindingFlags flags[3]{};
+        VkDescriptorSetLayoutBinding bindings[4] = { bColor, bStorage, bInstances, bSprites };
+
+        VkDescriptorBindingFlags flags[4]{};
         flags[0] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
             (updateAfterBindSupported ? VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT : 0);
         flags[1] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
             (updateAfterBindSupported ? VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT : 0);
         flags[2] = 0;
+        flags[3] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
+            (updateAfterBindSupported ? VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT : 0);
 
         VkDescriptorSetLayoutBindingFlagsCreateInfo bindFlags{
             VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO
         };
-        bindFlags.bindingCount = 3;
+        bindFlags.bindingCount = 4;
         bindFlags.pBindingFlags = flags;
 
         VkDescriptorSetLayoutCreateInfo dslci{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
         dslci.pNext = &bindFlags;
-        dslci.bindingCount = 3;
+        dslci.bindingCount = 4;
         dslci.pBindings = bindings;
         dslci.flags = updateAfterBindSupported ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT : 0;
 
         if (vkCreateDescriptorSetLayout(device, &dslci, nullptr, &m_bindlessSetLayout) != VK_SUCCESS)
         {
-            EE_CORE_ERROR("Failed to create bindless set layout");
-
+            EE_CORE_ASSERT(false, "failed to create bindless set layoytu");
         }
     }
+
 
 
     void VulkanBindlessDescriptorSetRenderer::CreateTilesPipeline(VkDevice device, VkRenderPass renderPass)
@@ -340,7 +379,9 @@ namespace Engine {
         VkDescriptorPoolSize poolSizes[] = {
             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_RESIDENT },
             { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          MAX_RESIDENT },
-            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         FRAMES_IN_FLIGHT }
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         FRAMES_IN_FLIGHT },
+            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_SPRITESHEETS }
+
         };
 
         VkDescriptorPoolCreateInfo dpci{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
@@ -1394,4 +1435,94 @@ namespace Engine {
         }
 
     }
+
+
+    uint32_t VulkanBindlessDescriptorSetRenderer::AllocSpriteSlot_() {
+        if (!m_freeSpriteSlots.empty()) {
+            uint32_t s = m_freeSpriteSlots.back();
+            m_freeSpriteSlots.pop_back();
+            return s;
+        }
+        if (m_nextSpriteSlot >= MAX_SPRITESHEETS) return 0xFFFFFFFFu;
+        return m_nextSpriteSlot++;
+    }
+
+    void VulkanBindlessDescriptorSetRenderer::WriteSpriteDescriptorAllFrames_(uint32_t slot, VkImageView view)
+    {
+        for (uint32_t fi = 0; fi < FRAMES_IN_FLIGHT; ++fi) {
+            WriteCombinedImageSampler(
+                m_device,
+                m_bindlessSet[fi],
+                /*binding*/ 3,              // <- spritesheets binding
+                /*arrayIndex*/ slot,
+                /*sampler*/   m_tileSampler, // or a dedicated sprite sampler if you add one
+                /*view*/      view,
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            );
+        }
+    }
+
+    bool VulkanBindlessDescriptorSetRenderer::AcquireSpritesheet(
+        const std::string& textureName, uint32_t& outSlot, uint32_t& outW, uint32_t& outH)
+    {
+        // Normalize to whatever key AssetManager uses
+        const std::string key = textureName;
+
+        // Reuse if present
+        if (auto it = m_spriteByPath.find(key); it != m_spriteByPath.end()) {
+            SpriteRec& rec = it->second;
+            rec.refcount++;
+            outSlot = rec.slot; outW = rec.w; outH = rec.h;
+            return true;
+        }
+
+        // Load GPU texture via AssetManager (no renderer coupling in AssetManager)
+        Ref<VulkanTexture> tex = AssetManager::GetTexture(key);
+        if (!tex) tex = AssetManager::AddTexture(key, key, /*imGui*/ false);
+        if (!tex) {
+            EE_CORE_ERROR("[BindlessRenderer] AcquireSpritesheet: failed to load '{}'", key);
+            return false;
+        }
+
+        // Allocate a binding=3 slot
+        const uint32_t slot = AllocSpriteSlot_();
+        if (slot == 0xFFFFFFFFu) {
+            EE_CORE_ERROR("[BindlessRenderer] Spritesheet capacity exceeded (max {})", MAX_SPRITESHEETS);
+            return false;
+        }
+
+        // Write descriptors for all frames at binding=3
+        WriteSpriteDescriptorAllFrames_(slot, tex->GetImageView());
+
+        // Record
+        SpriteRec rec{};
+        rec.slot = slot; rec.w = tex->GetWidth(); rec.h = tex->GetHeight();
+        rec.refcount = 1; rec.tex = tex;
+
+        m_spritePathBySlot[slot] = key;
+        m_spriteByPath.emplace(key, std::move(rec));
+
+        outSlot = slot; outW = tex->GetWidth(); outH = tex->GetHeight();
+        return true;
+    }
+
+    void VulkanBindlessDescriptorSetRenderer::ReleaseSpritesheet(uint32_t slot)
+    {
+        auto itPath = m_spritePathBySlot.find(slot);
+        if (itPath == m_spritePathBySlot.end()) return;
+
+        auto it = m_spriteByPath.find(itPath->second);
+        if (it == m_spriteByPath.end()) return;
+
+        SpriteRec& rec = it->second;
+        if (rec.refcount > 0) rec.refcount--;
+        if (rec.refcount) return;
+
+        // Optional: clear descriptor to a dummy 1x1 view (not strictly required)
+        // For now, just recycle the slot
+        m_freeSpriteSlots.push_back(rec.slot);
+        m_spritePathBySlot.erase(itPath);
+        m_spriteByPath.erase(it);
+    }
+
 } 

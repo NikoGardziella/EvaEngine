@@ -146,6 +146,14 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Animation\AnimationSystem.h" />
+    <ClInclude Include="source\Engine\Animation\AnimationLoader.h" />
+    <ClInclude Include="source\Engine\Animation\AnimationBank.h" />
+    <ClInclude Include="source\Engine\Animation\AnimationEnums.h" />
+    <ClInclude Include="source\Engine\Animation\AnimationToRenderer.h" />
+    <ClInclude Include="source\Engine\Animation\AnimationTypes.h" />
+    <ClInclude Include="source\Engine\Animation\DirectionSelector.h" />
+    <ClInclude Include="source\Engine\Animation\SpriteInstanceData.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
     <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
@@ -229,6 +237,7 @@
     <ClInclude Include="source\Engine\Renderer\VertexArray.h" />
     <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h" />
     <ClInclude Include="source\Engine\Scene\Component.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Animation\AnimationComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
@@ -673,6 +682,9 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Animation\AnimationSystem.cpp" />
+    <ClCompile Include="source\Engine\Animation\AnimationLoader.cpp" />
+    <ClCompile Include="source\Engine\Animation\AnimationBank.cpp" />
     <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp" />

@@ -123,11 +123,23 @@ namespace Engine {
 		glm::vec4    atlasUV;    // UNFLIPPED source UV in the atlas
 		uint64_t     nameHash;   // hash of t.name to avoid storing strings // UID
 		float        zBias = 0.0f;
+
 	};
+
+	struct SpriteSubmit {
+		glm::vec2 center;     // world center (match your shader convention)
+		float     zKey;       // painter’s sort key you computed
+		uint32_t  slot;       // spritesheet bindless slot (binding=3)
+		glm::uvec2 uvMin16;   // frame UVs (quantized 0..65535)
+		glm::uvec2 uvMax16;
+		glm::vec2 sizeWorld;  // frame size in world units
+	};
+
 
 	struct VulkanBindlessRenderer2DData
 	{
-		std::array<std::vector<DestructibleSubmit>, 3> submitQueues{};
+		std::array<std::vector<DestructibleSubmit>, MAX_FRAMES_IN_FLIGHT> submitQueues{};
+		std::array<std::vector<SpriteSubmit>, MAX_FRAMES_IN_FLIGHT> spriteSubmitQueues{};
 		std::vector<glm::vec2> m_slotOriginWorld;
 
 
@@ -196,10 +208,16 @@ namespace Engine {
 		float    maxRadius = 0.0f; // max radius among hits affecting this tile
 	};
 
+	
 
 
 	class VulkanRenderer2D
 	{
+	
+
+		
+
+
 	public:
 		VulkanRenderer2D();
 		~VulkanRenderer2D();
@@ -253,6 +271,8 @@ namespace Engine {
 		static void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos,
 			const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias);
 
+		static void SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld);
+
 		static void SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin);
 
 		static void SetSlotContentRect(uint32_t slot, glm::ivec2 minPx, glm::ivec2 sizePx);
@@ -260,7 +280,7 @@ namespace Engine {
 
 		static Renderer2D::Statistics GetStats();
 		static EffectPushConstants& GetEffects() { return s_effectPushConstants;  }
-		static Ref<VulkanBindlessDescriptorSetRenderer>& GetBindlessDescriptorSetRenderer() { return s_bindlessDescitproSet;  }
+		static Ref<VulkanBindlessDescriptorSetRenderer>& GetBindlessDescriptorSetRenderer() { return s_bindlessDescitproRenderer;  }
 
 		static void ResetStats();
 
@@ -279,6 +299,7 @@ namespace Engine {
 		void RecordClearTextureComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex);
+		void ConsumeAnimationQueue(uint32_t frameIndex);
 		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
 		void CreateSyncObjects();
 
@@ -331,7 +352,7 @@ namespace Engine {
 		//CollisionTexture s_CollisionTextures;
 		Ref<VulkanTexture> m_dummyTexture;
 
-		static Ref<VulkanBindlessDescriptorSetRenderer> s_bindlessDescitproSet;
+		static Ref<VulkanBindlessDescriptorSetRenderer> s_bindlessDescitproRenderer;
 
 
 	

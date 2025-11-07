@@ -1932,27 +1932,7 @@ namespace Engine {
         }
     }
 
-    void VulkanGraphicsPipeline::UpdateTextureInfoDescriptorSets()
-    {
-        for (size_t i = 0; i < m_gameDescriptorSets.size(); ++i)
-        {
-            VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = m_textureUniformBuffers[i].GetBuffer();
-            bufferInfo.offset = 0;
-            bufferInfo.range = sizeof(TextureInfo);
 
-            VkWriteDescriptorSet write{};
-            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            write.dstSet = m_gameDescriptorSets[i];  // Set 1
-            write.dstBinding = 4;
-            write.dstArrayElement = 0;
-            write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            write.descriptorCount = 1;
-            write.pBufferInfo = &bufferInfo;
-
-            vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
-        }
-    }
 
     
     StorageImage VulkanGraphicsPipeline::CreateStorageImage(VkDevice device, VkPhysicalDevice physicalDevice,

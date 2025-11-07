@@ -13,31 +13,43 @@
 namespace Engine {
 
     struct Camera;
-    
-    // --------- Render instance (std430-friendly, 32 bytes)
-    struct RenderInstance {
-        glm::vec2 worldPos;
-        glm::vec2 size;
-        float     zSortKey;
-        uint32_t  slot;   // layer index in color array
-        uint32_t  flags;
-        uint32_t  _pad;
-    };
-    static_assert(sizeof(RenderInstance) == 32, "RenderInstance must be 32 bytes");
-
-    // --------- Instance buffer triple-buffered
-    struct InstanceBuffer {
-        VkBuffer        buf[3]{};
-        VkDeviceMemory  mem[3]{};
-        void* mapped[3]{};
-        VkDeviceSize    capacityBytes = 0;
-    };
-
     class VulkanShader; // fwd
-
     class VulkanBindlessDescriptorSetRenderer {
+
+    private:
+        struct SpriteRec {
+            uint32_t slot = 0xFFFFFFFFu;
+            uint32_t w = 0, h = 0;
+            uint32_t refcount = 0;
+            Ref<VulkanTexture> tex; // keep GPU image/view alive
+        };
+
+        // --------- Instance buffer triple-buffered
+        struct InstanceBuffer {
+            VkBuffer        buf[3]{};
+            VkDeviceMemory  mem[3]{};
+            void* mapped[3]{};
+            VkDeviceSize    capacityBytes = 0;
+        };
+
+        // --------- Render instance (std430-friendly, 32 bytes)
+        struct RenderInstance {
+            glm::vec2 worldPos;     // 8
+            glm::vec2 size;         // 16
+            float     zSortKey;     // 20
+            uint32_t  slot;         // 24
+            uint32_t  flags;        // 28
+            uint32_t  _pad;         // 32
+            glm::uvec2 uvMin16;    // 32..39
+            glm::uvec2 uvMax16;    // 40..47
+        }; // sizeof ~ 40 (std430 tightly packs scalars/vectors)
+
+
+
+
+
     public:
-        static constexpr uint32_t FRAMES_IN_FLIGHT = 3;
+        static constexpr uint32_t FRAMES_IN_FLIGHT = MAX_FRAMES_IN_FLIGHT;
         static constexpr uint32_t MAX_RESIDENT = MAX_RESIDENT_LAYERS; // keep under per-stage limits
 
         VulkanBindlessDescriptorSetRenderer(VkDevice device, bool updateAfterBindSupported);
@@ -48,6 +60,7 @@ namespace Engine {
 
 
         void BeginFrame(uint32_t frameIndex, VkCommandBuffer uploadCB);
+        void AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld);
         void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, uint32_t flags = 0);
         void EndFrameAndUpload(uint32_t frameIndex);
 
@@ -71,6 +84,12 @@ namespace Engine {
         void EffectsBindBuffers(uint32_t frameIndex, VkBuffer resultsBuf, VkDeviceSize resultsSize, VkBuffer projectilesBuf, VkDeviceSize projSize, VkBuffer blockedMaskBuf, VkDeviceSize maskSize);
 
         void UpdateCollisionResultDescriptor(uint32_t frameIndex, VkDescriptorSet dstSet, VkBuffer resultsBuf);
+
+
+        //spritesheet
+        bool AcquireSpritesheet(const std::string& path, uint32_t& outSlot, uint32_t& outW, uint32_t& outH);
+        void ReleaseSpritesheet(uint32_t slot);
+
 
         // Accessors for your render code
         VkDescriptorSetLayout GetSetLayout() const { return m_bindlessSetLayout; }
@@ -148,6 +167,10 @@ namespace Engine {
         bool IsInsideView(const Camera& cam, glm::vec2 worldPos) const; // TODO: implement properly
     
 
+        //spritesheet
+        uint32_t AllocSpriteSlot_();
+        void     WriteSpriteDescriptorAllFrames_(uint32_t slot, VkImageView view);
+
     private:
         // Device references
         VkDevice m_device = VK_NULL_HANDLE;
@@ -195,8 +218,8 @@ namespace Engine {
         VkImage        m_propsArrayImage = VK_NULL_HANDLE;
         VkDeviceMemory m_colorArrayMem = VK_NULL_HANDLE;
         VkDeviceMemory m_propsArrayMem = VK_NULL_HANDLE;
-        uint32_t       m_tileW = 128;
-        uint32_t       m_tileH = 256; 
+        uint32_t       m_tileW = TILE_PIXEL_WIDTH;
+        uint32_t       m_tileH = TILE_PIXEL_HEIGHT;
 
         // Per-layer views + freelist
         
@@ -206,6 +229,13 @@ namespace Engine {
 
         // Residency map: tile UID -> slot (layer)
         std::unordered_map<uint64_t, uint32_t> m_tileToSlot;
+
+
+        //spritesheet
+        std::unordered_map<std::string, SpriteRec> m_spriteByPath;
+        std::unordered_map<uint32_t, std::string>  m_spritePathBySlot;
+        std::vector<uint32_t>                      m_freeSpriteSlots;
+        uint32_t                                   m_nextSpriteSlot = 0;
     };
 
 } 

@@ -10,6 +10,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
+#include <Engine/Animation/SpriteInstanceData.h>
 
 
 
@@ -96,6 +97,7 @@ namespace Engine {
         glm::vec4 Color{ 1.0f };
         Ref<VulkanTexture> Texture;
         float Tiling = 1.0f;
+        SpriteInstanceData Instance;
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const SpriteRendererComponent&) = default;
         SpriteRendererComponent(const glm::vec4& color)
