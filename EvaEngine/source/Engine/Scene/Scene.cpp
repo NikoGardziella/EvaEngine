@@ -565,7 +565,7 @@ namespace Engine {
                         
 
                         Engine::VulkanRenderer2D::DrawVisualEffectTexture(model, chunkComp.VisualEffectTexture);
-                       // Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.TerrainTexture);
+                        Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.TerrainTexture);
 
 
                     }
