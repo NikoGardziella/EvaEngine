@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
-#include <Engine/Animation/AnimationTypes.h>
-#include <Engine/Animation/AnimationEnums.h>
+#include <Engine/Animation/2D/AnimationTypes.h>
+#include <Engine/Animation/2D/AnimationEnums.h>
 
 namespace Engine {
 

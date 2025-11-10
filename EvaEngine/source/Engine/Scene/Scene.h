@@ -10,8 +10,8 @@
 
 #include "TaskManager/PhysicsTaskScheduler.h"
 #include <Engine/Map/Tile/DestrutibleTileSystem.h>
-#include <Engine/Animation/AnimationSystem.h>
-#include <Engine/Animation/AnimationBank.h>
+#include <Engine/Animation/2D/AnimationSystem.h>
+#include <Engine/Animation/2D/AnimationBank2D.h>
 
 
 
@@ -148,8 +148,8 @@ namespace Engine {
 		Ref<TextureStreamingSystem> m_textureStreamingSystem;
 		Ref<TileManager> m_tileMananger;
 		Ref<GridMap> m_gridMap;
-		Ref<AnimationSystem> m_animationSystem;
-		Ref<AnimationBank> m_animationBank;
+		Ref<AnimationSystem2D> m_animationSystem;
+		Ref<AnimationBank2D> m_animationBank;
 		DestructibleTileSystem m_destructibleTileSystem;
 		bool m_debugDrawLOS = false;
 

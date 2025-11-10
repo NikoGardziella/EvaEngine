@@ -10,7 +10,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
-#include <Engine/Animation/SpriteInstanceData.h>
+#include <Engine/Animation/2D/SpriteInstanceData.h>
 
 
 

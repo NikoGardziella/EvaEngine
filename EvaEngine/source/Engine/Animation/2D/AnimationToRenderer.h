@@ -4,7 +4,7 @@
 
 namespace Engine {
 
-    inline void FillSpriteInstanceFromClip(const AnimationClipRuntime& clip, uint32_t col,
+    inline void FillSpriteInstanceFromClip(const Animation2DClipRuntime& clip, uint32_t col,
         uint32_t row, SpriteInstanceData& inst)
     {
         const uint32_t idx = row * clip.grid.cols + col;

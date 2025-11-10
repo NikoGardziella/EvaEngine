@@ -54,7 +54,7 @@ namespace Engine {
         {
             if (glm::length2(v) < 1e-6f)
             {
-                return Dir8::S; // default
+                return Dir8::S;
             }
             return FromAngle(std::atan2(v.y, v.x));
         }

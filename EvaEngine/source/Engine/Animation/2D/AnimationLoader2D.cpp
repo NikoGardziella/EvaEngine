@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "AnimationLoader.h"
-#include "AnimationBank.h"
+#include "AnimationLoader2D.h"
+#include "AnimationBank2D.h"
 #include <Engine/Core/Log.h>
 #include <yaml-cpp/yaml.h>
 #include <stdexcept>
@@ -24,7 +24,7 @@ namespace Engine {
         return k ? k.as<bool>() : def;
     }
 
-    uint32_t AnimationLoader::LoadGridYaml(AnimationBank& bank, const std::string& yamlPath)
+    uint32_t AnimationLoader2D::Load2DGridYaml(AnimationBank2D& bank, const std::string& yamlPath)
     {
         YAML::Node root;
         try {
@@ -93,7 +93,7 @@ namespace Engine {
             }
         }
 
-        uint32_t id = bank.LoadGridClip(name, texture, cols, rows, cellW, cellH, fps, loop, pivotPx, ppu);
+        uint32_t id = bank.Load2DGridClip(name, texture, cols, rows, cellW, cellH, fps, loop, pivotPx, ppu);
         if (id == 0) 
         {
             EE_CORE_ERROR("[AnimationLoader] Failed to load clip '{}' from '{}'", name, yamlPath);

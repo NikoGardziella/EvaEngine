@@ -28,7 +28,7 @@ namespace Engine {
         uint32_t nameHash = 0;    // HashUtils::Hash32("footstep")
     };
     // Runtime clip asset (precomputed UVs)
-    struct AnimationClipRuntime {
+    struct Animation2DClipRuntime {
         std::string name;
         AnimationClipGrid grid;
         std::vector<AnimationFrameUV> uvTable; // rows * cols

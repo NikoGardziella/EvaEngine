@@ -6,11 +6,11 @@
 namespace Engine {
 
     class Scene;
-    class AnimationBank;
+    class AnimationBank2D;
 
-    class AnimationSystem {
+    class AnimationSystem2D {
     public:
-        explicit  AnimationSystem(AnimationBank& bank) : m_bank(&bank) {}
+        explicit  AnimationSystem2D(AnimationBank2D& bank) : m_bank(&bank) {}
 
         void Update(float dt, Scene* scene);
 
@@ -24,7 +24,7 @@ namespace Engine {
         static void Advance(AnimatorState& st, const AnimationClipGrid& grid, float dt);
 
     private:
-        AnimationBank* m_bank = nullptr;
+        AnimationBank2D* m_bank = nullptr;
     };
 
 }

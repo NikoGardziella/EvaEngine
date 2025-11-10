@@ -7,16 +7,15 @@
 namespace Engine {
 
     class TextureStreamingSystem; // fwd
-
     // Owns loaded clips and connects to your streaming system
-    class AnimationBank {
+    class AnimationBank2D {
     public:
-        explicit AnimationBank(){}
+        explicit AnimationBank2D(){}
 
-        uint32_t LoadClipFromYaml(const std::string& yamlPath);
+        uint32_t Load2DClipFromYaml(const std::string& yamlPath);
 
         // Public API
-        uint32_t LoadGridClip(const std::string& name,       // "player/run"
+        uint32_t Load2DGridClip(const std::string& name,       // "player/run"
             const std::string& texturePath,// e.g. "animations/player/spritesheet/run.png"
             uint16_t cols, uint16_t rows,
             uint16_t cellW, uint16_t cellH,
@@ -24,7 +23,7 @@ namespace Engine {
             glm::u16vec2 pivotPx,
             float pixelsPerUnit);
 
-        const AnimationClipRuntime* GetClip(uint32_t clipId) const;
+        const Animation2DClipRuntime* Get2DClip(uint32_t clipId) const;
         void ReleaseUnusedLRU(uint32_t framesSinceUseThreshold);
 
         // Optional: reference counting
@@ -32,18 +31,18 @@ namespace Engine {
         void RemoveUser(uint32_t clipId);
 
     private:
-        struct ClipSlot {
-            AnimationClipRuntime clip;
+        struct Clip2DSlot {
+            Animation2DClipRuntime clip;
             uint32_t users = 0;
             uint32_t lastUsedFrame = 0;
             bool     loaded = false;
         };
 
-        std::unordered_map<uint32_t, ClipSlot> m_clips; // key = Hash32(name)
+        std::unordered_map<uint32_t, Clip2DSlot> m_2DClips; // key = Hash32(name)
 
         // helpers
         static uint32_t HashName(const std::string& s);
-        void BuildUVTable(ClipSlot& slot);
+        void BuildUVTable(Clip2DSlot& slot);
     };
 
 }

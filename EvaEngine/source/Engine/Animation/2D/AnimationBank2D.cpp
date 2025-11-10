@@ -1,6 +1,6 @@
 
 #include "pch.h"
-#include "AnimationBank.h"
+#include "AnimationBank2D.h"
 #include <Engine/Core/Log.h>
 #include <Engine/Math/HashUtils.h> 
 #include <algorithm>
@@ -19,7 +19,7 @@ namespace Engine {
 
     }
 
-    uint32_t AnimationBank::HashName(const std::string& s)
+    uint32_t AnimationBank2D::HashName(const std::string& s)
     {
         return HashUtils::Hash32(s.c_str());
     }
@@ -34,7 +34,7 @@ namespace Engine {
         return uv;
     }
 
-    void AnimationBank::BuildUVTable(ClipSlot& slot)
+    void AnimationBank2D::BuildUVTable(Clip2DSlot& slot)
     {
         const auto& g = slot.clip.grid;
         const float texW = float(slot.clip.texWidth);
@@ -84,7 +84,7 @@ namespace Engine {
         return true;
     }
 
-    uint32_t AnimationBank::LoadClipFromYaml(const std::string& yamlPath)
+    uint32_t AnimationBank2D::Load2DClipFromYaml(const std::string& yamlPath)
     {
         // 1) Resolve YAML to an absolute path inside your asset root
         std::filesystem::path assetRoot = AssetManager::GetAssetFolderPath();
@@ -172,7 +172,7 @@ namespace Engine {
         // 6) Clip id and dedup
         const std::string name = pack.empty() ? action : (pack + "/" + action);
         const uint32_t id = HashName(name.empty() ? yamlPath : name);
-        if (auto it = m_clips.find(id); it != m_clips.end()) {
+        if (auto it = m_2DClips.find(id); it != m_2DClips.end()) {
             it->second.users++;
             return id;
         }
@@ -195,7 +195,7 @@ namespace Engine {
         }
 
         // 9) Build clip
-        ClipSlot slot{};
+        Clip2DSlot slot{};
         slot.loaded = true; slot.users = 1; slot.lastUsedFrame = 0;
         slot.clip.name = name.empty() ? yamlPath : name;
         slot.clip.grid = { cols, rows, cellW, cellH, fps, static_cast<uint8_t>(loop ? 1 : 0), texIndex };
@@ -251,7 +251,7 @@ namespace Engine {
         }
 
         // 13) Commit
-        m_clips.emplace(id, std::move(slot));
+        m_2DClips.emplace(id, std::move(slot));
         EE_CORE_INFO("[AnimationBank] Loaded '{}' from '{}' ({}x{}, grid {}x{}, fps {}, loop {}, texIdx {})",
             name.empty() ? yamlPath : name, absYaml.string(),
             texW, texH, cols, rows, fps, loop, texIndex);
@@ -259,7 +259,7 @@ namespace Engine {
     }
 
 
-    uint32_t AnimationBank::LoadGridClip(const std::string& name,
+    uint32_t AnimationBank2D::Load2DGridClip(const std::string& name,
         const std::string& texturePath,
         uint16_t cols, uint16_t rows,
         uint16_t cellW, uint16_t cellH,
@@ -268,7 +268,7 @@ namespace Engine {
         float pixelsPerUnit)
     {
         const uint32_t id = HashName(name);
-        if (auto it = m_clips.find(id); it != m_clips.end()) {
+        if (auto it = m_2DClips.find(id); it != m_2DClips.end()) {
             it->second.users++;
             return id;
         }
@@ -284,7 +284,7 @@ namespace Engine {
             return 0;
         }
 
-        ClipSlot slot{};
+        Clip2DSlot slot{};
         slot.loaded = true;
         slot.users = 1;
         slot.lastUsedFrame = 0;
@@ -316,30 +316,30 @@ namespace Engine {
 
         BuildUVTable(slot);
 
-        m_clips.emplace(id, std::move(slot));
+        m_2DClips.emplace(id, std::move(slot));
         EE_CORE_INFO("[AnimationBank] Loaded clip '{}' ({}x{}, grid {}x{}, fps {}, loop {}, texIdx {})",
             name, texW, texH, cols, rows, fps, loop, texIndex);
         return id;
     }
 
 
-    const AnimationClipRuntime* AnimationBank::GetClip(uint32_t clipId) const 
+    const Animation2DClipRuntime* AnimationBank2D::Get2DClip(uint32_t clipId) const 
     {
-        auto it = m_clips.find(clipId);
-        if (it == m_clips.end()) return nullptr;
+        auto it = m_2DClips.find(clipId);
+        if (it == m_2DClips.end()) return nullptr;
         return &it->second.clip;
     }
 
-    void AnimationBank::AddUser(uint32_t clipId)
+    void AnimationBank2D::AddUser(uint32_t clipId)
     {
-        auto it = m_clips.find(clipId);
-        if (it != m_clips.end()) it->second.users++;
+        auto it = m_2DClips.find(clipId);
+        if (it != m_2DClips.end()) it->second.users++;
     }
 
-    void AnimationBank::RemoveUser(uint32_t clipId)
+    void AnimationBank2D::RemoveUser(uint32_t clipId)
     {
-        auto it = m_clips.find(clipId);
-        if (it == m_clips.end()) return;
+        auto it = m_2DClips.find(clipId);
+        if (it == m_2DClips.end()) return;
         auto& slot = it->second;
         if (slot.users > 0) slot.users--;
         if (slot.users == 0)
@@ -347,11 +347,11 @@ namespace Engine {
             // Free binding=3 slot
             VulkanRenderer2D::GetBindlessDescriptorSetRenderer()
                 ->ReleaseSpritesheet(slot.clip.grid.textureIndex);
-            m_clips.erase(it);
+            m_2DClips.erase(it);
         }
     }
 
-    void AnimationBank::ReleaseUnusedLRU(uint32_t framesSinceUseThreshold)
+    void AnimationBank2D::ReleaseUnusedLRU(uint32_t framesSinceUseThreshold)
     {
    
     }

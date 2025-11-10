@@ -1660,15 +1660,15 @@
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
     <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
-    <ClInclude Include="source\Engine\Animation\AnimationEnums.h" />
-    <ClInclude Include="source\Engine\Animation\AnimationTypes.h" />
+    <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h" />
+    <ClInclude Include="source\Engine\Animation\2D\AnimationTypes.h" />
     <ClInclude Include="source\Engine\Scene\Components\Animation\AnimationComponent.h" />
-    <ClInclude Include="source\Engine\Animation\DirectionSelector.h" />
-    <ClInclude Include="source\Engine\Animation\AnimationBank.h" />
-    <ClInclude Include="source\Engine\Animation\AnimationLoader.h" />
-    <ClInclude Include="source\Engine\Animation\AnimationSystem.h" />
-    <ClInclude Include="source\Engine\Animation\SpriteInstanceData.h" />
-    <ClInclude Include="source\Engine\Animation\AnimationToRenderer.h" />
+    <ClInclude Include="source\Engine\Animation\2D\DirectionSelector.h" />
+    <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
+    <ClInclude Include="source\Engine\Animation\2D\AnimationLoader2D.h" />
+    <ClInclude Include="source\Engine\Animation\2D\AnimationSystem2D.h" />
+    <ClInclude Include="source\Engine\Animation\2D\SpriteInstanceData.h" />
+    <ClInclude Include="source\Engine\Animation\2D\AnimationToRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
@@ -1882,9 +1882,9 @@
     <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
-    <ClCompile Include="source\Engine\Animation\AnimationBank.cpp" />
-    <ClCompile Include="source\Engine\Animation\AnimationLoader.cpp" />
-    <ClCompile Include="source\Engine\Animation\AnimationSystem.cpp" />
+    <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
+    <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp" />
+    <ClCompile Include="source\Engine\Animation\2D\AnimationSystem2D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\Circle_shader.glsl">
