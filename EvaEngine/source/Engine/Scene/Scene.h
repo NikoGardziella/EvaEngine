@@ -10,7 +10,7 @@
 
 #include "TaskManager/PhysicsTaskScheduler.h"
 #include <Engine/Map/Tile/DestrutibleTileSystem.h>
-#include <Engine/Animation/2D/AnimationSystem.h>
+#include <Engine/Animation/2D/AnimationSystem2D.h>
 #include <Engine/Animation/2D/AnimationBank2D.h>
 
 

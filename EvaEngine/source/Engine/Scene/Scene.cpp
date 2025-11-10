@@ -24,7 +24,7 @@
 #include <Engine/Core/UUID.h>
 #include "Components/Render/DynamicObjectRenderComp.h"
 #include "Engine/Map/Tile/TileManager.h"
-#include <Engine/Animation/2D/AnimationSystem.h>
+#include <Engine/Animation/2D/AnimationSystem2D.h>
 #include "Components/Animation/AnimationComponent.h"
 
 
@@ -77,7 +77,7 @@ namespace Engine {
         m_textureStreamingSystem = std::make_unique<TextureStreamingSystem>();
         m_tileMananger = std::make_unique<TileManager>();
         m_animationBank = std::make_unique<AnimationBank2D>();
-        m_animationSystem = std::make_unique<AnimationSystem>(*m_animationBank);
+        m_animationSystem = std::make_unique<AnimationSystem2D>(*m_animationBank);
 
         m_textureStreamingSystem->SetGridMap(m_gridMap);
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
