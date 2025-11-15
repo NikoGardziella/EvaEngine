@@ -6,6 +6,8 @@
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 #include "Engine/AssetManager/Utils/AssetManagerUtils.h"
 #include <stb_image.h>
+#include <Engine/Animation/3D/Import/GLTFImporter.h>
+#include <Engine/Animation/3D/MeshRegistry.h>
 
 
 
@@ -27,7 +29,8 @@ namespace Engine {
     std::unordered_map<eTileCategory, std::unordered_map<eTileMaterial, std::vector<std::string>>> AssetManager::s_tileNamesByCategoryAndMaterial;
 
     Ref<VulkanTexture> AssetManager::s_tileTextureIconAtlas;
-    
+    MeshRegistry AssetManager::m_meshRegistry;
+    MaterialRegistry AssetManager::m_materialRegistry;
 
 
     void AssetManager::Initialize(int maxDepth)
@@ -815,6 +818,91 @@ namespace Engine {
         default:                            t = 0; break; // Undefined
         }
         return static_cast<uint8_t>(t << 4); // top nibble
+    }
+
+
+    static inline void ComputeLocalAABB(const std::vector<Vertex>& verts,
+        glm::vec3& outMinL, glm::vec3& outMaxL)
+    {
+        glm::vec3 mn(std::numeric_limits<float>::max());
+        glm::vec3 mx(-std::numeric_limits<float>::max());
+        for (const auto& v : verts) {
+            mn = glm::min(mn, v.pos);
+            mx = glm::max(mx, v.pos);
+        }
+        outMinL = mn; outMaxL = mx;
+    }
+
+    uint32_t AssetManager::ImportGLTF(const std::string& path)
+    {
+        // 1) aggregator for per-mesh combined buffers
+        AssetManagerUtils::GLTFAggregator agg;
+
+        // 2) build importer opts (flipV=true is common for glTF)
+        GLTFImporter imp;
+        GLTFImportOptions opts = MakeDefaultGLTFOpts(agg, /*flipV=*/true, /*genFlatNormalsIfMissing=*/true);
+
+        // 3) run import (fills MeshAsset with SubmeshRanges; materials registered)
+        auto res = imp.Import(path, m_meshRegistry, m_materialRegistry, opts);
+        if (!res.report.ok) {
+            EE_CORE_ERROR("[GLTF] Import failed: {} ({})", path, res.report.message);
+            return kInvalidMeshId; // or MeshId{}
+        }
+        if (res.meshId == kInvalidMeshId) {
+            EE_CORE_ERROR("[GLTF] Import returned invalid MeshId for {}", path);
+            return kInvalidMeshId;
+        }
+
+        // 4) create ONE VB/IB from aggregated data
+        const uint32_t vbBytes = static_cast<uint32_t>(agg.allVerts.size() * sizeof(Vertex));
+        const uint32_t ibCount = static_cast<uint32_t>(agg.allIdx.size());
+
+        if (vbBytes == 0 || ibCount == 0) {
+            EE_CORE_ERROR("[GLTF] No vertices/indices produced for {}", path);
+            return kInvalidMeshId;
+        }
+
+        auto* vb = new VulkanVertexBuffer((float*)agg.allVerts.data(), vbBytes);
+        auto* ib = new VulkanIndexBuffer(agg.allIdx.data(), ibCount);
+        glm::vec3& outMinL = glm::vec3(1);
+        glm::vec3& outMaxL = glm::vec3(1);
+        AssetManagerUtils::ComputeLocalAABB(agg.allVerts, outMinL, outMaxL);
+
+        // 5) attach buffers to the mesh asset
+        MeshAsset& m = m_meshRegistry.Get(res.meshId);
+        m.vertexBuffer = vb->GetBuffer();
+        m.indexBuffer = ib->GetBuffer();
+        m.vbOffset = 0;
+        m.ibOffset = 0;
+        m.vertexCount = static_cast<uint32_t>(agg.allVerts.size());
+        m.indexCount = ibCount;
+        m.minL = outMinL;
+        m.maxL = outMaxL;
+
+        // (optional) keep ownership so you can destroy later
+        // m_ownedMeshBuffers[res.meshId] = { std::unique_ptr<VulkanVertexBuffer>(vb),
+        //                                    std::unique_ptr<VulkanIndexBuffer>(ib) };
+
+        EE_CORE_INFO("[GLTF] Imported '{}' -> meshId={}, verts={}, indices={}, submeshes={}",
+            path, res.meshId,  m.vertexCount, m.indexCount,
+            (uint32_t)m.submeshes.size());
+
+        return res.meshId;
+    }
+
+
+    GLTFImportOptions AssetManager::MakeDefaultGLTFOpts(AssetManagerUtils::GLTFAggregator& agg,  bool flipV,
+        bool genFlatNormalsIfMissing)
+    {
+        GLTFImportOptions opts{};
+        opts.flipV = flipV;
+        opts.generateFlatNormalsIfMissing = genFlatNormalsIfMissing;
+
+        // bind functors (no lambdas)
+        opts.loadTexture = AssetManagerUtils::DefaultTextureLoader{};
+        opts.uploadPrimitive = AssetManagerUtils::PrimitiveAppender{ &agg };
+
+        return opts;
     }
 
 

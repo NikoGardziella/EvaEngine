@@ -215,15 +215,7 @@ namespace Engine {
 		StartBatch();
 	}
 
-	void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
-	{
-		EE_PROFILE_FUNCTION();
-
-		s_Data.CameraBuffer.ViewProjection = camera.GetViewProjection() * glm::inverse(transform);
-		s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
-
-		StartBatch();
-	}
+	
 
 	void Renderer2D::BeginScene(const EditorCamera& camera)
 	{
@@ -574,6 +566,7 @@ namespace Engine {
 
 		
 	}
+
 
 
 

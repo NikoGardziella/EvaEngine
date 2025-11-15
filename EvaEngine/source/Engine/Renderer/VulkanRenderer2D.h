@@ -13,6 +13,7 @@
 #include <Engine/Scene/Entity.h>
 #include <vector>
 #include <Engine/Platform/Vulkan/VulkanBindlessDescriptorSet.h>
+#include "Camera.h"
 
 namespace Engine {
 
@@ -223,15 +224,15 @@ namespace Engine {
 		~VulkanRenderer2D();
 
 		void Init();
-		void DrawFrame(uint32_t currentFrame);
+		void DrawFrame(uint32_t currentFrame, VkCommandBuffer cmd);
 		void ReadAndResetCollisionBuffer(uint32_t currentFrame);
 		void BeginFrame(uint32_t currentFrame);
 		void BeginPass(VkCommandBuffer cmd, uint32_t currentFrame);
-		void EndFrame(uint32_t currentFrame);
+		void EndFrame(uint32_t currentFrame, VkCommandBuffer cmd);
 		void SubmitFrame(VkCommandBuffer commandBuffer, uint32_t currentFrame);
 		void BindBatchState(VkCommandBuffer cmd, uint32_t currentFrame);
 		void SubmitFrame(uint32_t currentFrame);
-		void CalculateCollisionFrame(uint32_t currentFrame);
+		void CalculateCollisionFrame(uint32_t currentFrame, VkCommandBuffer cmd);
 		void ReadPlayerCollisionBuffer();
 		void ReadBlockedTileMask(std::vector<uint32_t>& outDestroyedMask, uint32_t count);
 		bool ReadDirtyOut();
@@ -300,7 +301,7 @@ namespace Engine {
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex);
 		void ConsumeAnimationQueue(uint32_t frameIndex);
-		void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
+		//void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
 		void CreateSyncObjects();
 
 
@@ -311,8 +312,8 @@ namespace Engine {
 		// holds pipeline for game and present
 		Ref<VulkanGraphicsPipeline> m_vulkanGraphicsPipelines;
 
-		std::vector<VkCommandBuffer> m_commandBuffers;
-		std::vector<VkCommandBuffer> m_endFrameCommandBuffers;
+		
+
 		VulkanContext* m_vulkanContext;
 		VkSwapchainKHR m_swapchain;
 		VkExtent2D m_swapchainExtent;
@@ -321,7 +322,7 @@ namespace Engine {
 		std::vector<VkSemaphore> m_imageAvailableSemaphores;
 		std::vector<VkSemaphore> m_renderFinishedSemaphores;
 		std::vector<VkFence> m_inFlightFences;
-		std::vector<VkFence> m_imagesInFlight;
+
 
 		VkFence m_computeFence;
 

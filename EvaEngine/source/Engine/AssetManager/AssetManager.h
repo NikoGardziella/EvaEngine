@@ -9,6 +9,15 @@
 #include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include "Utils/TileSerializer.h"
+#include <Engine/Animation/3D/MaterialRegistry.h>
+#include <Engine/Animation/3D/Import/GLTFImporter.h>
+#include <Engine/Animation/3D/MeshRegistry.h>
+#include "Utils/AssetManagerUtils.h"
+#include <Engine/Core/Core.h>
+#include <glm/fwd.hpp>
+#include <cstdint>
+#include <vector>
+#include <vulkan/vulkan_core.h>
 
 
 namespace Engine {
@@ -54,6 +63,14 @@ namespace Engine {
         static void LoadTileProperties();
 
         static uint8_t PackCategoryNibble(eTileCategory c);
+
+        static uint32_t ImportGLTF(const std::string& path);
+
+        static GLTFImportOptions MakeDefaultGLTFOpts(AssetManagerUtils::GLTFAggregator& agg, bool flipV, bool genFlatNormalsIfMissing);
+
+        static MeshAsset& GetMeshFromMeshRegistry(uint32_t meshId) { return m_meshRegistry.Get(meshId); }
+        static MeshRegistry& GetMeshRegistry() { return m_meshRegistry; }
+        static MaterialRegistry& GetMaterialRegistry() { return m_materialRegistry; }
 
        
 
@@ -104,6 +121,9 @@ namespace Engine {
 
 		static Ref<VulkanTexture> s_tileTextureIconAtlas;
         static inline std::unordered_map<std::string, TileProperties> s_tileProperties;
+
+        static MeshRegistry m_meshRegistry;
+        static MaterialRegistry m_materialRegistry;
 
     };
 

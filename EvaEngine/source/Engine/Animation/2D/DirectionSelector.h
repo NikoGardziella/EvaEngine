@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cmath>
 #include "AnimationEnums.h"
-#include <glm/ext/scalar_constants.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 namespace Engine {

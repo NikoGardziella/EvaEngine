@@ -13,6 +13,8 @@ namespace Engine {
 
 	Renderer::SceneData* Renderer::m_sceneData = new SceneData();
 	std::unique_ptr<Engine::VulkanRenderer2D> Engine::Renderer::s_VulkanRenderer2D = nullptr;
+	std::unique_ptr<Engine::VulkanRenderer3D> Engine::Renderer::s_VulkanRenderer3D = nullptr;
+	std::vector<VkCommandBuffer> Renderer::m_commandBuffers;
 
 	uint32_t Renderer::s_currentFrame = 0;
 
@@ -27,7 +29,15 @@ namespace Engine {
 		if (api == RendererAPI::API::Vulkan)
 		{
 			s_VulkanRenderer2D = std::make_unique<VulkanRenderer2D>();
+			s_VulkanRenderer3D = std::make_unique<VulkanRenderer3D>();
 			s_VulkanRenderer2D->Init();
+			s_VulkanRenderer3D->InitVulkanRenderer3D();
+
+			VulkanContext* vulkanContext = VulkanContext::Get();
+
+			AllocateCommandBuffers(vulkanContext->GetDeviceManager().GetDevice(), vulkanContext->GetCommandPool());
+
+
 		}
 		else
 		{
@@ -52,7 +62,10 @@ namespace Engine {
 		if (s_VulkanRenderer2D)
 		{
 			//s_VulkanRenderer2D->BeginFrame(s_currentFrame);
-			s_VulkanRenderer2D->DrawFrame(s_currentFrame);
+			s_VulkanRenderer3D->Draw(s_currentFrame, m_commandBuffers[s_currentFrame]);
+
+			s_VulkanRenderer2D->DrawFrame(s_currentFrame, m_commandBuffers[s_currentFrame]);
+
 			//s_VulkanRenderer2D->EndFrame(s_currentFrame);
 		}
 		else
@@ -68,6 +81,7 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 		s_VulkanRenderer2D->BeginFrame(s_currentFrame);
+		s_VulkanRenderer3D->BeginFrame3D(s_currentFrame);
 
 	}
 
@@ -79,7 +93,7 @@ namespace Engine {
 	void Renderer::EndFrame()
 	{
 		EE_PROFILE_FUNCTION();
-		s_VulkanRenderer2D->EndFrame(s_currentFrame);
+		s_VulkanRenderer2D->EndFrame(s_currentFrame, m_commandBuffers[s_currentFrame]);
 
 		Engine::VulkanRenderer2D::ResetStats();
 		s_currentFrame = (s_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -109,5 +123,24 @@ namespace Engine {
 	{
 		return s_VulkanRenderer2D->GetGameDescriptorSet(s_currentFrame);
 	}
+
+
+	void Renderer::AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool)
+	{
+		m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = commandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
+
+		if (vkAllocateCommandBuffers(device, &allocInfo, m_commandBuffers.data()) != VK_SUCCESS)
+		{
+			EE_CORE_ERROR("Failed to allocate command buffers!");
+		}
+
+	}
+
 
 }

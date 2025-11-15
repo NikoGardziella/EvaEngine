@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -125,7 +125,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -146,26 +146,31 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\Engine\Animation\2D\AnimationSystem2D.h" />
-    <ClInclude Include="source\Engine\Animation\2D\AnimationLoader2D.h" />
+    <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h" />
+    <ClInclude Include="source\Engine\Animation\2D\AnimationLoader2D.h" />
+    <ClInclude Include="source\Engine\Animation\2D\AnimationSystem2D.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationToRenderer.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationTypes.h" />
     <ClInclude Include="source\Engine\Animation\2D\DirectionSelector.h" />
     <ClInclude Include="source\Engine\Animation\2D\SpriteInstanceData.h" />
-    <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
-    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
-    <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h" />
-    <ClInclude Include="source\Engine\Math\HashUtils.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.h" />
-    <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h" />
-    <ClInclude Include="source\Engine\AssetManager\Utils\TileSerializer.h" />
-    <ClInclude Include="source\Engine\Map\Grid\GridMap.h" />
-    <ClInclude Include="source\Engine.h" />
+    <ClInclude Include="source\Engine\Animation\3D\AnimationRegistry.h" />
+    <ClInclude Include="source\Engine\Animation\3D\BonePaletteBuffer.h" />
+    <ClInclude Include="source\Engine\Animation\3D\Import\GLTFImporter.h" />
+    <ClInclude Include="source\Engine\Animation\3D\MaterialRegistry.h" />
+    <ClInclude Include="source\Engine\Animation\3D\MeshRegistry.h" />
+    <ClInclude Include="source\Engine\Animation\3D\SkeletonRegistry.h" />
+    <ClInclude Include="source\Engine\Animation\3D\System\AnimationSystem3D.h" />
+    <ClInclude Include="source\Engine\Animation\3D\System\CullingSystem3D.h" />
+    <ClInclude Include="source\Engine\Animation\3D\System\RenderSystem3D.h" />
+    <ClInclude Include="source\Engine\Animation\3D\System\TransformSystem3D.h" />
+    <ClInclude Include="source\Engine\Animation\3D\Utils\AnimationUtils.h" />
+    <ClInclude Include="source\Engine\Animation\3D\VisibleSet.h" />
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h" />
+    <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.h" />
+    <ClInclude Include="source\Engine\AssetManager\Utils\TileSerializer.h" />
     <ClInclude Include="source\Engine\Core\Application.h" />
     <ClInclude Include="source\Engine\Core\Core.h" />
     <ClInclude Include="source\Engine\Core\EntryPoint.h" />
@@ -188,12 +193,18 @@
     <ClInclude Include="source\Engine\Events\Public\CollisionEvents.h" />
     <ClInclude Include="source\Engine\Events\TouchEvent.h" />
     <ClInclude Include="source\Engine\ImGui\ImGuiLayer.h" />
+    <ClInclude Include="source\Engine\Map\Grid\GridMap.h" />
+    <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
     <ClInclude Include="source\Engine\Map\Grid\TileCollisionMask.h" />
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h" />
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h" />
-    <ClInclude Include="source\Engine\Map\Utils\IsoTileUtils.h" />
+    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
+    <ClInclude Include="source\Engine\Map\Tile\TileManager.h" />
+    <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h" />
     <ClInclude Include="source\Engine\Map\Utils\IVec2Hasher.h" />
+    <ClInclude Include="source\Engine\Map\Utils\IsoTileUtils.h" />
     <ClInclude Include="source\Engine\Map\Utils\PixelUtils.h" />
+    <ClInclude Include="source\Engine\Math\HashUtils.h" />
     <ClInclude Include="source\Engine\Math\Math.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLBuffer.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLContext.h" />
@@ -203,7 +214,9 @@
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLTexture.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLUniformBuffer.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.h" />
@@ -219,6 +232,8 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanUtils.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanVertexArray.h" />
     <ClInclude Include="source\Engine\Platform\Windows\WindowsWindow.h" />
+    <ClInclude Include="source\Engine\Renderer\3D\Vulkan3DGraphicsPipeline.h" />
+    <ClInclude Include="source\Engine\Renderer\3D\VulkanRenderer3D.h" />
     <ClInclude Include="source\Engine\Renderer\Buffer.h" />
     <ClInclude Include="source\Engine\Renderer\Camera.h" />
     <ClInclude Include="source\Engine\Renderer\EditorCamera.h" />
@@ -234,16 +249,26 @@
     <ClInclude Include="source\Engine\Renderer\SubTexture2D.h" />
     <ClInclude Include="source\Engine\Renderer\Texture.h" />
     <ClInclude Include="source\Engine\Renderer\UniformBuffer.h" />
+    <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
     <ClInclude Include="source\Engine\Renderer\VertexArray.h" />
     <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h" />
     <ClInclude Include="source\Engine\Scene\Component.h" />
     <ClInclude Include="source\Engine\Scene\Components\Animation\AnimationComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Light\DirectionalLightComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Light\PointLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\AnimatorComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\MaterialRefComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\MeshRefComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\RenderBoundsComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\Renderable3DComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\SkeletonComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\SkinnedMeshRefComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\ChunkRendererComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\DynamicObjectRenderComp.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\RoofRenderComponent.h" />
@@ -259,8 +284,6 @@
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />
     <ClInclude Include="source\Engine\Utils\PlatformUtils.h" />
     <ClInclude Include="source\pch.h" />
-    <ClInclude Include="source\Engine\Map\Tile\TileManager.h" />
-    <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h" />
     <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="vendor\enkiTS\box2d\src\TaskScheduler.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
@@ -680,21 +703,27 @@
     <ClInclude Include="vendor\glm\glm\vec4.hpp" />
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
+    <ClInclude Include="vendor\stb_image\stb_image_write.h" />
+    <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Engine\Animation\2D\AnimationSystem2D.cpp" />
-    <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
-    <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
-    <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.cpp" />
-    <ClCompile Include="source\Engine\AssetManager\Utils\AssetManagerUtils.cpp" />
-    <ClCompile Include="source\Engine\AssetManager\Utils\TileSerializer.cpp" />
-    <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp" />
+    <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp" />
+    <ClCompile Include="source\Engine\Animation\2D\AnimationSystem2D.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\AnimationRegistry.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\BonePaletteBuffer.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\Import\GLTFImporter.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\MaterialRegistry.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\MeshRegistry.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\SkeletonRegistry.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\System\AnimationSystem3D.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\System\CullingSystem3D.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\System\RenderSystem3D.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\System\TransformSystem3D.cpp" />
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp" />
+    <ClCompile Include="source\Engine\AssetManager\Utils\AssetManagerUtils.cpp" />
     <ClCompile Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.cpp" />
+    <ClCompile Include="source\Engine\AssetManager\Utils\TileSerializer.cpp" />
     <ClCompile Include="source\Engine\Core\Application.cpp" />
     <ClCompile Include="source\Engine\Core\Layer.cpp" />
     <ClCompile Include="source\Engine\Core\LayerStack.cpp" />
@@ -705,9 +734,14 @@
     <ClCompile Include="source\Engine\Debug\DebugUtils.cpp" />
     <ClCompile Include="source\Engine\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="source\Engine\ImGui\imGuiBuild.cpp" />
+    <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp" />
+    <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\TileCollisionMask.cpp" />
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp" />
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp" />
     <ClCompile Include="source\Engine\Math\Math.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLContext.cpp" />
@@ -717,7 +751,9 @@
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLTexture.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLUniformBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.cpp" />
@@ -735,6 +771,8 @@
     <ClCompile Include="source\Engine\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="source\Engine\Platform\Windows\WindowsPlatformUtils.cpp" />
     <ClCompile Include="source\Engine\Platform\Windows\WindowsWindow.cpp" />
+    <ClCompile Include="source\Engine\Renderer\3D\Vulkan3DGraphicsPipeline.cpp" />
+    <ClCompile Include="source\Engine\Renderer\3D\VulkanRenderer3D.cpp" />
     <ClCompile Include="source\Engine\Renderer\Buffer.cpp" />
     <ClCompile Include="source\Engine\Renderer\Camera.cpp" />
     <ClCompile Include="source\Engine\Renderer\EditorCamera.cpp" />
@@ -749,6 +787,7 @@
     <ClCompile Include="source\Engine\Renderer\SubTexture2D.cpp" />
     <ClCompile Include="source\Engine\Renderer\Texture.cpp" />
     <ClCompile Include="source\Engine\Renderer\UniformBuffer.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp" />
     <ClCompile Include="source\Engine\Renderer\VulkanRenderer2D.cpp" />
     <ClCompile Include="source\Engine\Scene\Entity.cpp" />
@@ -760,30 +799,29 @@
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp" />
-    <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp" />
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
+    <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
     <None Include="..\assets\shaders\Circle_shader.glsl" />
-    <None Include="..\assets\shaders\clearMaskCompute.comp" />
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\Effect_shader.comp" />
     <None Include="..\assets\shaders\FlatColor.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
-    <None Include="..\assets\shaders\player_collision_compute.comp" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
+    <None Include="..\assets\shaders\Vulkan3DRender.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />
-    <CustomBuild Include="..\assets\shaders\compute.comp">
-      <FileType>Document</FileType>
-    </CustomBuild>
+    <None Include="..\assets\shaders\clearMaskCompute.comp" />
+    <None Include="..\assets\shaders\compute.comp" />
+    <None Include="..\assets\shaders\dda_compute.comp" />
     <None Include="..\assets\shaders\fullscreen_shader.glsl" />
     <None Include="..\assets\shaders\imgui_shader.glsl" />
+    <None Include="..\assets\shaders\player_collision_compute.comp" />
     <None Include="..\assets\shaders\testShader.glsl" />
   </ItemGroup>
   <ItemGroup>

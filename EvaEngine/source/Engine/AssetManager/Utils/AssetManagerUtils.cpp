@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "AssetManagerUtils.h"
+#include <vector>
+#include <Engine/Animation/3D/Import/GLTFImporter.h>
 
 
 namespace Engine {
@@ -44,5 +46,6 @@ namespace Engine {
         }
     }
 
+  
 
 }

@@ -2,31 +2,36 @@
 #include "Scene.h"
 #include "Engine.h"
 
-#include "Component.h"
 #include "Engine/Scene/Components/Combat/HealthComponent.h"
 #include "Engine/Scene/Components/Combat/WeaponComponent.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include "Engine/AssetManager/AssetManager.h"
-
-#include "glm/gtc/matrix_transform.hpp"
-#include <glm/glm.hpp>
-#include "box2d/box2d.h"
-#include "box2d/math_functions.h"
-#include "Components/NPC/NpcAIComponent.h"
+#include <Engine/Animation/3D/System/CullingSystem3D.h>
+#include <Engine/Animation/3D/System/RenderSystem3D.h>
+#include "Engine/Animation/3D/VisibleSet.h"
+#include "Engine/Map/Grid/GridMap.h"
+#include <Engine/Core/UUID.h>
 #include "Engine/Debug/DebugInterface.h"
+#include "Engine/Map/Tile/TileManager.h"
+#include <Engine/Animation/2D/AnimationSystem2D.h>
+
+#include "Component.h"
 #include "Components/Render/TileComponent.h"
 #include "Components/Render/ChunkRendererComponent.h"
 #include "Components/Render/RoofRenderComponent.h"
 #include "Components/Vehicles/VehicleComponent.h"
 #include "Components/Vehicles/DriverComponent.h"
 #include "Components/Projectiles/ProjectileComponent.h"
-#include "Engine/Map/Grid/GridMap.h"
-#include <Engine/Core/UUID.h>
 #include "Components/Render/DynamicObjectRenderComp.h"
-#include "Engine/Map/Tile/TileManager.h"
-#include <Engine/Animation/2D/AnimationSystem2D.h>
+#include "Components/NPC/NpcAIComponent.h"
 #include "Components/Animation/AnimationComponent.h"
+#include "Components/Render/3D/MeshRefComponent.h"
 
+#include "glm/gtc/matrix_transform.hpp"
+#include <glm/glm.hpp>
+#include "box2d/box2d.h"
+#include "box2d/math_functions.h"
+#include "Components/Render/3D/RenderBoundsComponent.h"
 
 namespace Engine {
 
@@ -270,7 +275,48 @@ namespace Engine {
         return false;
     }
 
-   
+    // Spawns N instances of meshId on a grid.
+ // perRow: how many per row (10 -> 10x10 for 100)
+ // spacing: world-unit spacing between instances
+    static void SpawnMeshGrid(Engine::Scene* scene,
+        uint32_t meshId = 0,
+        uint32_t count = 100,
+        uint32_t perRow = 10,
+        float spacing = 2.0f,
+        const glm::vec3& origin = glm::vec3(0.0f))
+    {
+        const MeshAsset& meshAsset = AssetManager::GetMeshFromMeshRegistry(meshId);
+        const uint32_t submeshCount = (uint32_t)meshAsset.submeshes.size();
+
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            // Grid coords
+            const uint32_t r = i / perRow;
+            const uint32_t c = i % perRow;
+
+            // World position
+            glm::vec3 pos = origin + glm::vec3((float)c * spacing, (float)r * spacing,0.0f );
+
+            // Create entity and components
+            Engine::Entity e = scene->CreateEntity();
+
+            auto& meshComp = e.AddComponent<MeshRefComponent>();
+            meshComp.meshId = meshId;
+            meshComp.submeshFirst = 0;
+            meshComp.submeshCount = submeshCount;
+
+            auto& tr = e.AddComponent<TransformComponent>();
+            tr.Translation = pos;                // adjust field names if yours differ (e.g., translation/rotation/scale)
+            tr.Rotation = glm::vec3(0.0f, 0.0f, 0.0f); // identity
+            tr.Scale = glm::vec3(1.0f);
+
+            RenderBoundsComponent& renderBoundsComp = e.AddComponent<RenderBoundsComponent>();
+            renderBoundsComp.maxL = meshAsset.maxL;
+            renderBoundsComp.minL = meshAsset.minL;
+            
+        }
+    }
+
 
     void Scene::OnRunTimeStart()
     {
@@ -387,6 +433,25 @@ namespace Engine {
 		m_textureStreamingSystem->AddChunkEntitiesToRegistry(this); 
 
        // m_gridMap->BuildFromRegistry(m_registry);
+
+
+        m_cullingSystem3D = std::make_shared<CullingSystem3D>();
+        m_transformSystem3D = std::make_shared<TransformSystem3D>();
+
+        MeshAsset& meshAsset = AssetManager::GetMeshFromMeshRegistry(0);
+        
+
+        Entity entity3D = this->CreateEntity();
+        /*
+        MeshRefComponent& meshComp = entity3D.AddComponent<MeshRefComponent>();
+        meshComp.meshId = 0; 
+        meshComp.submeshFirst = 0;
+        meshComp.submeshCount = meshAsset.submeshes.size();
+
+        entity3D.AddComponent<TransformComponent>();
+        entity3D.AddComponent<RenderBoundsComponent>();
+        */
+        SpawnMeshGrid(this, 0, 100,10, 2);
     }
 
 
@@ -515,7 +580,7 @@ namespace Engine {
                     animComp.clipId = clipId;
                     animComp.dirMode = 1;
 
-                    auto& animStateComp = playerEntity.AddComponent<AnimatorStateComponent>();
+                    //auto& animStateComp = playerEntity.AddComponent<AnimatorStateComponent>();
                 }
 
 
@@ -527,11 +592,26 @@ namespace Engine {
 
         m_animationSystem->Update(timestep, this);
 
+
+
+        m_transformSystem3D->Update(this, timestep);
+
+
+
         if(mainCamera)
         {   
 
+
+            VisibleSet& visibleSet = m_cullingSystem3D->BuildVisible(this, *mainCamera, *m_transformSystem3D, cameraTransform);
+
+            m_renderSystem3D.Render(visibleSet, *mainCamera, this, *m_transformSystem3D,
+                AssetManager::GetMeshRegistry(), AssetManager::GetMaterialRegistry());
+
+
             //Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
-            Engine::VulkanRenderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
+            Engine::VulkanRenderer2D::BeginScene(mainCamera->GetProjection(), cameraTransform);
+
+            Engine::VulkanRenderer3D::Begin3DScene(mainCamera->GetProjection(),mainCamera->GetView(), cameraTransform);
 
             glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 
@@ -782,7 +862,7 @@ namespace Engine {
 
                                 {
                                     glm::mat4 view = glm::inverse(cameraTransform);
-                                    glm::mat4 proj = mainCamera->GetViewProjection();
+                                    glm::mat4 proj = mainCamera->GetProjection();
                                     
                                     glm::vec2 entityPos = glm::vec2(transform.Translation.x, transform.Translation.y);
                                     glm::vec2 entityHalfSize = glm::vec2(transform.Scale.x, transform.Scale.y) * 0.5f;

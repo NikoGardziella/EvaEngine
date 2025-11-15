@@ -103,6 +103,8 @@ constexpr size_t MAX_SPRITESHEETS = 128;
 constexpr size_t MAX_TILES_IN_CLEAR_BUFFER = 16;
 
 
+constexpr size_t MAX_3D_INSTANCES = 1024;
+
 // ---- Dirty rect subdivision used by the shader (keep 16 here) ----
 static constexpr float DIRTY_CELLS_PER_TILE = 16.0f;
 constexpr uint32_t MAX_RECTS = 4096; // compute binding=4

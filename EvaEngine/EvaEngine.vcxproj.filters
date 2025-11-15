@@ -13,6 +13,24 @@
     <Filter Include="source\Engine">
       <UniqueIdentifier>{3B29441B-A7E9-BF51-7024-09CFDCA3042E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Animation">
+      <UniqueIdentifier>{EAE77D03-561F-C69A-5F29-2ABECBDFEC93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Animation\2D">
+      <UniqueIdentifier>{4FA6892D-3BB6-35FE-A46F-9A1C909E2497}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Animation\3D">
+      <UniqueIdentifier>{70A6892D-5CB6-35FE-C56F-9A1CB19E2497}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Animation\3D\Import">
+      <UniqueIdentifier>{7A866D5A-E6F4-C2D9-2FDE-7DD99B8BB875}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Animation\3D\System">
+      <UniqueIdentifier>{84FB9B72-F069-F1F1-3953-ACF1A500E78D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Animation\3D\Utils">
+      <UniqueIdentifier>{D0BB0ED5-BC0C-FA16-E570-E8D8D1208D80}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\AssetManager">
       <UniqueIdentifier>{A555E108-9165-8DD9-FA1E-F2F7E64D7C72}</UniqueIdentifier>
     </Filter>
@@ -37,8 +55,23 @@
     <Filter Include="source\Engine\Map">
       <UniqueIdentifier>{08697707-747F-759D-BDF6-00BF294C4625}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Map\Grid">
+      <UniqueIdentifier>{7DAFA54D-69A9-CE9F-5216-65B03EAF340C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Map\Grid\GridUtils">
+      <UniqueIdentifier>{230E00A2-0F5F-EBE3-38C3-D9A524737E4D}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Map\TextureStreaming">
       <UniqueIdentifier>{92D5CDCF-7E11-D139-E723-E930D37E7954}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Map\Tile">
+      <UniqueIdentifier>{85AAAC4D-71A4-D59F-5A11-6CB046AA3B0C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Map\Tile\Utils">
+      <UniqueIdentifier>{A5BBEB7C-9176-DB28-3A2E-547326C825B9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Map\Utils">
+      <UniqueIdentifier>{68105A03-D447-A29A-DD51-06BE4908C993}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\Engine\Math">
       <UniqueIdentifier>{F48A64F6-E06E-254C-49CF-1F9F35D20FCE}</UniqueIdentifier>
@@ -52,6 +85,9 @@
     <Filter Include="source\Engine\Platform\Vulkan">
       <UniqueIdentifier>{8FE228B3-FBFA-0FDD-C4A7-9F76307FA476}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Platform\Vulkan\LayerPool">
+      <UniqueIdentifier>{55E9E449-C178-A634-CA74-874C3683E140}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Platform\Vulkan\Pixel">
       <UniqueIdentifier>{600F18CE-CCC8-8278-5528-9D52C1E038E8}</UniqueIdentifier>
     </Filter>
@@ -61,23 +97,47 @@
     <Filter Include="source\Engine\Renderer">
       <UniqueIdentifier>{41FFFC1D-2DF9-2570-1666-BC8002FF8BDC}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Renderer\3D">
+      <UniqueIdentifier>{671275B8-D3D4-A842-1C85-37CF88868120}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Renderer\Utils">
+      <UniqueIdentifier>{61ADEFEC-4D68-DF98-F61F-58E3E2B92929}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene">
       <UniqueIdentifier>{985663C3-04B8-40D1-8D25-8783F9857790}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\Engine\Scene\Components">
       <UniqueIdentifier>{ADEC8D2E-9912-5895-8258-DD606E1D7D61}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Components\Animation">
+      <UniqueIdentifier>{DC216087-C89E-53CA-F11B-54DEDDF7EF5D}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene\Components\Combat">
       <UniqueIdentifier>{B224FACC-1EE9-F8BC-E74E-298753D294F2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Components\Light">
+      <UniqueIdentifier>{140EA74C-00F5-6844-A945-CF61950BE2AA}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\Engine\Scene\Components\NPC">
       <UniqueIdentifier>{5D97F967-49D3-FCD1-B2E5-14C99E40A5EC}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Components\Physics">
+      <UniqueIdentifier>{1F4D8245-0B9F-5935-F4BD-9645E0AE721E}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene\Components\Player">
       <UniqueIdentifier>{29B910EB-957D-0FDB-5EE3-3FA5CA66AB10}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Components\Projectiles">
+      <UniqueIdentifier>{201CB3C3-0C84-7991-75EF-8DA76176907D}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene\Components\Render">
       <UniqueIdentifier>{7C2643EF-E8EA-41DF-B150-72A91DD4DD14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Components\Render\3D">
+      <UniqueIdentifier>{C2337E61-AEB0-71A4-D72D-72B8C3090E38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Components\Vehicles">
+      <UniqueIdentifier>{EF6A0870-5BFA-C95A-64F6-AA72D0040567}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\Engine\Scene\TaskManager">
       <UniqueIdentifier>{957A8D69-015E-9CA9-0A61-CAE576C362FA}</UniqueIdentifier>
@@ -124,15 +184,84 @@
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\tiny_gltf">
+      <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Engine.h">
       <Filter>source</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\2D\AnimationLoader2D.h">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\2D\AnimationSystem2D.h">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\2D\AnimationToRenderer.h">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\2D\AnimationTypes.h">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\2D\DirectionSelector.h">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\2D\SpriteInstanceData.h">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\AnimationRegistry.h">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\BonePaletteBuffer.h">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\Import\GLTFImporter.h">
+      <Filter>source\Engine\Animation\3D\Import</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\MaterialRegistry.h">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\MeshRegistry.h">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\SkeletonRegistry.h">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\System\AnimationSystem3D.h">
+      <Filter>source\Engine\Animation\3D\System</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\System\CullingSystem3D.h">
+      <Filter>source\Engine\Animation\3D\System</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\System\RenderSystem3D.h">
+      <Filter>source\Engine\Animation\3D\System</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\System\TransformSystem3D.h">
+      <Filter>source\Engine\Animation\3D\System</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\Utils\AnimationUtils.h">
+      <Filter>source\Engine\Animation\3D\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\VisibleSet.h">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h">
       <Filter>source\Engine\AssetManager</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h">
+      <Filter>source\Engine\AssetManager\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.h">
+      <Filter>source\Engine\AssetManager\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\AssetManager\Utils\TileSerializer.h">
       <Filter>source\Engine\AssetManager\Utils</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Core\Application.h">
@@ -201,11 +330,41 @@
     <ClInclude Include="source\Engine\ImGui\ImGuiLayer.h">
       <Filter>source\Engine\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Map\Grid\GridMap.h">
+      <Filter>source\Engine\Map\Grid</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h">
+      <Filter>source\Engine\Map\Grid\GridUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Grid\TileCollisionMask.h">
+      <Filter>source\Engine\Map\Grid</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h">
       <Filter>source\Engine\Map\TextureStreaming</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h">
       <Filter>source\Engine\Map\TextureStreaming</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\TileManager.h">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h">
+      <Filter>source\Engine\Map\Tile\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Utils\IVec2Hasher.h">
+      <Filter>source\Engine\Map\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Utils\IsoTileUtils.h">
+      <Filter>source\Engine\Map\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Utils\PixelUtils.h">
+      <Filter>source\Engine\Map\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Math\HashUtils.h">
+      <Filter>source\Engine\Math</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Math\Math.h">
       <Filter>source\Engine\Math</Filter>
@@ -234,8 +393,14 @@
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h">
+      <Filter>source\Engine\Platform\Vulkan\LayerPool</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.h">
       <Filter>source\Engine\Platform\Vulkan\Pixel</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
@@ -282,6 +447,12 @@
     <ClInclude Include="source\Engine\Platform\Windows\WindowsWindow.h">
       <Filter>source\Engine\Platform\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\3D\Vulkan3DGraphicsPipeline.h">
+      <Filter>source\Engine\Renderer\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\3D\VulkanRenderer3D.h">
+      <Filter>source\Engine\Renderer\3D</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Renderer\Buffer.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
@@ -327,6 +498,9 @@
     <ClInclude Include="source\Engine\Renderer\UniformBuffer.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h">
+      <Filter>source\Engine\Renderer\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Renderer\VertexArray.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
@@ -336,23 +510,71 @@
     <ClInclude Include="source\Engine\Scene\Component.h">
       <Filter>source\Engine\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Animation\AnimationComponent.h">
+      <Filter>source\Engine\Scene\Components\Animation</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h">
       <Filter>source\Engine\Scene\Components\Combat</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h">
       <Filter>source\Engine\Scene\Components\Combat</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Light\DirectionalLightComponent.h">
+      <Filter>source\Engine\Scene\Components\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Light\PointLightComponent.h">
+      <Filter>source\Engine\Scene\Components\Light</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h">
       <Filter>source\Engine\Scene\Components\NPC</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h">
+      <Filter>source\Engine\Scene\Components\Physics</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h">
       <Filter>source\Engine\Scene\Components\Player</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h">
+      <Filter>source\Engine\Scene\Components\Projectiles</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\AnimatorComponent.h">
+      <Filter>source\Engine\Scene\Components\Render\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\MaterialRefComponent.h">
+      <Filter>source\Engine\Scene\Components\Render\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\MeshRefComponent.h">
+      <Filter>source\Engine\Scene\Components\Render\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\RenderBoundsComponent.h">
+      <Filter>source\Engine\Scene\Components\Render\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\Renderable3DComponent.h">
+      <Filter>source\Engine\Scene\Components\Render\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\SkeletonComponent.h">
+      <Filter>source\Engine\Scene\Components\Render\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\3D\SkinnedMeshRefComponent.h">
+      <Filter>source\Engine\Scene\Components\Render\3D</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Render\ChunkRendererComponent.h">
+      <Filter>source\Engine\Scene\Components\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\DynamicObjectRenderComp.h">
+      <Filter>source\Engine\Scene\Components\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Render\RoofRenderComponent.h">
       <Filter>source\Engine\Scene\Components\Render</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Render\TileComponent.h">
       <Filter>source\Engine\Scene\Components\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Vehicles\DriverComponent.h">
+      <Filter>source\Engine\Scene\Components\Vehicles</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Vehicles\VehicleComponent.h">
+      <Filter>source\Engine\Scene\Components\Vehicles</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Entity.h">
       <Filter>source\Engine\Scene</Filter>
@@ -1638,43 +1860,61 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Components\Render\RoofRenderComponent.h" />
-    <ClInclude Include="source\Engine\Map\Grid\GridMap.h" />
-    <ClInclude Include="source\Engine\Map\Utils\IVec2Hasher.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Vehicles\VehicleComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Vehicles\DriverComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
-    <ClInclude Include="source\Engine\Map\Utils\PixelUtils.h" />
-    <ClInclude Include="source\Engine\AssetManager\Utils\TileSerializer.h" />
-    <ClInclude Include="source\Engine\Map\Grid\TileCollisionMask.h" />
-    <ClInclude Include="source\Engine\Map\Utils\IsoTileUtils.h" />
-    <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Render\DynamicObjectRenderComp.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.h" />
-    <ClInclude Include="source\Engine\Math\HashUtils.h" />
-    <ClInclude Include="source\Engine\Map\Tile\TileManager.h" />
-    <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h" />
-    <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
-    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
-    <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
-    <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
-    <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h" />
-    <ClInclude Include="source\Engine\Animation\2D\AnimationTypes.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Animation\AnimationComponent.h" />
-    <ClInclude Include="source\Engine\Animation\2D\DirectionSelector.h" />
-    <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
-    <ClInclude Include="source\Engine\Animation\2D\AnimationLoader2D.h" />
-    <ClInclude Include="source\Engine\Animation\2D\AnimationSystem2D.h" />
-    <ClInclude Include="source\Engine\Animation\2D\SpriteInstanceData.h" />
-    <ClInclude Include="source\Engine\Animation\2D\AnimationToRenderer.h" />
+    <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
+      <Filter>vendor\tiny_gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\stb_image\stb_image_write.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\2D\AnimationSystem2D.cpp">
+      <Filter>source\Engine\Animation\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\AnimationRegistry.cpp">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\BonePaletteBuffer.cpp">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\Import\GLTFImporter.cpp">
+      <Filter>source\Engine\Animation\3D\Import</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\MaterialRegistry.cpp">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\MeshRegistry.cpp">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\SkeletonRegistry.cpp">
+      <Filter>source\Engine\Animation\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\System\AnimationSystem3D.cpp">
+      <Filter>source\Engine\Animation\3D\System</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\System\CullingSystem3D.cpp">
+      <Filter>source\Engine\Animation\3D\System</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\System\RenderSystem3D.cpp">
+      <Filter>source\Engine\Animation\3D\System</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\System\TransformSystem3D.cpp">
+      <Filter>source\Engine\Animation\3D\System</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
       <Filter>source\Engine\AssetManager</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\AssetManager\Utils\AssetManagerUtils.cpp">
+      <Filter>source\Engine\AssetManager\Utils</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.cpp">
+      <Filter>source\Engine\AssetManager\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\AssetManager\Utils\TileSerializer.cpp">
       <Filter>source\Engine\AssetManager\Utils</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Core\Application.cpp">
@@ -1707,8 +1947,29 @@
     <ClCompile Include="source\Engine\ImGui\imGuiBuild.cpp">
       <Filter>source\Engine\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp">
+      <Filter>source\Engine\Map\Grid</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp">
+      <Filter>source\Engine\Map\Grid\GridUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Grid\TileCollisionMask.cpp">
+      <Filter>source\Engine\Map\Grid</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp">
       <Filter>source\Engine\Map\TextureStreaming</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.cpp">
+      <Filter>source\Engine\Map\TextureStreaming</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp">
+      <Filter>source\Engine\Map\Tile\Utils</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Math\Math.cpp">
       <Filter>source\Engine\Math</Filter>
@@ -1737,8 +1998,14 @@
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.cpp">
       <Filter>source\Engine\Platform\OpenGl</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.cpp">
+      <Filter>source\Engine\Platform\Vulkan\LayerPool</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.cpp">
       <Filter>source\Engine\Platform\Vulkan\Pixel</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp">
       <Filter>source\Engine\Platform\Vulkan</Filter>
@@ -1791,6 +2058,12 @@
     <ClCompile Include="source\Engine\Platform\Windows\WindowsWindow.cpp">
       <Filter>source\Engine\Platform\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\3D\Vulkan3DGraphicsPipeline.cpp">
+      <Filter>source\Engine\Renderer\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\3D\VulkanRenderer3D.cpp">
+      <Filter>source\Engine\Renderer\3D</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Renderer\Buffer.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
@@ -1833,6 +2106,9 @@
     <ClCompile Include="source\Engine\Renderer\UniformBuffer.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp">
+      <Filter>source\Engine\Renderer\Utils</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
@@ -1869,25 +2145,19 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.cpp" />
-    <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp" />
-    <ClCompile Include="source\Engine\AssetManager\Utils\TileSerializer.cpp" />
-    <ClCompile Include="source\Engine\Map\Grid\TileCollisionMask.cpp" />
-    <ClCompile Include="source\Engine\AssetManager\Utils\AssetManagerUtils.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.cpp" />
-    <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp" />
-    <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.cpp" />
-    <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
-    <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
-    <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
-    <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
-    <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp" />
-    <ClCompile Include="source\Engine\Animation\2D\AnimationSystem2D.cpp" />
+    <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
     <None Include="..\assets\shaders\Circle_shader.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\ComputeUtils.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\Effect_shader.comp">
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\FlatColor.glsl">
@@ -1902,10 +2172,22 @@
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\Vulkan3DRender.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl">
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\clearMaskCompute.comp">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\compute.comp">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\dda_compute.comp">
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\fullscreen_shader.glsl">
@@ -1914,18 +2196,11 @@
     <None Include="..\assets\shaders\imgui_shader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\player_collision_compute.comp">
+      <Filter>assets\shaders</Filter>
+    </None>
     <None Include="..\assets\shaders\testShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="..\assets\shaders\Effect_shader.comp" />
-    <None Include="..\assets\shaders\ComputeUtils.glsl" />
-    <None Include="..\assets\shaders\player_collision_compute.comp" />
-    <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
-    <None Include="..\assets\shaders\clearMaskCompute.comp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\assets\shaders\compute.comp">
-      <Filter>assets\shaders</Filter>
-    </CustomBuild>
   </ItemGroup>
 </Project>

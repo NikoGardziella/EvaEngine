@@ -50,6 +50,7 @@ project "EvaEngine"
         "%{prj.name}/vendor/glm/glm/**.inl",
         "%{prj.name}/vendor/stb_image/**.cpp",
         "%{prj.name}/vendor/stb_image/**.h",
+        "%{prj.name}/vendor/tiny_gltf/**.h",
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp",
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
         "%{prj.name}/vendor/Box2D/box2d/include/**.h",
@@ -87,6 +88,7 @@ project "EvaEngine"
         "%{IncludeDir.VulkanSDK}",
         "%{IncludeDir.shaderc}",
         "%{IncludeDir.SPIRV_Cross}",
+        "%{IncludeDir.tiny_gltf}",
     }
 
     libdirs

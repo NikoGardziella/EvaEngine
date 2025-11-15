@@ -68,7 +68,6 @@ namespace Engine {
 		m_device = m_vulkanContext->GetDeviceManager().GetDevice();
 
 		// Allocate command buffers and sync objects
-		AllocateCommandBuffers(m_vulkanContext->GetDeviceManager().GetDevice(), m_vulkanContext->GetCommandPool());
 		CreateSyncObjects();
 
 
@@ -286,6 +285,7 @@ namespace Engine {
 	
 	void VulkanRenderer2D::BeginFrame(uint32_t currentFrame)
 	{
+		EE_PROFILE_FUNCTION();
 
 		TileBlockedMaskCPU::DirtyTileRuntime.clear();
 		
@@ -305,6 +305,8 @@ namespace Engine {
 
 	void VulkanRenderer2D::ReadAndResetCollisionBuffer(uint32_t currentFrame)
 	{
+		EE_PROFILE_FUNCTION();
+
 		const uint32_t readIdx = (currentFrame + MAX_FRAMES_IN_FLIGHT - 1) % MAX_FRAMES_IN_FLIGHT;
 		const uint32_t writeIdx = currentFrame;
 
@@ -385,14 +387,14 @@ namespace Engine {
 	}
 
 
-	void VulkanRenderer2D::EndFrame(uint32_t currentFrame)
+	void VulkanRenderer2D::EndFrame(uint32_t currentFrame, VkCommandBuffer cmd)
 	{
 		EE_PROFILE_FUNCTION();
 		
-		CalculateCollisionFrame(currentFrame);
+		CalculateCollisionFrame(currentFrame, cmd);
 		s_VulkanData.CurrentFrame = currentFrame;
 
-		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
+		
 
 		m_vulkanGraphicsPipelines->UpdateCameraUniformBuffer(currentFrame, s_VulkanData.CameraBuffer.ViewProjection);
 
@@ -565,11 +567,11 @@ namespace Engine {
 
 	}
 
-	void VulkanRenderer2D::CalculateCollisionFrame(uint32_t currentFrame)
+	void VulkanRenderer2D::CalculateCollisionFrame(uint32_t currentFrame, VkCommandBuffer cmd)
 	{
 		EE_PROFILE_FUNCTION();
 
-		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
+		
 		
 
 		vkResetCommandBuffer(cmd, 0);
@@ -623,7 +625,6 @@ namespace Engine {
 		}
 
 		RecordComputeCommandBuffer(cmd, currentFrame);
-
 		RecordEffectComputeCommandBuffer(cmd, currentFrame);
 
 		{
@@ -634,7 +635,6 @@ namespace Engine {
 
 
 	}
-
 
 	void VulkanRenderer2D::ReadBlockedTileMask(std::vector<uint32_t>& outDestroyedMask, uint32_t count)
 	{
@@ -657,6 +657,8 @@ namespace Engine {
 
 	bool VulkanRenderer2D::ReadDirtyOut()
 	{
+		EE_PROFILE_FUNCTION();
+
 		if (m_activeSlots.empty())
 			return true;
 
@@ -716,6 +718,8 @@ namespace Engine {
 
 	bool VulkanRenderer2D::ClearAliveBitsHost()
 	{
+		EE_PROFILE_FUNCTION();
+
 		// The SAME buffer/memory/offset you bind at set=0,binding=4
 		VkDeviceMemory mem = m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory();
 		VkDeviceSize   off = 0;  // usually 0
@@ -744,6 +748,8 @@ namespace Engine {
 
 	void VulkanRenderer2D::StartBatch()
 	{
+		EE_PROFILE_FUNCTION();
+
 		s_VulkanData.QuadVertexBufferPtr = s_VulkanData.QuadVertexBufferBase;
 		s_VulkanData.QuadIndexCount = 0;
 		
@@ -793,12 +799,12 @@ namespace Engine {
 		Renderer::DrawFrame();
 	}
 
-	void VulkanRenderer2D::DrawFrame(uint32_t currentFrame)
+	void VulkanRenderer2D::DrawFrame(uint32_t currentFrame, VkCommandBuffer cmd)
 	{
 		EE_PROFILE_FUNCTION();
 
 		//this can be called multiple times per frame
-		VkCommandBuffer cmd = m_commandBuffers[currentFrame];
+		
 
 
 		
@@ -812,31 +818,40 @@ namespace Engine {
 
 	}
 
-	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
+	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer cmd,
+		uint32_t imageIndex,
+		uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
 
+		// 0) Bind the 2D pipeline FIRST
+		VkPipeline pipe2D = m_vulkanGraphicsPipelines->GetGamePipeline();
+		VkPipelineLayout layout2D = m_vulkanGraphicsPipelines->GetGamePipelineLayout();
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipe2D);
 
-		VkBuffer vertexBuffers[] = { s_VulkanData.QuadVertexBuffer->GetBuffer() };
+		// 1) Bind both descriptor sets for the 2D pipeline in one go
+		VkDescriptorSet setCamera = m_vulkanGraphicsPipelines->GetCameraDescriptorSet(currentFrame); // set = 0
+		VkDescriptorSet setGame = m_vulkanGraphicsPipelines->GetGameDescriptorSet(currentFrame);   // set = 1
+		VkDescriptorSet sets[] = { setCamera, setGame };
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			layout2D,
+			/*firstSet*/ 0,
+			/*descriptorSetCount*/ 2,
+			sets,
+			/*dynamicOffsetCount*/ 0, /*pDynamicOffsets*/ nullptr);
 
-		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		// 2) VB/IB
+		VkBuffer vb = s_VulkanData.QuadVertexBuffer->GetBuffer();
+		VkDeviceSize offs = 0;
+		vkCmdBindVertexBuffers(cmd, 0, 1, &vb, &offs);
+		vkCmdBindIndexBuffer(cmd, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		//vkCmdBindVertexBuffers(commandBuffer, 2, 1, BulletBuffers, &offsets[1]);
-
-		vkCmdBindIndexBuffer(commandBuffer, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetGameDescriptorSet(currentFrame);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetGamePipelineLayout(), 1, 1, &descriptorSet, 0, nullptr);
-
-		descriptorSet = m_vulkanGraphicsPipelines->GetCameraDescriptorSet(currentFrame);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetGamePipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
-
-		vkCmdDrawIndexed(commandBuffer, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
+		// 3) Draw
+		vkCmdDrawIndexed(cmd, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
 
 		s_VulkanData.Stats.DrawCalls++;
-
 	}
+
 
 	void VulkanRenderer2D::RecordProjectileDrawCommands(VkCommandBuffer cmd, uint32_t frameIndex, uint32_t currentFrame)
 	{
@@ -1985,22 +2000,7 @@ namespace Engine {
 		);
 	}
 
-	void VulkanRenderer2D::AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool)
-	{
-		m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-		VkCommandBufferAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = commandPool;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
-
-		if (vkAllocateCommandBuffers(device, &allocInfo, m_commandBuffers.data()) != VK_SUCCESS)
-		{
-			EE_CORE_ERROR("Failed to allocate command buffers!");
-		}
-
-	}
+	
 
 	void VulkanRenderer2D::CreateSyncObjects()
 	{
@@ -2548,7 +2548,7 @@ namespace Engine {
 
 		
 		//StartBatch();
-		s_VulkanData.CameraBuffer.ViewProjection = camera.GetViewProjection() * glm::inverse(transform);
+		s_VulkanData.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(transform);
 		//s_VulkanData.CameraBuffer.SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 		//StartBatch();
 

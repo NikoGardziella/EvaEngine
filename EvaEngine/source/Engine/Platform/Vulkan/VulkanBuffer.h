@@ -59,7 +59,7 @@ namespace Engine {
 
         VkBuffer m_indexBuffer;
         VkDeviceMemory m_indexBufferMemory;
-        uint32_t m_count;
+        uint32_t m_count = 0;
         VkDevice m_device;
 
         std::vector<uint32_t> m_data;
@@ -80,10 +80,17 @@ namespace Engine {
 
         void SetData(const void* data, size_t size);
 
+        void Unmap();
+
+        void* Mapped() const { return m_mapped; }
+
+        VkResult Map(VkDeviceSize mapSize = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    private:
+
     private:
         VkDeviceMemory m_memory;
         VkDevice m_device;
-
+        void* m_mapped = nullptr;
         uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
     };
 

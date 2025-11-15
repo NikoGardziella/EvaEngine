@@ -54,7 +54,7 @@ namespace Engine {
 	glm::vec4 SceneCamera::CalculateCameraWorldBounds(const SceneCamera& Camera, const glm::mat4& cameraTransform)
 	{
 		glm::mat4 view = glm::inverse(cameraTransform);
-		glm::mat4 proj = Camera.GetViewProjection();
+		glm::mat4 proj = Camera.GetProjection();
 		glm::mat4 invViewProj = glm::inverse(proj * view);
 
 		// Vulkan NDC corners (Z = 1 for far plane)

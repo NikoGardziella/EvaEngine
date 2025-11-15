@@ -19,6 +19,8 @@ namespace Engine {
 
         void UpdateProjection();
 
+    
+
         void UpdateView();
 
 
@@ -34,9 +36,9 @@ namespace Engine {
         void SetViewportSize(float width, float height);
 
         // Getters
-        glm::mat4 GetViewMatrix() const { return m_viewMatrix; }
+        //glm::mat4 GetViewMatrix() const { return m_viewMatrix; }
         glm::mat4 GetProjectionMatrix() const { return m_projection; }
-        glm::mat4 GetViewProjection() const { return m_projection * m_viewMatrix; }
+        glm::mat4 GetViewProjection() const { return m_projection * m_view; }
         glm::vec3 GetPosition() const { return m_position; }
         glm::vec3 GetRotation() const { return glm::vec3(m_pitch, m_yaw, 0.0f); }
         glm::vec3 GetForwardDirection() const;
@@ -60,7 +62,7 @@ namespace Engine {
         void OnMousePan(const glm::vec2& delta);
         void OnMouseRotate(const glm::vec2& delta);
     private:
-        glm::mat4 m_viewMatrix;
+       // glm::mat4 m_viewMatrix;
 
         glm::vec3 m_position = { 0.0f, 0.0f, 3.0f };
         glm::vec2 m_initialMousePosition;

@@ -102,8 +102,6 @@ void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
     transformComp.Translation = glm::vec3(playerPosition, 0.0f);
     transformComp.Rotation.z = std::atan2(direction.y, direction.x);
 
-    EE_ASSERT((fabs(glm::length(projectileComp.Direction) - 1.0f) < 1e-3f), "Dir not normalized");
-    EE_ASSERT((projectileComp.DistanceToTargetatFireTime > 0.0f), "RayLen must be > 0");
 }
 
 float SampleHeightAt_FromTileCenterFudged(

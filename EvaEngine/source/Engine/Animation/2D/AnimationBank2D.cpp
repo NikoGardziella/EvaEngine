@@ -3,11 +3,12 @@
 #include "AnimationBank2D.h"
 #include <Engine/Core/Log.h>
 #include <Engine/Math/HashUtils.h> 
+#include "Engine/AssetManager/AssetManager.h"
+#include "Engine/Renderer/VulkanRenderer2D.h"
+
 #include <algorithm>
 #include <cmath>
-#include "Engine/Renderer/VulkanRenderer2D.h"
 #include <yaml-cpp/yaml.h>
-#include "Engine/AssetManager/AssetManager.h"
 #include <fstream>
 
 namespace Engine {

@@ -5,9 +5,11 @@
 #include "Shader.h"
 #include "OrthographicCamera.h"
 #include "VulkanRenderer2D.h"
+#include "3D/VulkanRenderer3D.h"
+#include <vector>
+#include "vulkan/vulkan.h"
 
 namespace Engine {
-
 
 
 	class Renderer
@@ -39,6 +41,8 @@ namespace Engine {
 
 		static VkDescriptorSet GetCurrentGameDescriptorSet();
 
+		static void AllocateCommandBuffers(VkDevice device, VkCommandPool commandPool);
+
 		static uint32_t GetCurrentFrame() { return s_currentFrame; }
 
 
@@ -52,7 +56,11 @@ namespace Engine {
 
 		static SceneData* m_sceneData;
 		static std::unique_ptr<VulkanRenderer2D> s_VulkanRenderer2D;
+		static std::unique_ptr<VulkanRenderer3D> s_VulkanRenderer3D;
 		static uint32_t s_currentFrame;
+
+
+		static std::vector<VkCommandBuffer> m_commandBuffers;
 	};
 }
 

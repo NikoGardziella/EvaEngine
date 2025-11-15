@@ -82,6 +82,8 @@ namespace Engine {
         }
 
         const Scene* GetScene() { return m_scene;  }
+        entt::entity Handle() const noexcept { return m_entityHandle; }
+        Scene* ScenePtr() const noexcept { return m_scene; }
 
 	private:
         entt::entity m_entityHandle{ entt::null };

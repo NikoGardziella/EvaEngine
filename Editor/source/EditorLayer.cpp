@@ -390,7 +390,7 @@ namespace Engine {
 
                 //editor camera
                 const glm::mat4& cameraProjection = m_editorCamera.GetProjectionMatrix();
-                glm::mat4 cameraView = m_editorCamera.GetViewMatrix();
+                glm::mat4 cameraView = m_editorCamera.GetView();
 
 
                 // Entity transform
@@ -746,7 +746,7 @@ namespace Engine {
             {
                 return;
             }
-            Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera.GetViewProjection(), camera.GetComponent<TransformComponent>().GetTransform());
+            Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera.GetProjection(), camera.GetComponent<TransformComponent>().GetTransform());
 
         }
         else

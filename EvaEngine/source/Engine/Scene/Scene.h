@@ -12,6 +12,9 @@
 #include <Engine/Map/Tile/DestrutibleTileSystem.h>
 #include <Engine/Animation/2D/AnimationSystem2D.h>
 #include <Engine/Animation/2D/AnimationBank2D.h>
+#include <Engine/Animation/3D/System/RenderSystem3D.h>
+#include <Engine/Animation/3D/System/TransformSystem3D.h>
+#include <Engine/Animation/3D/System/CullingSystem3D.h>
 
 
 
@@ -65,7 +68,6 @@ namespace Engine {
 			}
 		}
 
-		
 
 
 		// Const variant (if you need read-only iteration)
@@ -79,6 +81,21 @@ namespace Engine {
 				fn(Entity{ e, const_cast<Scene*>(this) }, view.template get<const Cs>(e)...);
 			}
 		}
+
+		template<typename T>
+		T* TryGet(Entity e) 
+		{			
+			 return m_registry.try_get<T>(e);
+			
+		}
+
+		template<typename T>
+		T& Get(Entity e)
+		{
+			return m_registry.get<T>(e);
+			
+		}
+
 
 
 		Entity GetPrimaryCameraEntity();
@@ -144,6 +161,14 @@ namespace Engine {
 		PhysicsTaskScheduler m_physicsTaskScheduler;
 
 		std::vector<std::function<void(float, Scene*)>> m_gameplaySystems;
+
+		//3D render
+		Ref<TransformSystem3D> m_transformSystem3D;
+		Ref<CullingSystem3D> m_cullingSystem3D;
+		
+		RenderSystem3D m_renderSystem3D;
+		
+
 
 		Ref<TextureStreamingSystem> m_textureStreamingSystem;
 		Ref<TileManager> m_tileMananger;

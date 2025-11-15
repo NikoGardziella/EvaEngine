@@ -142,7 +142,10 @@ namespace Engine {
     }
 
     VulkanIndexBuffer::VulkanIndexBuffer(uint32_t* indices, uint32_t count)
+        : m_count(count)
     {
+
+
         VulkanContext* context = VulkanContext::Get();
         m_device = context->GetDeviceManager().GetDevice();
         VkDeviceSize bufferSize = sizeof(uint32_t) * count;
@@ -250,7 +253,21 @@ namespace Engine {
         vkUnmapMemory(m_device, m_memory);
     }
 
+    void VulkanBuffer::Unmap()
+    {
+        if (m_mapped)
+        {
+            vkUnmapMemory(m_device, m_memory);
+            m_mapped = nullptr;
+        }
+    }
 
+    VkResult VulkanBuffer::Map(VkDeviceSize mapSize, VkDeviceSize offset)
+    {
+        if (m_mapped) return VK_SUCCESS;
+
+        return vkMapMemory(m_device, m_memory, offset, mapSize, 0, &m_mapped);
+    }
 
     uint32_t VulkanBuffer::FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
     {

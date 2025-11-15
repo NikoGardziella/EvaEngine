@@ -13,16 +13,25 @@
     <Filter Include="Systems\NPC">
       <UniqueIdentifier>{CDC06AD8-3976-E3CD-C26A-DDA42E1FDAD1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Systems\Physics">
+      <UniqueIdentifier>{8FAE4A74-FB39-B838-044B-3B2D70551439}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Systems\Player">
       <UniqueIdentifier>{99AC9A68-857A-8E6E-6E0E-FF945A7B6AD3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Systems\Player\Camera">
       <UniqueIdentifier>{F1FA0CAB-5D67-C8A5-265B-60039286EA0D}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Systems\Vehicle">
+      <UniqueIdentifier>{6C6CEF39-D8F7-5CFE-E108-E0F24D13B9FE}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\PixelGame.h" />
     <ClInclude Include="source\Systems\Collision\PlayerCollisionSystem.h">
+      <Filter>Systems\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Systems\Collision\VehicleCollisionSystem.h">
       <Filter>Systems\Collision</Filter>
     </ClInclude>
     <ClInclude Include="source\Systems\Combat\HealthSystem.h">
@@ -40,6 +49,9 @@
     <ClInclude Include="source\Systems\NPC\NpcAIMovementSystem.h">
       <Filter>Systems\NPC</Filter>
     </ClInclude>
+    <ClInclude Include="source\Systems\Physics\PhysicsSystem.h">
+      <Filter>Systems\Physics</Filter>
+    </ClInclude>
     <ClInclude Include="source\Systems\Player\Camera\PlayerCameraSystem.h">
       <Filter>Systems\Player\Camera</Filter>
     </ClInclude>
@@ -49,14 +61,17 @@
     <ClInclude Include="source\Systems\Player\PlayerMovementSystem.h">
       <Filter>Systems\Player</Filter>
     </ClInclude>
-    <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
-    <ClInclude Include="source\Systems\Collision\VehicleCollisionSystem.h" />
-    <ClInclude Include="source\Systems\Physics\PhysicsSystem.h" />
+    <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h">
+      <Filter>Systems\Vehicle</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
     <ClCompile Include="source\SandboxApp.cpp" />
     <ClCompile Include="source\Systems\Collision\PlayerCollisionSystem.cpp">
+      <Filter>Systems\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Systems\Collision\VehicleCollisionSystem.cpp">
       <Filter>Systems\Collision</Filter>
     </ClCompile>
     <ClCompile Include="source\Systems\Combat\HealthSystem.cpp">
@@ -74,6 +89,9 @@
     <ClCompile Include="source\Systems\NPC\NpcAIMovementSystem.cpp">
       <Filter>Systems\NPC</Filter>
     </ClCompile>
+    <ClCompile Include="source\Systems\Physics\PhysicsSystem.cpp">
+      <Filter>Systems\Physics</Filter>
+    </ClCompile>
     <ClCompile Include="source\Systems\Player\Camera\PlayerCameraSystem.cpp">
       <Filter>Systems\Player\Camera</Filter>
     </ClCompile>
@@ -83,8 +101,8 @@
     <ClCompile Include="source\Systems\Player\PlayerMovementSystem.cpp">
       <Filter>Systems\Player</Filter>
     </ClCompile>
-    <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp" />
-    <ClCompile Include="source\Systems\Collision\VehicleCollisionSystem.cpp" />
-    <ClCompile Include="source\Systems\Physics\PhysicsSystem.cpp" />
+    <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp">
+      <Filter>Systems\Vehicle</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

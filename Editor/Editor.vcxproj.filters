@@ -18,6 +18,9 @@
     <ClInclude Include="source\Panels\DebugPanel.h">
       <Filter>Panels</Filter>
     </ClInclude>
+    <ClInclude Include="source\Panels\EffectsPanel.h">
+      <Filter>Panels</Filter>
+    </ClInclude>
     <ClInclude Include="source\Panels\SceneHierarchyPanel.h">
       <Filter>Panels</Filter>
     </ClInclude>
@@ -30,7 +33,6 @@
     <ClInclude Include="source\Panels\Utils\EditorUtils.h">
       <Filter>Panels\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="source\Panels\EffectsPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\EditorApp.cpp" />
@@ -39,6 +41,9 @@
       <Filter>Panels</Filter>
     </ClCompile>
     <ClCompile Include="source\Panels\DebugPanel.cpp">
+      <Filter>Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Panels\EffectsPanel.cpp">
       <Filter>Panels</Filter>
     </ClCompile>
     <ClCompile Include="source\Panels\SceneHierarchyPanel.cpp">
@@ -53,6 +58,5 @@
     <ClCompile Include="source\Panels\Utils\EditorUtils.cpp">
       <Filter>Panels\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="source\Panels\EffectsPanel.cpp" />
   </ItemGroup>
 </Project>

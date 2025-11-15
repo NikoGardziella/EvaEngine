@@ -19,23 +19,32 @@ namespace Engine {
 
     void EditorCamera::UpdateProjection()
     {
-        m_projection = glm::perspective(glm::radians(m_FOV), m_aspectRatio, m_nearClip, m_farClip);
+        //m_projection = glm::perspective(glm::radians(m_FOV), m_aspectRatio, m_nearClip, m_farClip);
+
+        m_projection = glm::perspectiveRH_ZO(glm::radians(m_FOV), m_aspectRatio, m_nearClip, m_farClip);
+
+        m_projection[1][1] *= -1.0f;            // Vulkan Y flip
+        EE_CORE_INFO("[Cam] After UpdateProjection: P[1][1]={:.6f}", m_projection[1][1]);
     }
 
     void EditorCamera::UpdateView()
     {
-        glm::vec3 front;
-        front.x = cos(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
-        front.y = sin(glm::radians(m_pitch));
-        front.z = sin(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
-        front = glm::normalize(front);
+        const float yaw = glm::radians(m_yaw);
+        const float pitch = glm::radians(m_pitch);
 
-        glm::vec3 right = glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f)));
-        glm::vec3 up = glm::normalize(glm::cross(right, front));
+        // Right-handed: +X right, +Y up, -Z forward (common), or keep +X forward if that’s your convention
+        glm::vec3 forward;
+        forward.x = cos(yaw) * cos(pitch);
+        forward.y = sin(pitch);
+        forward.z = sin(yaw) * cos(pitch);
+        forward = glm::normalize(forward);
 
-        m_position = m_focalPoint - GetForwardDirection() * m_distance;
-        m_viewMatrix = glm::lookAt(m_position, m_position + front, up);
+        glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
+        glm::vec3 up = glm::normalize(glm::cross(right, forward));
 
+        // For an orbit camera:
+        m_position = m_focalPoint - forward * m_distance;   // use the SAME 'forward'
+        m_view = glm::lookAt(m_position, m_position + forward, up);
     }
 
     void EditorCamera::OnUpdate(Timestep timestep)
