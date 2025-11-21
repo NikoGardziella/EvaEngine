@@ -57,6 +57,8 @@ namespace Engine {
         Plane fr[6];
         ExtractFrustum(VP, fr);
 
+        uint32_t culledCount = 0;
+
         scene->ForEachConst<RenderBoundsComponent>([&](Entity e, const RenderBoundsComponent& rb)
             {
                 const glm::mat4* Wptr = xforms.TryGetWorld(e);
@@ -80,25 +82,27 @@ namespace Engine {
                 bool inside = true;
                 for (int i = 0; i < 6; ++i)
                 {
-                    const glm::vec3 n(fr[i].p.x, fr[i].p.y, fr[i].p.z);
-                    const float d = fr[i].p.w;
+                    const glm::vec3 n = glm::vec3(fr[i].p);  // plane normal
+                    const float d = fr[i].p.w;               // plane D, already normalized
 
-                    // signed distance of center
-                    const float dist = glm::dot(n, wc) + d;
-                    // projected half-extent along plane normal
-                    const float r = glm::dot(glm::abs(n), we);
+                    const float dist = glm::dot(n, wc) + d;              // signed distance of center
+                    const float r = glm::dot(glm::abs(n), we);        // projected radius
 
-                    const bool pass = (dist >= -r);
-                    
+                    // if center is farther than radius behind plane, it is outside
+                    if (dist < -r)
+                    {
+                        inside = false;
+                        break;
+                    }
                 }
 
-  
-                if (inside) 
-                {
+                if (inside)
                     vis.entities.push_back(e);
-                }
+                else
+                    culledCount++;
             });
 
+        EE_CORE_INFO("outside frsutum {}", culledCount);
         return vis;
     }
 

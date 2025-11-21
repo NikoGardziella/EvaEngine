@@ -43,7 +43,8 @@ namespace Engine {
             }
 
             // Skinned meshes
-            if (auto smr = scene->TryGet<SkinnedMeshRefComponent>(e)) {
+            if (auto smr = scene->TryGet<SkinnedMeshRefComponent>(e))
+            {
                 InstanceDataGPU inst{};
                 inst.world = *W;
                 inst.worldPrev = *W;
