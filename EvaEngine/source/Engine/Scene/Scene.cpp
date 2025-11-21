@@ -451,7 +451,7 @@ namespace Engine {
         entity3D.AddComponent<TransformComponent>();
         entity3D.AddComponent<RenderBoundsComponent>();
         */
-        SpawnMeshGrid(this, 0, 100,10, 2);
+        SpawnMeshGrid(this, 0, 2,2, 2);
     }
 
 
@@ -591,8 +591,6 @@ namespace Engine {
         m_textureStreamingSystem->Update(playerPos, this);
 
         m_animationSystem->Update(timestep, this);
-
-
 
         m_transformSystem3D->Update(this, timestep);
 

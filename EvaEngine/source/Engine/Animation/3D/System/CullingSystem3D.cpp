@@ -57,13 +57,13 @@ namespace Engine {
         Plane fr[6];
         ExtractFrustum(VP, fr);
 
-        uint32_t culledCount = 0;
 
         scene->ForEachConst<RenderBoundsComponent>([&](Entity e, const RenderBoundsComponent& rb)
             {
                 const glm::mat4* Wptr = xforms.TryGetWorld(e);
                 if (!Wptr) return;
-                const glm::mat4 W = *Wptr; // copy by value (avoid dangling/mutating memory)
+
+                const glm::mat4 W = *Wptr; 
 
                 // Local AABB -> world center/extents via |R| trick
                 const glm::vec3 cL = (rb.minL + rb.maxL) * 0.5f;
@@ -74,21 +74,18 @@ namespace Engine {
                 const glm::mat3 ARS = glm::mat3(glm::abs(RS[0]), glm::abs(RS[1]), glm::abs(RS[2]));
                 const glm::vec3 we = ARS * eHalf;
 
-                // Optional: also compute min/max for your existing AABB path
                 const glm::vec3 minW = wc - we;
                 const glm::vec3 maxW = wc + we;
 
-                // Per-plane projected-radius test (robust)
                 bool inside = true;
                 for (int i = 0; i < 6; ++i)
                 {
-                    const glm::vec3 n = glm::vec3(fr[i].p);  // plane normal
-                    const float d = fr[i].p.w;               // plane D, already normalized
+                    const glm::vec3 n = glm::vec3(fr[i].p);
+                    const float d = fr[i].p.w;
 
-                    const float dist = glm::dot(n, wc) + d;              // signed distance of center
-                    const float r = glm::dot(glm::abs(n), we);        // projected radius
+                    const float dist = glm::dot(n, wc) + d;
+                    const float r = glm::dot(glm::abs(n), we);
 
-                    // if center is farther than radius behind plane, it is outside
                     if (dist < -r)
                     {
                         inside = false;
@@ -97,12 +94,12 @@ namespace Engine {
                 }
 
                 if (inside)
+                {
                     vis.entities.push_back(e);
-                else
-                    culledCount++;
+                }
+                
             });
 
-        EE_CORE_INFO("outside frsutum {}", culledCount);
         return vis;
     }
 

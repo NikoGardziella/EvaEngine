@@ -18,17 +18,17 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        for (Entity e : vis.entities) {
-            const glm::mat4* W = xforms.TryGetWorld(e);
-            if (!W) continue;
+        for (Entity e : vis.entities)
+        {
+            const glm::mat4* pWorldTransform = xforms.TryGetWorld(e);
+            if (!pWorldTransform) continue;
 
             // Static meshes
             if (auto mr = scene->TryGet<MeshRefComponent>(e))
             {
-                const TransformComponent& transformComp = e.GetComponent<TransformComponent>().Translation;
                 InstanceDataGPU inst{};
-                inst.world = transformComp.GetTransform();
-                inst.worldPrev = *W;
+                inst.world = *pWorldTransform;
+                inst.worldPrev = *pWorldTransform;
                 inst.boneBase = 0xFFFFFFFFu;
                 inst.flags = 0;
                 inst.objectId = /* some id */ 0;
@@ -46,8 +46,8 @@ namespace Engine {
             if (auto smr = scene->TryGet<SkinnedMeshRefComponent>(e))
             {
                 InstanceDataGPU inst{};
-                inst.world = *W;
-                inst.worldPrev = *W;
+                inst.world = *pWorldTransform;
+                inst.worldPrev = *pWorldTransform;
                 inst.flags = 0;
                 inst.objectId = /* your id */ 0;
 
