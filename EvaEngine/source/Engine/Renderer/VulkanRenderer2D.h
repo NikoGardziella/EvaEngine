@@ -128,12 +128,13 @@ namespace Engine {
 	};
 
 	struct SpriteSubmit {
-		glm::vec2 center;     // world center (match your shader convention)
-		float     zKey;       // painter’s sort key you computed
-		uint32_t  slot;       // spritesheet bindless slot (binding=3)
-		glm::uvec2 uvMin16;   // frame UVs (quantized 0..65535)
-		glm::uvec2 uvMax16;
-		glm::vec2 sizeWorld;  // frame size in world units
+		glm::vec2	center;     // world center (match your shader convention)
+		float		zKey;       // painter’s sort key you computed
+		float		rotation;
+		uint32_t	slot;       // spritesheet bindless slot (binding=3)
+		glm::uvec2	uvMin16;   // frame UVs (quantized 0..65535)
+		glm::uvec2	uvMax16;
+		glm::vec2	sizeWorld;  // frame size in world units
 	};
 
 
@@ -272,7 +273,7 @@ namespace Engine {
 		static void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos,
 			const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias);
 
-		static void SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld);
+		static void SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
 
 		static void SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin);
 

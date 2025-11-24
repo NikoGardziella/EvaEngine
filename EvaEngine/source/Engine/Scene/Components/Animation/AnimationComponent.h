@@ -6,10 +6,13 @@
 namespace Engine {
 
     struct AnimationComponent {
-        uint32_t clipId = 0;       // registry id or hash for "player/run"
+        uint32_t clipId = 0;
         Dir8     direction = Dir8::S;
-        float    aimRadians = 0.0f; // if using aim based selection
-        uint8_t  dirMode = 0;       // 0: Velocity, 1: Aim, 2: Manual
+
+        float    aimRadians = 0.0f;    // still used for target angle
+        float    facingRadians = 0.0f; // smoothed, what sprite actually faces
+        float    turnSpeed = glm::radians(720.0f); // deg/s -> tweak
+        uint8_t  dirMode = 0;
         uint8_t  paused = 0;
         uint16_t _pad = 0;
     };

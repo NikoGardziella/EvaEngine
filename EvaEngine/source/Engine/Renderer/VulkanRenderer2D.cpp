@@ -1745,12 +1745,12 @@ namespace Engine {
 
 	void VulkanRenderer2D::ConsumeAnimationQueue(uint32_t frameIndex)
 	{
-		auto& animationQueu = s_VulkanBindlessData.spriteSubmitQueues[frameIndex];
+		std::vector<SpriteSubmit>& animationQueu = s_VulkanBindlessData.spriteSubmitQueues[frameIndex];
 	
 		
 		for (const SpriteSubmit& s : animationQueu)
 		{
-			s_bindlessDescitproRenderer->AddSpriteInstance(s.center, s.zKey, s.slot, s.uvMin16, s.uvMax16, s.sizeWorld);
+			s_bindlessDescitproRenderer->AddSpriteInstance(s.center, s.zKey, s.slot, s.uvMin16, s.uvMax16, s.sizeWorld, s.rotation);
 		}
 
 		animationQueu.clear();
@@ -2599,11 +2599,11 @@ namespace Engine {
 	}
 
 	void VulkanRenderer2D::SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot,
-		glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld)
+		glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation)
 	{
 		const size_t fi = static_cast<size_t>(s_VulkanData.CurrentFrame) % MAX_FRAMES_IN_FLIGHT;
 		auto& q = s_VulkanBindlessData.spriteSubmitQueues[fi];
-		q.emplace_back(SpriteSubmit{ worldCenter, zKey, spriteSlot, uvMin16, uvMax16, sizeWorld });
+		q.emplace_back(SpriteSubmit{ worldCenter, zKey,rotation, spriteSlot, uvMin16, uvMax16, sizeWorld });
 	}
 
 	void VulkanRenderer2D::SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin)

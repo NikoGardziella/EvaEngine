@@ -34,17 +34,21 @@ namespace Engine {
 
         // --------- Render instance (std430-friendly, 32 bytes)
         struct RenderInstance {
-            glm::vec2 worldPos;     // 8
-            glm::vec2 size;         // 16
-            float     zSortKey;     // 20
-            uint32_t  slot;         // 24
-            uint32_t  flags;        // 28
-            uint32_t  _pad;         // 32
-            glm::uvec2 uvMin16;    // 32..39
-            glm::uvec2 uvMax16;    // 40..47
-        }; // sizeof ~ 40 (std430 tightly packs scalars/vectors)
+            glm::vec2 worldPos;  // 0..7
+            glm::vec2 size;      // 8..15
+            float     rotation;  // 16..19
+            float     zSortKey;  // 20..23
+            uint32_t  slot;      // 24..27
+            uint32_t  flags;     // 28..31
+            uint32_t  _pad0;     // 32..35
+            uint32_t  _pad1;     // 36..39
 
+            alignas(8) glm::uvec2 uvMin16;  // 40..47
+            glm::uvec2            uvMax16;  // 48..55
+        };
 
+        static_assert(offsetof(RenderInstance, uvMin16) == 40);
+        static_assert(sizeof(RenderInstance) == 56);
 
 
 
@@ -60,7 +64,7 @@ namespace Engine {
 
 
         void BeginFrame(uint32_t frameIndex, VkCommandBuffer uploadCB);
-        void AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld);
+        void AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
         void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, uint32_t flags = 0);
         void EndFrameAndUpload(uint32_t frameIndex);
 

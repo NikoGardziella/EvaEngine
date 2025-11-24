@@ -4,14 +4,16 @@
 
 // Per-instance data (must match CPU std430 layout)
 struct Instance {
-    vec2  worldPos;   // world-space ground point (bottom-center pivot on CPU side)
-    vec2  size;       // width, height (world units)
+    vec2  worldPos;
+    vec2  size;
+    float rotation;
     float zSortKey;
-    uint  slot;       // bindless index (tiles@binding0 or sprites@binding3)
-    uint  flags;      // bit0: isSprite (1 = sprites@binding3, 0 = tiles@binding0)
-    uint  _pad;
-    uvec2 uvMin16;    // packed 0..65535 in 32-bit lanes
-    uvec2 uvMax16;    // packed 0..65535 in 32-bit lanes
+    uint  slot;
+    uint  flags;
+    uint  _pad0;
+    uint  _pad1;
+    uvec2 uvMin16;
+    uvec2 uvMax16;
 };
 
 layout(location=0) out flat uint vSlot;
@@ -29,30 +31,37 @@ const vec2 quad[4] = vec2[](
     vec2(0.0,0.0), vec2(1.0,0.0),
     vec2(0.0,1.0), vec2(1.0,1.0)
 );
-
-void main() {
+void main()
+{
     uint i = gl_InstanceIndex;
     vec2 q = quad[gl_VertexIndex];
 
-    // Use ONE consistent convention:
-    // If CPU gives center:
-    //vec2 center = inst[i].worldPos; 
-    // If CPU gives ground point instead, use:
     vec2 center = inst[i].worldPos + vec2(0.0, 0.5 * inst[i].size.y);
 
-    vec2 pos = center + (q - vec2(0.5)) * inst[i].size;
+    vec2 local = (q - vec2(0.5)) * inst[i].size;
+
+    float ang = inst[i].rotation;
+    float c   = cos(ang);
+    float s   = sin(ang);
+    mat2 R    = mat2(c,  s,
+                     -s, c);
+
+    vec2 rotated = R * local;
+    vec2 pos     = center + rotated;
+
     gl_Position = pc.VP * vec4(pos, 0.0, 1.0);
 
-    // per-instance UVs with optional sprite V flip
     vec2 uvMin = vec2(inst[i].uvMin16) / 65535.0;
     vec2 uvMax = vec2(inst[i].uvMax16) / 65535.0;
     vec2 t = q;
-    if ((inst[i].flags & 1u) != 0u) t.y = 1.0 - t.y; // flip only sprites
+    if ((inst[i].flags & 1u) != 0u) t.y = 1.0 - t.y;
     vUV   = mix(uvMin, uvMax, t);
 
     vSlot  = inst[i].slot;
     vFlags = inst[i].flags;
 }
+
+
 
 
 #type fragment

@@ -129,9 +129,8 @@ namespace Engine {
         m_drawCount = 0;
     }
 
-    void VulkanBindlessDescriptorSetRenderer::AddSpriteInstance(
-        glm::vec2 worldCenter, float zKey, uint32_t spriteSlot,
-        glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld)
+    void VulkanBindlessDescriptorSetRenderer::AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot,
+        glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation)
     {
         RenderInstance I{};
         I.worldPos = worldCenter;          // using the “center” convention you fixed
@@ -139,9 +138,10 @@ namespace Engine {
         I.zSortKey = zKey;
         I.slot = spriteSlot;
         I.flags = 1u;                   // bit0 => use binding 3 (uSprites[])
-        I._pad = 0;
+        I._pad0 = 0;
         I.uvMin16 = uvMin16;
         I.uvMax16 = uvMax16;
+        I.rotation = rotation;
         m_instances.push_back(I);
     }
 
@@ -156,10 +156,10 @@ namespace Engine {
         I.zSortKey = zSortKey;
         I.slot = slot;
         I.flags = (flags & ~1u);              // ensure isSprite = 0 for tiles
-        I._pad = 0;
+        I._pad0 = 0;
         I.uvMin16 = { 0u, 0u };                 // full texture UVs
         I.uvMax16 = { 65535u, 65535u };
-
+        I.rotation = 0.0f;
         m_instances.push_back(I);
     }
 
@@ -677,9 +677,11 @@ namespace Engine {
     {
         VkDescriptorBufferInfo info{ buf, 0, VK_WHOLE_SIZE };
         VkWriteDescriptorSet w{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-        w.dstSet = set; w.dstBinding = 2; w.dstArrayElement = 0;
+        w.dstSet = set; w.dstBinding = 2;
+        w.dstArrayElement = 0;
         w.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        w.descriptorCount = 1; w.pBufferInfo = &info;
+        w.descriptorCount = 1;
+        w.pBufferInfo = &info;
         vkUpdateDescriptorSets(dev, 1, &w, 0, nullptr);
     }
 

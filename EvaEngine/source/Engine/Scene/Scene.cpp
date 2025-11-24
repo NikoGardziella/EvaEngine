@@ -461,7 +461,8 @@ namespace Engine {
         entity3D.AddComponent<TransformComponent>();
         entity3D.AddComponent<RenderBoundsComponent>();
         */
-        SpawnMeshGrid(this, 1, 100,10, 2);
+
+        //SpawnMeshGrid(this, 1, 100,10, 2);
     }
 
 
@@ -592,12 +593,12 @@ namespace Engine {
                     animComp.clipId = clipId;
                     animComp.dirMode = 1;
 
-                    //auto& animStateComp = playerEntity.AddComponent<AnimatorStateComponent>();
+                    auto& animStateComp = playerEntity.AddComponent<AnimatorStateComponent>();
                 }
 
 
-                //Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
-                // Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
+               // Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
+                Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
             }
         }
         m_textureStreamingSystem->Update(playerPos, this);
@@ -959,6 +960,7 @@ namespace Engine {
                     }
 
                 }
+
                 {
                     //EE_PROFILE_SCOPE("Projectiles");
 
@@ -986,8 +988,6 @@ namespace Engine {
             }
 
             //*********** Render ************
-
-
             {
                 EE_PROFILE_SCOPE("Update Runtime CircleRendererComponent");
 

@@ -34,17 +34,17 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
 
     Engine::Entity playerEntity;
     scene->ForEach<Engine::TransformComponent, CharacterControllerComponent>(
-        [&](Engine::Entity e,  Engine::TransformComponent& playerXform,
+        [&](Engine::Entity e,  Engine::TransformComponent& playerTransformComp,
             CharacterControllerComponent& controller)
         {
             playerEntity = e;
 
-            glm::vec2 diff = mouseWorldPosition - glm::vec2(playerXform.Translation);
+            glm::vec2 diff = mouseWorldPosition - glm::vec2(playerTransformComp.Translation);
             if (glm::length(diff) > 0.0001f)
             {
                 glm::vec2 dir = glm::normalize(diff);
                 float angle = std::atan2(dir.y, dir.x);
-                playerXform.Rotation.z = angle + glm::radians(220.0f);
+                playerTransformComp.Rotation.z = angle + glm::radians(220.0f);
             }
 
             
@@ -64,7 +64,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
                     vehicle.Velocity = inputVelocity;         // steer the vehicle
                     controller.velocity = glm::vec3(0.0f);    // player stands still while driving
                     // keep player “inside” vehicle transform:
-                    playerXform.Translation = driver.Vehicle.GetComponent<Engine::TransformComponent>().Translation;
+                    playerTransformComp.Translation = driver.Vehicle.GetComponent<Engine::TransformComponent>().Translation;
                 }
                 else 
                 {
