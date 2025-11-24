@@ -32,6 +32,7 @@ namespace Engine {
                 inst.boneBase = 0xFFFFFFFFu;
                 inst.flags = 0;
                 inst.objectId = /* some id */ 0;
+                inst.meshId = mr->meshId;
 
                 if (auto mat = scene->TryGet<MaterialRefComponent>(e))
                     inst.materialId = mat->materialId;

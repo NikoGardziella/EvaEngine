@@ -290,6 +290,16 @@ namespace Engine {
 
         for (uint32_t i = 0; i < count; ++i)
         {
+
+            if (i % 2 == 0)
+            {
+                meshId = 1;
+            }
+            else
+            {
+                meshId = 0;
+            }
+
             // Grid coords
             const uint32_t r = i / perRow;
             const uint32_t c = i % perRow;
@@ -451,7 +461,7 @@ namespace Engine {
         entity3D.AddComponent<TransformComponent>();
         entity3D.AddComponent<RenderBoundsComponent>();
         */
-        SpawnMeshGrid(this, 0, 100,10, 2);
+        SpawnMeshGrid(this, 1, 100,10, 2);
     }
 
 

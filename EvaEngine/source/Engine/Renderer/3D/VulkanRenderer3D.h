@@ -19,6 +19,7 @@ namespace Engine {
         uint32_t  boneBase;
         uint32_t  flags;
         uint32_t  objectId;
+        uint32_t  meshId;
     };
 
  
@@ -28,6 +29,7 @@ namespace Engine {
     {
         uint32_t instanceIndex;
         uint32_t submeshId;
+        uint32_t meshId;
     };
 
     struct CameraUBO

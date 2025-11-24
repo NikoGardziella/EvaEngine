@@ -106,6 +106,7 @@ namespace Engine {
 
 
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/trafficPolice1.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/Engineer.glb");
 
 
         // somewhere on init
@@ -337,22 +338,25 @@ namespace Engine {
         s_Vulkan3DData.s_instances.push_back(inst);
         for (uint32_t i = 0; i < submeshCount; ++i)
         {
-            s_Vulkan3DData.s_draws.push_back(PendingDraw{ baseIdx, submeshFirst + i });
+            PendingDraw d{};
+            d.meshId = inst.meshId;
+            d.submeshId = submeshFirst + i;
+            d.instanceIndex = baseIdx;
+
+            s_Vulkan3DData.s_draws.push_back(d);
         }
     }
 
 
- 
     void VulkanRenderer3D::Draw(uint32_t frameIndex, VkCommandBuffer cmd)
     {
         EE_PROFILE_FUNCTION();
         UploadMaterials(frameIndex, AssetManager::GetMaterialRegistry());
-
         UpdateCamera(frameIndex, s_Vulkan3DData.s_cameraData.uView, s_Vulkan3DData.s_cameraData.uProj);
+        UpdateAlbedoImageDesciptorsSet(frameIndex);
 
-        UpdateAlbedoImageDesciptorsSet(frameIndex); // this might be not necessary for everyframe
         const uint32_t numberOfInstances = (uint32_t)s_Vulkan3DData.s_instances.size();
-        if (numberOfInstances) 
+        if (numberOfInstances)
         {
             static std::vector<glm::mat4> tmpWorlds;
             tmpWorlds.resize(numberOfInstances);
@@ -361,12 +365,24 @@ namespace Engine {
 
             UpdateInstances(frameIndex, tmpWorlds.data(), numberOfInstances);
         }
-        
-        const uint32_t meshId = 0;  // set this before SubmitMeshInstanceRange()
-        const MeshAsset& mesh = AssetManager::GetMeshRegistry().Get(meshId);
 
+        // Nothing to draw
+        if (s_Vulkan3DData.s_draws.empty())
+        {
+            s_Vulkan3DData.s_instances.clear();
+            return;
+        }
 
-        // 2) Bind pipeline + descriptor set 0 (camera + instances)
+        // 1) Sort draws by meshId, then by submeshId (optional, but nice)
+        std::sort(s_Vulkan3DData.s_draws.begin(), s_Vulkan3DData.s_draws.end(),
+            [](const PendingDraw& a, const PendingDraw& b)
+            {
+                if (a.meshId != b.meshId)   return a.meshId < b.meshId;
+                if (a.submeshId != b.submeshId) return a.submeshId < b.submeshId;
+                return a.instanceIndex < b.instanceIndex;
+            });
+
+        // 2) Bind pipeline + global set0 (camera + instances + materials)
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_3DPipeline.Get());
         {
             VkDescriptorSet set0 = m_frames[frameIndex].set0Global;
@@ -375,42 +391,53 @@ namespace Engine {
                 0, 1, &set0, 0, nullptr);
         }
 
-        // 3) Bind the active mesh VB/IB once
-        // NOTE: replace AssetManager::GetMeshRegistry() with your actual accessor
-        VkDeviceSize vbOff = mesh.vbOffset;
-        vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vertexBuffer, &vbOff);
-        vkCmdBindIndexBuffer(cmd, mesh.indexBuffer, mesh.ibOffset, VK_INDEX_TYPE_UINT32);
+        uint32_t currentMeshId = UINT32_MAX;
+        const MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
 
-        // 4) Record draws for queued submeshes
-        // Optional: sort by submesh to improve locality
-        // std::sort(s_Vulkan3DData.s_draws.begin(), s_Vulkan3DData.s_draws.end(),
-        //           [](const PendingDraw& a, const PendingDraw& b){ return a.submeshIndex < b.submeshIndex; });
-
-        /*
-        */
+        // 3) Walk all draws
         for (const PendingDraw& d : s_Vulkan3DData.s_draws)
         {
-            // push constants: {instanceIndex, materialId, submeshId, flags}
-            // materialId is in InstanceDataGPU; if you want per-submesh, look it up from mesh.submeshes[d.submeshIndex]
+            // Rebind VB/IB when mesh changes
+            if (d.meshId != currentMeshId)
+            {
+                currentMeshId = d.meshId;
+                const MeshAsset& mesh = meshReg.Get(currentMeshId);
+
+                VkDeviceSize vbOff = mesh.vbOffset;
+                vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vertexBuffer, &vbOff);
+                vkCmdBindIndexBuffer(cmd, mesh.indexBuffer, mesh.ibOffset, VK_INDEX_TYPE_UINT32);
+            }
+
+            // Push constants for this instance/submesh
+            const InstanceDataGPU& instGPU = s_Vulkan3DData.s_instances[d.instanceIndex];
+
             PCDraw3D pc{};
             pc.instanceIndex = d.instanceIndex;
-            pc.materialId = s_Vulkan3DData.s_instances[d.instanceIndex].materialId;
+            pc.materialId = instGPU.materialId; // or from mesh.submeshes[d.submeshId]
             pc.submeshId = d.submeshId;
-            pc.flags = s_Vulkan3DData.s_instances[d.instanceIndex].flags;
+            pc.flags = instGPU.flags;
 
             vkCmdPushConstants(cmd, m_3DPipeline.GetLayout(),
                 VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                 0, sizeof(PCDraw3D), &pc);
 
+            // Draw this submesh
+            const MeshAsset& mesh = meshReg.Get(currentMeshId);
             const SubmeshRange& sm = mesh.submeshes[d.submeshId];
-            vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, static_cast<int32_t>(sm.baseVertex), 0);
+
+            vkCmdDrawIndexed(cmd,
+                sm.indexCount,
+                1,                       // instanceCount = 1 (you are using instanceIndex via PC)
+                sm.firstIndex,
+                static_cast<int32_t>(sm.baseVertex),
+                0);
         }
-       
-     
-        // 5) Clear per-frame queues for next frame
+
+        // 4) Clear queues for next frame
         s_Vulkan3DData.s_instances.clear();
         s_Vulkan3DData.s_draws.clear();
     }
+
 
 
 
