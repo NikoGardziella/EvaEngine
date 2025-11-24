@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <Engine/Platform/Vulkan/VulkanBuffer.h>
 #include <Engine/Renderer/VulkanRenderer2D.h>
+#include <Engine/Animation/3D/MaterialRegistry.h>
 
 
 
@@ -16,6 +17,8 @@ namespace Engine {
  
 
     Engine::VulkanRenderer3DData Engine::VulkanRenderer3D::s_Vulkan3DData;
+    std::vector<VkDescriptorImageInfo> VulkanRenderer3D::m_albedoImageInfos;
+    std::vector<Ref<VulkanTexture>> VulkanRenderer3D::m_albedoTextures;
 
     void VulkanRenderer3D::InitVulkanRenderer3D()
     {
@@ -30,7 +33,7 @@ namespace Engine {
 
         Engine::Vulkan3DGraphicsPipeline::CreateInfo createInfo{};
         createInfo.device = m_device;
-        createInfo.renderPass = vulkanContext->GetPresentRenderPass();      // or your forward pass
+        createInfo.renderPass = vulkanContext->GetPresentRenderPass();      
         //ci.pipelineCache = pipelineCache;       // optional
         createInfo.setLayouts = { m_descriptorSetLayout3D };
         createInfo.pushConstantRange = { VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PCDraw3D) };
@@ -68,8 +71,10 @@ namespace Engine {
         EE_CORE_ASSERT(ok, "Failed to create Vulkan3DGraphicsPipeline");
 
         
-        Init3DBuffers(m_device, MAX_FRAMES_IN_FLIGHT, MAX_3D_INSTANCES, m_frames);
-        Allocate3DDescriptorSets(vulkanContext->GetDescriptorPool());
+       
+
+        Init3DBuffers(m_device, MAX_FRAMES_IN_FLIGHT, MAX_3D_INSTANCES, MAX_MATERIALS, m_frames);
+        Allocate3DDescriptorSets(vulkanContext->GetDescriptorPool3D());
 
 
 
@@ -100,14 +105,22 @@ namespace Engine {
         ib = new Engine::VulkanIndexBuffer((uint32_t*)kCubeIdx, (uint32_t)std::size(kCubeIdx));
 
 
-        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/human.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/trafficPolice1.glb");
+
+
+        // somewhere on init
+        Ref<VulkanTexture> dbgTex = std::make_shared<VulkanTexture>(
+            64, 64, VK_FORMAT_R8G8B8A8_UNORM, false);
+
+      
+     
+
+
 
     }
 
     bool VulkanRenderer3D::Create3dDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& descriptorSetLayoutOut)
     {
-        // set = 0
-
         // binding 0: Camera UBO (VS & FS)
         VkDescriptorSetLayoutBinding cam{};
         cam.binding = 0;
@@ -115,14 +128,33 @@ namespace Engine {
         cam.descriptorCount = 1;
         cam.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        // binding 1: Instance SSBO (VS) -> holds mat4 world[]
+        // binding 1: Instance SSBO (VS) -> holds InstanceData[]
         VkDescriptorSetLayoutBinding instances{};
         instances.binding = 1;
         instances.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         instances.descriptorCount = 1;
         instances.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        VkDescriptorSetLayoutBinding bindings[] = { cam, instances };
+        // binding 2: Albedo texture array (FS)
+        VkDescriptorSetLayoutBinding albedoArray{};
+        albedoArray.binding = 2;
+        albedoArray.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        albedoArray.descriptorCount = 1;
+        albedoArray.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        // binding 3: Material buffer (FS)
+        VkDescriptorSetLayoutBinding materialBuf{};
+        materialBuf.binding = 3;
+        materialBuf.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        materialBuf.descriptorCount = 1;
+        materialBuf.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        VkDescriptorSetLayoutBinding bindings[] = {
+            cam,
+            instances,
+            albedoArray,
+            materialBuf
+        };
 
         VkDescriptorSetLayoutCreateInfo ci{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
         ci.bindingCount = static_cast<uint32_t>(std::size(bindings));
@@ -130,6 +162,7 @@ namespace Engine {
 
         return vkCreateDescriptorSetLayout(device, &ci, nullptr, &descriptorSetLayoutOut) == VK_SUCCESS;
     }
+
 
 
 
@@ -147,21 +180,26 @@ namespace Engine {
         return info;
     }
 
-    bool VulkanRenderer3D::Init3DBuffers(VkDevice device, uint32_t framesInFlight,
-        uint32_t maxInstances, std::vector<Renderer3DPerFrame>& frames)
+    bool VulkanRenderer3D::Init3DBuffers(VkDevice device, uint32_t framesInFlight, uint32_t maxInstances,
+        uint32_t maxMaterials, std::vector<Renderer3DPerFrame>& frames)
     {
         VulkanContext* ctx = VulkanContext::Get();
         VkPhysicalDevice phys = ctx->GetDeviceManager().GetPhysicalDevice();
 
         frames.resize(framesInFlight);
 
-        // Camera UBO: struct { mat4 view; mat4 proj; }  (or use 1 mat4 if you prefer ViewProj)
+        // Camera UBO: struct { mat4 view; mat4 proj; }
         const VkDeviceSize camBytes = sizeof(CameraUBO);
 
-        // Instance SSBO: mat4 world[maxInstances]
-        const VkDeviceSize instBytes = VkDeviceSize(maxInstances) * sizeof(glm::mat4);
+        // Instance SSBO: InstanceDataGPU[maxInstances]
+        const VkDeviceSize instBytes = VkDeviceSize(maxInstances) * sizeof(InstanceDataGPU);
 
-        for (uint32_t i = 0; i < framesInFlight; ++i) {
+        // Material SSBO: MaterialGPU[maxMaterials]
+        const VkDeviceSize matBytes = VkDeviceSize(maxMaterials) * sizeof(MaterialGPU);
+
+        for (uint32_t i = 0; i < framesInFlight; ++i)
+        {
+            // Camera
             frames[i].cameraUBO = VulkanBuffer(
                 device, phys, camBytes,
                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -169,16 +207,45 @@ namespace Engine {
 
             frames[i].cameraUBO.Map();
 
+            // Instances
             frames[i].instanceSSBO = VulkanBuffer(
                 device, phys, instBytes,
                 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
             frames[i].instanceSSBO.Map();
+
+            // Materials
+            frames[i].materialSSBO = VulkanBuffer(
+                device, phys, matBytes,
+                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+            frames[i].materialSSBO.Map();
         }
+
         return true;
     }
 
+
+    void VulkanRenderer3D::UploadMaterials(uint32_t frameIndex,
+        const MaterialRegistry& materials)
+    {
+        const auto& gpuMats = materials.GPUTable();
+        if (gpuMats.empty())
+            return;
+
+        Renderer3DPerFrame& frame = m_frames[frameIndex];
+
+        const VkDeviceSize byteCount =
+            VkDeviceSize(gpuMats.size()) * sizeof(MaterialGPU);
+
+        // safety: don't overflow the buffer
+      
+        void* dst = frame.materialSSBO.Mapped();
+        std::memcpy(dst, gpuMats.data(), (size_t)byteCount);
+
+    }
 
 
     void VulkanRenderer3D::UpdateBuffer(const VulkanBuffer& buf, const void* src, VkDeviceSize bytes, VkDeviceSize dstOffset /*= 0*/) const
@@ -279,40 +346,22 @@ namespace Engine {
     void VulkanRenderer3D::Draw(uint32_t frameIndex, VkCommandBuffer cmd)
     {
         EE_PROFILE_FUNCTION();
-
+        UploadMaterials(frameIndex, AssetManager::GetMaterialRegistry());
 
         UpdateCamera(frameIndex, s_Vulkan3DData.s_cameraData.uView, s_Vulkan3DData.s_cameraData.uProj);
 
-
-        const uint32_t N = (uint32_t)s_Vulkan3DData.s_instances.size();
-        if (N) 
+        UpdateAlbedoImageDesciptorsSet(frameIndex); // this might be not necessary for everyframe
+        const uint32_t numberOfInstances = (uint32_t)s_Vulkan3DData.s_instances.size();
+        if (numberOfInstances) 
         {
             static std::vector<glm::mat4> tmpWorlds;
-            tmpWorlds.resize(N);
-            for (uint32_t i = 0; i < N; ++i)
+            tmpWorlds.resize(numberOfInstances);
+            for (uint32_t i = 0; i < numberOfInstances; ++i)
                 tmpWorlds[i] = s_Vulkan3DData.s_instances[i].world;
 
-            UpdateInstances(frameIndex, tmpWorlds.data(), N);
+            UpdateInstances(frameIndex, tmpWorlds.data(), numberOfInstances);
         }
-        // 1) Upload instances -> set=0,binding=1 SSBO
-        /*
-        {
-            const size_t byteCount = s_Vulkan3DData.s_instances.size() * sizeof(InstanceDataGPU);
-            if (byteCount > 0)
-            {
-                void* dst = m_frames[frameIndex].instanceSSBO.Mapped(); // persistently mapped in your init
-                std::memcpy(dst, s_Vulkan3DData.s_instances.data(), byteCount);
-
-                VkMappedMemoryRange rng{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
-                rng.memory = m_frames[frameIndex].instanceSSBO.GetMemory();
-                rng.offset = 0;
-                rng.size = VK_WHOLE_SIZE;
-                vkFlushMappedMemoryRanges(m_device, 1, &rng);
-
-
-            }
-        }
-        */
+        
         const uint32_t meshId = 0;  // set this before SubmitMeshInstanceRange()
         const MeshAsset& mesh = AssetManager::GetMeshRegistry().Get(meshId);
 
@@ -396,50 +445,131 @@ namespace Engine {
         // Nothing to clear here; BeginFrame3D() will reset for the next frame.
     }
 
-
     bool VulkanRenderer3D::Allocate3DDescriptorSets(VkDescriptorPool pool)
     {
         for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
         {
-            // allocate one set per frame
             VkDescriptorSetAllocateInfo ai{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
             ai.descriptorPool = pool;
             ai.descriptorSetCount = 1;
             ai.pSetLayouts = &m_descriptorSetLayout3D;
 
-            VkResult r = vkAllocateDescriptorSets(m_device, &ai, &m_frames[i].set0Global);
-            if (r != VK_SUCCESS) return false;
+            if (vkAllocateDescriptorSets(m_device, &ai, &m_frames[i].set0Global) != VK_SUCCESS)
+                return false;
 
-            // write binding 0 (camera UBO) + binding 1 (instance SSBO)
+            // camera
             VkDescriptorBufferInfo camInfo{};
             camInfo.buffer = m_frames[i].cameraUBO.GetBuffer();
             camInfo.offset = 0;
-            camInfo.range = sizeof(glm::mat4) * 2; // {view, proj}  (match your CameraUBO)
+            camInfo.range = sizeof(CameraUBO);
 
+            // instances
             VkDescriptorBufferInfo instInfo{};
             instInfo.buffer = m_frames[i].instanceSSBO.GetBuffer();
             instInfo.offset = 0;
-            instInfo.range = m_frames[i].instanceSSBO.size; // capacity in bytes
+            instInfo.range = m_frames[i].instanceSSBO.size;
 
-            VkWriteDescriptorSet w[2]{};
-            w[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            w[0].dstSet = m_frames[i].set0Global;
-            w[0].dstBinding = 0; // Camera UBO
-            w[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            w[0].descriptorCount = 1;
-            w[0].pBufferInfo = &camInfo;
+            // materials
+            VkDescriptorBufferInfo matInfo{};
+            matInfo.buffer = m_frames[i].materialSSBO.GetBuffer();
+            matInfo.offset = 0;
+            matInfo.range = m_frames[i].materialSSBO.size;
 
-            w[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            w[1].dstSet = m_frames[i].set0Global;
-            w[1].dstBinding = 1; // Instance SSBO
-            w[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            w[1].descriptorCount = 1;
-            w[1].pBufferInfo = &instInfo;
+            std::vector<VkWriteDescriptorSet> writes;
 
-            vkUpdateDescriptorSets(m_device, 2, w, 0, nullptr);
+            // binding 0: cam
+            VkWriteDescriptorSet wCam{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+            wCam.dstSet = m_frames[i].set0Global;
+            wCam.dstBinding = 0;
+            wCam.dstArrayElement = 0;
+            wCam.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            wCam.descriptorCount = 1;
+            wCam.pBufferInfo = &camInfo;
+            writes.push_back(wCam);
+
+            // binding 1: instances
+            VkWriteDescriptorSet wInst{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+            wInst.dstSet = m_frames[i].set0Global;
+            wInst.dstBinding = 1;
+            wInst.dstArrayElement = 0;
+            wInst.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            wInst.descriptorCount = 1;
+            wInst.pBufferInfo = &instInfo;
+            writes.push_back(wInst);
+
+            // binding 2: albedo texture array (only if some textures exist)
+            if (!m_albedoImageInfos.empty())
+            {
+                VkWriteDescriptorSet wAlbedo{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+                wAlbedo.dstSet = m_frames[i].set0Global;
+                wAlbedo.dstBinding = 2;
+                wAlbedo.dstArrayElement = 0;
+                wAlbedo.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                wAlbedo.descriptorCount = 1;
+                wAlbedo.pImageInfo = &m_albedoImageInfos[0]; // use slot 0 for test
+                writes.push_back(wAlbedo);
+            }
+
+            // binding 3: materials
+            VkWriteDescriptorSet wMat{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+            wMat.dstSet = m_frames[i].set0Global;
+            wMat.dstBinding = 3;
+            wMat.dstArrayElement = 0;
+            wMat.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            wMat.descriptorCount = 1;
+            wMat.pBufferInfo = &matInfo;
+            writes.push_back(wMat);
+
+            vkUpdateDescriptorSets(m_device,
+                (uint32_t)writes.size(),
+                writes.data(),
+                0, nullptr);
         }
         return true;
     }
 
 
-} // namespace Engine
+    uint32_t VulkanRenderer3D::RegisterAlbedoTexture(const Ref<VulkanTexture>& tex)
+    {
+        // keep texture alive as long as renderer3D lives
+        uint32_t index = (uint32_t)m_albedoTextures.size();
+        m_albedoTextures.push_back(tex);
+
+        VkDescriptorImageInfo info{};
+        info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        info.imageView = tex->GetImageView();
+        info.sampler = tex->GetSampler();
+
+        if (index >= m_albedoImageInfos.size())
+            m_albedoImageInfos.push_back(info);
+        else
+            m_albedoImageInfos[index] = info;
+
+
+        return index;
+    }
+
+
+    void VulkanRenderer3D::UpdateAlbedoImageDesciptorsSet(uint32_t frame)
+    {
+       
+        // If descriptor sets are already allocated, update this one slot in the array
+        for (uint32_t i = 0; i < m_albedoImageInfos.size(); ++i)
+        {
+            if (m_frames[frame].set0Global == VK_NULL_HANDLE)
+                continue; // not allocated yet
+
+            VkWriteDescriptorSet w{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+            w.dstSet = m_frames[frame].set0Global;
+            w.dstBinding = 2;               // binding for uAlbedoArray[]
+            w.dstArrayElement = 0;           // this array index
+            w.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            w.descriptorCount = 1;
+            w.pImageInfo = &m_albedoImageInfos[0];
+
+            vkUpdateDescriptorSets(m_device, 1, &w, 0, nullptr);
+        }
+    }
+
+
+} 

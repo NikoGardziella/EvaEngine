@@ -12,7 +12,7 @@
 
 namespace Engine {
 
-    struct Camera;
+    class Camera;
     class VulkanShader; // fwd
     class VulkanBindlessDescriptorSetRenderer {
 

@@ -4,6 +4,9 @@
 #include <Engine/Animation/3D/Import/GLTFImporter.h>
 #include <glm/fwd.hpp>
 #include <limits>
+#include <Engine/Platform/Vulkan/VulkanTexture.h>
+#include <Engine/Core/Core.h>
+#include <Engine/Core/Log.h>
 
 namespace Engine {
 
@@ -17,10 +20,17 @@ namespace Engine {
             std::vector<uint32_t> allIdx;
         };
 
-        // Null texture loader: returns invalid id
         struct DefaultTextureLoader {
-            uint32_t operator()(const TextureSource&) const {
-                return 0xFFFFFFFFu;
+            uint32_t operator()(const TextureSource& textureSource) const 
+            {
+                Ref<VulkanTexture> tex = std::make_shared<VulkanTexture>(textureSource);
+
+                // 2) Register into VulkanRenderer3D texture array
+                uint32_t index = VulkanRenderer3D::RegisterAlbedoTexture(tex);
+
+                EE_CORE_INFO("[GLTF] Created texture '{}' -> array index {}", textureSource.debugName, index);
+
+                return index;
             }
         };
 

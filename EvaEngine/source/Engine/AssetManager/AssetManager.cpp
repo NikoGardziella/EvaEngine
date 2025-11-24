@@ -840,15 +840,17 @@ namespace Engine {
 
         // 2) build importer opts (flipV=true is common for glTF)
         GLTFImporter imp;
-        GLTFImportOptions opts = MakeDefaultGLTFOpts(agg, /*flipV=*/true, /*genFlatNormalsIfMissing=*/true);
+        GLTFImportOptions opts = MakeDefaultGLTFOpts(agg, /*flipV=*/false, /*genFlatNormalsIfMissing=*/true);
 
         // 3) run import (fills MeshAsset with SubmeshRanges; materials registered)
         auto res = imp.Import(path, m_meshRegistry, m_materialRegistry, opts);
-        if (!res.report.ok) {
+        if (!res.report.ok)
+        {
             EE_CORE_ERROR("[GLTF] Import failed: {} ({})", path, res.report.message);
             return kInvalidMeshId; // or MeshId{}
         }
-        if (res.meshId == kInvalidMeshId) {
+        if (res.meshId == kInvalidMeshId)
+        {
             EE_CORE_ERROR("[GLTF] Import returned invalid MeshId for {}", path);
             return kInvalidMeshId;
         }

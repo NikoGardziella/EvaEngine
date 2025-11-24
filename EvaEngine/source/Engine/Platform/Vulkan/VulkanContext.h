@@ -81,6 +81,7 @@ namespace Engine {
        // VkCommandBuffer VulkanContext::GetCurrentCommandBuffer() { return m_commandBuffers[Renderer::GetCurrentFrame()];   }
         VkCommandBuffer& GetCommandBuffer(uint32_t imageIndex) { return m_commandBuffers[imageIndex]; }
         VkDescriptorPool GetDescriptorPool() { return m_descriptorPool->GetDescriptorPool(); }
+        VkDescriptorPool GetDescriptorPool3D() { return m_descriptorPool3D->GetDescriptorPool(); }
         VkDescriptorPool GetLineDescriptorPool() { return m_lineDescriptorPool->GetDescriptorPool(); }
         VkDescriptorPool GetComputeDescriptorPool() { return m_computeDescPool->GetDescriptorPool(); }
         VkDescriptorPool GetEffectDescriptorPool() { return m_effectDescPool->GetDescriptorPool(); }
@@ -120,6 +121,7 @@ namespace Engine {
         VkSurfaceKHR m_surface;
         VulkanDevice* m_deviceManager;
 		Ref<VulkanDescriptorPool> m_descriptorPool;
+		Ref<VulkanDescriptorPool> m_descriptorPool3D;
 		Ref<VulkanDescriptorPool> m_lineDescriptorPool;
 		Ref<VulkanDescriptorPool> m_computeDescPool;
 		Ref<VulkanDescriptorPool> m_effectDescPool;

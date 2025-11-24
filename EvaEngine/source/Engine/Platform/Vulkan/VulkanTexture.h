@@ -5,6 +5,7 @@
 #include <string>
 
 #include "glm/glm.hpp"
+#include <Engine/Animation/3D/Import/GLTFImporter.h>
 
 namespace Engine {
 
@@ -13,7 +14,8 @@ namespace Engine {
     public:
         VulkanTexture(const std::string& path, VkFormat textureFormat = VK_FORMAT_R8G8B8A8_UNORM, const std::string& name = "",bool imGuiTexture = false, uint32_t textureID = 0);
         VulkanTexture(uint32_t width, uint32_t height, VkFormat textureFormat = VK_FORMAT_R8G8B8A8_UNORM, bool imGuiTexture = false, uint32_t textureID = 0);
-
+        VulkanTexture(const TextureSource& src);
+        
         virtual ~VulkanTexture();
 
         virtual uint32_t GetWidth() const override { return m_width; }
@@ -43,10 +45,11 @@ namespace Engine {
 
         virtual void SetData(void* data, uint32_t size) override;
         void ResetData() const;
-        void CreateTextureImage();
+        void CreateTextureImage(VkImageUsageFlags usage);
         Ref<VulkanTexture> Clone() const;
 
         const std::vector<uint8_t>& GetCPUPixelData() const { return m_CPUpixelData; }
+         std::vector<uint8_t>& GetCPUPixelData()  { return m_CPUpixelData; }
 		void SetCPUPixelData(const std::vector<uint8_t>& pixelData) { m_CPUpixelData = pixelData; }
 
         void SetCheckCollision(bool checkCollision) { m_checkCollision = checkCollision; }
@@ -61,6 +64,11 @@ namespace Engine {
         VkImageLayout GetCurrentLayout() const { return m_CurrentLayout; }
         void SetCurrentLayout(VkImageLayout layout) { m_CurrentLayout = layout; }
 
+
+        void CreateTextureImage(const std::string& path);
+        void CreateTextureImageView();
+        void CreateTextureSampler();
+        void CopyFrom(const VulkanTexture& src);
 
 
 
@@ -80,12 +88,7 @@ namespace Engine {
         uint32_t m_height;
         std::vector<uint8_t> m_CPUpixelData; // 4 bytes per pixel (RGBA)
     private:
-        void CreateTextureImage(const std::string& path);
-        void CreateTextureImageView();
-        void CreateTextureSampler();
-        void CopyFrom(const VulkanTexture& src);
-
-
+        
 
         std::string m_path;
         std::string m_name;

@@ -451,7 +451,7 @@ namespace Engine {
         entity3D.AddComponent<TransformComponent>();
         entity3D.AddComponent<RenderBoundsComponent>();
         */
-        SpawnMeshGrid(this, 0, 2,2, 2);
+        SpawnMeshGrid(this, 0, 1,2, 2);
     }
 
 

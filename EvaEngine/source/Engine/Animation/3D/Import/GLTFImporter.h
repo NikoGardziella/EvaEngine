@@ -23,8 +23,12 @@ namespace Engine {
     // Import options/callbacks
     struct TextureSource {
         std::string debugName;
-        bool sRGB = true;
-        // extend with raw pixels later
+        bool        sRGB = false;
+        int         width = 0;
+        int         height = 0;
+        int         channels = 0;
+        const unsigned char* data = nullptr;
+        size_t      dataSize = 0;
     };
 
     struct PrimitiveUpload

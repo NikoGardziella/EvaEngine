@@ -61,6 +61,8 @@ namespace Engine {
                 else
                     inst.boneBase = 0xFFFFFFFFu; // guard
 
+                
+
                 VulkanRenderer3D::SubmitMeshInstanceRange(inst, smr->submeshFirst, smr->submeshCount);
             }
         }

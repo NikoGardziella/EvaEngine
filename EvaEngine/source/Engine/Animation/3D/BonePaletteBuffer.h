@@ -2,13 +2,11 @@
 #include <vector>
 #include <utility>
 #include <glm/glm.hpp>
+#include "MaterialRegistry.h"
 
 namespace Engine {
 
-    struct VulkanCtx {
-        void* paletteMappedPtr = nullptr; // set by your renderer per frame
-    };
-
+  
     class BonePaletteBuffer
     {
     public:

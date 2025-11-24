@@ -205,7 +205,7 @@ namespace Engine {
 	struct AffectedTile
 	{
 		uint32_t slot = 0;
-		uint32_t    totalDamage = 0.0f; // sum of damage of all hits affecting this tile
+		uint32_t    totalDamage = 0; // sum of damage of all hits affecting this tile
 		float    maxRadius = 0.0f; // max radius among hits affecting this tile
 	};
 

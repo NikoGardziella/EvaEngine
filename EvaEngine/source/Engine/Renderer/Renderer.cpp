@@ -29,8 +29,9 @@ namespace Engine {
 		if (api == RendererAPI::API::Vulkan)
 		{
 			s_VulkanRenderer2D = std::make_unique<VulkanRenderer2D>();
-			s_VulkanRenderer3D = std::make_unique<VulkanRenderer3D>();
 			s_VulkanRenderer2D->Init();
+
+			s_VulkanRenderer3D = std::make_unique<VulkanRenderer3D>();
 			s_VulkanRenderer3D->InitVulkanRenderer3D();
 
 			VulkanContext* vulkanContext = VulkanContext::Get();

@@ -158,8 +158,10 @@ namespace Engine {
         uint32_t maxUniformBuffers = 100;
         uint32_t maxCombinedImageSamplers = 100;
         VkDescriptorPoolSize generalSizes[2];
-        generalSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;        generalSizes[0].descriptorCount = maxUniformBuffers;
-        generalSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; generalSizes[1].descriptorCount = maxCombinedImageSamplers;
+        generalSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        generalSizes[0].descriptorCount = maxUniformBuffers;
+        generalSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        generalSizes[1].descriptorCount = maxCombinedImageSamplers;
 
         m_descriptorPool = std::make_shared<VulkanDescriptorPool>(dev, maxSets, generalSizes, 2, 0);
         m_lineDescriptorPool = std::make_shared<VulkanDescriptorPool>(dev, maxSets, generalSizes, 2, 0);
@@ -173,12 +175,36 @@ namespace Engine {
 
         // adjust sizes to what your compute/bindless uses
         VkDescriptorPoolSize computeSizes[3];
-        computeSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;  computeSizes[0].descriptorCount = maxResidentLayers * framesInFlight * 2; // color + props
-        computeSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; computeSizes[1].descriptorCount = framesInFlight * 3; // results + projectiles + mask
-        computeSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; computeSizes[2].descriptorCount = maxResidentLayers * framesInFlight; // if graphics samples color array
+        computeSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        computeSizes[0].descriptorCount = maxResidentLayers * framesInFlight * 2; // color + props
+
+        computeSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        computeSizes[1].descriptorCount = framesInFlight * 3; // results + projectiles + mask
+
+        computeSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        computeSizes[2].descriptorCount = maxResidentLayers * framesInFlight; // if graphics samples color array
 
         m_computeDescPool = std::make_shared<VulkanDescriptorPool>(dev, framesInFlight, computeSizes, 3, computeFlags);
         m_effectDescPool = std::make_shared<VulkanDescriptorPool>(dev, framesInFlight, computeSizes, 3, computeFlags);
+    
+
+        VkDescriptorPoolCreateFlags falgs3d = 0;
+        VkDescriptorPoolSize gfx3DSizes[3];
+
+        // 0) Camera UBO  (binding 0: VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        gfx3DSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        gfx3DSizes[0].descriptorCount = framesInFlight;              // 1 per frame
+
+        // 1) Instance + Material SSBOs (bindings 1 and 3: VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+        gfx3DSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        gfx3DSizes[1].descriptorCount = framesInFlight * 2;          // instance + material per frame
+
+        // 2) Albedo texture array (binding 2: VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+        gfx3DSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        gfx3DSizes[2].descriptorCount = framesInFlight * MAX_ALBEDO_TEXTURES;
+
+        m_descriptorPool3D = std::make_shared<VulkanDescriptorPool>(dev, framesInFlight, gfx3DSizes, 3, falgs3d);
+
     }
 
 

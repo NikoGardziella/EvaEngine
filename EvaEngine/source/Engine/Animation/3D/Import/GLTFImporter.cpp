@@ -78,44 +78,101 @@ namespace Engine {
         default: out.clear(); break;
         }
     }
-
     static uint32_t RegisterMaterial(const tinygltf::Model& model,
         const tinygltf::Material& m,
         const GLTFImportOptions& opts,
         MaterialRegistry& matReg)
     {
         MaterialGPU mgpu{};
-        // baseColorFactor
-        if (m.pbrMetallicRoughness.baseColorFactor.size() == 4) {
-            mgpu.baseColorFactor = glm::vec4(
-                (float)m.pbrMetallicRoughness.baseColorFactor[0],
-                (float)m.pbrMetallicRoughness.baseColorFactor[1],
-                (float)m.pbrMetallicRoughness.baseColorFactor[2],
-                (float)m.pbrMetallicRoughness.baseColorFactor[3]);
-        }
-        if (m.pbrMetallicRoughness.metallicFactor >= 0.0)  mgpu.metallicFactor = (float)m.pbrMetallicRoughness.metallicFactor;
-        if (m.pbrMetallicRoughness.roughnessFactor >= 0.0) mgpu.roughnessFactor = (float)m.pbrMetallicRoughness.roughnessFactor;
 
-        auto loadTex = [&](int texIndex, bool sRGB)->uint32_t {
-            if (texIndex < 0) return 0xFFFFFFFFu;
-            const auto& tex = model.textures[texIndex];
-            // We’re not decoding images here; just provide a debug name to your loader.
-            TextureSource ts{};
-            ts.debugName = "gltf_tex_" + std::to_string(texIndex);
-            ts.sRGB = sRGB;
-            return opts.loadTexture ? opts.loadTexture(ts) : 0xFFFFFFFFu;
+        // ---- sane defaults ----
+        mgpu.baseColorFactor = glm::vec4(1.0f); // GLTF default
+        mgpu.metallicFactor = 1.0f;
+        mgpu.roughnessFactor = 1.0f;
+
+        mgpu.baseColorTex = 0xFFFFFFFFu;
+        mgpu.normalTex = 0xFFFFFFFFu;
+        mgpu.ormTex = 0xFFFFFFFFu;
+        mgpu.emissiveTex = 0xFFFFFFFFu;
+
+        mgpu.flags = 0;
+        mgpu._pad = 0;
+
+        // ---- override with GLTF values if present ----
+
+        // baseColorFactor
+        if (m.pbrMetallicRoughness.baseColorFactor.size() == 4)
+        {
+            mgpu.baseColorFactor = glm::vec4(
+                static_cast<float>(m.pbrMetallicRoughness.baseColorFactor[0]),
+                static_cast<float>(m.pbrMetallicRoughness.baseColorFactor[1]),
+                static_cast<float>(m.pbrMetallicRoughness.baseColorFactor[2]),
+                static_cast<float>(m.pbrMetallicRoughness.baseColorFactor[3]));
+        }
+
+        // metallic / roughness
+        if (m.pbrMetallicRoughness.metallicFactor >= 0.0)
+            mgpu.metallicFactor = static_cast<float>(m.pbrMetallicRoughness.metallicFactor);
+
+        if (m.pbrMetallicRoughness.roughnessFactor >= 0.0)
+            mgpu.roughnessFactor = static_cast<float>(m.pbrMetallicRoughness.roughnessFactor);
+
+        // Helper to turn tinygltf texture index -> engine texture index
+        auto loadTex = [&](int texIndex, bool sRGB) -> uint32_t
+            {
+                if (texIndex < 0)
+                    return 0xFFFFFFFFu;
+
+              
+                const tinygltf::Texture& t = model.textures[texIndex];
+                
+                const tinygltf::Image& img = model.images[t.source];
+
+                TextureSource ts{};
+                ts.debugName = img.uri.empty()
+                    ? ("gltf_embedded_tex_" + std::to_string(texIndex))
+                    : img.uri;
+
+                ts.sRGB = sRGB;
+                ts.width = img.width;
+                ts.height = img.height;
+                ts.channels = img.component;
+                ts.data = img.image.data();
+                ts.dataSize = img.image.size();
+
+                // Callback: returns engine-side texture handle/index
+                if (opts.loadTexture)
+                    return opts.loadTexture(ts);
+
+                return 0xFFFFFFFFu;
             };
 
-        // baseColor / ORM / normal / emissive
-        mgpu.baseColorTex = loadTex(m.pbrMetallicRoughness.baseColorTexture.index, true);
-        mgpu.ormTex = loadTex(m.pbrMetallicRoughness.metallicRoughnessTexture.index, false);
-        mgpu.normalTex = loadTex(m.normalTexture.index, false);
-        mgpu.emissiveTex = loadTex(m.emissiveTexture.index, true);
+        // ---- bind textures to slots ----
 
-        MaterialAsset asset;
+        // baseColor / albedo
+        mgpu.baseColorTex =
+            loadTex(m.pbrMetallicRoughness.baseColorTexture.index, true);
+
+        // metallic+roughness (ORM) packed texture, usually R=occlusion, G=roughness, B=metallic
+        mgpu.ormTex =
+            loadTex(m.pbrMetallicRoughness.metallicRoughnessTexture.index, false);
+
+        // normal map
+        mgpu.normalTex =
+            loadTex(m.normalTexture.index, false);
+
+        // emissive map
+        mgpu.emissiveTex =
+            loadTex(m.emissiveTexture.index, true);
+
+        // ---- register into your material registry ----
+        MaterialAsset asset{};
         asset.gpu = mgpu;
-        return matReg.Register(asset);
+
+        uint32_t matAssetId = matReg.Register(asset);
+        return matAssetId;
     }
+
 
     GLTFImportResult GLTFImporter::Import(const std::string& path,
         MeshRegistry& meshReg,
@@ -143,11 +200,21 @@ namespace Engine {
             return R;
         }
 
+        EE_CORE_INFO("[GLTF] Images: {}, Textures: {}, Materials: {}",
+            model.images.size(), model.textures.size(), model.materials.size());
+
         // materials first
         R.materialIds.reserve(model.materials.size());
-        for (const auto& m : model.materials) {
+        for (const auto& m : model.materials)
+        {
             uint32_t id = RegisterMaterial(model, m, opts, matReg);
             R.materialIds.push_back(id);
+
+            EE_CORE_INFO("[GLTF] Material: baseColorTexIdx = {}, ormTexIdx = {}, normalTexIdx = {}, emissiveTexIdx = {}",
+                m.pbrMetallicRoughness.baseColorTexture.index,
+                m.pbrMetallicRoughness.metallicRoughnessTexture.index,
+                m.normalTexture.index,
+                m.emissiveTexture.index);
         }
 
         MeshAsset meshAsset{};
@@ -184,36 +251,59 @@ namespace Engine {
                         accNrm = nullptr;
                 }
 
-                // optional: TEXCOORD_0
+                // TEXCOORD_0
                 const tinygltf::Accessor* accUv = nullptr;
                 size_t strideUv = 0; const unsigned char* baseUv = nullptr;
-                if (auto it = prim.attributes.find("TEXCOORD_0"); it != prim.attributes.end()) {
+                if (auto it = prim.attributes.find("TEXCOORD_0"); it != prim.attributes.end())
+                {
                     accUv = &model.accessors[it->second];
                     if (accUv->type == TINYGLTF_TYPE_VEC2 && accUv->componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
                         baseUv = AccessPtr(model, *accUv, strideUv);
                     else
                         accUv = nullptr;
+
+                    EE_CORE_INFO("[GLTF] primitive hasUV0 = {}, vertices = {}", (accUv != nullptr), vCount);
                 }
 
+
+               
                 // build vertex array in your pipeline layout
                 std::vector<Vertex> verts(vCount);
                 glm::vec3 aabbMin(FLT_MAX), aabbMax(-FLT_MAX);
-                for (size_t i = 0; i < vCount; ++i) {
+                for (size_t i = 0; i < vCount; ++i)
+                {
                     Vertex v{};
                     v.pos = ReadVec3(basePos + i * stridePos);
                     if (accNrm) v.nrm = glm::normalize(ReadVec3(baseNrm + i * strideNrm));
                     else        v.nrm = glm::vec3(0, 1, 0);
-                    if (accUv) {
+                    
+                    if(accUv)
+                    {
                         v.uv = ReadVec2(baseUv + i * strideUv);
                         if (opts.flipV) v.uv.y = 1.0f - v.uv.y;
                     }
-                    else {
+                    else
+                    {
                         v.uv = glm::vec2(0);
                     }
                     verts[i] = v;
                     aabbMin = glm::min(aabbMin, v.pos);
                     aabbMax = glm::max(aabbMax, v.pos);
                 }
+
+                glm::vec2 uvMin(FLT_MAX);
+                glm::vec2 uvMax(-FLT_MAX);
+
+                for (size_t i = 0; i < vCount; ++i)
+                {
+                    uvMin = glm::min(uvMin, verts[i].uv);
+                    uvMax = glm::max(uvMax, verts[i].uv);
+                }
+
+                EE_CORE_INFO("[GLTF] UV range u:[{}..{}], v:[{}..{}]",
+                    uvMin.x, uvMax.x, uvMin.y, uvMax.y);
+
+
 
                 // indices
                 std::vector<uint32_t> indices;

@@ -7,19 +7,21 @@
 #include <Engine/Platform/Vulkan/VulkanShader.h>
 #include <Engine/Platform/Vulkan/VulkanBuffer.h>
 #include <Engine/Renderer/Camera.h>
+#include <Engine/Core/Core.h>
 
 namespace Engine {
 
-    struct InstanceDataGPU {
-        glm::mat4 world{ 1 };
-        glm::mat4 worldPrev{ 1 };
-        uint32_t  materialId = 0;
-        uint32_t  boneBase = 0xFFFFFFFFu; // 0xFFFFFFFFu => static
-        uint32_t  flags = 0;
-        uint32_t  objectId = 0;
-        uint32_t  s_meshID;
-
+    struct InstanceDataGPU
+    {
+        glm::mat4 world;
+        glm::mat4 worldPrev;
+        uint32_t  materialId;
+        uint32_t  boneBase;
+        uint32_t  flags;
+        uint32_t  objectId;
     };
+
+ 
 
 
     struct PendingDraw
@@ -42,6 +44,7 @@ namespace Engine {
         CameraUBO                    s_cameraData;
     };
 
+    class VulkanTexture;
     class MeshRegistry;
     class MaterialRegistry;
     class VulkanRenderer3D
@@ -52,6 +55,7 @@ namespace Engine {
         {
             VulkanBuffer cameraUBO;   // set=0, binding=0
             VulkanBuffer instanceSSBO; // set=0, binding=1
+            VulkanBuffer materialSSBO;
             VkDescriptorSet set0Global = VK_NULL_HANDLE;
         };
 
@@ -86,7 +90,10 @@ namespace Engine {
         VkDescriptorBufferInfo CameraInfo(uint32_t frame) const;
         VkDescriptorBufferInfo InstanceInfo(uint32_t frame) const;
 
-        bool Init3DBuffers(VkDevice device, uint32_t framesInFlight, uint32_t maxInstances, std::vector<Renderer3DPerFrame>& frames);
+        bool Init3DBuffers(VkDevice device, uint32_t framesInFlight, uint32_t maxInstances, uint32_t maxMaterials, std::vector<Renderer3DPerFrame>& frames);
+
+        void UploadMaterials(uint32_t frameIndex, const MaterialRegistry& materials);
+
 
         //static void Begin3DScene(const Camera& camera, const glm::mat4& transform);
 
@@ -116,6 +123,12 @@ namespace Engine {
         bool Allocate3DDescriptorSets(VkDescriptorPool pool);
 
 
+        static uint32_t RegisterAlbedoTexture(const Ref<VulkanTexture>& tex);
+
+        void UpdateAlbedoImageDesciptorsSet(uint32_t frame);
+
+
+
     private:
        inline void UpdateBuffer(const VulkanBuffer& buf, const void* src, VkDeviceSize bytes, VkDeviceSize dstOffset) const;
 
@@ -125,7 +138,8 @@ namespace Engine {
 
         static std::mutex s_mutex;
         static VulkanRenderer3DData s_Vulkan3DData;
-
+        static std::vector<VkDescriptorImageInfo> m_albedoImageInfos;
+        static std::vector<Ref<VulkanTexture>>      m_albedoTextures;
 
 
         Vulkan3DGraphicsPipeline m_3DPipeline;
@@ -139,7 +153,6 @@ namespace Engine {
         VkPhysicalDevice m_phys = VK_NULL_HANDLE;
         std::vector<Renderer3DPerFrame> m_frames;
         uint32_t m_maxInstances = 0;
-
 
         //remove
         VulkanVertexBuffer* vb;

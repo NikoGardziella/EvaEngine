@@ -104,6 +104,8 @@ constexpr size_t MAX_TILES_IN_CLEAR_BUFFER = 16;
 
 
 constexpr size_t MAX_3D_INSTANCES = 1024;
+constexpr size_t MAX_ALBEDO_TEXTURES = 32;
+constexpr size_t MAX_MATERIALS = 32;
 
 // ---- Dirty rect subdivision used by the shader (keep 16 here) ----
 static constexpr float DIRTY_CELLS_PER_TILE = 16.0f;

@@ -6,10 +6,14 @@
 #include "VulkanBuffer.h"
 #include <backends/imgui_impl_vulkan.h>
 #include "Engine/AssetManager/AssetManager.h"
+#include <Engine/Animation/3D/Import/GLTFImporter.h>
+#include <memory>
 
 namespace Engine {
 
     constexpr VkDeviceSize MAX_TEXTURE_MEMORY_BUDGET = 512 * 1024 * 1024; // 512 MB 
+
+  
 
     VulkanTexture::VulkanTexture(const std::string& path, VkFormat textureFormat,const std::string& name, bool imGuiTexture, uint32_t textureID)
 		: m_path(path), m_name(name), m_TextureID(textureID), m_textureFormat(textureFormat)
@@ -37,8 +41,12 @@ namespace Engine {
 		: m_width(width), m_height(height), m_TextureID(textureID), m_textureFormat(textureFormat)
     {
 
+        VkImageUsageFlags usage = VK_IMAGE_USAGE_STORAGE_BIT // for compute writes
+            | VK_IMAGE_USAGE_SAMPLED_BIT       // for  fragment shader
+            | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+            | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
-        CreateTextureImage();
+        CreateTextureImage(usage);
         CreateTextureImageView();
 
 
@@ -52,6 +60,87 @@ namespace Engine {
         }
         AssetManager::s_totalTextureMemory += m_memorySize;
     }
+
+    VulkanTexture::VulkanTexture(const TextureSource& src)
+    {
+        EE_CORE_ASSERT(src.data != nullptr, "TextureSource has no data");
+        EE_CORE_ASSERT(src.width > 0 && src.height > 0, "TextureSource invalid size");
+
+        // Choose format based on sRGB
+        m_textureFormat = VK_FORMAT_R8G8B8A8_UNORM;
+
+        SetWidth(src.width);
+        SetHeight(src.height);
+        SetName(src.debugName);
+
+        const int w = src.width;
+        const int h = src.height;
+
+        // Pack incoming channels to RGBA8 in CPU buffer
+        m_CPUpixelData.resize(size_t(w) * size_t(h) * 4);
+        uint8_t* dst = m_CPUpixelData.data();
+        const uint8_t* srcPixels = reinterpret_cast<const uint8_t*>(src.data);
+
+        if (src.channels == 4)
+        {
+             std::memcpy(dst, srcPixels, size_t(w) * size_t(h) * 4);
+            
+        }
+        else if (src.channels == 3)
+        {
+            for (int i = 0; i < w * h; ++i)
+            {
+                dst[4 * i + 0] = srcPixels[3 * i + 0];
+                dst[4 * i + 1] = srcPixels[3 * i + 1];
+                dst[4 * i + 2] = srcPixels[3 * i + 2];
+                dst[4 * i + 3] = 255;
+            }
+        }
+        else if (src.channels == 1)
+        {
+            for (int i = 0; i < w * h; ++i)
+            {
+                uint8_t g = srcPixels[i];
+                dst[4 * i + 0] = g;
+                dst[4 * i + 1] = g;
+                dst[4 * i + 2] = g;
+                dst[4 * i + 3] = 255;
+            }
+        }
+        else
+        {
+            EE_CORE_WARN("Unsupported channel count {} in TextureSource '{}'", src.channels, src.debugName);
+            std::fill(dst, dst + size_t(w) * size_t(h) * 4, 255);
+        }
+
+        // Create the GPU image with transfer + sampled usage
+        VkImageUsageFlags usage =
+            VK_IMAGE_USAGE_SAMPLED_BIT |
+            VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+            VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+
+        CreateTextureImage(usage);
+        CreateTextureImageView();
+        CreateTextureSampler();
+
+        // --- HERE: reuse your old transition+SetData pattern ---
+
+        // transition UNDEFINED -> SHADER_READ_ONLY_OPTIMAL (or to whatever your SetData expects)
+        VulkanUtils::TransitionImageLayout(
+            m_image,
+            m_textureFormat,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        // upload CPU pixels to GPU
+        const uint32_t byteCount = w * h * 4;
+        SetData(m_CPUpixelData.data(), byteCount);
+    }
+
+
+
 
 
 
@@ -175,7 +264,7 @@ namespace Engine {
 
 
 
-    void VulkanTexture::CreateTextureImage()
+    void VulkanTexture::CreateTextureImage(VkImageUsageFlags usage)
     {
 
         VulkanContext* vulkaContext = VulkanContext::Get();
@@ -195,10 +284,7 @@ namespace Engine {
         imageInfo.format = m_textureFormat;
         imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT // for compute writes
-            | VK_IMAGE_USAGE_SAMPLED_BIT       // for  fragment shader
-            | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-            | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        imageInfo.usage = usage;
         imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -342,7 +428,8 @@ namespace Engine {
         si.compareEnable = VK_FALSE;
         si.compareOp = VK_COMPARE_OP_ALWAYS;
 
-        if (vkCreateSampler(device, &si, nullptr, &m_sampler) != VK_SUCCESS) {
+        if (vkCreateSampler(device, &si, nullptr, &m_sampler) != VK_SUCCESS)
+        {
             EE_CORE_ERROR("failed to create chunk texture sampler!");
         }
     }
