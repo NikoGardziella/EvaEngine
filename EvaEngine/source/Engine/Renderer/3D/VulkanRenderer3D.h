@@ -102,7 +102,7 @@ namespace Engine {
 
         void UpdateInstances(uint32_t frame,  const glm::mat4* worlds, uint32_t count);
 
-        static void Begin3DScene(const glm::mat4& projection, const  glm::mat4& view, const glm::mat4& cameraWorld);
+        static void Begin3DScene(const glm::mat4& projection, const  glm::mat4& view);
 
         // Call once per frame, before any Submit* calls
 

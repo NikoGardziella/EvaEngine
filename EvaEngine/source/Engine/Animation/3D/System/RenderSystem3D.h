@@ -12,7 +12,7 @@ namespace Engine {
 	class RenderSystem3D
 	{
 	public:
-		void Render(const VisibleSet& vis, const Camera& cam, Scene* scene, const TransformSystem3D& xforms, const MeshRegistry& meshes, const MaterialRegistry& materials);
+		void Render(const VisibleSet& vis, Scene* scene, const TransformSystem3D& xforms, const MeshRegistry& meshes, const MaterialRegistry& materials);
 	};
 
 }

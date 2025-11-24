@@ -451,7 +451,7 @@ namespace Engine {
         entity3D.AddComponent<TransformComponent>();
         entity3D.AddComponent<RenderBoundsComponent>();
         */
-        SpawnMeshGrid(this, 0, 1,2, 2);
+        SpawnMeshGrid(this, 0, 100,10, 2);
     }
 
 
@@ -529,9 +529,10 @@ namespace Engine {
 
        
 
-        Camera* mainCamera = nullptr;
+       // Camera* mainCamera = nullptr;
         CameraComponent& mainCameraComp = CameraComponent{};
         glm::mat4 cameraTransform;
+        glm::mat4 cameraView;
         {
             EE_PROFILE_SCOPE("Get Update Runtime Camera");
 
@@ -543,9 +544,10 @@ namespace Engine {
 
                     if (camera.Primary)
                     {
-                        mainCamera = &camera.Camera;
+                        //mainCamera = &camera.Camera;
                         cameraTransform = transform.GetTransform();
 						mainCameraComp = camera;
+                        cameraView = glm::inverse(cameraTransform);
                         break;
                     }
                 }
@@ -596,20 +598,20 @@ namespace Engine {
 
 
 
-        if(mainCamera)
+        //if(mainCameraComp.Camera != entt::null)
         {   
 
 
-            VisibleSet& visibleSet = m_cullingSystem3D->BuildVisible(this, *mainCamera, *m_transformSystem3D, cameraTransform);
+            VisibleSet& visibleSet = m_cullingSystem3D->BuildVisible(this, mainCameraComp.Camera, *m_transformSystem3D, cameraTransform);
 
-            m_renderSystem3D.Render(visibleSet, *mainCamera, this, *m_transformSystem3D,
+            m_renderSystem3D.Render(visibleSet, this, *m_transformSystem3D,
                 AssetManager::GetMeshRegistry(), AssetManager::GetMaterialRegistry());
 
 
             //Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
-            Engine::VulkanRenderer2D::BeginScene(mainCamera->GetProjection(), cameraTransform);
+            Engine::VulkanRenderer2D::BeginScene(mainCameraComp.Camera.GetProjection(), cameraTransform);
 
-            Engine::VulkanRenderer3D::Begin3DScene(mainCamera->GetProjection(),mainCamera->GetView(), cameraTransform);
+            Engine::VulkanRenderer3D::Begin3DScene(mainCameraComp.Camera.GetProjection(),cameraView);
 
             glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 
@@ -859,8 +861,7 @@ namespace Engine {
                                 }
 
                                 {
-                                    glm::mat4 view = glm::inverse(cameraTransform);
-                                    glm::mat4 proj = mainCamera->GetProjection();
+                                    glm::mat4 proj = mainCameraComp.Camera.GetProjection();
                                     
                                     glm::vec2 entityPos = glm::vec2(transform.Translation.x, transform.Translation.y);
                                     glm::vec2 entityHalfSize = glm::vec2(transform.Scale.x, transform.Scale.y) * 0.5f;

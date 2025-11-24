@@ -25,11 +25,6 @@ layout(set=0, binding=0) uniform CameraUBO {
 // Per-instance data (vertex stage only)
 struct Instance {
     mat4 world;
-    mat4 worldPrev;
-    uint materialId;
-    uint boneBase;
-    uint flags;
-    uint objectId;
 };
 
 layout(std430, set=0, binding=1) readonly buffer InstanceData {

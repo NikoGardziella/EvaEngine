@@ -13,7 +13,7 @@
 namespace Engine {
 
 
-    void RenderSystem3D::Render(const VisibleSet& vis, const Camera& cam, Scene* scene,
+    void RenderSystem3D::Render(const VisibleSet& vis,Scene* scene,
         const TransformSystem3D& xforms, const MeshRegistry& meshes, const MaterialRegistry& materials)
     {
         EE_PROFILE_FUNCTION();

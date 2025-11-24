@@ -290,16 +290,16 @@ namespace Engine {
         UpdateBuffer(m_frames[frame].instanceSSBO, worlds, bytes, 0);
     }
 
-    void VulkanRenderer3D::Begin3DScene(const  glm::mat4& projection, const  glm::mat4& view, const glm::mat4& cameraWorld)
+    void VulkanRenderer3D::Begin3DScene(const  glm::mat4& projection, const  glm::mat4& view)
     {
         EE_PROFILE_FUNCTION();
 
   
-        const glm::mat4 V = glm::inverse(cameraWorld);
+        //const glm::mat4 V = glm::inverse(cameraWorld);
   
 
         s_Vulkan3DData.s_cameraData.uProj = projection;
-        s_Vulkan3DData.s_cameraData.uView = V;
+        s_Vulkan3DData.s_cameraData.uView = view;
 
 
     }
@@ -386,6 +386,8 @@ namespace Engine {
         // std::sort(s_Vulkan3DData.s_draws.begin(), s_Vulkan3DData.s_draws.end(),
         //           [](const PendingDraw& a, const PendingDraw& b){ return a.submeshIndex < b.submeshIndex; });
 
+        /*
+        */
         for (const PendingDraw& d : s_Vulkan3DData.s_draws)
         {
             // push constants: {instanceIndex, materialId, submeshId, flags}
