@@ -150,17 +150,6 @@ namespace Engine {
 		std::array<glm::vec2, 2> m_viewportBounds = { glm::vec2(0, 0), glm::vec2(1, 1) };
 
 
-		b2WorldId m_worldId;
-		//Structure of arrays
-		struct RenderSOA
-		{
-			std::vector<glm::mat4> InstanceTransforms;
-			std::vector<glm::vec4> Color;
-			std::vector<b2BodyId> BodyIds;
-		};
-		RenderSOA m_renderSOA;
-
-		PhysicsTaskScheduler m_physicsTaskScheduler;
 
 		std::vector<std::function<void(float, Scene*)>> m_gameplaySystems;
 

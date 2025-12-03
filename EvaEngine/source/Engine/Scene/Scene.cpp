@@ -344,100 +344,7 @@ namespace Engine {
 
     void Scene::OnRunTimeStart()
     {
-        b2Vec2 gravity{};
-        gravity.x = 0.0f;
-        gravity.y = -9.8f;
-        b2WorldDef worldDef = b2DefaultWorldDef();;
-        worldDef.workerCount = std::thread::hardware_concurrency(); // Use max available threads
-        worldDef.enqueueTask = &PhysicsTaskScheduler::EnqueueTask;
-        worldDef.finishTask = &PhysicsTaskScheduler::FinishTask;
-        worldDef.userTaskContext = &m_physicsTaskScheduler;
-        worldDef.gravity = gravity;
-
-        m_worldId = b2CreateWorld(&worldDef);
-       
-
-        auto view = m_registry.view<RigidBody2DComponent>();
-
-        m_renderSOA.Color.reserve(view.size());
-        m_renderSOA.InstanceTransforms.reserve(view.size());
-        m_renderSOA.BodyIds.reserve(view.size());
-        size_t index = 0;
-        for (auto e : view)
-        {
-            Entity entity = { e, this };
-            auto& transformComp = entity.GetComponent<TransformComponent>();
-            auto& rb2dComp = entity.GetComponent<RigidBody2DComponent>();
-
-            b2BodyDef bodyDef = b2DefaultBodyDef();
-            bodyDef.type = Rigidbody2dTypeToBox2D(rb2dComp.Type);
-            b2Vec2 position;
-            position.x = transformComp.Translation.x;
-            position.y = transformComp.Translation.y;
-            bodyDef.position = position;
-
-            float angle = transformComp.Rotation.z; // Assuming Rotation.z holds the rotation in radians
-            bodyDef.rotation.c = std::cos(angle);
-            bodyDef.rotation.s = std::sin(angle);
-            
-        
-            bodyDef.fixedRotation = rb2dComp.FixedRotation;
-            
-            b2BodyId bodyId = b2CreateBody(m_worldId, &bodyDef);
-
-            rb2dComp.RuntimeBody = bodyId;
-
-            if (entity.HasComponent<BoxCollider2DComponent>())
-            {
-                auto& colliderComp = entity.GetComponent<BoxCollider2DComponent>();
-                b2ShapeDef shapeDef = b2DefaultShapeDef();
-                shapeDef.density = colliderComp.Density;
-                shapeDef.friction = colliderComp.Friction;
-                shapeDef.restitution = colliderComp.Restitution;
-
-                b2Polygon dynamicBox = b2MakeBox(colliderComp.Size.x * transformComp.Scale.x , colliderComp.Size.y * transformComp.Scale.y);
-                
-                b2ShapeId boxShapeID = b2CreatePolygonShape(bodyId, &shapeDef, &dynamicBox);
-                colliderComp.shapeID = boxShapeID;
-            }
-            if(entity.HasComponent<CircleCollider2DComponent>())
-            {
-                auto& colliderComp = entity.GetComponent<CircleCollider2DComponent>();
-
-                b2ShapeDef shapeDef = b2DefaultShapeDef();
-                shapeDef.density = colliderComp.Density;
-                shapeDef.friction = colliderComp.Friction;
-                shapeDef.restitution = colliderComp.Restitution;
-
-                // Define a circle shape (instead of using an AABB)
-                b2Circle circleShape;
-                circleShape.radius = colliderComp.Radius * transformComp.Scale.x;
-                b2Vec2 center;
-                center.x = colliderComp.Offset.x;
-                center.y = colliderComp.Offset.y;
-                circleShape.center = center;
-
-                b2ShapeId circleShapeID = b2CreateCircleShape(bodyId, &shapeDef, &circleShape);
-                colliderComp.shapeID = circleShapeID;
-            }
-
-            m_renderSOA.InstanceTransforms.push_back(transformComp.GetTransform());
-
-            
-            m_renderSOA.BodyIds.push_back(bodyId);
-            if (entity.HasComponent<SpriteRendererComponent>())
-            {
-                auto& spriteComp = entity.GetComponent<SpriteRendererComponent>();
-
-                m_renderSOA.Color.push_back(spriteComp.Color);
-            }
-            else
-            {
-                m_renderSOA.Color.push_back(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-            }
-            index++;
-        }
+     
 
 
 
@@ -477,15 +384,12 @@ namespace Engine {
 
     void Scene::OnRunTimeStop()
     {
-        b2DestroyWorld(m_worldId);
-
 
         m_textureStreamingSystem->UnloadAllChunks(this);
     }
 
     void Scene::PauseRuntime()
     {
-        b2BodyEvents bodyEvents = b2World_GetBodyEvents(m_worldId);
 
         // TODO save all velocities and add them on resume
     }

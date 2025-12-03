@@ -95,11 +95,13 @@ namespace Engine {
         msCI.sampleShadingEnable = VK_FALSE;
 
         // --- Depth/Stencil ---
-        VkPipelineDepthStencilStateCreateInfo dsCI{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
-        dsCI.depthTestEnable = rs.depthTest;
-        dsCI.depthWriteEnable = rs.depthWrite;
-        dsCI.depthCompareOp = rs.depthCompare;
-        dsCI.stencilTestEnable = VK_FALSE;
+        VkPipelineDepthStencilStateCreateInfo depthStencil{};
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = VK_TRUE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;  // or LESS_OR_EQUAL
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.stencilTestEnable = VK_FALSE;
 
         // --- Color blending ---
         std::vector<VkPipelineColorBlendAttachmentState> atts(ci.colorAttachmentCount);
@@ -125,7 +127,7 @@ namespace Engine {
         gpCI.pViewportState = &vpCI;
         gpCI.pRasterizationState = &rsCI;
         gpCI.pMultisampleState = &msCI;
-        gpCI.pDepthStencilState = &dsCI;
+        gpCI.pDepthStencilState = &depthStencil;
         gpCI.pColorBlendState = &cbCI;
         gpCI.pDynamicState = &dynCI;
         gpCI.layout = m_layout;

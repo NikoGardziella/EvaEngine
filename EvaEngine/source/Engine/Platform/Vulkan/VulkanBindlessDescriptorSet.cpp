@@ -984,30 +984,91 @@ namespace Engine {
 
         VkDevice device = m_device;
         const size_t expected = size_t(width) * size_t(height) * 4;
-        EE_CORE_ASSERT(numBytes >= expected, "Upload size too small");
+        if (!dstImage)
+        {
+            EE_CORE_ERROR("UploadToArrayLayerViaStaging_ST: dstImage is null");
+            return;
+        }
+
+        if (width == 0 || height == 0)
+        {
+            EE_CORE_ERROR("UploadToArrayLayerViaStaging_ST: width/height are zero (w={}, h={})",
+                width, height);
+            return;
+        }
+
+        if (numBytes < expected)
+        {
+            EE_CORE_ERROR("UploadToArrayLayerViaStaging_ST: upload size too small. numBytes={}, expected={}",
+                numBytes, expected);
+            return;
+        }
 
         // 1) staging buffer
         VkBuffer staging = VK_NULL_HANDLE;
         VkDeviceMemory stagingMem = VK_NULL_HANDLE;
 
         VkBufferCreateInfo bc = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-        bc.size = expected; bc.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; bc.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        EE_CORE_ASSERT(vkCreateBuffer(device, &bc, nullptr, &staging) == VK_SUCCESS, "Create staging failed");
+        bc.size = expected;
+        bc.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        bc.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-        VkMemoryRequirements req; vkGetBufferMemoryRequirements(device, staging, &req);
-        uint32_t typeIndex = VulkanContext::Get()->FindMemoryType(req.memoryTypeBits,
+        VkResult res = vkCreateBuffer(device, &bc, nullptr, &staging);
+        if (res != VK_SUCCESS) 
+        {
+            EE_CORE_ERROR("UploadToArrayLayerViaStaging_ST: vkCreateBuffer failed (res={}) for size={}", (int)res, (unsigned long long)expected);
+            return;
+        }
+
+        VkMemoryRequirements req{};
+        vkGetBufferMemoryRequirements(device, staging, &req);
+
+        uint32_t typeIndex = VulkanContext::Get()->FindMemoryType(
+            req.memoryTypeBits,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-        VkMemoryAllocateInfo ai = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-        ai.allocationSize = req.size; ai.memoryTypeIndex = typeIndex;
-        EE_CORE_ASSERT(vkAllocateMemory(device, &ai, nullptr, &stagingMem) == VK_SUCCESS, "Alloc staging failed");
-        EE_CORE_ASSERT(vkBindBufferMemory(device, staging, stagingMem, 0) == VK_SUCCESS, "Bind staging failed");
+        if (typeIndex == UINT32_MAX)
+        {
+            EE_CORE_ERROR("UploadToArrayLayerViaStaging_ST: no suitable memory type");
+            vkDestroyBuffer(device, staging, nullptr);
+            return;
+        }
 
-        void* mapped = nullptr;
-        EE_CORE_ASSERT(vkMapMemory(device, stagingMem, 0, expected, 0, &mapped) == VK_SUCCESS, "Map staging failed");
-        std::memcpy(mapped, srcData, expected);
+        VkMemoryAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+        allocInfo.allocationSize = req.size;
+        allocInfo.memoryTypeIndex = typeIndex;
+
+        res = vkAllocateMemory(device, &allocInfo, nullptr, &stagingMem);
+        if (res != VK_SUCCESS)
+        {
+            EE_CORE_ERROR("UploadToArrayLayerViaStaging_ST: vkAllocateMemory failed (res={}), size={}",
+                (int)res, (unsigned long long)req.size);
+            vkDestroyBuffer(device, staging, nullptr);
+            return;
+        }
+
+        res = vkBindBufferMemory(device, staging, stagingMem, 0);
+        if (res != VK_SUCCESS)
+        {
+            EE_CORE_ERROR("UploadToArrayLayerViaStaging_ST: vkBindBufferMemory failed (res={})", (int)res);
+            vkFreeMemory(device, stagingMem, nullptr);
+            vkDestroyBuffer(device, staging, nullptr);
+            return;
+        }
+
+        // 2) upload data
+        void* dstPtr = nullptr;
+        res = vkMapMemory(device, stagingMem, 0, expected, 0, &dstPtr);
+        if (res != VK_SUCCESS)
+        {
+            EE_CORE_ERROR("UploadToArrayLayerViaStaging_ST: vkMapMemory failed (res={})", (int)res);
+            vkFreeMemory(device, stagingMem, nullptr);
+            vkDestroyBuffer(device, staging, nullptr);
+            return;
+        }
+
+        std::memcpy(dstPtr, srcData, expected);
         vkUnmapMemory(device, stagingMem);
-
         // 2) begin one-off CB
         VkCommandBuffer cmd = VulkanContext::Get()->BeginSingleTimeCommands();
 
