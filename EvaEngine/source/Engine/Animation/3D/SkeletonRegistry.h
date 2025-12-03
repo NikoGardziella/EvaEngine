@@ -20,7 +20,6 @@ namespace Engine {
 
 
     public:
-        uint32_t LoadGLTFSkeleton(const char* path);
 
         const SkeletonAsset& SkeletonRegistry::Get(uint32_t id) const
         {

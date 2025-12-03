@@ -11,6 +11,7 @@
 #include <Engine/Scene/Components/Vehicles/VehicleComponent.h>
 #include <Engine/Scene/Components/Vehicles/DriverComponent.h>
 #include <Engine/Scene/Scene.h>
+#include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 
 void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime, Engine::Scene* scene)
 {
@@ -34,10 +35,10 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
 
     Engine::Entity playerEntity;
     scene->ForEach<Engine::TransformComponent, CharacterControllerComponent>(
-        [&](Engine::Entity e,  Engine::TransformComponent& playerTransformComp,
+        [&](Engine::Entity playerEntity,  Engine::TransformComponent& playerTransformComp,
             CharacterControllerComponent& controller)
         {
-            playerEntity = e;
+            playerEntity = playerEntity;
 
             glm::vec2 diff = mouseWorldPosition - glm::vec2(playerTransformComp.Translation);
             if (glm::length(diff) > 0.0001f)
@@ -55,6 +56,22 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
             if (Engine::Input::IsKeyPressed(Engine::Key::S)) inputVelocity.y -= 1.0f;
 
             
+            if (playerEntity.HasComponent<Engine::AnimatorComponent>())
+            {
+                Engine::AnimatorComponent& playerAnimComp = playerEntity.GetComponent<Engine::AnimatorComponent>();
+
+                if (inputVelocity.x != 0.0f || inputVelocity.y != 0.0f)
+                {
+                    playerAnimComp.clipA = 0;
+                }
+                else
+                {
+                    playerAnimComp.clipA = 1;
+                }
+
+
+            }
+
             if (playerEntity.HasComponent<DriverComponent>()) 
             {
                 auto& driver = playerEntity.GetComponent<DriverComponent>();

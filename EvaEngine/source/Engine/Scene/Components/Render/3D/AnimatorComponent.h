@@ -15,5 +15,9 @@ namespace Engine {
         uint32_t transitionId = 0xFFFFFFFFu;
         float playbackSpeed = 1.0f;
         uint8_t useRootMotion = 1;
+
+        //TOdo update the animations less when they are further
+        uint8_t  updateRate = 1;
+        uint8_t  frameCounter = 0; 
     };
 }

@@ -5,9 +5,6 @@
 namespace Engine {
 
 
-    uint32_t SkeletonRegistry::LoadGLTFSkeleton(const char* path)
-    {
-        return 0;
-    }
+  
 
 }

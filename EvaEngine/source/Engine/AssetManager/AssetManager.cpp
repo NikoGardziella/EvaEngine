@@ -852,11 +852,7 @@ namespace Engine {
             EE_CORE_ERROR("[GLTF] Import failed: {} ({})", path, res.report.message);
             return kInvalidMeshId; // or MeshId{}
         }
-        if (res.meshId == kInvalidMeshId)
-        {
-            EE_CORE_ERROR("[GLTF] Import returned invalid MeshId for {}", path);
-            return kInvalidMeshId;
-        }
+        
 
         // 4) create ONE VB/IB from aggregated data
         const uint32_t vbBytes = static_cast<uint32_t>(agg.allVerts.size() * sizeof(Vertex));
@@ -864,7 +860,7 @@ namespace Engine {
 
         if (vbBytes == 0 || ibCount == 0)
         {
-            EE_CORE_ERROR("[GLTF] No vertices/indices produced for {}", path);
+            EE_CORE_INFO("[GLTF] No vertices/indices produced for {}", path);
             return kInvalidMeshId;
         }
 
@@ -890,8 +886,7 @@ namespace Engine {
         //                                    std::unique_ptr<VulkanIndexBuffer>(ib) };
 
         EE_CORE_INFO("[GLTF] Imported '{}' -> meshId={}, verts={}, indices={}, submeshes={}",
-            path, res.meshId,  m.vertexCount, m.indexCount,
-            (uint32_t)m.submeshes.size());
+            path, res.meshId,  m.vertexCount, m.indexCount, (uint32_t)m.submeshes.size());
 
         return res.meshId;
     }

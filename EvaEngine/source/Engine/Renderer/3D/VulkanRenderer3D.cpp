@@ -86,7 +86,9 @@ namespace Engine {
 
 
         //Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/trafficPolice1.glb");
-        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/HumanAnimations.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/playerMesh.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/playerAnimRun.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/playerAnimIdle.glb");
         //Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/Engineer.glb");
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -119,7 +121,7 @@ namespace Engine {
         VkDescriptorSetLayoutBinding albedoArray{};
         albedoArray.binding = 2;
         albedoArray.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        albedoArray.descriptorCount = 1; // bindless-style array in the shader side (sampler2D uAlbedo[])
+        albedoArray.descriptorCount = MAX_ALBEDO_TEXTURES;
         albedoArray.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         albedoArray.pImmutableSamplers = nullptr;
 
@@ -574,6 +576,22 @@ namespace Engine {
             wMat.pBufferInfo = &matInfo;
             writes.push_back(wMat);
 
+
+            VkDescriptorBufferInfo bonesInfo{};
+            bonesInfo.buffer = m_frames[i].bonePaletteSSBO.GetBuffer();
+            bonesInfo.offset = 0;
+            bonesInfo.range = m_frames[i].bonePaletteSSBO.size;
+
+
+            VkWriteDescriptorSet wBones{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+            wBones.dstSet = m_frames[i].set0Global;
+            wBones.dstBinding = 4;
+            wBones.dstArrayElement = 0;
+            wBones.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            wBones.descriptorCount = 1;
+            wBones.pBufferInfo = &bonesInfo;
+            writes.push_back(wBones);
+
             vkUpdateDescriptorSets(m_device,
                 (uint32_t)writes.size(),
                 writes.data(),
@@ -606,24 +624,23 @@ namespace Engine {
 
     void VulkanRenderer3D::UpdateAlbedoImageDesciptorsSet(uint32_t frame)
     {
-       
-        // If descriptor sets are already allocated, update this one slot in the array
-        for (uint32_t i = 0; i < m_albedoImageInfos.size(); ++i)
-        {
-            if (m_frames[frame].set0Global == VK_NULL_HANDLE)
-                continue; // not allocated yet
+        if (m_frames[frame].set0Global == VK_NULL_HANDLE)
+            return;
 
-            VkWriteDescriptorSet w{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-            w.dstSet = m_frames[frame].set0Global;
-            w.dstBinding = 2;               // binding for uAlbedoArray[]
-            w.dstArrayElement = i;           // this array index
-            w.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            w.descriptorCount = 1;
-            w.pImageInfo = &m_albedoImageInfos[i];
+        if (m_albedoImageInfos.empty())
+            return;
 
-            vkUpdateDescriptorSets(m_device, 1, &w, 0, nullptr);
-        }
+        VkWriteDescriptorSet w{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        w.dstSet = m_frames[frame].set0Global;
+        w.dstBinding = 2; // uAlbedo[]
+        w.dstArrayElement = 0;
+        w.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        w.descriptorCount = static_cast<uint32_t>(m_albedoImageInfos.size());
+        w.pImageInfo = m_albedoImageInfos.data();
+
+        vkUpdateDescriptorSets(m_device, 1, &w, 0, nullptr);
     }
+
 
     void VulkanRenderer3D::UpdateBonePaletteDesciptorsSet(uint32_t frame)
     {

@@ -277,15 +277,9 @@ namespace Engine {
         return false;
     }
 
-    // Spawns N instances of meshId on a grid.
- // perRow: how many per row (10 -> 10x10 for 100)
- // spacing: world-unit spacing between instances
-    static void SpawnMeshGrid(Engine::Scene* scene,
-        uint32_t meshId = 0,
-        uint32_t count = 100,
-        uint32_t perRow = 10,
-        float spacing = 2.0f,
-        const glm::vec3& origin = glm::vec3(0.0f))
+
+    static void SpawnMeshGrid(Engine::Scene* scene, uint32_t meshId = 0,  uint32_t count = 100,
+        uint32_t perRow = 10, float spacing = 2.0f, const glm::vec3& origin = glm::vec3(0.0f))
     {
         const MeshAsset& meshAsset = AssetManager::GetMeshFromMeshRegistry(meshId);
         const uint32_t submeshCount = (uint32_t)meshAsset.submeshes.size();
@@ -334,8 +328,8 @@ namespace Engine {
             skel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
 
 
-            uint32_t testClip = 30;
-            uint32_t testClipB = 0xFFFFFFFFu;
+            uint32_t testClip = 1;
+            uint32_t testClipB = 0;
             // Attach animator
             auto& anim = entity.AddComponent<AnimatorComponent>();
             anim.clipA = testClip;           
@@ -472,15 +466,7 @@ namespace Engine {
         
 
         Entity entity3D = this->CreateEntity();
-        /*
-        MeshRefComponent& meshComp = entity3D.AddComponent<MeshRefComponent>();
-        meshComp.meshId = 0; 
-        meshComp.submeshFirst = 0;
-        meshComp.submeshCount = meshAsset.submeshes.size();
-
-        entity3D.AddComponent<TransformComponent>();
-        entity3D.AddComponent<RenderBoundsComponent>();
-        */
+  
 
         SpawnMeshGrid(this,0, 10,10, 2);
     }
@@ -620,6 +606,45 @@ namespace Engine {
                // Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
                 Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
             }
+
+            if (!playerEntity.HasComponent<AnimatorComponent>())
+            {
+                uint32_t meshId = 0;
+                const MeshAsset& meshAsset = AssetManager::GetMeshFromMeshRegistry(meshId);
+                const uint32_t submeshCount = (uint32_t)meshAsset.submeshes.size();
+
+
+                auto& meshComp = playerEntity.AddComponent<MeshRefComponent>();
+                meshComp.meshId = meshId;
+                meshComp.submeshFirst = 0;
+                meshComp.submeshCount = submeshCount;
+
+             
+
+                RenderBoundsComponent& renderBoundsComp = playerEntity.AddComponent<RenderBoundsComponent>();
+                renderBoundsComp.maxL = meshAsset.maxL;
+                renderBoundsComp.minL = meshAsset.minL;
+
+                uint32_t skeletonId = 0;
+                auto& skel = playerEntity.AddComponent<SkeletonComponent>();
+                skel.skeletonId = skeletonId;      // returned by importer
+                skel.boneCount = AssetManager::GetSkeletonRegistry().Get(skeletonId).parent.size();
+                skel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
+
+
+                uint32_t testClip = 1;
+                uint32_t testClipB = 0;
+                // Attach animator
+                auto& anim = playerEntity.AddComponent<AnimatorComponent>();
+                anim.clipA = testClip;
+                anim.clipB = testClipB;
+                anim.timeA = 0.0f;
+                anim.blend = 0.0f;                 // only clipA
+                anim.playbackSpeed = 1.0f;
+            }
+            
+
+
         }
         m_textureStreamingSystem->Update(playerPos, this);
 

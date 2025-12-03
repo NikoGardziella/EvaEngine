@@ -107,7 +107,7 @@ layout(push_constant) uniform PC {
 } pc;
 
 // Albedo texture (right now a single sampler; you can later make it an array)
-layout(set = 0, binding = 2) uniform sampler2D uAlbedo;
+layout(set = 0, binding = 2) uniform sampler2D uAlbedo[]; 
 
 struct Material {
     uint baseColorTex;
@@ -125,10 +125,14 @@ layout(std430, set = 0, binding = 3) readonly buffer MaterialBuffer {
     Material materials[];
 } gMaterials;
 
+layout(std430, set=0, binding=4) readonly buffer BonePalette {
+    mat4 uBones[];
+};
+
 layout(location = 0) in  vec3 vNrmW;
 layout(location = 1) in  vec2 vUV;
 layout(location = 2) in  vec3 vPosW;
-// location = 3 (vBoneIdNorm) can exist in VS, but we just don't use it here
+
 
 layout(location = 0) out vec4 outColor;
 
@@ -141,11 +145,15 @@ void main()
     float ndl = max(dot(N, L), 0.0);
 
     vec2 uv = clamp(vUV, 0.0, 1.0);
-    vec4 texColor = texture(uAlbedo, uv);
+
+    // use baseColorTex as index into the array
+    uint texIndex = mat.baseColorTex;
+
+    // nonuniformEXT so the compiler knows it varies per-fragment
+    vec4 texColor = texture(uAlbedo[nonuniformEXT(texIndex)], uv);
 
     vec4 baseColor = texColor * mat.baseColorFactor;
 
-    // simple lambert-ish light
     vec3 lit = baseColor.rgb * (0.2 + 0.8 * ndl);
     outColor = vec4(lit, baseColor.a);
 }

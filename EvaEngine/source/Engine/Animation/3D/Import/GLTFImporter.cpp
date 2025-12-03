@@ -78,10 +78,8 @@ namespace Engine {
         default: out.clear(); break;
         }
     }
-    static uint32_t RegisterMaterial(const tinygltf::Model& model,
-        const tinygltf::Material& m,
-        const GLTFImportOptions& opts,
-        MaterialRegistry& matReg)
+    static uint32_t RegisterMaterial(const tinygltf::Model& model, const tinygltf::Material& m,
+        const GLTFImportOptions& opts, MaterialRegistry& matReg)
     {
         MaterialGPU mgpu{};
 
@@ -150,20 +148,16 @@ namespace Engine {
         // ---- bind textures to slots ----
 
         // baseColor / albedo
-        mgpu.baseColorTex =
-            loadTex(m.pbrMetallicRoughness.baseColorTexture.index, true);
+        mgpu.baseColorTex = loadTex(m.pbrMetallicRoughness.baseColorTexture.index, true);
 
         // metallic+roughness (ORM) packed texture, usually R=occlusion, G=roughness, B=metallic
-        mgpu.ormTex =
-            loadTex(m.pbrMetallicRoughness.metallicRoughnessTexture.index, false);
+        mgpu.ormTex = loadTex(m.pbrMetallicRoughness.metallicRoughnessTexture.index, false);
 
         // normal map
-        mgpu.normalTex =
-            loadTex(m.normalTexture.index, false);
+        mgpu.normalTex = loadTex(m.normalTexture.index, false);
 
         // emissive map
-        mgpu.emissiveTex =
-            loadTex(m.emissiveTexture.index, true);
+        mgpu.emissiveTex = loadTex(m.emissiveTexture.index, true);
 
         // ---- register into your material registry ----
         MaterialAsset asset{};
@@ -523,16 +517,29 @@ namespace Engine {
             }
         }
 
-        if (!meshAsset.submeshes.empty())
+        bool hasAnimation = !R.clipIds.empty();
+        bool hasSkeleton = (R.skeletonId != 0xFFFFFFFFu);
+        bool hasMesh = !meshAsset.submeshes.empty();
+
+        if (hasMesh)
         {
+            // Mesh file with possible animations
             R.meshId = meshReg.Register(meshAsset);
             R.report.ok = true;
-            R.report.message = "Imported: " + path;
+            R.report.message = "Imported mesh (and animations): " + path;
         }
-        else
+        else if (hasAnimation || hasSkeleton)
         {
+            // Animation-only or skeleton-only file  still valid!
+            R.meshId = kInvalidMeshId; // no mesh
+            R.report.ok = true;
+            R.report.message = "Imported animation/skeleton only: " + path;
+        }
+        else 
+        {
+            // Nothing usable
             R.report.ok = false;
-            R.report.message = "No TRIANGLES primitives found in: " + path;
+            R.report.message = "No mesh, skeleton, or animation found in: " + path;
         }
         return R;
     }
