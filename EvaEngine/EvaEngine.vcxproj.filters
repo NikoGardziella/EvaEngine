@@ -1864,6 +1864,7 @@
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
     <ClInclude Include="vendor\stb_image\stb_image_write.h" />
+    <ClInclude Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2146,6 +2147,7 @@
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">

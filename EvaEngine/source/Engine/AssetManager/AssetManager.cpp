@@ -29,8 +29,10 @@ namespace Engine {
     std::unordered_map<eTileCategory, std::unordered_map<eTileMaterial, std::vector<std::string>>> AssetManager::s_tileNamesByCategoryAndMaterial;
 
     Ref<VulkanTexture> AssetManager::s_tileTextureIconAtlas;
-    MeshRegistry AssetManager::m_meshRegistry;
-    MaterialRegistry AssetManager::m_materialRegistry;
+    MeshRegistry AssetManager::s_meshRegistry;
+    MaterialRegistry AssetManager::s_materialRegistry;
+    Ref<AnimationRegistry> AssetManager::s_animationRegistry;
+    Ref<SkeletonRegistry> AssetManager::s_skeletonRegistry;
 
 
     void AssetManager::Initialize(int maxDepth)
@@ -58,7 +60,8 @@ namespace Engine {
             EE_CORE_WARN("Could not find asset folder within {} parent levels!", maxDepth);
         }
 
-       
+        s_skeletonRegistry = std::make_shared<SkeletonRegistry>();
+        s_animationRegistry = std::make_shared<AnimationRegistry>(s_skeletonRegistry);
     }
 
     std::filesystem::path AssetManager::GetAssetPath(const std::string& subPath)
@@ -843,7 +846,7 @@ namespace Engine {
         GLTFImportOptions opts = MakeDefaultGLTFOpts(agg, /*flipV=*/false, /*genFlatNormalsIfMissing=*/true);
 
         // 3) run import (fills MeshAsset with SubmeshRanges; materials registered)
-        auto res = imp.Import(path, m_meshRegistry, m_materialRegistry, opts);
+        GLTFImportResult res = imp.Import(path, s_meshRegistry, s_materialRegistry, *s_skeletonRegistry, *s_animationRegistry, opts);
         if (!res.report.ok)
         {
             EE_CORE_ERROR("[GLTF] Import failed: {} ({})", path, res.report.message);
@@ -859,7 +862,8 @@ namespace Engine {
         const uint32_t vbBytes = static_cast<uint32_t>(agg.allVerts.size() * sizeof(Vertex));
         const uint32_t ibCount = static_cast<uint32_t>(agg.allIdx.size());
 
-        if (vbBytes == 0 || ibCount == 0) {
+        if (vbBytes == 0 || ibCount == 0)
+        {
             EE_CORE_ERROR("[GLTF] No vertices/indices produced for {}", path);
             return kInvalidMeshId;
         }
@@ -871,7 +875,7 @@ namespace Engine {
         AssetManagerUtils::ComputeLocalAABB(agg.allVerts, outMinL, outMaxL);
 
         // 5) attach buffers to the mesh asset
-        MeshAsset& m = m_meshRegistry.Get(res.meshId);
+        MeshAsset& m = s_meshRegistry.Get(res.meshId);
         m.vertexBuffer = vb->GetBuffer();
         m.indexBuffer = ib->GetBuffer();
         m.vbOffset = 0;

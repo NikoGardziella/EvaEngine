@@ -23,6 +23,8 @@ namespace Engine {
         if (boneBase + boneCount > m_cpuMats.size()) return;
         std::memcpy(&m_cpuMats[boneBase], mats, sizeof(glm::mat4) * boneCount);
         m_dirtyRanges.emplace_back(boneBase, boneCount);
+
+        
     }
 
     void BonePaletteBuffer::FlushToGPU(VulkanCtx& vk) 

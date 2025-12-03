@@ -62,6 +62,8 @@ namespace Engine {
 
 		if (s_VulkanRenderer2D)
 		{
+			Engine::VulkanRenderer3D::ResetStats3D(); // there is probably better place for this
+
 			//s_VulkanRenderer2D->BeginFrame(s_currentFrame);
 			s_VulkanRenderer3D->Draw(s_currentFrame, m_commandBuffers[s_currentFrame]);
 
@@ -80,6 +82,7 @@ namespace Engine {
 
 	void Renderer::StartFrame()
 	{
+
 		EE_PROFILE_FUNCTION();
 		s_VulkanRenderer2D->BeginFrame(s_currentFrame);
 		s_VulkanRenderer3D->BeginFrame3D(s_currentFrame);
@@ -97,6 +100,7 @@ namespace Engine {
 		s_VulkanRenderer2D->EndFrame(s_currentFrame, m_commandBuffers[s_currentFrame]);
 
 		Engine::VulkanRenderer2D::ResetStats();
+
 		s_currentFrame = (s_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 		
 

@@ -88,10 +88,7 @@ namespace Engine {
                 Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera.GetProjection(), camera.GetComponent<TransformComponent>().GetTransform());
 
             }
-            
 
-            
-            
 
             DebugInterface::DebugDrawChunkOutlines(m_gameContext.get());
             Engine::VulkanRenderer2D::EndScene();
@@ -124,6 +121,12 @@ namespace Engine {
             m_editor->GetGameLayer()->GetActiveGameScene()->SetDebugDrawLOS(false);
         }
         
+        int flags3D = static_cast<int>(VulkanRenderer3D::GetDebugFlags());
+        if (ImGui::SliderInt("3D render flags", &flags3D, 0, 75))
+        {
+            VulkanRenderer3D::SetDebugFlags(flags3D);
+        }
+
 
         ImGui::End();
     }

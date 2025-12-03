@@ -257,7 +257,7 @@ namespace Engine {
             m_contentBrowserPanel.OnImGuiRender();
 
             ImGui::Begin("Stats");
-            auto stats = Engine::VulkanRenderer2D::GetStats();
+            Renderer2D::Statistics stats = Engine::VulkanRenderer2D::GetStats();
             ImGui::Text("Renderer2D Stats:");
             ImGui::Text("Draw Calls: %d", stats.DrawCalls);
             ImGui::Text("Quads: %d", stats.QuadCount);
@@ -266,6 +266,11 @@ namespace Engine {
             ImGui::Text("Lines: %d", stats.LineCount);
             ImGui::Text("Texture GPU memory cache: %.2f MB", AssetManager::s_totalTextureMemory / (1024.0f * 1024.0f));
             ImGui::Text("FPS: %d", m_fpsCounter.GetFPS());
+
+
+            VulkanRenderer3D::Statistics3D stats3D = Engine::VulkanRenderer3D::GetStats3D();
+            ImGui::Text("Vertices 3D: %d", stats3D.GetVertexCount());
+            ImGui::Text("Indicies 3D: %d", stats3D.GetIndexCount());
 
 
             ImGuiTreeNodeFlags flags =   ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_OpenOnArrow;

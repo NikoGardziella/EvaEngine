@@ -11,16 +11,19 @@
 
 namespace Engine {
 
+
+
+
+
     struct InstanceDataGPU
     {
         glm::mat4 world;
-        glm::mat4 worldPrev;
-        uint32_t  materialId;
         uint32_t  boneBase;
-        uint32_t  flags;
-        uint32_t  objectId;
-        uint32_t  meshId;
+        uint32_t  boneCount;
+        uint32_t  _pad1;
+        uint32_t  _pad2;
     };
+
 
  
 
@@ -43,6 +46,7 @@ namespace Engine {
     {
         std::vector<InstanceDataGPU> s_instances;
         std::vector<PendingDraw>     s_draws;
+        std::vector<glm::mat4>       s_bones;
         CameraUBO                    s_cameraData;
     };
 
@@ -58,15 +62,21 @@ namespace Engine {
             VulkanBuffer cameraUBO;   // set=0, binding=0
             VulkanBuffer instanceSSBO; // set=0, binding=1
             VulkanBuffer materialSSBO;
+            VulkanBuffer bonePaletteSSBO;
             VkDescriptorSet set0Global = VK_NULL_HANDLE;
         };
+
+        
 
         struct Vertex {
             glm::vec3 pos;   // location = 0  -> VK_FORMAT_R32G32B32_SFLOAT
             glm::vec3 nrm;   // location = 1  -> VK_FORMAT_R32G32B32_SFLOAT
             glm::vec2 uv;    // location = 2  -> VK_FORMAT_R32G32_SFLOAT
+            glm::uvec4 joints; // location 3 (JOINTS_0)
+            glm::vec4  weights;// location 4 (WEIGHTS_0)
         };
-        static_assert(sizeof(Vertex) == 32);
+
+       
         static_assert(offsetof(Vertex, pos) == 0 && offsetof(Vertex, nrm) == 12 && offsetof(Vertex, uv) == 24);
 
         struct PCDraw3D {
@@ -76,6 +86,24 @@ namespace Engine {
             uint32_t flags;
         };
         static_assert(sizeof(PCDraw3D) == 16, "Expect 16 bytes");
+
+
+
+    public:
+        struct Statistics3D
+        {
+            uint32_t DrawCalls = 0;
+            uint32_t QuadCount = 0;
+            uint32_t VertexCount = 0;
+            uint32_t IndexCount = 0;
+   
+            uint32_t GetQuadCount() { return QuadCount; }
+            uint32_t GetVertexCount() { return VertexCount; }
+            uint32_t GetIndexCount() { return IndexCount; }
+            uint32_t GetDrawCalls() { return DrawCalls; }
+        };
+        static Statistics3D GetStats3D() { return s_stats3D; }
+        static void ResetStats3D();
 
 
     public:
@@ -102,6 +130,10 @@ namespace Engine {
 
         void UpdateCamera(uint32_t frame, const glm::mat4& view, const glm::mat4& proj);
 
+        void UpdateBones(uint32_t frame);
+
+        void UpdateInstances(uint32_t frameIndex, const InstanceDataGPU* instances, uint32_t count);
+
         void UpdateInstances(uint32_t frame,  const glm::mat4* worlds, uint32_t count);
 
         static void Begin3DScene(const glm::mat4& projection, const  glm::mat4& view);
@@ -116,6 +148,8 @@ namespace Engine {
         // Convenience: submit a range of submeshes from [first, first+count)
         static void SubmitMeshInstanceRange(const InstanceDataGPU& inst, uint32_t submeshFirst, uint32_t submeshCount);
 
+        static void SubmitBone(glm::mat4 bone);
+
         void Draw(uint32_t frameIndex, VkCommandBuffer cmd);
 
         // Record and upload everything. Call from your render pass code.
@@ -129,7 +163,10 @@ namespace Engine {
 
         void UpdateAlbedoImageDesciptorsSet(uint32_t frame);
 
+        void UpdateBonePaletteDesciptorsSet(uint32_t frame);
 
+        static void SetDebugFlags(uint32_t flags) { s_debug3DFlags = flags; }
+        static uint32_t GetDebugFlags() { return s_debug3DFlags; }
 
     private:
        inline void UpdateBuffer(const VulkanBuffer& buf, const void* src, VkDeviceSize bytes, VkDeviceSize dstOffset) const;
@@ -159,6 +196,15 @@ namespace Engine {
         //remove
         VulkanVertexBuffer* vb;
         VulkanIndexBuffer* ib;
+
+
+
+        //stats
+
+        static Statistics3D s_stats3D;
+
+       
+        static uint32_t s_debug3DFlags;
     };
 
 }

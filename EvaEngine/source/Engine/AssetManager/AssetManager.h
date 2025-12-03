@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+#include <Engine/Animation/3D/AnimationRegistry.h>
 
 
 namespace Engine {
@@ -68,11 +69,11 @@ namespace Engine {
 
         static GLTFImportOptions MakeDefaultGLTFOpts(AssetManagerUtils::GLTFAggregator& agg, bool flipV, bool genFlatNormalsIfMissing);
 
-        static MeshAsset& GetMeshFromMeshRegistry(uint32_t meshId) { return m_meshRegistry.Get(meshId); }
-        static MeshRegistry& GetMeshRegistry() { return m_meshRegistry; }
-        static MaterialRegistry& GetMaterialRegistry() { return m_materialRegistry; }
-
-       
+        static MeshAsset& GetMeshFromMeshRegistry(uint32_t meshId) { return s_meshRegistry.Get(meshId); }
+        static MeshRegistry& GetMeshRegistry() { return s_meshRegistry; }
+        static MaterialRegistry& GetMaterialRegistry() { return s_materialRegistry; }
+        static SkeletonRegistry& GetSkeletonRegistry()  { return *s_skeletonRegistry; }
+        static AnimationRegistry& GetAnimationRegistry() { return *s_animationRegistry; }
 
 		static const std::unordered_map<std::string, glm::vec4>& AssetManager::GetTileTextureAtalsUVs() { return  s_tileUVMap; }
         static VkDeviceSize s_totalTextureMemory;
@@ -122,8 +123,10 @@ namespace Engine {
 		static Ref<VulkanTexture> s_tileTextureIconAtlas;
         static inline std::unordered_map<std::string, TileProperties> s_tileProperties;
 
-        static MeshRegistry m_meshRegistry;
-        static MaterialRegistry m_materialRegistry;
+        static MeshRegistry s_meshRegistry;
+        static MaterialRegistry s_materialRegistry;
+        static Ref<AnimationRegistry> s_animationRegistry;
+        static Ref<SkeletonRegistry> s_skeletonRegistry;
 
     };
 

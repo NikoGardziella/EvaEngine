@@ -26,18 +26,27 @@ namespace Engine {
             // Static meshes
             if (auto mr = scene->TryGet<MeshRefComponent>(e))
             {
+                uint32_t bonebase = 0;
+
+                const SkeletonComponent& skeletonComponent = e.GetComponent<SkeletonComponent>();
+            
+                bonebase = skeletonComponent.boneBase;
+
                 InstanceDataGPU inst{};
                 inst.world = *pWorldTransform;
-                inst.worldPrev = *pWorldTransform;
-                inst.boneBase = 0xFFFFFFFFu;
-                inst.flags = 0;
-                inst.objectId = /* some id */ 0;
+               // inst.worldPrev = *pWorldTransform;
+                inst.boneBase = bonebase;
+                inst.boneCount= skeletonComponent.boneCount;
+                //inst.flags = 0;
+                /*
+                inst.objectId =  0; // some id
                 inst.meshId = mr->meshId;
 
                 if (auto mat = scene->TryGet<MaterialRefComponent>(e))
                     inst.materialId = mat->materialId;
                 else
                     inst.materialId = 0;
+                */
 
                 // Submit whole submesh range
                 VulkanRenderer3D::SubmitMeshInstanceRange(inst, mr->submeshFirst, mr->submeshCount);
@@ -48,15 +57,17 @@ namespace Engine {
             {
                 InstanceDataGPU inst{};
                 inst.world = *pWorldTransform;
-                inst.worldPrev = *pWorldTransform;
-                inst.flags = 0;
-                inst.objectId = /* your id */ 0;
+                //inst.worldPrev = *pWorldTransform;
+               // inst.flags = 0;
+               // inst.objectId = /* your id */ 0;
 
+                /*
                 if (auto mat = scene->TryGet<MaterialRefComponent>(e))
                     inst.materialId = mat->materialId;
                 else
                     inst.materialId = 0;
 
+                */
                 if (auto sk = scene->TryGet<SkeletonComponent>(e))
                     inst.boneBase = sk->boneBase;
                 else

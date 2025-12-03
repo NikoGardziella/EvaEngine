@@ -2,6 +2,7 @@
 #include "AssetManagerUtils.h"
 #include <vector>
 #include <Engine/Animation/3D/Import/GLTFImporter.h>
+#include <Engine/Animation/3D/SkeletonRegistry.h>
 
 
 namespace Engine {
@@ -46,6 +47,7 @@ namespace Engine {
         }
     }
 
-  
+
+
 
 }

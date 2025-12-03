@@ -15,6 +15,8 @@
 #include <Engine/Animation/3D/System/RenderSystem3D.h>
 #include <Engine/Animation/3D/System/TransformSystem3D.h>
 #include <Engine/Animation/3D/System/CullingSystem3D.h>
+#include <Engine/Animation/3D/System/AnimationSystem3D.h>
+#include <Engine/Animation/3D/BonePaletteBuffer.h>
 
 
 
@@ -165,10 +167,9 @@ namespace Engine {
 		//3D render
 		Ref<TransformSystem3D> m_transformSystem3D;
 		Ref<CullingSystem3D> m_cullingSystem3D;
-		
 		RenderSystem3D m_renderSystem3D;
-		
-
+		AnimationSystem3D m_animationSystem3D;
+		BonePaletteBuffer m_bonePaletteBuffer;
 
 		Ref<TextureStreamingSystem> m_textureStreamingSystem;
 		Ref<TileManager> m_tileMananger;

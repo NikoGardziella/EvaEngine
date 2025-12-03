@@ -6,14 +6,18 @@
 #include <functional>
 #include <Engine/Animation/3D/MeshRegistry.h>
 #include <Engine/Animation/3D/MaterialRegistry.h>
+#include <Engine/Animation/3D/SkeletonRegistry.h>
+#include <Engine/Animation/3D/AnimationRegistry.h>
 
 namespace Engine {
 
     // pipeline vertex
     struct Vertex {
-        glm::vec3 pos;
-        glm::vec3 nrm;
-        glm::vec2 uv;
+        glm::vec3 pos;   // location = 0  -> VK_FORMAT_R32G32B32_SFLOAT
+        glm::vec3 nrm;   // location = 1  -> VK_FORMAT_R32G32B32_SFLOAT
+        glm::vec2 uv;    // location = 2  -> VK_FORMAT_R32G32_SFLOAT
+        glm::uvec4 joints; // location 3 (JOINTS_0)
+        glm::vec4  weights;// location 4 (WEIGHTS_0)
     };
 
 
@@ -59,21 +63,23 @@ namespace Engine {
         std::string message;
     };
 
-    struct GLTFImportResult 
-    {
+    struct GLTFImportResult {
+        bool ok = false;
+        std::string message;
         ImportReport report;
-        uint32_t meshId = 0;
-        std::vector<uint32_t> materialIds; // asset ids returned by MaterialRegistry::Register
+
+        uint32_t meshId = 0xFFFFFFFFu;
+        std::vector<uint32_t> materialIds;
+
+        uint32_t skeletonId = 0xFFFFFFFFu;
+        std::vector<uint32_t> clipIds; // all clips found in this file
     };
 
     class GLTFImporter 
     {
     public:
-        // Load .glb or .gltf with tinygltf, create materials, upload primitives via callback, and register one MeshAsset
-        GLTFImportResult Import(const std::string& path,
-            MeshRegistry& meshReg,
-            MaterialRegistry& matReg,
-            const GLTFImportOptions& opts);
+        
+        GLTFImportResult Import(const std::string& path, MeshRegistry& meshReg, MaterialRegistry& matReg, SkeletonRegistry& skelReg, AnimationRegistry& animReg, const GLTFImportOptions& opts);
     };
 
 } 

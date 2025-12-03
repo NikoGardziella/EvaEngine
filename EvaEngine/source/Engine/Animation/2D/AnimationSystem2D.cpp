@@ -56,15 +56,7 @@ namespace Engine {
         }
     }
 
-    static Dir8 AngleToDir8(float angle)
-    {
-        angle = WrapAngle(angle);
-
-        const float sector = glm::two_pi<float>() / 8.0f; // 45 deg
-        // shift by half sector so boundaries are at midpoints
-        int idx = int((angle + 0.5f * sector) / sector) & 7;
-        return static_cast<Dir8>(idx);
-    }
+ 
 
     void AnimationSystem2D::Update(float dt, Scene* scene)
     {

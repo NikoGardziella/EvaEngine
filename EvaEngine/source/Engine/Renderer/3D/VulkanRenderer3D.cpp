@@ -19,6 +19,14 @@ namespace Engine {
     Engine::VulkanRenderer3DData Engine::VulkanRenderer3D::s_Vulkan3DData;
     std::vector<VkDescriptorImageInfo> VulkanRenderer3D::m_albedoImageInfos;
     std::vector<Ref<VulkanTexture>> VulkanRenderer3D::m_albedoTextures;
+    VulkanRenderer3D::Statistics3D VulkanRenderer3D::s_stats3D;
+    uint32_t VulkanRenderer3D::s_debug3DFlags;
+   
+
+    void VulkanRenderer3D::ResetStats3D()
+    {
+        memset(&s_stats3D, 0, sizeof(Statistics3D));
+    }
 
     void VulkanRenderer3D::InitVulkanRenderer3D()
     {
@@ -51,10 +59,12 @@ namespace Engine {
             { 0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX }
         };
         vertexInput.attributes = {
-            { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos) },
-            { 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, nrm) },
-            { 2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv) },
-            // add joints/weights if skinned
+            // location, binding, format,                             offset
+            { 0, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(Vertex, pos)     }, // pos
+            { 1, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(Vertex, nrm)     }, // nrm
+            { 2, 0, VK_FORMAT_R32G32_SFLOAT,       offsetof(Vertex, uv)      }, // uv
+            { 3, 0, VK_FORMAT_R32G32B32A32_UINT,   offsetof(Vertex, joints)  }, // joints
+            { 4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, weights) }  // weights
         };
 
         Engine::Vulkan3DGraphicsPipeline::RasterState rasterState{};
@@ -71,54 +81,21 @@ namespace Engine {
         EE_CORE_ASSERT(ok, "Failed to create Vulkan3DGraphicsPipeline");
 
         
-       
-
         Init3DBuffers(m_device, MAX_FRAMES_IN_FLIGHT, MAX_3D_INSTANCES, MAX_MATERIALS, m_frames);
         Allocate3DDescriptorSets(vulkanContext->GetDescriptorPool3D());
 
 
+        //Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/trafficPolice1.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/HumanAnimations.glb");
+        //Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/Engineer.glb");
 
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            UpdateBonePaletteDesciptorsSet(i);
 
-        // A tiny unit cube (8 verts, 12 triangles) — positions + normals + uv
-        static const Vertex kCubeVerts[] = {
-            // pos                nrm           uv
-            {{-0.5f,-0.5f,-0.5f}, { 0, 0,-1}, {0,0}},
-            {{ 0.5f,-0.5f,-0.5f}, { 0, 0,-1}, {1,0}},
-            {{ 0.5f, 0.5f,-0.5f}, { 0, 0,-1}, {1,1}},
-            {{-0.5f, 0.5f,-0.5f}, { 0, 0,-1}, {0,1}},
-            {{-0.5f,-0.5f, 0.5f}, { 0, 0, 1}, {0,0}},
-            {{ 0.5f,-0.5f, 0.5f}, { 0, 0, 1}, {1,0}},
-            {{ 0.5f, 0.5f, 0.5f}, { 0, 0, 1}, {1,1}},
-            {{-0.5f, 0.5f, 0.5f}, { 0, 0, 1}, {0,1}},
-        };
-        static const uint32_t kCubeIdx[] = {
-            0,1,2, 2,3,0,  // back
-            4,5,6, 6,7,4,  // front
-            0,4,7, 7,3,0,  // left
-            1,5,6, 6,2,1,  // right
-            3,2,6, 6,7,3,  // top
-            0,1,5, 5,4,0   // bottom
-        };
-
-        // Create VB/IB (host-visible is fine for now)
-        vb = new Engine::VulkanVertexBuffer((float*)kCubeVerts, sizeof(kCubeVerts));
-        ib = new Engine::VulkanIndexBuffer((uint32_t*)kCubeIdx, (uint32_t)std::size(kCubeIdx));
-
-
-        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/trafficPolice1.glb");
-        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/Engineer.glb");
-
-
-        // somewhere on init
-        Ref<VulkanTexture> dbgTex = std::make_shared<VulkanTexture>(
-            64, 64, VK_FORMAT_R8G8B8A8_UNORM, false);
-
-      
-     
-
-
-
+        }
     }
+
 
     bool VulkanRenderer3D::Create3dDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& descriptorSetLayoutOut)
     {
@@ -128,6 +105,7 @@ namespace Engine {
         cam.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         cam.descriptorCount = 1;
         cam.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        cam.pImmutableSamplers = nullptr;
 
         // binding 1: Instance SSBO (VS) -> holds InstanceData[]
         VkDescriptorSetLayoutBinding instances{};
@@ -135,13 +113,15 @@ namespace Engine {
         instances.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         instances.descriptorCount = 1;
         instances.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        instances.pImmutableSamplers = nullptr;
 
         // binding 2: Albedo texture array (FS)
         VkDescriptorSetLayoutBinding albedoArray{};
         albedoArray.binding = 2;
         albedoArray.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        albedoArray.descriptorCount = 1;
+        albedoArray.descriptorCount = 1; // bindless-style array in the shader side (sampler2D uAlbedo[])
         albedoArray.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        albedoArray.pImmutableSamplers = nullptr;
 
         // binding 3: Material buffer (FS)
         VkDescriptorSetLayoutBinding materialBuf{};
@@ -149,20 +129,33 @@ namespace Engine {
         materialBuf.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         materialBuf.descriptorCount = 1;
         materialBuf.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        materialBuf.pImmutableSamplers = nullptr;
+
+        // binding 4: Bone palette SSBO (VS) -> holds mat4 uBones[]
+        VkDescriptorSetLayoutBinding bonePalette{};
+        bonePalette.binding = 4;
+        bonePalette.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bonePalette.descriptorCount = 1;
+        bonePalette.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        bonePalette.pImmutableSamplers = nullptr;
 
         VkDescriptorSetLayoutBinding bindings[] = {
             cam,
             instances,
             albedoArray,
-            materialBuf
+            materialBuf,
+            bonePalette
         };
 
         VkDescriptorSetLayoutCreateInfo ci{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
         ci.bindingCount = static_cast<uint32_t>(std::size(bindings));
         ci.pBindings = bindings;
+        ci.flags = 0;
+        ci.pNext = nullptr;
 
         return vkCreateDescriptorSetLayout(device, &ci, nullptr, &descriptorSetLayoutOut) == VK_SUCCESS;
     }
+
 
 
 
@@ -198,6 +191,9 @@ namespace Engine {
         // Material SSBO: MaterialGPU[maxMaterials]
         const VkDeviceSize matBytes = VkDeviceSize(maxMaterials) * sizeof(MaterialGPU);
 
+        uint32_t max_bones = 2000;
+        const VkDeviceSize boneBytes = VkDeviceSize(max_bones) * sizeof(glm::vec4);
+
         for (uint32_t i = 0; i < framesInFlight; ++i)
         {
             // Camera
@@ -223,6 +219,13 @@ namespace Engine {
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
             frames[i].materialSSBO.Map();
+
+            frames[i].bonePaletteSSBO = VulkanBuffer(
+                device, phys, boneBytes,
+                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+            frames[i].bonePaletteSSBO.Map();
         }
 
         return true;
@@ -282,13 +285,33 @@ namespace Engine {
         
     }
 
-    void VulkanRenderer3D::UpdateInstances(uint32_t frame,const glm::mat4* worlds, uint32_t count)
+    void VulkanRenderer3D::UpdateBones(uint32_t frame)
     {
         EE_PROFILE_FUNCTION();
 
-        if (!worlds || count == 0) return;
-        VkDeviceSize bytes = VkDeviceSize(count) * sizeof(glm::mat4);
-        UpdateBuffer(m_frames[frame].instanceSSBO, worlds, bytes, 0);
+        const auto& bones = s_Vulkan3DData.s_bones;
+        if (bones.empty())
+            return;
+
+        const VkDeviceSize byteSize = bones.size() * sizeof(glm::mat4);
+
+        UpdateBuffer(m_frames[frame].bonePaletteSSBO,
+            bones.data(),
+            (size_t)byteSize,
+            0);
+    }
+
+
+
+    void VulkanRenderer3D::UpdateInstances(uint32_t frameIndex,  const InstanceDataGPU* instances, uint32_t count)
+    {
+        const size_t byteCount = size_t(count) * sizeof(InstanceDataGPU);
+        if (byteCount == 0) return;
+
+        void* dst = m_frames[frameIndex].instanceSSBO.Mapped();
+        std::memcpy(dst, instances, byteCount);
+
+        // no vkFlushMappedMemoryRanges() needed for HOST_COHERENT
     }
 
     void VulkanRenderer3D::Begin3DScene(const  glm::mat4& projection, const  glm::mat4& view)
@@ -312,7 +335,7 @@ namespace Engine {
        
         s_Vulkan3DData.s_instances.clear();
         s_Vulkan3DData.s_draws.clear();
-
+        s_Vulkan3DData.s_bones.clear();
         // (Optional) reserve to limit reallocs
         // s_instances.reserve(4096);
         // s_draws.reserve(8192);
@@ -339,7 +362,7 @@ namespace Engine {
         for (uint32_t i = 0; i < submeshCount; ++i)
         {
             PendingDraw d{};
-            d.meshId = inst.meshId;
+            //d.meshId = inst.meshId;
             d.submeshId = submeshFirst + i;
             d.instanceIndex = baseIdx;
 
@@ -347,23 +370,44 @@ namespace Engine {
         }
     }
 
+    void VulkanRenderer3D::SubmitBone(glm::mat4 bone)
+    {
+        s_Vulkan3DData.s_bones.push_back(bone);
+    }
+
+
+
 
     void VulkanRenderer3D::Draw(uint32_t frameIndex, VkCommandBuffer cmd)
     {
         EE_PROFILE_FUNCTION();
         UploadMaterials(frameIndex, AssetManager::GetMaterialRegistry());
         UpdateCamera(frameIndex, s_Vulkan3DData.s_cameraData.uView, s_Vulkan3DData.s_cameraData.uProj);
+        UpdateBones(frameIndex);
+
         UpdateAlbedoImageDesciptorsSet(frameIndex);
 
         const uint32_t numberOfInstances = (uint32_t)s_Vulkan3DData.s_instances.size();
         if (numberOfInstances)
         {
-            static std::vector<glm::mat4> tmpWorlds;
-            tmpWorlds.resize(numberOfInstances);
-            for (uint32_t i = 0; i < numberOfInstances; ++i)
-                tmpWorlds[i] = s_Vulkan3DData.s_instances[i].world;
+            static std::vector<InstanceDataGPU> tmpInstances;
+            tmpInstances.resize(numberOfInstances);
 
-            UpdateInstances(frameIndex, tmpWorlds.data(), numberOfInstances);
+            for (uint32_t i = 0; i < numberOfInstances; ++i)
+            {
+                const auto& src = s_Vulkan3DData.s_instances[i]; // your CPU instance
+
+                InstanceDataGPU dst{};
+                dst.world = src.world;
+                dst.boneBase = src.boneBase;   // 0xFFFFFFFFu for non-skinned, valid base for skinned
+                dst.boneCount = src.boneCount;
+                dst._pad1 = 0;
+                dst._pad2 = 0;
+
+                tmpInstances[i] = dst;
+            }
+
+            UpdateInstances(frameIndex, tmpInstances.data(), numberOfInstances);
         }
 
         // Nothing to draw
@@ -406,6 +450,10 @@ namespace Engine {
                 VkDeviceSize vbOff = mesh.vbOffset;
                 vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vertexBuffer, &vbOff);
                 vkCmdBindIndexBuffer(cmd, mesh.indexBuffer, mesh.ibOffset, VK_INDEX_TYPE_UINT32);
+
+                s_stats3D.VertexCount += mesh.vertexCount;
+                s_stats3D.IndexCount += mesh.indexCount;
+
             }
 
             // Push constants for this instance/submesh
@@ -413,9 +461,11 @@ namespace Engine {
 
             PCDraw3D pc{};
             pc.instanceIndex = d.instanceIndex;
-            pc.materialId = instGPU.materialId; // or from mesh.submeshes[d.submeshId]
+            //pc.materialId = instGPU.materialId; // or from mesh.submeshes[d.submeshId]
             pc.submeshId = d.submeshId;
-            pc.flags = instGPU.flags;
+            pc.flags = s_debug3DFlags;
+            
+
 
             vkCmdPushConstants(cmd, m_3DPipeline.GetLayout(),
                 VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -427,10 +477,12 @@ namespace Engine {
 
             vkCmdDrawIndexed(cmd,
                 sm.indexCount,
-                1,                       // instanceCount = 1 (you are using instanceIndex via PC)
+                1,                       // instanceCount = 1
                 sm.firstIndex,
                 static_cast<int32_t>(sm.baseVertex),
                 0);
+
+            
         }
 
         // 4) Clear queues for next frame
@@ -444,34 +496,7 @@ namespace Engine {
     void VulkanRenderer3D::Flush3D(const MeshRegistry& meshes, const MaterialRegistry& materials)
     {
         
-        // This is where you:
-        // 1) Upload s_instances to your per-frame InstanceData SSBO
-        // 2) Optionally sort s_draws by material/pipeline key
-        // 3) Build indirect draw buffers (or issue direct draws)
-        // 4) Record Vulkan commands
-
-        // --- 1) Upload instances ---
-        // Map your instance SSBO and copy s_instances.data(), size = s_instances.size()*sizeof(InstanceDataGPU)
-        // (pseudocode) UploadInstanceSSBO(s_instances);
-
-        // --- 2) Optional sort by material (example) ---
-        // std::stable_sort(s_draws.begin(), s_draws.end(), [&](auto& a, auto& b){
-        //     // material row comes from instance.materialId
-        //     return s_instances[a.instanceIndex].materialId < s_instances[b.instanceIndex].materialId;
-        // });
-
-        // --- 3/4) Issue draws ---
-        // for (auto& d : s_draws) {
-        //     const InstanceDataGPU& inst = s_instances[d.instanceIndex];
-        //     const SubmeshRange& sub = meshes.LookupSubmesh(d.submeshId); // implement GetSubmesh(id) in your registry
-        //
-        //     // Bind pipelines & descriptor sets as needed (material table, textures, bone palette)
-        //     // Set push constants: instanceIndex, submeshId, (optional) materialId
-        //     // Bind VB/IB (or use device address if you do so)
-        //     // vkCmdDrawIndexed(... sub.indexCount, 1, sub.firstIndex, sub.vertexOffset, 0);
-        // }
-
-        // Nothing to clear here; BeginFrame3D() will reset for the next frame.
+        
     }
 
     bool VulkanRenderer3D::Allocate3DDescriptorSets(VkDescriptorPool pool)
@@ -591,14 +616,35 @@ namespace Engine {
             VkWriteDescriptorSet w{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
             w.dstSet = m_frames[frame].set0Global;
             w.dstBinding = 2;               // binding for uAlbedoArray[]
-            w.dstArrayElement = 0;           // this array index
+            w.dstArrayElement = i;           // this array index
             w.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             w.descriptorCount = 1;
-            w.pImageInfo = &m_albedoImageInfos[0];
+            w.pImageInfo = &m_albedoImageInfos[i];
 
             vkUpdateDescriptorSets(m_device, 1, &w, 0, nullptr);
         }
     }
 
+    void VulkanRenderer3D::UpdateBonePaletteDesciptorsSet(uint32_t frame)
+    {
+
+        for (uint32_t i = 0; i < m_albedoImageInfos.size(); ++i)
+        {
+            VkDescriptorBufferInfo bonesInfo{};
+            bonesInfo.buffer = m_frames[frame].bonePaletteSSBO.GetBuffer();  
+            bonesInfo.offset = 0;
+            bonesInfo.range = VK_WHOLE_SIZE;
+
+            VkWriteDescriptorSet w{};
+            w.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            w.dstSet = m_frames[frame].set0Global;
+            w.dstBinding = 4;
+            w.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            w.descriptorCount = 1;
+            w.pBufferInfo = &bonesInfo;
+
+            vkUpdateDescriptorSets(m_device, 1, &w, 0, nullptr);
+        }
+    }
 
 } 

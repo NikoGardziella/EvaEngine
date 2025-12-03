@@ -146,6 +146,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h" />
@@ -707,6 +708,7 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationSystem2D.cpp" />

@@ -23,6 +23,7 @@ namespace Engine {
         uint32_t     vertexCount = 0;
         uint32_t     indexCount = 0;
         uint32_t     id;
+        uint32_t     skeletonId;
         std::vector<SubmeshRange> submeshes;
         bool isSkinned = false;
 

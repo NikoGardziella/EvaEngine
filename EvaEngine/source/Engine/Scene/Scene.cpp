@@ -32,6 +32,8 @@
 #include "box2d/box2d.h"
 #include "box2d/math_functions.h"
 #include "Components/Render/3D/RenderBoundsComponent.h"
+#include "Components/Render/3D/SkeletonComponent.h"
+#include "Components/Render/3D/AnimatorComponent.h"
 
 namespace Engine {
 
@@ -290,7 +292,7 @@ namespace Engine {
 
         for (uint32_t i = 0; i < count; ++i)
         {
-
+            /*
             if (i % 2 == 0)
             {
                 meshId = 1;
@@ -300,6 +302,7 @@ namespace Engine {
                 meshId = 0;
             }
 
+            */
             // Grid coords
             const uint32_t r = i / perRow;
             const uint32_t c = i % perRow;
@@ -308,21 +311,38 @@ namespace Engine {
             glm::vec3 pos = origin + glm::vec3((float)c * spacing, (float)r * spacing,0.0f );
 
             // Create entity and components
-            Engine::Entity e = scene->CreateEntity();
+            Engine::Entity entity = scene->CreateEntity();
 
-            auto& meshComp = e.AddComponent<MeshRefComponent>();
+            auto& meshComp = entity.AddComponent<MeshRefComponent>();
             meshComp.meshId = meshId;
             meshComp.submeshFirst = 0;
             meshComp.submeshCount = submeshCount;
 
-            auto& tr = e.AddComponent<TransformComponent>();
+            auto& tr = entity.AddComponent<TransformComponent>();
             tr.Translation = pos;                // adjust field names if yours differ (e.g., translation/rotation/scale)
             tr.Rotation = glm::vec3(0.0f, 0.0f, 0.0f); // identity
             tr.Scale = glm::vec3(1.0f);
 
-            RenderBoundsComponent& renderBoundsComp = e.AddComponent<RenderBoundsComponent>();
+            RenderBoundsComponent& renderBoundsComp = entity.AddComponent<RenderBoundsComponent>();
             renderBoundsComp.maxL = meshAsset.maxL;
             renderBoundsComp.minL = meshAsset.minL;
+
+            uint32_t skeletonId = 0;
+            auto& skel = entity.AddComponent<SkeletonComponent>();
+            skel.skeletonId = skeletonId;      // returned by importer
+            skel.boneCount = AssetManager::GetSkeletonRegistry().Get(skeletonId).parent.size();
+            skel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
+
+
+            uint32_t testClip = 30;
+            uint32_t testClipB = 0xFFFFFFFFu;
+            // Attach animator
+            auto& anim = entity.AddComponent<AnimatorComponent>();
+            anim.clipA = testClip;           
+            anim.clipB = testClipB;
+            anim.timeA = 0.0f;
+            anim.blend = 0.0f;                 // only clipA
+            anim.playbackSpeed = 1.0f;
             
         }
     }
@@ -462,7 +482,7 @@ namespace Engine {
         entity3D.AddComponent<RenderBoundsComponent>();
         */
 
-        //SpawnMeshGrid(this, 1, 100,10, 2);
+        SpawnMeshGrid(this,0, 10,10, 2);
     }
 
 
@@ -593,7 +613,7 @@ namespace Engine {
                     animComp.clipId = clipId;
                     animComp.dirMode = 1;
 
-                    auto& animStateComp = playerEntity.AddComponent<AnimatorStateComponent>();
+                   // auto& animStateComp = playerEntity.AddComponent<AnimatorStateComponent>();
                 }
 
 
@@ -607,7 +627,7 @@ namespace Engine {
 
         m_transformSystem3D->Update(this, timestep);
 
-
+        m_animationSystem3D.Update(this, timestep, AssetManager::GetSkeletonRegistry(), AssetManager::GetAnimationRegistry(), m_bonePaletteBuffer);
 
         //if(mainCameraComp.Camera != entt::null)
         {   

@@ -7,6 +7,7 @@
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 #include <Engine/Core/Core.h>
 #include <Engine/Core/Log.h>
+#include <Engine/Animation/3D/SkeletonRegistry.h>
 
 namespace Engine {
 
@@ -67,6 +68,7 @@ namespace Engine {
 	public:
 		static void AssetManagerUtils::ComputePivotFromAlpha(const uint8_t* rgba, int w, int h, int alphaThresh,
 			int& outPivotYOffsetPx, int& outPivotXCenterOffsetPx);
+
 
         
         static inline void ComputeLocalAABB(const std::vector<Vertex>& verts,
