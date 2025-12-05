@@ -23,8 +23,8 @@ namespace Engine {
 
         m_projection = glm::perspectiveRH_ZO(glm::radians(m_FOV), m_aspectRatio, m_nearClip, m_farClip);
 
-        m_projection[1][1] *= -1.0f;            // Vulkan Y flip
-        EE_CORE_INFO("[Cam] After UpdateProjection: P[1][1]={:.6f}", m_projection[1][1]);
+      //  m_projection[1][1] *= -1.0f;            // Vulkan Y flip
+       // EE_CORE_INFO("[Cam] After UpdateProjection: P[1][1]={:.6f}", m_projection[1][1]);
     }
 
     void EditorCamera::UpdateView()

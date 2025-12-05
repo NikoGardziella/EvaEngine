@@ -328,8 +328,8 @@ namespace Engine {
 
         VkPipelineDepthStencilStateCreateInfo depthStencil{};
         depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-        depthStencil.depthTestEnable = VK_TRUE;              // enable depth test
-        depthStencil.depthWriteEnable = VK_TRUE;              // write to depth buffer
+        depthStencil.depthTestEnable = VK_FALSE;              // enable depth test
+        depthStencil.depthWriteEnable = VK_FALSE;              // write to depth buffer
         depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;   // smaller depth = closer
         depthStencil.depthBoundsTestEnable = VK_FALSE;
         depthStencil.stencilTestEnable = VK_FALSE;
@@ -853,8 +853,6 @@ namespace Engine {
         depthStencil.depthCompareOp = VK_COMPARE_OP_ALWAYS;
         depthStencil.depthBoundsTestEnable = VK_FALSE;
         depthStencil.stencilTestEnable = VK_FALSE;
-
-
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
