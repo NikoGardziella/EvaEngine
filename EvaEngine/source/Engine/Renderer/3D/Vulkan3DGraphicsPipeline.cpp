@@ -28,7 +28,8 @@ namespace Engine {
         Destroy();
 
         // Basic validation
-        if (!ci.device || !ci.renderPass || !stages.vert || !stages.frag) {
+        if (!ci.device || !ci.renderPass || !stages.vert || !stages.frag)
+        {
             return false;
         }
         m_device = ci.device;
@@ -40,12 +41,14 @@ namespace Engine {
         plCI.pSetLayouts = ci.setLayouts.empty() ? nullptr : ci.setLayouts.data();
 
         VkPushConstantRange pc = ci.pushConstantRange;
-        if (pc.size > 0) {
+        if (pc.size > 0)
+        {
             plCI.pushConstantRangeCount = 1;
             plCI.pPushConstantRanges = &pc;
         }
 
-        if (vkCreatePipelineLayout(m_device, &plCI, nullptr, &m_layout) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(m_device, &plCI, nullptr, &m_layout) != VK_SUCCESS)
+        {
             m_layout = VK_NULL_HANDLE;
             return false;
         }
@@ -105,7 +108,8 @@ namespace Engine {
 
         // --- Color blending ---
         std::vector<VkPipelineColorBlendAttachmentState> atts(ci.colorAttachmentCount);
-        for (uint32_t i = 0; i < ci.colorAttachmentCount; ++i) {
+        for (uint32_t i = 0; i < ci.colorAttachmentCount; ++i)
+        {
             atts[i] = MakeBlendAttachment(rs.enableBlending);
         }
         VkPipelineColorBlendStateCreateInfo cbCI{ VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
@@ -137,12 +141,16 @@ namespace Engine {
         gpCI.basePipelineIndex = -1;
 
         VkResult res = vkCreateGraphicsPipelines(m_device, ci.pipelineCache, 1, &gpCI, nullptr, &m_pipeline);
-        if (res != VK_SUCCESS) {
+        if (res != VK_SUCCESS)
+        {
             vkDestroyPipelineLayout(m_device, m_layout, nullptr);
             m_layout = VK_NULL_HANDLE;
             m_pipeline = VK_NULL_HANDLE;
             return false;
         }
+        EE_CORE_INFO("[PipelineCreate] renderPass = {}", (void*)ci.renderPass);
+        EE_CORE_INFO("[PipelineCreate] subpass   = {}", ci.subpassIndex);
+
         return true;
     }
 

@@ -19,6 +19,7 @@ namespace Engine {
 
         uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
+
         VkSwapchainKHR GetSwapchain() const { return m_swapchain; }
         VkFormat GetSwapchainImageFormat() const { return m_swapchainImageFormat; }
         VkExtent2D GetSwapchainExtent() const { return m_swapchainExtent; }
@@ -33,8 +34,12 @@ namespace Engine {
         VulkanTracked& GetGameTrackedImage(uint32_t imageIndex) { return m_gameTrackedImages[imageIndex]; }
 		std::vector<VulkanTracked>& GetGameTrackedImages() { return m_gameTrackedImages; }
 
+        VkFormat GetDepthFormat() const { return m_depthFormat; }
+
+
     private:
 
+        VkFormat FindSupportedDepthFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
         void CreateSwapchain();
         void CreateImageViews();
         VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -49,15 +54,19 @@ namespace Engine {
         VkSwapchainKHR m_swapchain;
         std::vector<VkImage> m_swapchainImages;
         std::vector<VkImage> m_gameImages;
+        std::vector<VkImage> m_depthImages;
 
         std::vector<VkImageView> m_swapchainImageViews;
         std::vector<VkImageView> m_imguiImageViews;
         std::vector<VkImageView> m_gameColorAttachmentImageViews;
+        std::vector<VkImageView> m_depthImageViews;
 
         std::vector<VkFramebuffer> m_swapchainFramebuffers;
         std::vector<VkFramebuffer> m_imguiFramebuffers;
         std::vector<VkFramebuffer> m_gameFramebuffers;
+
         std::vector<VkDeviceMemory> m_gameColorAttachmentMemories;
+        std::vector<VkDeviceMemory> m_depthMemories;
 
         VkFormat m_swapchainImageFormat;
         VkExtent2D m_swapchainExtent;
@@ -68,6 +77,11 @@ namespace Engine {
         VkRenderPass m_renderPass;
         VkRenderPass m_imGuiRenderPass;
         VkRenderPass m_gameRenderPass;
+
+
+        VkFormat m_depthFormat;
+
+
     };
 
 }

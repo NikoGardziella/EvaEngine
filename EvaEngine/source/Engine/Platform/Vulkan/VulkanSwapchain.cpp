@@ -94,14 +94,14 @@ namespace Engine {
         
     }
 
- 
     void VulkanSwapchain::CreateImageViews()
     {
         m_swapchainImageViews.resize(m_swapchainImages.size());
-        const VkFormat swapchainFormat = m_swapchainImageFormat;
+        const VkFormat  swapchainFormat = m_swapchainImageFormat;
         const VkExtent2D extent = m_swapchainExtent;
-        size_t imageCount = m_swapchainImages.size();
+        const size_t    imageCount = m_swapchainImages.size();
 
+        // === Swapchain image views (simple color views) ===
         for (size_t i = 0; i < imageCount; ++i)
         {
             VkImageViewCreateInfo viewCreateInfo{};
@@ -109,7 +109,12 @@ namespace Engine {
             viewCreateInfo.image = m_swapchainImages[i];
             viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
             viewCreateInfo.format = swapchainFormat;
-            viewCreateInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY };
+            viewCreateInfo.components = {
+                VK_COMPONENT_SWIZZLE_IDENTITY,
+                VK_COMPONENT_SWIZZLE_IDENTITY,
+                VK_COMPONENT_SWIZZLE_IDENTITY,
+                VK_COMPONENT_SWIZZLE_IDENTITY
+            };
             viewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             viewCreateInfo.subresourceRange.baseMipLevel = 0;
             viewCreateInfo.subresourceRange.levelCount = 1;
@@ -131,9 +136,10 @@ namespace Engine {
         m_gameColorAttachmentMemories.resize(imageCount);
         m_gameColorAttachmentImageViews.resize(imageCount);
         m_gameTrackedImages.resize(imageCount);
+
         for (size_t i = 0; i < imageCount; ++i)
         {
-            // Create the image
+            // Color image (offscreen game buffer)
             VkImageCreateInfo imageInfo{};
             imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
             imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -145,10 +151,8 @@ namespace Engine {
             imageInfo.format = swapchainFormat;
             imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
             imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            //imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
             imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                VK_IMAGE_USAGE_SAMPLED_BIT; 
-
+                VK_IMAGE_USAGE_SAMPLED_BIT;
             imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
             imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -157,13 +161,14 @@ namespace Engine {
                 EE_CORE_ERROR("Failed to create game framebuffer color image [{}]", i);
             }
 
-            VkMemoryRequirements memRequirements;
+            VkMemoryRequirements memRequirements{};
             vkGetImageMemoryRequirements(m_device, m_gameImages[i], &memRequirements);
 
             VkMemoryAllocateInfo allocInfo{};
             allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocInfo.allocationSize = memRequirements.size;
-            allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
             if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_gameColorAttachmentMemories[i]) != VK_SUCCESS)
             {
@@ -172,7 +177,7 @@ namespace Engine {
 
             vkBindImageMemory(m_device, m_gameImages[i], m_gameColorAttachmentMemories[i], 0);
 
-            // Create the image view
+            // View for game color image
             VkImageViewCreateInfo viewInfo{};
             viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
             viewInfo.image = m_gameImages[i];
@@ -193,7 +198,6 @@ namespace Engine {
                 EE_CORE_INFO("Game framebuffer image view [{}] created", i);
             }
 
-
             VulkanTracked& tracked = m_gameTrackedImages[i];
             tracked.image = m_gameImages[i];
             tracked.view = m_gameColorAttachmentImageViews[i];
@@ -204,19 +208,18 @@ namespace Engine {
             tracked.currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             tracked.mipLevels = 1;
             tracked.layers = 1;
-
         }
 
-
+        // === Swapchain tracked images ===
         for (size_t i = 0; i < m_presentTrackedImages.size(); ++i)
         {
             VulkanTracked& trackedImage = m_presentTrackedImages[i];
 
-            VkImageViewCreateInfo viewCreateInfo = {};
+            VkImageViewCreateInfo viewCreateInfo{};
             viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            viewCreateInfo.image = trackedImage.image; // Already set in CreateSwapchain()
+            viewCreateInfo.image = trackedImage.image;  // set in CreateSwapchain
             viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            viewCreateInfo.format = trackedImage.format; // Already set
+            viewCreateInfo.format = trackedImage.format;
             viewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             viewCreateInfo.subresourceRange.baseMipLevel = 0;
             viewCreateInfo.subresourceRange.levelCount = 1;
@@ -232,8 +235,33 @@ namespace Engine {
                 EE_CORE_INFO("Swapchain VulkanTracked view [{}] created", i);
             }
         }
-  
+
+        // === Depth images (one per swapchain image) ===
+
+       
+        m_depthFormat = FindSupportedDepthFormat(
+            { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT_S8_UINT },
+            VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+        m_depthImages.resize(imageCount);
+        m_depthMemories.resize(imageCount);
+        m_depthImageViews.resize(imageCount);
+
+        for (size_t i = 0; i < imageCount; ++i)
+        {
+            // 2) Create depth image + memory
+            VulkanUtils::CreateImage(extent.width, extent.height, m_depthFormat, VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                m_depthImages[i], m_depthMemories[i]);
+
+            // 3) Create depth view
+            m_depthImageViews[i] = VulkanUtils::CreateImageView(m_depthImages[i], m_depthFormat,
+                VK_IMAGE_ASPECT_DEPTH_BIT, m_device);
+        }
+
+        EE_CORE_INFO("Swapchain color + game buffers + depth images created");
     }
+
 
 
     void VulkanSwapchain::CreateFramebuffers(VkRenderPass renderPass, VkRenderPass imGuiRenderPass, VkRenderPass gameRenderPass, VkDevice device)
@@ -309,12 +337,14 @@ namespace Engine {
         // Create the game framebuffers (offscreen rendering target)
         for (size_t i = 0; i < swapchainImageCount; ++i)
         {
-            
+            VkImageView depthImageView = m_depthImageViews[i];
+            VkImageView sceneAttachments[] = { m_gameTrackedImages[i].view, depthImageView };
+
             VkFramebufferCreateInfo gameFramebufferInfo{};
             gameFramebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             gameFramebufferInfo.renderPass = gameRenderPass;
-            gameFramebufferInfo.attachmentCount = 1;
-            gameFramebufferInfo.pAttachments = &m_gameTrackedImages[i].view;
+            gameFramebufferInfo.attachmentCount = static_cast<uint32_t>(std::size(sceneAttachments));
+            gameFramebufferInfo.pAttachments = sceneAttachments;
             gameFramebufferInfo.width = m_swapchainExtent.width;
             gameFramebufferInfo.height = m_swapchainExtent.height;
             gameFramebufferInfo.layers = 1;
@@ -448,5 +478,35 @@ namespace Engine {
         }
         EE_CORE_ASSERT(false, "Failed to find suitable memory type!");
     }
+
+    VkFormat VulkanSwapchain::FindSupportedDepthFormat( const std::vector<VkFormat>& candidates,
+        VkImageTiling tiling, VkFormatFeatureFlags features)
+    {
+        for (VkFormat format : candidates)
+        {
+            VkFormatProperties props{};
+            vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &props);
+
+            if (tiling == VK_IMAGE_TILING_LINEAR &&
+                (props.linearTilingFeatures & features) == features)
+            {
+                return format;
+            }
+
+            if (tiling == VK_IMAGE_TILING_OPTIMAL &&
+                (props.optimalTilingFeatures & features) == features)
+            {
+                return format;
+            }
+        }
+
+        EE_CORE_ASSERT(false, "Failed to find supported depth format!");
+        return candidates.empty() ? VK_FORMAT_UNDEFINED : candidates[0];
+    }
+
+
+
+
+
 
 }

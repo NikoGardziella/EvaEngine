@@ -451,10 +451,17 @@ namespace Engine {
 		renderPassInfo.renderArea = { {0, 0}, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent() };
 
 		// Clear color for the color attachment
-		VkClearValue clearColor = { {0.2f, 0.2f, 0.35f, 1.0f} };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
+		VkClearValue clearValues[2] = {};
 
+		// Attachment 0: color
+		clearValues[0].color = { { 0.25f, 0.15f, 0.45f, 1.0f } };
+
+		// Attachment 1: depth
+		clearValues[1].depthStencil.depth = 1.0f;
+		clearValues[1].depthStencil.stencil = 0;
+
+		renderPassInfo.clearValueCount = 2;
+		renderPassInfo.pClearValues = clearValues;
 		vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		// --- Set viewport and scissor ---
@@ -804,10 +811,6 @@ namespace Engine {
 		EE_PROFILE_FUNCTION();
 
 		//this can be called multiple times per frame
-		
-
-
-		
 		RecordGameDrawCommands(cmd, m_imageIndex, currentFrame);
 		RecordProjectileDrawCommands(cmd, currentFrame, currentFrame);
 		RecordLineCommanedBuffer(cmd, m_imageIndex, currentFrame);
@@ -900,7 +903,6 @@ namespace Engine {
 		VkClearValue clearColor = { {0.0f, 0.0f, 0.9f, 1.0f} };
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
-
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		// Setup viewport and scissor
@@ -1775,7 +1777,6 @@ namespace Engine {
 		clearValue.color = { {0.0f, 0.9f, 0.0f, 0.0f} };
 		imguiRenderPassInfo.clearValueCount = 1;
 		imguiRenderPassInfo.pClearValues = &clearValue;
-
 		vkCmdBeginRenderPass(commandBuffer, &imguiRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		ImDrawData* imguiDrawData = ImGui::GetDrawData();

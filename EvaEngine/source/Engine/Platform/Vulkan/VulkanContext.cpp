@@ -70,7 +70,6 @@ namespace Engine {
         CreateSurface();
         SetupDevices();
 
-
         CreateSwapchain();
         CreateGraphicsQueue();
         CreatePresentRenderPass();
@@ -86,10 +85,7 @@ namespace Engine {
 
         CreateCommandBuffers();
         CreateSampler();
-
-        uint32_t width = GetVulkanSwapchain().GetSwapchainExtent().width;
-        uint32_t height = GetVulkanSwapchain().GetSwapchainExtent().height;
-
+    
     }
 
     void VulkanContext::CreateInstance()
@@ -105,8 +101,6 @@ namespace Engine {
         createInfo.hwnd = glfwGetWin32Window(m_windowHandle);
         createInfo.hinstance = GetModuleHandle(nullptr);
 
-
-
         VkResult result = glfwCreateWindowSurface(m_vulkanInstance->GetInstance(), m_windowHandle, nullptr, &m_surface);
         if (result != VK_SUCCESS)
         {
@@ -116,9 +110,7 @@ namespace Engine {
         {
             EE_CORE_INFO("Vulkan window surface created");
 
-        }
-
-       
+        }    
     }
 
     void VulkanContext::SetupDevices()
@@ -126,7 +118,6 @@ namespace Engine {
 		m_deviceManager = new VulkanDevice(m_vulkanInstance->GetInstance(), m_surface, m_enableValidationLayers);
     }
 
-    
 
     void VulkanContext::CreateCommandPool()
     {
@@ -208,7 +199,6 @@ namespace Engine {
     }
 
 
-
     void VulkanContext::CreateGraphicsQueue()
     {
         vkGetDeviceQueue(m_deviceManager->GetDevice(), 0, 0, &m_graphicsQueue);  // Get the first queue from the device
@@ -268,12 +258,11 @@ namespace Engine {
         }
     }
 
-
     void VulkanContext::CreatePresentRenderPass()
     {
-        // First color attachment (o_Color)
+        // 1) Color attachment (swapchain)
         VkAttachmentDescription colorAttachment{};
-        colorAttachment.format = m_swapchain->GetSwapchainImageFormat();  // Swapchain format
+        colorAttachment.format = m_swapchain->GetSwapchainImageFormat();
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -283,19 +272,24 @@ namespace Engine {
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference colorAttachmentRef{};
-        colorAttachmentRef.attachment = 0;  // Correct index
+        colorAttachmentRef.attachment = 0; // index in attachments[]
         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 
-        // Subpass description
+
+
+
+        // 3) Subpass: hook both color and depth
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
-        VkAttachmentReference colorAttachments[] = { colorAttachmentRef };
-        subpass.pColorAttachments = colorAttachments;
+        subpass.pColorAttachments = &colorAttachmentRef;
 
-        // Render pass creation
-        std::array<VkAttachmentDescription, 1> attachments = { colorAttachment };
+        // 4) Attachments array (color + depth)
+        std::array<VkAttachmentDescription, 1> attachments = {
+            colorAttachment,
+        };
+
         VkRenderPassCreateInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -303,13 +297,20 @@ namespace Engine {
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
 
+        // 5) Subpass dependency (now also mentions depth)
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
-        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcStageMask =
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.srcAccessMask = 0;
-        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency.dstStageMask =
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.dstAccessMask =
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &dependency;
@@ -320,9 +321,10 @@ namespace Engine {
         }
         else
         {
-            EE_CORE_INFO("Vulkan render pass created");
+            EE_CORE_INFO("Vulkan present render pass (color+depth) created");
         }
     }
+
 
     void VulkanContext::CreateImGuiRenderPass()
     {
@@ -389,10 +391,29 @@ namespace Engine {
         colorAttachmentRef.attachment = 0;
         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+
+        VkFormat depthFormat = m_swapchain->GetDepthFormat();
+        // 2) Depth attachment
+        VkAttachmentDescription depthAttachment{};
+        depthAttachment.format = depthFormat;
+        depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference depthAttachmentRef{};
+        depthAttachmentRef.attachment = 1; // index in attachments[]
+        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &colorAttachmentRef;
+        subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -402,10 +423,14 @@ namespace Engine {
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
+        std::array<VkAttachmentDescription, 2> attachments = {
+              colorAttachment,
+              depthAttachment
+        };
         VkRenderPassCreateInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.attachmentCount = 1;
-        renderPassInfo.pAttachments = &colorAttachment;
+        renderPassInfo.attachmentCount = attachments.size();
+        renderPassInfo.pAttachments = attachments.data();
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
         renderPassInfo.dependencyCount = 1;

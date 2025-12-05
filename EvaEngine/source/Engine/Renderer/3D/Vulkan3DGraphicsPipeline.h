@@ -59,7 +59,7 @@ namespace Engine {
         void Bind(VkCommandBuffer cmd) const;
 
         // Accessors
-        VkPipeline       Get()        const { return m_pipeline; }
+        VkPipeline       GetPipeline()        const { return m_pipeline; }
         VkPipelineLayout GetLayout()  const { return m_layout; }
         VkDevice         GetDevice()  const { return m_device; }
 

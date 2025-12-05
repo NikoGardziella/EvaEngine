@@ -375,7 +375,7 @@ namespace Engine {
         Entity entity3D = this->CreateEntity();
   
 
-        SpawnMeshGrid(this,0, 10,10, 2);
+        SpawnMeshGrid(this,0, 1,10, 2);
     }
 
 
@@ -451,7 +451,7 @@ namespace Engine {
        
 
        // Camera* mainCamera = nullptr;
-        CameraComponent& mainCameraComp = CameraComponent{};
+        CameraComponent* mainCameraComp;
         glm::mat4 cameraTransform;
         glm::mat4 cameraView;
         {
@@ -467,8 +467,12 @@ namespace Engine {
                     {
                         //mainCamera = &camera.Camera;
                         cameraTransform = transform.GetTransform();
-						mainCameraComp = camera;
+						mainCameraComp = &camera;
                         cameraView = glm::inverse(cameraTransform);
+
+                    
+
+
                         break;
                     }
                 }
@@ -562,16 +566,16 @@ namespace Engine {
         {   
 
 
-            VisibleSet& visibleSet = m_cullingSystem3D->BuildVisible(this, mainCameraComp.Camera, *m_transformSystem3D, cameraTransform);
+            VisibleSet& visibleSet = m_cullingSystem3D->BuildVisible(this, mainCameraComp->Camera, *m_transformSystem3D, cameraTransform);
 
             m_renderSystem3D.Render(visibleSet, this, *m_transformSystem3D,
                 AssetManager::GetMeshRegistry(), AssetManager::GetMaterialRegistry());
 
 
             //Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
-            Engine::VulkanRenderer2D::BeginScene(mainCameraComp.Camera.GetProjection(), cameraTransform);
+            Engine::VulkanRenderer2D::BeginScene(mainCameraComp->Camera.GetProjection(), cameraTransform);
 
-            Engine::VulkanRenderer3D::Begin3DScene(mainCameraComp.Camera.GetProjection(),cameraView);
+            Engine::VulkanRenderer3D::Begin3DScene(mainCameraComp->Camera.GetProjection(),cameraView);
 
             glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 
@@ -795,7 +799,7 @@ namespace Engine {
                     EE_PROFILE_SCOPE("Texture update"); // RMEOVE=
 
                     entt::basic_view view = m_registry.view<SpriteRendererComponent, TransformComponent, IDComponent>();
-                    glm::vec4 cameraBounds = mainCameraComp.Camera.CalculateCameraWorldBounds(mainCameraComp.Camera, cameraTransform);
+                    glm::vec4 cameraBounds = mainCameraComp->Camera.CalculateCameraWorldBounds(mainCameraComp->Camera, cameraTransform);
                     glm::vec2 camMin = glm::vec2(cameraBounds.x, cameraBounds.y);
                     glm::vec2 camMax = camMin + glm::vec2(cameraBounds.z, cameraBounds.w);
                     for (auto entity : view)
@@ -821,7 +825,7 @@ namespace Engine {
                                 }
 
                                 {
-                                    glm::mat4 proj = mainCameraComp.Camera.GetProjection();
+                                    glm::mat4 proj = mainCameraComp->Camera.GetProjection();
                                     
                                     glm::vec2 entityPos = glm::vec2(transform.Translation.x, transform.Translation.y);
                                     glm::vec2 entityHalfSize = glm::vec2(transform.Scale.x, transform.Scale.y) * 0.5f;

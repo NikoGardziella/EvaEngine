@@ -41,7 +41,7 @@ namespace Engine {
 
         Engine::Vulkan3DGraphicsPipeline::CreateInfo createInfo{};
         createInfo.device = m_device;
-        createInfo.renderPass = vulkanContext->GetPresentRenderPass();      
+        createInfo.renderPass = vulkanContext->GetGameRenderPass();      
         //ci.pipelineCache = pipelineCache;       // optional
         createInfo.setLayouts = { m_descriptorSetLayout3D };
         createInfo.pushConstantRange = { VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PCDraw3D) };
@@ -71,7 +71,7 @@ namespace Engine {
         rasterState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         rasterState.polygonMode = VK_POLYGON_MODE_FILL;
         rasterState.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        rasterState.frontFace = VK_FRONT_FACE_CLOCKWISE;
         rasterState.depthTest = VK_TRUE;
         rasterState.depthWrite = VK_TRUE;
         rasterState.depthCompare = VK_COMPARE_OP_LESS_OR_EQUAL;
@@ -313,7 +313,6 @@ namespace Engine {
         void* dst = m_frames[frameIndex].instanceSSBO.Mapped();
         std::memcpy(dst, instances, byteCount);
 
-        // no vkFlushMappedMemoryRanges() needed for HOST_COHERENT
     }
 
     void VulkanRenderer3D::Begin3DScene(const  glm::mat4& projection, const  glm::mat4& view)
@@ -323,10 +322,8 @@ namespace Engine {
   
         //const glm::mat4 V = glm::inverse(cameraWorld);
   
-
         s_Vulkan3DData.s_cameraData.uProj = projection;
         s_Vulkan3DData.s_cameraData.uView = view;
-
 
     }
 
@@ -384,6 +381,8 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
         UploadMaterials(frameIndex, AssetManager::GetMaterialRegistry());
+
+        UpdateCamera(frameIndex, s_Vulkan3DData.s_cameraData.uView, s_Vulkan3DData.s_cameraData.uProj);
         UpdateCamera(frameIndex, s_Vulkan3DData.s_cameraData.uView, s_Vulkan3DData.s_cameraData.uProj);
         UpdateBones(frameIndex);
 
@@ -429,11 +428,10 @@ namespace Engine {
             });
 
         // 2) Bind pipeline + global set0 (camera + instances + materials)
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_3DPipeline.Get());
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_3DPipeline.GetPipeline());
         {
             VkDescriptorSet set0 = m_frames[frameIndex].set0Global;
-            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                m_3DPipeline.GetLayout(),
+            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_3DPipeline.GetLayout(),
                 0, 1, &set0, 0, nullptr);
         }
 
@@ -468,23 +466,15 @@ namespace Engine {
             pc.flags = s_debug3DFlags;
             
 
-
-            vkCmdPushConstants(cmd, m_3DPipeline.GetLayout(),
-                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+            vkCmdPushConstants(cmd, m_3DPipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                 0, sizeof(PCDraw3D), &pc);
 
             // Draw this submesh
             const MeshAsset& mesh = meshReg.Get(currentMeshId);
             const SubmeshRange& sm = mesh.submeshes[d.submeshId];
 
-            vkCmdDrawIndexed(cmd,
-                sm.indexCount,
-                1,                       // instanceCount = 1
-                sm.firstIndex,
-                static_cast<int32_t>(sm.baseVertex),
-                0);
-
-            
+            vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, static_cast<int32_t>(sm.baseVertex), 0);
+     
         }
 
         // 4) Clear queues for next frame

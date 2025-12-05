@@ -35,17 +35,17 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
 
     Engine::Entity playerEntity;
     scene->ForEach<Engine::TransformComponent, CharacterControllerComponent>(
-        [&](Engine::Entity playerEntity,  Engine::TransformComponent& playerTransformComp,
+        [&](Engine::Entity entity,  Engine::TransformComponent& playerTransformComp,
             CharacterControllerComponent& controller)
         {
-            playerEntity = playerEntity;
+            playerEntity = entity;
 
             glm::vec2 diff = mouseWorldPosition - glm::vec2(playerTransformComp.Translation);
             if (glm::length(diff) > 0.0001f)
             {
                 glm::vec2 dir = glm::normalize(diff);
                 float angle = std::atan2(dir.y, dir.x);
-                playerTransformComp.Rotation.z = angle + glm::radians(220.0f);
+                //playerTransformComp.Rotation.z = angle + glm::radians(220.0f);
             }
 
             

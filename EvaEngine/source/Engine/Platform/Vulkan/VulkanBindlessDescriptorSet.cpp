@@ -46,7 +46,7 @@ namespace Engine {
         CreateComputeGraphicsPipeline();
         CreateEffectsPipeline();
 
-        CreateTilesPipeline(device, ctx->GetPresentRenderPass());
+        CreateTilesPipeline(device, ctx->GetGameRenderPass());
        
         // Instance buffers
         const uint32_t maxInstances = 4096; 
@@ -61,11 +61,8 @@ namespace Engine {
 
         auto atlas = AssetManager::GetTileTextureIconAtlas();
 
-
-
         // Also tell the bindless system your per-tile pixel size (whatever you use for the per-tile layer)
         SetTileDimensions(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
-
 
     }
 
@@ -309,6 +306,17 @@ namespace Engine {
         cb.attachmentCount = 1;
         cb.pAttachments = &blend;
 
+
+        VkPipelineDepthStencilStateCreateInfo depthStencil{};
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_FALSE;
+        depthStencil.depthWriteEnable = VK_FALSE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.stencilTestEnable = VK_FALSE;
+
+
+
         // --- 9) Create pipeline using your existing layout (set=0 + push constants) ---
         VkGraphicsPipelineCreateInfo pci{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
         pci.stageCount = 2;
@@ -324,6 +332,7 @@ namespace Engine {
         pci.layout = m_tilesPipelineLayout; 
         pci.renderPass = renderPass;
         pci.subpass = 0;
+        pci.pDepthStencilState = &depthStencil;
 
         if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pci, nullptr, &m_tilesPipeline) != VK_SUCCESS)
         {

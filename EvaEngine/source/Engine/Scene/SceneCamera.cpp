@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "SceneCamera.h"
 #include "glm/gtc/matrix_transform.hpp"
+#include <Engine/Platform/Vulkan/VulkanContext.h>
 
 
 
@@ -95,22 +96,27 @@ namespace Engine {
 	{
 		if (m_projectionType == ProjectionType::Perspective)
 		{
-			m_projection = glm::perspective(m_perspectiveFOV, m_aspectRatio, m_perspectiveNear, m_perspectiveFar);
+			if (m_aspectRatio <= 0.0f)
+			{
+				m_aspectRatio = 1.0f;
+			}
+		
+			m_projection = glm::perspectiveRH_ZO(m_perspectiveFOV,	m_aspectRatio,
+				m_perspectiveNear,m_perspectiveFar);
+
+
 		}
 		else
 		{
-			//Orthographic 
 			float orthoLeft = -m_orthographicSize * m_aspectRatio * 0.5f;
 			float orthoRight = m_orthographicSize * m_aspectRatio * 0.5f;
-
 			float orthoBottom = -m_orthographicSize * 0.5f;
 			float orthoTop = m_orthographicSize * 0.5f;
 
-
-			m_projection = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, m_orthographicNear, m_orthographicFar);
+			m_projection = glm::orthoRH_ZO(orthoLeft, orthoRight,orthoBottom, orthoTop,
+				m_orthographicNear,	m_orthographicFar );
 		}
-		
-
 	}
+
 
 }

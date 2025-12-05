@@ -47,8 +47,6 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-       
-
         VisibleSet vis;
 
         const glm::mat4 V = glm::inverse(cameraWorld);
@@ -56,7 +54,6 @@ namespace Engine {
         glm::mat4 VP = cam.GetProjection() * V;   
         Plane fr[6];
         ExtractFrustum(VP, fr);
-
 
         scene->ForEachConst<RenderBoundsComponent>([&](Entity e, const RenderBoundsComponent& rb)
             {

@@ -325,6 +325,16 @@ namespace Engine {
 			EE_CORE_INFO("Vulkan game pipeline layout created");
         }
    
+
+        VkPipelineDepthStencilStateCreateInfo depthStencil{};
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_TRUE;              // enable depth test
+        depthStencil.depthWriteEnable = VK_TRUE;              // write to depth buffer
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;   // smaller depth = closer
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.stencilTestEnable = VK_FALSE;
+
+
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
@@ -335,7 +345,7 @@ namespace Engine {
         pipelineInfo.pViewportState = &viewportState;
         pipelineInfo.pRasterizationState = &rasterizer;
         pipelineInfo.pMultisampleState = &multisampling;
-        pipelineInfo.pDepthStencilState = nullptr; // Optional
+        pipelineInfo.pDepthStencilState = &depthStencil;
         pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
         pipelineInfo.layout = m_gamePipelineLayout;
@@ -353,7 +363,8 @@ namespace Engine {
         {
 			EE_CORE_INFO("Vulkan game  graphics pipeline created");
         }
-
+        EE_CORE_INFO("[PipelineCreate] renderPass = {}", (void*)pipelineInfo.renderPass);
+        EE_CORE_INFO("[PipelineCreate] subpass   = {}", pipelineInfo.subpass);
     }
 
     void VulkanGraphicsPipeline::CreateLineGraphicsPipeline(VkRenderPass renderPass)
@@ -459,12 +470,22 @@ namespace Engine {
         pipelineLayoutInfo.setLayoutCount = 1;
         pipelineLayoutInfo.pSetLayouts = &m_lineDescriptorSetLayout;
 
-
+        
         VkResult result = vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_linePipelineLayout);
         if (result != VK_SUCCESS)
         {
             EE_CORE_ASSERT(false, "failed to create line  pipeline layout!");
         }
+
+        VkPipelineDepthStencilStateCreateInfo depthStencil{};
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_TRUE;              // enable depth test
+        depthStencil.depthWriteEnable = VK_TRUE;              // write to depth buffer
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;   // smaller depth = closer
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.stencilTestEnable = VK_FALSE;
+
+
 
         // Graphics Pipeline
         VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -477,12 +498,13 @@ namespace Engine {
         pipelineInfo.pRasterizationState = &rasterizer;
         pipelineInfo.pMultisampleState = &multisampling;
         pipelineInfo.pColorBlendState = &colorBlending;
+        pipelineInfo.pDepthStencilState = &depthStencil;
         pipelineInfo.pDynamicState = &dynamicState;
         pipelineInfo.layout = m_linePipelineLayout;
 
         pipelineInfo.renderPass = renderPass;  // render pass for swapchain
         pipelineInfo.subpass = 0;
-
+        
        
         if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_linePipeline) != VK_SUCCESS)
         {
@@ -492,8 +514,9 @@ namespace Engine {
         {
             EE_CORE_INFO("Vulkan line graphics pipeline created");
         }
-
-
+        
+        EE_CORE_INFO("[PipelineCreate] renderPass = {}", (void*)pipelineInfo.renderPass);
+        EE_CORE_INFO("[PipelineCreate] subpass   = {}", pipelineInfo.subpass);
     }
 
    
@@ -544,6 +567,9 @@ namespace Engine {
         VkResult r = vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &ci, nullptr, &m_playerCollisionPipeline);
         vkDestroyShaderModule(m_device, m_playerCollisionComputeShader->GetComputeshaderModule(), nullptr);
         EE_CORE_ASSERT(r == VK_SUCCESS, "Failed to create PlayerCollision compute pipeline");
+
+
+
     }
 
 
@@ -630,6 +656,7 @@ namespace Engine {
 
         vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_presentPipelineLayout);
 
+
         // Graphics Pipeline
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -641,6 +668,7 @@ namespace Engine {
         pipelineInfo.pRasterizationState = &rasterizer;
         pipelineInfo.pMultisampleState = &multisampling;
         pipelineInfo.pColorBlendState = &colorBlending;
+        //pipelineInfo.pDepthStencilState = &depthStencil;
         pipelineInfo.pDynamicState = &dynamicState;
         pipelineInfo.layout = m_presentPipelineLayout;
         pipelineInfo.renderPass = renderPass;  // render pass for swapchain
@@ -655,6 +683,9 @@ namespace Engine {
         {
             EE_CORE_INFO("Vulkan present graphics pipeline created");
         }
+
+        EE_CORE_INFO("[PipelineCreate] renderPass = {}", (void*)pipelineInfo.renderPass);
+        EE_CORE_INFO("[PipelineCreate] subpass   = {}", pipelineInfo.subpass);
 
     }
 
@@ -817,11 +848,12 @@ namespace Engine {
 
         VkPipelineDepthStencilStateCreateInfo depthStencil{};
         depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-        depthStencil.depthTestEnable = VK_TRUE;
-        depthStencil.depthWriteEnable = VK_TRUE;                 // write to the depth buffer
-        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;      // smaller Z = closer
+        depthStencil.depthTestEnable = VK_FALSE;
+        depthStencil.depthWriteEnable = VK_FALSE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_ALWAYS;
         depthStencil.depthBoundsTestEnable = VK_FALSE;
         depthStencil.stencilTestEnable = VK_FALSE;
+
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -833,7 +865,7 @@ namespace Engine {
         pipelineInfo.pViewportState = &viewportState;
         pipelineInfo.pRasterizationState = &rasterizer;
         pipelineInfo.pMultisampleState = &multisampling;
-        pipelineInfo.pDepthStencilState = &depthStencil; // Optional
+        pipelineInfo.pDepthStencilState = &depthStencil;
         pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
         pipelineInfo.layout = m_projectilePipelineLayout;
@@ -851,7 +883,12 @@ namespace Engine {
         {
             EE_CORE_INFO("Vulkan projectile  graphics pipeline created");
         }
+
+        EE_CORE_INFO("[PipelineCreate] renderPass = {}", (void*)pipelineInfo.renderPass);
+        EE_CORE_INFO("[PipelineCreate] subpass   = {}", pipelineInfo.subpass);
     }
+
+
 
  
     void VulkanGraphicsPipeline::CreatePresentPipelineLayout()
