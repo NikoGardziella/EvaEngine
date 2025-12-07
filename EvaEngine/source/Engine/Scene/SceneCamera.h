@@ -23,6 +23,8 @@ namespace Engine {
 		virtual ~SceneCamera();
 
 
+		glm::vec2 GetViewportSize() const { return m_viewportSize; }
+
 		void SetOrthographic(float size, float nearClip, float farClip);
 		void SetPerspective(float verticalFOV, float nearClip, float farClip);
 

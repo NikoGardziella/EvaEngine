@@ -550,11 +550,15 @@ namespace Engine {
             {
                 auto& transform = entity.AddComponent<TransformComponent>();
                 auto translation = entityNode["TransformComponent"]["Translation"].as<std::vector<float>>();
-                auto rotation = entityNode["TransformComponent"]["Rotation"].as<std::vector<float>>();
+                auto rotationDeg = entityNode["TransformComponent"]["Rotation"].as<std::vector<float>>();
                 auto scale = entityNode["TransformComponent"]["Scale"].as<std::vector<float>>();
 
                 transform.Translation = { translation[0], translation[1], translation[2] };
-                transform.Rotation = { rotation[0], rotation[1], rotation[2] };
+
+                // YAML stored in degrees -> convert to radians for engine
+                glm::vec3 rotDeg(rotationDeg[0], rotationDeg[1], rotationDeg[2]);
+                transform.Rotation = glm::radians(rotDeg);
+
                 transform.Scale = { scale[0], scale[1], scale[2] };
             }
         }

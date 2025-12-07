@@ -12,6 +12,7 @@ void PlayerCameraSystem::UpdatePlayerCameraSystem(float deltaTime, Engine::Scene
 
     // Primary camera
     Engine::Entity cameraEntity = scene->GetPrimaryCameraEntity();
+    Engine::Entity camera3DEntity = scene->Get3DcameraEntity();
     if (!cameraEntity)
     {
         return;
@@ -23,6 +24,7 @@ void PlayerCameraSystem::UpdatePlayerCameraSystem(float deltaTime, Engine::Scene
     }
 
     Engine::TransformComponent& cameraTransformComp = cameraEntity.GetComponent<Engine::TransformComponent>();
+    Engine::TransformComponent& camera3DTransformComp = camera3DEntity.GetComponent<Engine::TransformComponent>();
 
     // Follow the first player we find
     bool updated = false;
@@ -41,6 +43,7 @@ void PlayerCameraSystem::UpdatePlayerCameraSystem(float deltaTime, Engine::Scene
             cameraTransformComp.Translation.y =
                 glm::mix(cameraTransformComp.Translation.y, playerPos.y, followLerp * deltaTime);
 
+            
             updated = true;
         });
 }

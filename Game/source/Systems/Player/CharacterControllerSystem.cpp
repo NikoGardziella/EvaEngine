@@ -44,8 +44,14 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
             if (glm::length(diff) > 0.0001f)
             {
                 glm::vec2 dir = glm::normalize(diff);
-                float angle = std::atan2(dir.y, dir.x);
-                //playerTransformComp.Rotation.z = angle + glm::radians(220.0f);
+
+                float angle2D = std::atan2(dir.y, dir.x);
+
+                float anotherRandomOffsetThatMightBeMovedSOmwhereElse = 90.0f;
+                angle2D += glm::radians(anotherRandomOffsetThatMightBeMovedSOmwhereElse);
+
+                playerTransformComp.Rotation.z = angle2D; 
+
             }
 
             

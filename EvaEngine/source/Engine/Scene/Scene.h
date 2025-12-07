@@ -17,6 +17,7 @@
 #include <Engine/Animation/3D/System/CullingSystem3D.h>
 #include <Engine/Animation/3D/System/AnimationSystem3D.h>
 #include <Engine/Animation/3D/BonePaletteBuffer.h>
+#include "Component.h"
 
 
 
@@ -100,6 +101,8 @@ namespace Engine {
 
 
 
+		Entity Get3DcameraEntity();
+
 		Entity GetPrimaryCameraEntity();
 		TextureStreamingSystem& GetTextureStreamingSystem() { return *m_textureStreamingSystem; }
 
@@ -148,7 +151,6 @@ namespace Engine {
 		uint32_t m_viewportWidth = 0;
 		uint32_t m_viewportHeight = 0;
 		std::array<glm::vec2, 2> m_viewportBounds = { glm::vec2(0, 0), glm::vec2(1, 1) };
-
 
 
 		std::vector<std::function<void(float, Scene*)>> m_gameplaySystems;

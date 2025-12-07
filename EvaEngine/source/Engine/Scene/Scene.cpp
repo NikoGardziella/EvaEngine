@@ -34,6 +34,7 @@
 #include "Components/Render/3D/RenderBoundsComponent.h"
 #include "Components/Render/3D/SkeletonComponent.h"
 #include "Components/Render/3D/AnimatorComponent.h"
+#include <glm/gtx/euler_angles.hpp>
 
 namespace Engine {
 
@@ -375,7 +376,24 @@ namespace Engine {
         Entity entity3D = this->CreateEntity();
   
 
-        SpawnMeshGrid(this,0, 1,10, 2);
+        SpawnMeshGrid(this,0, 0,10, 2);
+
+        Entity m_camera3DEntity = CreateEntity("3D camera");
+        auto& cameraComp = m_camera3DEntity.AddComponent<Engine::CameraComponent>();
+        cameraComp.FixedAspectRatio = true;
+        cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
+        cameraComp.Camera.SetPerspectiveFOV(45.0f);
+        cameraComp.Primary = false;
+        cameraComp.FreeCamera = true;
+        cameraComp.Camera.SetViewportBounds(GetViewportBounds());
+
+
+        cameraComp.Camera.SetViewportSize(GetViewportWidth(),GetViewortHeight());
+
+        auto& cameraTransformComp = m_camera3DEntity.AddComponent<Engine::TransformComponent>();
+        cameraTransformComp.Translation += glm::vec3(0.0f, -9.0f, 1.1f);
+
+        cameraTransformComp.Rotation.x = glm::radians(30.0f);
     }
 
 
@@ -451,9 +469,15 @@ namespace Engine {
        
 
        // Camera* mainCamera = nullptr;
-        CameraComponent* mainCameraComp;
-        glm::mat4 cameraTransform;
-        glm::mat4 cameraView;
+        CameraComponent* mainCameraComp = nullptr;
+        CameraComponent* camera3DComp = nullptr;
+
+        glm::mat4 cameraTransform = glm::mat4(1.0f);
+        glm::mat4 camera3DTransform = glm::mat4(1.0f);
+        glm::mat4 cameraView = glm::mat4(1.0f);
+        glm::mat4 camera3DView = glm::mat4(1.0f);
+        glm::vec3 camera3DRotation = glm::vec3(0.0f);
+
         {
             EE_PROFILE_SCOPE("Get Update Runtime Camera");
 
@@ -468,16 +492,33 @@ namespace Engine {
                         //mainCamera = &camera.Camera;
                         cameraTransform = transform.GetTransform();
 						mainCameraComp = &camera;
-                        cameraView = glm::inverse(cameraTransform);
-
-                    
-
-
-                        break;
+                        cameraView = glm::inverse(cameraTransform);          
+                    }
+                    else
+                    {
+                        camera3DComp = &camera;
+                        camera3DTransform = transform.GetTransform();;
+                        camera3DRotation = transform.Rotation;
                     }
                 }
             }
+            glm::vec3 mainCamPos = glm::vec3(cameraTransform[3]);
+            glm::vec3 camera3DPos = glm::vec3(camera3DTransform[3]);
+            glm::vec3 finalPos = mainCamPos + camera3DPos;
+            glm::mat4 R = glm::mat4(1.0f);
+            R = glm::yawPitchRoll(camera3DRotation.y, camera3DRotation.x, camera3DRotation.z);
+            glm::mat4 T = glm::translate(glm::mat4(1.0f), finalPos);
+
+            camera3DTransform = T * R;
+
+            // View = inverse(world)
+            camera3DView = glm::inverse(camera3DTransform);
         }
+
+      
+
+
+        
         glm::vec2 playerPos;
         auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent, SpriteRendererComponent>();
         uint64_t playerID = 0;
@@ -562,7 +603,7 @@ namespace Engine {
 
         m_animationSystem3D.Update(this, timestep, AssetManager::GetSkeletonRegistry(), AssetManager::GetAnimationRegistry(), m_bonePaletteBuffer);
 
-        //if(mainCameraComp.Camera != entt::null)
+        if(mainCameraComp != nullptr)
         {   
 
 
@@ -575,7 +616,7 @@ namespace Engine {
             //Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
             Engine::VulkanRenderer2D::BeginScene(mainCameraComp->Camera.GetProjection(), cameraTransform);
 
-            Engine::VulkanRenderer3D::Begin3DScene(mainCameraComp->Camera.GetProjection(),cameraView);
+            Engine::VulkanRenderer3D::Begin3DScene(camera3DComp->Camera.GetProjection(), camera3DView);
 
             glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 
@@ -1282,6 +1323,21 @@ namespace Engine {
 
 
 
+
+    Entity Scene::Get3DcameraEntity()
+    {
+        auto view = m_registry.view<CameraComponent>();
+        for (auto cameraEntity : view)
+        {
+            const auto& cameraComp = view.get<CameraComponent>(cameraEntity);
+
+            if (!cameraComp.Primary)
+            {
+                return Entity{ cameraEntity, this };
+            }
+        }
+        return {};
+    }
 
     Entity Scene::GetPrimaryCameraEntity()
     {

@@ -1,6 +1,125 @@
 Scene: My Scene
 Entities:
-  - ID: 18221737202018423911
+  - ID: 9559787422910244021
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-7.5, 8.75, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 13440356006780042127
+        - Position: [-0.5, -0.25]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 4235020944953488943
+        - Position: [-1, -0.5]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 15352014394556011655
+        - Position: [-1.5, -0.75]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 2581117655108133889
+        - Position: [-2, -1.5]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 62289641696233745
+        - Position: [-2.5, -1.75]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 12920577982419359637
+        - Position: [-3, -2]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 3421890872374780832
+        - Position: [-3.5, -2.25]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 1876772231696634181
+        - Position: [-4, -2.5]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 9681556205525504349
+        - Position: [-4.5, -2.75]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 2305064682007859092
+        - Position: [-5, -3]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 5583364654467099893
+        - Position: [-5.5, -3.25]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 11826536162316406136
+  - ID: 1020531815
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -17,7 +136,7 @@ Entities:
           IsDestructible: false
           IsRoof: false
           Category: dynamicObjects
-          Material: Default
+          Material: None
           Health: 1
           UID: 13130214826304718861
   - ID: 300291308
@@ -404,7 +523,7 @@ Entities:
       Tag: player
     TransformComponent:
       Translation: [0, 0, 0]
-      Rotation: [0, 0, 6.7481947]
+      Rotation: [90, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
@@ -662,3 +781,41 @@ Entities:
           Material: None
           Health: 1
           UID: 9232401630757911481
+  - ID: 1505859564
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-0.5, 2.25, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 10887131412617771749
+        - Position: [-0.5, -0.25]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 223329531447483920
+        - Position: [-1, -0.5]
+          UV: [0.63134766, 0.25121477, 0.7553711, 0.49902818]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 8651664226787392773

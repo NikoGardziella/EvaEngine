@@ -383,7 +383,6 @@ namespace Engine {
         UploadMaterials(frameIndex, AssetManager::GetMaterialRegistry());
 
         UpdateCamera(frameIndex, s_Vulkan3DData.s_cameraData.uView, s_Vulkan3DData.s_cameraData.uProj);
-        UpdateCamera(frameIndex, s_Vulkan3DData.s_cameraData.uView, s_Vulkan3DData.s_cameraData.uProj);
         UpdateBones(frameIndex);
 
         UpdateAlbedoImageDesciptorsSet(frameIndex);
