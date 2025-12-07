@@ -504,7 +504,7 @@ namespace Engine {
             }
             glm::vec3 mainCamPos = glm::vec3(cameraTransform[3]);
             glm::vec3 camera3DPos = glm::vec3(camera3DTransform[3]);
-            glm::vec3 finalPos = mainCamPos + camera3DPos;
+            glm::vec3 finalPos = camera3DPos + glm::vec3(mainCamPos.x, mainCamPos.y, 0.0f);
             glm::mat4 R = glm::mat4(1.0f);
             R = glm::yawPitchRoll(camera3DRotation.y, camera3DRotation.x, camera3DRotation.z);
             glm::mat4 T = glm::translate(glm::mat4(1.0f), finalPos);
