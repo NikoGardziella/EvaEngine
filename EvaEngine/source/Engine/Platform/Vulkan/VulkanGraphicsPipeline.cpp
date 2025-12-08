@@ -13,6 +13,7 @@
 #include "VulkanUtils.h"
 #include "VulkanTexture.h"
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
+#include <Engine/AssetManager/Utils/Statistics.h>
 
 
 
@@ -154,6 +155,12 @@ namespace Engine {
         vkDestroyPipelineLayout(m_device, m_linePipelineLayout, nullptr);
         vkDestroyPipelineLayout(m_device, m_presentPipelineLayout, nullptr);
         DestroyGPUCollisionResultBuffers();
+
+        GPUStats& stats = GPUStats::Get();
+        stats.RemoveBuffer(m_explosionBufferSize);
+
+
+
     }
 
  
@@ -1686,6 +1693,9 @@ namespace Engine {
         vkAllocateMemory(m_device, &allocInfo, nullptr, &m_playerCollisionresultBufferMemory);
         vkBindBufferMemory(m_device, m_playerCollisionresultBufferBuffer, m_playerCollisionresultBufferMemory, 0);
 
+        GPUStats& stats = GPUStats::Get();
+        stats.AddBuffer(sizeof(CollisionResultBuffer));
+
     }
 
     void VulkanGraphicsPipeline::CreateClearMaskBuffer()
@@ -1732,20 +1742,24 @@ namespace Engine {
 
         res = vkBindBufferMemory(m_device, m_clearMaskBufferBuffer, m_clearMaskBufferMemory, 0);
         EE_CORE_ASSERT(res == VK_SUCCESS, "Failed to bind ClearMask SSBO memory!");
+
+
+        GPUStats& stats = GPUStats::Get();
+        stats.AddBuffer(bufferSize);
     }
 
 
     void VulkanGraphicsPipeline::CreateGPUCollisionResultBuffer()
     {
         const VkDevice device = m_device;
-        const VkDeviceSize bufSize = sizeof(CollisionResultBuffer);
+        m_collisionResultBufferSize = sizeof(CollisionResultBuffer);
 
         for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
         {
             // Buffer
             VkBufferCreateInfo bufferInfo{};
             bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            bufferInfo.size = bufSize;
+            bufferInfo.size = m_collisionResultBufferSize;
             bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT; // add TRANSFER_DST if you really copy into it
             bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -1754,6 +1768,8 @@ namespace Engine {
                 EE_CORE_ASSERT("Failed to create GPUCollisionResult buffer");
                 return;
             }
+            GPUStats& stats = GPUStats::Get();
+            stats.AddBuffer(m_collisionResultBufferSize);
 
             // Memory requirements
             VkMemoryRequirements memReq{};
@@ -1782,9 +1798,9 @@ namespace Engine {
             }
 
             void* ptr = nullptr;
-            if (vkMapMemory(device, m_GPUCollisionresultBufferMemory[i], 0, bufSize, 0, &ptr) == VK_SUCCESS && ptr)
+            if (vkMapMemory(device, m_GPUCollisionresultBufferMemory[i], 0, m_collisionResultBufferSize, 0, &ptr) == VK_SUCCESS && ptr)
             {
-                std::memset(ptr, 0, bufSize);
+                std::memset(ptr, 0, m_collisionResultBufferSize);
 
                 auto* hdr = reinterpret_cast<CollisionResultBuffer*>(ptr);
                 hdr->collisionCount = 0;
@@ -1798,7 +1814,7 @@ namespace Engine {
                 VkMappedMemoryRange fl{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
                 fl.memory = m_GPUCollisionresultBufferMemory[i];
                 fl.offset = 0;
-                fl.size = bufSize;
+                fl.size = m_collisionResultBufferSize;
                 vkFlushMappedMemoryRanges(device, 1, &fl);
 
                 vkUnmapMemory(device, m_GPUCollisionresultBufferMemory[i]);
@@ -1828,7 +1844,13 @@ namespace Engine {
                 vkDestroyBuffer(device, m_GPUCollisionresultBufferBuffer[i], nullptr);
                 m_GPUCollisionresultBufferBuffer[i] = VK_NULL_HANDLE;
             }
+
+            GPUStats& stats = GPUStats::Get();
+            stats.RemoveBuffer(m_collisionResultBufferSize);
         }
+
+       
+
     }
 
 
@@ -1871,6 +1893,11 @@ namespace Engine {
         {
             EE_CORE_ASSERT("Failed to bind DirtyOut buffer memory");
         }
+
+
+        GPUStats& stats = GPUStats::Get();
+        stats.AddBuffer(memRequirements.size);
+
     }
 
 
@@ -1918,6 +1945,9 @@ namespace Engine {
         vkMapMemory(m_device, m_explosionBufferMemory, 0, m_explosionBufferSize, 0, &data);
         std::memset(data, 0, static_cast<size_t>(m_explosionBufferSize));
         vkUnmapMemory(m_device, m_explosionBufferMemory);
+
+        GPUStats& stats = GPUStats::Get();
+        stats.AddBuffer(m_explosionBufferSize);
     }
 
 

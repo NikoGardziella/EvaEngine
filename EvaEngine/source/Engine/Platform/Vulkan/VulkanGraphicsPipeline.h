@@ -369,6 +369,8 @@ namespace Engine {
 
         std::array<VkBuffer, MAX_FRAMES_IN_FLIGHT> m_GPUCollisionresultBufferBuffer;
         std::array<VkDeviceMemory, MAX_FRAMES_IN_FLIGHT>   m_GPUCollisionresultBufferMemory;
+        VkDeviceSize m_collisionResultBufferSize;
+
 
         VkBuffer m_playerCollisionresultBufferBuffer;
         VkDeviceMemory  m_playerCollisionresultBufferMemory;

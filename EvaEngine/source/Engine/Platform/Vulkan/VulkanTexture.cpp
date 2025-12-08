@@ -8,6 +8,7 @@
 #include "Engine/AssetManager/AssetManager.h"
 #include <Engine/Animation/3D/Import/GLTFImporter.h>
 #include <memory>
+#include <Engine/AssetManager/Utils/Statistics.h>
 
 namespace Engine {
 
@@ -34,7 +35,8 @@ namespace Engine {
             // set imGuiTexture to True when adding Imgui texture
             m_textureDescriptor = ImGui_ImplVulkan_AddTexture(m_sampler, m_imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
-        AssetManager::s_totalTextureMemory += m_memorySize;
+        GPUStats& stats = GPUStats::Get();
+        stats.AddTexture(m_memorySize);
     }
 
     VulkanTexture::VulkanTexture(uint32_t width, uint32_t height, VkFormat textureFormat, bool imGuiTexture, uint32_t textureID)
@@ -58,7 +60,10 @@ namespace Engine {
             // set imGuiTexture to True when adding Imgui texture
             m_textureDescriptor = ImGui_ImplVulkan_AddTexture(m_sampler, m_imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
-        AssetManager::s_totalTextureMemory += m_memorySize;
+        GPUStats& stats = GPUStats::Get();
+        stats.AddTexture(m_memorySize);
+        //EE_CORE_INFO("is imGuiTexture: {}, memory used {} / {} ", imGuiTexture, m_memorySize, AssetManager::s_totalTextureMemory);
+
     }
 
     VulkanTexture::VulkanTexture(const TextureSource& src)
@@ -136,7 +141,12 @@ namespace Engine {
 
         // upload CPU pixels to GPU
         const uint32_t byteCount = w * h * 4;
+
         SetData(m_CPUpixelData.data(), byteCount);
+        GPUStats& stats = GPUStats::Get();
+        stats.AddTexture(m_memorySize);
+
+        
     }
 
 
@@ -146,12 +156,15 @@ namespace Engine {
 
     VulkanTexture::~VulkanTexture()
     {
-        AssetManager::s_totalTextureMemory -= m_memorySize;
+        
         VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
         vkDestroySampler(device, m_sampler, nullptr);
         vkDestroyImageView(device, m_imageView, nullptr);
         vkDestroyImage(device, m_image, nullptr);
         vkFreeMemory(device, m_imageMemory, nullptr);
+
+        GPUStats& stats = GPUStats::Get();
+        stats.RemoveTexture(m_memorySize);
 
     }
 
@@ -327,12 +340,7 @@ namespace Engine {
         m_height = texHeight;
         VkDeviceSize imageSize = m_width * m_height * 4;
 
-        if (AssetManager::s_totalTextureMemory + imageSize > MAX_TEXTURE_MEMORY_BUDGET)
-        {
-			EE_CORE_ASSERT(false, "Texture memory budget exceeded!");
-            // unloading of unused/least recently used textures
-        }
-
+       
 
         VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
 

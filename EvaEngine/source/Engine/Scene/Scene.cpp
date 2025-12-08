@@ -391,7 +391,7 @@ namespace Engine {
         cameraComp.Camera.SetViewportSize(GetViewportWidth(),GetViewortHeight());
 
         auto& cameraTransformComp = m_camera3DEntity.AddComponent<Engine::TransformComponent>();
-        cameraTransformComp.Translation += glm::vec3(0.0f, -9.0f, 1.1f);
+        cameraTransformComp.Translation += glm::vec3(0.0f, -9.0f, 16.0f);
 
         cameraTransformComp.Rotation.x = glm::radians(30.0f);
     }

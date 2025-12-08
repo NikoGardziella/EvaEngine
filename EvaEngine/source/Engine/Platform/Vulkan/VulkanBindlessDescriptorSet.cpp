@@ -10,6 +10,7 @@
 #include <Engine.h>
 #include <Engine/Renderer/VulkanRenderer2D.h>
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
+#include <Engine/AssetManager/Utils/Statistics.h>
 
 namespace Engine {
 
@@ -49,7 +50,7 @@ namespace Engine {
         CreateTilesPipeline(device, ctx->GetGameRenderPass());
        
         // Instance buffers
-        const uint32_t maxInstances = 4096; 
+        const uint32_t maxInstances = MAX_RESIDENT_LAYERS;
         CreateInstanceBuffers(device, ctx->GetDeviceManager().GetPhysicalDevice(), m_instanceBuffer, maxInstances);
 
         EE_CORE_WARN("get this value from assset manager");
@@ -100,7 +101,7 @@ namespace Engine {
             vkDestroyDescriptorPool(device, m_descPool, nullptr);
             m_descPool = VK_NULL_HANDLE;
         }
-        for (int i = 0; i < 3; ++i)
+        for (int i = 0; i < FRAMES_IN_FLIGHT; ++i)
         {
             if (m_instanceBuffer.mapped[i])
             {
@@ -109,7 +110,12 @@ namespace Engine {
             }
             if (m_instanceBuffer.buf[i]) vkDestroyBuffer(device, m_instanceBuffer.buf[i], nullptr);
             if (m_instanceBuffer.mem[i]) vkFreeMemory(device, m_instanceBuffer.mem[i], nullptr);
+
+            
+
         }
+        GPUStats& stats = GPUStats::Get();
+        stats.RemoveBuffer(m_instanceBuffer.capacityBytes);
 
         vkDestroyPipeline(m_device, m_computePipeline, nullptr);
         vkDestroyPipelineLayout(m_device, m_computePipelineLayout, nullptr);
@@ -421,7 +427,7 @@ namespace Engine {
     void VulkanBindlessDescriptorSetRenderer::CreateInstanceBuffers(VkDevice dev, VkPhysicalDevice phys, InstanceBuffer& out, size_t maxInstances)
     {
         out.capacityBytes = maxInstances * sizeof(RenderInstance);
-        for (int i = 0; i < 3; ++i)
+        for (int i = 0; i < FRAMES_IN_FLIGHT; ++i)
         {
             VkBufferCreateInfo bi{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
             bi.size = out.capacityBytes;
@@ -445,6 +451,10 @@ namespace Engine {
             vkAllocateMemory(dev, &ai, nullptr, &out.mem[i]);
             vkBindBufferMemory(dev, out.buf[i], out.mem[i], 0);
             vkMapMemory(dev, out.mem[i], 0, out.capacityBytes, 0, &out.mapped[i]);
+
+            GPUStats& stats = GPUStats::Get();
+            stats.AddBuffer(req.size);
+
         }
     }
 
@@ -1029,8 +1039,12 @@ namespace Engine {
             return;
         }
 
+       
+
         VkMemoryRequirements req{};
         vkGetBufferMemoryRequirements(device, staging, &req);
+
+        
 
         uint32_t typeIndex = VulkanContext::Get()->FindMemoryType(
             req.memoryTypeBits,

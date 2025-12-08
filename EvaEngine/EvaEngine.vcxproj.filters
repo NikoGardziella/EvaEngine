@@ -1865,6 +1865,7 @@
     </ClInclude>
     <ClInclude Include="vendor\stb_image\stb_image_write.h" />
     <ClInclude Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.h" />
+    <ClInclude Include="source\Engine\AssetManager\Utils\Statistics.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">

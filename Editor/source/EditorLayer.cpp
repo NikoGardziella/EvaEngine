@@ -31,6 +31,7 @@
 #include <Engine/Renderer/VulkanRenderer2D.h>
 #include <algorithm>
 #include "Engine/Math/HashUtils.h"
+#include <Engine/AssetManager/Utils/Statistics.h>
 
 namespace Engine {
 
@@ -264,7 +265,19 @@ namespace Engine {
             ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
             ImGui::Text("Indicies: %d", stats.GetTotalIndexCount());
             ImGui::Text("Lines: %d", stats.LineCount);
-            ImGui::Text("Texture GPU memory cache: %.2f MB", AssetManager::s_totalTextureMemory / (1024.0f * 1024.0f));
+
+            GPUStats& statsGPU = GPUStats::Get();
+         
+            ImGui::Text("GPU Textures:  %.2f MB", statsGPU.GetTextures() / (1024.0f * 1024.0f));
+            ImGui::Text("GPU Images:    %.2f MB", statsGPU.GetImages() / (1024.0f * 1024.0f));
+            ImGui::Text("GPU Buffers:   %.2f MB", statsGPU.GetBuffers() / (1024.0f * 1024.0f));
+
+            VkDeviceSize totalBytes = statsGPU.GetTextures() + statsGPU.GetBuffers();
+
+            float totalMB = (float)totalBytes / (1024.0f * 1024.0f);
+
+            ImGui::Separator();
+            ImGui::Text("GPU Total tracked: %.2f MB", totalMB);
             ImGui::Text("FPS: %d", m_fpsCounter.GetFPS());
 
 
@@ -559,7 +572,7 @@ namespace Engine {
         }
  
         m_sceneState = eSceneState::Play;
-  
+        DeselectEntity();
     }
 
     void EditorLayer::OnSceneStop()
@@ -1055,11 +1068,7 @@ namespace Engine {
         }
         else if (e.GetMouseButton() == Mouse::Button1)
         {
-            // Deselect
-			m_tileEditorPanel.SetSelectedTile(UINT_MAX, "");
-			m_sceneHierarchyPanel.SetSelectedEntity({}); // Deselect entity
-			m_selectedEntity = Entity(); // Reset selected entity
-			m_hoveredEntity = Entity(); // Reset hovered entity
+            DeselectEntity();
 		}
 		else if (e.GetMouseButton() == Mouse::Button2)
 		{
@@ -1068,6 +1077,16 @@ namespace Engine {
         }
         return false;
     }
+
+    void EditorLayer::DeselectEntity()
+    {
+        // Deselect
+        m_tileEditorPanel.SetSelectedTile(UINT_MAX, "");
+        m_sceneHierarchyPanel.SetSelectedEntity({}); // Deselect entity
+        m_selectedEntity = Entity(); // Reset selected entity
+        m_hoveredEntity = Entity(); // Reset hovered entity
+    }
+
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
     {

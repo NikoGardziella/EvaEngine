@@ -68,7 +68,7 @@ namespace Engine {
     class VulkanBuffer {
     public:
         VkBuffer m_buffer;
-        VkDeviceSize size;
+        VkDeviceSize m_size;
 
 		VulkanBuffer() = default;
         VulkanBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);

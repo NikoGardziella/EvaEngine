@@ -23,10 +23,12 @@
 
 namespace Engine {
 
- 
+   
 
     class AssetManager
     {
+        
+
     public:
         static void Initialize(int maxDepth = 5);
 
@@ -76,7 +78,6 @@ namespace Engine {
         static AnimationRegistry& GetAnimationRegistry() { return *s_animationRegistry; }
 
 		static const std::unordered_map<std::string, glm::vec4>& AssetManager::GetTileTextureAtalsUVs() { return  s_tileUVMap; }
-        static VkDeviceSize s_totalTextureMemory;
 
         // Texture streaming system
         static bool GetTexturePixelData(const std::string& textureName, std::vector<uint8_t>& outPixels, std::vector<uint8_t>& outHealthData, int& outWidth, int& outHeight);

@@ -19,7 +19,6 @@ namespace Engine {
     std::mutex AssetManager::s_Mutex;
     std::unordered_map<std::string, std::shared_ptr<VulkanTexture>> AssetManager::s_textureCache;
     std::unordered_map<std::string, std::shared_ptr<VulkanPixelTexture>> AssetManager::s_pixelTextureCache;
-    VkDeviceSize AssetManager::s_totalTextureMemory;
 
     std::unordered_map<eTileCategory, std::unordered_map<std::string, glm::vec4>> AssetManager::s_tileUVMapsByCategory;
     std::unordered_map<eTileCategory, std::vector<std::string>> AssetManager::s_tileNamesByCategory;

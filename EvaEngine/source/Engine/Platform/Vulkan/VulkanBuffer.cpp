@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "VulkanBuffer.h"
 #include "VulkanContext.h"
+#include <Engine/AssetManager/Utils/Statistics.h>
 
 namespace Engine {
 
@@ -10,6 +11,8 @@ namespace Engine {
         {
             VulkanContext* context = VulkanContext::Get();
             VkDevice device = context->GetDeviceManager().GetDevice();
+
+            
 
             VkBufferCreateInfo bufferInfo{};
             bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -36,6 +39,8 @@ namespace Engine {
             }
 
             vkBindBufferMemory(device, buffer, bufferMemory, 0);
+
+          
         }
 
         void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
@@ -81,14 +86,24 @@ namespace Engine {
         // Cleanup staging buffer
         vkDestroyBuffer(m_device, stagingBuffer, nullptr);
         vkFreeMemory(m_device, stagingBufferMemory, nullptr);
+
+        GPUStats& stats = GPUStats::Get();
+        stats.AddBuffer(m_size);
+     
     }
 
     VulkanVertexBuffer::~VulkanVertexBuffer()
     {
+
+
         vkDeviceWaitIdle(m_device);
 
         vkDestroyBuffer(m_device, m_buffer, nullptr);
         vkFreeMemory(m_device, m_bufferMemory, nullptr);
+
+        GPUStats& stats = GPUStats::Get();
+        stats.RemoveBuffer(m_size);
+        
     }
 
     
@@ -144,8 +159,6 @@ namespace Engine {
     VulkanIndexBuffer::VulkanIndexBuffer(uint32_t* indices, uint32_t count)
         : m_count(count)
     {
-
-
         VulkanContext* context = VulkanContext::Get();
         m_device = context->GetDeviceManager().GetDevice();
         VkDeviceSize bufferSize = sizeof(uint32_t) * count;
@@ -172,6 +185,9 @@ namespace Engine {
 
         vkDestroyBuffer(m_device, stagingBuffer, nullptr);
         vkFreeMemory(m_device, stagingBufferMemory, nullptr);
+
+        GPUStats& stats = GPUStats::Get();
+        stats.AddBuffer(bufferSize);
     }
 
     VulkanIndexBuffer::~VulkanIndexBuffer()
@@ -182,12 +198,16 @@ namespace Engine {
         {
 
             vkDestroyBuffer(m_device, m_indexBuffer, nullptr);
+
+           
+
         }
 
         if (m_indexBufferMemory != VK_NULL_HANDLE) 
         {
             vkFreeMemory(m_device, m_indexBufferMemory, nullptr);
         }
+       
     }
 
 
@@ -203,12 +223,12 @@ namespace Engine {
 
 
     VulkanBuffer::VulkanBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
-        : m_device(device), size(bufferSize) {
+        : m_device(device), m_size(bufferSize) {
     {
             // Create Buffer
             VkBufferCreateInfo bufferInfo{};
             bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            bufferInfo.size = size;
+            bufferInfo.size = m_size;
             bufferInfo.usage = usage;
             bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -232,6 +252,9 @@ namespace Engine {
             }
 
             vkBindBufferMemory(device, m_buffer, m_memory, 0);
+
+            GPUStats& stats = GPUStats::Get();
+            stats.AddBuffer(memRequirements.size);
         }
     }
 
@@ -241,6 +264,11 @@ namespace Engine {
 
         vkDestroyBuffer(m_device, m_buffer, nullptr);
         vkFreeMemory(m_device, m_memory, nullptr);
+
+
+        GPUStats& stats = GPUStats::Get();
+        stats.RemoveBuffer(m_size);
+
         
     }
 

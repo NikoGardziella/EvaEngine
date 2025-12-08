@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "VulkanVertexArray.h"
 #include "VulkanContext.h" 
+#include <Engine/AssetManager/Utils/Statistics.h>
 
 
 namespace Engine {
@@ -59,10 +60,8 @@ namespace Engine {
     void VulkanVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
     {
         auto context = VulkanContext::Get(); // Ensure context exists
-       // VkDevice device = context->GetDevice();
-        VkDevice device;
-       // VkPhysicalDevice physicalDevice = context->GetPhysicalDevice();
-        VkPhysicalDevice physicalDevice;
+        VkDevice device = context->GetDeviceManager().GetDevice();
+        VkPhysicalDevice physicalDevice = context->GetDeviceManager().GetPhysicalDevice();
 
         if (!device || !physicalDevice)
         {
@@ -96,14 +95,18 @@ namespace Engine {
         vkBindBufferMemory(device, m_vertexBufferHandle, m_vertexBufferMemory, 0);
 
         m_vertexBuffers.push_back(vertexBuffer);
+
+        GPUStats& stats = GPUStats::Get();
+        stats.AddBuffer(memRequirements.size);
     }
 
 
     void VulkanVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
     {
         VulkanContext* context = VulkanContext::Get(); // Ensure VulkanContext has a Get() method
+
         // VkDevice device = context->GetDevice();
-        VkDevice device;
+        VkDevice device = context->GetDeviceManager().GetDevice();
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = indexBuffer->GetCount(); // Ensure IndexBuffer has GetSize()

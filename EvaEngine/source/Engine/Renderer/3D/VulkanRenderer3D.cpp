@@ -172,7 +172,7 @@ namespace Engine {
     VkDescriptorBufferInfo VulkanRenderer3D::InstanceInfo(uint32_t frame) const 
     {
         const auto& b = m_frames[frame].instanceSSBO;
-        VkDescriptorBufferInfo info{ b.GetBuffer(), 0, b.size};
+        VkDescriptorBufferInfo info{ b.GetBuffer(), 0, b.m_size};
         return info;
     }
 
@@ -256,11 +256,11 @@ namespace Engine {
 
     void VulkanRenderer3D::UpdateBuffer(const VulkanBuffer& buf, const void* src, VkDeviceSize bytes, VkDeviceSize dstOffset /*= 0*/) const
     {
-        if (!src || bytes == 0 || dstOffset >= buf.size) return;
+        if (!src || bytes == 0 || dstOffset >= buf.m_size) return;
 
         
-        if (dstOffset + bytes > buf.size)
-            bytes = buf.size - dstOffset;
+        if (dstOffset + bytes > buf.m_size)
+            bytes = buf.m_size - dstOffset;
 
         // must be persistently mapped
         void* base = buf.Mapped();
@@ -512,13 +512,13 @@ namespace Engine {
             VkDescriptorBufferInfo instInfo{};
             instInfo.buffer = m_frames[i].instanceSSBO.GetBuffer();
             instInfo.offset = 0;
-            instInfo.range = m_frames[i].instanceSSBO.size;
+            instInfo.range = m_frames[i].instanceSSBO.m_size;
 
             // materials
             VkDescriptorBufferInfo matInfo{};
             matInfo.buffer = m_frames[i].materialSSBO.GetBuffer();
             matInfo.offset = 0;
-            matInfo.range = m_frames[i].materialSSBO.size;
+            matInfo.range = m_frames[i].materialSSBO.m_size;
 
             std::vector<VkWriteDescriptorSet> writes;
 
@@ -569,7 +569,7 @@ namespace Engine {
             VkDescriptorBufferInfo bonesInfo{};
             bonesInfo.buffer = m_frames[i].bonePaletteSSBO.GetBuffer();
             bonesInfo.offset = 0;
-            bonesInfo.range = m_frames[i].bonePaletteSSBO.size;
+            bonesInfo.range = m_frames[i].bonePaletteSSBO.m_size;
 
 
             VkWriteDescriptorSet wBones{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };

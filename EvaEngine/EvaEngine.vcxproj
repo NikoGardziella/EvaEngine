@@ -170,6 +170,7 @@
     <ClInclude Include="source\Engine\Animation\3D\VisibleSet.h" />
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h" />
+    <ClInclude Include="source\Engine\AssetManager\Utils\Statistics.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\TileSerializer.h" />
     <ClInclude Include="source\Engine\Core\Application.h" />

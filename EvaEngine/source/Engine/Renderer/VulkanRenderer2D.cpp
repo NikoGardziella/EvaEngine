@@ -608,7 +608,7 @@ namespace Engine {
 			VkDeviceSize collisionResultBufferSize = sizeof(CollisionResultBuffer);
 
 			VkBuffer projectileBuffer = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(currentFrame).GetBuffer();
-			VkDeviceSize projectileBufferSize = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(currentFrame).size;
+			VkDeviceSize projectileBufferSize = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(currentFrame).m_size;
 
 			s_bindlessDescitproRenderer->ComputeBindBuffers(currentFrame,
 				collisionResultBuffer, collisionResultBufferSize,
