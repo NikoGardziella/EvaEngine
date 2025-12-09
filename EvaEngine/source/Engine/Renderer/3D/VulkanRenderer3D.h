@@ -8,6 +8,7 @@
 #include <Engine/Platform/Vulkan/VulkanBuffer.h>
 #include <Engine/Renderer/Camera.h>
 #include <Engine/Core/Core.h>
+#include <Engine/Scene/Components/NPC/Destruction/EnemyDestructibleComponent.h>
 
 namespace Engine {
 
@@ -146,6 +147,8 @@ namespace Engine {
 
         // Convenience: submit a range of submeshes from [first, first+count)
         static void SubmitMeshInstanceRange(const InstanceDataGPU& inst, uint32_t submeshFirst, uint32_t submeshCount);
+
+        static void SubmitEnemyPieces(const InstanceDataGPU& inst, uint32_t meshId, const EnemyDestructibleComponent& destr);
 
         static void SubmitBone(glm::mat4 bone);
 

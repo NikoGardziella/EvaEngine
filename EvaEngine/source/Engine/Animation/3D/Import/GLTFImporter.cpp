@@ -241,10 +241,25 @@ namespace Engine {
 
       
 
+        EE_CORE_INFO("[GLTF] model.meshes = {}", model.meshes.size());
+        for (size_t mi = 0; mi < model.meshes.size(); ++mi)
+        {
+            const auto& m = model.meshes[mi];
+            EE_CORE_INFO("[GLTF] mesh[{}] name='{}' has {} primitives",
+                mi, m.name, m.primitives.size());
 
+            for (size_t pi = 0; pi < m.primitives.size(); ++pi)
+            {
+                const auto& prim = m.primitives[pi];
+                EE_CORE_INFO("    prim[{}]: material = {}", pi, prim.material);
+            }
+        }
         // iterate meshes / primitives
         for (const auto& mesh : model.meshes)
         {
+
+
+
             for (const auto& prim : mesh.primitives)
             {
                 // topology
@@ -523,10 +538,13 @@ namespace Engine {
 
         if (hasMesh)
         {
+
             // Mesh file with possible animations
             R.meshId = meshReg.Register(meshAsset);
             R.report.ok = true;
             R.report.message = "Imported mesh (and animations): " + path;
+
+            EE_CORE_INFO("[GLTF] final MeshAsset has {} submeshes", meshAsset.submeshes.size());
         }
         else if (hasAnimation || hasSkeleton)
         {

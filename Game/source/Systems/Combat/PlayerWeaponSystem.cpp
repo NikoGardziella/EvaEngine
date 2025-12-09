@@ -109,7 +109,7 @@ float SampleHeightAt_FromTileCenterFudged(
     const glm::vec2& tileCenter,
     const glm::vec2& tileSizeWorld,
     float pxWorld,
-    const glm::vec2& originBiasWorld = glm::vec2(0.5f, 0.0f), // <- your current bias
+    const glm::vec2& originBiasWorld = glm::vec2(0.5f, 0.0f), 
     bool snapToTexelCenters = true)
 {
     // nominal TL from center (Y up)

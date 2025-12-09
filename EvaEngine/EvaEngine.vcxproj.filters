@@ -1866,6 +1866,8 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h" />
     <ClInclude Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\Statistics.h" />
+    <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h" />
+    <ClInclude Include="source\Engine\Animation\3D\System\Render3DUtils\Render3DUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">

@@ -19,16 +19,13 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
 
     // --- 1) Mouse world position from the primary camera ---
     glm::vec2 mouseWorldPosition{ 0.0f, 0.0f };
-    bool gotMouse = false;
 
     scene->ForEach<Engine::TransformComponent, Engine::CameraComponent>(
         [&](Engine::Entity, Engine::TransformComponent& camXform, Engine::CameraComponent& cam)
         {
-            if (gotMouse) return;
             if (cam.Primary)
             {
                 mouseWorldPosition = cam.Camera.ScreenToWorld(camXform.GetTransform());
-                gotMouse = true;
             }
         });
 
@@ -38,6 +35,11 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
         [&](Engine::Entity entity,  Engine::TransformComponent& playerTransformComp,
             CharacterControllerComponent& controller)
         {
+
+            if (!entity.HasComponent<CharacterControllerComponent>())
+            {
+                return;
+            }
             playerEntity = entity;
 
             glm::vec2 diff = mouseWorldPosition - glm::vec2(playerTransformComp.Translation);

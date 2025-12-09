@@ -196,17 +196,19 @@ void PixelGame::CreateGameEntities()
 	m_cameraEntity = m_activeScene->CreateEntity("camera");
 	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
 	cameraComp.FixedAspectRatio = true;
-	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
-	cameraComp.Camera.SetPerspectiveFOV(45.0f);
+	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Orthographic);
+	cameraComp.Camera.SetOrthographicFarClip(100.0f);
+	//cameraComp.Camera.SetPerspectiveFOV(45.0f);
 	cameraComp.Primary = true;
 	cameraComp.FreeCamera = false;
 	cameraComp.Camera.SetViewportBounds(m_activeScene->GetViewportBounds());
-
+	cameraComp.Camera.SetOrthographicSize(20.0f);
 
 	cameraComp.Camera.SetViewportSize(m_activeScene->GetViewportWidth(), m_activeScene->GetViewortHeight());
 	
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
 	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 15.0f);
+	cameraTransformComp.Rotation.x += glm::radians(20.0f);
 
 	//SpawnChunkGridSprites();
 

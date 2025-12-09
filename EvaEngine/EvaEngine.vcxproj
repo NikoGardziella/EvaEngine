@@ -260,6 +260,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\DirectionalLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\PointLightComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
@@ -281,6 +282,7 @@
     <ClInclude Include="source\Engine\Scene\Scene.h" />
     <ClInclude Include="source\Engine\Scene\SceneCamera.h" />
     <ClInclude Include="source\Engine\Scene\SceneSerializer.h" />
+    <ClInclude Include="source\Engine\Animation\3D\System\Render3DUtils\Render3DUtils.h" />
     <ClInclude Include="source\Engine\Scene\ScriptableEntity.h" />
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTask.h" />
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />

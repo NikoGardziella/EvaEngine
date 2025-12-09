@@ -35,6 +35,7 @@
 #include "Components/Render/3D/SkeletonComponent.h"
 #include "Components/Render/3D/AnimatorComponent.h"
 #include <glm/gtx/euler_angles.hpp>
+#include "Components/NPC/Destruction/EnemyDestructibleComponent.h"
 
 namespace Engine {
 
@@ -377,12 +378,12 @@ namespace Engine {
   
 
         SpawnMeshGrid(this,0, 0,10, 2);
-
+        /*
         Entity m_camera3DEntity = CreateEntity("3D camera");
         auto& cameraComp = m_camera3DEntity.AddComponent<Engine::CameraComponent>();
         cameraComp.FixedAspectRatio = true;
-        cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Perspective);
-        cameraComp.Camera.SetPerspectiveFOV(45.0f);
+        cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Orthographic);
+        cameraComp.Camera.SetOrthographicFarClip(100.0f);
         cameraComp.Primary = false;
         cameraComp.FreeCamera = true;
         cameraComp.Camera.SetViewportBounds(GetViewportBounds());
@@ -390,10 +391,90 @@ namespace Engine {
 
         cameraComp.Camera.SetViewportSize(GetViewportWidth(),GetViewortHeight());
 
-        auto& cameraTransformComp = m_camera3DEntity.AddComponent<Engine::TransformComponent>();
+        TransformComponent& cameraTransformComp = m_camera3DEntity.AddComponent<Engine::TransformComponent>();
         cameraTransformComp.Translation += glm::vec3(0.0f, -9.0f, 16.0f);
 
+
         cameraTransformComp.Rotation.x = glm::radians(30.0f);
+
+
+        */
+
+        // *************** ENEmy
+        Entity enemyEntity = CreateEntity("Enemy");
+
+
+        enemyEntity.AddComponent<HealthComponent>();
+        TransformComponent& enemyTransformComp = enemyEntity.AddComponent<TransformComponent>();
+        enemyTransformComp.Translation.y = 5.0f;
+
+        enemyTransformComp.Rotation.x += glm::radians(90.0f);
+
+        uint32_t meshId = 0;
+        uint32_t submeshCount = 0;
+        submeshCount = (uint32_t)meshAsset.submeshes.size();
+
+        MeshRefComponent& meshComp = enemyEntity.AddComponent<MeshRefComponent>();
+        meshComp.meshId = 0;
+        meshComp.submeshFirst = 0;
+        meshComp.submeshCount = submeshCount;
+
+
+
+        RenderBoundsComponent& renderBoundsComp = enemyEntity.AddComponent<RenderBoundsComponent>();
+        renderBoundsComp.maxL = meshAsset.maxL;
+        renderBoundsComp.minL = meshAsset.minL;
+
+        uint32_t skeletonId = 0;
+        auto& skel = enemyEntity.AddComponent<SkeletonComponent>();
+        skel.skeletonId = skeletonId;      // returned by importer
+        skel.boneCount = AssetManager::GetSkeletonRegistry().Get(skeletonId).parent.size();
+        skel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
+
+
+        uint32_t testClip = 1;
+        uint32_t testClipB = 0;
+        // Attach animator
+        auto& anim = enemyEntity.AddComponent<AnimatorComponent>();
+        anim.clipA = testClip;
+        anim.clipB = testClipB;
+        anim.timeA = 0.0f;
+        anim.blend = 0.0f;                 // only clipA
+        anim.playbackSpeed = 1.0f;
+
+        const SkeletonAsset& skeletonAsset = AssetManager::GetSkeletonRegistry().Get(skeletonId);
+        EnemyDestructibleComponent& destr = enemyEntity.AddComponent<EnemyDestructibleComponent>();
+
+        uint32_t headBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "head");
+        uint32_t spineBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "spine");
+        uint32_t armLBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "hand_left");
+        uint32_t armRBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "hand_right");
+        uint32_t legRBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "thigh_right");
+        uint32_t legLBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "thigh_left");
+
+        // from blender
+        uint32_t torsoSubmeshIndex =  1;
+        uint32_t headSubmeshIndex  =  2;
+        uint32_t armLSubmeshIndex  =  3;
+        uint32_t armRSubmeshIndex  =  4;
+        uint32_t legRSubmeshIndex  =  5;
+        uint32_t legLSubmeshIndex  =  6;
+
+        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::Head,  headSubmeshIndex,  headBone });
+        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::Torso, torsoSubmeshIndex, spineBone });
+        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::ArmL,  armLSubmeshIndex,  armLBone });
+        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::ArmR,  armRSubmeshIndex,  armRBone });
+        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::LegR,  legRSubmeshIndex,  legRBone });
+        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::LegL,  legLSubmeshIndex,  legLBone });
+
+        for (auto& p : destr.pieces)
+        {
+            if (p.type == EnemyPieceType::LegL || p.type == EnemyPieceType::Head)
+            {
+                p.visible = 0;
+
+            }
+        }
     }
 
 
@@ -470,13 +551,13 @@ namespace Engine {
 
        // Camera* mainCamera = nullptr;
         CameraComponent* mainCameraComp = nullptr;
-        CameraComponent* camera3DComp = nullptr;
+        //CameraComponent* camera3DComp = nullptr;
 
         glm::mat4 cameraTransform = glm::mat4(1.0f);
-        glm::mat4 camera3DTransform = glm::mat4(1.0f);
+        //glm::mat4 camera3DTransform = glm::mat4(1.0f);
         glm::mat4 cameraView = glm::mat4(1.0f);
-        glm::mat4 camera3DView = glm::mat4(1.0f);
-        glm::vec3 camera3DRotation = glm::vec3(0.0f);
+      //  glm::mat4 camera3DView = glm::mat4(1.0f);
+        //glm::vec3 camera3DRotation = glm::vec3(0.0f);
 
         {
             EE_PROFILE_SCOPE("Get Update Runtime Camera");
@@ -496,23 +577,12 @@ namespace Engine {
                     }
                     else
                     {
-                        camera3DComp = &camera;
-                        camera3DTransform = transform.GetTransform();;
-                        camera3DRotation = transform.Rotation;
+                        
                     }
                 }
             }
-            glm::vec3 mainCamPos = glm::vec3(cameraTransform[3]);
-            glm::vec3 camera3DPos = glm::vec3(camera3DTransform[3]);
-            glm::vec3 finalPos = camera3DPos + glm::vec3(mainCamPos.x, mainCamPos.y, 0.0f);
-            glm::mat4 R = glm::mat4(1.0f);
-            R = glm::yawPitchRoll(camera3DRotation.y, camera3DRotation.x, camera3DRotation.z);
-            glm::mat4 T = glm::translate(glm::mat4(1.0f), finalPos);
+            
 
-            camera3DTransform = T * R;
-
-            // View = inverse(world)
-            camera3DView = glm::inverse(camera3DTransform);
         }
 
       
@@ -590,6 +660,11 @@ namespace Engine {
                 anim.timeA = 0.0f;
                 anim.blend = 0.0f;                 // only clipA
                 anim.playbackSpeed = 1.0f;
+
+
+               // TransformComponent& playerTransformComp = playerEntity.GetComponent<TransformComponent>();
+
+
             }
             
 
@@ -614,9 +689,11 @@ namespace Engine {
 
 
             //Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
-            Engine::VulkanRenderer2D::BeginScene(mainCameraComp->Camera.GetProjection(), cameraTransform);
+            Engine::VulkanRenderer2D::BeginScene(mainCameraComp->Camera.GetProjection(), cameraView);
 
-            Engine::VulkanRenderer3D::Begin3DScene(camera3DComp->Camera.GetProjection(), camera3DView);
+
+
+            Engine::VulkanRenderer3D::Begin3DScene(mainCameraComp->Camera.GetProjection(), cameraView);
 
             glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 
@@ -1324,20 +1401,7 @@ namespace Engine {
 
 
 
-    Entity Scene::Get3DcameraEntity()
-    {
-        auto view = m_registry.view<CameraComponent>();
-        for (auto cameraEntity : view)
-        {
-            const auto& cameraComp = view.get<CameraComponent>(cameraEntity);
-
-            if (!cameraComp.Primary)
-            {
-                return Entity{ cameraEntity, this };
-            }
-        }
-        return {};
-    }
+  
 
     Entity Scene::GetPrimaryCameraEntity()
     {

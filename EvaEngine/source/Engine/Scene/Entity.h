@@ -58,6 +58,30 @@ namespace Engine {
         }
 
         template<typename T>
+        T* TryGetComponent()
+        {
+            EE_CORE_ASSERT(m_scene, "Entity has no valid scene!");
+            EE_CORE_ASSERT(m_entityHandle != entt::null, "Invalid entity handle!");
+
+            if (!HasComponent<T>())
+                return nullptr;
+
+            return &m_scene->m_registry.get<T>(m_entityHandle);
+        }
+
+        template<typename T>
+        const T* TryGetComponent() const
+        {
+            EE_CORE_ASSERT(m_scene, "Entity has no valid scene!");
+            EE_CORE_ASSERT(m_entityHandle != entt::null, "Invalid entity handle!");
+
+            if (!HasComponent<T>())
+                return nullptr;
+
+            return &m_scene->m_registry.get<T>(m_entityHandle);
+        }
+
+        template<typename T>
         void RemoveComponent()
         {
             //EE_CORE_ASSERT(m_scene, "Entity has no valid scene!");

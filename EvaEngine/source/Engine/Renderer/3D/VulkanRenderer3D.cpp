@@ -86,7 +86,7 @@ namespace Engine {
 
 
         //Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/trafficPolice1.glb");
-        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/playerMesh.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/playerMeshes.glb");
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/playerAnimRun.glb");
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/playerAnimIdle.glb");
         //Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/Engineer.glb");
@@ -369,6 +369,31 @@ namespace Engine {
         }
     }
 
+    // VulkanRenderer3D.cpp
+    void VulkanRenderer3D::SubmitEnemyPieces(const InstanceDataGPU& inst, uint32_t meshId, const EnemyDestructibleComponent& destr)
+    {
+        std::scoped_lock lock(s_mutex);
+
+        // 1) Add instance once
+        uint32_t baseIdx = (uint32_t)s_Vulkan3DData.s_instances.size();
+        s_Vulkan3DData.s_instances.push_back(inst);
+
+        // 2) For each visible piece, push a PendingDraw
+        for (const EnemyPiece& p : destr.pieces)
+        {
+            if (!p.visible)
+                continue;
+
+            PendingDraw d{};
+            d.meshId = meshId;
+            d.submeshId = p.submeshIndex;   // important
+            d.instanceIndex = baseIdx;
+
+            s_Vulkan3DData.s_draws.push_back(d);
+        }
+    }
+
+
     void VulkanRenderer3D::SubmitBone(glm::mat4 bone)
     {
         s_Vulkan3DData.s_bones.push_back(bone);
@@ -401,6 +426,7 @@ namespace Engine {
                 dst.world = src.world;
                 dst.boneBase = src.boneBase;   // 0xFFFFFFFFu for non-skinned, valid base for skinned
                 dst.boneCount = src.boneCount;
+               // dst.meshId = src.meshId;
                 dst._pad1 = 0;
                 dst._pad2 = 0;
 
@@ -458,9 +484,11 @@ namespace Engine {
             // Push constants for this instance/submesh
             const InstanceDataGPU& instGPU = s_Vulkan3DData.s_instances[d.instanceIndex];
 
+
+            uint32_t defaultMaterialIndex = 0;
             PCDraw3D pc{};
             pc.instanceIndex = d.instanceIndex;
-            //pc.materialId = instGPU.materialId; // or from mesh.submeshes[d.submeshId]
+            pc.materialId = defaultMaterialIndex;
             pc.submeshId = d.submeshId;
             pc.flags = s_debug3DFlags;
             
@@ -472,8 +500,8 @@ namespace Engine {
             const MeshAsset& mesh = meshReg.Get(currentMeshId);
             const SubmeshRange& sm = mesh.submeshes[d.submeshId];
 
-            vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, static_cast<int32_t>(sm.baseVertex), 0);
-     
+           //vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, static_cast<int32_t>(sm.baseVertex), 0);
+            vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, 0, 0);
         }
 
         // 4) Clear queues for next frame

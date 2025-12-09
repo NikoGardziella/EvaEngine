@@ -9,6 +9,8 @@
 #include <Engine/Renderer/3D/VulkanRenderer3D.h>
 #include "Engine/Animation/3D/VisibleSet.h"
 #include <Engine/Scene/Component.h>
+#include "Engine/Animation/3D/System/Render3DUtils/Render3DUtils.h"
+#include <Engine/Scene/Components/NPC/Destruction/EnemyDestructibleComponent.h>
 
 namespace Engine {
 
@@ -18,17 +20,19 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        for (Entity e : vis.entities)
+        for (Entity entity : vis.entities)
         {
-            const glm::mat4* pWorldTransform = xforms.TryGetWorld(e);
+            const glm::mat4* pWorldTransform = xforms.TryGetWorld(entity);
             if (!pWorldTransform) continue;
 
+            const TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
             // Static meshes
-            if (auto mr = scene->TryGet<MeshRefComponent>(e))
+            if (auto mr = scene->TryGet<MeshRefComponent>(entity))
             {
                 uint32_t bonebase = 0;
+                uint32_t meshId = 0;
 
-                const SkeletonComponent& skeletonComponent = e.GetComponent<SkeletonComponent>();
+                const SkeletonComponent& skeletonComponent = entity.GetComponent<SkeletonComponent>();
             
                 bonebase = skeletonComponent.boneBase;
 
@@ -37,10 +41,10 @@ namespace Engine {
                // inst.worldPrev = *pWorldTransform;
                 inst.boneBase = bonebase;
                 inst.boneCount= skeletonComponent.boneCount;
+                //inst.meshId = mr->meshId;
                 //inst.flags = 0;
                 /*
                 inst.objectId =  0; // some id
-                inst.meshId = mr->meshId;
 
                 if (auto mat = scene->TryGet<MaterialRefComponent>(e))
                     inst.materialId = mat->materialId;
@@ -49,14 +53,22 @@ namespace Engine {
                 */
 
                 // Submit whole submesh range
-                VulkanRenderer3D::SubmitMeshInstanceRange(inst, mr->submeshFirst, mr->submeshCount);
+                if (EnemyDestructibleComponent* destr = entity.TryGetComponent<EnemyDestructibleComponent>())
+                {
+                    VulkanRenderer3D::SubmitEnemyPieces(inst, meshId, *destr);
+                }
+                else
+                {
+                    VulkanRenderer3D::SubmitMeshInstanceRange(inst, mr->submeshFirst, mr->submeshCount);
+                }
             }
 
             // Skinned meshes
-            if (auto smr = scene->TryGet<SkinnedMeshRefComponent>(e))
+            if (auto smr = scene->TryGet<SkinnedMeshRefComponent>(entity))
             {
                 InstanceDataGPU inst{};
                 inst.world = *pWorldTransform;
+                //inst.meshId = smr->meshId;
                 //inst.worldPrev = *pWorldTransform;
                // inst.flags = 0;
                // inst.objectId = /* your id */ 0;
@@ -68,7 +80,7 @@ namespace Engine {
                     inst.materialId = 0;
 
                 */
-                if (auto sk = scene->TryGet<SkeletonComponent>(e))
+                if (auto sk = scene->TryGet<SkeletonComponent>(entity))
                     inst.boneBase = sk->boneBase;
                 else
                     inst.boneBase = 0xFFFFFFFFu; // guard

@@ -118,7 +118,6 @@ namespace Engine {
 			else
 				mouseScreen = Engine::Input::GetMousePosition();
 
-			// Mouse relative to viewport
 			glm::vec2 mouseInViewport = mouseScreen - m_viewportBounds[0];
 
 			// Guard against zero viewport
@@ -132,7 +131,6 @@ namespace Engine {
 			glm::vec4 ndcNear = glm::vec4(x, y, -1.0f, 1.0f);
 			glm::vec4 ndcFar = glm::vec4(x, y, 1.0f, 1.0f);
 
-			// Build view from camera transform (world matrix)
 			glm::mat4 view = glm::inverse(cameraTransform);
 			glm::mat4 invVP = glm::inverse(m_projection * view);
 
@@ -146,9 +144,9 @@ namespace Engine {
 			glm::vec3 rayOrigin = glm::vec3(worldNear);
 			glm::vec3 rayDir = glm::normalize(glm::vec3(worldFar - worldNear));
 
-			// Intersect with Z = 0 plane (your gameplay plane)
+
 			if (std::fabs(rayDir.z) < 1e-6f)
-				return glm::vec2(rayOrigin.x, rayOrigin.y); // parallel, fallback
+				return glm::vec2(rayOrigin.x, rayOrigin.y);
 
 			float t = -rayOrigin.z / rayDir.z;
 			glm::vec3 hit = rayOrigin + t * rayDir;

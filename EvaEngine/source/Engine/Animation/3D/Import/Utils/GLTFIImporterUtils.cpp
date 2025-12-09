@@ -32,6 +32,7 @@ namespace Engine {
         asset.invBind.resize(boneCount, glm::mat4(1.0f));
         asset.restLocal.resize(boneCount, glm::mat4(1.0f));
         asset.jointNodes.resize(boneCount);
+        asset.boneNames.resize(boneCount);    // <-- per bone, not per node
 
         const size_t nodeCount = model.nodes.size();
 
@@ -60,37 +61,47 @@ namespace Engine {
             int nodeIndex = skin.joints[bi];
             nodeToBone[nodeIndex] = bi;
             asset.jointNodes[bi] = nodeIndex;
+
+            // boneNames[bi] from that node
+            if (nodeIndex >= 0 && nodeIndex < (int)nodeCount)
+            {
+                const tinygltf::Node& node = model.nodes[nodeIndex];
+                if (!node.name.empty())
+                    asset.boneNames[bi] = node.name;
+                else
+                    asset.boneNames[bi] = fmt::format("Bone{}", bi);
+            }
+            else
+            {
+                asset.boneNames[bi] = fmt::format("Bone{}", bi);
+            }
         }
 
         // --------------------------------------------------------
         // Fill parent array: parent[bone] = parent bone index or -1
-        // (walk up ancestors until we find another joint)
         // --------------------------------------------------------
         for (int bi = 0; bi < (int)boneCount; ++bi)
         {
             int nodeIndex = skin.joints[bi];
 
-            // Start from the direct parent node
             int pNode = (nodeIndex >= 0 && nodeIndex < (int)nodeParent.size())
                 ? nodeParent[nodeIndex]
                 : -1;
 
             int parentBone = -1;
 
-            // Walk up until we find an ancestor that is also a joint,
-            // or we run out of parents.
             while (pNode >= 0)
             {
                 auto it = nodeToBone.find(pNode);
                 if (it != nodeToBone.end())
                 {
-                    parentBone = it->second;  // found a parent bone
+                    parentBone = it->second;
                     break;
                 }
-                pNode = nodeParent[pNode];   // go up one level
+                pNode = nodeParent[pNode];
             }
 
-            asset.parent[bi] = (int16_t)parentBone;
+            asset.parent[bi] = (int16_t)parentBone;  // -1 for root
         }
 
         // --------------------------------------------------------
