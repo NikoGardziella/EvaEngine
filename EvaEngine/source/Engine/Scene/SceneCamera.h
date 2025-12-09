@@ -32,7 +32,7 @@ namespace Engine {
 		void SetViewportBounds(const std::array<glm::vec2, 2>& bounds);
 
 		ProjectionType GetProjectionType() const { return m_projectionType; }
-		void SetProjectionType(ProjectionType type) { m_projectionType = type; }
+		void SetProjectionType(ProjectionType type) { m_projectionType = type; RecalculateProjection(); }
 
 
 		// ********* Orthographic Camera ************
@@ -111,67 +111,49 @@ namespace Engine {
 		glm::vec2 ScreenToWorld(glm::mat4 cameraTransform)
 		{
 			glm::vec2 mouseScreen;
-			// there is better way to do this. consider setting bounds to client
-			if (m_viewportBounds[0].x > 0.0f)
-			{
 
-				// for editor
+			// Editor vs client
+			if (m_viewportBounds[0].x > 0.0f)
 				mouseScreen = Engine::Input::GetMouseScreenPosition();
-			}
 			else
-			{
-				// for client onyl
 				mouseScreen = Engine::Input::GetMousePosition();
 
-			}
-			 
+			// Mouse relative to viewport
+			glm::vec2 mouseInViewport = mouseScreen - m_viewportBounds[0];
 
-			if (m_projectionType == ProjectionType::Orthographic)
-			{
-				// this is not tested
+			// Guard against zero viewport
+			if (m_viewportSize.x <= 0.0f || m_viewportSize.y <= 0.0f)
+				return glm::vec2(0.0f);
 
-				glm::mat4 view = glm::inverse(cameraTransform);
+			// NDC coords: [-1, +1]
+			float x = (2.0f * mouseInViewport.x) / m_viewportSize.x - 1.0f;
+			float y = 1.0f - (2.0f * mouseInViewport.y) / m_viewportSize.y; // Vulkan: origin top-left
 
-				float x = (2.0f * mouseScreen.x) / m_viewportSize.x - 1.0f;
-				float y = 1.0f - (2.0f * mouseScreen.y) / m_viewportSize.y; // Invert Y for Vulkan (origin top-left)
-				glm::vec4 ndc = glm::vec4(x, y, 0.0f, 1.0f);
+			glm::vec4 ndcNear = glm::vec4(x, y, -1.0f, 1.0f);
+			glm::vec4 ndcFar = glm::vec4(x, y, 1.0f, 1.0f);
 
-				glm::mat4 invVP = glm::inverse(m_projection * view);
+			// Build view from camera transform (world matrix)
+			glm::mat4 view = glm::inverse(cameraTransform);
+			glm::mat4 invVP = glm::inverse(m_projection * view);
 
-				glm::vec4 world = invVP * ndc;
+			// Unproject to world
+			glm::vec4 worldNear = invVP * ndcNear;
+			glm::vec4 worldFar = invVP * ndcFar;
 
-				if (world.w != 0.0f)
-					world /= world.w;
+			if (worldNear.w != 0.0f) worldNear /= worldNear.w;
+			if (worldFar.w != 0.0f) worldFar /= worldFar.w;
 
+			glm::vec3 rayOrigin = glm::vec3(worldNear);
+			glm::vec3 rayDir = glm::normalize(glm::vec3(worldFar - worldNear));
 
-				return glm::vec2(world.x, world.y);
-			}
-			else if(m_projectionType == ProjectionType::Perspective)
-			{
-				glm::vec2 mouseInViewport = mouseScreen - m_viewportBounds[0];
+			// Intersect with Z = 0 plane (your gameplay plane)
+			if (std::fabs(rayDir.z) < 1e-6f)
+				return glm::vec2(rayOrigin.x, rayOrigin.y); // parallel, fallback
 
-				float x = (2.0f * mouseInViewport.x) / m_viewportSize.x - 1.0f;
-				float y = 1.0f - (2.0f * mouseInViewport.y) / m_viewportSize.y;
-				glm::vec4 ndcFar = glm::vec4(x, y, 1.0f, 1.0f);
-				glm::vec4 ndcNear = glm::vec4(x, y, -1.0f, 1.0f);
+			float t = -rayOrigin.z / rayDir.z;
+			glm::vec3 hit = rayOrigin + t * rayDir;
 
-				glm::mat4 view = glm::inverse(cameraTransform);
-				glm::mat4 invVP = glm::inverse(m_projection * view);
-
-				glm::vec4 worldFar = invVP * ndcFar;  worldFar /= worldFar.w;
-				glm::vec4 worldNear = invVP * ndcNear; worldNear /= worldNear.w;
-
-				glm::vec3 rayOrigin = glm::vec3(worldNear);
-				glm::vec3 rayDir = glm::normalize(glm::vec3(worldFar - worldNear));
-
-				if (fabs(rayDir.z) < 1e-6f)
-					return glm::vec2(rayOrigin.x, rayOrigin.y);
-
-				float t = -rayOrigin.z / rayDir.z;
-				glm::vec3 intersection = rayOrigin + t * rayDir;
-				return glm::vec2(intersection.x, intersection.y);
-
-			}
+			return glm::vec2(hit.x, hit.y);
 			
 		}
 
