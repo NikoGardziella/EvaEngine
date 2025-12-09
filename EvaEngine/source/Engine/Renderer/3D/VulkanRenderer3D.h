@@ -133,6 +133,8 @@ namespace Engine {
 
         void UpdateBones(uint32_t frame);
 
+        static uint32_t GetBoneCursor();
+
         void UpdateInstances(uint32_t frameIndex, const InstanceDataGPU* instances, uint32_t count);
 
 

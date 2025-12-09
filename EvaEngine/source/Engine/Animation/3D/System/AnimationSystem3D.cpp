@@ -15,8 +15,7 @@ namespace Engine {
 
         AnimScratch3D scratch;
 
-        scene->ForEach<SkeletonComponent, AnimatorComponent>(
-            [&](Entity entity, SkeletonComponent& skel, AnimatorComponent& an)
+        scene->ForEach<SkeletonComponent, AnimatorComponent>([&](Entity entity, SkeletonComponent& skel, AnimatorComponent& an)
             {
                 if (skel.boneCount == 0 || skel.skeletonId == 0xFFFFFFFFu)
                     return;
@@ -54,6 +53,7 @@ namespace Engine {
 
                 ApplyClip(an.clipA, an.timeA, wA, boneCount, animReg, locT, locR, locS);
                 ApplyClip(an.clipB, an.timeB, wB, boneCount, animReg, locT, locR, locS);
+                //EE_CORE_INFO("Entity {}: clipA={}, clipB={}", (uint32_t)entity, an.clipA, an.clipB);
 
                 const auto& parent = sasset.parent;
                 const auto& invBind = sasset.invBind;
@@ -73,15 +73,20 @@ namespace Engine {
                 }
 
 
-                if (skel.boneBase == 0xFFFFFFFFu)
-                {
-                    skel.boneBase = 0;
-                }
+                uint32_t base = VulkanRenderer3D::GetBoneCursor();
+                skel.boneBase = base;   // each skeleton gets its own slice
+               
 
                 for (uint32_t i = 0; i < boneCount; ++i)
                 {
                     VulkanRenderer3D::SubmitBone(finalMats[i]);
                 }
+
+                // DEBUG
+                glm::vec3 t0 = glm::vec3(finalMats[0][3]);
+                EE_CORE_INFO("Entity {}: clipA={}, base={}, T0=({},{},{})",
+                    (uint32_t)entity, an.clipA, skel.boneBase, t0.x, t0.y, t0.z);
+
             });
     }
 

@@ -194,7 +194,7 @@ namespace Engine {
         const VkDeviceSize matBytes = VkDeviceSize(maxMaterials) * sizeof(MaterialGPU);
 
         uint32_t max_bones = 2000;
-        const VkDeviceSize boneBytes = VkDeviceSize(max_bones) * sizeof(glm::vec4);
+        const VkDeviceSize boneBytes = VkDeviceSize(max_bones) * sizeof(glm::mat4);
 
         for (uint32_t i = 0; i < framesInFlight; ++i)
         {
@@ -291,16 +291,18 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        const auto& bones = s_Vulkan3DData.s_bones;
+        std::vector<glm::mat4>& bones = s_Vulkan3DData.s_bones;
         if (bones.empty())
             return;
 
         const VkDeviceSize byteSize = bones.size() * sizeof(glm::mat4);
 
-        UpdateBuffer(m_frames[frame].bonePaletteSSBO,
-            bones.data(),
-            (size_t)byteSize,
-            0);
+        UpdateBuffer(m_frames[frame].bonePaletteSSBO, bones.data(), (size_t)byteSize, 0);
+    }
+
+    uint32_t VulkanRenderer3D::GetBoneCursor()
+    {
+        return (uint32_t)s_Vulkan3DData.s_bones.size();
     }
 
 
@@ -335,9 +337,7 @@ namespace Engine {
         s_Vulkan3DData.s_instances.clear();
         s_Vulkan3DData.s_draws.clear();
         s_Vulkan3DData.s_bones.clear();
-        // (Optional) reserve to limit reallocs
-        // s_instances.reserve(4096);
-        // s_draws.reserve(8192);
+        
         
     }
 
@@ -405,6 +405,7 @@ namespace Engine {
     void VulkanRenderer3D::Draw(uint32_t frameIndex, VkCommandBuffer cmd)
     {
         EE_PROFILE_FUNCTION();
+        //UpdateBonePaletteDesciptorsSet(frameIndex);
         UploadMaterials(frameIndex, AssetManager::GetMaterialRegistry());
 
         UpdateCamera(frameIndex, s_Vulkan3DData.s_cameraData.uView, s_Vulkan3DData.s_cameraData.uProj);
@@ -425,6 +426,7 @@ namespace Engine {
                 InstanceDataGPU dst{};
                 dst.world = src.world;
                 dst.boneBase = src.boneBase;   // 0xFFFFFFFFu for non-skinned, valid base for skinned
+
                 dst.boneCount = src.boneCount;
                // dst.meshId = src.meshId;
                 dst._pad1 = 0;
@@ -432,7 +434,6 @@ namespace Engine {
 
                 tmpInstances[i] = dst;
             }
-
             UpdateInstances(frameIndex, tmpInstances.data(), numberOfInstances);
         }
 

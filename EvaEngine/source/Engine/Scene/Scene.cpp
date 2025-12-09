@@ -432,13 +432,13 @@ namespace Engine {
         skel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
 
 
-        uint32_t testClip = 1;
-        uint32_t testClipB = 0;
+        uint32_t testClip = 0;
+        uint32_t testClipB = 1;
         // Attach animator
         auto& anim = enemyEntity.AddComponent<AnimatorComponent>();
         anim.clipA = testClip;
         anim.clipB = testClipB;
-        anim.timeA = 0.0f;
+        anim.timeA = 1.0f;
         anim.blend = 0.0f;                 // only clipA
         anim.playbackSpeed = 1.0f;
 
@@ -469,9 +469,9 @@ namespace Engine {
 
         for (auto& p : destr.pieces)
         {
-            if (p.type == EnemyPieceType::LegL || p.type == EnemyPieceType::Head)
+            if (p.type == EnemyPieceType::LegL )
             {
-                p.visible = 0;
+               // p.visible = 0;
 
             }
         }
@@ -611,15 +611,7 @@ namespace Engine {
 
                 auto& spriteComp = playerView.get<Engine::SpriteRendererComponent>(entity);
 
-                if (!playerEntity.HasComponent<AnimationComponent>())
-                {
-                    auto clipId = m_animationBank->Load2DClipFromYaml("animations/player/data/run.yaml");
-                    auto& animComp = playerEntity.AddComponent<AnimationComponent>();
-                    animComp.clipId = clipId;
-                    animComp.dirMode = 1;
-
-                   // auto& animStateComp = playerEntity.AddComponent<AnimatorStateComponent>();
-                }
+              
 
 
                // Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
@@ -654,6 +646,8 @@ namespace Engine {
                 uint32_t testClip = 1;
                 uint32_t testClipB = 0;
                 // Attach animator
+                /*
+                */
                 auto& anim = playerEntity.AddComponent<AnimatorComponent>();
                 anim.clipA = testClip;
                 anim.clipB = testClipB;
