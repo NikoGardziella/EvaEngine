@@ -5,7 +5,7 @@
 
 namespace Engine {
 
-    struct AnimationComponent {
+    struct Animation2DComponent {
         uint32_t clipId = 0;
         Dir8     direction = Dir8::S;
 

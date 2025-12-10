@@ -4,7 +4,7 @@
 namespace Engine {
 
 
-    struct AnimatorComponent {
+    struct Animator3DComponent {
         // runtime pose state
         uint32_t clipA = 0xFFFFFFFFu;
         uint32_t clipB = 0xFFFFFFFFu;

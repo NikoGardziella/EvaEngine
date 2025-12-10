@@ -8,6 +8,7 @@
 #include <Engine/Scene/Components/Render/ChunkRendererComponent.h>
 #include <Engine/Core/Log.h>
 #include <Engine/Scene/Components/Animation/AnimationComponent.h>
+#include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 
 
 void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime,  Engine::Scene* scene)
@@ -32,18 +33,15 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime,  Engine::Scen
         });
 
     // Players with weapons
-    scene->ForEach<Engine::TransformComponent, WeaponComponent, Engine::AnimationComponent>(
-        [&](Engine::Entity playerEntity, Engine::TransformComponent& playerTransformComp,
-            WeaponComponent& weaponComp, Engine::AnimationComponent& animationComp)
+    scene->ForEach<Engine::TransformComponent, WeaponComponent>(
+        [&](Engine::Entity playerEntity, Engine::TransformComponent& playerTransformComp,WeaponComponent& weaponComp)
         {
 
 
             const glm::vec2 playerPos = playerTransformComp.Translation;
             const glm::vec2 dir = mouseWorldPosition - playerPos;
 
-            // Write to animation component
-            animationComp.aimRadians = std::atan2(dir.y, dir.x);
-            animationComp.dirMode = 1;
+          
 
             // cooldown tick
             if (weaponComp.Cooldown > 0.0f)

@@ -60,8 +60,8 @@ namespace Engine {
 
     void AnimationSystem2D::Update(float dt, Scene* scene)
     {
-        scene->ForEach<AnimationComponent, AnimatorStateComponent, TransformComponent>(
-            [this, dt](Entity e, AnimationComponent& ac, AnimatorStateComponent& as, TransformComponent& transformComp)
+        scene->ForEach<Animation2DComponent, AnimatorStateComponent, TransformComponent>(
+            [this, dt](Entity e, Animation2DComponent& ac, AnimatorStateComponent& as, TransformComponent& transformComp)
             {
                 const Animation2DClipRuntime* clip = m_bank->Get2DClip(ac.clipId);
                 if (!clip || clip->grid.cols == 0 || clip->grid.rows == 0)
@@ -130,7 +130,7 @@ namespace Engine {
 
 
 
-    Dir8 AnimationSystem2D::SelectDirection(const AnimationComponent& ac, const glm::vec2& vel, float aim)
+    Dir8 AnimationSystem2D::SelectDirection(const Animation2DComponent& ac, const glm::vec2& vel, float aim)
     {
         static thread_local DirectionSelector selector;
         switch (ac.dirMode) {

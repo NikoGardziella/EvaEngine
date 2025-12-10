@@ -8,9 +8,8 @@ void PhysicsSystem::UpdatePhysicsSystem(float dt, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    scene->ForEach<Engine::TransformComponent, Engine::TileComponent, PhysicsComponent>(
-        [dt](Engine::Entity e, Engine::TransformComponent& xf, Engine::TileComponent& tileComp,
-            PhysicsComponent& phys)
+    scene->ForEach<Engine::TransformComponent, PhysicsComponent>(
+        [dt](Engine::Entity e, Engine::TransformComponent& xf,  PhysicsComponent& phys)
         {
             if (!phys.active || phys.timeLeft <= 0.0f) {
                 if (phys.destroyOnFinish) 

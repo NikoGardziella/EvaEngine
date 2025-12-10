@@ -17,7 +17,7 @@ namespace Engine {
 
     
         // pick direction by mode (velocity, aim, manual)
-        static Dir8 SelectDirection(const AnimationComponent& anim,
+        static Dir8 SelectDirection(const Animation2DComponent& anim,
             const glm::vec2& vel,  float aimRadians);
 
         // advance one animator

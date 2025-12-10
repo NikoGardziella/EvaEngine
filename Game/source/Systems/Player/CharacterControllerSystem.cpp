@@ -64,17 +64,17 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
             if (Engine::Input::IsKeyPressed(Engine::Key::S)) inputVelocity.y -= 1.0f;
 
             
-            if (playerEntity.HasComponent<Engine::AnimatorComponent>())
+            if (playerEntity.HasComponent<Engine::Animator3DComponent>())
             {
-                Engine::AnimatorComponent& playerAnimComp = playerEntity.GetComponent<Engine::AnimatorComponent>();
+                Engine::Animator3DComponent& playerAnimComp = playerEntity.GetComponent<Engine::Animator3DComponent>();
 
                 if (inputVelocity.x != 0.0f || inputVelocity.y != 0.0f)
                 {
-                    playerAnimComp.clipA = 0;
+                    playerAnimComp.clipA = 0; // run
                 }
                 else
                 {
-                    playerAnimComp.clipA = 1;
+                    playerAnimComp.clipA = 1; // idle
                 }
 
 

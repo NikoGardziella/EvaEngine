@@ -333,7 +333,7 @@ namespace Engine {
             uint32_t testClip = 1;
             uint32_t testClipB = 0;
             // Attach animator
-            auto& anim = entity.AddComponent<AnimatorComponent>();
+            auto& anim = entity.AddComponent<Animator3DComponent>();
             anim.clipA = testClip;           
             anim.clipB = testClipB;
             anim.timeA = 0.0f;
@@ -407,6 +407,7 @@ namespace Engine {
         enemyEntity.AddComponent<HealthComponent>();
         TransformComponent& enemyTransformComp = enemyEntity.AddComponent<TransformComponent>();
         enemyTransformComp.Translation.y = 5.0f;
+        enemyEntity.AddComponent<BoxCollider2DComponent>();
 
         enemyTransformComp.Rotation.x += glm::radians(90.0f);
 
@@ -432,10 +433,10 @@ namespace Engine {
         skel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
 
 
-        uint32_t testClip = 0;
-        uint32_t testClipB = 1;
+        uint32_t testClip = 0; // rund
+        uint32_t testClipB = 1; // idle
         // Attach animator
-        auto& anim = enemyEntity.AddComponent<AnimatorComponent>();
+        auto& anim = enemyEntity.AddComponent<Animator3DComponent>();
         anim.clipA = testClip;
         anim.clipB = testClipB;
         anim.timeA = 1.0f;
@@ -618,7 +619,7 @@ namespace Engine {
                 Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
             }
 
-            if (!playerEntity.HasComponent<AnimatorComponent>())
+            if (!playerEntity.HasComponent<Animator3DComponent>())
             {
                 uint32_t meshId = 0;
                 const MeshAsset& meshAsset = AssetManager::GetMeshFromMeshRegistry(meshId);
@@ -648,7 +649,7 @@ namespace Engine {
                 // Attach animator
                 /*
                 */
-                auto& anim = playerEntity.AddComponent<AnimatorComponent>();
+                auto& anim = playerEntity.AddComponent<Animator3DComponent>();
                 anim.clipA = testClip;
                 anim.clipB = testClipB;
                 anim.timeA = 0.0f;
