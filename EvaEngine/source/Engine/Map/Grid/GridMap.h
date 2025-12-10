@@ -23,35 +23,36 @@ namespace Engine {
 		void GridMap::MarkBlockedSubtilesFromTexture(const glm::vec2& worldPosition,
 			const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
 
-		bool IsBlocked(glm::ivec2 worldTileCoords) const;
 
-		
 
 		bool HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw);
 
-		void CompactSubcellsPreserveBuckets(const std::vector<uint8_t>& kill);
-
-		bool MarkSubcellHit(uint32_t slot, uint32_t subIdx);
-
-		void UpdateTilesForTile(const glm::vec2& tileMinW);
-
 
 		void UpdateTiles();
+
+		bool IsCellBlocked(const glm::ivec2& cell) const;
+
+		std::vector<glm::vec2> FindPathWorld(const glm::vec2& startWorld, const glm::vec2& goalWorld) const;
+
+
+		std::vector<SubCellOBB>& GetGridSubcells() { return  m_blockedSubCells; }
+		void DrawDebugBlockedTiles() const;
+		void DebugDrawPath(const std::vector<glm::vec3>& path) const;
+	private:
+
 
 		//void UpdateLOSBlockedTilesFromHealthTexture(const VulkanTexture& healthTexture);
 
 
 		//bool HasLineOfSight(glm::ivec2 from, glm::ivec2 to);
 
-		std::vector<SubCellOBB>& GetGridSubcells() { return  m_blockedSubCells; }
 
 
-		void DrawDebugLine(glm::vec2 from, glm::vec2 to, const glm::vec4& color);
+		void DrawDebugLine(glm::vec2 from, glm::vec2 to, const glm::vec4& color) const;
 
-		void DrawDebugBlockedTiles() const;
 		static void DrawAABB_LineRect(const glm::vec2& wmin, const glm::vec2& wmax, const glm::vec4& color);
 		void PushDirtyDebugRectWorld(const glm::vec2& wmin, const glm::vec2& wmax, const glm::vec4& color);
-		void PushDirtyDebugRect(GridMap& gm, const DirtyRect& r, const glm::vec2& tileSizeW, const glm::vec4& color);
+
 	private:
 		static float PxToWorld(float px) { return px / float(TILE_PIXEL_WIDTH); }
 

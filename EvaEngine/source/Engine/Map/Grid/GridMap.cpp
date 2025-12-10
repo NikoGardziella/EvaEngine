@@ -263,13 +263,6 @@ namespace Engine
 
 
 
-	bool GridMap::IsBlocked(glm::ivec2 worldTileCoords) const
-	{
-        EE_PROFILE_FUNCTION();
-		//return m_blockedTiles.find(worldTileCoords) != m_blockedTiles.end();
-        return false;
-	}
-
 
 
     bool GridMap::HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw)
@@ -278,77 +271,90 @@ namespace Engine
 
         constexpr float subtileSize = float(TILE_SIZE) / float(GRID_SUBDIVISIONS);
 
-        // Convert world position to subtile coordinates:
-        glm::ivec2 from = glm::floor(fromWorld / subtileSize);
-        glm::ivec2 to = glm::floor(toWorld / subtileSize);
+        glm::vec2 seg = toWorld - fromWorld;
+        float segLen = glm::length(seg);
+        if (segLen < 1e-4f)
+            return true; // same point
 
-        int x0 = from.x;
-        int y0 = from.y;
-        int x1 = to.x;
-        int y1 = to.y;
+        glm::vec2 dir = seg / segLen;
 
-        int dx = abs(x1 - x0);
-        int dy = abs(y1 - y0);
-        int sx = x0 < x1 ? 1 : -1;
-        int sy = y0 < y1 ? 1 : -1;
-        int err = dx - dy;
+        // Step roughly one subtile at a time
+        const float stepLen = subtileSize * 0.8f; // slightly denser than subtiles
+        const int   maxSteps = (int)glm::ceil(segLen / stepLen);
 
-        bool isFirstTile = true;
+        bool isFirstSample = true;
 
-        while (true)
+        // Debug: draw the final LOS line
+        if (debugDraw)
         {
-            glm::ivec2 subtileCoord = { x0, y0 };
+            DrawDebugLine(fromWorld, toWorld, glm::vec4(0, 1, 0, 1)); // default green, overridden on block
+        }
 
-           if (!isFirstTile && m_blockedTiles.find(subtileCoord) != m_blockedTiles.end())
+        for (int i = 0; i <= maxSteps; ++i)
+        {
+            float t = (maxSteps > 0) ? (float)i / (float)maxSteps : 0.0f;
+            glm::vec2 P = glm::mix(fromWorld, toWorld, t);
+
+            // Skip the very first point so we don't consider the shooter "blocking" itself
+            if (!isFirstSample)
             {
-                if (debugDraw)
+                bool blockedHere = false;
+
+                // Test against all collision subcells
+                for (const auto& obb : m_blockedSubCells)
                 {
-                    glm::vec2 subtileCenter = glm::vec2(subtileCoord) * subtileSize + glm::vec2(subtileSize * 0.5f);
-                    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(subtileCenter, 0.0f)) *
-                        glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize));
-                    Engine::VulkanRenderer2D::DrawLineRect(model, glm::vec4(1, 0, 0, 0.3f), -1.0f);
-                    DrawDebugLine(fromWorld, toWorld, glm::vec4(1, 0, 0, 1));
+                    constexpr float kLOSObstaclePadding = 0.1f;
+                    if (GridUtils::PointInSubCellOBB_Padded(P, obb, kLOSObstaclePadding))
+                    {
+                        blockedHere = true;
+
+                        if (debugDraw)
+                        {
+                            // Draw a small red square at the blocking point
+                            glm::mat4 model =
+                                glm::translate(glm::mat4(1.0f), glm::vec3(P, 0.0f)) *
+                                glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize));
+
+                            Engine::VulkanRenderer2D::DrawLineRect(
+                                model, glm::vec4(1, 0, 0, 0.5f), -1.0f);
+
+                            DrawDebugLine(fromWorld, toWorld, glm::vec4(1, 0, 0, 1)); // red LOS
+                        }
+
+                        return false; // line of sight blocked
+                    }
                 }
-                return false;
+
+                if (debugDraw && !blockedHere)
+                {
+                    // Visualize sampled LOS points
+                    glm::mat4 model =
+                        glm::translate(glm::mat4(1.0f), glm::vec3(P, 0.0f)) *
+                        glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize * 0.5f));
+
+                    Engine::VulkanRenderer2D::DrawLineRect(
+                        model, glm::vec4(1, 1, 0, 0.2f), -1.0f);
+                }
             }
 
-            if (debugDraw)
-            {
-                glm::vec2 subtileCenter = glm::vec2(subtileCoord) * subtileSize + glm::vec2(subtileSize * 0.5f);
-                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(subtileCenter, 0.0f)) *
-                    glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize));
-                Engine::VulkanRenderer2D::DrawLineRect(model, glm::vec4(1, 1, 0, 0.2f), -1.0f);
-            }
-
-            if (x0 == x1 && y0 == y1)
-                break;
-
-            int e2 = 2 * err;
-            if (e2 > -dy)
-            {
-                err -= dy;
-                x0 += sx;
-            }
-            if (e2 < dx)
-            {
-                err += dx;
-                y0 += sy;
-            }
-
-            isFirstTile = false;
+            isFirstSample = false;
         }
 
         if (debugDraw)
         {
-            glm::vec2 subtileCenter = glm::vec2(to) * subtileSize + glm::vec2(subtileSize * 0.5f);
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(subtileCenter, 0.0f)) *
+            // Mark the endpoint as visible
+            glm::mat4 model =
+                glm::translate(glm::mat4(1.0f), glm::vec3(toWorld, 0.0f)) *
                 glm::scale(glm::mat4(1.0f), glm::vec3(subtileSize));
-            Engine::VulkanRenderer2D::DrawLineRect(model, glm::vec4(0, 1, 1, 0.4f), -1.0f);
-            DrawDebugLine(fromWorld, toWorld, glm::vec4(0, 1, 0, 1));
+
+            Engine::VulkanRenderer2D::DrawLineRect(
+                model, glm::vec4(0, 1, 1, 0.4f), -1.0f);
+            // LOS line already drawn (green) at the start
         }
 
-        return true;
+        return true; // no collision along the ray
     }
+
    
     void GridMap::UpdateTiles()
     {
@@ -480,12 +486,205 @@ namespace Engine
     }
 
 
+    bool GridMap::IsCellBlocked(const glm::ivec2& cell) const
+    {
+        // pick a representative point for the cell (its “ground” center)
+        glm::vec2 P = IsoTileUtils::IsoToWorldGround(cell);
 
+        for (const auto& obb : m_blockedSubCells)
+        {
+            constexpr float kLOSObstaclePadding = 0.1f;
 
+            if (GridUtils::PointInSubCellOBB_Padded(P, obb, kLOSObstaclePadding))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	void GridMap::DrawDebugLine(glm::vec2 from, glm::vec2 to, const glm::vec4& color)
-	{
+    std::vector<glm::vec2> GridMap::FindPathWorld(const glm::vec2& startWorld, const glm::vec2& goalWorld) const
+    {
         EE_PROFILE_FUNCTION();
+        glm::ivec2 startCell = IsoTileUtils::WorldToIsoCell(startWorld);
+        glm::ivec2 goalCell = IsoTileUtils::WorldToIsoCell(goalWorld);
+
+        if (startCell == goalCell)
+            return { goalWorld }; // trivial
+
+        struct Node {
+            glm::ivec2 cell;
+            float fScore;
+        };
+
+        struct NodeCmp {
+            bool operator()(const Node& a, const Node& b) const {
+                return a.fScore > b.fScore; // min-heap
+            }
+        };
+
+        struct IVec2Hasher {
+            size_t operator()(const glm::ivec2& v) const noexcept {
+                uint64_t x = (uint32_t)v.x;
+                uint64_t y = (uint32_t)v.y;
+                return std::hash<uint64_t>{}((x << 32) ^ y);
+            }
+        };
+
+        auto heuristic = [](const glm::ivec2& a, const glm::ivec2& b) -> float {
+            glm::ivec2 d = b - a;
+            // diagonal distance
+            int dx = std::abs(d.x);
+            int dy = std::abs(d.y);
+            int diag = std::min(dx, dy);
+            int straight = std::max(dx, dy) - diag;
+            return diag * 1.4142f + straight * 1.0f;
+            };
+
+        std::priority_queue<Node, std::vector<Node>, NodeCmp> open;
+
+        std::unordered_map<glm::ivec2, glm::ivec2, IVec2Hasher> cameFrom;
+        std::unordered_map<glm::ivec2, float, IVec2Hasher> gScore;
+
+        auto key = [&](const glm::ivec2& c) -> glm::ivec2 { return c; };
+
+        gScore[key(startCell)] = 0.0f;
+
+        open.push({ startCell, heuristic(startCell, goalCell) });
+
+        const glm::ivec2 neighbors[8] = {
+            {+1, 0}, {-1, 0}, {0,+1}, {0,-1},
+            {+1,+1}, {+1,-1}, {-1,+1}, {-1,-1}
+        };
+
+        auto isBlocked = [&](const glm::ivec2& c) -> bool {
+            return IsCellBlocked(c);
+            };
+
+        const float costStraight = 1.0f;
+        const float costDiag = 1.4142f;
+
+        std::unordered_set<glm::ivec2, IVec2Hasher> closed;
+
+        bool found = false;
+
+        while (!open.empty())
+        {
+            glm::ivec2 current = open.top().cell;
+            open.pop();
+
+            if (current == goalCell) {
+                found = true;
+                break;
+            }
+
+            if (closed.find(current) != closed.end())
+                continue;
+            closed.insert(current);
+
+            for (int i = 0; i < 8; ++i)
+            {
+                glm::ivec2 n = current + neighbors[i];
+
+                if (isBlocked(n))
+                    continue;
+
+                // Optional: prevent squeezing through corners
+                if (i >= 4) {
+                    glm::ivec2 n1(current.x, n.y);
+                    glm::ivec2 n2(n.x, current.y);
+                    if (isBlocked(n1) && isBlocked(n2))
+                        continue;
+                }
+
+                float stepCost = (i < 4) ? costStraight : costDiag;
+
+                float tentativeG = gScore[key(current)] + stepCost;
+
+                auto itG = gScore.find(key(n));
+                if (itG != gScore.end() && tentativeG >= itG->second)
+                    continue;
+
+                cameFrom[key(n)] = current;
+                gScore[key(n)] = tentativeG;
+
+                float f = tentativeG + heuristic(n, goalCell);
+                open.push({ n, f });
+            }
+        }
+
+        std::vector<glm::vec2> result;
+
+        if (!found) {
+            // fallback: direct goal if found no path
+            result.push_back(goalWorld);
+            return result;
+        }
+
+        // Reconstruct path in reverse
+        std::vector<glm::ivec2> cells;
+        glm::ivec2 cur = goalCell;
+        cells.push_back(cur);
+        while (cur != startCell)
+        {
+            auto it = cameFrom.find(key(cur));
+            if (it == cameFrom.end())
+                break;
+            cur = it->second;
+            cells.push_back(cur);
+        }
+
+        std::reverse(cells.begin(), cells.end());
+
+        // Convert cell centers back to world-space points
+        result.reserve(cells.size());
+        for (const auto& c : cells)
+        {
+            glm::vec2 w = IsoTileUtils::IsoToWorldGround(c);
+            result.push_back(w);
+        }
+
+
+        
+        return result;
+    }
+
+    void GridMap::DebugDrawPath(const std::vector<glm::vec3>& path) const
+    {
+        if (path.size() < 2)
+            return;
+
+        const float nodeSize = 0.1f;
+
+        for (size_t i = 0; i < path.size(); ++i)
+        {
+            glm::vec3 p = path[i];
+
+            glm::mat4 model =
+                glm::translate(glm::mat4(1.0f), glm::vec3(p.x, p.y, 0.0f)) *
+                glm::scale(glm::mat4(1.0f), glm::vec3(nodeSize));
+
+            glm::vec4 color;
+            if (i == 0)                      color = glm::vec4(0, 1, 0, 0.6f);
+            else if (i + 1 == path.size())   color = glm::vec4(1, 0, 0, 0.6f);
+            else                             color = glm::vec4(1, 1, 0, 0.4f);
+
+            Engine::VulkanRenderer2D::DrawLineRect(model, color, -1.0f);
+
+            if (i + 1 < path.size())
+            {
+                glm::vec2 q = path[i + 1];
+                DrawDebugLine(glm::vec2(p.x, p.y),
+                    glm::vec2(q.x, q.y),
+                    glm::vec4(0, 0.7f, 1.0f, 1.0f));
+            }
+        }
+    }
+
+
+	void GridMap::DrawDebugLine(glm::vec2 from, glm::vec2 to, const glm::vec4& color) const
+	{
+       // EE_PROFILE_FUNCTION();
 		glm::vec3 a(from, 0.1f); // slight Z offset
 		glm::vec3 b(to, 0.1f);
 		Engine::VulkanRenderer2D::DrawLine(a, b, color, -1);

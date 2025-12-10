@@ -80,6 +80,39 @@ namespace Engine
         outMax = obb.center + hw;
     }
 
+
+    bool GridUtils::PointInSubCellOBB(const glm::vec2& P, const SubCellOBB& obb)
+    {
+        const glm::vec2 T = obb.tangent;
+        const glm::vec2 N = glm::vec2(-T.y, T.x);
+
+        glm::vec2 d = P - obb.center;
+
+        float x = glm::dot(d, T);
+        float y = glm::dot(d, N);
+
+        return std::abs(x) <= obb.halfExtents.x &&
+            std::abs(y) <= obb.halfExtents.y;
+    }
+
+    bool GridUtils::PointInSubCellOBB_Padded(const glm::vec2& P, const SubCellOBB& obb, float padding)
+    {
+        const glm::vec2 T = obb.tangent;
+        const glm::vec2 N = glm::vec2(-T.y, T.x);
+
+        glm::vec2 d = P - obb.center;
+
+        float x = glm::dot(d, T);
+        float y = glm::dot(d, N);
+
+        float hx = obb.halfExtents.x + padding;
+        float hy = obb.halfExtents.y + padding;
+
+        return std::abs(x) <= hx &&
+            std::abs(y) <= hy;
+    }
+
+
     bool GridUtils::OBB_IntersectsCircle(const SubCellOBB& obb, const glm::vec2& C, float R)
     {
         glm::vec2 t = obb.tangent;

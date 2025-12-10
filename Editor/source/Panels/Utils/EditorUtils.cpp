@@ -61,5 +61,18 @@ namespace Engine {
     }
 
 
+    const char* EditorUtils::AIStateToString(AIState s)
+    {
+        switch (s)
+        {
+        case AIState::Idle:         return "Idle";
+        case AIState::Patrol:       return "Patrol";
+        case AIState::MoveToTarget: return "MoveToTarget";
+        case AIState::ChaseLOS:     return "ChaseLOS";
+        case AIState::Attack:       return "Attack";
+        default:                    return "Unknown";
+        }
+    }
+
 }
 

@@ -449,6 +449,7 @@ namespace Engine {
 
         const SkeletonAsset& skeletonAsset = AssetManager::GetSkeletonRegistry().Get(skeletonId);
         EnemyDestructibleComponent& destr = enemyEntity.AddComponent<EnemyDestructibleComponent>();
+       
 
         uint32_t headBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "head");
         uint32_t spineBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "spine");
@@ -575,7 +576,8 @@ namespace Engine {
         }
 
 
-
+        enemyEntity.AddComponent<NPCAIMovementComponent>();
+        NPCAIVisionComponent& nPCAIVisionComponent = enemyEntity.AddComponent<NPCAIVisionComponent>();
     }
 
 
@@ -950,7 +952,7 @@ namespace Engine {
                     //glm::ivec2 tileMinOrigin = chunkMinOrigin * int(CHUNK_SIZE);
 
                 }
-
+                    //m_gridMap->HasLineOfSight(playerPos, glm::vec2(0.0f, 0.0f), true);
                     m_gridMap->UpdateTiles();
                     m_destructibleTileSystem.OnTilesUpdated(this);
               

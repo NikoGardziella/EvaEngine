@@ -16,7 +16,7 @@
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <Engine/Scene/Components/Vehicles/VehicleComponent.h>
 #include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
-
+#include "Utils/EditorUtils.h"
 
 
 namespace Engine {
@@ -1115,26 +1115,34 @@ namespace Engine {
                 }
 
             });
-        DrawComponent<NPCAIMovementComponent>("NPC movement", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
+        DrawComponent<NPCAIMovementComponent>("NPC movement", entity, m_sceneHierarchyPanelScene.get(),
+            [this, &entity](auto& component)
             {
+                // Read-only label:
+                ImGui::Text("State: %s", EditorUtils::AIStateToString(component.CurrentState));
 
-                ImGui::DragFloat("Speed", &component.MoveSpeed, 0.01, 0.0f, 1.0f);
-                ImGui::DragFloat("IdleTimer", &component.IdleTimer, 0.01, 0.0f, 1.0f);
+
+                ImGui::DragFloat("Speed", &component.MoveSpeed, 0.01f, 0.0f, 10.0f);
+                ImGui::DragFloat("IdleTimer", &component.IdleTimer, 0.01f, 0.0f, 10.0f);
                 ImGui::DragFloat3("Target Position", glm::value_ptr(component.TargetPosition));
 
-                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(
+                    m_sceneHierarchyPanelScene->GetRegistry(),
+                    entity.GetComponent<IDComponent>().ID),
+                    m_sceneHierarchyPanelScene.get() };
+
                 if (newEntity)
                 {
-                    m_sceneHierarchyPanelScene->GetRegistry().get<NPCAIMovementComponent>(newEntity) = component;
+                    m_sceneHierarchyPanelScene->GetRegistry()
+                        .get<NPCAIMovementComponent>(newEntity) = component;
                 }
-
             });
 
         DrawComponent<NPCAIVisionComponent>("NPC vision", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
 
-                ImGui::DragFloat("View Radius", &component.ViewRadius, 0.01, 0.0f, 1.0f);
-                ImGui::DragFloat("View Angle", &component.ViewAngle, 0.01, 0.0f, 1.0f);
+                ImGui::DragFloat("View Radius", &component.ViewRadius, 1.00, 0.0f, 500.0f);
+                ImGui::DragFloat("View Angle", &component.ViewAngle, 1.00, 0.0f, 360.0f);
 
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (newEntity)

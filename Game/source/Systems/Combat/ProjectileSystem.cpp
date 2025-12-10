@@ -22,21 +22,26 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
     // Collect projectiles to destroy after iteration (safer with ECS wrappers)
     std::vector<Engine::Entity> toDestroy;
     toDestroy.reserve(64);
-
     // Update & collide all projectiles
     scene->ForEach<Engine::TransformComponent, ProjectileComponent, Engine::IDComponent>(
-        [&](Engine::Entity projectileEntity, Engine::TransformComponent& projectileTransformComp,
-            ProjectileComponent& projectileComp,  Engine::IDComponent& projectileIdComp)
+        [&](Engine::Entity projectileEntity,
+            Engine::TransformComponent& projectileTransformComp,
+            ProjectileComponent& projectileComp,
+            Engine::IDComponent& projectileIdComp)
         {
+            // 1) Check if this projectile had a GPU collision
+            bool gpuHit = false;
+
             for (const auto& col : gpuCollisions)
             {
                 if (projectileIdComp.ID == col.GetEntityID())
                 {
-                    //EE_INFO("Projectile collided (GPU)");
-                    toDestroy.push_back(projectileEntity);
+                    gpuHit = true;
+                    break;
                 }
             }
 
+            // 2) Integrate projectile movement
             projectileTransformComp.Translation.x += projectileComp.Direction.x * deltaTime * projectileComp.ProjectileSped;
             projectileTransformComp.Translation.y += projectileComp.Direction.y * deltaTime * projectileComp.ProjectileSped;
 
@@ -45,26 +50,28 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                 projectileTransformComp.Translation.y
             };
 
-            //  Broad/narrow phase vs scene entities (very simple AABB/circle checks)
+            // If no GPU hit, we *only* move the projectile, no blast logic
+            if (!gpuHit)
+                return;
+
+            // Mark projectile for destruction (exploded)
+            toDestroy.push_back(projectileEntity);
+
+            // 3) Apply blast radius ONLY if we had a GPU hit
+            const float blastRadius = projectileComp.DestructionRadius; // e.g. 0.1f
+
             bool hitSomething = false;
 
             scene->ForEach<Engine::TransformComponent>(
                 [&](Engine::Entity targetEntity, Engine::TransformComponent& targetTransformComp)
                 {
-                    if (hitSomething) return;                          // already hit this frame
+                    if (hitSomething) return;                          // already processed a main hit
                     if (targetEntity == projectileEntity) return;      // skip self
                     if (targetEntity == projectileComp.Owner) return;  // skip owner
 
-                    const glm::vec2 targetPos = {
-                        targetTransformComp.Translation.x,
-                        targetTransformComp.Translation.y
-                    };
-
                     bool hit = false;
 
-                    // Enemy hit volumes (per-piece spheres)
-                    // In your projectile loop:
-
+                    // Enemy destructible pieces with per-piece hit volumes
                     if (!hit && targetEntity.HasComponent<Engine::EnemyDestructibleComponent>())
                     {
                         auto& destr = targetEntity.GetComponent<Engine::EnemyDestructibleComponent>();
@@ -86,12 +93,16 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                             if (piece.detached)
                                 continue;
 
+                            // World-space center of piece
                             glm::vec4 centerW4 = enemyWorld * glm::vec4(piece.hitLocalCenter, 1.0f);
                             glm::vec2 centerW2(centerW4.x, centerW4.y);
 
                             glm::vec2 diff = projectilePos - centerW2;
                             float dist2 = glm::dot(diff, diff);
-                            float r2 = piece.hitRadius * piece.hitRadius;
+
+                            // Explosion sphere vs piece sphere
+                            float totalRadius = piece.hitRadius + blastRadius;
+                            float r2 = totalRadius * totalRadius;
 
                             if (dist2 <= r2 && dist2 < bestDist2)
                             {
@@ -104,14 +115,20 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                         if (anyHit)
                         {
                             hit = true;
+                            hitSomething = true;
+
                             glm::vec3 impulseDir = glm::vec3(projectileComp.Direction, 0.0f);
                             float impulseStrength = 10.0f;
 
                             DetachPiece(scene, targetEntity, bestPiece, impulseDir, impulseStrength);
+                            return;
                         }
                     }
 
+                    // (other collider types can go here if you want them also affected by blast)
 
+
+                    const glm::vec2 targetPos = { targetTransformComp.Translation.x, targetTransformComp.Translation.y };
 
 
 

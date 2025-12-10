@@ -25,6 +25,10 @@ namespace Engine
 
 		static void OBB_ComputeAABB(const SubCellOBB& obb, glm::vec2& outMin, glm::vec2& outMax);
 
+		static bool PointInSubCellOBB(const glm::vec2& P, const SubCellOBB& obb);
+
+		static bool PointInSubCellOBB_Padded(const glm::vec2& P, const SubCellOBB& obb, float padding);
+
 		static bool OBB_IntersectsCircle(const SubCellOBB& obb, const glm::vec2& C, float R);
 
 
