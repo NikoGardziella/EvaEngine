@@ -407,7 +407,11 @@ namespace Engine {
         enemyEntity.AddComponent<HealthComponent>();
         TransformComponent& enemyTransformComp = enemyEntity.AddComponent<TransformComponent>();
         enemyTransformComp.Translation.y = 5.0f;
-        enemyEntity.AddComponent<BoxCollider2DComponent>();
+
+
+
+   
+
 
         enemyTransformComp.Rotation.x += glm::radians(90.0f);
 
@@ -461,21 +465,117 @@ namespace Engine {
         uint32_t legRSubmeshIndex  =  5;
         uint32_t legLSubmeshIndex  =  6;
 
-        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::Head,  headSubmeshIndex,  headBone });
-        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::Torso, torsoSubmeshIndex, spineBone });
-        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::ArmL,  armLSubmeshIndex,  armLBone });
-        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::ArmR,  armRSubmeshIndex,  armRBone });
-        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::LegR,  legRSubmeshIndex,  legRBone });
-        destr.pieces.emplace_back(EnemyPiece{ EnemyPieceType::LegL,  legLSubmeshIndex,  legLBone });
-
-        for (auto& p : destr.pieces)
+        
+        // ---- Head ----
         {
-            if (p.type == EnemyPieceType::LegL )
-            {
-               // p.visible = 0;
+            EnemyPiece p{};
+            p.type = EnemyPieceType::Head;
+            p.submeshIndex = headSubmeshIndex;
+            p.boneId = headBone;
 
-            }
+            p.visible = 1;
+            p.canDetach = 1;
+
+            p.hitShape = HitVolumeShape::Sphere;
+            p.hitEnabled = 1;
+            p.hitLocalCenter = glm::vec3(0.0f, 0.8f, 0.0f); // adjust as needed
+            p.hitRadius = 0.25f;
+
+            destr.pieces.push_back(p);
         }
+
+        // ---- Torso ----
+        {
+            EnemyPiece p{};
+            p.type = EnemyPieceType::Torso;
+            p.submeshIndex = torsoSubmeshIndex;
+            p.boneId = spineBone;
+
+            p.visible = 1;
+            p.canDetach = 0;
+
+            p.hitShape = HitVolumeShape::Sphere;
+            p.hitEnabled = 1;
+            p.hitLocalCenter = glm::vec3(0.0f, 0.2f, 0.0f);
+            p.hitRadius = 0.35f;
+
+            destr.pieces.push_back(p);
+        }
+
+        // ---- ArmL ----
+        {
+            EnemyPiece p{};
+            p.type = EnemyPieceType::ArmL;
+            p.submeshIndex = armLSubmeshIndex;
+            p.boneId = armLBone;
+
+            p.visible = 1;
+            p.canDetach = 1;
+
+            p.hitShape = HitVolumeShape::Sphere;
+            p.hitEnabled = 1;
+            p.hitLocalCenter = glm::vec3(-0.35f, 0.35f, 0.0f);
+            p.hitRadius = 0.25f;
+
+            destr.pieces.push_back(p);
+        }
+
+        // ---- ArmR ----
+        {
+            EnemyPiece p{};
+            p.type = EnemyPieceType::ArmR;
+            p.submeshIndex = armRSubmeshIndex;
+            p.boneId = armRBone;
+
+            p.visible = 1;
+            p.canDetach = 1;
+
+            p.hitShape = HitVolumeShape::Sphere;
+            p.hitEnabled = 1;
+            p.hitLocalCenter = glm::vec3(0.35f, 0.35f, 0.0f);
+            p.hitRadius = 0.25f;
+
+            destr.pieces.push_back(p);
+        }
+
+        // ---- LegR ----
+        {
+            EnemyPiece p{};
+            p.type = EnemyPieceType::LegR;
+            p.submeshIndex = legRSubmeshIndex;
+            p.boneId = legRBone;
+
+            p.visible = 1;
+            p.canDetach = 1;
+
+            p.hitShape = HitVolumeShape::Sphere;
+            p.hitEnabled = 1;
+            p.hitLocalCenter = glm::vec3(-0.2f, -0.5f, 0.0f);
+            p.hitRadius = 0.35f;
+
+            destr.pieces.push_back(p);
+        }
+
+        // ---- LegL ----
+        {
+            EnemyPiece p{};
+            p.type = EnemyPieceType::LegL;
+            p.submeshIndex = legLSubmeshIndex;
+            p.boneId = legLBone;
+
+            p.visible = 1;
+            p.canDetach = 1;
+
+            p.hitShape = HitVolumeShape::Sphere;
+            p.hitEnabled = 1;
+            p.hitLocalCenter = glm::vec3(0.2f, -0.5f, 0.0f);
+            p.hitRadius = 0.35f;
+
+            destr.pieces.push_back(p);
+        }
+
+
+
     }
 
 

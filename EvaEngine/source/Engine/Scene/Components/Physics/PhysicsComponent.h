@@ -16,4 +16,6 @@ struct PhysicsComponent {
     // Optional: when finished, destroy or just freeze
     bool destroyOnFinish = false;
     bool active = false;    // internal: running or not
+    bool  randomizedSpin = false;
+
 };

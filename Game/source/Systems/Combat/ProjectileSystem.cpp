@@ -10,6 +10,7 @@
 #include "Engine/AssetManager/AssetManager.h"
 #include <Engine/Scene/Components/Render/3D/RenderBoundsComponent.h>
 #include <Engine/Scene/Components/Physics/PhysicsComponent.h>
+#include "glm/glm.hpp"
 
 void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* scene)
 {
@@ -61,6 +62,59 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
 
                     bool hit = false;
 
+                    // Enemy hit volumes (per-piece spheres)
+                    // In your projectile loop:
+
+                    if (!hit && targetEntity.HasComponent<Engine::EnemyDestructibleComponent>())
+                    {
+                        auto& destr = targetEntity.GetComponent<Engine::EnemyDestructibleComponent>();
+
+                        float bestDist2 = std::numeric_limits<float>::max();
+                        Engine::EnemyPieceType bestPiece = Engine::EnemyPieceType::Torso;
+                        bool anyHit = false;
+
+                        glm::mat4 enemyWorld = targetTransformComp.GetTransform();
+
+                        for (const auto& piece : destr.pieces)
+                        {
+                            if (!piece.hitEnabled)
+                                continue;
+
+                            if (piece.hitShape != Engine::HitVolumeShape::Sphere)
+                                continue;
+
+                            if (piece.detached)
+                                continue;
+
+                            glm::vec4 centerW4 = enemyWorld * glm::vec4(piece.hitLocalCenter, 1.0f);
+                            glm::vec2 centerW2(centerW4.x, centerW4.y);
+
+                            glm::vec2 diff = projectilePos - centerW2;
+                            float dist2 = glm::dot(diff, diff);
+                            float r2 = piece.hitRadius * piece.hitRadius;
+
+                            if (dist2 <= r2 && dist2 < bestDist2)
+                            {
+                                bestDist2 = dist2;
+                                bestPiece = piece.type;
+                                anyHit = true;
+                            }
+                        }
+
+                        if (anyHit)
+                        {
+                            hit = true;
+                            glm::vec3 impulseDir = glm::vec3(projectileComp.Direction, 0.0f);
+                            float impulseStrength = 10.0f;
+
+                            DetachPiece(scene, targetEntity, bestPiece, impulseDir, impulseStrength);
+                        }
+                    }
+
+
+
+
+
                     // Box collider
                     if (!hit && targetEntity.HasComponent<Engine::BoxCollider2DComponent>())
                     {
@@ -73,9 +127,9 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                             projectilePos.y >= minB.y && projectilePos.y <= maxB.y)
                         {
                             hit = true;
-                            glm::vec3 impulseDir = glm::vec3(projectileComp.Direction, 0.0f);
-                            float impulseStrength = 10.0f;
-                            DetachPiece(scene, targetEntity, Engine::EnemyPieceType::Head, impulseDir, impulseStrength);
+                            //glm::vec3 impulseDir = glm::vec3(projectileComp.Direction, 0.0f);
+                           // float impulseStrength = 10.0f;
+                           // DetachPiece(scene, targetEntity, Engine::EnemyPieceType::Head, impulseDir, impulseStrength);
                         }
                     }
 
@@ -153,6 +207,7 @@ void ProjectileSystem::DetachPiece(Engine::Scene* scene, Engine::Entity enemy, E
     // 1) Hide piece on the main enemy
     piece->visible = 0;
     piece->detached = 1;
+    piece->hitEnabled = 0;
 
     // 2) Get required components
     if (!enemy.HasComponent<Engine::TransformComponent>() ||
@@ -231,6 +286,7 @@ void ProjectileSystem::DetachPiece(Engine::Scene* scene, Engine::Entity enemy, E
     float movementTimer = 0.5f;
     phys.duration = movementTimer;
     phys.timeLeft = movementTimer;
+    phys.randomizedSpin = true;
 
     uint32_t skeletonId = 0;
     Engine::SkeletonComponent& newSkeleton = gib.AddComponent<Engine::SkeletonComponent>();
