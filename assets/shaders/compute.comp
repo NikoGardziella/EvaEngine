@@ -569,12 +569,11 @@ void main()
     const float Z_TOL   = 0.5 * pc.PixelSizeWorld;
     const float Z_FIXED = 0.5;
 
-
     for (uint i = 0u; i < pc.NumProjectiles; ++i)
     {
         ProjectileGPU proj = data[i];
 
-        // Parametric ray A..A+dir*L  (normalize dir; keep L separate)
+        // Parametric ray A..A+dir*L
         vec2  dir  = proj.Dir;
         float len2 = dot(dir, dir);
         if (len2 > 1e-12) dir *= inversesqrt(len2); else dir = vec2(1.0, 0.0);
@@ -588,14 +587,15 @@ void main()
 
         bool  endQualifies = false;
         ivec2 pEnd = ivec2(-1);
+
+        // Is the *head* in THIS tile?
         bool headInside =
             (proj.Position.x >= rectMinW.x && proj.Position.x < rectMaxW.x &&
-            proj.Position.y >= rectMinW.y && proj.Position.y < rectMaxW.y);
-        if (!headInside) continue;
+             proj.Position.y >= rectMinW.y && proj.Position.y < rectMaxW.y);
 
+        // -------- AIMED-TEXEL PATH (tile that contains EndPos) --------
         if (endInside)
         {
-            // Aimed texel (tiny bias to avoid double-ownership on borders)
             const float EPS = 1e-5;
             vec2  uvEnd = (proj.EndPos - pc.TextureOriginWorld) / pc.PixelSizeWorld;
             pEnd = clamp(ivec2(floor(uvEnd - vec2(EPS))), ivec2(0), curSize - ivec2(1));
@@ -603,12 +603,11 @@ void main()
             uvec4 endHT  = loadHT(pc.TextureIndex, pEnd);
             vec4  endCol = imageLoad(uColor[nonuniformEXT(pc.TextureIndex)], pEnd);
             endQualifies = (endHT.r > 0u) || (endCol.a > 0.0);
-        }
 
-        // -------- AIMED-TEXEL PATH --------
-        if (endInside && endQualifies)
-        {
-                    
+            if (!endQualifies)
+                continue;
+
+            // Only the invocation that owns pEnd proceeds
             if (!all(equal(localPx, pEnd))) continue;
 
             float tNow    = clamp(dot(proj.Position - A, dir) / L, 0.0, 1.0);
@@ -619,106 +618,81 @@ void main()
             float arriveTolT = clamp(arriveTolW / L, 0.001, 0.5);
             if (tNow + 1e-6 < tTarget - arriveTolT) continue;
 
-            //  replace claimOnce+writeCollisionEvent with the min-key claim:
             uint key = makeKey(tTarget, /*aimed*/true, L);
 
             CollisionResult result;
-            result.hitProjectileID_Low = proj.ID_Low;
+            result.hitProjectileID_Low  = proj.ID_Low;
             result.hitProjectileID_High = proj.ID_High;
-            result.DestructionRadius = proj.DestructionRadius;
-            result.CollisionPosition = worldPos;
-            
-            uint healthAfterHit = centerHT.r;
+            result.DestructionRadius    = proj.DestructionRadius;
+            result.CollisionPosition    = worldPos;
 
-            if(proj.Damage > healthAfterHit)
-            {
+            uint healthAfterHit = centerHT.r;
+            if (proj.Damage > healthAfterHit)
                 healthAfterHit = 0;
-            }
             else
-            {
-                healthAfterHit = healthAfterHit - proj.Damage;
-            }
+                healthAfterHit -= proj.Damage;
 
             result.HealthAfter = healthAfterHit;
-            result.Damage = proj.Damage;
+            result.Damage      = proj.Damage;
 
             tryClaimMin(i, key, result);
-
-            // optional visual in the collision pass
-            // debugCross(pEnd, vec3(0.9, 0.1, 0.1));
-
-
             break;
         }
-        else
+
+        // -------- OVERLAP / BLOCKING PATH (only tile with head) --------
+        if (!headInside)
+            continue;
+
+        // skip overlap if EndPos is too close to current position
         {
-            // Only the tile that contains the projectile head may try
-            if (!(proj.Position.x >= rectMinW.x && proj.Position.x < rectMaxW.x &&
-                proj.Position.y >= rectMinW.y && proj.Position.y < rectMaxW.y))
-                continue;
-
-            //  skip overlap if EndPos is too close to current position (< 128 px)
-            {
-                vec2  d        = proj.EndPos - proj.Position;
-                float pxW      = pc.PixelSizeWorld;
-                float thrPx    = 64.0;
-                float thr2W    = (thrPx * pxW) * (thrPx * pxW); // world^2
-                float dist2W   = dot(d, d);
-                if (dist2W < thr2W) continue;
-            }
-
-            if(centerHT.g < 50)
-            {
-                continue;
-            }
-
-
-            // Ray vs THIS pixel’s cell AABB
-            vec2 cmin = pc.TextureOriginWorld + vec2(localPx) * pc.PixelSizeWorld;
-            vec2 cmax = cmin + vec2(pc.PixelSizeWorld);
-
-            float tEnter, tExit;
-            if (!segmentVsRect(A, dir, L, cmin, cmax, tEnter, tExit)) continue;
-
-            // Don’t look past the aim point
-            float tAim = clamp(dot(proj.EndPos - A, dir) / L, 0.0, 1.0);
-            float t0   = max(0.0, tEnter);
-            float t1   = min(tAim, tExit);
-            if (t1 <= t0) continue;
-
-            // Arrival gate
-            float tNow = clamp(dot(proj.Position - A, dir) / L, 0.0, 1.0);
-            float arriveTolW = max(proj.ColliderRadius * pc.PixelSizeWorld, 1.0 * pc.PixelSizeWorld);
-            float arriveTolT = clamp(arriveTolW / L, 0.0005, 0.5);
-            if (tNow + 1e-6 < t0 - arriveTolT) continue;
-
-            // Z gate at pixel center
-            float tPixel = clamp(dot(worldPos - A, dir) / L, 0.0, 1.0);
-            float zRay   = mix(Z_FIXED, proj.Z1, tPixel);
-            float hW     = (centerHT.g > 0u) ? max(float(centerHT.g) * pc.PixelSizeWorld, 0.0)
-                                            : 0.5 * float(curSize.y) * pc.PixelSizeWorld;
-            if (zRay > hW + Z_TOL) continue;
-
-            // Require material at THIS pixel
-            vec4 centerCol    = imageLoad(uColor[nonuniformEXT(pc.TextureIndex)], localPx);
-            bool isTerrainArt = (centerCol.a > 0.0) && !centerHasHP;
-            if (!(centerHasHP)) continue;
-
-            // Earliest candidate wins globally (compare on entry param t0)
-            uint key = makeKey(t0, /*aimed*/false, L);
-            CollisionResult result;
-
-            result.hitProjectileID_Low = proj.ID_Low;
-            result.hitProjectileID_High = proj.ID_High;
-            result.DestructionRadius = proj.DestructionRadius;
-            result.CollisionPosition = worldPos;
-            result.HealthAfter = centerHT.r;
-            result.Damage = proj.Damage;
-
-            tryClaimMin(i, key, result);
-
-            
+            vec2  d      = proj.EndPos - proj.Position;
+            float pxW    = pc.PixelSizeWorld;
+            float thrPx  = 64.0;
+            float thr2W  = (thrPx * pxW) * (thrPx * pxW);
+            float dist2W = dot(d, d);
+            if (dist2W < thr2W) continue;
         }
 
+        if (centerHT.g < 50)
+            continue;
+
+        // Ray vs THIS pixel’s cell AABB
+        vec2 cmin = pc.TextureOriginWorld + vec2(localPx) * pc.PixelSizeWorld;
+        vec2 cmax = cmin + vec2(pc.PixelSizeWorld);
+
+        float tEnter, tExit;
+        if (!segmentVsRect(A, dir, L, cmin, cmax, tEnter, tExit)) continue;
+
+        float tAim = clamp(dot(proj.EndPos - A, dir) / L, 0.0, 1.0);
+        float t0   = max(0.0, tEnter);
+        float t1   = min(tAim, tExit);
+        if (t1 <= t0) continue;
+
+        float tNow = clamp(dot(proj.Position - A, dir) / L, 0.0, 1.0);
+        float arriveTolW = max(proj.ColliderRadius * pc.PixelSizeWorld, 1.0 * pc.PixelSizeWorld);
+        float arriveTolT = clamp(arriveTolW / L, 0.0005, 0.5);
+        if (tNow + 1e-6 < t0 - arriveTolT) continue;
+
+        float tPixel = clamp(dot(worldPos - A, dir) / L, 0.0, 1.0);
+        float zRay   = mix(Z_FIXED, proj.Z1, tPixel);
+        float hW     = (centerHT.g > 0u)
+                       ? max(float(centerHT.g) * pc.PixelSizeWorld, 0.0)
+                       : 0.5 * float(curSize.y) * pc.PixelSizeWorld;
+        if (zRay > hW + Z_TOL) continue;
+
+        vec4 centerCol = imageLoad(uColor[nonuniformEXT(pc.TextureIndex)], localPx);
+        if (!centerHasHP) continue;
+
+        uint key = makeKey(t0, /*aimed*/false, L);
+
+        CollisionResult result;
+        result.hitProjectileID_Low  = proj.ID_Low;
+        result.hitProjectileID_High = proj.ID_High;
+        result.DestructionRadius    = proj.DestructionRadius;
+        result.CollisionPosition    = worldPos;
+        result.HealthAfter          = centerHT.r;
+        result.Damage               = proj.Damage;
+
+        tryClaimMin(i, key, result);
     }
 }

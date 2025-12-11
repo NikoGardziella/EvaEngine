@@ -1354,7 +1354,7 @@ namespace Engine {
                         projectilePos.y = projectileTransform.Translation.y;
                         glm::vec2 randomOffset = glm::vec2(0.0f, 1.0f);
                         projectilePos = projectilePos - randomOffset;
-                        const float backOffset = 0.0f;
+                        const float backOffset = 0.5f;
 
                         // make sure direction is normalized (optional if you already guarantee it)
                         glm::vec2 dir = projectile.Direction;
@@ -1362,10 +1362,12 @@ namespace Engine {
                             dir = glm::normalize(dir);
 
                         // move slightly *behind* the direction
-                        projectilePos -= dir * backOffset;
+                        glm::vec2 projectilePosTipOffset = projectilePos;
+                        projectilePosTipOffset += dir * backOffset;
 
                         // make struct
-                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.ProjectileRadius, IDComp.ID,
+
+                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePosTipOffset, projectile.ProjectileRadius, IDComp.ID,
                             eCollisionType::PROJECTILE, projectile.Damage, projectile.DestructionRadius, projectile.Direction,
                             projectile.TargetPositionAtFireTime, projectile.DistanceToTargetatFireTime, projectile.TargetPositionHeightZ1);
                         
