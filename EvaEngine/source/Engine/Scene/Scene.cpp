@@ -535,7 +535,8 @@ namespace Engine {
 
             // AI
             enemyEntity.AddComponent<NPCAIMovementComponent>();
-            enemyEntity.AddComponent<NPCAIVisionComponent>();
+            NPCAIVisionComponent& nPCAIVisionComponent = enemyEntity.AddComponent<NPCAIVisionComponent>();
+            nPCAIVisionComponent.ViewAngle = 360.0f;
         }
     }
 
@@ -583,7 +584,7 @@ namespace Engine {
 
         glm::vec2 originXZ = { 0.0f, 0.0f };
         glm::vec2 spacingXZ = { 10.0f, 10.0f }; 
-        //SpawnEnemies(50, meshAsset, skeletonId, clipRun, clipIdle, originXZ, spacingXZ);
+        SpawnEnemies(50, meshAsset, skeletonId, clipRun, clipIdle, originXZ, spacingXZ);
 
         /*
         Entity m_camera3DEntity = CreateEntity("3D camera");
@@ -970,8 +971,8 @@ namespace Engine {
                 anim.playbackSpeed = 1.0f;
 
 
-               // TransformComponent& playerTransformComp = playerEntity.GetComponent<TransformComponent>();
-
+               TransformComponent& playerTransformComp = playerEntity.GetComponent<TransformComponent>();
+               playerTransformComp.Rotation.x += glm::radians(90.0f);
 
             }
             

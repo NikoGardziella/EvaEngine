@@ -3,6 +3,13 @@
 #include <glm/glm.hpp>
 #include <cstdint>
 
+struct AgentRef
+{
+    Engine::TransformComponent* tr;
+    float radius;
+};
+
+
 enum class AIState
 {
     Idle,
@@ -16,7 +23,8 @@ struct NPCAIMovementComponent
 {
     AIState CurrentState = AIState::Idle;
 
-    // existing:
+
+    float radius = 0.3f;
     float IdleTimer = 0.0f;
     float IdleDuration = 1.0f;
     std::vector<glm::vec3> PatrolPoints;

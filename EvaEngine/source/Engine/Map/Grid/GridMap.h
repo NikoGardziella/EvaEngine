@@ -24,7 +24,6 @@ namespace Engine {
 			const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
 
 
-
 		bool HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw);
 
 
@@ -39,14 +38,6 @@ namespace Engine {
 		void DrawDebugBlockedTiles() const;
 		void DebugDrawPath(const std::vector<glm::vec3>& path) const;
 	private:
-
-
-		//void UpdateLOSBlockedTilesFromHealthTexture(const VulkanTexture& healthTexture);
-
-
-		//bool HasLineOfSight(glm::ivec2 from, glm::ivec2 to);
-
-
 
 		void DrawDebugLine(glm::vec2 from, glm::vec2 to, const glm::vec4& color) const;
 

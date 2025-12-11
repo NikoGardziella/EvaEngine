@@ -267,7 +267,7 @@ namespace Engine
 
     bool GridMap::HasLineOfSight(glm::vec2 fromWorld, glm::vec2 toWorld, bool debugDraw)
     {
-        EE_PROFILE_FUNCTION();
+       // EE_PROFILE_FUNCTION();
 
         constexpr float subtileSize = float(TILE_SIZE) / float(GRID_SUBDIVISIONS);
 

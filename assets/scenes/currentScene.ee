@@ -1,6 +1,6 @@
 Scene: My Scene
 Entities:
-  - ID: 9559787422910244021
+  - ID: 3738166453
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -523,7 +523,7 @@ Entities:
       Tag: player
     TransformComponent:
       Translation: [0, 0, 0]
-      Rotation: [90, 0, 0]
+      Rotation: [1.5707964, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
@@ -819,3 +819,171 @@ Entities:
           Material: Concrete
           Health: 1
           UID: 8651664226787392773
+  - ID: 14936787016142409643
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-11.959595, 1.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.0014648438, 0.5009718, 0.12548828, 0.7487852]
+          Name: Wall B1_W
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 10019187378424250912
+        - Position: [0.5, -0.25]
+          UV: [0.0014648438, 0.5009718, 0.12548828, 0.7487852]
+          Name: Wall B1_W
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 1188762126885257691
+        - Position: [1, -0.5]
+          UV: [0.0014648438, 0.5009718, 0.12548828, 0.7487852]
+          Name: Wall B1_W
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 8868586937150850729
+        - Position: [1.5, -0.75]
+          UV: [0.0014648438, 0.5009718, 0.12548828, 0.7487852]
+          Name: Wall B1_W
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 13383059265218706781
+        - Position: [2, -1]
+          UV: [0.0014648438, 0.5009718, 0.12548828, 0.7487852]
+          Name: Wall B1_W
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 17140567871163465954
+        - Position: [2.5, -1.25]
+          UV: [0.0014648438, 0.5009718, 0.12548828, 0.7487852]
+          Name: Wall B1_W
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 8865254529654689115
+  - ID: 11343188623125628424
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-6, 4.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.7573242, 0.25121477, 0.88134766, 0.49902818]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 854897608922377373
+        - Position: [-0.5, -0.25]
+          UV: [0.7573242, 0.25121477, 0.88134766, 0.49902818]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 962346011279107520
+        - Position: [-1, -0.5]
+          UV: [0.7573242, 0.25121477, 0.88134766, 0.49902818]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 9637652469208357085
+        - Position: [-1.5, -0.75]
+          UV: [0.7573242, 0.25121477, 0.88134766, 0.49902818]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 956410688696380623
+        - Position: [-2, -1]
+          UV: [0.7573242, 0.25121477, 0.88134766, 0.49902818]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 7484618851416379039
+  - ID: 4165320071041775069
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [1, 8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.0014648438, 0.5009718, 0.12548828, 0.7487852]
+          Name: Wall B1_W
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 1472614347054523828
+        - Position: [0.5, -0.25]
+          UV: [0.0014648438, 0.5009718, 0.12548828, 0.7487852]
+          Name: Wall B1_W
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 10013607144597249162
+        - Position: [1, -0.5]
+          UV: [0.0014648438, 0.5009718, 0.12548828, 0.7487852]
+          Name: Wall B1_W
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 269799278122525453
+        - Position: [2, -1]
+          UV: [0.0014648438, 0.5009718, 0.12548828, 0.7487852]
+          Name: Wall B1_W
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 18435408153741259117

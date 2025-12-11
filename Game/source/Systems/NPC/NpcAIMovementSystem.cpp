@@ -6,13 +6,70 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Map/Grid/GridMap.h>
 #include <Engine/Core/Core.h>
+
 void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
+    // 1) Gather agents once
+    std::vector<AgentRef> agents;
+    agents.reserve(128);
+
+    scene->ForEach<Engine::TransformComponent, NPCAIMovementComponent>(
+        [&](Engine::Entity e, Engine::TransformComponent& tr, NPCAIMovementComponent& ai)
+        {
+            AgentRef a;
+            a.tr = &tr;          // store pointer
+            a.radius = ai.radius;
+            agents.push_back(a);
+        });
+
+   
+    // keep them away from each other.
+    const size_t count = agents.size();
+    for (size_t i = 0; i < count; ++i)
+    {
+        AgentRef& a = agents[i];
+
+        glm::vec2 p(a.tr->Translation.x, a.tr->Translation.y);
+        glm::vec2 separation(0.0f);
+        int sepCount = 0;
+
+        for (size_t j = 0; j < count; ++j)
+        {
+            if (i == j) continue;
+
+            AgentRef& b = agents[j];
+            glm::vec2 q(b.tr->Translation.x, b.tr->Translation.y);
+
+            glm::vec2 diff = p - q;
+            float dist2 = glm::dot(diff, diff);
+            float minDist = a.radius + b.radius;
+            float minDist2 = minDist * minDist;
+
+            if (dist2 < minDist2 && dist2 > 1e-6f)
+            {
+                float dist = glm::sqrt(dist2);
+                glm::vec2 dir = diff / dist;
+                float push = (minDist - dist);
+                separation += dir * push;
+                ++sepCount;
+            }
+        }
+
+        if (sepCount > 0)
+        {
+            separation /= float(sepCount);
+            separation *= 0.5f; // tweak factor
+
+            a.tr->Translation.x += separation.x;
+            a.tr->Translation.y += separation.y;
+        }
+    }
+
+
     scene->ForEach<NPCAIMovementComponent, Engine::TransformComponent>(
-        [&](Engine::Entity npcEntity, NPCAIMovementComponent& aiComp,
-            Engine::TransformComponent& npcTransformComp)
+        [&](Engine::Entity npcEntity, NPCAIMovementComponent& aiComp, Engine::TransformComponent& npcTransformComp)
         {
             glm::vec3& npcPosition = npcTransformComp.Translation;
             Engine::Ref<Engine::GridMap>& grid = scene->GetGrid();
