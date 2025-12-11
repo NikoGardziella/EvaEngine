@@ -1,6 +1,9 @@
 ﻿#type vertex
 #version 450 core
 
+
+#define MAX_PROJECTILES 64
+
 // Vertex attributes for each instance
 layout(location = 0) in vec3 a_Position;       // Vertex position
 layout(location = 1) in vec4 a_Color;          // Vertex color
@@ -51,7 +54,7 @@ struct VertexOutput
 layout (location = 0) in VertexOutput Input;
 layout (location = 3) in flat float v_TexIndex;
 
-layout (set = 1,binding = 1) uniform sampler2D u_Textures[32];
+layout (set = 1,binding = 1) uniform sampler2D u_Textures[64];
 
 void main()
 {

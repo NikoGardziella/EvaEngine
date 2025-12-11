@@ -14,8 +14,6 @@ namespace Engine {
 
 
 
-
-
     struct InstanceDataGPU
     {
         glm::mat4 world;
@@ -27,8 +25,6 @@ namespace Engine {
 
 
  
-
-
     struct PendingDraw
     {
         uint32_t instanceIndex;
@@ -68,7 +64,6 @@ namespace Engine {
         };
 
         
-
         struct Vertex {
             glm::vec3 pos;   // location = 0  -> VK_FORMAT_R32G32B32_SFLOAT
             glm::vec3 nrm;   // location = 1  -> VK_FORMAT_R32G32B32_SFLOAT
@@ -113,7 +108,6 @@ namespace Engine {
 
         bool Create3dDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& descriptorSetLayoutOut);
 
-
         // per-frame updates
     
         // descriptor infos for binding
@@ -125,9 +119,7 @@ namespace Engine {
 
         void UploadMaterials(uint32_t frameIndex, const MaterialRegistry& materials);
 
-
         //static void Begin3DScene(const Camera& camera, const glm::mat4& transform);
-
 
         void UpdateCamera(uint32_t frame, const glm::mat4& view, const glm::mat4& proj);
 
@@ -178,19 +170,15 @@ namespace Engine {
 
     private:
        
-
         static std::mutex s_mutex;
         static VulkanRenderer3DData s_Vulkan3DData;
         static std::vector<VkDescriptorImageInfo> m_albedoImageInfos;
         static std::vector<Ref<VulkanTexture>>      m_albedoTextures;
 
-
         Vulkan3DGraphicsPipeline m_3DPipeline;
         Ref<VulkanShader> m_3DRenderShader;
         VkDevice m_device;
         VkDescriptorSetLayout m_descriptorSetLayout3D;
-
-
 
         VkDevice m_dev = VK_NULL_HANDLE;
         VkPhysicalDevice m_phys = VK_NULL_HANDLE;
@@ -201,13 +189,8 @@ namespace Engine {
         VulkanVertexBuffer* vb;
         VulkanIndexBuffer* ib;
 
-
-
         //stats
-
-        static Statistics3D s_stats3D;
-
-       
+        static Statistics3D s_stats3D;    
         static uint32_t s_debug3DFlags;
     };
 

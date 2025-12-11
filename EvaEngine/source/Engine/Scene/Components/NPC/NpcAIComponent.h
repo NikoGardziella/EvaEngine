@@ -26,7 +26,6 @@ struct NPCAIMovementComponent
     glm::vec3 TargetPosition;
     float MoveSpeed = 3.0f;
 
-    // NEW:
     std::vector<glm::vec3> Path;
     size_t PathIndex = 0;
 

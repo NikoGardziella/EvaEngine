@@ -124,10 +124,9 @@ namespace Engine {
 
     
 
-    void VulkanBindlessDescriptorSetRenderer::BeginFrame(uint32_t frameIndex, VkCommandBuffer uploadCB)
+    void VulkanBindlessDescriptorSetRenderer::BeginFrame(uint32_t frameIndex)
     {
         m_currentFrame = frameIndex;
-        m_uploadCmdThisFrame = uploadCB;
         m_instances.clear();
         m_drawCount = 0;
     }
@@ -149,7 +148,7 @@ namespace Engine {
     }
 
 
-    void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, uint32_t flags)
+    void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, uint32_t flags)
     {
         glm::vec2 size = glm::vec2(TILE_SIZE, TILE_SIZE * 2); // 1:2 ratio per tile
 
@@ -162,7 +161,7 @@ namespace Engine {
         I._pad0 = 0;
         I.uvMin16 = { 0u, 0u };                 // full texture UVs
         I.uvMax16 = { 65535u, 65535u };
-        I.rotation = 0.0f;
+        I.rotation = rotation;
         m_instances.push_back(I);
     }
 

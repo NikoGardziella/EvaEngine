@@ -9,6 +9,7 @@
 #include <Engine/Core/Log.h>
 #include <Engine/Scene/Components/Animation/AnimationComponent.h>
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
+#include <Engine/Map/Projectile/ProjectileVisualRegistry.h>
 
 
 void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime,  Engine::Scene* scene)
@@ -79,7 +80,7 @@ void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
     Engine::Entity& projectileEntity = scene->CreateEntity("Projectile");
 
     Engine::TransformComponent& transformComp = projectileEntity.AddComponent<Engine::TransformComponent>();
-	float projectileMaxRange = 3.0f; // fix this
+	float projectileMaxRange = 1.0f; // fix this
     float projectileRadius = 0.1f;
     
 
@@ -94,9 +95,9 @@ void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
     projectileComp.DistanceToTargetatFireTime = glm::distance(mouseWorldPosition, playerPosition);
     projectileComp.TargetPositionAtFireTime = mouseWorldPosition;
     projectileComp.ProjectileSped = weaponComp.ProjectileSpeed;
-   // EE_INFO("projectileComp.TargetPositionHeightZ1, {}", projectileComp.TargetPositionHeightZ1);
-    Engine::SpriteRendererComponent& spriteComp = projectileEntity.AddComponent<Engine::SpriteRendererComponent>();
-    spriteComp.Texture = Engine::AssetManager::GetTexture("bullet");
+    projectileComp.renderSlot = Engine::ProjectileVisual::GetSlot(ProjectileVisualType::Bullet);
+
+
     transformComp.Translation = glm::vec3(playerPosition, 0.0f);
     transformComp.Rotation.z = std::atan2(direction.y, direction.x);
 

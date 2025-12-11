@@ -100,4 +100,18 @@ namespace HashUtils
     }
 
 
+
+    inline uint64_t MakeTileUID_String(std::string_view name,
+        uint32_t layerOrVariant = 0)
+    {
+        uint64_t h = 0xcbf29ce484222325ull; // same seed
+
+        uint64_t nameHash = HashString64(name);
+        HashCombine(h, nameHash);
+        HashCombine(h, (uint64_t)layerOrVariant);
+
+        return h ? h : 1ull; // avoid 0 as "invalid"
+    }
+
+
 }

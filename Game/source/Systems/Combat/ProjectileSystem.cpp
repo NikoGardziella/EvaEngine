@@ -50,12 +50,9 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                 projectileTransformComp.Translation.y
             };
 
-            // If no GPU hit, we *only* move the projectile, no blast logic
-            if (!gpuHit)
-                return;
 
-            // Mark projectile for destruction (exploded)
-            toDestroy.push_back(projectileEntity);
+
+           
 
             // 3) Apply blast radius ONLY if we had a GPU hit
             const float blastRadius = projectileComp.DestructionRadius; // e.g. 0.1f
@@ -71,7 +68,6 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
 
                     bool hit = false;
 
-                    // Enemy destructible pieces with per-piece hit volumes
                     if (!hit && targetEntity.HasComponent<Engine::EnemyDestructibleComponent>())
                     {
                         auto& destr = targetEntity.GetComponent<Engine::EnemyDestructibleComponent>();
@@ -101,7 +97,18 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                             float dist2 = glm::dot(diff, diff);
 
                             // Explosion sphere vs piece sphere
-                            float totalRadius = piece.hitRadius + blastRadius;
+
+                            float totalRadius;
+                            if (gpuHit)
+                            {
+                                totalRadius = piece.hitRadius + blastRadius;
+                            }
+                            else
+                            {
+                                totalRadius = piece.hitRadius;
+                            }
+
+                             
                             float r2 = totalRadius * totalRadius;
 
                             if (dist2 <= r2 && dist2 < bestDist2)
@@ -121,12 +128,10 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                             float impulseStrength = 10.0f;
 
                             DetachPiece(scene, targetEntity, bestPiece, impulseDir, impulseStrength);
+                            toDestroy.push_back(projectileEntity);
                             return;
                         }
                     }
-
-                    // (other collider types can go here if you want them also affected by blast)
-
 
                     const glm::vec2 targetPos = { targetTransformComp.Translation.x, targetTransformComp.Translation.y };
 
@@ -144,9 +149,7 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                             projectilePos.y >= minB.y && projectilePos.y <= maxB.y)
                         {
                             hit = true;
-                            //glm::vec3 impulseDir = glm::vec3(projectileComp.Direction, 0.0f);
-                           // float impulseStrength = 10.0f;
-                           // DetachPiece(scene, targetEntity, Engine::EnemyPieceType::Head, impulseDir, impulseStrength);
+                          
                         }
                     }
 
@@ -162,7 +165,7 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                         }
                     }
 
-                    if (!hit) return;
+                
 
                     // 4) Apply damage if available
                     if (targetEntity.HasComponent<Engine::HealthComponent>())
@@ -171,18 +174,14 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                         healthComp.Current -= projectileComp.Damage;
                     }
 
-                    // Mark projectile for destroy
-                    hitSomething = true;
-                    toDestroy.push_back(projectileEntity);
+                   
                 });
-
-            if (hitSomething) return;
 
             // Lifetime expiry
             // this is now in time when it should be distance.
             // CHANGE 
             projectileComp.ProjectileMaxRange -= deltaTime;
-            if (projectileComp.ProjectileMaxRange <= 0.0f)
+            if (projectileComp.ProjectileMaxRange <= 0.0f || gpuHit)
             {
                 toDestroy.push_back(projectileEntity);
                 return;

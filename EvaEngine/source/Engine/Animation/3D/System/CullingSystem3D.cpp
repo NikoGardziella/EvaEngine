@@ -90,7 +90,7 @@ namespace Engine {
                     }
                 }
 
-                //if (inside)
+                if (inside)
                 {
                     vis.entities.push_back(e);
                 }

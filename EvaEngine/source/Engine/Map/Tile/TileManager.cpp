@@ -6,6 +6,7 @@
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <Engine/Platform/Vulkan/VulkanContext.h>
 #include "Engine/Renderer/VulkanRenderer2D.h"
+#include <Engine/Map/Projectile/ProjectileVisualRegistry.h>
 
 namespace Engine {
 
@@ -67,12 +68,18 @@ namespace Engine {
 
         scene->ForEach<TileComponent>([&](Entity e, TileComponent& tc)
             {
-            for (auto& t : tc.tiles)
-            {
-                auto it = m_slotByUID.find(t.UID);
-                if (it != m_slotByUID.end()) t.Slot = it->second;
-            }
+                for (auto& t : tc.tiles)
+                {
+                    auto it = m_slotByUID.find(t.UID);
+                    if (it != m_slotByUID.end()) t.Slot = it->second;
+                }
             });
+
+
+        uint64_t bulletUID = HashUtils::MakeTileUID_String("bullet_sprite");
+
+        uint32_t bulletSlot = GetSlotForUID(bulletUID);
+        ProjectileVisual::RegisterVisual(ProjectileVisualType::Bullet, bulletUID, bulletSlot);
 
     }
 
@@ -96,7 +103,7 @@ namespace Engine {
                     uint64_t uid = t.UID;
                     if (!uid)
                     {
-                        // deltaGround == t.position in your layout
+                        // deltaGround == t.position in layout
                         uid = HashUtils::MakeTileUID((uint64_t)idComp.ID, t.position, float(TILE_SIZE));
                     }
 
@@ -118,6 +125,44 @@ namespace Engine {
                     m_propsByUID.emplace(uid, PropsTemplate{ w, h, std::move(propsRGBA) });
                 }
             });
+
+        {
+            std::vector<uint8_t> colorRGBA;
+            std::vector<uint8_t> healthData;
+            int w = 0, h = 0;
+
+            // This name needs to be something ResolveTexturePath understands.
+            // Either the actual path or a logical name you map inside AssetManager.
+            if (!AssetManager::GetTexturePixelData("Fire_small_asset",
+                colorRGBA, healthData, w, h))
+            {
+                EE_CORE_WARN("GetTexturePixelData failed for bullet sprite");
+            }
+            else
+            {
+                const size_t pixelCount = size_t(w) * size_t(h);
+
+                // Convert healthData (1 byte per pixel) -> RGBA props
+                std::vector<uint8_t> propsRGBA(pixelCount * 4u, 0u);
+                for (size_t i = 0; i < pixelCount; ++i)
+                {
+                    uint8_t health = healthData[i];
+                    propsRGBA[i * 4 + 0] = health; // R = health
+                    propsRGBA[i * 4 + 1] = 0;
+                    propsRGBA[i * 4 + 2] = 0;
+                    propsRGBA[i * 4 + 3] = 0;      // or flags if you want
+                }
+
+                // Make a unique UID for the bullet
+                uint64_t bulletUID = HashUtils::MakeTileUID_String("bullet_sprite");
+
+                m_colorByUID.emplace(bulletUID, ColorTemplate{ w, h, std::move(colorRGBA) });
+                m_propsByUID.emplace(bulletUID, PropsTemplate{ w, h, std::move(propsRGBA) });
+            }
+        }
+
+
+
     }
 
 }

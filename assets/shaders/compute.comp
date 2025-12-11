@@ -5,7 +5,7 @@
 
 // ---------- config ----------
 #define MAX_TEXTURES            32
-#define MAX_COLLISION_ENTITIES  32
+#define MAX_COLLISION_ENTITIES  64
 #define SUBTILES_PER_TILE       3
 #define FLAG_GLOW_TERRAIN       1
 #define MAX_RECTS  4096u
@@ -661,7 +661,7 @@ void main()
             {
                 vec2  d        = proj.EndPos - proj.Position;
                 float pxW      = pc.PixelSizeWorld;
-                float thrPx    = 128.0;
+                float thrPx    = 64.0;
                 float thr2W    = (thrPx * pxW) * (thrPx * pxW); // world^2
                 float dist2W   = dot(d, d);
                 if (dist2W < thr2W) continue;

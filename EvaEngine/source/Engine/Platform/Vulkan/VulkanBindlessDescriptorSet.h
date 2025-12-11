@@ -63,9 +63,9 @@ namespace Engine {
         void Shutdown(VkDevice device);
 
 
-        void BeginFrame(uint32_t frameIndex, VkCommandBuffer uploadCB);
+        void BeginFrame(uint32_t frameIndex);
         void AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
-        void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, uint32_t flags = 0);
+        void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, uint32_t flags = 0);
         void EndFrameAndUpload(uint32_t frameIndex);
 
         // Call once after swapchain/device init
@@ -73,7 +73,7 @@ namespace Engine {
         void SetAtlasExtent(VkExtent3D e) { m_atlasExtent = e; }
 
         // Per-frame
-        void SetUploadCmdThisFrame(VkCommandBuffer cb) { m_uploadCmdThisFrame = cb; }
+ 
         void UpdateEffectImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, CHUNK_GRID_WIDTH* CHUNK_GRID_WIDTH>& textures);
 
 

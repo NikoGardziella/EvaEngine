@@ -344,6 +344,204 @@ namespace Engine {
     }
 
 
+    // Spawns a bunch of enemies in a simple XZ grid around originXZ.
+// enemyCount     - how many enemies
+// meshAsset      - mesh to use (submeshes, bounds)
+// skeletonId     - skeleton to bind to
+// clipRun / clipIdle - animation clips
+// originXZ       - center of the spawn area (X,Z)
+// spacingXZ      - distance between enemies in X and Z
+    void Scene::SpawnEnemies(uint32_t enemyCount,
+        const MeshAsset& meshAsset,
+        uint32_t skeletonId,
+        uint32_t clipRun,
+        uint32_t clipIdle,
+        const glm::vec2& originXZ,
+        const glm::vec2& spacingXZ)
+    {
+        if (enemyCount == 0)
+            return;
+
+        // Precompute skeleton + bones once
+        const SkeletonAsset& skeletonAsset = AssetManager::GetSkeletonRegistry().Get(skeletonId);
+
+        uint32_t headBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "head");
+        uint32_t spineBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "spine");
+        uint32_t armLBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "hand_left");
+        uint32_t armRBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "hand_right");
+        uint32_t legRBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "thigh_right");
+        uint32_t legLBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "thigh_left");
+
+        // From Blender (your original indices)
+        const uint32_t torsoSubmeshIndex = 1;
+        const uint32_t headSubmeshIndex = 2;
+        const uint32_t armLSubmeshIndex = 3;
+        const uint32_t armRSubmeshIndex = 4;
+        const uint32_t legRSubmeshIndex = 5;
+        const uint32_t legLSubmeshIndex = 6;
+
+        const uint32_t submeshCount = (uint32_t)meshAsset.submeshes.size();
+
+        // Simple near-square grid layout
+        const uint32_t cols = (uint32_t)std::ceil(std::sqrt((float)enemyCount));
+        const uint32_t rows = (enemyCount + cols - 1) / cols;
+
+        for (uint32_t i = 0; i < enemyCount; ++i)
+        {
+            const uint32_t col = i % cols;
+            const uint32_t row = i / cols;
+
+            // Center grid around originXZ
+            const float offsetX = (float)col - 0.5f * (float)(cols - 1);
+            const float offsetZ = (float)row - 0.5f * (float)(rows - 1);
+
+            const float worldX = originXZ.x + offsetX * spacingXZ.x;
+            const float worldZ = originXZ.y + offsetZ * spacingXZ.y;
+
+            // ---- Create entity ----
+            Entity enemyEntity = CreateEntity("Enemy");
+
+            enemyEntity.AddComponent<HealthComponent>();
+
+            // Transform
+            TransformComponent& enemyTransformComp = enemyEntity.AddComponent<TransformComponent>();
+            enemyTransformComp.Translation = glm::vec3(worldX, 5.0f, worldZ);
+            enemyTransformComp.Rotation.x += glm::radians(90.0f);
+
+            // Mesh
+            MeshRefComponent& meshComp = enemyEntity.AddComponent<MeshRefComponent>();
+            meshComp.meshId = 0;           // or some real meshId if you have it
+            meshComp.submeshFirst = 0;
+            meshComp.submeshCount = submeshCount;
+
+            // Render bounds
+            RenderBoundsComponent& renderBoundsComp = enemyEntity.AddComponent<RenderBoundsComponent>();
+            renderBoundsComp.maxL = meshAsset.maxL;
+            renderBoundsComp.minL = meshAsset.minL;
+
+            // Skeleton
+            auto& skel = enemyEntity.AddComponent<SkeletonComponent>();
+            skel.skeletonId = skeletonId;
+            skel.boneCount = (uint32_t)skeletonAsset.parent.size();
+            skel.boneBase = 0xFFFFFFFFu;  // let BonePalette allocate
+
+            // Animator
+            auto& anim = enemyEntity.AddComponent<Animator3DComponent>();
+            anim.clipA = clipRun;   // run
+            anim.clipB = clipIdle;  // idle
+            anim.timeA = 1.0f;
+            anim.blend = 0.0f;      // only clipA at start
+            anim.playbackSpeed = 1.0f;
+
+            // Destructible setup
+            EnemyDestructibleComponent& destr = enemyEntity.AddComponent<EnemyDestructibleComponent>();
+            destr.pieces.reserve(destr.pieces.size() + 6);
+
+            // ---- Head ----
+            {
+                EnemyPiece p{};
+                p.type = EnemyPieceType::Head;
+                p.submeshIndex = headSubmeshIndex;
+                p.boneId = headBone;
+                p.visible = 1;
+                p.canDetach = 1;
+                p.hitShape = HitVolumeShape::Sphere;
+                p.hitEnabled = 1;
+                p.hitLocalCenter = glm::vec3(0.0f, 0.8f, 0.0f);
+                p.hitRadius = 0.25f;
+
+                destr.pieces.push_back(p);
+            }
+
+            // ---- Torso ----
+            {
+                EnemyPiece p{};
+                p.type = EnemyPieceType::Torso;
+                p.submeshIndex = torsoSubmeshIndex;
+                p.boneId = spineBone;
+                p.visible = 1;
+                p.canDetach = 0;
+                p.hitShape = HitVolumeShape::Sphere;
+                p.hitEnabled = 1;
+                p.hitLocalCenter = glm::vec3(0.0f, 0.2f, 0.0f);
+                p.hitRadius = 0.35f;
+
+                destr.pieces.push_back(p);
+            }
+
+            // ---- ArmL ----
+            {
+                EnemyPiece p{};
+                p.type = EnemyPieceType::ArmL;
+                p.submeshIndex = armLSubmeshIndex;
+                p.boneId = armLBone;
+                p.visible = 1;
+                p.canDetach = 1;
+                p.hitShape = HitVolumeShape::Sphere;
+                p.hitEnabled = 1;
+                p.hitLocalCenter = glm::vec3(-0.35f, 0.35f, 0.0f);
+                p.hitRadius = 0.25f;
+
+                destr.pieces.push_back(p);
+            }
+
+            // ---- ArmR ----
+            {
+                EnemyPiece p{};
+                p.type = EnemyPieceType::ArmR;
+                p.submeshIndex = armRSubmeshIndex;
+                p.boneId = armRBone;
+                p.visible = 1;
+                p.canDetach = 1;
+                p.hitShape = HitVolumeShape::Sphere;
+                p.hitEnabled = 1;
+                p.hitLocalCenter = glm::vec3(0.35f, 0.35f, 0.0f);
+                p.hitRadius = 0.25f;
+
+                destr.pieces.push_back(p);
+            }
+
+            // ---- LegR ----
+            {
+                EnemyPiece p{};
+                p.type = EnemyPieceType::LegR;
+                p.submeshIndex = legRSubmeshIndex;
+                p.boneId = legRBone;
+                p.visible = 1;
+                p.canDetach = 1;
+                p.hitShape = HitVolumeShape::Sphere;
+                p.hitEnabled = 1;
+                p.hitLocalCenter = glm::vec3(-0.2f, -0.5f, 0.0f);
+                p.hitRadius = 0.35f;
+
+                destr.pieces.push_back(p);
+            }
+
+            // ---- LegL ----
+            {
+                EnemyPiece p{};
+                p.type = EnemyPieceType::LegL;
+                p.submeshIndex = legLSubmeshIndex;
+                p.boneId = legLBone;
+                p.visible = 1;
+                p.canDetach = 1;
+                p.hitShape = HitVolumeShape::Sphere;
+                p.hitEnabled = 1;
+                p.hitLocalCenter = glm::vec3(0.2f, -0.5f, 0.0f);
+                p.hitRadius = 0.35f;
+
+                destr.pieces.push_back(p);
+            }
+
+            // AI
+            enemyEntity.AddComponent<NPCAIMovementComponent>();
+            enemyEntity.AddComponent<NPCAIVisionComponent>();
+        }
+    }
+
+
+
+
     void Scene::OnRunTimeStart()
     {
      
@@ -378,6 +576,15 @@ namespace Engine {
   
 
         SpawnMeshGrid(this,0, 0,10, 2);
+
+        uint32_t skeletonId = 0;   // whichever you use
+        uint32_t clipRun = 0;
+        uint32_t clipIdle = 1;
+
+        glm::vec2 originXZ = { 0.0f, 0.0f };
+        glm::vec2 spacingXZ = { 10.0f, 10.0f }; 
+        //SpawnEnemies(50, meshAsset, skeletonId, clipRun, clipIdle, originXZ, spacingXZ);
+
         /*
         Entity m_camera3DEntity = CreateEntity("3D camera");
         auto& cameraComp = m_camera3DEntity.AddComponent<Engine::CameraComponent>();
@@ -401,6 +608,9 @@ namespace Engine {
         */
 
         // *************** ENEmy
+
+
+        /*
         Entity enemyEntity = CreateEntity("Enemy");
 
 
@@ -578,6 +788,7 @@ namespace Engine {
 
         enemyEntity.AddComponent<NPCAIMovementComponent>();
         NPCAIVisionComponent& nPCAIVisionComponent = enemyEntity.AddComponent<NPCAIVisionComponent>();
+        */
     }
 
 
@@ -1132,22 +1343,37 @@ namespace Engine {
                 {
                     //EE_PROFILE_SCOPE("Projectiles");
 
-                    auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent, SpriteRendererComponent>();
+                    auto projectileView = m_registry.view<ProjectileComponent, TransformComponent, IDComponent>();
 
                     for (auto projectileEntity : projectileView)
                     {
 
-                        auto [projectileTransform, projectile, IDComp, spriteComp] = projectileView.get<TransformComponent, ProjectileComponent, IDComponent, SpriteRendererComponent>(projectileEntity);
+                        auto [projectileTransform, projectile, IDComp] = projectileView.get<TransformComponent, ProjectileComponent, IDComponent>(projectileEntity);
                         glm::vec2 projectilePos;
                         projectilePos.x = projectileTransform.Translation.x;
                         projectilePos.y = projectileTransform.Translation.y;
-     
+                        glm::vec2 randomOffset = glm::vec2(0.0f, 1.0f);
+                        projectilePos = projectilePos - randomOffset;
+                        const float backOffset = 0.0f;
+
+                        // make sure direction is normalized (optional if you already guarantee it)
+                        glm::vec2 dir = projectile.Direction;
+                        if (glm::length2(dir) > 0.0f)
+                            dir = glm::normalize(dir);
+
+                        // move slightly *behind* the direction
+                        projectilePos -= dir * backOffset;
+
                         // make struct
                         Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.ProjectileRadius, IDComp.ID,
                             eCollisionType::PROJECTILE, projectile.Damage, projectile.DestructionRadius, projectile.Direction,
                             projectile.TargetPositionAtFireTime, projectile.DistanceToTargetatFireTime, projectile.TargetPositionHeightZ1);
+                        
+                        float zKey = 0.0f;
+                        float rotation = std::atan2(projectile.Direction.y, projectile.Direction.x);
 
-                        Engine::VulkanRenderer2D::DrawProjectile(projectileTransform.GetTransform(), spriteComp.Texture, spriteComp.Color);
+                        
+                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation);
 
                     }
                    

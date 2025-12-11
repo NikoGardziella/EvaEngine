@@ -28,26 +28,7 @@ namespace Engine {
 		Destroy = 1
 	};
 
-	struct VulkanRenderer2DProjectileData
-	{
-		static const uint32_t MaxProjectiles = MAX_PROJECTILES;
 
-		Ref<VertexArray> QuadVertexArray;
-		Ref<VulkanVertexBuffer> QuadVertexBuffer;
-		Ref<VulkanIndexBuffer> QuadIndexBuffer;
-		Ref<VulkanShader> QuadShader;
-		Ref<VulkanTexture> WhiteTexture;
-
-		uint32_t QuadIndexCount = 0;
-		VulkanProjectileVertex* QuadVertexBufferBase = nullptr;
-		VulkanProjectileVertex* QuadVertexBufferPtr = nullptr;
-
-		std::unordered_map<VulkanTexture*, uint32_t> TextureToSlotMap;
-		std::array<Ref<VulkanTexture>, MaxProjectiles> TextureSlots;
-		uint32_t TextureSlotIndex = 0;
-
-		glm::vec3 QuadVertexPositions[4];
-	};
 
 	struct TileToDestroy
 	{
@@ -66,7 +47,7 @@ namespace Engine {
 
 	struct VulkanRenderer2DData
 	{
-		static const uint32_t MaxQuads = 20000;
+		static const uint32_t MaxQuads = 40000;
 		static const uint32_t MaxVertices = MaxQuads * 4;
 		static const uint32_t MaxIndices = MaxQuads * 6;
 		static const uint32_t MaxTextureSlots = MAX_TEXTURES;
@@ -257,7 +238,6 @@ namespace Engine {
 		static void DrawTextureQuadWithProperties(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
 		static void DrawVisualEffectTexture(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture);
-		static void DrawProjectile(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture,const glm::vec4& tintColor);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID = -1);
@@ -291,7 +271,6 @@ namespace Engine {
 		void CreateImGuiTextureDescriptors();
 		void RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
-		void RecordProjectileDrawCommands(VkCommandBuffer cmd, uint32_t frameIndex, uint32_t currentFrame);
 		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		//void RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
@@ -345,7 +324,6 @@ namespace Engine {
 
 		static VulkanRenderer2DData s_VulkanData;
 		static VulkanBindlessRenderer2DData s_VulkanBindlessData;
-		static VulkanRenderer2DProjectileData s_VulkanProjectileData;
 		static VulkanRenderer2DTileDestructionData s_VulkanTilesToDestroyData;
 		static CollisionData s_CollisionData;
 		static EffectPushConstants s_effectPushConstants;
