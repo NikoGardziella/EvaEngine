@@ -36,6 +36,7 @@
 #include "Components/Render/3D/AnimatorComponent.h"
 #include <glm/gtx/euler_angles.hpp>
 #include "Components/NPC/Destruction/EnemyDestructibleComponent.h"
+#include <Engine/Animation/3D/AnimationRegistry.h>
 
 namespace Engine {
 
@@ -570,8 +571,14 @@ namespace Engine {
         m_cullingSystem3D = std::make_shared<CullingSystem3D>();
         m_transformSystem3D = std::make_shared<TransformSystem3D>();
 
-        MeshAsset& meshAsset = AssetManager::GetMeshFromMeshRegistry(0);
+
+        MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
+        AnimationRegistry& animReg = AssetManager::GetAnimationRegistry();
+
+        const MeshAsset* meshAsset = meshReg.GetMeshByKey("male_player");
         
+        const AnimationClip* anim = animReg.FindAnimationClip("mixamo.com");
+        const AnimationClip* animIdle = animReg.FindAnimationClip("MaleIdleAnim");
 
         Entity entity3D = this->CreateEntity();
   
@@ -584,7 +591,7 @@ namespace Engine {
 
         glm::vec2 originXZ = { 0.0f, 0.0f };
         glm::vec2 spacingXZ = { 10.0f, 10.0f }; 
-        SpawnEnemies(50, meshAsset, skeletonId, clipRun, clipIdle, originXZ, spacingXZ);
+        SpawnEnemies(1, *meshAsset, meshAsset->skeletonId, anim->id, clipIdle, originXZ, spacingXZ);
 
         /*
         Entity m_camera3DEntity = CreateEntity("3D camera");

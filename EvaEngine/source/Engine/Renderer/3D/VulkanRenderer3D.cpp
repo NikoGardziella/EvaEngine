@@ -471,7 +471,7 @@ namespace Engine {
             if (d.meshId != currentMeshId)
             {
                 currentMeshId = d.meshId;
-                const MeshAsset& mesh = meshReg.Get(currentMeshId);
+                const MeshAsset& mesh = meshReg.GetMesh(currentMeshId);
 
                 VkDeviceSize vbOff = mesh.vbOffset;
                 vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vertexBuffer, &vbOff);
@@ -498,7 +498,7 @@ namespace Engine {
                 0, sizeof(PCDraw3D), &pc);
 
             // Draw this submesh
-            const MeshAsset& mesh = meshReg.Get(currentMeshId);
+            const MeshAsset& mesh = meshReg.GetMesh(currentMeshId);
             const SubmeshRange& sm = mesh.submeshes[d.submeshId];
 
            //vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, static_cast<int32_t>(sm.baseVertex), 0);

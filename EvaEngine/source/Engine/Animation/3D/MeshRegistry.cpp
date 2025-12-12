@@ -3,25 +3,45 @@
 
 namespace Engine {
 
-    const MeshAsset& MeshRegistry::Get(uint32_t meshId) const 
+    const MeshAsset& MeshRegistry::GetMesh(uint32_t meshId) const 
     {
         return m_meshes.at(meshId);
     }
 
-    MeshAsset& MeshRegistry::Get(uint32_t meshId)
+    MeshAsset& MeshRegistry::GetMesh(uint32_t meshId)
     {
         return m_meshes.at(meshId);
     }
 
-    uint32_t MeshRegistry::Register(const MeshAsset& m)
+    MeshId MeshRegistry::FindMeshId(const std::string& key) const
     {
-        uint32_t id = (uint32_t)m_meshes.size();
-        MeshAsset copy = m;
-        copy.id = id;
-        m_meshes.push_back(std::move(copy));
+        auto it = m_keyToId.find(key);
+        return (it != m_keyToId.end()) ? it->second : INVALID_MESH;
+    }
+
+    const MeshAsset* MeshRegistry::GetMeshByKey(const std::string& key) const
+    {
+        auto it = m_keyToId.find(key);
+        if (it == m_keyToId.end())
+            return nullptr;
+
+        return &m_meshes[it->second];
+    }
+
+
+    MeshId MeshRegistry::RegisterMesh(const std::string& key, const MeshAsset& asset)
+    {
+        auto it = m_keyToId.find(key);
+        if (it != m_keyToId.end())
+            return it->second;
+
+        MeshId id = (MeshId)m_meshes.size();
+        m_meshes.push_back(asset);
+        m_keyToId[key] = id;
+        EE_CORE_INFO("registered mesh {}", key);
+
         return id;
     }
-
 }
 
     

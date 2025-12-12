@@ -239,7 +239,7 @@ void ProjectileSystem::DetachPiece(Engine::Scene* scene, Engine::Entity enemy, E
     Engine::MeshRefComponent& meshRef = enemy.GetComponent<Engine::MeshRefComponent>();
     Engine::SkeletonComponent& skel = enemy.GetComponent<Engine::SkeletonComponent>();
 
-    const Engine::MeshAsset& mesh = Engine::AssetManager::GetMeshRegistry().Get(meshRef.meshId);
+    const Engine::MeshAsset& mesh = Engine::AssetManager::GetMeshRegistry().GetMesh(meshRef.meshId);
 
     if (piece->submeshIndex >= mesh.submeshes.size())
     {

@@ -202,8 +202,8 @@ namespace Engine {
             return;
         }
 
-        const SkeletonAsset& sasset = animReg.GetSkeletonRegistry().Get(skeletonId);
-        const size_t boneCount = sasset.parent.size();
+        const SkeletonAsset& skeletonAsset = animReg.GetSkeletonRegistry().Get(skeletonId);
+        const size_t boneCount = skeletonAsset.parent.size();
         if (boneCount == 0) {
             EE_CORE_WARN("[GLTF] {} skeleton {} has zero bones", debugName, skeletonId);
             return;
@@ -212,8 +212,8 @@ namespace Engine {
         // Build node -> bone map from sasset.jointNodes
         std::unordered_map<int, int> nodeToBone;
         for (int bi = 0; bi < (int)boneCount; ++bi) {
-            if (bi < (int)sasset.jointNodes.size()) {
-                nodeToBone[sasset.jointNodes[bi]] = bi;
+            if (bi < (int)skeletonAsset.jointNodes.size()) {
+                nodeToBone[skeletonAsset.jointNodes[bi]] = bi;
             }
         }
 
@@ -333,21 +333,24 @@ namespace Engine {
                 const tinygltf::AnimationSampler& samp = anim.samplers[ch.sampler];
                 const tinygltf::Accessor& timeAcc = model.accessors[samp.input];
 
-                if (ch.target_path == "translation") {
+                if (ch.target_path == "translation")
+                {
                     readFloats(timeAcc, dst.tTimes);
                     const tinygltf::Accessor& valAcc = model.accessors[samp.output];
                     readVec3s(valAcc, dst.tValues);
                     if (!dst.tTimes.empty())
                         globalMaxTime = std::max(globalMaxTime, dst.tTimes.back());
                 }
-                else if (ch.target_path == "rotation") {
+                else if (ch.target_path == "rotation")
+                {
                     readFloats(timeAcc, dst.rTimes);
                     const tinygltf::Accessor& valAcc = model.accessors[samp.output];
                     readQuats(valAcc, dst.rValues);
                     if (!dst.rTimes.empty())
                         globalMaxTime = std::max(globalMaxTime, dst.rTimes.back());
                 }
-                else if (ch.target_path == "scale") {
+                else if (ch.target_path == "scale")
+                {
                     readFloats(timeAcc, dst.sTimes);
                     const tinygltf::Accessor& valAcc = model.accessors[samp.output];
                     readVec3s(valAcc, dst.sValues);
@@ -412,7 +415,7 @@ namespace Engine {
 
             clip.duration = globalMaxTime;
 
-            uint32_t clipId = animReg.Register(clip);
+            uint32_t clipId = animReg.RegisterAnimation(clip.name, skeletonId ,clip);
             outClipIds.push_back(clipId);
 
             EE_CORE_INFO("[GLTF] {} animation '{}' => duration {:.3f}s, id={}",

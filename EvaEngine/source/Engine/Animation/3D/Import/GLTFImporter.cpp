@@ -540,7 +540,9 @@ namespace Engine {
         {
 
             // Mesh file with possible animations
-            R.meshId = meshReg.Register(meshAsset);
+
+          
+            R.meshId = meshReg.RegisterMesh(model.meshes[0].name, meshAsset);
             R.report.ok = true;
             R.report.message = "Imported mesh (and animations): " + path;
 

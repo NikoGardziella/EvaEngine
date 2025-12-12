@@ -36,14 +36,21 @@ namespace Engine {
     {
 
     public:
-        MeshAsset& Get(uint32_t meshId);
+        MeshAsset& GetMesh(uint32_t meshId);
 
-        const MeshAsset& Get(uint32_t meshId) const;
-        uint32_t Register(const MeshAsset& m);
+        MeshId FindMeshId(const std::string& key) const;
+        const MeshAsset* GetMeshByKey(const std::string& key) const;
 
+        const MeshAsset& GetMesh(uint32_t meshId) const;
+
+
+        MeshId RegisterMesh(const std::string& key, const MeshAsset& asset);
+
+      
 
     private:
         std::vector<MeshAsset> m_meshes;
+        std::unordered_map<std::string, MeshId> m_keyToId;
     };
 
 }

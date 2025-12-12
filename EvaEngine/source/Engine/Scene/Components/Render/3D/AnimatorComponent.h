@@ -6,8 +6,8 @@ namespace Engine {
 
     struct Animator3DComponent {
         // runtime pose state
-        uint32_t clipA = 0xFFFFFFFFu;
-        uint32_t clipB = 0xFFFFFFFFu;
+        AnimClipId clipA = INVALID_CLIP;
+        AnimClipId clipB = INVALID_CLIP;
         float timeA = 0.0f;
         float timeB = 0.0f;
         float blend = 0.0f;          // 0..1

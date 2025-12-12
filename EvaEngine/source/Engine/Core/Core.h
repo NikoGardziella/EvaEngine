@@ -103,9 +103,7 @@ constexpr size_t MAX_SPRITESHEETS = 128;
 constexpr size_t MAX_TILES_IN_CLEAR_BUFFER = 16;
 
 
-constexpr size_t MAX_3D_INSTANCES = 1024;
-constexpr size_t MAX_ALBEDO_TEXTURES = 256;
-constexpr size_t MAX_MATERIALS = 32;
+
 
 // ---- Dirty rect subdivision used by the shader (keep 16 here) ----
 static constexpr float DIRTY_CELLS_PER_TILE = 16.0f;
@@ -118,6 +116,16 @@ constexpr size_t PLAYER_COUNT = 1; // Tiles in a chunk
 //effects
 constexpr size_t MAX_EXPLOSIONS = 32;
 
+ // 3D rendering
+using MeshId = uint32_t;
+using SkeletonId = uint32_t;
+using AnimClipId = uint32_t;
+static constexpr MeshId      INVALID_MESH = 0xFFFFFFFFu;
+static constexpr SkeletonId  INVALID_SKELETON = 0xFFFFFFFFu;
+static constexpr AnimClipId  INVALID_CLIP = 0xFFFFFFFFu;
+constexpr size_t MAX_3D_INSTANCES = 1024;
+constexpr size_t MAX_ALBEDO_TEXTURES = 256;
+constexpr size_t MAX_MATERIALS = 32;
 
 
 namespace Engine {

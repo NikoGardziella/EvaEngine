@@ -12,6 +12,7 @@
 #include <Engine/Scene/Components/Vehicles/DriverComponent.h>
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
+#include <Engine/AssetManager/AssetManager.h>
 
 void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime, Engine::Scene* scene)
 {
@@ -67,14 +68,15 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
             if (playerEntity.HasComponent<Engine::Animator3DComponent>())
             {
                 Engine::Animator3DComponent& playerAnimComp = playerEntity.GetComponent<Engine::Animator3DComponent>();
+                Engine::AnimationRegistry& animReg = Engine::AssetManager::GetAnimationRegistry();
 
                 if (inputVelocity.x != 0.0f || inputVelocity.y != 0.0f)
                 {
-                    playerAnimComp.clipA = 0; // run
+                    playerAnimComp.clipA = animReg.FindAnimationClip("mixamo.com")->id;
                 }
                 else
                 {
-                    playerAnimComp.clipA = 1; // idle
+                    playerAnimComp.clipA = animReg.FindAnimationClip("MaleIdleAnim")->id;
                 }
 
 

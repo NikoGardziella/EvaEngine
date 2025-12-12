@@ -870,7 +870,7 @@ namespace Engine {
         AssetManagerUtils::ComputeLocalAABB(agg.allVerts, outMinL, outMaxL);
 
         // 5) attach buffers to the mesh asset
-        MeshAsset& m = s_meshRegistry.Get(res.meshId);
+        MeshAsset& m = s_meshRegistry.GetMesh(res.meshId);
         m.vertexBuffer = vb->GetBuffer();
         m.indexBuffer = ib->GetBuffer();
         m.vbOffset = 0;

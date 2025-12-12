@@ -71,7 +71,7 @@ namespace Engine {
 
         static GLTFImportOptions MakeDefaultGLTFOpts(AssetManagerUtils::GLTFAggregator& agg, bool flipV, bool genFlatNormalsIfMissing);
 
-        static MeshAsset& GetMeshFromMeshRegistry(uint32_t meshId) { return s_meshRegistry.Get(meshId); }
+        static MeshAsset& GetMeshFromMeshRegistry(uint32_t meshId) { return s_meshRegistry.GetMesh(meshId); }
         static MeshRegistry& GetMeshRegistry() { return s_meshRegistry; }
         static MaterialRegistry& GetMaterialRegistry() { return s_materialRegistry; }
         static SkeletonRegistry& GetSkeletonRegistry()  { return *s_skeletonRegistry; }

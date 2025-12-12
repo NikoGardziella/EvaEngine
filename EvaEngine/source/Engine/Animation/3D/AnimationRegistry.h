@@ -56,19 +56,22 @@ namespace Engine
         const SkeletonRegistry& GetSkeletonRegistry() const { return *m_skelReg;  }
 
 
-        uint32_t Register(const AnimationClip& c)
-        {
-            AnimationClip copy = c;
-            copy.id = (uint32_t)m_clips.size();
-            m_clips.push_back(copy);
-            return copy.id;
-        }
+        AnimClipId RegisterAnimation(const std::string& key, SkeletonId skeleton, AnimationClip& clip);
+
+        AnimClipId FindAnimClipId(const std::string& key) const;
+
+        const AnimationClip& GetAnimationClip(AnimClipId id) const;
+
+        const AnimationClip* FindAnimationClip(const std::string& key) const;
+
+        const std::string& GetKey(AnimClipId id) const;
 
     private:
 
         Ref<SkeletonRegistry> m_skelReg = nullptr;
         std::vector<AnimationClip> m_clips;
-
+        std::vector<std::string>   m_clipToKey;
+        std::unordered_map<std::string, AnimClipId> m_keyToId;
     };
 
 }
