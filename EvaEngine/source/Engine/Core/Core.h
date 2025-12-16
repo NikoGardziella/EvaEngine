@@ -123,6 +123,8 @@ using AnimClipId = uint32_t;
 static constexpr MeshId      INVALID_MESH = 0xFFFFFFFFu;
 static constexpr SkeletonId  INVALID_SKELETON = 0xFFFFFFFFu;
 static constexpr AnimClipId  INVALID_CLIP = 0xFFFFFFFFu;
+static constexpr uint32_t WHOLE_MESH = 0xFFFFFFFFu;
+
 constexpr size_t MAX_3D_INSTANCES = 1024;
 constexpr size_t MAX_ALBEDO_TEXTURES = 256;
 constexpr size_t MAX_MATERIALS = 32;

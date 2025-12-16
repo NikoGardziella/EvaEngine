@@ -146,6 +146,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Scene\SceneUtils\SceneUtils.h" />
     <ClInclude Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.h" />
     <ClInclude Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.h" />
     <ClInclude Include="source\Engine.h" />
@@ -712,6 +713,7 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Scene\SceneUtils\SceneUtils.cpp" />
     <ClCompile Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />

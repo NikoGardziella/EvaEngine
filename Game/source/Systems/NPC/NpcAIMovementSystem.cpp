@@ -6,6 +6,8 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Map/Grid/GridMap.h>
 #include <Engine/Core/Core.h>
+#include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
+#include <Engine/AssetManager/AssetManager.h>
 
 void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltaTime, Engine::Scene* scene)
 {
@@ -78,12 +80,19 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltaTime, Engine::Sce
             {
             case AIState::Idle:
             {
+
                 aiComp.IdleTimer += deltaTime;
                 if (aiComp.IdleTimer >= aiComp.IdleDuration)
                 {
                     aiComp.IdleTimer = 0.0f;
                     if (!aiComp.PatrolPoints.empty())
+                    {
+                        Engine::Animator3DComponent& npcAnimComp = npcEntity.GetComponent<Engine::Animator3DComponent>();
+                        Engine::AnimationRegistry& animReg = Engine::AssetManager::GetAnimationRegistry();
+                        npcAnimComp.clipA = animReg.FindAnimationClip("zombieAnimRun")->id;
+
                         aiComp.CurrentState = AIState::Patrol;
+                    }
                 }
                 break;
             }
@@ -93,6 +102,10 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltaTime, Engine::Sce
                 if (aiComp.PatrolPoints.empty())
                 {
                     aiComp.CurrentState = AIState::Idle;
+                    Engine::Animator3DComponent& npcAnimComp = npcEntity.GetComponent<Engine::Animator3DComponent>();
+                    Engine::AnimationRegistry& animReg = Engine::AssetManager::GetAnimationRegistry();
+                    npcAnimComp.clipA = animReg.FindAnimationClip("zombieAnimIdle")->id;
+
                     break;
                 }
 
@@ -130,6 +143,11 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltaTime, Engine::Sce
                     aiComp.CurrentState = AIState::ChaseLOS;
                     aiComp.IdleTimer = 0.0f;
                     aiComp.ClearPath();
+
+
+                    Engine::Animator3DComponent& npcAnimComp = npcEntity.GetComponent<Engine::Animator3DComponent>();
+                    Engine::AnimationRegistry& animReg = Engine::AssetManager::GetAnimationRegistry();
+                    npcAnimComp.clipA = animReg.FindAnimationClip("zombieAnimRun")->id;
                     break;
                 }
 
@@ -158,6 +176,9 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltaTime, Engine::Sce
                 {
                     aiComp.CurrentState = AIState::Idle;
                     aiComp.IdleTimer = 0.0f;
+                    Engine::Animator3DComponent& npcAnimComp = npcEntity.GetComponent<Engine::Animator3DComponent>();
+                    Engine::AnimationRegistry& animReg = Engine::AssetManager::GetAnimationRegistry();
+                    npcAnimComp.clipA = animReg.FindAnimationClip("zombieAnimIdle")->id;
                     break;
                 }
 
@@ -176,6 +197,9 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltaTime, Engine::Sce
                         aiComp.CurrentState = AIState::Idle; // or a Search state later
                         aiComp.IdleTimer = 0.0f;
                         aiComp.ClearPath();
+                        Engine::Animator3DComponent& npcAnimComp = npcEntity.GetComponent<Engine::Animator3DComponent>();
+                        Engine::AnimationRegistry& animReg = Engine::AssetManager::GetAnimationRegistry();
+                        npcAnimComp.clipA = animReg.FindAnimationClip("zombieAnimIdle")->id;
                         break;
                     }
 
@@ -255,6 +279,10 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltaTime, Engine::Sce
                         // Never saw the target properly -> just idle
                         aiComp.CurrentState = AIState::Idle;
                         aiComp.IdleTimer = 0.0f;
+
+                        Engine::Animator3DComponent& npcAnimComp = npcEntity.GetComponent<Engine::Animator3DComponent>();
+                        Engine::AnimationRegistry& animReg = Engine::AssetManager::GetAnimationRegistry();
+                        npcAnimComp.clipA = animReg.FindAnimationClip("zombieAnimIdle")->id;
                     }
                 }
 

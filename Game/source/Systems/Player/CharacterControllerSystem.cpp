@@ -72,7 +72,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
 
                 if (inputVelocity.x != 0.0f || inputVelocity.y != 0.0f)
                 {
-                    playerAnimComp.clipA = animReg.FindAnimationClip("mixamo.com")->id;
+                    playerAnimComp.clipA = animReg.FindAnimationClip("playerAnimRun")->id;
                 }
                 else
                 {

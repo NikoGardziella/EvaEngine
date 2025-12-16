@@ -139,8 +139,9 @@ namespace Engine {
         // Submit a single submesh draw with its own InstanceData
         static void SubmitMeshInstance(const InstanceDataGPU& inst, uint32_t submeshId);
 
-        // Convenience: submit a range of submeshes from [first, first+count)
-        static void SubmitMeshInstanceRange(const InstanceDataGPU& inst, uint32_t submeshFirst, uint32_t submeshCount);
+        static void SubmitMeshInstanceRange(const InstanceDataGPU& inst, uint32_t meshId, uint32_t submeshFirst, uint32_t submeshCount);
+
+        //static void SubmitMeshInstanceRange(const InstanceDataGPU& inst, uint32_t submeshFirst, uint32_t submeshCount);
 
         static void SubmitEnemyPieces(const InstanceDataGPU& inst, uint32_t meshId, const EnemyDestructibleComponent& destr);
 

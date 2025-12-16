@@ -3,9 +3,83 @@
 #include "glm/glm.hpp"
 #include <glm/gtc/quaternion.hpp>
 #include "Engine/Animation/3D/AnimationRegistry.h"
+#include <glm/gtc/type_ptr.hpp>
 
 
 namespace Engine {
+
+
+    float GLTFIImporterUtils::GuessImportScaleFromBounds(const glm::vec3& minL, const glm::vec3& maxL)
+    {
+        const float height = maxL.y - minL.y;
+
+        // If it’s clearly in centimeters (Mixamo-ish), convert cm -> m
+        // Typical Mixamo height might be 160..200 (cm) -> 1.6..2.0 m
+        if (height > 10.0f && height < 400.0f)
+            return 0.01f;
+
+        // If its insanely large, bring it down to  size as fallback
+        if (height >= 400.0f)
+            return 1.7f / height;
+
+        return 1.0f;
+    }
+
+
+
+
+    glm::mat4 GLTFIImporterUtils::GLTF_NodeLocalMatrix(const tinygltf::Node& n)
+    {
+        // If n.matrix is provided, prefer it
+        if (n.matrix.size() == 16)
+        {
+            glm::mat4 M(1.0f);
+            // glTF stores column-major
+            const double* m = n.matrix.data();
+            M[0][0] = (float)m[0];  M[1][0] = (float)m[1];  M[2][0] = (float)m[2];  M[3][0] = (float)m[3];
+            M[0][1] = (float)m[4];  M[1][1] = (float)m[5];  M[2][1] = (float)m[6];  M[3][1] = (float)m[7];
+            M[0][2] = (float)m[8];  M[1][2] = (float)m[9];  M[2][2] = (float)m[10]; M[3][2] = (float)m[11];
+            M[0][3] = (float)m[12]; M[1][3] = (float)m[13]; M[2][3] = (float)m[14]; M[3][3] = (float)m[15];
+            return M;
+        }
+
+        glm::vec3 T(0.0f);
+        glm::vec3 S(1.0f);
+        glm::quat R(1.0f, 0.0f, 0.0f, 0.0f); // w,x,y,z
+
+        if (n.translation.size() == 3)
+            T = glm::vec3((float)n.translation[0], (float)n.translation[1], (float)n.translation[2]);
+
+        if (n.scale.size() == 3)
+            S = glm::vec3((float)n.scale[0], (float)n.scale[1], (float)n.scale[2]);
+
+        if (n.rotation.size() == 4)
+        {
+            // glTF rotation is [x,y,z,w]
+            R = glm::quat((float)n.rotation[3], (float)n.rotation[0], (float)n.rotation[1], (float)n.rotation[2]);
+        }
+
+        glm::mat4 M(1.0f);
+        M = glm::translate(glm::mat4(1.0f), T) * glm::mat4_cast(R) * glm::scale(glm::mat4(1.0f), S);
+        return M;
+    }
+
+
+    void GLTFIImporterUtils::GLTF_GatherNodesDFS(const tinygltf::Model& model, int nodeIndex,
+        const glm::mat4& parentWorld, std::vector<int>& outNodeIndices, std::vector<glm::mat4>& outNodeWorlds)
+    {
+        const tinygltf::Node& n = model.nodes[nodeIndex];
+        glm::mat4 world = parentWorld * GLTF_NodeLocalMatrix(n);
+
+        outNodeIndices.push_back(nodeIndex);
+        outNodeWorlds.push_back(world);
+
+        for (int child : n.children)
+        {
+            GLTF_GatherNodesDFS(model, child, world, outNodeIndices, outNodeWorlds);
+        }
+    }
+
 
 
     uint32_t GLTFIImporterUtils::LoadSkeletonFromModel(const tinygltf::Model& model,
@@ -366,7 +440,7 @@ namespace Engine {
             AnimationClip clip{};
             clip.name = anim.name;
             clip.channels.resize(boneCount);
-
+            clip.skeletonId = skeletonId;
             for (uint32_t b = 0; b < boneCount; ++b) {
                 clip.channels[b].bone = (uint16_t)b;
 
@@ -425,6 +499,9 @@ namespace Engine {
                 clipId);
         }
     }
+
+
+
 
 
 }

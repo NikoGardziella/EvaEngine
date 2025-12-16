@@ -1,20 +1,35 @@
 #pragma once
 #include <vector>
-
+#include "glm/glm.hpp"
 
 namespace Engine {
 
 
-        enum class EnemyPieceType : uint8_t {
-            Head,
-            Torso,
-            ArmL,
-            ArmR,
-            LegL,
-            LegR,
-            Armor1,
-            Armor2,
-        };
+    enum class EnemyPieceType : uint8_t
+    {
+        Generic = 0,
+
+        Head,
+        Torso,
+        Hip,
+
+        ArmL_Upper,
+        ArmL_Forearm,
+        ArmL_Palm,
+
+        ArmR_Upper,
+        ArmR_Forearm,
+        ArmR_Palm,
+
+        LegL_Thigh,
+        LegL_Calf,
+        LegR_Thigh,
+        LegR_Calf,
+
+        Armor1,
+        Armor2,
+    };
+
 
         enum class HitVolumeShape : uint8_t {
             Sphere,

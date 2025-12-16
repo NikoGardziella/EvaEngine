@@ -30,13 +30,15 @@ namespace Engine {
             if (auto mr = scene->TryGet<MeshRefComponent>(entity))
             {
                 uint32_t bonebase = 0;
-                uint32_t meshId = 0;
 
                 const SkeletonComponent& skeletonComponent = entity.GetComponent<SkeletonComponent>();
             
                 bonebase = skeletonComponent.boneBase;
 
                 InstanceDataGPU inst{};
+
+
+
                 inst.world = *pWorldTransform;
                // inst.worldPrev = *pWorldTransform;
                 inst.boneBase = bonebase;
@@ -55,11 +57,11 @@ namespace Engine {
                 // Submit whole submesh range
                 if (EnemyDestructibleComponent* destr = entity.TryGetComponent<EnemyDestructibleComponent>())
                 {
-                    VulkanRenderer3D::SubmitEnemyPieces(inst, meshId, *destr);
+                    VulkanRenderer3D::SubmitEnemyPieces(inst, mr->meshId, *destr);
                 }
                 else
                 {
-                    VulkanRenderer3D::SubmitMeshInstanceRange(inst, mr->submeshFirst, mr->submeshCount);
+                    VulkanRenderer3D::SubmitMeshInstanceRange(inst, mr->meshId, mr->submeshFirst, mr->submeshCount);
                 }
             }
 
@@ -87,7 +89,7 @@ namespace Engine {
 
                 
 
-                VulkanRenderer3D::SubmitMeshInstanceRange(inst, smr->submeshFirst, smr->submeshCount);
+                VulkanRenderer3D::SubmitMeshInstanceRange(inst, smr->meshId, smr->submeshFirst, smr->submeshCount);
             }
         }
     }

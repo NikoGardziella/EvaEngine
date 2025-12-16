@@ -89,6 +89,12 @@ namespace Engine {
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/playerMeshes.glb");
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/playerAnimRun.glb");
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/playerAnimIdle.glb");
+
+       // Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombie.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombieAgonizing.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombieAnimCrawl.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombieAnimIdle.glb");
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombieAnimRun.glb");
         //Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/Engineer.glb");
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -351,23 +357,25 @@ namespace Engine {
         s_Vulkan3DData.s_draws.push_back(PendingDraw{ idx, submeshId });
     }
 
-    void VulkanRenderer3D::SubmitMeshInstanceRange(const InstanceDataGPU& inst, uint32_t submeshFirst, uint32_t submeshCount)
+    void VulkanRenderer3D::SubmitMeshInstanceRange(const InstanceDataGPU& inst,  uint32_t meshId,
+        uint32_t submeshFirst,  uint32_t submeshCount)
     {
-        //EE_PROFILE_FUNCTION();
-
         std::scoped_lock lock(s_mutex);
-        uint32_t baseIdx = (uint32_t)s_Vulkan3DData.s_instances.size();
+
+        uint32_t instanceIndex = (uint32_t)s_Vulkan3DData.s_instances.size();
         s_Vulkan3DData.s_instances.push_back(inst);
+
+        // IMPORTANT: push one PendingDraw per submesh
         for (uint32_t i = 0; i < submeshCount; ++i)
         {
             PendingDraw d{};
-            //d.meshId = inst.meshId;
+            d.meshId = meshId;
             d.submeshId = submeshFirst + i;
-            d.instanceIndex = baseIdx;
-
+            d.instanceIndex = instanceIndex;
             s_Vulkan3DData.s_draws.push_back(d);
         }
     }
+
 
     // VulkanRenderer3D.cpp
     void VulkanRenderer3D::SubmitEnemyPieces(const InstanceDataGPU& inst, uint32_t meshId, const EnemyDestructibleComponent& destr)
@@ -441,6 +449,7 @@ namespace Engine {
         if (s_Vulkan3DData.s_draws.empty())
         {
             s_Vulkan3DData.s_instances.clear();
+            s_Vulkan3DData.s_draws.clear();
             return;
         }
 
@@ -465,45 +474,74 @@ namespace Engine {
         const MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
 
         // 3) Walk all draws
+        const MeshAsset* currentMesh = nullptr;
+
         for (const PendingDraw& d : s_Vulkan3DData.s_draws)
         {
-            // Rebind VB/IB when mesh changes
             if (d.meshId != currentMeshId)
             {
                 currentMeshId = d.meshId;
-                const MeshAsset& mesh = meshReg.GetMesh(currentMeshId);
 
-                VkDeviceSize vbOff = mesh.vbOffset;
-                vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vertexBuffer, &vbOff);
-                vkCmdBindIndexBuffer(cmd, mesh.indexBuffer, mesh.ibOffset, VK_INDEX_TYPE_UINT32);
+               
 
-                s_stats3D.VertexCount += mesh.vertexCount;
-                s_stats3D.IndexCount += mesh.indexCount;
+                currentMesh = &meshReg.GetMesh(currentMeshId);
 
+                VkDeviceSize vbOff = currentMesh->vbOffset;
+                vkCmdBindVertexBuffers(cmd, 0, 1, &currentMesh->vertexBuffer, &vbOff);
+                vkCmdBindIndexBuffer(cmd, currentMesh->indexBuffer, currentMesh->ibOffset, VK_INDEX_TYPE_UINT32);
             }
 
-            // Push constants for this instance/submesh
-            const InstanceDataGPU& instGPU = s_Vulkan3DData.s_instances[d.instanceIndex];
+            if (!currentMesh)
+                continue;
 
+            // Guard: instance index validity
+            if (d.instanceIndex >= s_Vulkan3DData.s_instances.size())
+            {
+                EE_CORE_WARN("[3D] Draw: invalid instanceIndex {}", d.instanceIndex);
+                continue;
+            }
 
-            uint32_t defaultMaterialIndex = 0;
+            // Push constants
             PCDraw3D pc{};
             pc.instanceIndex = d.instanceIndex;
-            pc.materialId = defaultMaterialIndex;
+            //pc.materialId = 0;
             pc.submeshId = d.submeshId;
             pc.flags = s_debug3DFlags;
+
             
 
-            vkCmdPushConstants(cmd, m_3DPipeline.GetLayout(), VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                0, sizeof(PCDraw3D), &pc);
+            if (d.submeshId == WHOLE_MESH)
+            {
+                for (uint32_t i = 0; i < (uint32_t)currentMesh->submeshes.size(); ++i)
+                {
 
-            // Draw this submesh
-            const MeshAsset& mesh = meshReg.GetMesh(currentMeshId);
-            const SubmeshRange& sm = mesh.submeshes[d.submeshId];
+                    const SubmeshRange& sm = currentMesh->submeshes[i];
+                    pc.materialId = (sm.materialDefaultId != 0xFFFFFFFFu) ? sm.materialDefaultId : 0u;
+                    vkCmdPushConstants(cmd, m_3DPipeline.GetLayout(),
+                        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                        0, sizeof(PCDraw3D), &pc);
+                    vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, (int32_t)sm.baseVertex, 0);
+                }
+            }
+            else
+            {
+                // Guard: submeshId validity
+                if (d.submeshId >= (uint32_t)currentMesh->submeshes.size())
+                {
+                    EE_CORE_WARN("[3D] Draw: invalid submeshId {} for meshId {} (has {})",
+                        d.submeshId, currentMeshId, (uint32_t)currentMesh->submeshes.size());
+                    continue;
+                }
 
-           //vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, static_cast<int32_t>(sm.baseVertex), 0);
-            vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, 0, 0);
+                const SubmeshRange& sm = currentMesh->submeshes[d.submeshId];
+                pc.materialId = (sm.materialDefaultId != 0xFFFFFFFFu) ? sm.materialDefaultId : 0u;
+                vkCmdPushConstants(cmd, m_3DPipeline.GetLayout(),
+                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                    0, sizeof(PCDraw3D), &pc);
+                vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, (int32_t)sm.baseVertex, 0);
+            }
         }
+
 
         // 4) Clear queues for next frame
         s_Vulkan3DData.s_instances.clear();

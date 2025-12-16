@@ -32,11 +32,13 @@ namespace Engine {
             SkeletonAsset copy = s;
             copy.id = (uint32_t)m_skeletonAssets.size();
             m_skeletonAssets.push_back(copy);
+
             return copy.id;
         }
 
         static uint32_t FindBoneContains(const SkeletonAsset& s, std::string_view token)
         {
+            
             for (uint32_t i = 0; i < (uint32_t)s.boneNames.size(); ++i)
                 if (s.boneNames[i].find(token) != std::string::npos)
                     return i;

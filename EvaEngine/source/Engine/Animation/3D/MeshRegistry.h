@@ -6,7 +6,8 @@ namespace Engine {
 
     struct SubmeshRange
     {
-        // gpu handles/offsets if you track them here (optional)
+        
+        std::string name;
         uint32_t firstIndex = 0;
         uint32_t indexCount = 0;
         uint32_t baseVertex = 0;
@@ -27,8 +28,9 @@ namespace Engine {
         std::vector<SubmeshRange> submeshes;
         bool isSkinned = false;
 
-        glm::vec3 minL = glm::vec3(0);
-        glm::vec3 maxL = glm::vec3(0);
+        float importScale = 1.0f;
+        glm::vec3 minL = glm::vec3(FLT_MAX);
+        glm::vec3 maxL = glm::vec3(-FLT_MAX);
         
     };
 
@@ -44,7 +46,9 @@ namespace Engine {
         const MeshAsset& GetMesh(uint32_t meshId) const;
 
 
-        MeshId RegisterMesh(const std::string& key, const MeshAsset& asset);
+        MeshId RegisterMesh(const std::string& key, MeshAsset& asset);
+
+        static uint32_t FindSubmeshContains(const MeshAsset& mesh, std::string_view needle);
 
       
 

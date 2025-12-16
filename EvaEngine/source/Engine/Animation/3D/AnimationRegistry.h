@@ -17,6 +17,7 @@ namespace Engine
     struct AnimationClip
     {
         uint32_t id;
+        uint32_t skeletonId;
         float duration = 0.0f;
         std::vector<AnimChannel> channels;
         std::string name;

@@ -53,11 +53,13 @@ namespace Engine {
                 for (size_t i = 0; i < up.indexCount; ++i)
                     agg->allIdx.push_back(up.indices[i] + baseVertex);
 
-                sm.baseVertex = baseVertex;
+                sm.baseVertex = 0;
                 sm.firstIndex = firstIndex;
                 sm.indexCount = static_cast<uint32_t>(up.indexCount);
                 sm.aabbMin = up.aabbMin;
                 sm.aabbMax = up.aabbMax;
+
+
                 // sm.materialDefaultId is set later by the importer (if any)
 
                 return sm;

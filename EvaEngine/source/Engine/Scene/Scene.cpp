@@ -37,6 +37,8 @@
 #include <glm/gtx/euler_angles.hpp>
 #include "Components/NPC/Destruction/EnemyDestructibleComponent.h"
 #include <Engine/Animation/3D/AnimationRegistry.h>
+#include "Engine/Scene/SceneUtils/SceneUtils.h"
+
 
 namespace Engine {
 
@@ -57,27 +59,7 @@ namespace Engine {
         return entt::null;  // Return null if no matching entity is found
     }
 
-    static b2BodyType Rigidbody2dTypeToBox2D(RigidBody2DComponent::BodyType bodytype)
-    {
-        switch (bodytype)
-        {
-            case Engine::RigidBody2DComponent::BodyType::Static:
-            {
-                return b2BodyType::b2_staticBody;
-            }
-            case Engine::RigidBody2DComponent::BodyType::Dynamic:
-            {
-                return b2BodyType::b2_dynamicBody;
-            }
-            case Engine::RigidBody2DComponent::BodyType::Kinematic:
-            {
-                return b2BodyType::b2_kinematicBody;
 
-            }
-        }
-        EE_CORE_ASSERT(false, " unkown bodytype");
-        return b2BodyType::b2_staticBody;
-    }
 
     Scene::Scene()
     {
@@ -281,70 +263,6 @@ namespace Engine {
     }
 
 
-    static void SpawnMeshGrid(Engine::Scene* scene, uint32_t meshId = 0,  uint32_t count = 100,
-        uint32_t perRow = 10, float spacing = 2.0f, const glm::vec3& origin = glm::vec3(0.0f))
-    {
-        const MeshAsset& meshAsset = AssetManager::GetMeshFromMeshRegistry(meshId);
-        const uint32_t submeshCount = (uint32_t)meshAsset.submeshes.size();
-
-        for (uint32_t i = 0; i < count; ++i)
-        {
-            /*
-            if (i % 2 == 0)
-            {
-                meshId = 1;
-            }
-            else
-            {
-                meshId = 0;
-            }
-
-            */
-            // Grid coords
-            const uint32_t r = i / perRow;
-            const uint32_t c = i % perRow;
-
-            // World position
-            glm::vec3 pos = origin + glm::vec3((float)c * spacing, (float)r * spacing,0.0f );
-
-            // Create entity and components
-            Engine::Entity entity = scene->CreateEntity();
-
-            auto& meshComp = entity.AddComponent<MeshRefComponent>();
-            meshComp.meshId = meshId;
-            meshComp.submeshFirst = 0;
-            meshComp.submeshCount = submeshCount;
-
-            auto& tr = entity.AddComponent<TransformComponent>();
-            tr.Translation = pos;                // adjust field names if yours differ (e.g., translation/rotation/scale)
-            tr.Rotation = glm::vec3(0.0f, 0.0f, 0.0f); // identity
-            tr.Scale = glm::vec3(1.0f);
-
-            RenderBoundsComponent& renderBoundsComp = entity.AddComponent<RenderBoundsComponent>();
-            renderBoundsComp.maxL = meshAsset.maxL;
-            renderBoundsComp.minL = meshAsset.minL;
-
-            uint32_t skeletonId = 0;
-            auto& skel = entity.AddComponent<SkeletonComponent>();
-            skel.skeletonId = skeletonId;      // returned by importer
-            skel.boneCount = AssetManager::GetSkeletonRegistry().Get(skeletonId).parent.size();
-            skel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
-
-
-            uint32_t testClip = 1;
-            uint32_t testClipB = 0;
-            // Attach animator
-            auto& anim = entity.AddComponent<Animator3DComponent>();
-            anim.clipA = testClip;           
-            anim.clipB = testClipB;
-            anim.timeA = 0.0f;
-            anim.blend = 0.0f;                 // only clipA
-            anim.playbackSpeed = 1.0f;
-            
-        }
-    }
-
-
     // Spawns a bunch of enemies in a simple XZ grid around originXZ.
 // enemyCount     - how many enemies
 // meshAsset      - mesh to use (submeshes, bounds)
@@ -363,27 +281,12 @@ namespace Engine {
         if (enemyCount == 0)
             return;
 
-        // Precompute skeleton + bones once
         const SkeletonAsset& skeletonAsset = AssetManager::GetSkeletonRegistry().Get(skeletonId);
 
-        uint32_t headBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "head");
-        uint32_t spineBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "spine");
-        uint32_t armLBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "hand_left");
-        uint32_t armRBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "hand_right");
-        uint32_t legRBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "thigh_right");
-        uint32_t legLBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "thigh_left");
-
-        // From Blender (your original indices)
-        const uint32_t torsoSubmeshIndex = 1;
-        const uint32_t headSubmeshIndex = 2;
-        const uint32_t armLSubmeshIndex = 3;
-        const uint32_t armRSubmeshIndex = 4;
-        const uint32_t legRSubmeshIndex = 5;
-        const uint32_t legLSubmeshIndex = 6;
-
         const uint32_t submeshCount = (uint32_t)meshAsset.submeshes.size();
+        if (submeshCount == 0)
+            return;
 
-        // Simple near-square grid layout
         const uint32_t cols = (uint32_t)std::ceil(std::sqrt((float)enemyCount));
         const uint32_t rows = (enemyCount + cols - 1) / cols;
 
@@ -392,154 +295,116 @@ namespace Engine {
             const uint32_t col = i % cols;
             const uint32_t row = i / cols;
 
-            // Center grid around originXZ
             const float offsetX = (float)col - 0.5f * (float)(cols - 1);
             const float offsetZ = (float)row - 0.5f * (float)(rows - 1);
 
             const float worldX = originXZ.x + offsetX * spacingXZ.x;
             const float worldZ = originXZ.y + offsetZ * spacingXZ.y;
 
-            // ---- Create entity ----
             Entity enemyEntity = CreateEntity("Enemy");
-
             enemyEntity.AddComponent<HealthComponent>();
 
             // Transform
-            TransformComponent& enemyTransformComp = enemyEntity.AddComponent<TransformComponent>();
-            enemyTransformComp.Translation = glm::vec3(worldX, 5.0f, worldZ);
-            enemyTransformComp.Rotation.x += glm::radians(90.0f);
+            TransformComponent& tr = enemyEntity.AddComponent<TransformComponent>();
+            tr.Translation = glm::vec3(worldX, 5.0f, worldZ);
+            tr.Rotation.x += glm::radians(180.0f);
+            
+            // this could ne in rendersystem
+            tr.Scale *= glm::vec3(meshAsset.importScale);
+
+
+
+
+
+           
+        
+
+
 
             // Mesh
             MeshRefComponent& meshComp = enemyEntity.AddComponent<MeshRefComponent>();
-            meshComp.meshId = 0;           // or some real meshId if you have it
+            meshComp.meshId = meshAsset.id;
             meshComp.submeshFirst = 0;
             meshComp.submeshCount = submeshCount;
 
             // Render bounds
-            RenderBoundsComponent& renderBoundsComp = enemyEntity.AddComponent<RenderBoundsComponent>();
-            renderBoundsComp.maxL = meshAsset.maxL;
-            renderBoundsComp.minL = meshAsset.minL;
+            RenderBoundsComponent& rb = enemyEntity.AddComponent<RenderBoundsComponent>();
+            rb.maxL = meshAsset.maxL;
+            rb.minL = meshAsset.minL;
 
             // Skeleton
-            auto& skel = enemyEntity.AddComponent<SkeletonComponent>();
+            SkeletonComponent& skel = enemyEntity.AddComponent<SkeletonComponent>();
             skel.skeletonId = skeletonId;
             skel.boneCount = (uint32_t)skeletonAsset.parent.size();
-            skel.boneBase = 0xFFFFFFFFu;  // let BonePalette allocate
+            skel.boneBase = 0xFFFFFFFFu; // allocate from palette system
 
             // Animator
-            auto& anim = enemyEntity.AddComponent<Animator3DComponent>();
-            anim.clipA = clipRun;   // run
-            anim.clipB = clipIdle;  // idle
-            anim.timeA = 1.0f;
-            anim.blend = 0.0f;      // only clipA at start
+            Animator3DComponent& anim = enemyEntity.AddComponent<Animator3DComponent>();
+            anim.clipA = clipRun;
+            anim.clipB = clipIdle;
+            anim.timeA = 0.0f;
+            anim.timeB = 0.0f;
+            anim.blend = 0.0f;
             anim.playbackSpeed = 1.0f;
 
-            // Destructible setup
+            // Destructible pieces: generate one per submesh
             EnemyDestructibleComponent& destr = enemyEntity.AddComponent<EnemyDestructibleComponent>();
-            destr.pieces.reserve(destr.pieces.size() + 6);
+            destr.pieces.clear();
+            destr.pieces.reserve(submeshCount);
 
-            // ---- Head ----
+            for (uint32_t smi = 0; smi < submeshCount; ++smi)
             {
+                const SubmeshRange& sm = meshAsset.submeshes[smi];
+
                 EnemyPiece p{};
-                p.type = EnemyPieceType::Head;
-                p.submeshIndex = headSubmeshIndex;
-                p.boneId = headBone;
+                p.submeshIndex = smi;
+
+                // Classify by submesh name
+                p.type = SceneUtils::ClassifyPieceTypeFromSubmeshName(sm.name);
+
+                // Pick a bone automatically from the type (good enough for detach anchors)
+                p.boneId = SceneUtils::BoneForPieceType(skeletonAsset, p.type);
+
+                // Always render all parts
                 p.visible = 1;
-                p.canDetach = 1;
+
+                // Default: only detachable for certain parts
+                p.canDetach = (p.type == EnemyPieceType::Head) ||
+                    (p.type == EnemyPieceType::ArmL_Forearm) ||
+                    (p.type == EnemyPieceType::ArmR_Forearm) ||
+                    (p.type == EnemyPieceType::LegL_Calf) ||
+                    (p.type == EnemyPieceType::LegR_Calf);
+
+                // Hit volumes: default off for generic, on for key parts
+                p.hitEnabled = 0;
                 p.hitShape = HitVolumeShape::Sphere;
-                p.hitEnabled = 1;
-                p.hitLocalCenter = glm::vec3(0.0f, 0.8f, 0.0f);
+                p.hitLocalCenter = glm::vec3(0.0f);
                 p.hitRadius = 0.25f;
 
-                destr.pieces.push_back(p);
-            }
-
-            // ---- Torso ----
-            {
-                EnemyPiece p{};
-                p.type = EnemyPieceType::Torso;
-                p.submeshIndex = torsoSubmeshIndex;
-                p.boneId = spineBone;
-                p.visible = 1;
-                p.canDetach = 0;
-                p.hitShape = HitVolumeShape::Sphere;
-                p.hitEnabled = 1;
-                p.hitLocalCenter = glm::vec3(0.0f, 0.2f, 0.0f);
-                p.hitRadius = 0.35f;
-
-                destr.pieces.push_back(p);
-            }
-
-            // ---- ArmL ----
-            {
-                EnemyPiece p{};
-                p.type = EnemyPieceType::ArmL;
-                p.submeshIndex = armLSubmeshIndex;
-                p.boneId = armLBone;
-                p.visible = 1;
-                p.canDetach = 1;
-                p.hitShape = HitVolumeShape::Sphere;
-                p.hitEnabled = 1;
-                p.hitLocalCenter = glm::vec3(-0.35f, 0.35f, 0.0f);
-                p.hitRadius = 0.25f;
-
-                destr.pieces.push_back(p);
-            }
-
-            // ---- ArmR ----
-            {
-                EnemyPiece p{};
-                p.type = EnemyPieceType::ArmR;
-                p.submeshIndex = armRSubmeshIndex;
-                p.boneId = armRBone;
-                p.visible = 1;
-                p.canDetach = 1;
-                p.hitShape = HitVolumeShape::Sphere;
-                p.hitEnabled = 1;
-                p.hitLocalCenter = glm::vec3(0.35f, 0.35f, 0.0f);
-                p.hitRadius = 0.25f;
-
-                destr.pieces.push_back(p);
-            }
-
-            // ---- LegR ----
-            {
-                EnemyPiece p{};
-                p.type = EnemyPieceType::LegR;
-                p.submeshIndex = legRSubmeshIndex;
-                p.boneId = legRBone;
-                p.visible = 1;
-                p.canDetach = 1;
-                p.hitShape = HitVolumeShape::Sphere;
-                p.hitEnabled = 1;
-                p.hitLocalCenter = glm::vec3(-0.2f, -0.5f, 0.0f);
-                p.hitRadius = 0.35f;
-
-                destr.pieces.push_back(p);
-            }
-
-            // ---- LegL ----
-            {
-                EnemyPiece p{};
-                p.type = EnemyPieceType::LegL;
-                p.submeshIndex = legLSubmeshIndex;
-                p.boneId = legLBone;
-                p.visible = 1;
-                p.canDetach = 1;
-                p.hitShape = HitVolumeShape::Sphere;
-                p.hitEnabled = 1;
-                p.hitLocalCenter = glm::vec3(0.2f, -0.5f, 0.0f);
-                p.hitRadius = 0.35f;
+                if (p.type == EnemyPieceType::Head)
+                {
+                    p.hitEnabled = 1;
+                    p.hitLocalCenter = glm::vec3(0.0f, 0.8f, 0.0f);
+                    p.hitRadius = 0.25f;
+                }
+                else if (p.type == EnemyPieceType::Torso || p.type == EnemyPieceType::Hip)
+                {
+                    p.hitEnabled = 1;
+                    p.hitLocalCenter = glm::vec3(0.0f, 0.2f, 0.0f);
+                    p.hitRadius = 0.40f;
+                    p.canDetach = 0;
+                }
 
                 destr.pieces.push_back(p);
             }
 
             // AI
             enemyEntity.AddComponent<NPCAIMovementComponent>();
-            NPCAIVisionComponent& nPCAIVisionComponent = enemyEntity.AddComponent<NPCAIVisionComponent>();
-            nPCAIVisionComponent.ViewAngle = 360.0f;
+            NPCAIVisionComponent& vis = enemyEntity.AddComponent<NPCAIVisionComponent>();
+            vis.ViewAngle = 360.0f;
         }
     }
+
 
 
 
@@ -575,23 +440,18 @@ namespace Engine {
         MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
         AnimationRegistry& animReg = AssetManager::GetAnimationRegistry();
 
-        const MeshAsset* meshAsset = meshReg.GetMeshByKey("male_player");
+        const MeshAsset* meshAsset = meshReg.GetMeshByKey("zombieAgonizing");
         
-        const AnimationClip* anim = animReg.FindAnimationClip("mixamo.com");
-        const AnimationClip* animIdle = animReg.FindAnimationClip("MaleIdleAnim");
+        const AnimationClip* anim = animReg.FindAnimationClip("zombieAnimIdle");
+        const AnimationClip* animIdle = animReg.FindAnimationClip("zombieAnimRun");
 
-        Entity entity3D = this->CreateEntity();
+ 
   
-
-        SpawnMeshGrid(this,0, 0,10, 2);
-
-        uint32_t skeletonId = 0;   // whichever you use
-        uint32_t clipRun = 0;
-        uint32_t clipIdle = 1;
+ 
 
         glm::vec2 originXZ = { 0.0f, 0.0f };
         glm::vec2 spacingXZ = { 10.0f, 10.0f }; 
-        SpawnEnemies(1, *meshAsset, meshAsset->skeletonId, anim->id, clipIdle, originXZ, spacingXZ);
+        SpawnEnemies(1, *meshAsset, meshAsset->skeletonId, anim->id, animIdle->id, originXZ, spacingXZ);
 
         /*
         Entity m_camera3DEntity = CreateEntity("3D camera");
@@ -942,26 +802,29 @@ namespace Engine {
 
             if (!playerEntity.HasComponent<Animator3DComponent>())
             {
-                uint32_t meshId = 0;
-                const MeshAsset& meshAsset = AssetManager::GetMeshFromMeshRegistry(meshId);
-                const uint32_t submeshCount = (uint32_t)meshAsset.submeshes.size();
+                MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
+
+                const MeshAsset* meshAsset = meshReg.GetMeshByKey("playerMeshes");
+               
+
+
+                const uint32_t submeshCount = (uint32_t)meshAsset->submeshes.size();
 
 
                 auto& meshComp = playerEntity.AddComponent<MeshRefComponent>();
-                meshComp.meshId = meshId;
+                meshComp.meshId = meshAsset->id;
                 meshComp.submeshFirst = 0;
                 meshComp.submeshCount = submeshCount;
 
              
 
                 RenderBoundsComponent& renderBoundsComp = playerEntity.AddComponent<RenderBoundsComponent>();
-                renderBoundsComp.maxL = meshAsset.maxL;
-                renderBoundsComp.minL = meshAsset.minL;
+                renderBoundsComp.maxL = meshAsset->maxL;
+                renderBoundsComp.minL = meshAsset->minL;
 
-                uint32_t skeletonId = 0;
                 auto& skel = playerEntity.AddComponent<SkeletonComponent>();
-                skel.skeletonId = skeletonId;      // returned by importer
-                skel.boneCount = AssetManager::GetSkeletonRegistry().Get(skeletonId).parent.size();
+                skel.skeletonId = meshAsset->skeletonId;      // returned by importer
+                skel.boneCount = AssetManager::GetSkeletonRegistry().Get(meshAsset->skeletonId).parent.size();
                 skel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
 
 

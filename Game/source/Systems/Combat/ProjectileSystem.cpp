@@ -251,33 +251,13 @@ void ProjectileSystem::DetachPiece(Engine::Scene* scene, Engine::Entity enemy, E
 
     glm::mat4 enemyWorld = xform.GetTransform();
 
-    glm::vec3 spawnPos = glm::vec3(enemyWorld[3]);
 
-    glm::vec3 extraOffset(0.0f);
+    const auto& sm = mesh.submeshes[piece->submeshIndex];
+    glm::vec3 centerL = 0.5f * (sm.aabbMin + sm.aabbMax);
+    glm::vec3 spawnPos = glm::vec3(enemyWorld * glm::vec4(centerL, 1.0f));
 
-    switch (type)
-    {
-    case Engine::EnemyPieceType::Head:
-        extraOffset = glm::vec3(0.0f, 0.8f, 0.0f); // up
-        break;
-    case Engine::EnemyPieceType::ArmL:
-        extraOffset = glm::vec3(-0.4f, 0.4f, 0.0f);
-        break;
-    case Engine::EnemyPieceType::ArmR:
-        extraOffset = glm::vec3(+0.4f, 0.4f, 0.0f);
-        break;
-    case Engine::EnemyPieceType::LegL:
-        extraOffset = glm::vec3(-0.2f, -0.6f, 0.0f);
-        break;
-    case Engine::EnemyPieceType::LegR:
-        extraOffset = glm::vec3(+0.2f, -0.6f, 0.0f);
-        break;
-    default:
-        break;
-    }
 
-    glm::vec3 worldOffset = glm::vec3(enemyWorld * glm::vec4(extraOffset, 0.0f));
-    spawnPos += worldOffset;
+
 
     Engine::Entity gib = scene->CreateEntity("DetachedPiece");
 
