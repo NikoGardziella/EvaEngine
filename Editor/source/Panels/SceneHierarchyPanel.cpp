@@ -17,6 +17,7 @@
 #include <Engine/Scene/Components/Vehicles/VehicleComponent.h>
 #include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
 #include "Utils/EditorUtils.h"
+#include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 
 
 namespace Engine {
@@ -1172,7 +1173,84 @@ namespace Engine {
 
             });
 
-        
+        DrawComponent<Engine::Animator3DComponent>("Animator 3D", entity, m_sceneHierarchyPanelScene.get(),
+            [this, &entity](auto& component)
+            {
+                
+                auto& animReg = Engine::AssetManager::GetAnimationRegistry();
+                const uint32_t INVALID = 0xFFFFFFFFu;
+
+                auto ClipNameOr = [&](uint32_t id) -> const char*
+                    {
+                        if (id == INVALID) return "<none>";
+                        const Engine::AnimationClip& c = animReg.Get(id);
+                        return c.name.empty() ? "<unnamed>" : c.name.c_str();
+                    };
+
+                ImGui::Text("clipA: %s (%u)", ClipNameOr((uint32_t)component.clipA), (uint32_t)component.clipA);
+                ImGui::Text("clipB: %s (%u)", ClipNameOr((uint32_t)component.clipB), (uint32_t)component.clipB);
+
+                ImGui::Separator();
+
+                ImGui::DragFloat("timeA", &component.timeA, 0.01f, 0.0f, 1000.0f);
+                ImGui::DragFloat("timeB", &component.timeB, 0.01f, 0.0f, 1000.0f);
+
+                ImGui::DragFloat("blend", &component.blend, 0.01f, 0.0f, 1.0f);
+                ImGui::DragFloat("playbackSpeed", &component.playbackSpeed, 0.01f, 0.0f, 5.0f);
+
+                bool useRM = (component.useRootMotion != 0);
+                if (ImGui::Checkbox("useRootMotion", &useRM))
+                    component.useRootMotion = useRM ? 1 : 0;
+
+                int updateRate = (int)component.updateRate;
+                if (ImGui::SliderInt("updateRate", &updateRate, 1, 10))
+                    component.updateRate = (uint8_t)glm::clamp(updateRate, 1, 10);
+
+                ImGui::Text("frameCounter: %u", (uint32_t)component.frameCounter);
+
+                ImGui::Separator();
+
+                ImGui::Text("stateId: %u", component.stateId);
+                ImGui::Text("transitionId: %s",
+                    (component.transitionId == INVALID) ? "INVALID" : std::to_string(component.transitionId).c_str());
+
+                ImGui::Separator();
+
+                if (ImGui::Button("Reset Times"))
+                {
+                    component.timeA = 0.0f;
+                    component.timeB = 0.0f;
+                }
+                ImGui::SameLine();
+
+                if (ImGui::Button("Clear clipB"))
+                {
+                    component.clipB = INVALID;
+                    component.timeB = 0.0f;
+                    component.blend = 0.0f;
+                }
+                ImGui::SameLine();
+
+                if (ImGui::Button("Swap A/B"))
+                {
+                    std::swap(component.clipA, component.clipB);
+                    std::swap(component.timeA, component.timeB);
+                    component.blend = 1.0f - component.blend;
+                }
+
+                // Write-back like your NPC movement panel
+                Engine::Entity newEntity = Engine::Entity{ Engine::Scene::GetEntityByUUID(
+                    m_sceneHierarchyPanelScene->GetRegistry(),
+                    entity.GetComponent<Engine::IDComponent>().ID),
+                    m_sceneHierarchyPanelScene.get() };
+
+                if (newEntity)
+                {
+                    m_sceneHierarchyPanelScene->GetRegistry()
+                        .get<Engine::Animator3DComponent>(newEntity) = component;
+                }
+            });
+
     }
 
 

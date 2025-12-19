@@ -11,6 +11,7 @@
 #include <Engine/Scene/Component.h>
 #include "Engine/Animation/3D/System/Render3DUtils/Render3DUtils.h"
 #include <Engine/Scene/Components/NPC/Destruction/EnemyDestructibleComponent.h>
+#include <Engine/Renderer/VulkanRenderer2D.h>
 
 namespace Engine {
 
@@ -57,6 +58,16 @@ namespace Engine {
                 // Submit whole submesh range
                 if (EnemyDestructibleComponent* destr = entity.TryGetComponent<EnemyDestructibleComponent>())
                 {
+                    bool debugDraw = false;
+                    if (debugDraw)
+                    {
+                        for (size_t i = 0; i < destr->pieces.size(); i++)
+                        {
+                            DebugDrawHitSphere2D_XY(*pWorldTransform, destr->pieces[i].hitLocalCenter, destr->pieces[i].hitRadius, glm::vec4(1, 0, 0, 1));
+
+                        }
+                    }
+
                     VulkanRenderer3D::SubmitEnemyPieces(inst, mr->meshId, *destr);
                 }
                 else
@@ -92,6 +103,26 @@ namespace Engine {
                 VulkanRenderer3D::SubmitMeshInstanceRange(inst, smr->meshId, smr->submeshFirst, smr->submeshCount);
             }
         }
+    }
+
+
+    void RenderSystem3D::DebugDrawHitSphere2D_XY(const glm::mat4& enemyWorld,  const glm::vec3& hitLocalCenter,
+        float radius,    const glm::vec4& color)
+    {
+        // World-space center
+        const glm::vec3 c = glm::vec3(enemyWorld * glm::vec4(hitLocalCenter, 1.0f));
+
+        // Crosshair
+        {
+            glm::vec3 a = glm::vec3(c.x - radius, c.y, 0.1f);
+            glm::vec3 b = glm::vec3(c.x + radius, c.y, 0.1f);
+            Engine::VulkanRenderer2D::DrawLine(a, b, color, -1);
+
+            a = glm::vec3(c.x, c.y - radius, 0.1f);
+            b = glm::vec3(c.x, c.y + radius, 0.1f);
+            Engine::VulkanRenderer2D::DrawLine(a, b, color, -1);
+        }
+
     }
 
 

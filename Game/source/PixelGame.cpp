@@ -16,6 +16,7 @@
 #include "Systems/Combat/PlayerWeaponSystem.h"
 #include "Systems/Vehicle/VehicleSystem.h"
 #include "Systems/Physics/PhysicsSystem.h"
+#include "Systems/NPC/NPCAnimation/NPCAnimationControllerSystem.h"
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -67,6 +68,7 @@ void PixelGame::RegisterSystems()
 	m_activeScene->RegisterSystem(VehicleCollisionSystem::UpdateVehicleCollision);
 	m_activeScene->RegisterSystem(VehicleSystem::UpdateVehicleSystem);
 	m_activeScene->RegisterSystem(PhysicsSystem::UpdatePhysicsSystem);
+	m_activeScene->RegisterSystem(NPCAnimationControllerSystem::UpdateNPCAnimationControllerSystem);
 }
 
 void PixelGame::OnDetach()

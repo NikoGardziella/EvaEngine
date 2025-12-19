@@ -2,6 +2,7 @@
 #include "Engine/Scene/Components/Combat/HealthComponent.h"
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Scene/Scene.h>
+#include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 
 
 void HealthSystem::UpdateHealthSystem(float deltaTime, Engine::Scene* scene)
@@ -13,7 +14,13 @@ void HealthSystem::UpdateHealthSystem(float deltaTime, Engine::Scene* scene)
         {
             if (health.Current <= 0.0f)
             {
-                scene->DestroyEntity(e);
+                NpcAnimationControllerComponent& npcAnimationControllerComp = e.GetComponent<NpcAnimationControllerComponent>();
+                if (npcAnimationControllerComp.actionTimer >= 0.0f)
+                {
+                    scene->DestroyEntity(e);
+                }
+
+
             }
         });
 }

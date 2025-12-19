@@ -46,8 +46,6 @@ namespace Engine {
 		void Scene::SpawnEnemies(uint32_t enemyCount,
 			const MeshAsset& meshAsset,
 			uint32_t skeletonId,
-			uint32_t clipRun,
-			uint32_t clipIdle,
 			const glm::vec2& originXZ,
 			const glm::vec2& spacingXZ);
 

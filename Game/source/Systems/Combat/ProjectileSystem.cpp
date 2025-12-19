@@ -11,6 +11,7 @@
 #include <Engine/Scene/Components/Render/3D/RenderBoundsComponent.h>
 #include <Engine/Scene/Components/Physics/PhysicsComponent.h>
 #include "glm/glm.hpp"
+#include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 
 void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* scene)
 {
@@ -121,15 +122,18 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
 
                         if (anyHit)
                         {
+
+
+
                             hit = true;
                             hitSomething = true;
 
                             glm::vec3 impulseDir = glm::vec3(projectileComp.Direction, 0.0f);
                             float impulseStrength = 10.0f;
 
-                            DetachPiece(scene, targetEntity, bestPiece, impulseDir, impulseStrength);
+                            //DetachPiece(scene, targetEntity, bestPiece, impulseDir, impulseStrength);
                             toDestroy.push_back(projectileEntity);
-                            return;
+                            
                         }
                     }
 
@@ -170,9 +174,10 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                     // 4) Apply damage if available
                     if (hit && targetEntity.HasComponent<Engine::HealthComponent>())
                     {
-                        auto& healthComp = targetEntity.GetComponent<Engine::HealthComponent>();
+                        Engine::HealthComponent& healthComp = targetEntity.GetComponent<Engine::HealthComponent>();
                         healthComp.Current -= projectileComp.Damage;
-
+                        NpcAnimationControllerComponent& animControllderComp = targetEntity.GetComponent<NpcAnimationControllerComponent>();
+                        animControllderComp.request = NpcAnimRequest::Hit;
 
                     }
 
@@ -287,6 +292,9 @@ void ProjectileSystem::DetachPiece(Engine::Scene* scene, Engine::Entity enemy, E
     phys.randomizedSpin = true;
 
     uint32_t skeletonId = 0;
+
+
+    // this should be removd
     Engine::SkeletonComponent& newSkeleton = gib.AddComponent<Engine::SkeletonComponent>();
     newSkeleton.skeletonId = skeletonId;
     newSkeleton.boneCount = Engine::AssetManager::GetSkeletonRegistry().Get(skeletonId).parent.size();

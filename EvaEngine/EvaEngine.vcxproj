@@ -146,6 +146,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Animation\NpcAnimationControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\SceneUtils\SceneUtils.h" />
     <ClInclude Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.h" />
     <ClInclude Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.h" />
@@ -290,6 +292,7 @@
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />
     <ClInclude Include="source\Engine\Utils\PlatformUtils.h" />
     <ClInclude Include="source\pch.h" />
+    <ClInclude Include="source\Engine\Scene\SceneUtils\SpawnUtils.h" />
     <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="vendor\enkiTS\box2d\src\TaskScheduler.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
@@ -713,6 +716,7 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneUtils\SceneUtils.cpp" />
     <ClCompile Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.cpp" />
@@ -808,6 +812,7 @@
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="source\Engine\Scene\SceneUtils\SpawnUtils.cpp" />
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />

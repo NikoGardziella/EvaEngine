@@ -2,6 +2,9 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <cstdint>
+#include <Engine/Scene/Component.h>
+
+#include "entt.hpp"
 
 struct AgentRef
 {
@@ -16,13 +19,14 @@ enum class AIState
     Patrol,
     MoveToTarget,
     ChaseLOS,
+    Death,
     Attack
 };
 
 struct NPCAIMovementComponent
 {
-    AIState CurrentState = AIState::Idle;
 
+    AIState CurrentState = AIState::Idle;
 
     float radius = 0.3f;
     float IdleTimer = 0.0f;
@@ -33,6 +37,12 @@ struct NPCAIMovementComponent
     bool      HasLastKnownTarget = false;
     glm::vec3 TargetPosition;
     float MoveSpeed = 3.0f;
+
+   
+    float   RepathTimer = 0.0f;
+    float   RepathInterval = 0.35f;
+    glm::vec2 LastRepathStart2D = { 0,0 };
+    glm::vec2 LastRepathGoal2D = { 0,0 };
 
     std::vector<glm::vec3> Path;
     size_t PathIndex = 0;

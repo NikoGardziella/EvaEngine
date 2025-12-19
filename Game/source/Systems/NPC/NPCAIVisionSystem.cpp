@@ -53,10 +53,7 @@ void NPCAIVisionSystem::UpdateNPCAIVisionSystem(float deltaTime, Engine::Scene* 
                     visionComp.VisibleTarget = playerEntity;
 
 
-                    if (aiComp.CurrentState == AIState::Idle || aiComp.CurrentState == AIState::Attack)
-                    {
-                        aiComp.CurrentState = AIState::MoveToTarget;
-                    }
+                   
 
                     aiComp.TargetPosition = playerTransformComp.Translation;
                     foundAny = true;

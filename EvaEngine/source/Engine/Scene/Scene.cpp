@@ -38,6 +38,8 @@
 #include "Components/NPC/Destruction/EnemyDestructibleComponent.h"
 #include <Engine/Animation/3D/AnimationRegistry.h>
 #include "Engine/Scene/SceneUtils/SceneUtils.h"
+#include "SceneUtils/SpawnUtils.h"
+#include "Components/Animation/NpcAnimationControllerComponent.h"
 
 
 namespace Engine {
@@ -273,8 +275,6 @@ namespace Engine {
     void Scene::SpawnEnemies(uint32_t enemyCount,
         const MeshAsset& meshAsset,
         uint32_t skeletonId,
-        uint32_t clipRun,
-        uint32_t clipIdle,
         const glm::vec2& originXZ,
         const glm::vec2& spacingXZ)
     {
@@ -282,6 +282,41 @@ namespace Engine {
             return;
 
         const SkeletonAsset& skeletonAsset = AssetManager::GetSkeletonRegistry().Get(skeletonId);
+
+        int rootIdx = SkeletonRegistry::FindBoneContains(skeletonAsset, "Spine1");   // or use parent==-1
+        int pelvisIdx = SkeletonRegistry::FindBoneContains(skeletonAsset, "Pelvis"); //
+        auto ZeroTranslation = [](glm::mat4& m)
+            {
+                // GLM column-major: translation is column 3
+                m[3].x = 0.0f;
+                m[3].y = 0.0f;
+                m[3].z = 0.0f;
+                m[3].w = 1.0f;
+            };
+        if (rootIdx < 0)
+        {
+            for (int i = 0; i < (int)skeletonAsset.parent.size(); ++i)
+                if (skeletonAsset.parent[i] == -1) { rootIdx = i; break; }
+        }
+
+        // poseLocal is what you feed into world accumulation
+        std::vector<glm::mat4> poseLocal(skeletonAsset.boneNames.size());
+
+        for (int i = 0; i < (int)skeletonAsset.boneNames.size(); ++i)
+        {
+            // 1) Start from rest pose
+            glm::mat4 M = skeletonAsset.restLocal[i];
+
+            // 2) If the clip animates this bone, override M with the animated local
+            //    (whatever your existing sampling produces)
+            // M = SampleAnimatedLocalMatrix(clip, i, t);
+
+            // 3) DEBUG: kill translation on pelvis or root
+            if (i == pelvisIdx || i == rootIdx)
+                ZeroTranslation(M);
+
+            poseLocal[i] = M;
+        }
 
         const uint32_t submeshCount = (uint32_t)meshAsset.submeshes.size();
         if (submeshCount == 0)
@@ -313,14 +348,6 @@ namespace Engine {
             tr.Scale *= glm::vec3(meshAsset.importScale);
 
 
-
-
-
-           
-        
-
-
-
             // Mesh
             MeshRefComponent& meshComp = enemyEntity.AddComponent<MeshRefComponent>();
             meshComp.meshId = meshAsset.id;
@@ -340,8 +367,8 @@ namespace Engine {
 
             // Animator
             Animator3DComponent& anim = enemyEntity.AddComponent<Animator3DComponent>();
-            anim.clipA = clipRun;
-            anim.clipB = clipIdle;
+            anim.clipA = INVALID_CLIP;
+            anim.clipB = INVALID_CLIP;
             anim.timeA = 0.0f;
             anim.timeB = 0.0f;
             anim.blend = 0.0f;
@@ -367,41 +394,54 @@ namespace Engine {
 
                 // Always render all parts
                 p.visible = 1;
+                const glm::vec3 aabbMin = sm.aabbMin;
+                const glm::vec3 aabbMax = sm.aabbMax;
 
-                // Default: only detachable for certain parts
-                p.canDetach = (p.type == EnemyPieceType::Head) ||
+                glm::vec3 centerL = 0.5f * (aabbMin + aabbMax);
+                glm::vec3 extents = (aabbMax - aabbMin);
+
+        
+
+                // Cancel the entity’s +90deg X rotation
+                glm::mat4 invFix = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1, 0, 0));
+                p.hitLocalCenter = glm::vec3(invFix * glm::vec4(centerL, 1.0f));
+
+                // Radius from XY only
+                glm::vec2 e2(extents.x, extents.y);
+                p.hitRadius = 0.5f * glm::length(e2 * meshAsset.importScale);
+
+
+                p.hitEnabled = 1;
+
+                // Detach rules (your choice)
+                p.canDetach =
+                    (p.type == EnemyPieceType::Head) ||
                     (p.type == EnemyPieceType::ArmL_Forearm) ||
                     (p.type == EnemyPieceType::ArmR_Forearm) ||
                     (p.type == EnemyPieceType::LegL_Calf) ||
                     (p.type == EnemyPieceType::LegR_Calf);
 
-                // Hit volumes: default off for generic, on for key parts
-                p.hitEnabled = 0;
-                p.hitShape = HitVolumeShape::Sphere;
-                p.hitLocalCenter = glm::vec3(0.0f);
-                p.hitRadius = 0.25f;
-
-                if (p.type == EnemyPieceType::Head)
-                {
-                    p.hitEnabled = 1;
-                    p.hitLocalCenter = glm::vec3(0.0f, 0.8f, 0.0f);
-                    p.hitRadius = 0.25f;
-                }
-                else if (p.type == EnemyPieceType::Torso || p.type == EnemyPieceType::Hip)
-                {
-                    p.hitEnabled = 1;
-                    p.hitLocalCenter = glm::vec3(0.0f, 0.2f, 0.0f);
-                    p.hitRadius = 0.40f;
+                // If you never want torso detach:
+                if (p.type == EnemyPieceType::Torso || p.type == EnemyPieceType::Hip)
                     p.canDetach = 0;
-                }
 
                 destr.pieces.push_back(p);
             }
 
             // AI
-            enemyEntity.AddComponent<NPCAIMovementComponent>();
+            NPCAIMovementComponent& mPCAIMovementComponent = enemyEntity.AddComponent<NPCAIMovementComponent>();
             NPCAIVisionComponent& vis = enemyEntity.AddComponent<NPCAIVisionComponent>();
-            vis.ViewAngle = 360.0f;
+           
+            vis.ViewAngle = 271.0f;
+
+            NpcAnimationControllerComponent& npcAnimationControllerComponent = enemyEntity.AddComponent<NpcAnimationControllerComponent>();
+
+            if (!npcAnimationControllerComponent.clipsResolved)
+                SpawnUtils::ResolveZombieClips(npcAnimationControllerComponent);
+
+
+
+
         }
     }
 
@@ -411,10 +451,6 @@ namespace Engine {
 
     void Scene::OnRunTimeStart()
     {
-     
-
-
-
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
 
         // makes sure textures are reloaded to the right registry
@@ -440,18 +476,14 @@ namespace Engine {
         MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
         AnimationRegistry& animReg = AssetManager::GetAnimationRegistry();
 
-        const MeshAsset* meshAsset = meshReg.GetMeshByKey("zombieAgonizing");
+        const MeshAsset* meshAsset = meshReg.GetMeshByKey("zombieMesh1");
         
         const AnimationClip* anim = animReg.FindAnimationClip("zombieAnimIdle");
         const AnimationClip* animIdle = animReg.FindAnimationClip("zombieAnimRun");
 
- 
-  
- 
-
         glm::vec2 originXZ = { 0.0f, 0.0f };
         glm::vec2 spacingXZ = { 10.0f, 10.0f }; 
-        SpawnEnemies(1, *meshAsset, meshAsset->skeletonId, anim->id, animIdle->id, originXZ, spacingXZ);
+        SpawnEnemies(1, *meshAsset, meshAsset->skeletonId, originXZ, spacingXZ);
 
         /*
         Entity m_camera3DEntity = CreateEntity("3D camera");
@@ -806,8 +838,6 @@ namespace Engine {
 
                 const MeshAsset* meshAsset = meshReg.GetMeshByKey("playerMeshes");
                
-
-
                 const uint32_t submeshCount = (uint32_t)meshAsset->submeshes.size();
 
 
@@ -835,7 +865,7 @@ namespace Engine {
                 */
                 auto& anim = playerEntity.AddComponent<Animator3DComponent>();
                 anim.clipA = testClip;
-                anim.clipB = testClipB;
+                anim.clipB = INVALID_CLIP;
                 anim.timeA = 0.0f;
                 anim.blend = 0.0f;                 // only clipA
                 anim.playbackSpeed = 1.0f;

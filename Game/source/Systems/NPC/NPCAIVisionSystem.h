@@ -2,6 +2,7 @@
 #include "Engine.h"
 
 
+
 class Scene;
 class NPCAIVisionSystem
 {

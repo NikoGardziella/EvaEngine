@@ -29,9 +29,7 @@ namespace Engine {
 
     void BonePaletteBuffer::FlushToGPU(VulkanCtx& vk) 
     {
-        // Wire this to  existing renderer:
-        // Map your VkBuffer (palette SSBO) once per frame and memcpy dirty spans.
-        // For now we assume one contiguous buffer.
+
         if (!vk.paletteMappedPtr) return;
 
         for (auto [base, count] : m_dirtyRanges)

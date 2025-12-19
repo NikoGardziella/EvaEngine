@@ -13,6 +13,7 @@ namespace Engine {
 	{
 	public:
 		void Render(const VisibleSet& vis, Scene* scene, const TransformSystem3D& xforms, const MeshRegistry& meshes, const MaterialRegistry& materials);
+		static void DebugDrawHitSphere2D_XY(const glm::mat4& enemyWorld, const glm::vec3& hitLocalCenter, float radius, const glm::vec4& color);
 	};
 
 }

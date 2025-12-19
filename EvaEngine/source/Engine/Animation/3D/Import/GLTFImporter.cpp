@@ -167,6 +167,275 @@ namespace Engine {
         return matAssetId;
     }
 
+    // Put near your importer (same .cpp) or in GLTFImporterUtils.cpp
+
+    static std::string GLTF_ComponentTypeName(int ct)
+    {
+        switch (ct)
+        {
+        case TINYGLTF_COMPONENT_TYPE_BYTE:           return "BYTE";
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:  return "UBYTE";
+        case TINYGLTF_COMPONENT_TYPE_SHORT:          return "SHORT";
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: return "USHORT";
+        case TINYGLTF_COMPONENT_TYPE_INT:            return "INT";
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:   return "UINT";
+        case TINYGLTF_COMPONENT_TYPE_FLOAT:          return "FLOAT";
+        case TINYGLTF_COMPONENT_TYPE_DOUBLE:         return "DOUBLE";
+        default: return "UNKNOWN";
+        }
+    }
+
+    static std::string GLTF_TypeName(int type)
+    {
+        switch (type)
+        {
+        case TINYGLTF_TYPE_SCALAR: return "SCALAR";
+        case TINYGLTF_TYPE_VEC2:   return "VEC2";
+        case TINYGLTF_TYPE_VEC3:   return "VEC3";
+        case TINYGLTF_TYPE_VEC4:   return "VEC4";
+        case TINYGLTF_TYPE_MAT2:   return "MAT2";
+        case TINYGLTF_TYPE_MAT3:   return "MAT3";
+        case TINYGLTF_TYPE_MAT4:   return "MAT4";
+        default: return "UNKNOWN";
+        }
+    }
+
+    // Optional: checks if matrix is close to identity
+    static bool Mat4IsNearIdentity(const glm::mat4& m, float eps = 1e-4f)
+    {
+        glm::mat4 I(1.0f);
+        for (int r = 0; r < 4; ++r)
+            for (int c = 0; c < 4; ++c)
+                if (fabs(m[r][c] - I[r][c]) > eps) return false;
+        return true;
+    }
+
+    static void LogAccessor(const tinygltf::Model& model, int accessorIndex, const char* label)
+    {
+        if (accessorIndex < 0 || accessorIndex >= (int)model.accessors.size())
+        {
+            EE_CORE_WARN("[GLTFDBG] {} accessor = {} (invalid index)", label, accessorIndex);
+            return;
+        }
+
+        const tinygltf::Accessor& acc = model.accessors[accessorIndex];
+        const tinygltf::BufferView& bv = model.bufferViews[acc.bufferView];
+
+        int byteStride = 0;
+        // tinygltf helper exists, but we can compute effective stride:
+        // If bv.byteStride != 0 -> use it, else tightly packed
+        // You already use AccessPtr to get stride; this is just for logging.
+        byteStride = (bv.byteStride > 0) ? (int)bv.byteStride : 0;
+
+        EE_CORE_INFO("[GLTFDBG] Accessor {} '{}': count={}, type={}, comp={}, normalized={}, bufView={}, byteOffset={}, bv.byteStride={}",
+            accessorIndex, label,
+            acc.count,
+            GLTF_TypeName(acc.type),
+            GLTF_ComponentTypeName(acc.componentType),
+            acc.normalized ? 1 : 0,
+            acc.bufferView,
+            acc.byteOffset,
+            byteStride);
+    }
+
+    static void LogSkin(const tinygltf::Model& model, int skinIndex)
+    {
+        if (skinIndex < 0 || skinIndex >= (int)model.skins.size())
+        {
+            EE_CORE_WARN("[GLTFDBG] skinIndex {} invalid (skins={})", skinIndex, model.skins.size());
+            return;
+        }
+
+        const tinygltf::Skin& skin = model.skins[skinIndex];
+
+        EE_CORE_INFO("[GLTFDBG] Skin[{}] name='{}' jointsCount={} skeletonNode={}",
+            skinIndex, skin.name, skin.joints.size(), skin.skeleton);
+
+        // Log first few joint node indices and names
+        const int maxPrint = 12;
+        const int toPrint = (int)std::min<size_t>(skin.joints.size(), (size_t)maxPrint);
+        for (int i = 0; i < toPrint; ++i)
+        {
+            int jNode = skin.joints[i];
+            std::string jName = (jNode >= 0 && jNode < (int)model.nodes.size()) ? model.nodes[jNode].name : "<bad node index>";
+            EE_CORE_INFO("  [GLTFDBG] skin.joints[{}] = node {} ('{}')", i, jNode, jName);
+        }
+
+        if (skin.inverseBindMatrices >= 0)
+        {
+            EE_CORE_INFO("[GLTFDBG] Skin[{}] inverseBindMatrices accessor = {}", skinIndex, skin.inverseBindMatrices);
+            LogAccessor(model, skin.inverseBindMatrices, "inverseBindMatrices");
+
+            const tinygltf::Accessor& ibmAcc = model.accessors[skin.inverseBindMatrices];
+            if ((size_t)ibmAcc.count != skin.joints.size())
+            {
+                EE_CORE_WARN("[GLTFDBG] IBM count mismatch: ibmAcc.count={} but jointsCount={}",
+                    ibmAcc.count, skin.joints.size());
+            }
+            if (ibmAcc.type != TINYGLTF_TYPE_MAT4)
+            {
+                EE_CORE_WARN("[GLTFDBG] IBM accessor type is {}, expected MAT4", GLTF_TypeName(ibmAcc.type));
+            }
+        }
+        else
+        {
+            EE_CORE_WARN("[GLTFDBG] Skin[{}] has NO inverseBindMatrices accessor", skinIndex);
+        }
+    }
+
+    // Reads a few joints/weights from CPU buffers exactly like your importer does,
+    // and prints ranges + max joint index found.
+    // Call this inside your primitive import after you have baseJoints/baseWeights/stride* and vCount.
+    static void LogJointsWeightsSample(
+        const tinygltf::Accessor* accJoints, const unsigned char* baseJoints, size_t strideJoints,
+        const tinygltf::Accessor* accWeights, const unsigned char* baseWeights, size_t strideWeights,
+        size_t vCount,
+        const char* primName)
+    {
+        if (!accJoints || !baseJoints)
+        {
+            EE_CORE_INFO("[GLTFDBG] {}: no JOINTS_0", primName);
+            return;
+        }
+
+        uint32_t maxJoint = 0;
+        float minWsum = 1e9f;
+        float maxWsum = -1e9f;
+
+        const size_t sampleN = std::min<size_t>(vCount, 64);
+
+        for (size_t i = 0; i < sampleN; ++i)
+        {
+            const unsigned char* pj = baseJoints + i * strideJoints;
+
+            glm::uvec4 j(0);
+            if (accJoints->componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+            {
+                const uint8_t* jb = reinterpret_cast<const uint8_t*>(pj);
+                j = glm::uvec4(jb[0], jb[1], jb[2], jb[3]);
+            }
+            else
+            {
+                const uint16_t* js = reinterpret_cast<const uint16_t*>(pj);
+                j = glm::uvec4(js[0], js[1], js[2], js[3]);
+            }
+
+            maxJoint = std::max(maxJoint, std::max(std::max(j.x, j.y), std::max(j.z, j.w)));
+
+            float wsum = 0.0f;
+            if (accWeights && baseWeights)
+            {
+                const unsigned char* pw = baseWeights + i * strideWeights;
+                glm::vec4 w(0.0f);
+
+                if (accWeights->componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
+                {
+                    const float* wf = reinterpret_cast<const float*>(pw);
+                    w = glm::vec4(wf[0], wf[1], wf[2], wf[3]);
+                }
+                else if (accWeights->componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+                {
+                    const uint8_t* wb = reinterpret_cast<const uint8_t*>(pw);
+                    w = glm::vec4(wb[0], wb[1], wb[2], wb[3]) / 255.0f;
+                }
+                else
+                {
+                    const uint16_t* ws = reinterpret_cast<const uint16_t*>(pw);
+                    w = glm::vec4(ws[0], ws[1], ws[2], ws[3]) / 65535.0f;
+                }
+
+                wsum = w.x + w.y + w.z + w.w;
+                minWsum = std::min(minWsum, wsum);
+                maxWsum = std::max(maxWsum, wsum);
+            }
+        }
+
+        EE_CORE_INFO("[GLTFDBG] {}: JOINTS_0 comp={} stride={} sampleN={} maxJointIndex={}",
+            primName, GLTF_ComponentTypeName(accJoints->componentType), (uint32_t)strideJoints, (uint32_t)sampleN, maxJoint);
+
+        if (accWeights && baseWeights)
+        {
+            EE_CORE_INFO("[GLTFDBG] {}: WEIGHTS_0 comp={} stride={} wSumRange=[{:.3f}..{:.3f}] (before normalize)",
+                primName, GLTF_ComponentTypeName(accWeights->componentType), (uint32_t)strideWeights, minWsum, maxWsum);
+        }
+        else
+        {
+            EE_CORE_INFO("[GLTFDBG] {}: no WEIGHTS_0", primName);
+        }
+    }
+
+    // Logs the important per-node info that commonly differs between assets.
+    static void LogSkinnedNodeSummary1(
+        const tinygltf::Model& model,
+        int nodeIndex,
+        const glm::mat4& nodeWorld)
+    {
+        const tinygltf::Node& node = model.nodes[nodeIndex];
+
+        EE_CORE_INFO("[GLTFDBG] Node[{}] name='{}' mesh={} skin={} worldIsIdentity={}",
+            nodeIndex,
+            node.name,
+            node.mesh,
+            node.skin,
+            Mat4IsNearIdentity(nodeWorld) ? 1 : 0);
+
+        // Also log local TRS if available
+        if (!node.translation.empty() || !node.rotation.empty() || !node.scale.empty())
+        {
+            glm::vec3 t(0.0f);
+            glm::vec3 s(1.0f);
+            glm::vec4 r(0.0f, 0.0f, 0.0f, 1.0f);
+
+            if (node.translation.size() == 3) t = glm::vec3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
+            if (node.scale.size() == 3)       s = glm::vec3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
+            if (node.rotation.size() == 4)    r = glm::vec4((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]);
+
+            EE_CORE_INFO("  [GLTFDBG] TRS: T=({:.3f},{:.3f},{:.3f}) S=({:.3f},{:.3f},{:.3f}) Rquat=({:.3f},{:.3f},{:.3f},{:.3f})",
+                t.x, t.y, t.z, s.x, s.y, s.z, r.x, r.y, r.z, r.w);
+        }
+
+        if (node.skin >= 0)
+            LogSkin(model, node.skin);
+    }
+
+    static void LogAnimationSamplerInterpolations(const tinygltf::Model& model, const char* tag)
+    {
+        EE_CORE_INFO("[GLTFDBG] ----- Animation sampler interpolations: {} -----", tag);
+
+        for (int ai = 0; ai < (int)model.animations.size(); ++ai)
+        {
+            const tinygltf::Animation& anim = model.animations[ai];
+
+            int nLinear = 0, nStep = 0, nCubic = 0, nOther = 0;
+
+            for (int si = 0; si < (int)anim.samplers.size(); ++si)
+            {
+                const tinygltf::AnimationSampler& s = anim.samplers[si];
+
+                const std::string& interp = s.interpolation; // "LINEAR", "STEP", "CUBICSPLINE", or empty
+                if (interp == "LINEAR" || interp.empty()) nLinear++;
+                else if (interp == "STEP") nStep++;
+                else if (interp == "CUBICSPLINE") nCubic++;
+                else nOther++;
+
+                EE_CORE_INFO("[GLTFDBG] anim[{}] '{}' sampler[{}] interp='{}' inputAcc={} outputAcc={}",
+                    ai,
+                    anim.name.empty() ? "<unnamed>" : anim.name,
+                    si,
+                    interp.empty() ? "<empty->LINEAR?>" : interp,
+                    s.input,
+                    s.output);
+            }
+
+            EE_CORE_INFO("[GLTFDBG] anim[{}] '{}' samplers: LINEAR={} STEP={} CUBICSPLINE={} OTHER={}",
+                ai,
+                anim.name.empty() ? "<unnamed>" : anim.name,
+                nLinear, nStep, nCubic, nOther);
+        }
+    }
+
+
+
 
     GLTFImportResult GLTFImporter::Import(const std::string& path,MeshRegistry& meshReg, MaterialRegistry& matReg,
         SkeletonRegistry& skelReg, AnimationRegistry& animReg, const GLTFImportOptions& opts)
@@ -203,7 +472,7 @@ namespace Engine {
 
 
 
-
+        //LogAnimationSamplerInterpolations(model, path.c_str());
 
         uint32_t skeletonId = 0xFFFFFFFFu;
         std::vector<uint32_t> clipIds;
@@ -286,6 +555,7 @@ namespace Engine {
                 if (node.mesh < 0)
                     continue;
 
+              
                 const tinygltf::Mesh& mesh = model.meshes[node.mesh];
 
                 // Normal matrix for this node
@@ -487,6 +757,8 @@ namespace Engine {
                             v.weights = glm::vec4(0.0f);
                         }
 
+
+                  
                         verts[i] = v;
                         aabbMin = glm::min(aabbMin, v.pos);
                         aabbMax = glm::max(aabbMax, v.pos);
@@ -538,7 +810,7 @@ namespace Engine {
                     meshAsset.maxL = glm::max(meshAsset.maxL, aabbMax);
                     meshAsset.importScale = GLTFIImporterUtils::GuessImportScaleFromBounds(meshAsset.minL, meshAsset.maxL);
                     meshAsset.submeshes.push_back(std::move(sub));
-
+                    //LogJointsWeightsSample(accJoints,baseJoints,strideJoints,accWeights,baseWeights,strideWeights,vCount, nameBase.c_str());
 
                   
 

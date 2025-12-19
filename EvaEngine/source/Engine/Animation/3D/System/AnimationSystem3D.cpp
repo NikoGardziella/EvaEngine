@@ -8,6 +8,9 @@
 
 namespace Engine {
 
+
+
+
     void AnimationSystem3D::Update(Scene* scene, float dt, const SkeletonRegistry& skelReg, const AnimationRegistry& animReg,
         BonePaletteBuffer& palette)
     {
@@ -21,18 +24,24 @@ namespace Engine {
                     return;
 
                 // 1) Advance times
-                AdvanceTime(an.clipA, an.timeA, dt, an.playbackSpeed, animReg);
-                AdvanceTime(an.clipB, an.timeB, dt, an.playbackSpeed, animReg);
+                AdvanceTime(an.clipA, an.timeA, dt, an.playbackSpeed, animReg, true);
+                AdvanceTime(an.clipB, an.timeB, dt, an.playbackSpeed, animReg, false);
 
                 const SkeletonAsset& sasset = skelReg.Get(skel.skeletonId);
                 const uint32_t boneCount = skel.boneCount;
 
                 // 2) Scratch buffers
+                AnimationUtils::EnsureSize(scratch.TA, boneCount);
+                AnimationUtils::EnsureSize(scratch.RA, boneCount);
+                AnimationUtils::EnsureSize(scratch.SA, boneCount);
+
+                AnimationUtils::EnsureSize(scratch.TB, boneCount);
+                AnimationUtils::EnsureSize(scratch.RB, boneCount);
+                AnimationUtils::EnsureSize(scratch.SB, boneCount);
+
                 AnimationUtils::EnsureSize(scratch.T, boneCount);
                 AnimationUtils::EnsureSize(scratch.R, boneCount);
                 AnimationUtils::EnsureSize(scratch.S, boneCount);
-                AnimationUtils::EnsureSize(scratch.model, boneCount);
-                AnimationUtils::EnsureSize(scratch.finalMats, boneCount);
 
                 auto& locT = scratch.T;
                 auto& locR = scratch.R;
@@ -43,16 +52,33 @@ namespace Engine {
                 // 3) Identity pose (or bind pose if you add it later)
                 for (uint32_t i = 0; i < boneCount; ++i)
                 {
-                    locT[i] = glm::vec3(0.0f);
-                    locR[i] = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-                    locS[i] = glm::vec3(1.0f);
+                    glm::vec3 restT; glm::quat restR; glm::vec3 restS;
+                    AnimationUtils::DecomposeTRS(sasset.restLocal[i], restT, restR, restS);
+
+                    scratch.TA[i] = restT;
+                    scratch.RA[i] = restR;
+                    scratch.SA[i] = restS;
+
+                    scratch.TB[i] = restT;
+                    scratch.RB[i] = restR;
+                    scratch.SB[i] = restS;
                 }
+                //EE_CORE_INFO("blend={}, clipA={}, clipB={}", an.blend, (uint32_t)an.clipA, (uint32_t)an.clipB);
+                float wB = glm::clamp(an.blend, 0.0f, 1.0f);
 
-                const float wB = glm::clamp(an.blend, 0.0f, 1.0f);
-                const float wA = 1.0f - wB;
+                // If clipB is missing, it must not contribute
+                if (an.clipA == INVALID_CLIP && an.clipB != INVALID_CLIP) wB = 1.0f;
+                if (an.clipB == INVALID_CLIP) wB = 0.0f;
 
-                ApplyClip(an.clipA, an.timeA, wA, boneCount, animReg, locT, locR, locS);
-                ApplyClip(an.clipB, an.timeB, wB, boneCount, animReg, locT, locR, locS);
+                float wA = 1.0f - wB;
+
+                ApplyClipFullPose(an.clipA, an.timeA, boneCount, animReg, scratch.TA, scratch.RA, scratch.SA);
+                ApplyClipFullPose(an.clipB, an.timeB, boneCount, animReg, scratch.TB, scratch.RB, scratch.SB);
+               
+
+
+
+
                 //EE_CORE_INFO("Entity {}: clipA={}, clipB={}", (uint32_t)entity, an.clipA, an.clipB);
 
                 const auto& parent = sasset.parent;
@@ -60,28 +86,69 @@ namespace Engine {
 
                 for (uint32_t i = 0; i < boneCount; ++i)
                 {
+                    scratch.T[i] = glm::mix(scratch.TA[i], scratch.TB[i], wB);
+                    scratch.S[i] = glm::mix(scratch.SA[i], scratch.SB[i], wB);
+                    glm::quat a = scratch.RA[i];
+                    glm::quat b = scratch.RB[i];
+                    if (glm::dot(a, b) < 0.0f) b = -b;
+                    scratch.R[i] = glm::normalize(glm::slerp(a, b, wB));
+                }
+                
+
+                model.resize(boneCount);
+                finalMats.resize(boneCount);
+
+
+
+
+                for (uint32_t i = 0; i < boneCount; ++i)
+                {
                     const glm::mat4 local = AnimationUtils::TRS(locT[i], locR[i], locS[i]);
 
                     const int p = parent[i];
-                    glm::mat4 world = (p >= 0) ? (model[p] * local) : local;
+                    const glm::mat4 world = (p >= 0) ? (model[p] * local) : local;
                     model[i] = world;
 
-                    const glm::mat4 invB =
-                        (i < invBind.size()) ? invBind[i] : glm::mat4(1.0f);
-
+                    const glm::mat4 invB = (i < invBind.size()) ? invBind[i] : glm::mat4(1.0f);
                     finalMats[i] = world * invB;
                 }
 
-
+                // 3) Allocate slice and upload
                 uint32_t base = VulkanRenderer3D::GetBoneCursor();
-                skel.boneBase = base;   // each skeleton gets its own slice
-               
+                skel.boneBase = base;
+
                 for (uint32_t i = 0; i < boneCount; ++i)
                 {
+
                     VulkanRenderer3D::SubmitBone(finalMats[i]);
                 }
             });
     }
+
+    void AnimationSystem3D::ApplyClipFullPose(uint32_t clipId, float t, uint32_t boneCount, const AnimationRegistry& animReg,
+        std::vector<glm::vec3>& T, std::vector<glm::quat>& R, std::vector<glm::vec3>& S)
+    {
+        if (clipId == 0xFFFFFFFFu)
+            return;
+
+        const AnimationClip& clip = animReg.Get(clipId);
+
+        for (const AnimChannel& ch : clip.channels)
+        {
+            uint32_t b = ch.bone;
+            if (b >= boneCount) continue;
+
+            glm::vec3 tS;
+            glm::quat rS;
+            glm::vec3 sS;
+            SampleChannel(ch, t, tS, rS, sS);
+
+            T[b] = tS;
+            R[b] = rS;
+            S[b] = sS;
+        }
+    }
+
 
 
     int AnimationSystem3D::FindKey(const std::vector<float>& times, float t)
@@ -174,23 +241,30 @@ namespace Engine {
 
     
 
-    float AnimationSystem3D::AdvanceTime(uint32_t clipId,  float& t, float dt, float playbackSpeed,
-        const AnimationRegistry& animReg)
+    float AnimationSystem3D::AdvanceTime(uint32_t clipId, float& t, float dt, float playbackSpeed,
+        const AnimationRegistry& animReg, bool loop)
     {
-        if (clipId == 0xFFFFFFFFu)
-            return 0.0f;
+        if (clipId == 0xFFFFFFFFu) return 0.0f;
 
         const AnimationClip& clip = animReg.Get(clipId);
         t += dt * playbackSpeed;
 
         if (clip.duration > 0.0f)
         {
-            while (t >= clip.duration) t -= clip.duration;
-            while (t < 0.0f)          t += clip.duration;
+            if (loop)
+            {
+                while (t >= clip.duration) t -= clip.duration;
+                while (t < 0.0f)          t += clip.duration;
+            }
+            else
+            {
+                if (t < 0.0f) t = 0.0f;
+                if (t > clip.duration) t = clip.duration; // clamp and hold last frame
+            }
         }
-
         return clip.duration;
     }
+
 
     void AnimationSystem3D::ApplyClip(uint32_t clipId, float t, float weight, uint32_t boneCount, const AnimationRegistry& animReg,
         std::vector<glm::vec3>& locT, std::vector<glm::quat>& locR, std::vector<glm::vec3>& locS)

@@ -303,7 +303,7 @@ namespace Engine
                 // Test against all collision subcells
                 for (const auto& obb : m_blockedSubCells)
                 {
-                    constexpr float kLOSObstaclePadding = 0.1f;
+                    constexpr float kLOSObstaclePadding = 0.2f;
                     if (GridUtils::PointInSubCellOBB_Padded(P, obb, kLOSObstaclePadding))
                     {
                         blockedHere = true;

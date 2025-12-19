@@ -264,6 +264,51 @@ namespace Engine {
         return id;
     }
 
+
+    enum class InterpMode : uint8_t { Linear, Step };
+
+    static InterpMode ToInterp(const std::string& s)
+    {
+        if (s == "STEP") return InterpMode::Step;
+        return InterpMode::Linear; // empty or "LINEAR" treated as LINEAR
+    }
+
+    struct TRSCurves {
+        std::vector<float>      tTimes;
+        std::vector<glm::vec3>  tValues;
+        std::vector<float>      rTimes;
+        std::vector<glm::quat>  rValues;
+        std::vector<float>      sTimes;
+        std::vector<glm::vec3>  sValues;
+
+        InterpMode tInterp = InterpMode::Linear;
+        InterpMode rInterp = InterpMode::Linear;
+        InterpMode sInterp = InterpMode::Linear;
+    };
+
+    static void DecomposeTRS(const glm::mat4& M, glm::vec3& T, glm::quat& R, glm::vec3& S)
+    {
+        // Translation
+        T = glm::vec3(M[3]);
+
+        // Columns (GLM column-major)
+        glm::vec3 c0 = glm::vec3(M[0]);
+        glm::vec3 c1 = glm::vec3(M[1]);
+        glm::vec3 c2 = glm::vec3(M[2]);
+
+        S.x = glm::length(c0);
+        S.y = glm::length(c1);
+        S.z = glm::length(c2);
+
+        if (S.x > 0.0f) c0 /= S.x;
+        if (S.y > 0.0f) c1 /= S.y;
+        if (S.z > 0.0f) c2 /= S.z;
+
+        glm::mat3 Rm(c0, c1, c2);
+        R = glm::normalize(glm::quat_cast(Rm));
+    }
+
+
     void GLTFIImporterUtils::LoadClipsFromModel(
         const tinygltf::Model& model,
         AnimationRegistry& animReg,
@@ -331,10 +376,10 @@ namespace Engine {
                 out[i] = glm::quat(v[3], v[0], v[1], v[2]);
             }
             };
-
         auto sampleVec3Curve = [](const std::vector<float>& times,
             const std::vector<glm::vec3>& values,
-            float t) -> glm::vec3
+            float t,
+            InterpMode mode) -> glm::vec3
             {
                 if (times.empty() || values.empty())
                     return glm::vec3(0.0f);
@@ -347,6 +392,10 @@ namespace Engine {
                 auto it = std::lower_bound(times.begin(), times.end(), t);
                 size_t idx1 = (size_t)std::distance(times.begin(), it);
                 size_t idx0 = idx1 - 1;
+
+                if (mode == InterpMode::Step)
+                    return values[idx0]; // hold previous key
+
                 float t0 = times[idx0];
                 float t1 = times[idx1];
                 float alpha = (t1 > t0) ? (t - t0) / (t1 - t0) : 0.0f;
@@ -355,38 +404,47 @@ namespace Engine {
 
         auto sampleQuatCurve = [](const std::vector<float>& times,
             const std::vector<glm::quat>& values,
-            float t) -> glm::quat
+            float t,
+            InterpMode mode) -> glm::quat
             {
                 if (times.empty() || values.empty())
                     return glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
+                glm::quat q0 = glm::normalize(values.front());
+                glm::quat qN = glm::normalize(values.back());
+
                 if (t <= times.front())
-                    return values.front();
+                    return q0;
                 if (t >= times.back())
-                    return values.back();
+                    return qN;
 
                 auto it = std::lower_bound(times.begin(), times.end(), t);
                 size_t idx1 = (size_t)std::distance(times.begin(), it);
                 size_t idx0 = idx1 - 1;
+
+                glm::quat a = glm::normalize(values[idx0]);
+                if (mode == InterpMode::Step)
+                    return a; // hold previous key
+
+                glm::quat b = glm::normalize(values[idx1]);
+
+                // shortest-path
+                if (glm::dot(a, b) < 0.0f) b = -b;
+
                 float t0 = times[idx0];
                 float t1 = times[idx1];
                 float alpha = (t1 > t0) ? (t - t0) / (t1 - t0) : 0.0f;
-                return glm::normalize(glm::slerp(values[idx0], values[idx1], alpha));
+
+                return glm::normalize(glm::slerp(a, b, alpha));
             };
+
 
         // For each animation in the file
         for (int ai = 0; ai < (int)model.animations.size(); ++ai) {
             const auto& anim = model.animations[ai];
 
             // Per-bone raw curves (separate times for T/R/S)
-            struct TRSCurves {
-                std::vector<float>      tTimes;
-                std::vector<glm::vec3>  tValues;
-                std::vector<float>      rTimes;
-                std::vector<glm::quat>  rValues;
-                std::vector<float>      sTimes;
-                std::vector<glm::vec3>  sValues;
-            };
+        
             std::vector<TRSCurves> curves(boneCount);
 
             float globalMaxTime = 0.0f;
@@ -406,9 +464,11 @@ namespace Engine {
 
                 const tinygltf::AnimationSampler& samp = anim.samplers[ch.sampler];
                 const tinygltf::Accessor& timeAcc = model.accessors[samp.input];
+                const InterpMode interp = ToInterp(samp.interpolation);
 
                 if (ch.target_path == "translation")
                 {
+                    dst.rInterp = interp;
                     readFloats(timeAcc, dst.tTimes);
                     const tinygltf::Accessor& valAcc = model.accessors[samp.output];
                     readVec3s(valAcc, dst.tValues);
@@ -417,6 +477,7 @@ namespace Engine {
                 }
                 else if (ch.target_path == "rotation")
                 {
+                    dst.rInterp = interp;
                     readFloats(timeAcc, dst.rTimes);
                     const tinygltf::Accessor& valAcc = model.accessors[samp.output];
                     readQuats(valAcc, dst.rValues);
@@ -425,6 +486,7 @@ namespace Engine {
                 }
                 else if (ch.target_path == "scale")
                 {
+                    dst.sInterp = interp;
                     readFloats(timeAcc, dst.sTimes);
                     const tinygltf::Accessor& valAcc = model.accessors[samp.output];
                     readVec3s(valAcc, dst.sValues);
@@ -468,23 +530,29 @@ namespace Engine {
                 chOut.T.reserve(merged.size());
                 chOut.R.reserve(merged.size());
                 chOut.S.reserve(merged.size());
+                glm::vec3 restT; glm::quat restR; glm::vec3 restS;
+                DecomposeTRS(skeletonAsset.restLocal[b], restT, restR, restS);
 
-                for (float t : merged) {
+                for (float t : merged)
+                {
                     glm::vec3 T = c.tTimes.empty()
-                        ? glm::vec3(0.0f)
-                        : sampleVec3Curve(c.tTimes, c.tValues, t);
+                        ? restT
+                        : sampleVec3Curve(c.tTimes, c.tValues, t, c.tInterp);
+
                     glm::vec3 S = c.sTimes.empty()
-                        ? glm::vec3(1.0f)
-                        : sampleVec3Curve(c.sTimes, c.sValues, t);
+                        ? restS
+                        : sampleVec3Curve(c.sTimes, c.sValues, t, c.sInterp);
+
                     glm::quat R = c.rTimes.empty()
-                        ? glm::quat(1.0f, 0.0f, 0.0f, 0.0f)
-                        : sampleQuatCurve(c.rTimes, c.rValues, t);
+                        ? restR
+                        : sampleQuatCurve(c.rTimes, c.rValues, t, c.rInterp);
 
                     chOut.times.push_back(t);
                     chOut.T.push_back(T);
                     chOut.R.push_back(R);
                     chOut.S.push_back(S);
                 }
+
             }
 
             clip.duration = globalMaxTime;

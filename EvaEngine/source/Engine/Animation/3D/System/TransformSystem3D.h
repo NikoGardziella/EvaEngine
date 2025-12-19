@@ -13,6 +13,8 @@ namespace Engine {
 	class TransformSystem3D
 	{
 	public:
+
+		 // remove this class?
 		void Update(Scene* scene, float dt);
 		
 

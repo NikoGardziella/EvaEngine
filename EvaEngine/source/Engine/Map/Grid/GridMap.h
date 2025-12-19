@@ -19,7 +19,6 @@ namespace Engine {
 	{
 	public:
 		void BuildFromRegistry(Scene* scene);
-		void RebuildSlotToSubcellLUT();
 		void GridMap::MarkBlockedSubtilesFromTexture(const glm::vec2& worldPosition,
 			const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
 
