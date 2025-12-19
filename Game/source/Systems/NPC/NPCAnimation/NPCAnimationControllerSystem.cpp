@@ -17,8 +17,7 @@ void NPCAnimationControllerSystem::UpdateNPCAnimationControllerSystem(float dt, 
     scene->ForEach<NPCAIMovementComponent, Engine::Animator3DComponent, NpcAnimationControllerComponent>(
         [&](Engine::Entity e, NPCAIMovementComponent& ai, Engine::Animator3DComponent& anim, NpcAnimationControllerComponent& ctrl)
         {
-            if (!ctrl.clipsResolved)
-                Engine::SpawnUtils::ResolveZombieClips(ctrl);
+          
 
             // 0) Always ensure clipA is a valid loop for the current state (even during one-shot)
             switch (ai.CurrentState)

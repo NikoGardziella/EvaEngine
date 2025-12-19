@@ -437,7 +437,7 @@ namespace Engine {
             NpcAnimationControllerComponent& npcAnimationControllerComponent = enemyEntity.AddComponent<NpcAnimationControllerComponent>();
 
             if (!npcAnimationControllerComponent.clipsResolved)
-                SpawnUtils::ResolveZombieClips(npcAnimationControllerComponent);
+                SpawnUtils::ResolveZombieClips(npcAnimationControllerComponent, meshAsset);
 
 
 
