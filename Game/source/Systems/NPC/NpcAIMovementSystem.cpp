@@ -81,7 +81,6 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
 
             if (needRepath)
             {
-                
                 std::vector<glm::vec2> path2D = grid->FindPathWorld(npc2, goal2);
 
                 movementComp.path.clear();
@@ -105,12 +104,7 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
 
             const bool moving = MoveAlongPathXY(movementComp, npcTransformComp, deltatime);
 
-            if (movementComp.HasPath())
-            {
-                const glm::vec3 wp3 = movementComp.path[movementComp.pathIndex];
-                glm::vec2 to = glm::vec2(wp3.x, wp3.y) - glm::vec2(npcTransformComp.Translation.x, npcTransformComp.Translation.y);
-                FaceDir2D(to);
-            }
+           
 
             if (!moving)
             {

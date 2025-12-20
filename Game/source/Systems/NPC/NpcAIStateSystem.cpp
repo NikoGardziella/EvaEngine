@@ -3,6 +3,7 @@
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 #include "NpcAIMovementSystem.h"
+#include <random>
 
 void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)
 {
@@ -55,12 +56,11 @@ void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)
                     if (npcStateComp.idleTimer >= npcStateComp.idleDuration)
                     {
                         npcStateComp.idleTimer = 0.0f;
-                        if (!patrol.points.empty())
-                            npcStateComp.state = AIState::Patrol;
+                       
+                        npcStateComp.state = AIState::Patrol;
                     }
                     break;
                 }
-
                 case AIState::Patrol:
                 {
                     if (hasLOS)
@@ -69,29 +69,29 @@ void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)
                         break;
                     }
 
-                    if (patrol.points.empty())
-                    {
-                        npcStateComp.state = AIState::Idle;
-                        break;
-                    }
+                    // If we are close to the current goal, pick a new random one
+                    npcStateComp.patrolRegoalCooldown -= dt;
 
-                    glm::vec3 target3 = patrol.points[patrol.index];
-                    movementComp.wantsMove = 1;
-                    movementComp.usePath = 0;
-                    movementComp.goal2D = { target3.x, target3.y };
-
-                    // Arrive check
                     glm::vec2 p(tr.Translation.x, tr.Translation.y);
-                    glm::vec2 g(target3.x, target3.y);
-                    const float reach = 0.10f;
-                    if (glm::dot(g - p, g - p) <= reach * reach)
+                    glm::vec2 g = movementComp.goal2D;
+
+                    const float reach = 0.35f;
+                    const bool arrived = glm::dot(g - p, g - p) <= reach * reach;
+
+                    if (arrived && npcStateComp.patrolRegoalCooldown <= 0.0f)
                     {
-                        patrol.index = (patrol.index + 1u) % (uint32_t)patrol.points.size();
-                        npcStateComp.state = AIState::Idle;
+                        SetRandomPatrolGoal(movementComp, tr.Translation, 2.0f, 10.0f, /*usePath=*/true);
+                        npcStateComp.patrolRegoalCooldown = 0.75f; // don’t repick instantly
                     }
+                    else
+                    {
+                        // keep moving to current goal
+                        movementComp.wantsMove = 1;
+                        movementComp.usePath = 1;
+                    }
+
                     break;
                 }
-
                 case AIState::ChaseLOS:
                 {
                     if (!hasLOS)
@@ -150,3 +150,27 @@ void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)
             });
 }
 
+
+void NpcAIStateSystem::SetRandomPatrolGoal(NPCAIMovementComponent& movementComp, const glm::vec3& npcPos, float minRadius,
+    float maxRadius, bool usePath = true)
+{
+    // One RNG for the whole program/thread (fine for spawning / AI)
+    static thread_local std::mt19937 rng{ std::random_device{}() };
+
+    std::uniform_real_distribution<float> angleDist(0.0f, 6.28318530718f);
+    std::uniform_real_distribution<float> tDist(0.0f, 1.0f);
+
+    const float a = angleDist(rng);
+
+    // Uniform area in annulus [minR, maxR]
+    const float t = tDist(rng);
+    const float r = std::sqrt((1.0f - t) * (minRadius * minRadius) + t * (maxRadius * maxRadius));
+
+    const glm::vec2 center(npcPos.x, npcPos.y);
+    const glm::vec2 dir(std::cos(a), std::sin(a));
+    const glm::vec2 goal = center + dir * r;
+
+    movementComp.goal2D = goal;
+    movementComp.wantsMove = 1;
+    movementComp.usePath = usePath ? 1 : 0;
+}

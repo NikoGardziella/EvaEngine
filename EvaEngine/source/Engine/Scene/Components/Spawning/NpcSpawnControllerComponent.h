@@ -8,7 +8,7 @@ namespace Engine {
     struct NpcSpawnControllerComponent
     {
         // ---- Limits / timing ----
-        uint32_t maxAlive = 30;
+        uint32_t maxAlive = 1;
         float spawnInterval = 1.0f;     // seconds between spawns
         float spawnTimer = 0.0f;        // runtime
 

@@ -34,7 +34,7 @@ struct NpcAIStateComponent
     uint8_t wantsMove = 0;
     glm::vec2 moveGoal2D = glm::vec2(0.0f); // goal in XY
     uint8_t wantsPath = 0;                  // movement system should pathfind if 1
-
+    float patrolRegoalCooldown = 0.0f;
     // Output “orders” for animation controller (optional)
     uint8_t wantsAttack = 0;
 };

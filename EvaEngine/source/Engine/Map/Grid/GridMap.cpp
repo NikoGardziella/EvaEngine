@@ -557,10 +557,35 @@ namespace Engine
             {+1,+1}, {+1,-1}, {-1,+1}, {-1,-1}
         };
 
-        auto isBlocked = [&](const glm::ivec2& c) -> bool {
-            return IsCellBlocked(c);
+
+
+
+
+        const int kMargin = 64; // tune
+        glm::ivec2 mn(std::min(startCell.x, goalCell.x) - kMargin,
+            std::min(startCell.y, goalCell.y) - kMargin);
+        glm::ivec2 mx(std::max(startCell.x, goalCell.x) + kMargin,
+            std::max(startCell.y, goalCell.y) + kMargin);
+
+        auto inWindow = [&](const glm::ivec2& c) -> bool
+            {
+                return (c.x >= mn.x && c.y >= mn.y && c.x <= mx.x && c.y <= mx.y);
             };
 
+        std::unordered_map<glm::ivec2, uint8_t, IVec2Hasher> blockedCache;
+        blockedCache.reserve(4096);
+
+        auto isBlocked = [&](const glm::ivec2& c) -> bool
+            {
+                if (!inWindow(c)) return true;
+
+                auto it = blockedCache.find(c);
+                if (it != blockedCache.end()) return it->second != 0;
+
+                bool b = IsCellBlocked(c);
+                blockedCache.emplace(c, b ? 1 : 0);
+                return b;
+            };
         const float costStraight = 1.0f;
         const float costDiag = 1.4142f;
 
@@ -568,8 +593,19 @@ namespace Engine
 
         bool found = false;
 
+
+        const int MAX_EXPANSIONS = 2000;
+        int expansions = 0;
         while (!open.empty())
         {
+
+            if (++expansions > MAX_EXPANSIONS)
+            {
+                EE_CORE_WARN("[Path] Abort expansions>{} start=({}, {}) goal=({}, {})",
+                    MAX_EXPANSIONS, startCell.x, startCell.y, goalCell.x, goalCell.y);
+                break;
+            }
+
             glm::ivec2 current = open.top().cell;
             open.pop();
 
