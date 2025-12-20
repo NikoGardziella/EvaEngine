@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
+#include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
 
 
 // remove from engine namespace?

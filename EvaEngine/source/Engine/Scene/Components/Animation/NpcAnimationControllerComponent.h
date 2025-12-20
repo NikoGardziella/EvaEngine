@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
+#include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
 
 
 enum class NpcAnimRequest : uint8_t

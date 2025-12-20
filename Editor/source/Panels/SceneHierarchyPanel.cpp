@@ -1116,17 +1116,45 @@ namespace Engine {
                 }
 
             });
+        
         DrawComponent<NPCAIMovementComponent>("NPC movement", entity, m_sceneHierarchyPanelScene.get(),
             [this, &entity](auto& component)
             {
-                // Read-only label:
-                ImGui::Text("State: %s", EditorUtils::AIStateToString(component.CurrentState));
+                // ---- Read-only-ish debug ----
+                ImGui::Text("Orders (from StateSystem)");
+                ImGui::Text("wantsMove: %s", component.wantsMove ? "true" : "false");
+                ImGui::Text("usePath:   %s", component.usePath ? "true" : "false");
 
+                ImGui::Separator();
 
-                ImGui::DragFloat("Speed", &component.MoveSpeed, 0.01f, 0.0f, 10.0f);
-                ImGui::DragFloat("IdleTimer", &component.IdleTimer, 0.01f, 0.0f, 10.0f);
-                ImGui::DragFloat3("Target Position", glm::value_ptr(component.TargetPosition));
+                // ---- Editable tuning ----
+                ImGui::DragFloat("Radius", &component.radius, 0.01f, 0.0f, 2.0f);
+                ImGui::DragFloat("Speed", &component.moveSpeed, 0.01f, 0.0f, 20.0f);
 
+                // These are technically "orders", but can be handy to inspect/edit while debugging.
+                // If you want them read-only, replace with ImGui::Text.
+                ImGui::Checkbox("Debug wantsMove", (bool*)&component.wantsMove);
+                ImGui::Checkbox("Debug usePath", (bool*)&component.usePath);
+                ImGui::DragFloat2("Debug goal2D", &component.goal2D.x, 0.01f);
+
+                ImGui::Checkbox("Debug hasFacing", (bool*)&component.hasFacing);
+                ImGui::DragFloat2("Debug facing2D", &component.facing2D.x, 0.01f);
+
+                ImGui::Separator();
+
+                // ---- Path runtime debug ----
+                ImGui::Text("Path runtime");
+                ImGui::Text("pathIndex: %u / %u", component.pathIndex, (uint32_t)component.path.size());
+                ImGui::Text("repathTimer: %.2f", component.repathTimer);
+                ImGui::DragFloat("repathInterval", &component.repathInterval, 0.01f, 0.01f, 5.0f);
+
+                ImGui::DragFloat2("lastRepathStart2D", &component.lastRepathStart2D.x, 0.01f);
+                ImGui::DragFloat2("lastRepathGoal2D", &component.lastRepathGoal2D.x, 0.01f);
+
+                if (ImGui::Button("Clear Path"))
+                    component.ClearPath();
+
+                // ---- Write back to registry copy (your pattern) ----
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(
                     m_sceneHierarchyPanelScene->GetRegistry(),
                     entity.GetComponent<IDComponent>().ID),
@@ -1139,18 +1167,115 @@ namespace Engine {
                 }
             });
 
-        DrawComponent<NPCAIVisionComponent>("NPC vision", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
+        
+
+        DrawComponent<NPCAIVisionComponent>("NPC vision", entity, m_sceneHierarchyPanelScene.get(),
+            [this, &entity](auto& component)
             {
+                // ---- Editable tuning ----
+                ImGui::DragFloat("ViewRadius", &component.ViewRadius, 0.05f, 0.0f, 100.0f);
+                ImGui::DragFloat("ViewAngle", &component.ViewAngle, 1.0f, 0.0f, 360.0f);
 
-                ImGui::DragFloat("View Radius", &component.ViewRadius, 1.00, 0.0f, 500.0f);
-                ImGui::DragFloat("View Angle", &component.ViewAngle, 1.00, 0.0f, 360.0f);
+                ImGui::DragFloat("LOS Interval", &component.losCheckInterval, 0.01f, 0.01f, 1.0f);
+                ImGui::Checkbox("Debug show LOS", (bool*)&component.debugDraw);
 
-                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+
+                ImGui::Separator();
+
+                // ---- Cached debug (read-only) ----
+                ImGui::Text("Cached result");
+                ImGui::Text("hasLOS: %s", component.hasLOS ? "true" : "false");
+                ImGui::Text("distToTarget: %.2f", component.distToTarget);
+                ImGui::Text("timeSinceSeen: %.2f", component.timeSinceSeen);
+
+                ImGui::Text("lastSeenPos: [%.2f, %.2f, %.2f]",
+                    component.lastSeenPos.x, component.lastSeenPos.y, component.lastSeenPos.z);
+
+                ImGui::Text("losCheckTimer: %.3f", component.losCheckTimer);
+
+                // Entity debug (only print IDs if you have them; otherwise just show validity)
+                ImGui::Text("VisibleTarget valid: %s", component.VisibleTarget ? "true" : "false");
+                ImGui::Text("lastSeenTarget valid: %s", component.lastSeenTarget ? "true" : "false");
+
+                
+                // ---- Write back to registry copy (your pattern) ----
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(
+                    m_sceneHierarchyPanelScene->GetRegistry(),
+                    entity.GetComponent<IDComponent>().ID),
+                    m_sceneHierarchyPanelScene.get() };
+
                 if (newEntity)
                 {
-                    m_sceneHierarchyPanelScene->GetRegistry().get<NPCAIVisionComponent>(newEntity) = component;
+                    m_sceneHierarchyPanelScene->GetRegistry()
+                        .get<NPCAIVisionComponent>(newEntity) = component;
                 }
+            });
 
+        DrawComponent<NpcAIStateComponent>("NPC AI state", entity, m_sceneHierarchyPanelScene.get(),
+            [this, &entity](auto& component)
+            {
+                // ---- Read-only state ----
+                ImGui::Text("State: %s", EditorUtils::AIStateToString(component.state));
+
+                ImGui::Separator();
+
+                // ---- Editable tuning ----
+                ImGui::DragFloat("idleDuration", &component.idleDuration, 0.01f, 0.0f, 10.0f);
+
+                // Patrol index is runtime, but editable for debugging
+                ImGui::DragInt("patrolIndex", (int*)&component.patrolIndex, 1.0f, 0, 1024);
+
+                // If you still use these in StateSystem, keep editable; otherwise remove.
+                ImGui::DragFloat("repathInterval", &component.repathInterval, 0.01f, 0.01f, 5.0f);
+
+                ImGui::Separator();
+
+                // ---- Runtime debug (read-only-ish) ----
+                ImGui::Text("Runtime");
+                ImGui::Text("idleTimer: %.2f", component.idleTimer);
+                ImGui::Text("repathTimer: %.2f", component.repathTimer);
+
+                ImGui::Text("hasLastKnown: %s", component.hasLastKnown ? "true" : "false");
+                ImGui::Text("lastKnownPos: [%.2f, %.2f, %.2f]",
+                    component.lastKnownPos.x, component.lastKnownPos.y, component.lastKnownPos.z);
+
+                ImGui::Separator();
+
+                // ---- Orders (debug) ----
+                ImGui::Text("Orders (to MovementSystem)");
+                ImGui::Text("wantsMove: %s", component.wantsMove ? "true" : "false");
+                ImGui::Text("wantsPath: %s", component.wantsPath ? "true" : "false");
+                ImGui::Text("moveGoal2D: [%.2f, %.2f]", component.moveGoal2D.x, component.moveGoal2D.y);
+
+                ImGui::Text("Orders (to Anim)");
+                ImGui::Text("wantsAttack: %s", component.wantsAttack ? "true" : "false");
+
+                // Optional debug editing (useful when testing)
+                bool dbgWantsMove = component.wantsMove != 0;
+                if (ImGui::Checkbox("Debug wantsMove", &dbgWantsMove))
+                    component.wantsMove = dbgWantsMove ? 1 : 0;
+
+                bool dbgWantsPath = component.wantsPath != 0;
+                if (ImGui::Checkbox("Debug wantsPath", &dbgWantsPath))
+                    component.wantsPath = dbgWantsPath ? 1 : 0;
+
+                ImGui::DragFloat2("Debug moveGoal2D", &component.moveGoal2D.x, 0.01f);
+
+                bool dbgWantsAttack = component.wantsAttack != 0;
+                if (ImGui::Checkbox("Debug wantsAttack", &dbgWantsAttack))
+                    component.wantsAttack = dbgWantsAttack ? 1 : 0;
+
+                // ---- Write back to registry copy (your pattern) ----
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(
+                    m_sceneHierarchyPanelScene->GetRegistry(),
+                    entity.GetComponent<IDComponent>().ID),
+                    m_sceneHierarchyPanelScene.get() };
+
+                if (newEntity)
+                {
+                    m_sceneHierarchyPanelScene->GetRegistry()
+                        .get<NpcAIStateComponent>(newEntity) = component;
+                }
             });
 
         DrawComponent<ProjectileComponent>("Projectile", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)

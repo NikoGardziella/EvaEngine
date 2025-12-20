@@ -65,6 +65,7 @@
       <Filter>Systems\Vehicle</Filter>
     </ClInclude>
     <ClInclude Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NpcAIStateSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -106,5 +107,6 @@
       <Filter>Systems\Vehicle</Filter>
     </ClCompile>
     <ClCompile Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NpcAIStateSystem.cpp" />
   </ItemGroup>
 </Project>

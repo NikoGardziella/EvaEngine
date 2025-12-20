@@ -89,7 +89,7 @@ namespace Engine {
         animControllerComp.clipHit = FindClipIdChecked("zombieAnimHeadHit", skeletonId, meshBoneCount);
         animControllerComp.clipDeath = FindClipIdChecked("zombieAnimDeath", skeletonId, meshBoneCount);
         animControllerComp.clipAttack = FindClipIdChecked("zombieAnimStrike", skeletonId, meshBoneCount);
-        animControllerComp.clipRun = FindClipIdChecked("zombieAnimRun", skeletonId, meshBoneCount);
+        animControllerComp.clipRun = FindClipIdChecked("zombieAnimRunning", skeletonId, meshBoneCount);
 
         //  fail if any clip is missing
         const bool ok =

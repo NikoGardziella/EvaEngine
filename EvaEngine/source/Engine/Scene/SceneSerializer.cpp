@@ -188,6 +188,7 @@ namespace Engine {
 
             out << YAML::EndMap;
         }
+        /*
         inline void SerializeNPCAIMovementComponent(Entity entity, YAML::Emitter& out)
         {
             const NPCAIMovementComponent& comp = entity.GetComponent<NPCAIMovementComponent>();
@@ -216,6 +217,7 @@ namespace Engine {
             out << YAML::EndMap;
         }
 
+        */
         inline void SerializeNPCAIVisionComponent(Entity entity, YAML::Emitter& out)
         {
             const NPCAIVisionComponent& comp = entity.GetComponent<NPCAIVisionComponent>();
@@ -225,7 +227,7 @@ namespace Engine {
 
             out << YAML::Key << "ViewRadius" << YAML::Value << comp.ViewRadius;
             out << YAML::Key << "ViewAngle" << YAML::Value << comp.ViewAngle;
-            out << YAML::Key << "HasLineOfSight" << YAML::Value << comp.HasLineOfSight;
+            out << YAML::Key << "HasLineOfSight" << YAML::Value << comp.hasLOS;
 
             out << YAML::EndMap;
         }
@@ -358,8 +360,8 @@ namespace Engine {
                 SerializeCircleCollider2DComponent(entity, out);
             if (entity.HasComponent<HealthComponent>())
                 SerializeHealthComponent(entity, out);
-            if (entity.HasComponent<NPCAIMovementComponent>())
-                SerializeNPCAIMovementComponent(entity, out);
+           // if (entity.HasComponent<NPCAIMovementComponent>())
+           //     SerializeNPCAIMovementComponent(entity, out);
             if (entity.HasComponent<NPCAIVisionComponent>())
                 SerializeNPCAIVisionComponent(entity, out);
             if (entity.HasComponent<CharacterControllerComponent>())
@@ -457,7 +459,7 @@ namespace Engine {
                
             }
         }
-
+        /*
         inline void DeserializeNPCAIMovementComponent(Entity entity, const YAML::Node& entityNode)
         {
             if (entityNode["NPCAIMovementComponent"])
@@ -503,6 +505,7 @@ namespace Engine {
                     comp.MoveSpeed = node["MoveSpeed"].as<float>();
             }
         }
+        */
 
         inline void DeserializeNPCAIVisionComponent(Entity entity, const YAML::Node& entityNode)
         {
@@ -518,10 +521,10 @@ namespace Engine {
                     comp.ViewAngle = node["ViewAngle"].as<float>();
 
                 if (node["HasLineOfSight"])
-                    comp.HasLineOfSight = node["HasLineOfSight"].as<bool>();
+                    comp.hasLOS = node["HasLineOfSight"].as<int>();
 
                 // VisibleTarget is runtime/internal, not deserialized
-                comp.VisibleTarget = entt::null;
+                comp.VisibleTarget = Entity{};
             }
         }
 
@@ -775,7 +778,7 @@ namespace Engine {
             DeserializeCircleRendererComponent(entity, entityNode);
             DeserializeCircleCollider2DComponent(entity, entityNode);
 			DeserializeHealthComponent(entity, entityNode);
-			DeserializeNPCAIMovementComponent(entity, entityNode);
+			//DeserializeNPCAIMovementComponent(entity, entityNode);
 			DeserializeNPCAIVisionComponent(entity, entityNode);
 			DeserializeCharacterControllerComponent(entity, entityNode);
 			DeserializeWeaponComponent(entity, entityNode);

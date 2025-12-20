@@ -3,6 +3,7 @@
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <optional>
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
+#include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
 
 namespace Engine {
 

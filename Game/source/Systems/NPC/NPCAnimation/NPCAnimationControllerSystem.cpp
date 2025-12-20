@@ -7,6 +7,7 @@
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 #include <Engine/Animation/3D/System/AnimUtils/AnimUtils.h>
 #include <Engine/Scene/SceneUtils/SpawnUtils.h>
+#include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
 
 void NPCAnimationControllerSystem::UpdateNPCAnimationControllerSystem(float dt, Engine::Scene* scene)
 {
@@ -14,20 +15,20 @@ void NPCAnimationControllerSystem::UpdateNPCAnimationControllerSystem(float dt, 
 
     auto& animReg = Engine::AssetManager::GetAnimationRegistry();
 
-    scene->ForEach<NPCAIMovementComponent, Engine::Animator3DComponent, NpcAnimationControllerComponent>(
-        [&](Engine::Entity e, NPCAIMovementComponent& ai, Engine::Animator3DComponent& anim, NpcAnimationControllerComponent& ctrl)
+    scene->ForEach<NpcAIStateComponent, Engine::Animator3DComponent, NpcAnimationControllerComponent>(
+        [&](Engine::Entity e, NpcAIStateComponent& ai, Engine::Animator3DComponent& anim, NpcAnimationControllerComponent& ctrl)
         {
           
 
             // 0) Always ensure clipA is a valid loop for the current state (even during one-shot)
-            switch (ai.CurrentState)
+            switch (ai.state)
             {
             case AIState::Idle:        Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipIdle);  break;
             case AIState::Patrol:      Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipWalk);  break;
-            case AIState::MoveToTarget:
+            case AIState::MoveToLastKnown:
             case AIState::ChaseLOS:   Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipRun);   break;
 
-            case AIState::Death:       Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipDeath); break;
+           // case AIState::Death:       Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipDeath); break;
 
                 // If you have crawl state:
                 // case AIState::Crawl:    SetLoopClip(anim, ctrl, ctrl.clipCrawl); break;
@@ -57,7 +58,7 @@ void NPCAnimationControllerSystem::UpdateNPCAnimationControllerSystem(float dt, 
                 if (req == NpcAnimRequest::Hit)
                 {
                     EE_CORE_INFO("hit req");
-                    Engine::AnimUtils::StartOneShot(anim, ctrl, animReg, ctrl.clipHit, ai.CurrentState);
+                    Engine::AnimUtils::StartOneShot(anim, ctrl, animReg, ctrl.clipHit, ai.state);
                     return;
                 }
                 if (req == NpcAnimRequest::Attack)
@@ -68,7 +69,7 @@ void NPCAnimationControllerSystem::UpdateNPCAnimationControllerSystem(float dt, 
                 if (req == NpcAnimRequest::Death)
                 {
                     // death as loop clipA, no overlay needed
-                    ai.CurrentState = AIState::Death;
+                    //ai.CurrentState = AIState::Death;
                     Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipDeath);
                     return;
                 }
@@ -76,7 +77,7 @@ void NPCAnimationControllerSystem::UpdateNPCAnimationControllerSystem(float dt, 
 
             // 3) (Optional) AIState::Attack can trigger request once
             // DO NOT spam it every frame:
-            if (ai.CurrentState == AIState::Attack && ctrl.actionTimer <= 0.0f)
+            if (ai.state == AIState::Attack && ctrl.actionTimer <= 0.0f)
             {
                 ctrl.request = NpcAnimRequest::Attack;
             }

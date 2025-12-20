@@ -1,5 +1,6 @@
 #include "EditorUtils.h"
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
 
 namespace Engine {
 
@@ -67,7 +68,7 @@ namespace Engine {
         {
         case AIState::Idle:         return "Idle";
         case AIState::Patrol:       return "Patrol";
-        case AIState::MoveToTarget: return "MoveToTarget";
+        case AIState::MoveToLastKnown: return "MoveToTarget";
         case AIState::ChaseLOS:     return "ChaseLOS";
         case AIState::Attack:       return "Attack";
         default:                    return "Unknown";

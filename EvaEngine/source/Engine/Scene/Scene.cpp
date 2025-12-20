@@ -341,7 +341,7 @@ namespace Engine {
 
             // Transform
             TransformComponent& tr = enemyEntity.AddComponent<TransformComponent>();
-            tr.Translation = glm::vec3(worldX, 5.0f, worldZ);
+            tr.Translation = glm::vec3(worldX, worldZ, 0.0f);
             tr.Rotation.x += glm::radians(180.0f);
             
             // this could ne in rendersystem
@@ -432,12 +432,16 @@ namespace Engine {
             NPCAIMovementComponent& mPCAIMovementComponent = enemyEntity.AddComponent<NPCAIMovementComponent>();
             NPCAIVisionComponent& vis = enemyEntity.AddComponent<NPCAIVisionComponent>();
            
-            vis.ViewAngle = 271.0f;
+            vis.ViewAngle = 360.0f;
 
             NpcAnimationControllerComponent& npcAnimationControllerComponent = enemyEntity.AddComponent<NpcAnimationControllerComponent>();
+            NpcAIStateComponent& npcAIStateComponent = enemyEntity.AddComponent<NpcAIStateComponent>();
+            NpcAIPatrolComponent& mpcAIPatrolComponent = enemyEntity.AddComponent<NpcAIPatrolComponent>();
 
             if (!npcAnimationControllerComponent.clipsResolved)
+            {
                 SpawnUtils::ResolveZombieClips(npcAnimationControllerComponent, meshAsset);
+            }
 
 
 
@@ -482,8 +486,8 @@ namespace Engine {
         const AnimationClip* animIdle = animReg.FindAnimationClip("zombieAnimRun");
 
         glm::vec2 originXZ = { 0.0f, 0.0f };
-        glm::vec2 spacingXZ = { 10.0f, 10.0f }; 
-        SpawnEnemies(1, *meshAsset, meshAsset->skeletonId, originXZ, spacingXZ);
+        glm::vec2 spacingXZ = { 20.0f, 10.0f }; 
+        SpawnEnemies(10, *meshAsset, meshAsset->skeletonId, originXZ, spacingXZ);
 
         /*
         Entity m_camera3DEntity = CreateEntity("3D camera");

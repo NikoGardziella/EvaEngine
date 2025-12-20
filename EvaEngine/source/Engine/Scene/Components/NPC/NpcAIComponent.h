@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <cstdint>
 #include <Engine/Scene/Component.h>
-
+#include "Engine/Scene/Entity.h"
 #include "entt.hpp"
 
 struct AgentRef
@@ -13,47 +13,46 @@ struct AgentRef
 };
 
 
-enum class AIState
+
+
+struct NpcAIPatrolComponent
 {
-    Idle,
-    Patrol,
-    MoveToTarget,
-    ChaseLOS,
-    Death,
-    Attack
+    std::vector<glm::vec3> points;
+    uint32_t index = 0;
 };
+
 
 struct NPCAIMovementComponent
 {
+    // ---- Local avoidance ----
+    float radius = 0.30f;
 
-    AIState CurrentState = AIState::Idle;
+    float moveSpeed = 3.0f;
 
-    float radius = 0.3f;
-    float IdleTimer = 0.0f;
-    float IdleDuration = 1.0f;
-    std::vector<glm::vec3> PatrolPoints;
-    size_t CurrentPatrolIndex = 0;
-    glm::vec3 LastKnownTargetPos{ 0.0f };
-    bool      HasLastKnownTarget = false;
-    glm::vec3 TargetPosition;
-    float MoveSpeed = 3.0f;
+    uint8_t  wantsMove = 0;              // 0/1
+    uint8_t  usePath = 0;              // 0: direct seek, 1: pathfind/follow
+    glm::vec2 goal2D = { 0.0f, 0.0f };  // destination in XY
 
-   
-    float   RepathTimer = 0.0f;
-    float   RepathInterval = 0.35f;
-    glm::vec2 LastRepathStart2D = { 0,0 };
-    glm::vec2 LastRepathGoal2D = { 0,0 };
+    uint8_t  hasFacing = 0;
+    glm::vec2 facing2D = { 1.0f, 0.0f };
 
-    std::vector<glm::vec3> Path;
-    size_t PathIndex = 0;
+    float   repathTimer = 0.0f;
+    float   repathInterval = 0.35f;
+    glm::vec2 lastRepathStart2D = { 0.0f, 0.0f };
+    glm::vec2 lastRepathGoal2D = { 0.0f, 0.0f };
 
-    bool HasPath() const {
-        return PathIndex < Path.size();
+    std::vector<glm::vec3> path;
+    uint32_t pathIndex = 0;
+
+    bool HasPath() const
+    {
+        return pathIndex < (uint32_t)path.size();
     }
 
-    void ClearPath() {
-        Path.clear();
-        PathIndex = 0;
+    void ClearPath()
+    {
+        path.clear();
+        pathIndex = 0;
     }
 };
 
@@ -62,10 +61,26 @@ struct NPCAIMovementComponent
 
 struct NPCAIVisionComponent
 {
-    float ViewRadius = 100.0f;    
-    float ViewAngle = 180.0f;    
-    bool HasLineOfSight = false;
+    float ViewRadius = 30.0f;
+    float ViewAngle = 360.0f;
 
-    // Internally set target
-    entt::entity VisibleTarget = entt::null;
+    // Cached result (what other systems read)
+    Engine::Entity VisibleTarget;
+    bool hasLOS = false;
+    float distToTarget = 0.0f;
+    glm::vec3 lastSeenPos = glm::vec3(0.0f);
+    float timeSinceSeen = 9999.0f;
+
+    // Throttling
+    float losCheckTimer = 0.0f;
+    float losCheckInterval = 0.10f; // tweak (can be distance-based)
+
+    // Optional: keep last known player entity even if momentarily not visible
+    Engine::Entity lastSeenTarget;
+
+
+
+    //debug 
+    bool debugDraw = false;
 };
+

@@ -5,6 +5,8 @@
 #include <Engine/AssetManager/AssetManager.h>
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
+#include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
+#include <Engine/Animation/3D/AnimationRegistry.h>
 
 namespace Engine {
 

@@ -17,6 +17,7 @@
 #include "Systems/Vehicle/VehicleSystem.h"
 #include "Systems/Physics/PhysicsSystem.h"
 #include "Systems/NPC/NPCAnimation/NPCAnimationControllerSystem.h"
+#include "Systems/NPC/NpcAIStateSystem.h"
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -69,6 +70,7 @@ void PixelGame::RegisterSystems()
 	m_activeScene->RegisterSystem(VehicleSystem::UpdateVehicleSystem);
 	m_activeScene->RegisterSystem(PhysicsSystem::UpdatePhysicsSystem);
 	m_activeScene->RegisterSystem(NPCAnimationControllerSystem::UpdateNPCAnimationControllerSystem);
+	m_activeScene->RegisterSystem(NpcAIStateSystem::UpdateNpcAIStateSystem);
 }
 
 void PixelGame::OnDetach()
