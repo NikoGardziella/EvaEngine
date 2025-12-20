@@ -18,6 +18,7 @@
 #include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
 #include "Utils/EditorUtils.h"
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
+#include <Engine/Scene/Components/Spawning/NpcSpawnControllerComponent.h>
 
 
 namespace Engine {
@@ -1168,6 +1169,69 @@ namespace Engine {
             });
 
         
+        DrawComponent<NpcSpawnControllerComponent>("NPC spawner", entity, m_sceneHierarchyPanelScene.get(),
+            [this, &entity](auto& component)
+            {
+                // ---- Enable ----
+                ImGui::Checkbox("Enabled", (bool*)&component.enabled);
+
+                ImGui::Separator();
+
+                // ---- Limits / timing ----
+                ImGui::DragInt("Max Alive", (int*)&component.maxAlive, 1.0f, 0, 10000);
+                ImGui::DragFloat("Spawn Interval", &component.spawnInterval, 0.01f, 0.01f, 60.0f);
+                ImGui::DragInt("Spawn Batch", (int*)&component.spawnBatch, 1.0f, 1, 1000);
+
+                ImGui::Separator();
+
+                // ---- Spawn radius ----
+                ImGui::DragFloat("Spawn Radius Min", &component.spawnRadiusMin, 0.05f, 0.0f, 1000.0f);
+                ImGui::DragFloat("Spawn Radius Max", &component.spawnRadiusMax, 0.05f, 0.0f, 1000.0f);
+
+                if (component.spawnRadiusMax < component.spawnRadiusMin)
+                    component.spawnRadiusMax = component.spawnRadiusMin;
+
+                ImGui::Separator();
+
+                // ---- Wave mode ----
+                ImGui::Text("Wave");
+                ImGui::DragInt("Total To Spawn (0 = infinite)", (int*)&component.totalToSpawn, 1.0f, 0, 1000000);
+                ImGui::Text("Spawned So Far: %u", component.spawnedSoFar);
+
+                if (ImGui::Button("Reset Spawned Counter"))
+                    component.spawnedSoFar = 0;
+
+                ImGui::Separator();
+
+                // ---- Prefab ----
+                ImGui::DragInt("npcPrefabId", (int*)&component.npcPrefabId, 1.0f, 0, 1000000);
+
+                ImGui::Separator();
+
+                // ---- Runtime debug ----
+                ImGui::Text("Runtime");
+                ImGui::Text("Alive (cached): %u", component.aliveCached);
+                ImGui::Text("Tracked spawned: %u", (uint32_t)component.spawned.size());
+                ImGui::Text("spawnTimer: %.2f / %.2f", component.spawnTimer, component.spawnInterval);
+
+                ImGui::DragFloat("Prune Interval", &component.pruneInterval, 0.05f, 0.05f, 10.0f);
+                ImGui::Text("pruneTimer: %.2f", component.pruneTimer);
+
+                if (ImGui::Button("Clear Tracked List"))
+                    component.spawned.clear();
+
+                // ---- Write back to registry copy (your pattern) ----
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(
+                    m_sceneHierarchyPanelScene->GetRegistry(),
+                    entity.GetComponent<IDComponent>().ID),
+                    m_sceneHierarchyPanelScene.get() };
+
+                if (newEntity)
+                {
+                    m_sceneHierarchyPanelScene->GetRegistry()
+                        .get<NpcSpawnControllerComponent>(newEntity) = component;
+                }
+            });
 
         DrawComponent<NPCAIVisionComponent>("NPC vision", entity, m_sceneHierarchyPanelScene.get(),
             [this, &entity](auto& component)

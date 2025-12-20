@@ -66,6 +66,7 @@
     </ClInclude>
     <ClInclude Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.h" />
     <ClInclude Include="source\Systems\NPC\NpcAIStateSystem.h" />
+    <ClInclude Include="source\Systems\Spawning\NpcSpawnControllerSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -108,5 +109,6 @@
     </ClCompile>
     <ClCompile Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.cpp" />
     <ClCompile Include="source\Systems\NPC\NpcAIStateSystem.cpp" />
+    <ClCompile Include="source\Systems\Spawning\NpcSpawnControllerSystem.cpp" />
   </ItemGroup>
 </Project>

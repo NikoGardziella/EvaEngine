@@ -40,6 +40,7 @@
 #include "Engine/Scene/SceneUtils/SceneUtils.h"
 #include "SceneUtils/SpawnUtils.h"
 #include "Components/Animation/NpcAnimationControllerComponent.h"
+#include "Components/Spawning/NpcSpawnControllerComponent.h"
 
 
 namespace Engine {
@@ -487,7 +488,11 @@ namespace Engine {
 
         glm::vec2 originXZ = { 0.0f, 0.0f };
         glm::vec2 spacingXZ = { 20.0f, 10.0f }; 
-        SpawnEnemies(10, *meshAsset, meshAsset->skeletonId, originXZ, spacingXZ);
+        //SpawnEnemies(10, *meshAsset, meshAsset->skeletonId, originXZ, spacingXZ);
+
+        Entity spwanController = CreateEntity("spawn controller");
+
+        spwanController.AddComponent<NpcSpawnControllerComponent>();
 
         /*
         Entity m_camera3DEntity = CreateEntity("3D camera");

@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Systems\Spawning\NpcSpawnControllerSystem.h" />
     <ClInclude Include="source\Systems\NPC\NpcAIStateSystem.h" />
     <ClInclude Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.h" />
     <ClInclude Include="source\PixelGame.h" />
@@ -148,6 +149,7 @@
     <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Systems\Spawning\NpcSpawnControllerSystem.cpp" />
     <ClCompile Include="source\Systems\NPC\NpcAIStateSystem.cpp" />
     <ClCompile Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.cpp" />
     <ClCompile Include="source\PixelGame.cpp" />
