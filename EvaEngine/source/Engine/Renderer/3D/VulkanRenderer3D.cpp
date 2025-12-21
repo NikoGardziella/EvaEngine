@@ -212,7 +212,9 @@ namespace Engine {
         // Material SSBO: MaterialGPU[maxMaterials]
         const VkDeviceSize matBytes = VkDeviceSize(maxMaterials) * sizeof(MaterialGPU);
 
-        uint32_t max_bones = 2000;
+        // now use zombie bone count. Player uses more bones so this is not 100% exact
+        constexpr uint32_t zombieBoneCount = 55;
+        uint32_t max_bones = MAX_3D_INSTANCES * zombieBoneCount;
         const VkDeviceSize boneBytes = VkDeviceSize(max_bones) * sizeof(glm::mat4);
 
         for (uint32_t i = 0; i < framesInFlight; ++i)
