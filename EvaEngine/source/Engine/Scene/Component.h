@@ -2,7 +2,6 @@
 
 #include "Engine/Core/Core.h"
 #include <Engine/Core/UUID.h>
-#include "Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h"
 #include "SceneCamera.h"
 
 #include <box2d/id.h>
@@ -11,7 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <Engine/Animation/2D/SpriteInstanceData.h>
-
+#include "Engine/Platform/Vulkan/VulkanTexture.h"
 
 
 
@@ -100,25 +99,12 @@ namespace Engine {
         SpriteInstanceData Instance;
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const SpriteRendererComponent&) = default;
-        SpriteRendererComponent(const glm::vec4& color)
-            : Color(color) { }
+       
 
         
     };
 
-    struct PixelSpriteRendererComponent
-    {
-        glm::vec4 Color{ 1.0f };
-        Ref<VulkanPixelTexture> Texture;
-        float Tiling = 1.0f;
-        PixelSpriteRendererComponent() = default;
-        PixelSpriteRendererComponent(const PixelSpriteRendererComponent&) = default;
-        PixelSpriteRendererComponent(const glm::vec4& color)
-            : Color(color) {
-        }
 
-
-    };
 
     struct CircleRendererComponent
     {

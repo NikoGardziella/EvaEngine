@@ -148,7 +148,6 @@ void PixelGame::OnGameStart()
 
 void PixelGame::LoadGameAssets()
 {
-	m_pixelTexture = Engine::AssetManager::GetPixelTexture("pixel");
 	//m_playerTexture = Engine::AssetManager::GetTexture("player");
 
 	Engine::SceneSerializer serializer(m_activeScene);

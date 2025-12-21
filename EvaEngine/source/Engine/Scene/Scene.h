@@ -18,6 +18,7 @@
 #include <Engine/Animation/3D/System/AnimationSystem3D.h>
 #include <Engine/Animation/3D/BonePaletteBuffer.h>
 #include "Component.h"
+#include <Engine/Animation/3D/MeshRegistry.h>
 
 
 

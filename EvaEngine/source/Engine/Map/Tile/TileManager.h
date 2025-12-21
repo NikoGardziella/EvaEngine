@@ -16,6 +16,7 @@ namespace Engine {
 		void BuildInitialResidency(Scene* scene);
 
 		void BuildTemplatesForScene(Scene* scene);
+		void ClearTemplates();
 		void SetTileWorldSize(float w, float h)
 		{
 			m_tileWorldW = w; 

@@ -253,8 +253,8 @@ namespace Engine {
 
             vkBindBufferMemory(device, m_buffer, m_memory, 0);
 
-            GPUStats& stats = GPUStats::Get();
-            stats.AddBuffer(memRequirements.size);
+           GPUStats& stats = GPUStats::Get();
+           stats.AddBuffer(memRequirements.size);
         }
     }
 

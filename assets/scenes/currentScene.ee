@@ -1,6 +1,6 @@
 Scene: My Scene
 Entities:
-  - ID: 11468235246909397830
+  - ID: 480648006
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -56,7 +56,7 @@ Entities:
           Material: Concrete
           Health: 1
           UID: 15246358783180207841
-  - ID: 7123397723313388390
+  - ID: 3958094694
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -85,7 +85,7 @@ Entities:
           Material: Concrete
           Health: 1
           UID: 12266234866506682917
-  - ID: 12756867231542156349
+  - ID: 2263096381
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -132,7 +132,7 @@ Entities:
           Material: Concrete
           Health: 1
           UID: 2561805012361267444
-  - ID: 3484683056932294484
+  - ID: 323325780
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -729,7 +729,7 @@ Entities:
       Tag: player
     TransformComponent:
       Translation: [0, 0, 0]
-      Rotation: [0.00047849191, 0, 0]
+      Rotation: [8.35126e-06, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
@@ -1146,3 +1146,482 @@ Entities:
           Material: Concrete
           Health: 1
           UID: 8820232936719600737
+  - ID: 4876049743235889952
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-29.5, -2.25, -2.197281]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [1, 38]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 9073848081896503064
+        - Position: [-6.5, 34.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 12227657696197098144
+        - Position: [28, 32]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 4471125209845659463
+        - Position: [40, 32]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 15645798708316715049
+        - Position: [61, 32]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 4033432064299202086
+        - Position: [53, 31.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 13934677748220302038
+        - Position: [71, 31.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 14181697583838389975
+        - Position: [16.5, 31.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 9619825224231145912
+        - Position: [-13, 30]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 9328532217691708588
+        - Position: [73, 28.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 12547301418260852679
+        - Position: [-13, 25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 8790805427991557230
+        - Position: [35.5, 21.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 3864572160143836814
+        - Position: [48.5, 20.75]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 1463222055765690677
+        - Position: [54.5, 20.75]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 12909662275998001733
+        - Position: [25, 20.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 9371653314563969843
+        - Position: [17.5, 19.75]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 2250418004435910671
+        - Position: [8, 19.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 16575836324108264026
+        - Position: [1, 19]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 8560166541865732375
+        - Position: [59, 18.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 11302986226004024586
+        - Position: [72.5, 18.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 11446669621964874380
+        - Position: [0, 15.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 17503904549252908964
+        - Position: [-23, 11]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 4970945074216839108
+        - Position: [1, 10.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 13405327854774819923
+        - Position: [58.5, 9.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 6999126305311228541
+        - Position: [74.5, 6.75]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 11626757372087215995
+        - Position: [-26, 6.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 10201073076484725204
+        - Position: [59, 0.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 13438028441788342422
+        - Position: [0, 0]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 5416359769759751391
+        - Position: [58, -7]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 7684773640422582611
+        - Position: [-5.5, -7.75]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 18181523709597377896
+        - Position: [74.5, -8.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 7259382787774139819
+        - Position: [0.5, -10.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 17546143670199051492
+        - Position: [13.5, -12.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 1704310535853901792
+        - Position: [28, -13]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 13424464530327806835
+        - Position: [57.5, -15.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 5650860319460666415
+        - Position: [-11, -16.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 11718854043579872214
+        - Position: [1.5, -17.75]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 7470057783666709098
+        - Position: [72.5, -17.75]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 310499908588471242
+        - Position: [50, -18]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 13832482071562763136
+        - Position: [-29, -18]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 12748568459173611852
+        - Position: [9.5, -18.75]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 15582956078191767387
+        - Position: [34.5, -19.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 12549611407941773331
+        - Position: [22.5, -20.75]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 13465643770525630837
+        - Position: [-34.5, -23.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 3840601083016060383
+        - Position: [69.5, -24.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 7246803875944562365
+        - Position: [67, -27.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 4076788975798060028
+        - Position: [36, -29]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 16569025367345363839
+        - Position: [50.5, -29.25]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 1144589159657978083
+        - Position: [62, -29.5]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 587007784468042769
+        - Position: [17, -30]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 15157162722723443062
+        - Position: [-30, -30]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 436578777752046554
+        - Position: [-10, -32]
+          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: Default
+          Health: 1
+          UID: 1907326510425746578

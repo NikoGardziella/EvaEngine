@@ -78,6 +78,7 @@ namespace Engine {
 
 
         void SetCurrentFrameIndex(uint32_t fi) { m_currentFrame = fi; }
+        void EvictAllTiles();
 
         // Build visible instances and stream into SSBO; updates binding 2 for this frame
         void RecordTiles(VkCommandBuffer cmd, uint32_t frameIndex, const glm::mat4& VP, VkExtent2D fbExtent);
@@ -161,6 +162,7 @@ namespace Engine {
         void TransitionImageLayer(VkCommandBuffer cmd, VkImage img,
             VkImageLayout oldLayout, VkImageLayout newLayout,
             uint32_t layer);
+
 
 
 

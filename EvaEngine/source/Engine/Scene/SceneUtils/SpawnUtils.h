@@ -4,6 +4,7 @@
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 #include <Engine/Scene/Entity.h>
 #include "Prefabs/NPCprefab.h"
+#include <Engine/Animation/3D/MeshRegistry.h>
 
 
 

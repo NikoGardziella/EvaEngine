@@ -143,7 +143,6 @@ namespace Engine {
 		//AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
 		
 		AssetManager::AddTexture("chess", Engine::AssetManager::GetAssetPath("textures/chess_board.png").string(), false);
-		AssetManager::AddPixelTexture("pixel", Engine::AssetManager::GetAssetPath("textures/pixel_texture1.png").string());
 		AssetManager::AddTexture("Idle_gun_000", Engine::AssetManager::GetAssetPath("textures/Idle_gun_000.png").string(), false);
 		AssetManager::AddTexture("bullet", Engine::AssetManager::GetAssetPath("textures/Fire_small_asset.png").string(), false);
 		AssetManager::AddTexture("zombie1_walk_000", Engine::AssetManager::GetAssetPath("textures/zombie1_walk_000.png").string(), false);

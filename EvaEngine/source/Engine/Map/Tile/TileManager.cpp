@@ -15,8 +15,11 @@ namespace Engine {
     // layers & write descriptors -> cache per - slot origin / content rect -> submit & wait.
     //After this, per frame  only submit instances;
     // does not scale for very large maps. need to rebuild this 
+    
     void TileManager::BuildInitialResidency(Scene* scene)
     {
+
+        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EvictAllTiles();
         EE_PROFILE_FUNCTION();
 
         {
@@ -87,7 +90,7 @@ namespace Engine {
 
     void TileManager::BuildTemplatesForScene(Scene* scene)
     {
-
+        ClearTemplates();
 
         scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
             [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& idComp)
@@ -127,12 +130,12 @@ namespace Engine {
             });
 
         {
+            // projectiles
             std::vector<uint8_t> colorRGBA;
             std::vector<uint8_t> healthData;
             int w = 0, h = 0;
 
-            // This name needs to be something ResolveTexturePath understands.
-            // Either the actual path or a logical name you map inside AssetManager.
+           
             if (!AssetManager::GetTexturePixelData("Fire_small_asset",
                 colorRGBA, healthData, w, h))
             {
@@ -161,8 +164,19 @@ namespace Engine {
             }
         }
 
-
-
     }
+
+
+    void TileManager::ClearTemplates()
+    {
+        m_colorByUID.clear();
+        m_propsByUID.clear();
+
+        
+        m_colorByUID.rehash(0);
+        m_propsByUID.rehash(0);
+    }
+
+
 
 }

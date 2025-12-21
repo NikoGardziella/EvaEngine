@@ -396,9 +396,6 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h">
       <Filter>source\Engine\Platform\Vulkan\LayerPool</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.h">
-      <Filter>source\Engine\Platform\Vulkan\Pixel</Filter>
-    </ClInclude>
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClInclude>
@@ -2012,9 +2009,6 @@
     </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.cpp">
       <Filter>source\Engine\Platform\Vulkan\LayerPool</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.cpp">
-      <Filter>source\Engine\Platform\Vulkan\Pixel</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.cpp">
       <Filter>source\Engine\Platform\Vulkan</Filter>

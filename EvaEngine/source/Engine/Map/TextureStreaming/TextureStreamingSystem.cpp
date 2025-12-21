@@ -72,6 +72,10 @@ namespace Engine {
         {
             UnloadChunkFromGPU(chunk, scene);
         }
+
+
+        m_chunkMap.clear();
+        m_chunkMap.rehash(0);
     }
 
     void TextureStreamingSystem::UploadToChunkFromTexture(
@@ -565,6 +569,7 @@ namespace Engine {
         }
         chunk.GPUTexture = nullptr;
         chunk.IsLoaded = false;
+
     }
 
     void TextureStreamingSystem::ResetAllChunks(Scene* scene)

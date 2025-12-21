@@ -760,6 +760,29 @@ namespace Engine {
     }
 
 
+    void VulkanBindlessDescriptorSetRenderer::EvictAllTiles()
+    {
+        EE_PROFILE_FUNCTION();
+
+        if (m_tileToSlot.empty())
+            return;
+
+      
+        for (const auto& [uid, slot] : m_tileToSlot)
+        {
+            (void)uid;
+
+       
+
+            m_colorLayerPool.Release(slot);
+            m_propsLayerPool.Release(slot);
+        }
+
+        m_tileToSlot.clear();
+    }
+
+
+
     uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResidentFromRaw(uint64_t uid, const uint8_t* colorData,
         size_t colorSize,  const uint8_t* propsData, size_t propsSize, VkCommandBuffer uploadCB)
     {

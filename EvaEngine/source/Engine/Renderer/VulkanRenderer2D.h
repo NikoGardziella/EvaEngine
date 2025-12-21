@@ -257,7 +257,6 @@ namespace Engine {
 
 		static void SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin);
 
-		static void SetSlotContentRect(uint32_t slot, glm::ivec2 minPx, glm::ivec2 sizePx);
 
 
 		static Renderer2D::Statistics GetStats();

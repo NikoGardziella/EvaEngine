@@ -156,7 +156,7 @@ namespace Engine {
 
     VulkanTexture::~VulkanTexture()
     {
-        
+        EE_CORE_INFO("[VulkanTexture] Destroy {}", m_name);
         VkDevice device = VulkanContext::Get()->GetDeviceManager().GetDevice();
         vkDestroySampler(device, m_sampler, nullptr);
         vkDestroyImageView(device, m_imageView, nullptr);
@@ -203,7 +203,6 @@ namespace Engine {
         std::memcpy(mapped, data, size);
         vkUnmapMemory(device, stagingBuffer.GetMemory());
         
-        
         VkCommandBuffer cmd = vulkaContext->BeginSingleTimeCommands();
         EE_CORE_ASSERT(cmd != VK_NULL_HANDLE, "Command buffer is null");
 
@@ -223,6 +222,7 @@ namespace Engine {
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         vulkaContext->EndSingleTimeCommands(cmd);
+        stagingBuffer.Destroy();
 
 
     }

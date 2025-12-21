@@ -57,6 +57,7 @@ namespace Engine {
         // Unbind buffers (Vulkan doesn't have an explicit unbind command, so no op)
     }
 
+    // some old openGL. remove??
     void VulkanVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
     {
         auto context = VulkanContext::Get(); // Ensure context exists

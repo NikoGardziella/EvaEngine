@@ -2,7 +2,6 @@
 #include "AssetManager.h"
 #include <iostream>
 #include <mutex>
-#include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 #include "Engine/AssetManager/Utils/AssetManagerUtils.h"
 #include <stb_image.h>
@@ -18,7 +17,6 @@ namespace Engine {
     // prevent multiple threads from accessing shared resources simultaneously
     std::mutex AssetManager::s_Mutex;
     std::unordered_map<std::string, std::shared_ptr<VulkanTexture>> AssetManager::s_textureCache;
-    std::unordered_map<std::string, std::shared_ptr<VulkanPixelTexture>> AssetManager::s_pixelTextureCache;
 
     std::unordered_map<eTileCategory, std::unordered_map<std::string, glm::vec4>> AssetManager::s_tileUVMapsByCategory;
     std::unordered_map<eTileCategory, std::vector<std::string>> AssetManager::s_tileNamesByCategory;
@@ -176,20 +174,6 @@ namespace Engine {
     
 
 
-    Ref<VulkanPixelTexture> AssetManager::AddPixelTexture(const std::string& name, const std::string& path)
-    {
-        std::lock_guard<std::mutex> lock(s_Mutex);
-        if (s_pixelTextureCache.find(name) == s_pixelTextureCache.end())
-        {
-            s_pixelTextureCache[name] = std::make_shared<VulkanPixelTexture>(path);
-            EE_CORE_INFO("Texture added to cache: {}", name);
-        }
-        else
-        {
-            EE_CORE_WARN("Texture {} already exists in cache!", name);
-        }
-        return GetPixelTexture(name);
-    }
 
     std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures()
     {
@@ -235,19 +219,7 @@ namespace Engine {
         }
     }
 
-    Ref<VulkanPixelTexture> AssetManager::GetPixelTexture(const std::string& name)
-    {
-        auto it = s_pixelTextureCache.find(name);
-        if (it != s_pixelTextureCache.end())
-        {
-            return it->second; // Return the shared_ptr directly
-        }
-        else
-        {
-            EE_CORE_WARN("Pixel Texture {} not found in cache!", name);
-            return nullptr;
-        }
-    }
+
 
     bool AssetManager::ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData,
         int& outWidth, int& outHeight)

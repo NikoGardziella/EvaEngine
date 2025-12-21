@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include <memory>
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
-#include <Engine/Platform/Vulkan/Pixel/VulkanPixelTexture.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include "Utils/TileSerializer.h"
 #include <Engine/Animation/3D/MaterialRegistry.h>
@@ -48,10 +47,8 @@ namespace Engine {
 
         static Ref<VulkanTexture> AddTexture(const std::string& name, const std::string& path, bool imGuiTexture = false, uint32_t textureID = 0);
         static Ref<VulkanTexture> AddTextureToCache(const std::string& name, Ref<VulkanTexture> texture);
-        static Ref<VulkanPixelTexture> AddPixelTexture(const std::string& name, const std::string& path);
 		static Ref<VulkanTexture> GetTexture(const std::string& name);
         static Ref<VulkanTexture> CloneTexture(const std::string& name);
-		static Ref<VulkanPixelTexture> GetPixelTexture(const std::string& name);
         static bool ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, std::vector<uint8_t>& outHealthData, int& outWidth, int& outHeight);
         static bool ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, int& outWidth, int& outHeight);
         static  std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures();
@@ -113,7 +110,6 @@ namespace Engine {
         static std::mutex s_Mutex;
 
         static std::unordered_map<std::string, std::shared_ptr<VulkanTexture>> s_textureCache;
-        static std::unordered_map<std::string, std::shared_ptr<VulkanPixelTexture>> s_pixelTextureCache;
        
         static std::unordered_map<eTileCategory, std::unordered_map<std::string, glm::vec4>> s_tileUVMapsByCategory;
         static std::unordered_map<eTileCategory, std::vector<std::string>> s_tileNamesByCategory;

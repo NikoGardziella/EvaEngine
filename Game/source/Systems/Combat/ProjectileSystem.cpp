@@ -131,7 +131,7 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                             glm::vec3 impulseDir = glm::vec3(projectileComp.Direction, 0.0f);
                             float impulseStrength = 10.0f;
 
-                            //DetachPiece(scene, targetEntity, bestPiece, impulseDir, impulseStrength);
+                            DetachPiece(scene, targetEntity, bestPiece, impulseDir, impulseStrength);
                             toDestroy.push_back(projectileEntity);
                             
                         }

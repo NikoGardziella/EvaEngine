@@ -471,233 +471,14 @@ namespace Engine {
         m_textureStreamingSystem->BakeTilesIntoChunks(this); // terrain
 		m_textureStreamingSystem->AddChunkEntitiesToRegistry(this); 
 
-       // m_gridMap->BuildFromRegistry(m_registry);
 
 
         m_cullingSystem3D = std::make_shared<CullingSystem3D>();
         m_transformSystem3D = std::make_shared<TransformSystem3D>();
 
-
-        MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
-        AnimationRegistry& animReg = AssetManager::GetAnimationRegistry();
-
-        const MeshAsset* meshAsset = meshReg.GetMeshByKey("zombieMesh1");
-        
-        const AnimationClip* anim = animReg.FindAnimationClip("zombieAnimIdle");
-        const AnimationClip* animIdle = animReg.FindAnimationClip("zombieAnimRun");
-
-        glm::vec2 originXZ = { 0.0f, 0.0f };
-        glm::vec2 spacingXZ = { 20.0f, 10.0f }; 
-        //SpawnEnemies(10, *meshAsset, meshAsset->skeletonId, originXZ, spacingXZ);
-
         Entity spwanController = CreateEntity("spawn controller");
-
         spwanController.AddComponent<NpcSpawnControllerComponent>();
 
-        /*
-        Entity m_camera3DEntity = CreateEntity("3D camera");
-        auto& cameraComp = m_camera3DEntity.AddComponent<Engine::CameraComponent>();
-        cameraComp.FixedAspectRatio = true;
-        cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Orthographic);
-        cameraComp.Camera.SetOrthographicFarClip(100.0f);
-        cameraComp.Primary = false;
-        cameraComp.FreeCamera = true;
-        cameraComp.Camera.SetViewportBounds(GetViewportBounds());
-
-
-        cameraComp.Camera.SetViewportSize(GetViewportWidth(),GetViewortHeight());
-
-        TransformComponent& cameraTransformComp = m_camera3DEntity.AddComponent<Engine::TransformComponent>();
-        cameraTransformComp.Translation += glm::vec3(0.0f, -9.0f, 16.0f);
-
-
-        cameraTransformComp.Rotation.x = glm::radians(30.0f);
-
-
-        */
-
-        // *************** ENEmy
-
-
-        /*
-        Entity enemyEntity = CreateEntity("Enemy");
-
-
-        enemyEntity.AddComponent<HealthComponent>();
-        TransformComponent& enemyTransformComp = enemyEntity.AddComponent<TransformComponent>();
-        enemyTransformComp.Translation.y = 5.0f;
-
-
-
-   
-
-
-        enemyTransformComp.Rotation.x += glm::radians(90.0f);
-
-        uint32_t meshId = 0;
-        uint32_t submeshCount = 0;
-        submeshCount = (uint32_t)meshAsset.submeshes.size();
-
-        MeshRefComponent& meshComp = enemyEntity.AddComponent<MeshRefComponent>();
-        meshComp.meshId = 0;
-        meshComp.submeshFirst = 0;
-        meshComp.submeshCount = submeshCount;
-
-
-
-        RenderBoundsComponent& renderBoundsComp = enemyEntity.AddComponent<RenderBoundsComponent>();
-        renderBoundsComp.maxL = meshAsset.maxL;
-        renderBoundsComp.minL = meshAsset.minL;
-
-        uint32_t skeletonId = 0;
-        auto& skel = enemyEntity.AddComponent<SkeletonComponent>();
-        skel.skeletonId = skeletonId;      // returned by importer
-        skel.boneCount = AssetManager::GetSkeletonRegistry().Get(skeletonId).parent.size();
-        skel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
-
-
-        uint32_t testClip = 0; // rund
-        uint32_t testClipB = 1; // idle
-        // Attach animator
-        auto& anim = enemyEntity.AddComponent<Animator3DComponent>();
-        anim.clipA = testClip;
-        anim.clipB = testClipB;
-        anim.timeA = 1.0f;
-        anim.blend = 0.0f;                 // only clipA
-        anim.playbackSpeed = 1.0f;
-
-        const SkeletonAsset& skeletonAsset = AssetManager::GetSkeletonRegistry().Get(skeletonId);
-        EnemyDestructibleComponent& destr = enemyEntity.AddComponent<EnemyDestructibleComponent>();
-       
-
-        uint32_t headBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "head");
-        uint32_t spineBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "spine");
-        uint32_t armLBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "hand_left");
-        uint32_t armRBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "hand_right");
-        uint32_t legRBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "thigh_right");
-        uint32_t legLBone = SkeletonRegistry::FindBoneContains(skeletonAsset, "thigh_left");
-
-        // from blender
-        uint32_t torsoSubmeshIndex =  1;
-        uint32_t headSubmeshIndex  =  2;
-        uint32_t armLSubmeshIndex  =  3;
-        uint32_t armRSubmeshIndex  =  4;
-        uint32_t legRSubmeshIndex  =  5;
-        uint32_t legLSubmeshIndex  =  6;
-
-        
-        // ---- Head ----
-        {
-            EnemyPiece p{};
-            p.type = EnemyPieceType::Head;
-            p.submeshIndex = headSubmeshIndex;
-            p.boneId = headBone;
-
-            p.visible = 1;
-            p.canDetach = 1;
-
-            p.hitShape = HitVolumeShape::Sphere;
-            p.hitEnabled = 1;
-            p.hitLocalCenter = glm::vec3(0.0f, 0.8f, 0.0f); // adjust as needed
-            p.hitRadius = 0.25f;
-
-            destr.pieces.push_back(p);
-        }
-
-        // ---- Torso ----
-        {
-            EnemyPiece p{};
-            p.type = EnemyPieceType::Torso;
-            p.submeshIndex = torsoSubmeshIndex;
-            p.boneId = spineBone;
-
-            p.visible = 1;
-            p.canDetach = 0;
-
-            p.hitShape = HitVolumeShape::Sphere;
-            p.hitEnabled = 1;
-            p.hitLocalCenter = glm::vec3(0.0f, 0.2f, 0.0f);
-            p.hitRadius = 0.35f;
-
-            destr.pieces.push_back(p);
-        }
-
-        // ---- ArmL ----
-        {
-            EnemyPiece p{};
-            p.type = EnemyPieceType::ArmL;
-            p.submeshIndex = armLSubmeshIndex;
-            p.boneId = armLBone;
-
-            p.visible = 1;
-            p.canDetach = 1;
-
-            p.hitShape = HitVolumeShape::Sphere;
-            p.hitEnabled = 1;
-            p.hitLocalCenter = glm::vec3(-0.35f, 0.35f, 0.0f);
-            p.hitRadius = 0.25f;
-
-            destr.pieces.push_back(p);
-        }
-
-        // ---- ArmR ----
-        {
-            EnemyPiece p{};
-            p.type = EnemyPieceType::ArmR;
-            p.submeshIndex = armRSubmeshIndex;
-            p.boneId = armRBone;
-
-            p.visible = 1;
-            p.canDetach = 1;
-
-            p.hitShape = HitVolumeShape::Sphere;
-            p.hitEnabled = 1;
-            p.hitLocalCenter = glm::vec3(0.35f, 0.35f, 0.0f);
-            p.hitRadius = 0.25f;
-
-            destr.pieces.push_back(p);
-        }
-
-        // ---- LegR ----
-        {
-            EnemyPiece p{};
-            p.type = EnemyPieceType::LegR;
-            p.submeshIndex = legRSubmeshIndex;
-            p.boneId = legRBone;
-
-            p.visible = 1;
-            p.canDetach = 1;
-
-            p.hitShape = HitVolumeShape::Sphere;
-            p.hitEnabled = 1;
-            p.hitLocalCenter = glm::vec3(-0.2f, -0.5f, 0.0f);
-            p.hitRadius = 0.35f;
-
-            destr.pieces.push_back(p);
-        }
-
-        // ---- LegL ----
-        {
-            EnemyPiece p{};
-            p.type = EnemyPieceType::LegL;
-            p.submeshIndex = legLSubmeshIndex;
-            p.boneId = legLBone;
-
-            p.visible = 1;
-            p.canDetach = 1;
-
-            p.hitShape = HitVolumeShape::Sphere;
-            p.hitEnabled = 1;
-            p.hitLocalCenter = glm::vec3(0.2f, -0.5f, 0.0f);
-            p.hitRadius = 0.35f;
-
-            destr.pieces.push_back(p);
-        }
-
-
-        enemyEntity.AddComponent<NPCAIMovementComponent>();
-        NPCAIVisionComponent& nPCAIVisionComponent = enemyEntity.AddComponent<NPCAIVisionComponent>();
-        */
     }
 
 
@@ -835,7 +616,7 @@ namespace Engine {
                 auto& spriteComp = playerView.get<Engine::SpriteRendererComponent>(entity);
 
               
-
+                // player collision is made with grid
 
                // Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
                 Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
@@ -1320,20 +1101,7 @@ namespace Engine {
                
             }
 
-            
-            {
-                EE_PROFILE_SCOPE("Update Runtime PixelSpriteRendererComponent");
-                auto view = m_registry.view<PixelSpriteRendererComponent, TransformComponent>();
-
-                for (auto entity : view)
-                {
-                    auto [transform, quadSprite] = view.get<TransformComponent, PixelSpriteRendererComponent>(entity);
-
-                    float tiling = 1.0f;
-                    Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
-                }
-
-            }
+          
 
             {
                 EE_PROFILE_SCOPE("Update Runtime SpriteRendererComponent");
@@ -1464,15 +1232,7 @@ namespace Engine {
             }
         }
 
-		{
-			auto view = m_registry.view<PixelSpriteRendererComponent, TransformComponent>();
-			for (auto entity : view)
-			{
-				auto [transform, quadSprite] = view.get<TransformComponent, PixelSpriteRendererComponent>(entity);
-				float tiling = 1.0f;
-				Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
-			}
-		}
+
 		{
 			auto view = m_registry.view<SpriteRendererComponent, TransformComponent>();
 			for (auto entity : view)

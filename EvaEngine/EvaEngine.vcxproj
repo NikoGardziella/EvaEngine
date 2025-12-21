@@ -224,7 +224,6 @@
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLUniformBuffer.h" />
     <ClInclude Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanContext.h" />
@@ -768,7 +767,6 @@
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLUniformBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLVertexArray.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\LayerPool\LayerPool.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\Pixel\VulkanPixelTexture.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBindlessDescriptorSet.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanContext.cpp" />
