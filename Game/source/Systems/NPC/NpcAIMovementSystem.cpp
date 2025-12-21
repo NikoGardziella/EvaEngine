@@ -20,8 +20,8 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
     
     
     // Execute movement orders (movement only)
-    scene->ForEach<NPCAIMovementComponent, Engine::TransformComponent>(
-        [&](Engine::Entity, NPCAIMovementComponent& movementComp, Engine::TransformComponent& npcTransformComp)
+    scene->ForEach<NPCAIMovementComponent, NpcAIStateComponent, Engine::TransformComponent>(
+        [&](Engine::Entity, NPCAIMovementComponent& movementComp, NpcAIStateComponent& npcStateComp, Engine::TransformComponent& npcTransformComp)
         {
             if (!movementComp.wantsMove)
             {
@@ -29,6 +29,14 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
                 movementComp.ClearPath();
                 movementComp.repathTimer = 0.0f;
                 return;
+            }
+
+            movementComp.movementSpeedMultiplier = 1.0f;
+            switch (npcStateComp.state)
+            {
+            case AIState::Patrol:
+                movementComp.movementSpeedMultiplier = 0.1f;
+                break;
             }
 
             const glm::vec2 npc2(npcTransformComp.Translation.x, npcTransformComp.Translation.y);
@@ -43,9 +51,9 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
                     d /= glm::sqrt(len2);
 
                     if (movementComp.hasFacing)
-                        RotateTowardsDirXY(npcTransformComp, glm::vec3(movementComp.facing2D.x, movementComp.facing2D.y, 0.0f), deltatime);
+                        RotateTowardsDirXY(npcTransformComp, movementComp, glm::vec3(movementComp.facing2D.x, movementComp.facing2D.y, 0.0f), deltatime);
                     else
-                        RotateTowardsDirXY(npcTransformComp, glm::vec3(d.x, d.y, 0.0f), deltatime);
+                        RotateTowardsDirXY(npcTransformComp, movementComp, glm::vec3(d.x, d.y, 0.0f), deltatime);
                 };
 
             // ---- Direct seek (no path) ----
@@ -57,8 +65,10 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
                 {
                     glm::vec2 dir2 = to / glm::sqrt(d2);
 
-                    npcTransformComp.Translation.x += dir2.x * movementComp.moveSpeed * deltatime;
-                    npcTransformComp.Translation.y += dir2.y * movementComp.moveSpeed * deltatime;
+                    
+
+                    npcTransformComp.Translation.x += dir2.x * movementComp.moveSpeed * movementComp.movementSpeedMultiplier * deltatime;
+                    npcTransformComp.Translation.y += dir2.y * movementComp.moveSpeed * movementComp.movementSpeedMultiplier * deltatime;
 
                     FaceDir2D(dir2);
                 }
@@ -193,7 +203,7 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
 
 
     
-    void NpcAIMovementSystem::RotateTowardsDirXY(Engine::TransformComponent& tr, const glm::vec3& dir, float dt)
+    void NpcAIMovementSystem::RotateTowardsDirXY(Engine::TransformComponent& tr, NPCAIMovementComponent& movementComp, const glm::vec3& dir, float dt)
     {
         // XY plane
         const float cur = tr.Rotation.z;
@@ -202,8 +212,8 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
         float da = tgt - cur;
         da = std::atan2(std::sin(da), std::cos(da));
 
-        constexpr float rotSpeed = 5.0f;
-        float maxStep = rotSpeed * dt;
+        const float rotSpeed = movementComp.moveSpeed;
+        float maxStep = rotSpeed * dt * movementComp.movementSpeedMultiplier;
         da = glm::clamp(da, -maxStep, maxStep);
 
         tr.Rotation.z = cur + da;
@@ -218,7 +228,7 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
 
         glm::vec3& pos3 = npcTransformComp.Translation;
 
-        const float stepTotal = movementComp.moveSpeed * deltatime;
+        const float stepTotal = movementComp.moveSpeed * movementComp.movementSpeedMultiplier * deltatime;
         if (stepTotal <= 1e-6f)
             return true;
 
@@ -249,7 +259,7 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
                 pos3.y += dir.y * step;
             }
 
-            RotateTowardsDirXY(npcTransformComp, glm::vec3(dir.x, dir.y, 0.0f), deltatime);
+            RotateTowardsDirXY(npcTransformComp, movementComp, glm::vec3(dir.x, dir.y, 0.0f), deltatime);
             return true;
         }
 
@@ -363,7 +373,7 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
         // Rotate based on the last meaningful motion direction
         if (moved)
         {
-            RotateTowardsDirXY(npcTransformComp, glm::vec3(movedDir.x, movedDir.y, 0.0f), deltatime);
+            RotateTowardsDirXY(npcTransformComp, movementComp, glm::vec3(movedDir.x, movedDir.y, 0.0f), deltatime);
         }
 
         // If we've consumed all segments, mark finished

@@ -28,6 +28,7 @@ struct NPCAIMovementComponent
     float radius = 0.30f;
 
     float moveSpeed = 3.0f;
+    float movementSpeedMultiplier = 1.0f;
 
     uint8_t  wantsMove = 0;              // 0/1
     uint8_t  usePath = 0;              // 0: direct seek, 1: pathfind/follow
