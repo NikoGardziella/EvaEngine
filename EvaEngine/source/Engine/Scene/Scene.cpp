@@ -698,6 +698,7 @@ namespace Engine {
 
             //*********** GPU COLLISIONS & RENDER ***********
             {
+
                 // draw terrain after the 
                 entt::basic_view view = m_registry.view<ChunkRendererComponent>();
                 for (auto entity : view)
@@ -711,7 +712,8 @@ namespace Engine {
                         {
                             continue;
                         }
-                        
+                       
+
 
                         glm::vec2 worldPos = glm::vec2(chunkComp.ChunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
                         chunkComp.TerrainTexture->SetTextureOrigin(worldPos);
@@ -727,9 +729,10 @@ namespace Engine {
 
                         Engine::VulkanRenderer2D::DrawVisualEffectTexture(model, chunkComp.VisualEffectTexture);
                         Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.TerrainTexture);
-
+                        
 
                     }
+                    
                 }
 
 
@@ -1150,7 +1153,7 @@ namespace Engine {
 
 
 
-                        Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.VisualEffectTexture);
+                        //Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.VisualEffectTexture);
                         //Engine::VulkanRenderer2D::DrawVisualEffectTexture(model, chunkComp.VisualEffectTexture);
 
                     }

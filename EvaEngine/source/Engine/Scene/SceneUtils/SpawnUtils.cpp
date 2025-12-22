@@ -12,6 +12,7 @@
 #include <Engine/Scene/Components/Render/3D/SkeletonComponent.h>
 #include "Engine/Scene/SceneUtils/SceneUtils.h"
 #include <random>
+#include <Engine/Scene/Components/NPC/NpcBodyStateComponent.h>
 
 namespace Engine {
 
@@ -98,6 +99,8 @@ namespace Engine {
         animControllerComp.clipDeath = FindClipIdChecked("zombieAnimDeath", skeletonId, meshBoneCount);
         animControllerComp.clipAttack = FindClipIdChecked("zombieAnimStrike", skeletonId, meshBoneCount);
         animControllerComp.clipRun = FindClipIdChecked("zombieAnimRunning", skeletonId, meshBoneCount);
+        animControllerComp.clipTrip = FindClipIdChecked("zombieAnimTrip", skeletonId, meshBoneCount);
+        animControllerComp.clipStandup = FindClipIdChecked("zombieAnimStandup", skeletonId, meshBoneCount);
 
         //  fail if any clip is missing
         const bool ok =
@@ -111,6 +114,12 @@ namespace Engine {
             animControllerComp.clipRun != kInvalidId;
 
         animControllerComp.clipsResolved = ok;
+
+        if (!ok)
+        {
+            EE_CORE_WARN("wrong animation");
+        }
+
     }
 
 
@@ -165,31 +174,31 @@ namespace Engine {
         enemyNPCEntity.AddComponent<HealthComponent>();
 
         // Transform
-        auto& npcTransformComp = enemyNPCEntity.AddComponent<TransformComponent>();
+        TransformComponent& npcTransformComp = enemyNPCEntity.AddComponent<TransformComponent>();
         npcTransformComp.Translation = worldPos;
         npcTransformComp.Rotation.x += glm::radians(prefab.pitchOffsetDeg);
         npcTransformComp.Rotation.z += glm::radians(prefab.yawOffsetDeg);
         npcTransformComp.Scale *= glm::vec3(meshAsset->importScale);
 
         // Mesh
-        auto& meshComp = enemyNPCEntity.AddComponent<MeshRefComponent>();
+        MeshRefComponent& meshComp = enemyNPCEntity.AddComponent<MeshRefComponent>();
         meshComp.meshId = meshAsset->id;
         meshComp.submeshFirst = 0;
         meshComp.submeshCount = submeshCount;
 
         // Render bounds
-        auto& renderBoundsComp = enemyNPCEntity.AddComponent<RenderBoundsComponent>();
+        RenderBoundsComponent& renderBoundsComp = enemyNPCEntity.AddComponent<RenderBoundsComponent>();
         renderBoundsComp.maxL = meshAsset->maxL;
         renderBoundsComp.minL = meshAsset->minL;
 
         // Skeleton
-        auto& skeletonComp = enemyNPCEntity.AddComponent<SkeletonComponent>();
+        SkeletonComponent& skeletonComp = enemyNPCEntity.AddComponent<SkeletonComponent>();
         skeletonComp.skeletonId = skeletonId;
         skeletonComp.boneCount = (uint32_t)skeletonAsset.parent.size();
         skeletonComp.boneBase = 0xFFFFFFFFu;
 
         // Animator
-        auto& animComp = enemyNPCEntity.AddComponent<Animator3DComponent>();
+        Animator3DComponent& animComp = enemyNPCEntity.AddComponent<Animator3DComponent>();
         animComp.clipA = INVALID_CLIP;
         animComp.clipB = INVALID_CLIP;
         animComp.timeA = 0.0f;
@@ -198,7 +207,7 @@ namespace Engine {
         animComp.playbackSpeed = 1.0f;
 
         // Destructible pieces
-        auto& destrComp = enemyNPCEntity.AddComponent<EnemyDestructibleComponent>();
+        EnemyDestructibleComponent& destrComp = enemyNPCEntity.AddComponent<EnemyDestructibleComponent>();
         destrComp.pieces.clear();
         destrComp.pieces.reserve(submeshCount);
 
@@ -236,15 +245,16 @@ namespace Engine {
         }
 
         // AI / animation controller / state / vision
-        auto& movementComp = enemyNPCEntity.AddComponent<NPCAIMovementComponent>();
+        NPCAIMovementComponent& movementComp = enemyNPCEntity.AddComponent<NPCAIMovementComponent>();
         movementComp.moveSpeed = prefab.moveSpeed;
         movementComp.radius = prefab.radius;
 
-        auto& visionComp = enemyNPCEntity.AddComponent<NPCAIVisionComponent>();
+        NPCAIVisionComponent& visionComp = enemyNPCEntity.AddComponent<NPCAIVisionComponent>();
         visionComp.ViewAngle = prefab.viewAngleDeg;
 
-        auto& animCtrlComp = enemyNPCEntity.AddComponent<NpcAnimationControllerComponent>();
-        auto& stateComp = enemyNPCEntity.AddComponent<NpcAIStateComponent>();
+        NpcAnimationControllerComponent& animCtrlComp = enemyNPCEntity.AddComponent<NpcAnimationControllerComponent>();
+        NpcAIStateComponent& stateComp = enemyNPCEntity.AddComponent<NpcAIStateComponent>();
+        NpcBodyStateComponent& pcBodyStateComponent = enemyNPCEntity.AddComponent<NpcBodyStateComponent>();
 
         if (prefab.addPatrol)
         {
@@ -255,6 +265,7 @@ namespace Engine {
         if (!animCtrlComp.clipsResolved)
         {
             SpawnUtils::ResolveZombieClips(animCtrlComp, *meshAsset);
+            
         }
 
         return enemyNPCEntity;

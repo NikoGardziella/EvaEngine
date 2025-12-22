@@ -8,48 +8,87 @@
 #include <Engine/Animation/3D/System/AnimUtils/AnimUtils.h>
 #include <Engine/Scene/SceneUtils/SpawnUtils.h>
 #include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
+#include <Engine/Scene/Components/NPC/NpcBodyStateComponent.h>
+
+static uint32_t TransitionClip(const NpcBodyStateComponent& body, const NpcAnimationControllerComponent& ctrl)
+{
+    switch (body.transition)
+    {
+    case NpcTransition::FallToProne: return ctrl.clipTrip;
+    case NpcTransition::GetUpToWalk: return ctrl.clipStandup;
+    default: return 0xFFFFFFFFu;
+    }
+}
 
 void NPCAnimationControllerSystem::UpdateNPCAnimationControllerSystem(float dt, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
-
     auto& animReg = Engine::AssetManager::GetAnimationRegistry();
 
-    scene->ForEach<NpcAIStateComponent, Engine::Animator3DComponent, NpcAnimationControllerComponent>(
-        [&](Engine::Entity e, NpcAIStateComponent& ai, Engine::Animator3DComponent& anim, NpcAnimationControllerComponent& ctrl)
+    scene->ForEach<NpcAIStateComponent, NpcBodyStateComponent, Engine::Animator3DComponent, NpcAnimationControllerComponent>(
+        [&](Engine::Entity e, NpcAIStateComponent& ai, NpcBodyStateComponent& body,
+            Engine::Animator3DComponent& anim, NpcAnimationControllerComponent& ctrl)
         {
-          
-
-            // 0) Always ensure clipA is a valid loop for the current state (even during one-shot)
-            switch (ai.state)
+            // 0) death hard override
+            if (body.locomotion == NpcLocomotion::Dead)
             {
-            case AIState::Idle:        Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipIdle);  break;
-            case AIState::Patrol:      Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipWalk);  break;
-            case AIState::MoveToLastKnown:
-            case AIState::ChaseLOS:   Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipRun);   break;
-
-           // case AIState::Death:       Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipDeath); break;
-
-                // If you have crawl state:
-                // case AIState::Crawl:    SetLoopClip(anim, ctrl, ctrl.clipCrawl); break;
-
-            default:                   Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipIdle); break;
+                Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipDeath);
+                ctrl.request = NpcAnimRequest::None;
+                body.transition = NpcTransition::None;
+                return;
             }
 
-            // 1) If a one-shot is active, keep updating it (and don't restart it)
+            // 1) choose base loop for current locomotion + AI state
+            if (body.locomotion == NpcLocomotion::Dead)
+                Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipDeath);
+            else if (body.locomotion == NpcLocomotion::Prone)
+                Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipCrawl);  // or reuse crawl loop if you only have one
+            else if (body.locomotion == NpcLocomotion::Crawl)
+                Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipCrawl);
+               
+            
+            else
+            {
+                switch (ai.state)
+                {
+                case AIState::Idle:  Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipIdle); break;
+                case AIState::Patrol:Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipWalk); break;
+                case AIState::ChaseLOS:
+                case AIState::MoveToLastKnown:
+                case AIState::Attack:Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipRun);  break;
+                default:             Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipIdle); break;
+                }
+            }
+
+            // 2) if a one-shot is active, keep updating it
             if (ctrl.actionTimer > 0.0f)
             {
-                // death overrides everything
-                if (ctrl.currentClip == ctrl.clipDeath)
-                    return;
-
                 UpdateOneShot(anim, ctrl, dt);
                 if (ctrl.actionTimer > 0.0f)
-                    return; // keep overlay running this tick
-                // else it just ended -> fallthrough
+                    return; // still playing
+                // finished -> continue
             }
 
-            // 2) Consume request (starts a one-shot overlay)
+            // 3) consume BODY transition first (fall/get-up)
+            if (body.transition != NpcTransition::None)
+            {
+                const uint32_t clip = TransitionClip(body, ctrl);
+                body.transition = NpcTransition::None; // consume so it won't re-trigger
+
+                if (clip != 0xFFFFFFFFu)
+                {
+                    anim.playbackSpeed = 1.5f;
+                    // During transitions, usually you don’t want to be interrupted by hit/attack
+                    Engine::AnimUtils::StartOneShotClipB(anim, ctrl, animReg, clip, ai.state);
+
+                    // If this was a fall, you might want to automatically enter Crawl after the one-shot:
+                    // you already set locomotion = Prone in BodyStateSystem; optionally switch to Crawl once finished
+                    // (If you want that, do it when the oneshot ends; see below.)
+                    return;
+                }
+            }
+
+            // 4) normal requests (hit/attack/death)
             if (ctrl.request != NpcAnimRequest::None)
             {
                 const NpcAnimRequest req = ctrl.request;
@@ -57,32 +96,37 @@ void NPCAnimationControllerSystem::UpdateNPCAnimationControllerSystem(float dt, 
 
                 if (req == NpcAnimRequest::Hit)
                 {
-                    EE_CORE_INFO("hit req");
-                    Engine::AnimUtils::StartOneShot(anim, ctrl, animReg, ctrl.clipHit, ai.state);
+                    Engine::AnimUtils::StartOneShotClipB(anim, ctrl, animReg, ctrl.clipHit, ai.state);
                     return;
                 }
                 if (req == NpcAnimRequest::Attack)
                 {
-                    Engine::AnimUtils::StartOneShot(anim, ctrl, animReg, ctrl.clipAttack, AIState::ChaseLOS);
+                    const bool canAttack = (body.canAttack != 0);
+                    const bool canDoAttackAnim = canAttack && (body.locomotion != NpcLocomotion::Crawl) && (body.locomotion != NpcLocomotion::Prone);
+                    if (canDoAttackAnim)
+                        Engine::AnimUtils::StartOneShotClipB(anim, ctrl, animReg, ctrl.clipAttack, AIState::ChaseLOS);
                     return;
                 }
                 if (req == NpcAnimRequest::Death)
                 {
-                    // death as loop clipA, no overlay needed
-                    //ai.CurrentState = AIState::Death;
+                    body.locomotion = NpcLocomotion::Dead;
                     Engine::AnimUtils::SetLoopClip(anim, ctrl, ctrl.clipDeath);
                     return;
                 }
             }
 
-            // 3) (Optional) AIState::Attack can trigger request once
-            // DO NOT spam it every frame:
+            // 5) AI Attack -> request once (optional)
             if (ai.state == AIState::Attack && ctrl.actionTimer <= 0.0f)
             {
-                ctrl.request = NpcAnimRequest::Attack;
+                if (body.canAttack && body.locomotion != NpcLocomotion::Crawl && body.locomotion != NpcLocomotion::Prone)
+                    ctrl.request = NpcAnimRequest::Attack;
             }
+
+            // Optional: after fall one-shot finishes, auto go to Crawl loop:
+            // You can do this in UpdateOneShot end detection instead (best place).
         });
 }
+
 
 void NPCAnimationControllerSystem::UpdateOneShot(Engine::Animator3DComponent& anim, NpcAnimationControllerComponent& ctrl, float dt)
 {

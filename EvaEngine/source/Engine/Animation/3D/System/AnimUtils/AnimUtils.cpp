@@ -30,7 +30,7 @@ namespace Engine {
         return animReg.Get(clipId).duration; // adjust if your API differs
     }
 
-    void AnimUtils::StartOneShot(Engine::Animator3DComponent& anim,  NpcAnimationControllerComponent& ctrl,
+    void AnimUtils::StartOneShotClipB(Engine::Animator3DComponent& anim,  NpcAnimationControllerComponent& ctrl,
         const Engine::AnimationRegistry& animReg, uint32_t clipBId, AIState returnState)
     {
         const uint32_t INVALID = 0xFFFFFFFFu;
@@ -48,7 +48,29 @@ namespace Engine {
         float speed = (anim.playbackSpeed != 0.0f) ? anim.playbackSpeed : 1.0f;
         ctrl.actionDuration = clipB.duration / speed;
         ctrl.actionTimer = ctrl.actionDuration;
+        EE_CORE_INFO("one shot B duration {}", ctrl.actionDuration);
+
     }
 
+    void AnimUtils::StartOneShotClipA(Engine::Animator3DComponent& anim, NpcAnimationControllerComponent& ctrl,
+        const Engine::AnimationRegistry& animReg, uint32_t clipAId, AIState returnState)
+    {
+        const uint32_t INVALID = 0xFFFFFFFFu;
+        if (clipAId == INVALID) return;
+
+        const Engine::AnimationClip& clipA = animReg.Get(clipAId);
+
+        ctrl.returnState = returnState;
+
+        // Start overlay
+        anim.clipA = clipAId;
+        anim.timeB = 0.0f;
+        anim.blend = 0.5f;
+
+        float speed = (anim.playbackSpeed != 0.0f) ? anim.playbackSpeed : 1.0f;
+        ctrl.actionDuration = clipA.duration / speed;
+        ctrl.actionTimer = ctrl.actionDuration;
+        EE_CORE_INFO("one shot A duration {}", ctrl.actionDuration);
+    }
 
 }

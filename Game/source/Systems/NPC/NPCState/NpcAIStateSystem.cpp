@@ -2,7 +2,6 @@
 #include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
-#include "NpcAIMovementSystem.h"
 #include <random>
 
 void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)

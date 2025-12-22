@@ -22,6 +22,8 @@ struct NpcAnimationControllerComponent
     uint32_t clipHit = 0xFFFFFFFFu;
     uint32_t clipDeath = 0xFFFFFFFFu;
     uint32_t clipAgonize = 0xFFFFFFFFu;
+    uint32_t clipTrip = 0xFFFFFFFFu;
+    uint32_t clipStandup = 0xFFFFFFFFu;
 
     bool clipsResolved = false;
 

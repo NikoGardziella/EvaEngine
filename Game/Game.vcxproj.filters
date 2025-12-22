@@ -65,8 +65,10 @@
       <Filter>Systems\Vehicle</Filter>
     </ClInclude>
     <ClInclude Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.h" />
-    <ClInclude Include="source\Systems\NPC\NpcAIStateSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NPCState\NpcAIStateSystem.h" />
     <ClInclude Include="source\Systems\Spawning\NpcSpawnControllerSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NPCState\NpcBodyStateSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -108,7 +110,9 @@
       <Filter>Systems\Vehicle</Filter>
     </ClCompile>
     <ClCompile Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.cpp" />
-    <ClCompile Include="source\Systems\NPC\NpcAIStateSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NPCState\NpcAIStateSystem.cpp" />
     <ClCompile Include="source\Systems\Spawning\NpcSpawnControllerSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NPCState\NpcBodyStateSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.cpp" />
   </ItemGroup>
 </Project>

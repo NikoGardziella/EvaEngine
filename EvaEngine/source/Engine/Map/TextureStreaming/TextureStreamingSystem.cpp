@@ -17,9 +17,7 @@
 
 namespace Engine {
 
-    const int mapWidth = 4096; // Example width in pixels
-    const int mapHeight = 4096; // Example height in pixels
- // Size of each chunk in pixels
+
 	TextureStreamingSystem::TextureStreamingSystem()
     {
       

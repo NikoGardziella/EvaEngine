@@ -1873,6 +1873,7 @@
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIStateComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Spawning\NpcSpawnControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\SceneUtils\Prefabs\NPCprefab.h" />
+    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">

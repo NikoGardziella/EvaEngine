@@ -9,6 +9,7 @@
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 #include <Engine/AssetManager/AssetManager.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
+#include <Engine/Scene/Components/NPC/NpcBodyStateComponent.h>
 
 void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Scene* scene)
 {
@@ -20,8 +21,8 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
     
     
     // Execute movement orders (movement only)
-    scene->ForEach<NPCAIMovementComponent, NpcAIStateComponent, Engine::TransformComponent>(
-        [&](Engine::Entity, NPCAIMovementComponent& movementComp, NpcAIStateComponent& npcStateComp, Engine::TransformComponent& npcTransformComp)
+    scene->ForEach<NPCAIMovementComponent, NpcBodyStateComponent, NpcAIStateComponent, Engine::TransformComponent>(
+        [&](Engine::Entity, NPCAIMovementComponent& movementComp, NpcBodyStateComponent& body, NpcAIStateComponent& npcStateComp, Engine::TransformComponent& npcTransformComp)
         {
             if (!movementComp.wantsMove)
             {
@@ -31,7 +32,11 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
                 return;
             }
 
+
+            const bool isCrawling = (body.locomotion == NpcLocomotion::Crawl);
+
             movementComp.movementSpeedMultiplier = 1.0f;
+            movementComp.movementSpeedMultiplier *= body.moveSpeedMul;
             switch (npcStateComp.state)
             {
             case AIState::Patrol:
