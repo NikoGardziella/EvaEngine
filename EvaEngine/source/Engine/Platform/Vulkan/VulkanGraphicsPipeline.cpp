@@ -90,7 +90,7 @@ namespace Engine {
 
         
 
-        m_vulkanRenderShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());
+        m_vulkanGameRenderShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());
         // 1. Buffers and samplers
         CreatePresentSampler();
         CreateGPUCollisionResultBuffer();
@@ -164,13 +164,13 @@ namespace Engine {
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertShaderStageInfo.module = m_vulkanRenderShader->GetVertexShaderModule();
+        vertShaderStageInfo.module = m_vulkanGameRenderShader->GetVertexShaderModule();
         vertShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
         fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragShaderStageInfo.module = m_vulkanRenderShader->GetFragmentShaderModule();
+        fragShaderStageInfo.module = m_vulkanGameRenderShader->GetFragmentShaderModule();
         fragShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
@@ -215,7 +215,7 @@ namespace Engine {
 
         attributeDescriptions[3].binding = 0;
         attributeDescriptions[3].location = 3;
-        attributeDescriptions[3].format = VK_FORMAT_R32_SFLOAT;
+        attributeDescriptions[3].format = VK_FORMAT_R32_UINT;
         attributeDescriptions[3].offset = offsetof(VulkanQuadVertex, TexIndex);
 
         attributeDescriptions[4].binding = 0;

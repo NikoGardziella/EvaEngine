@@ -756,6 +756,7 @@ namespace Engine {
 		uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
+		
 
 		// 0) Bind the 2D pipeline FIRST
 		VkPipeline pipe2D = m_vulkanGraphicsPipelines->GetGamePipeline();
@@ -1117,96 +1118,6 @@ namespace Engine {
 
 
 
-	void VulkanRenderer2D::RecordPlayerCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame)
-	{
-		EE_PROFILE_FUNCTION();
-
-
-		// Current grid slots (same arrays you already maintain)
-		auto& healthTex = s_VulkanData.propertiesTextureSlots;   // we’ll only bind/use the center (index 4)
-
-		// Center chunk index in 3x3
-		constexpr uint32_t CENTER = 4;
-		EE_CORE_ASSERT(healthTex[CENTER], "Center chunk health texture is null");
-
-		// Transition center health image -> GENERAL
-		{
-			VulkanTexture& h = *healthTex[CENTER];
-			if (h.GetCurrentLayout() != VK_IMAGE_LAYOUT_GENERAL) {
-				TransitionImageLayout(cmd, h.GetImage(), h.GetCurrentLayout(), VK_IMAGE_LAYOUT_GENERAL);
-				h.SetCurrentLayout(VK_IMAGE_LAYOUT_GENERAL);
-			}
-		}
-
-		// Update player-collision descriptor set (binds only the center health image at binding 0)
-		m_vulkanGraphicsPipelines->UpdatePlayerCollisionDescriptorSet(currentFrame, healthTex);
-		VkDescriptorSet ds = m_vulkanGraphicsPipelines->GetPlayerCollisionComputeDescriptorSet(currentFrame);
-
-		// Bind player-collision pipeline
-		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, m_vulkanGraphicsPipelines->GetPlayerCollisionComputePipeline());
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
-			m_vulkanGraphicsPipelines->GetPlayerCollisionComputePipelineLayout(),
-			0, 1, &ds, 0, nullptr);
-
-		// Build push constants for the center chunk only
-		// NOTE: reusing your PushConstants layout. If your player shader expects a different struct,
-		//       change this to match.
-		PlayerPC pc{}; // your original struct with TextureOrigin, PixelSize, TextureIndex, etc.
-
-		{
-			VulkanTexture& centerHealth= *healthTex[CENTER];  // for origin/pixel size
-			pc.WindowOriginWorld = centerHealth.GetTextureOrigin();  // top-left in world-units
-			pc.PixelSizeWorld = centerHealth.GetPixelSize();
-
-			
-			pc.NumPlayers = PLAYER_COUNT; 
-
-			pc.ChunkSizePixels = TILE_PIXEL_WIDTH * CHUNK_SIZE;
-			
-		}
-
-		vkCmdPushConstants(cmd,
-			m_vulkanGraphicsPipelines->GetPlayerCollisionComputePipelineLayout(),
-			VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PlayerPC), &pc);
-
-		// Dispatch only over the center chunk
-		{
-			const VulkanTexture& centerH = *healthTex[CENTER];
-			const uint32_t w = centerH.GetWidth();
-			const uint32_t h = centerH.GetHeight();
-
-			const uint32_t groupSizeX = 16;
-			const uint32_t groupSizeY = 16;
-
-			const uint32_t dispatchX = (w + groupSizeX - 1) / groupSizeX;
-			const uint32_t dispatchY = (h + groupSizeY - 1) / groupSizeY;
-
-			vkCmdDispatch(cmd, dispatchX, dispatchY, 1);
-		}
-
-		// Ensure the player pass writes (results/health) are visible to CPU or subsequent passes
-		{
-			VkMemoryBarrier barrier{};
-			barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-			barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-
-			vkCmdPipelineBarrier(cmd,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				0, 1, &barrier, 0, nullptr, 0, nullptr);
-		}
-
-		// pass samples it with a sampled image. If it remains a storage image for later compute, skip this.
-		// {
-		//     VulkanTexture& h = *healthTex[CENTER];
-		//     if (h.GetCurrentLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-		//         TransitionImageLayout(cmd, h.GetImage(), h.GetCurrentLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		//         h.SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		//     }
-		// }
-	}
-
 
 	// Same test you use in the shader
 	static inline bool CircleIntersectsRect(glm::vec2 cW, float rW,
@@ -1479,92 +1390,6 @@ namespace Engine {
 		}	
 	}
 
-
-	void VulkanRenderer2D::RecordClearTextureComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
-	{
-		EE_PROFILE_FUNCTION();
-
-		auto& queue = s_VulkanTilesToDestroyData.TilesDestroyQueu;
-		if (queue.empty())
-		{
-
-
-			return;
-		}
-		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
-			m_vulkanGraphicsPipelines->GetClearMaskComputePipeline());
-
-		VkDescriptorSet set0 = m_vulkanGraphicsPipelines->GetClearMaskComputeDescriptorSet(frameIndex);
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
-			m_vulkanGraphicsPipelines->GetClearMaskComputePipelineLayout(),
-			0, 1, &set0, 0, nullptr);
-
-		const uint32_t tileW = TILE_PIXEL_WIDTH;
-		const uint32_t tileH = TILE_PIXEL_HEIGHT;
-		const uint32_t gx = (tileW + 15) / 16;
-		const uint32_t gy = (tileH + 15) / 16;
-
-		VkImage colorArray = s_bindlessDescitproRenderer->GetColorImageArray();
-		VkImage propsArray = s_bindlessDescitproRenderer->GetPropsArrayImage();
-
-		for (const auto& job : queue)
-		{
-			const uint32_t slot = job.slot;
-			/*
-			*/
-			// 2) Transition ONLY this layer to GENERAL for compute writes
-			
-			/*
-			*/
-			BarrierLayer(cmd, colorArray, slot,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
-
-		
-			/*
-			BarrierLayer(cmd, propsArray, slot,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
-
-			*/
-			
-			m_vulkanGraphicsPipelines->UpdateClearMaskDescriptorSet(frameIndex,
-				s_bindlessDescitproRenderer->GetColorImageView(slot),
-				s_bindlessDescitproRenderer->GetCPropsImageView(slot));
-
-			// 3) Push constants selecting the tile (and clear mode/flags)
-			ClearMaskPC pc{};
-			pc.ClearFlags = 0u;         // as needed
-			pc.CutY = job.cutY;
-			pc.Width = TILE_PIXEL_WIDTH;
-			pc.Height = TILE_PIXEL_HEIGHT;
-
-			vkCmdPushConstants(cmd,
-				m_vulkanGraphicsPipelines->GetClearMaskComputePipelineLayout(),
-				VK_SHADER_STAGE_COMPUTE_BIT,
-				0, sizeof(ClearMaskPC), &pc);
-
-			// 4) Dispatch
-			vkCmdDispatch(cmd, gx, gy, 1);
-
-			// 5) Transition back to SRV for later graphics reads
-			BarrierLayer(cmd, colorArray, slot,
-				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
-
-			/*
-			BarrierLayer(cmd, propsArray, slot,
-				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
-			*/
-		}
-
-		queue.clear();
-	}
 
 
 
@@ -2080,9 +1905,11 @@ namespace Engine {
 		float textureIndex = 0.0f;
 		textureIndex = static_cast<float>(s_VulkanData.TextureSlotIndex);
 		s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = texture;
+
+		
 		s_VulkanData.TextureSlotIndex++;
 
-
+		
 		// Quad vertex data
 		const glm::vec3 quadPositions[4] = {
 			{-0.5f, -0.5f, 0.0f},
@@ -2117,11 +1944,10 @@ namespace Engine {
 		s_VulkanData.Stats.QuadCount++;
 	}
 
-
-	void VulkanRenderer2D::DrawVisualEffectTexture(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture)
+	void VulkanRenderer2D::DrawVisualEffectTexture(const glm::mat4& transform,
+		const std::shared_ptr<VulkanTexture>& texture)
 	{
 		EE_PROFILE_FUNCTION();
-
 
 		if (s_VulkanData.VisualTextureSlotIndex >= VulkanRenderer2DData::GridSize)
 		{
@@ -2129,14 +1955,13 @@ namespace Engine {
 			return;
 		}
 
-
-		// Try to get texture slot from map
-		float textureIndex = 0.0f;
-		textureIndex = static_cast<float>(s_VulkanData.VisualTextureSlotIndex);
-		s_VulkanData.VisualEffectsTextureSlots[s_VulkanData.VisualTextureSlotIndex] = texture;
+		const uint32_t idx = s_VulkanData.VisualTextureSlotIndex;
+		s_VulkanData.VisualEffectsTextureSlots[idx] = texture;
 		s_VulkanData.VisualTextureSlotIndex++;
 
-		
+		const float textureIndex = float(idx);
+		constexpr float VISUAL_BASE = float(MAX_TEXTURES - CHUNK_GRID_SIZE); // 23 when 32/9
+
 		// Quad vertex data
 		const glm::vec3 quadPositions[4] = {
 			{-0.5f, -0.5f, 0.0f},
@@ -2152,7 +1977,6 @@ namespace Engine {
 			{0.0f, 1.0f}
 		};
 
-		// Write 4 vertices
 		for (size_t i = 0; i < 4; i++)
 		{
 			glm::vec4 transformed = transform * glm::vec4(quadPositions[i], 1.0f);
@@ -2160,17 +1984,17 @@ namespace Engine {
 			s_VulkanData.QuadVertexBufferPtr->Color = glm::vec4(1);
 			s_VulkanData.QuadVertexBufferPtr->TexCoord = texCoords[i];
 
-
-			s_VulkanData.QuadVertexBufferPtr->TexIndex = textureIndex + s_VulkanData.TextureSlotIndex;
+			// FIX: visual textures live in the BACK of u_Textures[]
+			s_VulkanData.QuadVertexBufferPtr->TexIndex = VISUAL_BASE + textureIndex;
 			s_VulkanData.QuadVertexBufferPtr->TilingFactor = 1.0f;
+
 			s_VulkanData.QuadVertexBufferPtr++;
 		}
 
 		s_VulkanData.QuadIndexCount += 6;
-
 		s_VulkanData.Stats.QuadCount++;
-		
 	}
+
 
 
 

@@ -255,7 +255,7 @@ namespace Engine {
         EE_PROFILE_FUNCTION();
 
         const int CELL_W = int(TILE_PIXEL_WIDTH);
-        const int CELL_H = int(TILE_PIXEL_WIDTH);
+        const int CELL_H = int(TILE_PIXEL_WIDTH); // this is intended 
         const int chunkWpx = int(CHUNK_SIZE) * CELL_W;
         const int chunkHpx = int(CHUNK_SIZE) * CELL_H;
 
@@ -263,7 +263,7 @@ namespace Engine {
         const int groundPxY = int(std::floor(worldPosition.y * float(CELL_H)));
 
         const int destX0_global = groundPxX - int(textureWidth) / 2;
-        const int destY0_global = (groundPxY - 1) - 0;
+        const int destY0_global = groundPxY - int(textureHeight) + CELL_H;
         const int dstX1_global = destX0_global + int(textureWidth);
         const int dstY1_global = destY0_global + int(textureHeight);
 
@@ -276,15 +276,15 @@ namespace Engine {
         const int maxChunkX = floorDiv(dstX1_global - 1, chunkWpx);
         const int minChunkY = floorDiv(destY0_global, chunkHpx);
         const int maxChunkY = floorDiv(dstY1_global - 1, chunkHpx);
-
+        
         EE_CORE_ASSERT(textureData.size() >= size_t(textureWidth) * textureHeight * 4, "terrain textureData too small");
-
         for (int cy = minChunkY; cy <= maxChunkY; ++cy)
             for (int cx = minChunkX; cx <= maxChunkX; ++cx)
             {
                 const glm::ivec2 chunkCoords(cx, cy);
                 TextureChunk& chunk = m_chunkMap[HashCoords(chunkCoords)];
                 chunk.TextureCount += 1;
+
 
                 const size_t totalPixels = size_t(chunkWpx) * size_t(chunkHpx);
                 if (chunk.TerrainData.empty())
@@ -428,66 +428,19 @@ namespace Engine {
         
         if (!chunk.TerrainData.empty())
         {
-            chunk.TerrainTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UNORM);
+            chunk.TerrainTexture = std::make_shared<VulkanTexture>(chunk.Width, chunk.Height, VK_FORMAT_R8G8B8A8_UNORM);
 
             VulkanUtils::TransitionImageLayout(chunk.TerrainTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             chunk.TerrainTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
             chunk.TerrainTexture->SetData(chunk.TerrainData.data(), chunk.Height * chunk.Width * 4);
-
+            EE_CORE_INFO("Draw chunk {},{} -> image={}",
+                chunk.ChunkCoords.x, chunk.ChunkCoords.y,  (void*)chunk.TerrainTexture->GetImage());
         }
 
 
-        /// ************** ONLY TERRAIN FOR NOW ******************
-        // perhaphs move terrain to tiles as well
-       /*
-        if (chunk.PixelData.empty())
-        {
-            return;
-        }
 
-        if (!chunk.PropertiesData.empty())
-        {
-            chunk.PropertiesTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UINT);
-
-           
-            VulkanUtils::TransitionImageLayout(chunk.PropertiesTexture->GetImage(), VK_FORMAT_R8G8B8A8_UINT,
-                VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-            chunk.PropertiesTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-            chunk.PropertiesTexture->SetData(chunk.PropertiesData.data(), chunk.Height * chunk.Width * 4);
-            // *****************************
-        }
-
-        chunk.GPUTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UNORM);
-
-        VulkanUtils::TransitionImageLayout(chunk.GPUTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
-            VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-        chunk.GPUTexture->SetCurrentLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-		chunk.GPUTexture->SetData(chunk.PixelData.data(), chunk.Height * chunk.Width * 4);
-
-       */
-
-
-
-      
-
-        auto entityView = scene->GetRegistry().view<IDComponent, SpriteRendererComponent>();
-
-        for (auto entity : entityView)
-        {
-
-            auto [IDComp, spriteRendComp] = entityView.get<IDComponent, SpriteRendererComponent>(entity);
-			if (IDComp.ID == chunk.ID)
-			{
-				spriteRendComp.Texture = chunk.GPUTexture;
-               
-                break;
-			}
-
-        }
 
         auto chynkentityView = scene->GetRegistry().view<IDComponent, ChunkRendererComponent>();
 
@@ -501,7 +454,7 @@ namespace Engine {
                // chunkRendComp.PropertiesTexture = chunk.PropertiesTexture;
               //  chunkRendComp.PropertiesTexture->SetCPUPixelData(std::move(chunk.PropertiesData));
                 chunkRendComp.TerrainTexture = chunk.TerrainTexture;
-                chunkRendComp.VisualEffectTexture = std::make_shared<VulkanTexture>(chunk.Height, chunk.Width, VK_FORMAT_R8G8B8A8_UNORM);
+                chunkRendComp.VisualEffectTexture = std::make_shared<VulkanTexture>(chunk.Width, chunk.Height, VK_FORMAT_R8G8B8A8_UNORM);
                
                 /*
                 VulkanUtils::TransitionImageLayout(chunkRendComp.VisualEffectTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM,
@@ -685,6 +638,9 @@ namespace Engine {
             {
                 for (const TileInfo& tile : tileComp.tiles)
                 {
+                    
+
+
                     if (tile.Category != eTileCategory::Terrain)
                         continue;
 
@@ -811,6 +767,8 @@ namespace Engine {
             chunkRenderer.Texture = chunk.GPUTexture;
             chunkRenderer.ChunkCoords = chunk.ChunkCoords;
 			chunkRenderer.IsLoaded = false;
+
+          
             //FlipChunkHorizontally(chunk);
            // FlipChunkVertically(chunk);
 

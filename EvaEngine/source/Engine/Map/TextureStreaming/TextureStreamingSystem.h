@@ -40,6 +40,8 @@ namespace Engine{
             uint32_t Width = 0;
             uint32_t Height = 0;
             uint32_t TextureCount = 0;
+            uint32_t RenderSlot = 0;
+
 
 
         };

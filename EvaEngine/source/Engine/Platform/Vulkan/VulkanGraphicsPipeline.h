@@ -145,7 +145,7 @@ namespace Engine {
         glm::vec3 Position;  // Vertex position (x, y, z)
         glm::vec4 Color;     // Vertex color (r, g, b, a)
         glm::vec2 TexCoord;  // Texture coordinates (u, v)
-        float TexIndex;      // Texture index for binding
+        uint32_t  TexIndex;      // Texture index for binding
         float TilingFactor;  // Tiling factor for the texture
     };
 
@@ -323,7 +323,7 @@ namespace Engine {
         Ref<VulkanShader> m_pixelGameShader;
         Ref<VulkanShader> m_fullscreenShader;
         Ref<VulkanShader> m_lineShader;
-        Ref<VulkanShader> m_vulkanRenderShader;
+        Ref<VulkanShader> m_vulkanGameRenderShader;
         Ref<VulkanShader> m_playerCollisionComputeShader;
         Ref<VulkanShader> m_clearMaskComputeShader;
         VkSampler m_presentSampler;

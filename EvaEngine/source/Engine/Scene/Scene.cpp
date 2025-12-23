@@ -716,7 +716,7 @@ namespace Engine {
 
 
                         glm::vec2 worldPos = glm::vec2(chunkComp.ChunkCoords) * (float)CHUNK_SIZE + glm::vec2(CHUNK_SIZE * 0.5f);
-                        chunkComp.TerrainTexture->SetTextureOrigin(worldPos);
+                       // chunkComp.TerrainTexture->SetTextureOrigin(worldPos); 
                        // chunkComp.VisualEffectTexture->SetTextureOrigin(worldPos);
 
                         glm::mat4 model =
@@ -1247,7 +1247,7 @@ namespace Engine {
                     continue;
                 }
 
-				Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
+				//Engine::VulkanRenderer2D::DrawTextureQuad(transform.GetTransform(), quadSprite.Texture, tiling, quadSprite.Color);
 			}
 		}
         {
