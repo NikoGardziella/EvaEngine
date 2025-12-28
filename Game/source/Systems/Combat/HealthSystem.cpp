@@ -3,6 +3,7 @@
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
+#include <Engine/Scene/Components/NPC/NpcBodyStateComponent.h>
 
 
 void HealthSystem::UpdateHealthSystem(float deltaTime, Engine::Scene* scene)
@@ -15,8 +16,10 @@ void HealthSystem::UpdateHealthSystem(float deltaTime, Engine::Scene* scene)
             if (health.Current <= 0.0f)
             {
                 NpcAnimationControllerComponent& npcAnimationControllerComp = e.GetComponent<NpcAnimationControllerComponent>();
-                if (npcAnimationControllerComp.actionTimer >= 0.0f)
+                NpcAIStateComponent& npcStateComponent = e.GetComponent<NpcAIStateComponent>();
+                if (npcAnimationControllerComp.transitionTimer <= -5.0f && npcStateComponent.state == AIState::Dead)
                 {
+                    // make new system to deal with removing entities
                     scene->DestroyEntity(e);
                 }
 

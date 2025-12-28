@@ -36,6 +36,7 @@ namespace Engine
 
 
         uint32_t LoadGLTFClip(const char* path, uint32_t skeletonId, const char* clipName = nullptr);
+
         const AnimationClip& AnimationRegistry::Get(uint32_t id) const
         {
             static AnimationClip dummy{}; 
@@ -48,6 +49,10 @@ namespace Engine
             }
             return m_clips[id];
         }
+
+        
+
+
 
         void SetSkeletonRegistry(const Ref<SkeletonRegistry>& skelReg)
         {

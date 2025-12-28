@@ -5,6 +5,7 @@
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 #include <Engine/Scene/Entity.h>
 #include <Engine/Animation/3D/Utils/AnimationUtils.h>
+#include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 
 namespace Engine {
 
@@ -18,14 +19,19 @@ namespace Engine {
 
         AnimScratch3D scratch;
 
-        scene->ForEach<SkeletonComponent, Animator3DComponent>([&](Entity entity, SkeletonComponent& skel, Animator3DComponent& an)
+        scene->ForEach<SkeletonComponent, Animator3DComponent, NpcAnimationControllerComponent>([&](Entity entity, SkeletonComponent& skel, Animator3DComponent& an, NpcAnimationControllerComponent& ctrl)
             {
                 if (skel.boneCount == 0 || skel.skeletonId == 0xFFFFFFFFu)
                     return;
 
                 // 1) Advance times
-                AdvanceTime(an.clipA, an.timeA, dt, an.playbackSpeed, animReg, true);
-                AdvanceTime(an.clipB, an.timeB, dt, an.playbackSpeed, animReg, false);
+                const bool loopA = (ctrl.transitionTimer <= 0.0f);  // transition owns A -> no loop
+                AdvanceTime(an.clipA, an.timeA, dt, an.playbackSpeed, animReg, an.loopAclip);
+
+                // For base crossfade, clipB is a looping base; otherwise overlay is non-looping
+                const bool loopB = (ctrl.baseXFadeActive != 0);
+                AdvanceTime(an.clipB, an.timeB, dt, an.playbackSpeed, animReg, loopB);
+
 
                 const SkeletonAsset& sasset = skelReg.Get(skel.skeletonId);
                 const uint32_t boneCount = skel.boneCount;

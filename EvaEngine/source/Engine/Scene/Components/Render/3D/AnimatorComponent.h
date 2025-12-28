@@ -19,5 +19,7 @@ namespace Engine {
         //TOdo update the animations less when they are further
         uint8_t  updateRate = 1;
         uint8_t  frameCounter = 0; 
+
+        bool loopAclip = false;
     };
 }

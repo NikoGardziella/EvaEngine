@@ -9,6 +9,7 @@ enum class AIState : uint8_t
     ChaseLOS,
     MoveToLastKnown,
     Attack,
+    Dead,
 };
 
 struct NpcAIStateComponent

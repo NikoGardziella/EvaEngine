@@ -5,24 +5,23 @@
 #include <Engine/Scene/Components/NPC/NpcBodyStateComponent.h>
 #include <Engine/Scene/Components/NPC/Destruction/EnemyDestructibleComponent.h>
 #include "Utils/NPCStateUtils.h"
+#include <Engine/Scene/Components/Combat/HealthComponent.h>
 
-
-    
 
 
 void NpcBodyStateSystem::UpdateNpcBodyStateSystem(float deltatime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    scene->ForEach<Engine::EnemyDestructibleComponent, NpcBodyStateComponent>(
-        [&](Engine::Entity, Engine::EnemyDestructibleComponent& destr, NpcBodyStateComponent& body)
+    scene->ForEach<Engine::EnemyDestructibleComponent, NpcBodyStateComponent,Engine::HealthComponent>(
+        [&](Engine::Entity, Engine::EnemyDestructibleComponent& destrComp, NpcBodyStateComponent& bodyStateComp,Engine::HealthComponent& healthComp)
         {
             bool hasLeftLeg = false;
             bool hasRightLeg = false;
             bool hasAnyArm = false;
             bool hasTorso = false;
 
-            for (const auto& p : destr.pieces)
+            for (const auto& p : destrComp.pieces)
             {
                 if (!NPCStateUtils::PiecePresent(p))
                     continue;
@@ -33,66 +32,58 @@ void NpcBodyStateSystem::UpdateNpcBodyStateSystem(float deltatime, Engine::Scene
                 if (NPCStateUtils::IsArmPiece(p.type))      hasAnyArm = true;
             }
 
-            body.caps = (uint32_t)Cap_Sense;
-            body.moveSpeedMul = 1.0f;
-            body.attackRangeMul = 1.0f;
+            bodyStateComp.caps = (uint32_t)Cap_Sense;
+            bodyStateComp.moveSpeedMul = 1.0f;
+            bodyStateComp.attackRangeMul = 1.0f;
 
-            if (!hasTorso)
-            {
-                body.locomotion = NpcLocomotion::Dead;
-                // no Cap_Move, no attacks
-                body.moveSpeedMul = 0.0f;
-                return;
-            }
-
+          
             // ---- Locomotion ----
             const bool hasAnyLeg = (hasLeftLeg || hasRightLeg);
 
-            body.caps |= (uint32_t)Cap_Move;
+            bodyStateComp.caps |= (uint32_t)Cap_Move;
 
             if (!hasAnyLeg)
             {
-                body.locomotion = NpcLocomotion::Crawl;
-                body.moveSpeedMul = 0.35f;
+                bodyStateComp.locomotion = NpcLocomotion::Crawl;
+                bodyStateComp.moveSpeedMul = 0.35f;
             }
             else
             {
-                body.locomotion = NpcLocomotion::Walk;
+                bodyStateComp.locomotion = NpcLocomotion::Walk;
 
                 // Limp if only one leg
                  if (hasLeftLeg ^ hasRightLeg)
-                    body.moveSpeedMul = 0.60f;
+                    bodyStateComp.moveSpeedMul = 0.60f;
                 else
-                    body.moveSpeedMul = 1.0f;
+                    bodyStateComp.moveSpeedMul = 1.0f;
             }
 
             // ---- Attack capability ----
             if (hasAnyArm)
             {
-                body.caps |= (uint32_t)Cap_AttackMelee;
-                body.attackRangeMul = 1.0f;
+                bodyStateComp.caps |= (uint32_t)Cap_AttackMelee;
+                bodyStateComp.attackRangeMul = 1.0f;
             }
             else
             {
                 // Either fallback attack (bite) or disable attacks entirely.
-                body.caps |= (uint32_t)Cap_AttackBite;
-                body.attackRangeMul = 0.75f;
+                bodyStateComp.caps |= (uint32_t)Cap_AttackBite;
+                bodyStateComp.attackRangeMul = 0.75f;
             }
 
-            body.canAttack = hasAnyArm ? 1 : 0;
+            bodyStateComp.canAttack = hasAnyArm ? 1 : 0;
 
             // Detect falling condition: had legs before, now none
-            if (body.prevHadAnyLeg && !hasAnyLeg)
+            if (bodyStateComp.prevHadAnyLeg && !hasAnyLeg)
             {
                 // Only trigger if not dead
-                if (body.locomotion != NpcLocomotion::Dead)
-                {
-                    body.transition = NpcTransition::FallToProne;
-                    body.locomotion = NpcLocomotion::Prone; // enter prone immediately; animation will play the fall
-                }
+                
+                bodyStateComp.transition = NpcTransition::FallToProne;
+                bodyStateComp.locomotion = NpcLocomotion::Prone; // enter prone immediately; animation will play the fall
+                
             }
 
-            body.prevHadAnyLeg = hasAnyLeg ? 1 : 0;
+            bodyStateComp.prevHadAnyLeg = hasAnyLeg ? 1 : 0;
 
 
         });

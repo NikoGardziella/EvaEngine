@@ -22,7 +22,7 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
     
     // Execute movement orders (movement only)
     scene->ForEach<NPCAIMovementComponent, NpcBodyStateComponent, NpcAIStateComponent, Engine::TransformComponent>(
-        [&](Engine::Entity, NPCAIMovementComponent& movementComp, NpcBodyStateComponent& body, NpcAIStateComponent& npcStateComp, Engine::TransformComponent& npcTransformComp)
+        [&](Engine::Entity, NPCAIMovementComponent& movementComp, NpcBodyStateComponent& bodyStateComp, NpcAIStateComponent& npcStateComp, Engine::TransformComponent& npcTransformComp)
         {
             if (!movementComp.wantsMove)
             {
@@ -33,10 +33,10 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
             }
 
 
-            const bool isCrawling = (body.locomotion == NpcLocomotion::Crawl);
+            const bool isCrawling = (bodyStateComp.locomotion == NpcLocomotion::Crawl);
 
             movementComp.movementSpeedMultiplier = 1.0f;
-            movementComp.movementSpeedMultiplier *= body.moveSpeedMul;
+            movementComp.movementSpeedMultiplier *= bodyStateComp.moveSpeedMul;
             switch (npcStateComp.state)
             {
             case AIState::Patrol:
@@ -47,19 +47,7 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
             const glm::vec2 npc2(npcTransformComp.Translation.x, npcTransformComp.Translation.y);
             const glm::vec2 goal2 = movementComp.goal2D;
 
-            auto FaceDir2D = [&](const glm::vec2& dir2)
-                {
-                    glm::vec2 d = dir2;
-                    float len2 = glm::dot(d, d);
-                    if (len2 <= 1e-8f) return;
-
-                    d /= glm::sqrt(len2);
-
-                    if (movementComp.hasFacing)
-                        RotateTowardsDirXY(npcTransformComp, movementComp, glm::vec3(movementComp.facing2D.x, movementComp.facing2D.y, 0.0f), deltatime);
-                    else
-                        RotateTowardsDirXY(npcTransformComp, movementComp, glm::vec3(d.x, d.y, 0.0f), deltatime);
-                };
+    
 
             // ---- Direct seek (no path) ----
             if (!movementComp.usePath || !grid)
@@ -70,12 +58,20 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
                 {
                     glm::vec2 dir2 = to / glm::sqrt(d2);
 
-                    
 
                     npcTransformComp.Translation.x += dir2.x * movementComp.moveSpeed * movementComp.movementSpeedMultiplier * deltatime;
                     npcTransformComp.Translation.y += dir2.y * movementComp.moveSpeed * movementComp.movementSpeedMultiplier * deltatime;
 
-                    FaceDir2D(dir2);
+                    glm::vec2 d = dir2;
+                    float len2 = glm::dot(d, d);
+                    if (len2 <= 1e-8f) return;
+
+                    d /= glm::sqrt(len2);
+
+                    if (movementComp.hasFacing)
+                        RotateTowardsDirXY(npcTransformComp, movementComp, glm::vec3(movementComp.facing2D.x, movementComp.facing2D.y, 0.0f), deltatime);
+                    else
+                        RotateTowardsDirXY(npcTransformComp, movementComp, glm::vec3(d.x, d.y, 0.0f), deltatime);
                 }
 
                 movementComp.ClearPath();
@@ -147,8 +143,6 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
         });
 
     const size_t count = agents.size();
-    if (count < 2)
-        return; // <-- safe now; movement already executed
 
     std::vector<glm::vec2> push(count, glm::vec2(0.0f));
 

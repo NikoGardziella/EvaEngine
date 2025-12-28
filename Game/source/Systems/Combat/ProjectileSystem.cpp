@@ -177,7 +177,15 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                         Engine::HealthComponent& healthComp = targetEntity.GetComponent<Engine::HealthComponent>();
                         healthComp.Current -= projectileComp.Damage;
                         NpcAnimationControllerComponent& animControllderComp = targetEntity.GetComponent<NpcAnimationControllerComponent>();
-                        animControllderComp.request = NpcAnimRequest::Hit;
+                       
+                        if (healthComp.Current > 0)
+                        {
+                            animControllderComp.request = NpcAnimRequest::Hit;
+                        }
+                        else
+                        {
+                            animControllderComp.request = NpcAnimRequest::Death;
+                        }
 
                     }
 

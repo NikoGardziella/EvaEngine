@@ -3,15 +3,16 @@
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 #include <random>
+#include <Engine/Scene/Components/Combat/HealthComponent.h>
 
 void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
     scene->ForEach<NpcAIStateComponent, NPCAIMovementComponent, NPCAIVisionComponent,
-        Engine::TransformComponent, NpcAnimationControllerComponent, NpcAIPatrolComponent>(
+        Engine::TransformComponent, NpcAnimationControllerComponent, NpcAIPatrolComponent, Engine::HealthComponent>(
             [&](Engine::Entity, NpcAIStateComponent& npcStateComp, NPCAIMovementComponent& movementComp, NPCAIVisionComponent& visionComp,
-                Engine::TransformComponent& tr, NpcAnimationControllerComponent& animCtrl,  NpcAIPatrolComponent& patrol)
+                Engine::TransformComponent& transformComp, NpcAnimationControllerComponent& animCtrlComp,  NpcAIPatrolComponent& patrolComp, Engine::HealthComponent& healthComp)
             {
                 // ---- Clear movement orders each tick ----
                 movementComp.wantsMove = 0;
@@ -26,19 +27,34 @@ void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)
                 const bool hasLastKnown = (visionComp.lastSeenTarget) /* or != entt::null */;
                 const bool memoryFresh = (visionComp.timeSinceSeen < memorySeconds);
 
+
+                if (healthComp.Current <= 0.0f)
+                {
+                    npcStateComp.state = AIState::Dead;
+                    return;
+                }
+
                 // ---- If in Attack, wait for controller ----
                 if (npcStateComp.state == AIState::Attack)
                 {
                     if (dist > attackRange)
                     {
-                        //stop attacking
+                        //stop attacking and chase
                         npcStateComp.state = AIState::ChaseLOS;
                     }
-                    if (animCtrl.actionTimer > 0.0f)
-                        return;
 
-                    // Return after one-shot
-                    npcStateComp.state = hasLOS ? AIState::ChaseLOS : (memoryFresh ? AIState::MoveToLastKnown : AIState::Idle);
+                    if (hasLOS)
+                    {
+                        npcStateComp.state = AIState::ChaseLOS;
+                    }
+                    else if (memoryFresh)
+                    {
+                        npcStateComp.state = AIState::MoveToLastKnown;
+                    }
+                    else
+                    {
+                        npcStateComp.state = AIState::Idle;
+                    }
                 }
 
                 switch (npcStateComp.state)
@@ -71,7 +87,7 @@ void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)
                     // If we are close to the current goal, pick a new random one
                     npcStateComp.patrolRegoalCooldown -= dt;
 
-                    glm::vec2 p(tr.Translation.x, tr.Translation.y);
+                    glm::vec2 p(transformComp.Translation.x, transformComp.Translation.y);
                     glm::vec2 g = movementComp.goal2D;
 
                     const float reach = 0.35f;
@@ -79,7 +95,7 @@ void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)
 
                     if (arrived && npcStateComp.patrolRegoalCooldown <= 0.0f)
                     {
-                        SetRandomPatrolGoal(movementComp, tr.Translation, 2.0f, 10.0f, /*usePath=*/true);
+                        SetRandomPatrolGoal(movementComp, transformComp.Translation, 2.0f, 10.0f, /*usePath=*/true);
                         npcStateComp.patrolRegoalCooldown = 0.75f; // don’t repick instantly
                     }
                     else
@@ -133,7 +149,7 @@ void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)
                     movementComp.goal2D = { visionComp.lastSeenPos.x, visionComp.lastSeenPos.y };
 
                     // If close enough to last seen, give up
-                    glm::vec2 p(tr.Translation.x, tr.Translation.y);
+                    glm::vec2 p(transformComp.Translation.x, transformComp.Translation.y);
                     glm::vec2 g(visionComp.lastSeenPos.x, visionComp.lastSeenPos.y);
                     const float reach = 0.20f;
                     if (glm::dot(g - p, g - p) <= reach * reach)

@@ -439,7 +439,7 @@ namespace Engine {
             NpcAIStateComponent& npcAIStateComponent = enemyEntity.AddComponent<NpcAIStateComponent>();
             NpcAIPatrolComponent& mpcAIPatrolComponent = enemyEntity.AddComponent<NpcAIPatrolComponent>();
 
-            if (!npcAnimationControllerComponent.clipsResolved)
+            //if (!npcAnimationControllerComponent.clipsResolved)
             {
                 SpawnUtils::ResolveZombieClips(npcAnimationControllerComponent, meshAsset);
             }
@@ -624,6 +624,7 @@ namespace Engine {
 
             if (!playerEntity.HasComponent<Animator3DComponent>())
             {
+                EE_CORE_WARN("move this stuff somewher");
                 MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
 
                 const MeshAsset* meshAsset = meshReg.GetMeshByKey("playerMeshes");
@@ -659,7 +660,7 @@ namespace Engine {
                 anim.timeA = 0.0f;
                 anim.blend = 0.0f;                 // only clipA
                 anim.playbackSpeed = 1.0f;
-
+                anim.loopAclip = true;
 
                TransformComponent& playerTransformComp = playerEntity.GetComponent<TransformComponent>();
                playerTransformComp.Rotation.x += glm::radians(90.0f);

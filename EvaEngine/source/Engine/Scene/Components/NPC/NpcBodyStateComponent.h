@@ -16,7 +16,6 @@ enum class NpcLocomotion : uint8_t
     Walk = 0,
     Crawl,
     Prone,
-    Dead
 };
 
 enum NpcCapability : uint32_t

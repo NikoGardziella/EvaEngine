@@ -73,7 +73,6 @@ namespace Engine {
         if (skeletonId == kInvalidId)
         {
             EE_CORE_ERROR("[Spawn] Zombie mesh has invalid skeletonId");
-            animControllerComp.clipsResolved = false;
             return;
         }
 
@@ -91,7 +90,7 @@ namespace Engine {
         }
 
         // 3) Resolve clips with checks against this skeleton/boneCount
-        animControllerComp.clipAgonize = FindClipIdChecked("zombieAgonizing", skeletonId, meshBoneCount);
+        //animControllerComp.clipAgonize = FindClipIdChecked("zombieAgonizing", skeletonId, meshBoneCount);
         animControllerComp.clipCrawl = FindClipIdChecked("zombieAnimCrawl", skeletonId, meshBoneCount);
         animControllerComp.clipIdle = FindClipIdChecked("zombieAnimIdle", skeletonId, meshBoneCount);
         animControllerComp.clipWalk = FindClipIdChecked("zombieAnimWalk", skeletonId, meshBoneCount);
@@ -101,10 +100,10 @@ namespace Engine {
         animControllerComp.clipRun = FindClipIdChecked("zombieAnimRunning", skeletonId, meshBoneCount);
         animControllerComp.clipTrip = FindClipIdChecked("zombieAnimTrip", skeletonId, meshBoneCount);
         animControllerComp.clipStandup = FindClipIdChecked("zombieAnimStandup", skeletonId, meshBoneCount);
+        animControllerComp.clipHitGround = FindClipIdChecked("zombieAnimHeadHitGround", skeletonId, meshBoneCount);
 
         //  fail if any clip is missing
         const bool ok =
-            animControllerComp.clipAgonize != kInvalidId &&
             animControllerComp.clipCrawl != kInvalidId &&
             animControllerComp.clipIdle != kInvalidId &&
             animControllerComp.clipWalk != kInvalidId &&
@@ -113,7 +112,6 @@ namespace Engine {
             animControllerComp.clipAttack != kInvalidId &&
             animControllerComp.clipRun != kInvalidId;
 
-        animControllerComp.clipsResolved = ok;
 
         if (!ok)
         {
@@ -262,7 +260,7 @@ namespace Engine {
         }
 
         // Resolve clips once; uses meshAsset (and can validate bone count)
-        if (!animCtrlComp.clipsResolved)
+        //if (!animCtrlComp.clipsResolved)
         {
             SpawnUtils::ResolveZombieClips(animCtrlComp, *meshAsset);
             

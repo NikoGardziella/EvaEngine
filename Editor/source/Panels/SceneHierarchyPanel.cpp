@@ -1362,6 +1362,38 @@ namespace Engine {
 
             });
 
+        DrawComponent<EnemyDestructibleComponent>("Enemy Destructible", entity, m_sceneHierarchyPanelScene.get(),
+            [this, &entity](auto& /*component*/)
+            {
+                // You can tune these however you want
+                glm::vec3 impulseDir = glm::normalize(glm::vec3(1.0f, 0.6f, 0.0f)); // mostly sideways + a bit up
+                float impulseStrength = 6.0f;
+
+                // Optional tweak controls:
+                ImGui::DragFloat3("Detach impulse dir", glm::value_ptr(impulseDir), 0.01f, -1.0f, 1.0f);
+                ImGui::DragFloat("Detach impulse strength", &impulseStrength, 0.1f, 0.0f, 100.0f);
+
+                if (ImGui::Button("Detach both legs"))
+                {
+                    // Call the code that you KNOW works.
+                    // IMPORTANT: This assumes you can access a ProjectileSystem instance.
+                    // Replace GetProjectileSystem() with whatever you actually have.
+                    
+                        EditorUtils::DetachPiece(m_sceneHierarchyPanelScene.get(), entity,
+                            Engine::EnemyPieceType::LegL_Thigh, impulseDir, impulseStrength);
+                        EditorUtils::DetachPiece(m_sceneHierarchyPanelScene.get(), entity,
+                            Engine::EnemyPieceType::LegL_Calf, impulseDir, impulseStrength);
+
+                        EditorUtils::DetachPiece(m_sceneHierarchyPanelScene.get(), entity,
+                            Engine::EnemyPieceType::LegR_Thigh, impulseDir, impulseStrength);
+                        EditorUtils::DetachPiece(m_sceneHierarchyPanelScene.get(), entity,
+                            Engine::EnemyPieceType::LegR_Calf, impulseDir, impulseStrength);
+                    
+                }
+            });
+
+
+
         DrawComponent<Engine::Animator3DComponent>("Animator 3D", entity, m_sceneHierarchyPanelScene.get(),
             [this, &entity](auto& component)
             {
