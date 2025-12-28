@@ -23,9 +23,9 @@ void NPCDeathCleanupSystem::UpdateNPCDeathCleanupSystem(float dt, Engine::Scene*
     bool hasPlayer = false;
 
     scene->ForEach<Engine::TransformComponent, CharacterControllerComponent>(
-        [&](Engine::Entity e, Engine::TransformComponent& tr, CharacterControllerComponent&)
+        [&](Engine::Entity e, Engine::TransformComponent& transformComp, CharacterControllerComponent&)
         {
-            playerPos = tr.Translation;
+            playerPos = transformComp.Translation;
             hasPlayer = true;
         }
     );
@@ -37,7 +37,7 @@ void NPCDeathCleanupSystem::UpdateNPCDeathCleanupSystem(float dt, Engine::Scene*
     std::vector<Engine::Entity> toDestroy;
 
     scene->ForEach<Engine::TransformComponent, NPCDeathComponent, NpcAnimationControllerComponent>(
-        [&](Engine::Entity e, Engine::TransformComponent& tr, NPCDeathComponent& death, NpcAnimationControllerComponent& npcAnimationControllerComp)
+        [&](Engine::Entity e, Engine::TransformComponent& npcTransformComp, NPCDeathComponent& npcDeathComo, NpcAnimationControllerComponent& npcAnimationControllerComp)
         {
             if (npcAnimationControllerComp.transitionTimer > 0)
             {
@@ -45,7 +45,7 @@ void NPCDeathCleanupSystem::UpdateNPCDeathCleanupSystem(float dt, Engine::Scene*
             }
 
             // First frame after death: strip non-rendering components
-            if (!death.cleanedUp)
+            if (!npcDeathComo.cleanedUp)
             {
                 // Remove gameplay / AI / navigation components.
                 if (e.HasComponent<HealthComponent>())
@@ -77,22 +77,22 @@ void NPCDeathCleanupSystem::UpdateNPCDeathCleanupSystem(float dt, Engine::Scene*
                 //  - Animator3DComponent
                
 
-                death.cleanedUp = true;
+                npcDeathComo.cleanedUp = true;
             }
 
             // Count down despawn timer
-            death.timeToDespawn -= dt;
-            if (death.timeToDespawn <= 0.0f)
+            npcDeathComo.timeToDespawn -= dt;
+            if (npcDeathComo.timeToDespawn <= 0.0f)
             {
                 toDestroy.push_back(e);
                 return;
             }
 
             // distance-based culling
-            if (death.useDistanceCulling && hasPlayer)
+            if (npcDeathComo.useDistanceCulling && hasPlayer)
             {
-                const float dist = glm::distance(playerPos, tr.Translation);
-                if (dist > death.maxDistanceFromPlayer)
+                const float dist = glm::distance(playerPos, npcTransformComp.Translation);
+                if (dist > npcDeathComo.maxDistanceFromPlayer)
                 {
                     toDestroy.push_back(e);
                     return;

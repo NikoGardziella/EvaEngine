@@ -25,10 +25,8 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
     toDestroy.reserve(64);
     // Update & collide all projectiles
     scene->ForEach<Engine::TransformComponent, ProjectileComponent, Engine::IDComponent>(
-        [&](Engine::Entity projectileEntity,
-            Engine::TransformComponent& projectileTransformComp,
-            ProjectileComponent& projectileComp,
-            Engine::IDComponent& projectileIdComp)
+        [&](Engine::Entity projectileEntity, Engine::TransformComponent& projectileTransformComp,
+            ProjectileComponent& projectileComp, Engine::IDComponent& projectileIdComp)
         {
             // 1) Check if this projectile had a GPU collision
             bool gpuHit = false;
@@ -43,8 +41,15 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
             }
 
             // 2) Integrate projectile movement
-            projectileTransformComp.Translation.x += projectileComp.Direction.x * deltaTime * projectileComp.ProjectileSped;
-            projectileTransformComp.Translation.y += projectileComp.Direction.y * deltaTime * projectileComp.ProjectileSped;
+            const glm::vec2 dir = projectileComp.Direction;
+            const float speed = projectileComp.ProjectileSped;
+
+            const float stepDist = speed * deltaTime;
+            projectileTransformComp.Translation.x += dir.x * stepDist;
+            projectileTransformComp.Translation.y += dir.y * stepDist;
+
+            // accumulate travelled distance
+            projectileComp.DistanceTravelled += stepDist;
 
             const glm::vec2 projectilePos = {
                 projectileTransformComp.Translation.x,
@@ -124,7 +129,6 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                         {
 
 
-
                             hit = true;
                             hitSomething = true;
 
@@ -192,15 +196,14 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                    
                 });
 
-            // Lifetime expiry
-            // this is now in time when it should be distance.
-            // CHANGE 
-            projectileComp.ProjectileMaxRange -= deltaTime;
-            if (projectileComp.ProjectileMaxRange <= 0.0f || gpuHit)
-            {
-                toDestroy.push_back(projectileEntity);
-                return;
-            }
+           
+                const bool outOfRange = projectileComp.DistanceTravelled >= projectileComp.ProjectileMaxRange;
+
+                if (outOfRange || gpuHit)
+                {
+                    toDestroy.push_back(projectileEntity);
+                    return;
+                }
         });
 
     // Destroy all marked projectiles after iteration

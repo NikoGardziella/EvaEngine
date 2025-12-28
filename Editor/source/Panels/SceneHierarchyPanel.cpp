@@ -669,42 +669,181 @@ namespace Engine {
 
 
             });
-
-        DrawComponent<WeaponComponent>("Weapon", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
+        DrawComponent<WeaponComponent>("Weapon", entity, m_sceneHierarchyPanelScene.get(),
+            [this, &entity](auto& component)
             {
+                WeaponComponent& w = component;
 
-               
+                // 1) Weapon type combo + detect change
+                {
+                    static const char* weaponTypeNames[] = {
+                        "Melee",
+                        "Pistol",
+                        "Shotgun",
+                        "MachineGun",
+                        "Grenade",
+                        "Bazooka"
+                    };
+
+                    WeaponType prevType = w.type;
+                    int typeIndex = static_cast<int>(w.type);
+
+                    if (ImGui::Combo("Type", &typeIndex, weaponTypeNames, IM_ARRAYSIZE(weaponTypeNames)))
+                    {
+                        w.type = static_cast<WeaponType>(typeIndex);
+
+                        // If type actually changed: apply default preset
+                        if (w.type != prevType)
+                        {
+                            switch (w.type)
+                            {
+                            case WeaponType::Melee:
+                                w.Damage = 20;
+                                w.FireRate = 0.5f;
+                                w.ProjectileSpeed = 0.0f;  // no projectile
+                                w.MaxRange = 0.0f;
+                                w.MeleeRange = 1.5f;
+                                w.MeleeArcDegrees = 90.0f;
+                                w.Pellets = 1;
+                                w.SpreadDegrees = 0.0f;
+                                w.Automatic = false;
+                                w.Explosive = false;
+                                w.ExplosionRadius = 0.0f;
+                                w.DestructionRadius = 0.0f;
+                                break;
+
+                            case WeaponType::Pistol:
+                                w.Damage = 10;
+                                w.FireRate = 0.35f;
+                                w.ProjectileSpeed = 25.0f;
+                                w.MaxRange = 30.0f;
+                                w.SpreadDegrees = 2.0f;
+                                w.Pellets = 1;
+                                w.Automatic = false;
+                                w.Explosive = false;
+                                w.ExplosionRadius = 0.0f;
+                                w.DestructionRadius = 0.1f;
+                                break;
+
+                            case WeaponType::Shotgun:
+                                w.Damage = 4;
+                                w.FireRate = 0.8f;
+                                w.ProjectileSpeed = 20.0f;
+                                w.MaxRange = 15.0f;
+                                w.Pellets = 8;
+                                w.SpreadDegrees = 10.0f;
+                                w.Automatic = false;
+                                w.Explosive = false;
+                                w.ExplosionRadius = 0.0f;
+                                w.DestructionRadius = 0.1f;
+                                break;
+
+                            case WeaponType::MachineGun:
+                                w.Damage = 6;
+                                w.FireRate = 0.1f;
+                                w.ProjectileSpeed = 28.0f;
+                                w.MaxRange = 35.0f;
+                                w.SpreadDegrees = 5.0f;
+                                w.Pellets = 1;
+                                w.Automatic = true;
+                                w.Explosive = false;
+                                w.ExplosionRadius = 0.0f;
+                                w.DestructionRadius = 0.1f;
+                                break;
+
+                            case WeaponType::Grenade:
+                                w.Damage = 40;
+                                w.FireRate = 1.2f;
+                                w.ProjectileSpeed = 12.0f;
+                                w.MaxRange = 20.0f;
+                                w.SpreadDegrees = 0.0f;
+                                w.Pellets = 1;
+                                w.Automatic = false;
+                                w.Explosive = true;
+                                w.ExplosionRadius = 4.0f;
+                                w.DestructionRadius = 2.0f;
+                                break;
+
+                            case WeaponType::Bazooka:
+                                w.Damage = 80;
+                                w.FireRate = 1.5f;
+                                w.ProjectileSpeed = 18.0f;
+                                w.MaxRange = 40.0f;
+                                w.SpreadDegrees = 1.5f;
+                                w.Pellets = 1;
+                                w.Automatic = false;
+                                w.Explosive = true;
+                                w.ExplosionRadius = 6.0f;
+                                w.DestructionRadius = 3.0f;
+                                break;
+                            }
+
+                            // Reset runtime stuff
+                            w.Cooldown = 0.0f;
+                        }
+                    }
+                }
+
+                // 2) The rest of your controls (same as before, just using w)
+
                 {
                     const uint32_t minD = 0;
                     const uint32_t maxD = 256;
-                    // step = 1.0f, display as unsigned
-                    ImGui::DragScalar("Damage", ImGuiDataType_U32, &component.Damage,
+                    ImGui::DragScalar("Damage", ImGuiDataType_U32, &w.Damage,
                         1.0f, &minD, &maxD, "%u");
                 }
-                ImGui::DragFloat("Fire Rate", &component.FireRate, 0.1f, 0.1f, 100.0f);
-                ImGui::DragFloat("Cooldown", &component.Cooldown, 0.1f, 0.0f, 100.0f);
-                ImGui::DragFloat("Projectile Speed", &component.ProjectileSpeed, 0.1f, 0.0f, 100.0f);
-                ImGui::DragFloat("Destruction Radius (world)", &component.DestructionRadius,
+
+                ImGui::DragFloat("Fire Rate", &w.FireRate, 0.01f, 0.01f, 10.0f);
+
+                ImGui::BeginDisabled();
+                ImGui::DragFloat("Cooldown", &w.Cooldown, 0.01f, 0.0f, 100.0f);
+                ImGui::EndDisabled();
+
+                ImGui::DragFloat("Projectile Speed", &w.ProjectileSpeed, 0.1f, 0.0f, 200.0f);
+                ImGui::DragFloat("Max Range", &w.MaxRange, 0.1f, 0.0f, 500.0f);
+
+                ImGui::DragFloat("Destruction Radius (world)", &w.DestructionRadius,
                     0.01f, 0.0f, 100.0f, "%.3f");
                 if (ImGui::IsItemHovered())
                     ImGui::SetTooltip("Radius in world units");
 
-                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID),
-                 m_sceneHierarchyPanelScene.get()
-                };
-
-                if (newEntity)
+                if (w.type == WeaponType::Pistol ||
+                    w.type == WeaponType::MachineGun ||
+                    w.type == WeaponType::Shotgun ||
+                    w.type == WeaponType::Bazooka)
                 {
-                    if (!newEntity.HasComponent<WeaponComponent>())
-                    {
-                        newEntity.AddComponent<WeaponComponent>();
-                    }
-
-                    newEntity.GetComponent<WeaponComponent>() = component;
+                    ImGui::DragFloat("Spread (deg)", &w.SpreadDegrees, 0.1f, 0.0f, 45.0f);
                 }
 
+                if (w.type == WeaponType::Shotgun)
+                {
+                    int pellets = static_cast<int>(w.Pellets);
+                    if (ImGui::DragInt("Pellets", &pellets, 1.0f, 1, 64))
+                        w.Pellets = static_cast<uint32_t>(pellets);
+                }
 
+                if (w.type == WeaponType::MachineGun)
+                {
+                    ImGui::Checkbox("Automatic", &w.Automatic);
+                }
+
+                if (w.type == WeaponType::Melee)
+                {
+                    ImGui::DragFloat("Melee Range", &w.MeleeRange, 0.01f, 0.0f, 10.0f);
+                    ImGui::DragFloat("Melee Arc (deg)", &w.MeleeArcDegrees, 1.0f, 0.0f, 360.0f);
+                }
+
+                if (w.type == WeaponType::Grenade || w.type == WeaponType::Bazooka)
+                {
+                    w.Explosive = true;
+                    ImGui::DragFloat("Explosion Radius", &w.ExplosionRadius, 0.1f, 0.0f, 50.0f);
+                }
             });
+
+
+
+
+            
         DrawComponent<VehicleComponent>("Vehicle", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
                 ImGui::DragFloat("Mass", &component.Mass, 0.1f, 0.0f, 100.0f);

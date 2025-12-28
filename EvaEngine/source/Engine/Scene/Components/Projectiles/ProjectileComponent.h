@@ -23,7 +23,8 @@ struct ProjectileComponent
     float      ProjectileRadius = 0.1f;
     float      TargetPositionHeightZ1;
     float      ProjectileSped;
-    float      DestructionRadius = 0.1f; 
+    float      DestructionRadius = 0.1f;
+    float      DistanceTravelled;
     Engine::Entity   Owner;
 
     ProjectileComponent() = default;

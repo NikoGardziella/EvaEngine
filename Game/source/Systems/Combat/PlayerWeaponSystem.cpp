@@ -10,6 +10,9 @@
 #include <Engine/Scene/Components/Animation/AnimationComponent.h>
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 #include <Engine/Map/Projectile/ProjectileVisualRegistry.h>
+#include <Engine/Scene/Components/Combat/HealthComponent.h>
+#include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
+#include <glm/gtc/random.hpp>
 
 
 void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime,  Engine::Scene* scene)
@@ -33,42 +36,203 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime,  Engine::Scen
             hasPrimaryCamera = true;
         });
 
-    // Players with weapons
     scene->ForEach<Engine::TransformComponent, WeaponComponent>(
-        [&](Engine::Entity playerEntity, Engine::TransformComponent& playerTransformComp,WeaponComponent& weaponComp)
+        [&](Engine::Entity playerEntity,
+            Engine::TransformComponent& playerTransformComp,
+            WeaponComponent& weaponComp)
         {
-
-
             const glm::vec2 playerPos = playerTransformComp.Translation;
             const glm::vec2 dir = mouseWorldPosition - playerPos;
 
-          
-
-            // cooldown tick
             if (weaponComp.Cooldown > 0.0f)
                 weaponComp.Cooldown -= deltaTime;
 
-            if (!hasPrimaryCamera) return;
+            const bool firePressed = Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0);
 
-            // fire?
-            if (Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0) &&
-                weaponComp.Cooldown <= 0.0f)
+            if (firePressed && weaponComp.Cooldown <= 0.0f)
             {
-                
+                switch (weaponComp.type)
+                {
+                case WeaponType::Melee:
+                    FireMeleeWeapon(playerEntity, playerTransformComp, weaponComp, scene);
+                    break;
 
-               
-                    ShootProjectile(playerEntity, playerTransformComp.Translation,
-                        mouseWorldPosition, scene, weaponComp);
+                case WeaponType::Pistol:
+                case WeaponType::MachineGun:
+                    FireSingleProjectileWeapon(playerEntity, playerTransformComp, mouseWorldPosition, weaponComp, scene);
+                    break;
 
-                    weaponComp.Cooldown = weaponComp.FireRate;
-                
+                case WeaponType::Shotgun:
+                    FireShotgunWeapon(playerEntity, playerTransformComp, mouseWorldPosition, weaponComp, scene);
+                    break;
+
+                case WeaponType::Grenade:
+                case WeaponType::Bazooka:
+                    FireExplosiveProjectileWeapon(playerEntity, playerTransformComp, mouseWorldPosition, weaponComp, scene);
+                    break;
+                }
+
+                weaponComp.Cooldown = weaponComp.FireRate;
             }
         });
+
+}
+
+Engine::Entity PlayerWeaponSystem::SpawnProjectileEntity(Engine::Scene* scene, Engine::Entity owner,
+    const glm::vec2& origin, const glm::vec2& direction, const WeaponComponent& weaponComp , const glm::vec2& mouseWorld)
+{
+    EE_PROFILE_FUNCTION();
+
+    glm::vec2 dirNorm = glm::normalize(direction);
+
+    Engine::Entity projectileEntity = scene->CreateEntity("Projectile");
+
+    auto& transformComp = projectileEntity.AddComponent<Engine::TransformComponent>();
+    transformComp.Translation = glm::vec3(origin, 0.0f);
+    transformComp.Rotation.z = std::atan2(dirNorm.y, dirNorm.x);
+
+    float projectileMaxRange = weaponComp.MaxRange;
+    float projectileRadius = 0.1f;
+
+    ProjectileComponent& projectileComp = projectileEntity.AddComponent<ProjectileComponent>(dirNorm, projectileMaxRange);
+
+    projectileComp.Damage = weaponComp.Damage;
+    projectileComp.ProjectileRadius = projectileRadius;
+    projectileComp.DestructionRadius = weaponComp.DestructionRadius;
+    projectileComp.Owner = owner;
+    projectileComp.TargetPositionHeightZ1 = SampleHeightAt(scene, mouseWorld, 1);
+    projectileComp.DistanceToTargetatFireTime = glm::distance(mouseWorld, origin);;
+    projectileComp.TargetPositionAtFireTime = mouseWorld;
+    projectileComp.ProjectileSped = weaponComp.ProjectileSpeed;
+    projectileComp.renderSlot = Engine::ProjectileVisual::GetSlot(ProjectileVisualType::Bullet);
+    projectileComp.DistanceTravelled = 0.0f;
+    // Extra fields for explosives if you want:
+   // projectileComp.Explosive = weaponComp.Explosive;
+   // projectileComp.ExplosionRadius = weaponComp.ExplosionRadius;
+
+    return projectileEntity;
+}
+
+void PlayerWeaponSystem::FireShotgunWeapon(Engine::Entity player, Engine::TransformComponent& transformComp,
+    const glm::vec2& mouseWorld, const WeaponComponent& weaponComp, Engine::Scene* scene)
+{
+    EE_PROFILE_FUNCTION();
+    const glm::vec2 origin = glm::vec2(transformComp.Translation);
+    glm::vec2 baseDir = mouseWorld - origin;
+    if (glm::length2(baseDir) < 0.0001f)
+        return;
+
+    baseDir = glm::normalize(baseDir);
+
+    const uint32_t pellets = glm::max(weaponComp.Pellets, 1u);
+    float spreadRad = glm::radians(weaponComp.SpreadDegrees);
+
+    for (uint32_t i = 0; i < pellets; ++i)
+    {
+        glm::vec2 dir = baseDir;
+
+        if (spreadRad > 0.0f)
+        {
+            float offset = glm::linearRand(-spreadRad * 0.5f, spreadRad * 0.5f);
+            float c = std::cos(offset);
+            float s = std::sin(offset);
+            dir = glm::vec2(
+                baseDir.x * c - baseDir.y * s,
+                baseDir.x * s + baseDir.y * c
+            );
+        }
+
+        SpawnProjectileEntity(scene, player, origin, dir, weaponComp, mouseWorld);
+    }
 }
 
 
-void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity,
-    const glm::vec2& playerPosition, const glm::vec2& mouseWorldPosition, Engine::Scene* scene, const WeaponComponent& weaponComp)
+void PlayerWeaponSystem::FireExplosiveProjectileWeapon(Engine::Entity player, Engine::TransformComponent& tr,
+    const glm::vec2& mouseWorld, const WeaponComponent& weapon, Engine::Scene* scene)
+{
+    EE_PROFILE_FUNCTION();
+
+    const glm::vec2 origin = glm::vec2(tr.Translation);
+    glm::vec2 dir = mouseWorld - origin;
+    if (glm::length2(dir) < 0.0001f)
+        return;
+
+    dir = glm::normalize(dir);
+
+    SpawnProjectileEntity(scene, player, origin, dir, weapon, mouseWorld);
+}
+
+void PlayerWeaponSystem::FireMeleeWeapon(Engine::Entity player, Engine::TransformComponent& transformComp,
+    const WeaponComponent& weaponComp, Engine::Scene* scene)
+{
+    EE_PROFILE_FUNCTION();
+    const glm::vec2 origin = glm::vec2(transformComp.Translation);
+    const float range = weaponComp.MeleeRange;
+    const float halfArc = glm::radians(weaponComp.MeleeArcDegrees * 0.5f);
+
+    // Facing direction from player rotation (assuming z is yaw)
+    glm::vec2 forward(std::cos(transformComp.Rotation.z), std::sin(transformComp.Rotation.z));
+
+    // Iterate potential targets (NPCs)
+    scene->ForEach<Engine::TransformComponent, NpcAIStateComponent, HealthComponent>(
+        [&](Engine::Entity npc, Engine::TransformComponent& npcTr,  NpcAIStateComponent& npcState,
+            HealthComponent& health)
+        {
+            glm::vec2 toTarget = glm::vec2(npcTr.Translation) - origin;
+            float dist2 = glm::length2(toTarget);
+            if (dist2 > range * range)
+                return;
+
+            float dist = std::sqrt(dist2);
+            glm::vec2 dir = toTarget / dist;
+
+            float angle = std::atan2(
+                forward.x * dir.y - forward.y * dir.x, // cross
+                forward.x * dir.x + forward.y * dir.y  // dot
+            );
+
+            if (std::abs(angle) <= halfArc)
+            {
+                // Hit!
+                health.Current -= weaponComp.Damage;
+                // optionally: spawn hit fx, sound, etc.
+            }
+        }
+    );
+}
+
+void PlayerWeaponSystem::FireSingleProjectileWeapon(Engine::Entity player, Engine::TransformComponent& transformComp,
+    const glm::vec2& mouseWorld, const WeaponComponent& weaponComp, Engine::Scene* scene)
+{
+    EE_PROFILE_FUNCTION();
+
+    const glm::vec2 origin = glm::vec2(transformComp.Translation);
+    glm::vec2 dir = mouseWorld - origin;
+    if (glm::length2(dir) < 0.0001f)
+        return;
+
+    dir = glm::normalize(dir);
+
+    // Basic spread
+    float spreadRad = glm::radians(weaponComp.SpreadDegrees);
+    if (spreadRad > 0.0f)
+    {
+        float offset = glm::linearRand(-spreadRad * 0.5f, spreadRad * 0.5f);
+        float c = std::cos(offset);
+        float s = std::sin(offset);
+        dir = glm::vec2(
+            dir.x * c - dir.y * s,
+            dir.x * s + dir.y * c
+        );
+    }
+
+    SpawnProjectileEntity(scene, player, origin, dir, weaponComp, mouseWorld);
+}
+
+
+
+
+void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity, const glm::vec2& playerPosition, const glm::vec2& mouseWorldPosition, Engine::Scene* scene, const WeaponComponent& weaponComp)
 {
     EE_PROFILE_FUNCTION();
 
