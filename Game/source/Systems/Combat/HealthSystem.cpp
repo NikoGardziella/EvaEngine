@@ -4,23 +4,25 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 #include <Engine/Scene/Components/NPC/NpcBodyStateComponent.h>
+#include <Engine/Scene/Components/NPC/NPCDeathComponent.h>
 
 
 void HealthSystem::UpdateHealthSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    scene->ForEach<Engine::HealthComponent>(
-        [scene](Engine::Entity e, Engine::HealthComponent& health)
+    scene->ForEach<HealthComponent>(
+        [scene](Engine::Entity e, HealthComponent& health)
         {
             if (health.Current <= 0.0f)
             {
-                NpcAnimationControllerComponent& npcAnimationControllerComp = e.GetComponent<NpcAnimationControllerComponent>();
                 NpcAIStateComponent& npcStateComponent = e.GetComponent<NpcAIStateComponent>();
-                if (npcAnimationControllerComp.transitionTimer <= -5.0f && npcStateComponent.state == AIState::Dead)
+                if (npcStateComponent.state == AIState::Dead && !e.HasComponent<NPCDeathComponent>())
                 {
                     // make new system to deal with removing entities
-                    scene->DestroyEntity(e);
+                    NPCDeathComponent& death = e.AddComponent<NPCDeathComponent>();
+                    death.timeToDespawn = 10.0f;
+                    death.maxDistanceFromPlayer = 60.0f; 
                 }
 
 

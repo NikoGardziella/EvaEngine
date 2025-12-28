@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.h" />
     <ClInclude Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.h" />
     <ClInclude Include="source\Systems\NPC\NPCState\NpcBodyStateSystem.h" />
     <ClInclude Include="source\Systems\Spawning\NpcSpawnControllerSystem.h" />
@@ -151,6 +152,7 @@
     <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.cpp" />
     <ClCompile Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.cpp" />
     <ClCompile Include="source\Systems\NPC\NPCState\NpcBodyStateSystem.cpp" />
     <ClCompile Include="source\Systems\Spawning\NpcSpawnControllerSystem.cpp" />

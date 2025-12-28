@@ -73,6 +73,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
                 if (inputVelocity.x != 0.0f || inputVelocity.y != 0.0f)
                 {
                     playerAnimComp.clipA = animReg.FindAnimationClip("playerAnimRun")->id;
+                    playerAnimComp.loopAclip = true;
                 }
                 else
                 {

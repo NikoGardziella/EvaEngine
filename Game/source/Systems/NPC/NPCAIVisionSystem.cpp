@@ -23,8 +23,6 @@ void NPCAIVisionSystem::UpdateNPCAIVisionSystem(float dt, Engine::Scene* scene)
             npcVisionComp.timeSinceSeen += dt;
             npcVisionComp.losCheckTimer -= dt;
 
-            // We do NOT reset everything here.
-            // We will only clear/overwrite if we fail/succeed to acquire.
 
             // NPC forward direction (top-down, facing by Rotation.z)
             const float npcYaw = npcTransformComp.Rotation.z;
@@ -109,13 +107,9 @@ void NPCAIVisionSystem::UpdateNPCAIVisionSystem(float dt, Engine::Scene* scene)
             // But do NOT wipe lastSeenPos/lastSeenTarget/timeSinceSeen (that's the whole point of caching).
             if (!acquiredThisTick)
             {
-                npcVisionComp.VisibleTarget = Engine::Entity{}; // or entt::null, depending on your type
+                npcVisionComp.VisibleTarget = Engine::Entity{};
                 npcVisionComp.distToTarget = 0.0f;
 
-                // If we *expected* to see someone and didn't, you can optionally mark hasLOS = 0.
-                // I prefer keeping hasLOS as "last evaluated raycast result" (only changes when we raycast).
-                // If you want "hasLOS means visible right now", uncomment this:
-                // vision.hasLOS = 0;
             }
         });
 }

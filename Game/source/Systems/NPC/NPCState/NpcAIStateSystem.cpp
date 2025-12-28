@@ -10,9 +10,9 @@ void NpcAIStateSystem::UpdateNpcAIStateSystem(float dt, Engine::Scene* scene)
     EE_PROFILE_FUNCTION();
 
     scene->ForEach<NpcAIStateComponent, NPCAIMovementComponent, NPCAIVisionComponent,
-        Engine::TransformComponent, NpcAnimationControllerComponent, NpcAIPatrolComponent, Engine::HealthComponent>(
+        Engine::TransformComponent, NpcAnimationControllerComponent, NpcAIPatrolComponent, HealthComponent>(
             [&](Engine::Entity, NpcAIStateComponent& npcStateComp, NPCAIMovementComponent& movementComp, NPCAIVisionComponent& visionComp,
-                Engine::TransformComponent& transformComp, NpcAnimationControllerComponent& animCtrlComp,  NpcAIPatrolComponent& patrolComp, Engine::HealthComponent& healthComp)
+                Engine::TransformComponent& transformComp, NpcAnimationControllerComponent& animCtrlComp,  NpcAIPatrolComponent& patrolComp, HealthComponent& healthComp)
             {
                 // ---- Clear movement orders each tick ----
                 movementComp.wantsMove = 0;

@@ -172,9 +172,9 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                 
 
                     // 4) Apply damage if available
-                    if (hit && targetEntity.HasComponent<Engine::HealthComponent>())
+                    if (hit && targetEntity.HasComponent<HealthComponent>())
                     {
-                        Engine::HealthComponent& healthComp = targetEntity.GetComponent<Engine::HealthComponent>();
+                        HealthComponent& healthComp = targetEntity.GetComponent<HealthComponent>();
                         healthComp.Current -= projectileComp.Damage;
                         NpcAnimationControllerComponent& animControllderComp = targetEntity.GetComponent<NpcAnimationControllerComponent>();
                        

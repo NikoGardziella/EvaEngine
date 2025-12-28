@@ -13,8 +13,8 @@ void NpcBodyStateSystem::UpdateNpcBodyStateSystem(float deltatime, Engine::Scene
 {
     EE_PROFILE_FUNCTION();
 
-    scene->ForEach<Engine::EnemyDestructibleComponent, NpcBodyStateComponent,Engine::HealthComponent>(
-        [&](Engine::Entity, Engine::EnemyDestructibleComponent& destrComp, NpcBodyStateComponent& bodyStateComp,Engine::HealthComponent& healthComp)
+    scene->ForEach<Engine::EnemyDestructibleComponent, NpcBodyStateComponent,HealthComponent>(
+        [&](Engine::Entity, Engine::EnemyDestructibleComponent& destrComp, NpcBodyStateComponent& bodyStateComp, HealthComponent& healthComp)
         {
             bool hasLeftLeg = false;
             bool hasRightLeg = false;
@@ -77,7 +77,6 @@ void NpcBodyStateSystem::UpdateNpcBodyStateSystem(float deltatime, Engine::Scene
             if (bodyStateComp.prevHadAnyLeg && !hasAnyLeg)
             {
                 // Only trigger if not dead
-                
                 bodyStateComp.transition = NpcTransition::FallToProne;
                 bodyStateComp.locomotion = NpcLocomotion::Prone; // enter prone immediately; animation will play the fall
                 

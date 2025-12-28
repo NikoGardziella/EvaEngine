@@ -1,6 +1,5 @@
 #pragma once
 
-namespace Engine {
 
     struct HealthComponent
     {
@@ -18,4 +17,3 @@ namespace Engine {
     };
 
 
-}

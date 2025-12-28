@@ -19,18 +19,18 @@ namespace Engine {
 
         AnimScratch3D scratch;
 
-        scene->ForEach<SkeletonComponent, Animator3DComponent, NpcAnimationControllerComponent>([&](Entity entity, SkeletonComponent& skel, Animator3DComponent& an, NpcAnimationControllerComponent& ctrl)
+        scene->ForEach<SkeletonComponent, Animator3DComponent>([&]
+        (Entity entity, SkeletonComponent& skel, Animator3DComponent& an)
             {
                 if (skel.boneCount == 0 || skel.skeletonId == 0xFFFFFFFFu)
                     return;
 
                 // 1) Advance times
-                const bool loopA = (ctrl.transitionTimer <= 0.0f);  // transition owns A -> no loop
                 AdvanceTime(an.clipA, an.timeA, dt, an.playbackSpeed, animReg, an.loopAclip);
 
                 // For base crossfade, clipB is a looping base; otherwise overlay is non-looping
-                const bool loopB = (ctrl.baseXFadeActive != 0);
-                AdvanceTime(an.clipB, an.timeB, dt, an.playbackSpeed, animReg, loopB);
+                //const bool loopB = (ctrl.baseXFadeActive != 0);
+                AdvanceTime(an.clipB, an.timeB, dt, an.playbackSpeed, animReg, false);
 
 
                 const SkeletonAsset& sasset = skelReg.Get(skel.skeletonId);
