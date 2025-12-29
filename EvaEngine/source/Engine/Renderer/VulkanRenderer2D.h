@@ -47,7 +47,7 @@ namespace Engine {
 
 	struct VulkanRenderer2DData
 	{
-		static const uint32_t MaxQuads = 40000;
+		static const uint32_t MaxQuads = 4000;
 		static const uint32_t MaxVertices = MaxQuads * 4;
 		static const uint32_t MaxIndices = MaxQuads * 6;
 		static const uint32_t MaxTextureSlots = MAX_TEXTURES;
@@ -162,6 +162,7 @@ namespace Engine {
 		glm::vec2  fxTextureOrigin; // 112..119
 		uint32_t   cutY;
 		uint32_t   newSlot;
+		glm::vec2  impactCenterWorld;
 	};
 	//static_assert(offsetof(EffectPushConstants, fxTextureOrigin) == 112, "pad needed");
 
@@ -186,9 +187,10 @@ namespace Engine {
 
 	struct AffectedTile
 	{
-		uint32_t slot = 0;
+		uint32_t	slot = 0;
 		uint32_t    totalDamage = 0; // sum of damage of all hits affecting this tile
-		float    maxRadius = 0.0f; // max radius among hits affecting this tile
+		float		maxRadius = 0.0f; // max radius among hits affecting this tile
+		glm::vec2	impactCenterWorld;
 	};
 
 	
@@ -318,6 +320,7 @@ namespace Engine {
 		std::vector<glm::vec2> m_hitsW;
 		std::vector<float>     m_radiiW;
 		std::vector<uint32_t>  m_damages;
+		CollisionResultBuffer* m_collisionMapped[MAX_FRAMES_IN_FLIGHT] = { nullptr };
 
 		std::vector<uint32_t> m_activeSlots = {};
 

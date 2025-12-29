@@ -23,7 +23,7 @@ struct WeaponComponent
     float DestructionRadius = 0.1f; // world tile
 
     // Extra weapon-specific parameters:
-    float MaxRange = 1.0f;
+    float MaxRange = 20.0f;
     float SpreadDegrees = 0.0f;  // shotgun/bazooka random cone
     uint32_t Pellets = 1;     // shotgun: >1
     bool Automatic = false; // machine gun true, pistol false

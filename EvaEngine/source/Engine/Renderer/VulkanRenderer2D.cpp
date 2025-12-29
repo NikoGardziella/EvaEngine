@@ -218,7 +218,13 @@ namespace Engine {
 
 
 		
-
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+		{
+			void* p = nullptr;
+			VkDeviceSize sz = sizeof(CollisionResultBuffer);
+			vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(i), 0, sz, 0, &p);
+			m_collisionMapped[i] = static_cast<CollisionResultBuffer*>(p);
+		}
 
 	}
 
@@ -254,26 +260,19 @@ namespace Engine {
 		const uint32_t readIdx = (currentFrame + MAX_FRAMES_IN_FLIGHT - 1) % MAX_FRAMES_IN_FLIGHT;
 		const uint32_t writeIdx = currentFrame;
 
-		// 0) Ensure previous frame that produced readIdx is DONE before mapping it.
 		vkWaitForFences(m_device, 1, &m_inFlightFences[readIdx], VK_TRUE, UINT64_MAX);
-
-		// 1) READ results from readIdx ( previous frame)
+		
 		CollisionResultBuffer collisionResult{};
 		{
-			void* p = nullptr;
-			VkDeviceSize sz = sizeof(CollisionResultBuffer);
-			if (vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(readIdx), 0, sz, 0, &p) == VK_SUCCESS && p)
-			{
-				VkMappedMemoryRange inv{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
-				inv.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-				inv.memory = m_vulkanGraphicsPipelines->GetGPUCollisionMemory(readIdx);
-				inv.offset = 0; inv.size = sz;
-				vkInvalidateMappedMemoryRanges(m_device, 1, &inv);
+			VkMappedMemoryRange inv{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
+			inv.memory = m_vulkanGraphicsPipelines->GetGPUCollisionMemory(readIdx);
+			inv.offset = 0;
+			inv.size = sizeof(CollisionResultBuffer);
+			vkInvalidateMappedMemoryRanges(m_device, 1, &inv);
 
-				std::memcpy(&collisionResult, p, sz);
-				vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(readIdx));
-			}
+			std::memcpy(&collisionResult, m_collisionMapped[readIdx], sizeof(CollisionResultBuffer));
 		}
+
 
 		// 2) Convert to CPU vectors
 		CollisionResultsCPU::LatestProjectiles.clear();
@@ -307,26 +306,17 @@ namespace Engine {
 
 		// 3) Reset writeIdx buffer for this frame’s compute
 		{
-			void* p = nullptr;
-			VkDeviceSize sz = sizeof(CollisionResultBuffer);
-			if (vkMapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(writeIdx), 0, sz, 0, &p) == VK_SUCCESS && p)
-			{
-				std::memset(p, 0, sz);
-				auto* buf = reinterpret_cast<CollisionResultBuffer*>(p);
-				buf->collisionCount = 0;
-				for (uint32_t i = 0; i < MAX_COLLISION_RESULTS; ++i)
-				{
-					buf->results[i].collisionDetected = 0xFFFFFFFFu;
-					buf->results[i].DestructionRadius = 0xFFFFFFFFu;
-					buf->results[i].Damage = 0u;
-				}
-				VkMappedMemoryRange fl{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
-				fl.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-				fl.memory = m_vulkanGraphicsPipelines->GetGPUCollisionMemory(writeIdx);
-				fl.offset = 0; fl.size = sz;
-				vkFlushMappedMemoryRanges(m_device, 1, &fl);
-				vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetGPUCollisionMemory(writeIdx));
-			}
+			CollisionResultBuffer* buf = m_collisionMapped[writeIdx];
+
+			// Clear the whole struct once (like before), but using the mapped pointer.
+			std::memset(buf, 0xFF, sizeof(CollisionResultBuffer));
+			buf->collisionCount = 0; // override if you don't want 0xFFFFFFFF here
+
+			VkMappedMemoryRange fl{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
+			fl.memory = m_vulkanGraphicsPipelines->GetGPUCollisionMemory(writeIdx);
+			fl.offset = 0;
+			fl.size = VK_WHOLE_SIZE;
+			vkFlushMappedMemoryRanges(m_device, 1, &fl);
 		}
 	}
 
@@ -586,7 +576,8 @@ namespace Engine {
 		vkUnmapMemory(m_device, m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory());
 	}
 
-	static void DebugDumpFirstWords(const Engine::DeltaBitReader& rdr, uint32_t slot, uint32_t count = 500) {
+	static void DebugDumpFirstWords(const Engine::DeltaBitReader& rdr, uint32_t slot, uint32_t count = 500) 
+	{
 		auto* w = rdr.GetTileWords(slot);
 		if (!w) { printf("slot %u: null slice\n", slot); return; }
 		printf("slot %u: first %u words:", slot, count);
@@ -1116,23 +1107,8 @@ namespace Engine {
 
 
 
-
-
-
-	// Same test you use in the shader
-	static inline bool CircleIntersectsRect(glm::vec2 cW, float rW,
-		glm::vec2 minW, glm::vec2 maxW)
+	inline bool CircleIntersectsRect_HalfOpen(const glm::vec2& C, float r, const glm::vec2& minW, const glm::vec2& maxW_inclusive)
 	{
-		const float nx = std::clamp(cW.x, minW.x, maxW.x);
-		const float ny = std::clamp(cW.y, minW.y, maxW.y);
-		const glm::vec2 d = cW - glm::vec2(nx, ny);
-		return glm::dot(d, d) <= rW * rW + 1e-6f;
-	}
-
-	inline bool CircleIntersectsRect_HalfOpen(
-		const glm::vec2& C, float r,
-		const glm::vec2& minW, const glm::vec2& maxW_inclusive // original
-	) {
 		// make right/bottom edges exclusive via tiny shrink
 		const float eps = 1e-6f;
 		const glm::vec2 maxW = maxW_inclusive - glm::vec2(eps);
@@ -1145,8 +1121,8 @@ namespace Engine {
 
 	void VulkanRenderer2D::BuildAffectedTilesCPU(
 		const std::vector<glm::vec2>& hitPositionsW,          // world hits this frame
-		const std::vector<float>& radiiW,                 // same length as hits
-		const std::vector<uint32_t>& damagesW,               // same length as hits
+		const std::vector<float>& radiiW,                     // same length as hits
+		const std::vector<uint32_t>& damagesW,                // same length as hits
 		const std::unordered_set<uint32_t>& candidateSlots,   // visible/active slots
 		float pixelSizeWorld, int tileW, int tileH,
 		std::vector<AffectedTile>& outTiles)
@@ -1154,7 +1130,9 @@ namespace Engine {
 		outTiles.clear();
 		outTiles.reserve(candidateSlots.size());
 
-		if (hitPositionsW.empty() || radiiW.size() != hitPositionsW.size() || damagesW.size() != hitPositionsW.size())
+		if (hitPositionsW.empty() ||
+			radiiW.size() != hitPositionsW.size() ||
+			damagesW.size() != hitPositionsW.size())
 			return; // nothing to do or mismatched inputs
 
 		for (uint32_t slot : candidateSlots)
@@ -1163,30 +1141,57 @@ namespace Engine {
 			const glm::vec2 minW = s_VulkanBindlessData.m_slotOriginWorld[slot]; // top-left in world
 			const glm::vec2 maxW = minW + glm::vec2(tileW, tileH) * pixelSizeWorld;
 
-			uint32_t totalDamage = 0.0f;
-			float maxRadius = 0.0f;
-			bool  touched = false;
+			uint32_t totalDamage = 0;
+			float    maxRadius = 0.0f;
+			bool     touched = false;
+
+			// For computing a representative impact point
+			glm::vec2 impactSum(0.0f);
+			uint32_t  impactCount = 0;
 
 			// Accumulate all hits that touch this tile
 			for (size_t i = 0; i < hitPositionsW.size(); ++i)
 			{
-				if (CircleIntersectsRect_HalfOpen(hitPositionsW[i], radiiW[i], minW, maxW)) {
+				const glm::vec2& hitPos = hitPositionsW[i];
+				const float      radiusW = radiiW[i];
+
+				if (CircleIntersectsRect_HalfOpen(hitPos, radiusW, minW, maxW))
+				{
 					touched = true;
 					totalDamage += damagesW[i];
-					maxRadius = std::max(maxRadius, radiiW[i]);
+					maxRadius = std::max(maxRadius, radiusW);
+
+					impactSum += hitPos;
+					++impactCount;
 				}
 			}
 
 			if (touched)
 			{
-				outTiles.push_back(AffectedTile{
-					slot = slot,
-					totalDamage = totalDamage,
-					maxRadius = maxRadius
-					});
+				glm::vec2 impactCenter;
+
+				if (impactCount > 0)
+				{
+					// Average of all hit positions affecting this tile
+					impactCenter = impactSum / static_cast<float>(impactCount);
+				}
+				else
+				{
+					// Fallback to tile center (shouldn't really happen if touched == true)
+					impactCenter = 0.5f * (minW + maxW);
+				}
+
+				AffectedTile t;
+				t.slot = slot;
+				t.totalDamage = totalDamage;
+				t.maxRadius = maxRadius;
+				t.impactCenterWorld = impactCenter;
+
+				outTiles.push_back(t);
 			}
 		}
 	}
+
 
 
 	void VulkanRenderer2D::RecordEffectComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
@@ -1300,6 +1305,7 @@ namespace Engine {
 			pc.destroyedTint = s_effectPushConstants.destroyedTint;
 			pc.flashTint = s_effectPushConstants.flashTint;
 			pc.effectParams0 = s_effectPushConstants.effectParams0;
+			pc.impactCenterWorld = tile.impactCenterWorld;
 
 			glm::vec2 texOriginW = s_VulkanData.VisualEffectsTextureSlots[fxIdx]->GetTextureOrigin();
 			pc.fxIdx = fxIdx;
@@ -1326,8 +1332,8 @@ namespace Engine {
 			// Dispatch full tile (or use a content rect if you have one)
 			const uint32_t gx = CeilDiv(uint32_t(tileW), kLocalX);
 			const uint32_t gy = CeilDiv(uint32_t(tileH), kLocalY);
-			vkCmdDispatch(cmd, 1, 1, 1);
-		
+			vkCmdDispatch(cmd, gx, gy, 1);
+
 		}
 
 

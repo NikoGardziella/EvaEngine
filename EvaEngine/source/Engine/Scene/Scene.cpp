@@ -476,8 +476,8 @@ namespace Engine {
         m_cullingSystem3D = std::make_shared<CullingSystem3D>();
         m_transformSystem3D = std::make_shared<TransformSystem3D>();
 
-        Entity spwanController = CreateEntity("spawn controller");
-        spwanController.AddComponent<NpcSpawnControllerComponent>();
+        //Entity spwanController = CreateEntity("spawn controller");
+        //spwanController.AddComponent<NpcSpawnControllerComponent>();
 
     }
 
