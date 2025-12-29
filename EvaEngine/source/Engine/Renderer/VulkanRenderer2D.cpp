@@ -1124,8 +1124,7 @@ namespace Engine {
 		const std::vector<float>& radiiW,                     // same length as hits
 		const std::vector<uint32_t>& damagesW,                // same length as hits
 		const std::unordered_set<uint32_t>& candidateSlots,   // visible/active slots
-		float pixelSizeWorld, int tileW, int tileH,
-		std::vector<AffectedTile>& outTiles)
+		float pixelSizeWorld, int tileW, int tileH, std::vector<AffectedTile>& outTiles)
 	{
 		outTiles.clear();
 		outTiles.reserve(candidateSlots.size());

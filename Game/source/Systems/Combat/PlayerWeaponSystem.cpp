@@ -79,7 +79,7 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime,  Engine::Scen
 }
 
 Engine::Entity PlayerWeaponSystem::SpawnProjectileEntity(Engine::Scene* scene, Engine::Entity owner,
-    const glm::vec2& origin, const glm::vec2& direction, const WeaponComponent& weaponComp , const glm::vec2& mouseWorld)
+    const glm::vec2& origin, const glm::vec2& direction, const WeaponComponent& weaponComp , const glm::vec2& aimedPosWorld)
 {
     EE_PROFILE_FUNCTION();
 
@@ -94,15 +94,16 @@ Engine::Entity PlayerWeaponSystem::SpawnProjectileEntity(Engine::Scene* scene, E
     float projectileMaxRange = weaponComp.MaxRange;
     float projectileRadius = 0.1f;
 
+    float distanceToAimedPosWorld = glm::distance(aimedPosWorld, origin);
     ProjectileComponent& projectileComp = projectileEntity.AddComponent<ProjectileComponent>(dirNorm, projectileMaxRange);
 
     projectileComp.Damage = weaponComp.Damage;
     projectileComp.ProjectileRadius = projectileRadius;
     projectileComp.DestructionRadius = weaponComp.DestructionRadius;
     projectileComp.Owner = owner;
-    projectileComp.TargetPositionHeightZ1 = SampleHeightAt(scene, mouseWorld, 1);
-    projectileComp.DistanceToTargetatFireTime = glm::distance(mouseWorld, origin);;
-    projectileComp.TargetPositionAtFireTime = mouseWorld;
+    projectileComp.TargetPositionHeightZ1 = SampleHeightAt(scene, aimedPosWorld, 1);
+    projectileComp.DistanceToTargetatFireTime = distanceToAimedPosWorld;
+    projectileComp.TargetPositionAtFireTime = aimedPosWorld;
     projectileComp.ProjectileSped = weaponComp.ProjectileSpeed;
     projectileComp.renderSlot = Engine::ProjectileVisual::GetSlot(ProjectileVisualType::Bullet);
     projectileComp.DistanceTravelled = 0.0f;
@@ -113,19 +114,34 @@ Engine::Entity PlayerWeaponSystem::SpawnProjectileEntity(Engine::Scene* scene, E
     return projectileEntity;
 }
 
-void PlayerWeaponSystem::FireShotgunWeapon(Engine::Entity player, Engine::TransformComponent& transformComp,
-    const glm::vec2& mouseWorld, const WeaponComponent& weaponComp, Engine::Scene* scene)
+void PlayerWeaponSystem::FireShotgunWeapon(
+    Engine::Entity player,
+    Engine::TransformComponent& transformComp,
+    const glm::vec2& mouseWorld,
+    const WeaponComponent& weaponComp,
+    Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
+
     const glm::vec2 origin = glm::vec2(transformComp.Translation);
+
     glm::vec2 baseDir = mouseWorld - origin;
     if (glm::length2(baseDir) < 0.0001f)
         return;
 
     baseDir = glm::normalize(baseDir);
 
+    // Distance from player to where the player aimed
+    const float aimedDist = glm::length(mouseWorld - origin);
+
+    // Clamp to weapon max range if you have one
+    const float maxRange = weaponComp.MaxRange;
+    const float travelDist = (maxRange > 0.0f)
+        ? glm::min(aimedDist, maxRange)
+        : aimedDist;
+
     const uint32_t pellets = glm::max(weaponComp.Pellets, 1u);
-    float spreadRad = glm::radians(weaponComp.SpreadDegrees);
+    const float spreadRad = glm::radians(weaponComp.SpreadDegrees);
 
     for (uint32_t i = 0; i < pellets; ++i)
     {
@@ -133,18 +149,25 @@ void PlayerWeaponSystem::FireShotgunWeapon(Engine::Entity player, Engine::Transf
 
         if (spreadRad > 0.0f)
         {
-            float offset = glm::linearRand(-spreadRad * 0.5f, spreadRad * 0.5f);
-            float c = std::cos(offset);
-            float s = std::sin(offset);
+            // Random angle offset in [-spread/2, spread/2]
+            const float offset = glm::linearRand(-spreadRad * 0.5f, spreadRad * 0.5f);
+            const float c = std::cos(offset);
+            const float s = std::sin(offset);
+
             dir = glm::vec2(
                 baseDir.x * c - baseDir.y * s,
                 baseDir.x * s + baseDir.y * c
             );
         }
 
-        SpawnProjectileEntity(scene, player, origin, dir, weaponComp, mouseWorld);
+        // Correct end position in world space for this pellet
+        const glm::vec2 pelletEndWorld = origin + dir * travelDist;
+
+        // Pass pelletEndWorld as the aimed/target position instead of raw mouseWorld
+        SpawnProjectileEntity(scene, player, origin, dir, weaponComp, pelletEndWorld);
     }
 }
+
 
 
 void PlayerWeaponSystem::FireExplosiveProjectileWeapon(Engine::Entity player, Engine::TransformComponent& tr,
@@ -201,33 +224,54 @@ void PlayerWeaponSystem::FireMeleeWeapon(Engine::Entity player, Engine::Transfor
     );
 }
 
-void PlayerWeaponSystem::FireSingleProjectileWeapon(Engine::Entity player, Engine::TransformComponent& transformComp,
-    const glm::vec2& mouseWorld, const WeaponComponent& weaponComp, Engine::Scene* scene)
+void PlayerWeaponSystem::FireSingleProjectileWeapon(
+    Engine::Entity player,
+    Engine::TransformComponent& transformComp,
+    const glm::vec2& mouseWorld,
+    const WeaponComponent& weaponComp,
+    Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
     const glm::vec2 origin = glm::vec2(transformComp.Translation);
+
+    // Base direction from player -> aim point
     glm::vec2 dir = mouseWorld - origin;
     if (glm::length2(dir) < 0.0001f)
         return;
 
     dir = glm::normalize(dir);
 
-    // Basic spread
-    float spreadRad = glm::radians(weaponComp.SpreadDegrees);
+    // Apply spread (if any)
+    const float spreadRad = glm::radians(weaponComp.SpreadDegrees);
     if (spreadRad > 0.0f)
     {
-        float offset = glm::linearRand(-spreadRad * 0.5f, spreadRad * 0.5f);
-        float c = std::cos(offset);
-        float s = std::sin(offset);
+        const float offset = glm::linearRand(-spreadRad * 0.5f, spreadRad * 0.5f);
+        const float c = std::cos(offset);
+        const float s = std::sin(offset);
+
         dir = glm::vec2(
             dir.x * c - dir.y * s,
             dir.x * s + dir.y * c
         );
     }
 
-    SpawnProjectileEntity(scene, player, origin, dir, weaponComp, mouseWorld);
+    // Distance from player to where they aimed
+    const float aimedDist = glm::length(mouseWorld - origin);
+
+    // Clamp to weapon max range if specified
+    const float maxRange = weaponComp.MaxRange;
+    const float travelDist = (maxRange > 0.0f)
+        ? glm::min(aimedDist, maxRange)
+        : aimedDist;
+
+    // Correct world-space end position along final dir
+    const glm::vec2 endWorld = origin + dir * travelDist;
+
+    // Pass endWorld instead of raw mouseWorld
+    SpawnProjectileEntity(scene, player, origin, dir, weaponComp, endWorld);
 }
+
 
 
 
