@@ -84,6 +84,11 @@ namespace Engine {
         uint32_t bulletSlot = GetSlotForUID(bulletUID);
         ProjectileVisual::RegisterVisual(ProjectileVisualType::Bullet, bulletUID, bulletSlot);
 
+        uint64_t grenadeUID = HashUtils::MakeTileUID_String("grenade");
+
+        uint32_t grenadeSlot = GetSlotForUID(grenadeUID);
+        ProjectileVisual::RegisterVisual(ProjectileVisualType::Grenade, grenadeUID, grenadeSlot);
+
     }
 
 
@@ -163,7 +168,40 @@ namespace Engine {
                 m_propsByUID.emplace(bulletUID, PropsTemplate{ w, h, std::move(propsRGBA) });
             }
         }
+        {
+            // grenade
+            std::vector<uint8_t> colorRGBA;
+            std::vector<uint8_t> healthData;
+            int w = 0, h = 0;
 
+
+            if (!AssetManager::GetTexturePixelData("grenade",
+                colorRGBA, healthData, w, h))
+            {
+                EE_CORE_WARN("GetTexturePixelData failed for grenade sprite");
+            }
+            else
+            {
+                const size_t pixelCount = size_t(w) * size_t(h);
+
+                // Convert healthData (1 byte per pixel) -> RGBA props
+                std::vector<uint8_t> propsRGBA(pixelCount * 4u, 0u);
+                for (size_t i = 0; i < pixelCount; ++i)
+                {
+                    uint8_t health = healthData[i];
+                    propsRGBA[i * 4 + 0] = health; // R = health
+                    propsRGBA[i * 4 + 1] = 0;
+                    propsRGBA[i * 4 + 2] = 0;
+                    propsRGBA[i * 4 + 3] = 0;      // or flags if you want
+                }
+
+                // Make a unique UID for the bullet
+                uint64_t grenadeUID = HashUtils::MakeTileUID_String("grenade");
+
+                m_colorByUID.emplace(grenadeUID, ColorTemplate{ w, h, std::move(colorRGBA) });
+                m_propsByUID.emplace(grenadeUID, PropsTemplate{ w, h, std::move(propsRGBA) });
+            }
+        }
     }
 
 

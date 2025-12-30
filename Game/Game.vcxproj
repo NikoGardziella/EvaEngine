@@ -150,6 +150,7 @@
     <ClInclude Include="source\Systems\Player\CharacterControllerSystem.h" />
     <ClInclude Include="source\Systems\Player\PlayerMovementSystem.h" />
     <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
+    <ClInclude Include="source\Systems\Combat\ThrowableSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="source\Systems\Player\CharacterControllerSystem.cpp" />
     <ClCompile Include="source\Systems\Player\PlayerMovementSystem.cpp" />
     <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp" />
+    <ClCompile Include="source\Systems\Combat\ThrowableSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EvaEngine\EvaEngine.vcxproj">

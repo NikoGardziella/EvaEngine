@@ -21,6 +21,7 @@
 #include "Systems/NPC/NPCState/NpcAIStateSystem.h"
 #include "Systems/NPC/NPCState/NpcBodyStateSystem.h"
 #include "Systems/NPC/Death/NPCDeathCleanupSystem.h"
+#include "Systems/Combat/ThrowableSystem.h"
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -77,6 +78,7 @@ void PixelGame::RegisterSystems()
 	m_activeScene->RegisterSystem(NpcSpawnControllerSystem::UpdateNpcSpawnControllerSystem);
 	m_activeScene->RegisterSystem(NpcBodyStateSystem::UpdateNpcBodyStateSystem);
 	m_activeScene->RegisterSystem(NPCDeathCleanupSystem::UpdateNPCDeathCleanupSystem);
+	m_activeScene->RegisterSystem(ThrowableSystem::UpdateThrowableSystem);
 
 }
 

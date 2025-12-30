@@ -13,9 +13,10 @@
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
 #include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
 #include <glm/gtc/random.hpp>
+#include <Engine/Scene/Components/Combat/ThrowableComponent.h>
 
 
-void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime,  Engine::Scene* scene)
+void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
@@ -29,12 +30,13 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime,  Engine::Scen
             Engine::CameraComponent& cameraComp)
         {
             if (hasPrimaryCamera || !cameraComp.Primary)
-            {
                 return;
-            }
+
             mouseWorldPosition = cameraComp.Camera.ScreenToWorld(cameraTransformComp.GetTransform());
             hasPrimaryCamera = true;
         });
+
+    const bool fireDown = Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0);
 
     scene->ForEach<Engine::TransformComponent, WeaponComponent>(
         [&](Engine::Entity playerEntity,
@@ -45,38 +47,94 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime,  Engine::Scen
             const glm::vec2 dir = mouseWorldPosition - playerPos;
 
             if (weaponComp.Cooldown > 0.0f)
-                weaponComp.Cooldown -= deltaTime;
-
-            const bool firePressed = Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0);
-
-            if (firePressed && weaponComp.Cooldown <= 0.0f)
             {
-                switch (weaponComp.type)
+                weaponComp.Cooldown -= deltaTime;
+            }
+
+            if (weaponComp.type == WeaponType::Grenade)
+            {
+                if (fireDown && weaponComp.Cooldown <= 0.0f)
                 {
-                case WeaponType::Melee:
-                    FireMeleeWeapon(playerEntity, playerTransformComp, weaponComp, scene);
-                    break;
+                    if (!weaponComp.GrenadeIsCharging)
+                    {
+                        weaponComp.GrenadeIsCharging = true;
+                        weaponComp.GrenadeChargeTime = 0.0f;
+                    }
 
-                case WeaponType::Pistol:
-                case WeaponType::MachineGun:
-                    FireSingleProjectileWeapon(playerEntity, playerTransformComp, mouseWorldPosition, weaponComp, scene);
-                    break;
+                    weaponComp.GrenadeChargeTime += deltaTime;
 
-                case WeaponType::Shotgun:
-                    FireShotgunWeapon(playerEntity, playerTransformComp, mouseWorldPosition, weaponComp, scene);
-                    break;
+                    if (weaponComp.GrenadeChargeTime > weaponComp.GrenadeMaxCharge)
+                    {
+                        weaponComp.GrenadeChargeTime = weaponComp.GrenadeMaxCharge;
+                    }
 
-                case WeaponType::Grenade:
-                case WeaponType::Bazooka:
-                    FireExplosiveProjectileWeapon(playerEntity, playerTransformComp, mouseWorldPosition, weaponComp, scene);
-                    break;
+                }
+                else
+                {
+                    // Button is up now
+                    if (weaponComp.GrenadeIsCharging && weaponComp.Cooldown <= 0.0f)
+                    {
+                        // Convert charge time -> throw speed
+                        float t = (weaponComp.GrenadeMaxCharge > 0.0f)
+                            ? (weaponComp.GrenadeChargeTime / weaponComp.GrenadeMaxCharge)
+                            : 1.0f;
+                        t = glm::clamp(t, 0.0f, 1.0f);
+
+                        float throwSpeed = glm::mix(weaponComp.GrenadeMinSpeed,
+                            weaponComp.GrenadeMaxSpeed, t);
+
+                        // Use a temp copy so we do not overwrite the base ProjectileSpeed
+                        WeaponComponent temp = weaponComp;
+                        temp.ProjectileSpeed = throwSpeed;
+
+                        FireThrowableWeapon(playerEntity, playerTransformComp, mouseWorldPosition, temp, scene);
+
+                        weaponComp.Cooldown = weaponComp.FireRate;
+                    }
+
+                    weaponComp.GrenadeIsCharging = false;
+                    weaponComp.GrenadeChargeTime = 0.0f;
                 }
 
-                weaponComp.Cooldown = weaponComp.FireRate;
+                return;
             }
-        });
 
+            if (!fireDown)
+                return;
+
+            if (weaponComp.Cooldown > 0.0f)
+                return;
+
+            switch (weaponComp.type)
+            {
+            case WeaponType::Melee:
+                FireMeleeWeapon(playerEntity, playerTransformComp, weaponComp, scene);
+                break;
+
+            case WeaponType::Pistol:
+            case WeaponType::MachineGun:
+                FireSingleProjectileWeapon(playerEntity, playerTransformComp,
+                    mouseWorldPosition, weaponComp, scene);
+                break;
+
+            case WeaponType::Shotgun:
+                FireShotgunWeapon(playerEntity, playerTransformComp,
+                    mouseWorldPosition, weaponComp, scene);
+                break;
+
+            case WeaponType::Bazooka:
+                FireExplosiveProjectileWeapon(playerEntity, playerTransformComp,
+                    mouseWorldPosition, weaponComp, scene);
+                break;
+
+            default:
+                break;
+            }
+
+            weaponComp.Cooldown = weaponComp.FireRate;
+        });
 }
+
 
 Engine::Entity PlayerWeaponSystem::SpawnProjectileEntity(Engine::Scene* scene, Engine::Entity owner,
     const glm::vec2& origin, const glm::vec2& direction, const WeaponComponent& weaponComp , const glm::vec2& aimedPosWorld)
@@ -107,19 +165,11 @@ Engine::Entity PlayerWeaponSystem::SpawnProjectileEntity(Engine::Scene* scene, E
     projectileComp.ProjectileSped = weaponComp.ProjectileSpeed;
     projectileComp.renderSlot = Engine::ProjectileVisual::GetSlot(ProjectileVisualType::Bullet);
     projectileComp.DistanceTravelled = 0.0f;
-    // Extra fields for explosives if you want:
-   // projectileComp.Explosive = weaponComp.Explosive;
-   // projectileComp.ExplosionRadius = weaponComp.ExplosionRadius;
-
     return projectileEntity;
 }
 
-void PlayerWeaponSystem::FireShotgunWeapon(
-    Engine::Entity player,
-    Engine::TransformComponent& transformComp,
-    const glm::vec2& mouseWorld,
-    const WeaponComponent& weaponComp,
-    Engine::Scene* scene)
+void PlayerWeaponSystem::FireShotgunWeapon(Engine::Entity player, Engine::TransformComponent& transformComp,
+    const glm::vec2& mouseWorld, const WeaponComponent& weaponComp, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
@@ -134,11 +184,13 @@ void PlayerWeaponSystem::FireShotgunWeapon(
     // Distance from player to where the player aimed
     const float aimedDist = glm::length(mouseWorld - origin);
 
-    // Clamp to weapon max range if you have one
+    // Clamp to weapon max range if have one
     const float maxRange = weaponComp.MaxRange;
-    const float travelDist = (maxRange > 0.0f)
-        ? glm::min(aimedDist, maxRange)
-        : aimedDist;
+    float travelDist = aimedDist;
+    if (maxRange > 0.0f && travelDist > maxRange)
+    {
+        travelDist = maxRange;
+    }
 
     const uint32_t pellets = glm::max(weaponComp.Pellets, 1u);
     const float spreadRad = glm::radians(weaponComp.SpreadDegrees);
@@ -163,7 +215,6 @@ void PlayerWeaponSystem::FireShotgunWeapon(
         // Correct end position in world space for this pellet
         const glm::vec2 pelletEndWorld = origin + dir * travelDist;
 
-        // Pass pelletEndWorld as the aimed/target position instead of raw mouseWorld
         SpawnProjectileEntity(scene, player, origin, dir, weaponComp, pelletEndWorld);
     }
 }
@@ -218,31 +269,24 @@ void PlayerWeaponSystem::FireMeleeWeapon(Engine::Entity player, Engine::Transfor
             {
                 // Hit!
                 health.Current -= weaponComp.Damage;
-                // optionally: spawn hit fx, sound, etc.
             }
         }
     );
 }
 
-void PlayerWeaponSystem::FireSingleProjectileWeapon(
-    Engine::Entity player,
-    Engine::TransformComponent& transformComp,
-    const glm::vec2& mouseWorld,
-    const WeaponComponent& weaponComp,
-    Engine::Scene* scene)
+void PlayerWeaponSystem::FireSingleProjectileWeapon(Engine::Entity player, Engine::TransformComponent& transformComp,
+    const glm::vec2& mouseWorld, const WeaponComponent& weaponComp, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
     const glm::vec2 origin = glm::vec2(transformComp.Translation);
 
-    // Base direction from player -> aim point
     glm::vec2 dir = mouseWorld - origin;
     if (glm::length2(dir) < 0.0001f)
         return;
 
     dir = glm::normalize(dir);
 
-    // Apply spread (if any)
     const float spreadRad = glm::radians(weaponComp.SpreadDegrees);
     if (spreadRad > 0.0f)
     {
@@ -261,17 +305,83 @@ void PlayerWeaponSystem::FireSingleProjectileWeapon(
 
     // Clamp to weapon max range if specified
     const float maxRange = weaponComp.MaxRange;
-    const float travelDist = (maxRange > 0.0f)
-        ? glm::min(aimedDist, maxRange)
-        : aimedDist;
+    float travelDist = aimedDist;
+    if (maxRange > 0.0f && travelDist > maxRange)
+    {
+        travelDist = maxRange;
+    }
 
     // Correct world-space end position along final dir
     const glm::vec2 endWorld = origin + dir * travelDist;
 
-    // Pass endWorld instead of raw mouseWorld
     SpawnProjectileEntity(scene, player, origin, dir, weaponComp, endWorld);
 }
 
+
+void PlayerWeaponSystem::FireThrowableWeapon(Engine::Entity player, Engine::TransformComponent& transformComp, const glm::vec2& mouseWorld,
+    const WeaponComponent& weaponComp, Engine::Scene* scene)
+{
+    const glm::vec2 origin = glm::vec2(transformComp.Translation);
+    glm::vec2 dir = mouseWorld - origin;
+    float dist = glm::length(dir);
+    if (dist < 0.0001f)
+        return;
+
+    glm::vec2 dirNorm = dir / dist;
+
+    Engine::Entity grenade = scene->CreateEntity("Grenade");
+    auto& throwableTransformComp = grenade.AddComponent<Engine::TransformComponent>();
+    throwableTransformComp.Translation = glm::vec3(origin, 0.0f);
+
+    ThrowableComponent& throwableComp = grenade.AddComponent<ThrowableComponent>();
+    throwableComp.GroundPosWS = origin;
+
+    // 1) Initial speed from charged throw
+    const float v = weaponComp.ProjectileSpeed;
+    throwableComp.InitialSpeed = v;
+    throwableComp.VelocityWS = dirNorm * v;
+
+    throwableComp.FuseTime = 2.0f;
+    throwableComp.FuseTimer = throwableComp.FuseTime;
+
+    float speed01 = 0.0f;
+    {
+        const float minV = weaponComp.GrenadeMinSpeed;
+        const float maxV = weaponComp.GrenadeMaxSpeed;
+        if (maxV > minV)
+            speed01 = glm::clamp((v - minV) / (maxV - minV), 0.0f, 1.0f);
+    }
+
+    const float minHeight = 0.4f;
+    const float maxHeight = 1.2f;
+    float lowSpeedFactor = 1.0f - speed01; // slow -> 1, fast -> 0
+    throwableComp.ArcHeightWorld = glm::mix(minHeight, maxHeight, lowSpeedFactor);
+
+    const float minLift = 0.5f;
+    const float maxLift = 0.6f;
+    throwableComp.InitialLift = glm::mix(minLift, maxLift, lowSpeedFactor);
+
+
+    const float minArcTime = 0.3f;
+    const float maxArcTime = 0.9f;
+
+    float travelTime = (v > 0.0f) ? (dist / v) : 0.5f;
+
+    float stylizedArcTime = glm::mix(minArcTime, maxArcTime, lowSpeedFactor);
+    throwableComp.ArcDuration = glm::clamp(travelTime, minArcTime, maxArcTime);
+
+
+    //Energy after bounce / how long it rolls:
+    //    - faster throw -> higher MinSpeedToStop + maybe higher bounciness
+    throwableComp.MinSpeedToStop = glm::mix(0.5f, 2.0f, speed01);
+    throwableComp.Bounciness = glm::mix(0.3f, 0.6f, speed01);
+
+    throwableComp.AirDrag = 1.5f; 
+
+    throwableComp.MaxBounces = 2;
+    throwableComp.ExplodeOnImpact = false;
+    throwableComp.renderSlot = Engine::ProjectileVisual::GetSlot(ProjectileVisualType::Grenade);
+}
 
 
 

@@ -20,6 +20,7 @@ public:
 	
 private:
 	static void FireSingleProjectileWeapon(Engine::Entity player, Engine::TransformComponent& tr, const glm::vec2& mouseWorld, const WeaponComponent& weapon, Engine::Scene* scene);
+	static void FireThrowableWeapon(Engine::Entity player, Engine::TransformComponent& transformComp, const glm::vec2& mouseWorld, const WeaponComponent& weaponComp, Engine::Scene* scene);
 	static void ShootProjectile(Engine::Entity entity, const glm::vec2& position, const glm::vec2& mouseWorldPosition, Engine::Scene* scene, const WeaponComponent& weaponComp);
 	static float SampleHeightAt(Engine::Scene* scene, const glm::vec2& worldXY, int radiusPx = 0);
 };

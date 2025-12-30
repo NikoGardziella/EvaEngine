@@ -1,6 +1,4 @@
-
 #pragma once
-
 #include <cstdint>
 #include "Engine/Scene/Components/Projectiles/ProjectileComponent.h"
 

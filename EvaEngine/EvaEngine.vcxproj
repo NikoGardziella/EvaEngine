@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.h" />
     <ClInclude Include="source\Engine\Scene\Components\Animation\NpcAnimationControllerComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Combat\ThrowableComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIStateComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NPCDeathComponent.h" />

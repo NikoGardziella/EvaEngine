@@ -30,6 +30,9 @@ namespace Engine {
 
 		bool IsCellBlocked(const glm::ivec2& cell) const;
 
+		bool IsPointBlockedWithNormal(const glm::vec2& P, glm::vec2& outNormal) const;
+
+
 		std::vector<glm::vec2> FindPathWorld(const glm::vec2& startWorld, const glm::vec2& goalWorld) const;
 
 

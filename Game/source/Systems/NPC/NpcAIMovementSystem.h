@@ -1,10 +1,10 @@
 #pragma once
-#include <Engine/Scene/Scene.h>
+
 #include "Engine.h"
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 
-
+class Scene;
 class NpcAIMovementSystem
 {
 public:

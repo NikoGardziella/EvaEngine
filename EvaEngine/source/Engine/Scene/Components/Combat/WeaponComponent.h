@@ -38,6 +38,13 @@ struct WeaponComponent
 
     bool IsFiring = false;
 
+    // --- Grenade charge params ---
+    float GrenadeChargeTime = 0.0f;  // current charge
+    float GrenadeMaxCharge = 1.0f;  // seconds to reach full power
+    float GrenadeMinSpeed = 8.0f;  // weak toss
+    float GrenadeMaxSpeed = 25.0f; // full power throw
+    bool  GrenadeIsCharging = false;
+
     WeaponComponent() = default;
     WeaponComponent(const WeaponComponent&) = default;
 };

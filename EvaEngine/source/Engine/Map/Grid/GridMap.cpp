@@ -489,19 +489,40 @@ namespace Engine
     bool GridMap::IsCellBlocked(const glm::ivec2& cell) const
     {
         // pick a representative point for the cell (its “ground” center)
-        glm::vec2 P = IsoTileUtils::IsoToWorldGround(cell);
+        glm::vec2 point = IsoTileUtils::IsoToWorldGround(cell);
 
         for (const auto& obb : m_blockedSubCells)
         {
             constexpr float kLOSObstaclePadding = 0.1f;
 
-            if (GridUtils::PointInSubCellOBB_Padded(P, obb, kLOSObstaclePadding))
+            if (GridUtils::PointInSubCellOBB_Padded(point, obb, kLOSObstaclePadding))
             {
                 return true;
             }
         }
         return false;
     }
+
+    bool GridMap::IsPointBlockedWithNormal(const glm::vec2& P, glm::vec2& outNormal) const
+    {
+        constexpr float kPadding = 0.1f;
+
+        for (const auto& obb : m_blockedSubCells)
+        {
+            // Same test as before
+            if (GridUtils::PointInSubCellOBB_Padded(P, obb, kPadding))
+            {
+                const glm::vec2 T = obb.tangent;                // assumed normalized or close
+                const glm::vec2 N = glm::vec2(-T.y, T.x);       // normal
+
+                outNormal = glm::normalize(N);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 
     std::vector<glm::vec2> GridMap::FindPathWorld(const glm::vec2& startWorld, const glm::vec2& goalWorld) const
     {

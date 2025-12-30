@@ -1875,6 +1875,7 @@
     <ClInclude Include="source\Engine\Scene\SceneUtils\Prefabs\NPCprefab.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NPCDeathComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Combat\ThrowableComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">

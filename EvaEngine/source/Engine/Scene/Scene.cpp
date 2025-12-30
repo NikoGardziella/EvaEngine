@@ -41,6 +41,7 @@
 #include "SceneUtils/SpawnUtils.h"
 #include "Components/Animation/NpcAnimationControllerComponent.h"
 #include "Components/Spawning/NpcSpawnControllerComponent.h"
+#include "Components/Combat/ThrowableComponent.h"
 
 
 namespace Engine {
@@ -1076,7 +1077,36 @@ namespace Engine {
                    
                 }
 
+                {
+                    //EE_PROFILE_SCOPE("throwables");
+
+                    auto throwableView = m_registry.view<ThrowableComponent, TransformComponent, IDComponent>();
+
+                    for (auto throwableEntity : throwableView)
+                    {
+
+                        auto [throwableTransform, throwable, IDComp] = throwableView.get<TransformComponent, ThrowableComponent, IDComponent>(throwableEntity);
+                        glm::vec2 throwablePos;
+                        throwablePos.x = throwableTransform.Translation.x;
+                        throwablePos.y = throwableTransform.Translation.y;
+                        glm::vec2 randomOffset = glm::vec2(0.0f, 1.0f);
+                        throwablePos = throwablePos - randomOffset;
+                        const float backOffset = 0.5f;
+
+
+
+                        float zKey = 0.0f;
+                        
+
+                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(throwablePos, zKey, throwable.renderSlot, throwable.RotationZ);
+
+                    }
+
+
+
+                }
             }
+
 
             //*********** Render ************
             {
