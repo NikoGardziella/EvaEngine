@@ -14,7 +14,7 @@ void ThrowableSystem::UpdateThrowableSystem(float dt, Engine::Scene* scene)
     // 0) Derive isoUpDirWS from camera (like we discussed before)
     glm::vec2 isoUpDirWS(0.0f, 1.0f);
     scene->ForEach<Engine::TransformComponent, Engine::CameraComponent>(
-        [&](Engine::Entity /*camE*/, Engine::TransformComponent& camTr, Engine::CameraComponent& camComp)
+        [&](Engine::Entity /*camE*/,const Engine::TransformComponent& camTr, const Engine::CameraComponent& camComp)
         {
             if (!camComp.Primary)
                 return;
@@ -30,169 +30,166 @@ void ThrowableSystem::UpdateThrowableSystem(float dt, Engine::Scene* scene)
     toDestroy.reserve(16);
 
     scene->ForEach<Engine::TransformComponent, ThrowableComponent>(
-        [&](Engine::Entity e,
-            Engine::TransformComponent& tr,
-            ThrowableComponent& g)
+        [&](Engine::Entity e, Engine::TransformComponent& throwableTransformComp, ThrowableComponent& throwableComp)
         {
-            if (g.AngularSpeedZ == 0.0f)
+            if (throwableComp.AngularSpeedZ == 0.0f)
             {
                 float sign = (RandomRange(0.0f, 1.0f) < 0.5f) ? -1.0f : 1.0f;
-                g.AngularSpeedZ = sign * RandomRange(g.MinSpinSpeed, g.MaxSpinSpeed);
+                throwableComp.AngularSpeedZ = sign * RandomRange(throwableComp.MinSpinSpeed, throwableComp.MaxSpinSpeed);
             }
 
-            g.FuseTimer -= dt;
-            if (g.FuseTimer <= 0.0f && !g.Triggered)
+            throwableComp.FuseTimer -= dt;
+            if (throwableComp.FuseTimer <= 0.0f && !throwableComp.Triggered)
             {
-                tr.Translation.x = g.GroundPosWS.x;
-                tr.Translation.y = g.GroundPosWS.y;
+                throwableTransformComp.Translation.x = throwableComp.GroundPosWS.x;
+                throwableTransformComp.Translation.y = throwableComp.GroundPosWS.y;
 
-                TriggerThrowableExplosion(scene, tr, g);
-                g.Triggered = true;
+                TriggerThrowableExplosion(scene, throwableTransformComp, throwableComp);
+                throwableComp.Triggered = true;
                 toDestroy.push_back(e);
                 return;
             }
-            if (g.Triggered)
+            if (throwableComp.Triggered)
             {
                 toDestroy.push_back(e);
                 return;
             }
 
             // Arc progress with mini ground bounces
-            if (g.ArcDuration > 0.0f)
+            if (throwableComp.ArcDuration > 0.0f)
             {
-                g.ArcT += dt / g.ArcDuration;
+                throwableComp.ArcT += dt / throwableComp.ArcDuration;
 
-                if (g.ArcT >= 1.0f)
+                if (throwableComp.ArcT >= 1.0f)
                 {
-                    g.ArcT = 1.0f;
+                    throwableComp.ArcT = 1.0f;
 
-                    const float speedSq = glm::length2(g.VelocityWS);
+                    const float speedSq = glm::length2(throwableComp.VelocityWS);
                     const float minHopSpeedSq = 0.5f * 0.5f;
 
-                    if (g.GroundBounceCount < g.MaxGroundBounces &&
+                    if (throwableComp.GroundBounceCount < throwableComp.MaxGroundBounces &&
                         speedSq > minHopSpeedSq)
                     {
                         // start very small extra hop
-                        g.GroundBounceCount++;
+                        throwableComp.GroundBounceCount++;
 
-                        g.ArcT = 0.0f;
-                        g.ArcDuration *= 0.4f;
-                        g.ArcHeightWorld *= 0.3f;
+                        throwableComp.ArcT = 0.0f;
+                        throwableComp.ArcDuration *= 0.4f;
+                        throwableComp.ArcHeightWorld *= 0.3f;
 
                         // Change spin on ground bounce
                         float sign = (RandomRange(0.0f, 1.0f) < 0.5f) ? -1.0f : 1.0f;
-                        g.AngularSpeedZ = sign * RandomRange(g.MinSpinSpeed, g.MaxSpinSpeed);
+                        throwableComp.AngularSpeedZ = sign * RandomRange(throwableComp.MinSpinSpeed, throwableComp.MaxSpinSpeed);
                     }
                     else
                     {
-                        g.ArcDuration = 0.0f;
-                        g.ArcHeightWorld = 0.0f;
+                        throwableComp.ArcDuration = 0.0f;
+                        throwableComp.ArcHeightWorld = 0.0f;
                     }
                 }
             }
             // Air drag on horizontal velocity
-            if (g.AirDrag > 0.0f)
+            if (throwableComp.AirDrag > 0.0f)
             {
-                float speedSq = glm::length2(g.VelocityWS);
+                float speedSq = glm::length2(throwableComp.VelocityWS);
                 if (speedSq > 0.0f)
                 {
-                    float dragFactor = glm::max(0.0f, 1.0f - g.AirDrag * dt);
-                    g.VelocityWS *= dragFactor;
+                    float dragFactor = glm::max(0.0f, 1.0f - throwableComp.AirDrag * dt);
+                    throwableComp.VelocityWS *= dragFactor;
                 }
             }
 
             // Resting check: if basically stopped and arc is done, freeze it ---
             {
-                const float stopSpeedSq = g.MinSpeedToStop * g.MinSpeedToStop;
-                float speedSqNow = glm::length2(g.VelocityWS);
+                const float stopSpeedSq = throwableComp.MinSpeedToStop * throwableComp.MinSpeedToStop;
+                float speedSqNow = glm::length2(throwableComp.VelocityWS);
 
                 // ArcDuration <= 0 -> no more hops; we want a fully resting state
-                if (g.ArcDuration <= 0.0f && speedSqNow < stopSpeedSq)
+                if (throwableComp.ArcDuration <= 0.0f && speedSqNow < stopSpeedSq)
                 {
-                    g.VelocityWS = glm::vec2(0.0f);
-                    g.AngularSpeedZ = 0.0f;
+                    throwableComp.VelocityWS = glm::vec2(0.0f);
+                    throwableComp.AngularSpeedZ = 0.0f;
 
                     // Base world position stays at last ground position
-                    glm::vec2 basePos = g.GroundPosWS;
+                    glm::vec2 basePos = throwableComp.GroundPosWS;
 
                     // ArcT is irrelevant now but we keep the same logic for safety
-                    float t = glm::clamp(g.ArcT, 0.0f, 1.0f);
+                    float t = glm::clamp(throwableComp.ArcT, 0.0f, 1.0f);
                     float s = std::sin(glm::pi<float>() * t);
                     float arcShape = s * s;
 
-                    float height = glm::clamp(g.ArcHeightWorld, 0.3f, 1.5f);
-                    float hopScale = (g.GroundBounceCount > 0) ? 0.2f : 1.0f;
-                    float totalOffsetAmount = g.InitialLift + arcShape * height * hopScale;
+                    float height = glm::clamp(throwableComp.ArcHeightWorld, 0.3f, 1.5f);
+                    float hopScale = (throwableComp.GroundBounceCount > 0) ? 0.2f : 1.0f;
+                    float totalOffsetAmount = throwableComp.InitialLift + arcShape * height * hopScale;
 
                     glm::vec2 arcOffset = isoUpDirWS * totalOffsetAmount;
                     glm::vec2 renderPos = basePos + arcOffset;
 
-                    tr.Translation.x = renderPos.x;
-                    tr.Translation.y = renderPos.y;
-                    tr.Translation.z = 0.0f;
+                    throwableTransformComp.Translation.x = renderPos.x;
+                    throwableTransformComp.Translation.y = renderPos.y;
+                    throwableTransformComp.Translation.z = 0.0f;
 
                     // Keep whatever final rotation we ended up with
-                    tr.Rotation.z = g.RotationZ;
+                    throwableTransformComp.Rotation.z = throwableComp.RotationZ;
 
                     // We’re resting, so skip bounce & spin integration
                     return;
                 }
             }
 
-            glm::vec2 oldPos = g.GroundPosWS;
-            glm::vec2 newPos = oldPos + g.VelocityWS * dt;
+            glm::vec2 oldPos = throwableComp.GroundPosWS;
+            glm::vec2 newPos = oldPos + throwableComp.VelocityWS * dt;
 
-            BounceAgainstWorld(scene, oldPos, newPos, g);
-            g.GroundPosWS = newPos;
+            BounceAgainstWorld(scene, oldPos, newPos, throwableComp);
+            throwableComp.GroundPosWS = newPos;
 
-            glm::vec2 basePos = g.GroundPosWS;
+            glm::vec2 basePos = throwableComp.GroundPosWS;
 
-            float t = glm::clamp(g.ArcT, 0.0f, 1.0f);
+            float t = glm::clamp(throwableComp.ArcT, 0.0f, 1.0f);
 
             float s = std::sin(glm::pi<float>() * t);
             float arcShape = s * s;
 
-            float height = g.ArcHeightWorld;
+            float height = throwableComp.ArcHeightWorld;
 
             height = glm::clamp(height, 0.3f, 1.5f);
 
-            float hopScale = (g.GroundBounceCount > 0) ? 0.2f : 1.0f;
+            float hopScale = (throwableComp.GroundBounceCount > 0) ? 0.2f : 1.0f;
 
             // Final vertical amount along isoUpDirWS
-            float totalOffsetAmount = g.InitialLift + arcShape * height * hopScale;
+            float totalOffsetAmount = throwableComp.InitialLift + arcShape * height * hopScale;
 
             glm::vec2 arcOffset = isoUpDirWS * totalOffsetAmount;
 
             glm::vec2 renderPos = basePos + arcOffset;
 
-            tr.Translation.x = renderPos.x;
-            tr.Translation.y = renderPos.y;
-            tr.Translation.z = 0.0f;
+            throwableTransformComp.Translation.x = renderPos.x;
+            throwableTransformComp.Translation.y = renderPos.y;
+            throwableTransformComp.Translation.z = 0.0f;
 
             {
-                const float stopSpeedSq = g.MinSpeedToStop * g.MinSpeedToStop;
-                float speedSqNow = glm::length2(g.VelocityWS);
+                const float stopSpeedSq = throwableComp.MinSpeedToStop * throwableComp.MinSpeedToStop;
+                float speedSqNow = glm::length2(throwableComp.VelocityWS);
 
                 if (speedSqNow >= stopSpeedSq)
                 {
-                    g.RotationZ += g.AngularSpeedZ * dt;
+                    throwableComp.RotationZ += throwableComp.AngularSpeedZ * dt;
 
-                    if (g.RotationZ > glm::two_pi<float>())
-                        g.RotationZ -= glm::two_pi<float>();
-                    else if (g.RotationZ < -glm::two_pi<float>())
-                        g.RotationZ += glm::two_pi<float>();
+                    if (throwableComp.RotationZ > glm::two_pi<float>())
+                        throwableComp.RotationZ -= glm::two_pi<float>();
+                    else if (throwableComp.RotationZ < -glm::two_pi<float>())
+                        throwableComp.RotationZ += glm::two_pi<float>();
                 }
 
-                tr.Rotation.z = g.RotationZ;
+                throwableTransformComp.Rotation.z = throwableComp.RotationZ;
             }
 
-            // 8) Stop if slow (for future frames)
             {
-                const float stopSpeedSq = g.MinSpeedToStop * g.MinSpeedToStop;
-                if (glm::length2(g.VelocityWS) < stopSpeedSq)
+                const float stopSpeedSq = throwableComp.MinSpeedToStop * throwableComp.MinSpeedToStop;
+                if (glm::length2(throwableComp.VelocityWS) < stopSpeedSq)
                 {
-                    g.VelocityWS = glm::vec2(0.0f);
-                    g.AngularSpeedZ = 0.0f;
+                    throwableComp.VelocityWS = glm::vec2(0.0f);
+                    throwableComp.AngularSpeedZ = 0.0f;
                 }
             }
 
@@ -205,18 +202,13 @@ void ThrowableSystem::UpdateThrowableSystem(float dt, Engine::Scene* scene)
 
 
 
-void ThrowableSystem::TriggerThrowableExplosion(Engine::Scene* scene, const Engine::TransformComponent& tr,
-    const ThrowableComponent& g)
+void ThrowableSystem::TriggerThrowableExplosion(Engine::Scene* scene, const Engine::TransformComponent& tr, const ThrowableComponent& throwableComp)
 {
     const glm::vec2 pos2D(tr.Translation.x, tr.Translation.y);
-    EE_INFO("explosion");
-    // submit Explosion?
+    Engine::VulkanRenderer2D::SubmitCPUExplosion(pos2D, throwableComp.DestructionRadius, throwableComp.Damge);
 }
 
-void ThrowableSystem::BounceAgainstWorld(Engine::Scene* scene,
-    const glm::vec2& oldPos,
-    glm::vec2& newPos,
-    ThrowableComponent& g)
+void ThrowableSystem::BounceAgainstWorld(Engine::Scene* scene, const glm::vec2& oldPos, glm::vec2& newPos, ThrowableComponent& throwableComp)
 {
     Engine::Ref<Engine::GridMap> grid = scene->GetGrid();
     if (!grid)
@@ -232,27 +224,26 @@ void ThrowableSystem::BounceAgainstWorld(Engine::Scene* scene,
     // ---- Stronger damping per bounce ----
     // Base bounciness from component, plus extra impact damping
     const float impactDamping = 0.5f;  // 0.5 = lose extra 50% of speed on impact
-    const float bounceScale = g.Bounciness * impactDamping;
+    const float bounceScale = throwableComp.Bounciness * impactDamping;
 
     // Reflect velocity around surface normal and apply bounceScale
     // glm::reflect(I, N) = I - 2 * dot(N, I) * N
-    g.VelocityWS = glm::reflect(g.VelocityWS, normal) * bounceScale;
+    throwableComp.VelocityWS = glm::reflect(throwableComp.VelocityWS, normal) * bounceScale;
 
-    g.BounceCount++;
+    throwableComp.BounceCount++;
 
-    if (g.ExplodeOnImpact)
+    if (throwableComp.ExplodeOnImpact)
     {
-        // simplest: arm/trigger explosion by killing fuse
-        g.FuseTimer = 0.0f;
+        throwableComp.FuseTimer = 0.0f;
     }
 
-    if (g.BounceCount >= g.MaxBounces)
+    if (throwableComp.BounceCount >= throwableComp.MaxBounces)
     {
         // After too many bounces, stop it
-        g.VelocityWS = glm::vec2(0.0f);
+        throwableComp.VelocityWS = glm::vec2(0.0f);
     }
     float sign = (RandomRange(0.0f, 1.0f) < 0.5f) ? -1.0f : 1.0f;
-    g.AngularSpeedZ = sign * RandomRange(g.MinSpinSpeed, g.MaxSpinSpeed);
+    throwableComp.AngularSpeedZ = sign * RandomRange(throwableComp.MinSpinSpeed, throwableComp.MaxSpinSpeed);
 
 }
 

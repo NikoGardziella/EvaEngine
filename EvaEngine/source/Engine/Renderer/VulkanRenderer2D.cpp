@@ -26,6 +26,7 @@ namespace Engine {
 	Engine::VulkanRenderer2DTileDestructionData Engine::VulkanRenderer2D::s_VulkanTilesToDestroyData;
 	Ref<VulkanBindlessDescriptorSetRenderer> VulkanRenderer2D::s_bindlessDescitproRenderer;
 	CollisionData Engine::VulkanRenderer2D::s_CollisionData;
+	CPUExplosionData Engine::VulkanRenderer2D::s_CPUExplosionsData;
 
 	EffectPushConstants VulkanRenderer2D::s_effectPushConstants{
 		/*textureOrigin*/ {0.0f, 0.0f},
@@ -276,7 +277,11 @@ namespace Engine {
 
 		// 2) Convert to CPU vectors
 		CollisionResultsCPU::LatestProjectiles.clear();
-		m_hitsW.clear(); m_radiiW.clear(); m_damages.clear();
+		m_hitsW.clear();
+		m_radiiW.clear();
+		m_damages.clear();
+		s_CPUExplosionsData.CPUExplosions.clear();
+
 		{
 			const uint32_t count = std::min(collisionResult.collisionCount, (uint32_t)MAX_COLLISION_RESULTS);
 			for (uint32_t i = 0; i < count; ++i)
@@ -1118,37 +1123,26 @@ namespace Engine {
 		glm::vec2 d = C - q;
 		return glm::dot(d, d) <= r * r;
 	}
-
 	void VulkanRenderer2D::BuildAffectedTilesCPU(
 		const std::vector<glm::vec2>& hitPositionsW,          // world hits this frame
 		const std::vector<float>& radiiW,                     // same length as hits
 		const std::vector<uint32_t>& damagesW,                // same length as hits
 		const std::unordered_set<uint32_t>& candidateSlots,   // visible/active slots
-		float pixelSizeWorld, int tileW, int tileH, std::vector<AffectedTile>& outTiles)
+		float pixelSizeWorld, int tileW, int tileH,
+		std::vector<AffectedTile>& outTiles)
 	{
 		outTiles.clear();
-		outTiles.reserve(candidateSlots.size());
 
 		if (hitPositionsW.empty() ||
 			radiiW.size() != hitPositionsW.size() ||
 			damagesW.size() != hitPositionsW.size())
-			return; // nothing to do or mismatched inputs
+			return;
 
 		for (uint32_t slot : candidateSlots)
 		{
-			// Tile AABB in world
 			const glm::vec2 minW = s_VulkanBindlessData.m_slotOriginWorld[slot]; // top-left in world
 			const glm::vec2 maxW = minW + glm::vec2(tileW, tileH) * pixelSizeWorld;
 
-			uint32_t totalDamage = 0;
-			float    maxRadius = 0.0f;
-			bool     touched = false;
-
-			// For computing a representative impact point
-			glm::vec2 impactSum(0.0f);
-			uint32_t  impactCount = 0;
-
-			// Accumulate all hits that touch this tile
 			for (size_t i = 0; i < hitPositionsW.size(); ++i)
 			{
 				const glm::vec2& hitPos = hitPositionsW[i];
@@ -1156,43 +1150,21 @@ namespace Engine {
 
 				if (CircleIntersectsRect_HalfOpen(hitPos, radiusW, minW, maxW))
 				{
-					touched = true;
-					totalDamage += damagesW[i];
-					maxRadius = std::max(maxRadius, radiusW);
+					AffectedTile t;
+					t.slot = slot;
+					t.impactCenterWorld = hitPos;          // per-hit center
+					t.maxRadius = radiusW;         // per-hit radius
+					t.totalDamage = damagesW[i];     // per-hit damage
+					t.hitIndex = static_cast<uint32_t>(i);
 
-					impactSum += hitPos;
-					++impactCount;
+					outTiles.push_back(t);
 				}
-			}
-
-			if (touched)
-			{
-				glm::vec2 impactCenter;
-
-				if (impactCount > 0)
-				{
-					// Average of all hit positions affecting this tile
-					impactCenter = impactSum / static_cast<float>(impactCount);
-				}
-				else
-				{
-					// Fallback to tile center (shouldn't really happen if touched == true)
-					impactCenter = 0.5f * (minW + maxW);
-				}
-
-				AffectedTile t;
-				t.slot = slot;
-				t.totalDamage = totalDamage;
-				t.maxRadius = maxRadius;
-				t.impactCenterWorld = impactCenter;
-
-				outTiles.push_back(t);
 			}
 		}
 	}
 
 
-
+	
 	void VulkanRenderer2D::RecordEffectComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
 	{
 		EE_PROFILE_FUNCTION();
@@ -1242,6 +1214,15 @@ namespace Engine {
 		VkImage propsArray = s_bindlessDescitproRenderer->GetPropsArrayImage();
 
 		std::vector<AffectedTile> affectedTiles;
+
+		for (size_t i = 0; i < s_CPUExplosionsData.CPUExplosions.size(); i++)
+		{
+			m_hitsW.push_back(s_CPUExplosionsData.CPUExplosions[i].HitWorldPos);
+			m_radiiW.push_back(s_CPUExplosionsData.CPUExplosions[i].radiWorld);
+			m_damages.push_back(s_CPUExplosionsData.CPUExplosions[i].damage);
+		}
+
+
 		BuildAffectedTilesCPU(m_hitsW, m_radiiW, m_damages, uniqueSlots, 
 			pixelSizeWorld, tileW, tileH, affectedTiles);
 		m_activeSlots.resize(affectedTiles.size());
@@ -1272,30 +1253,32 @@ namespace Engine {
 	
 		}
 
-		
-
+	
 		//  Dispatch tiles that were affected by collision/destruction
-		for (AffectedTile tile : affectedTiles)
+		for (const AffectedTile& tile : affectedTiles)
 		{
+			// Safety check in debug builds
+			EE_CORE_ASSERT(tile.hitIndex < m_hitsW.size(), "hitIndex out of range");
+
+			// You *can* use tile.impactCenterWorld / radiusW / damage directly,
+			// or re-read from arrays if you prefer:
+			const glm::vec2& hitPos = m_hitsW[tile.hitIndex];
+			const float      radiusW = m_radiiW[tile.hitIndex];
+			const uint32_t   damage = m_damages[tile.hitIndex];
+
 			glm::vec2 tileOriginW = s_VulkanBindlessData.m_slotOriginWorld[tile.slot];
-			const int    FX_TEXTURE_HEIGHT = s_VulkanData.VisualEffectsTextureSlots[0]->GetHeight(); // they should be same size all
-			const int    FX_TEXTURE_WIDTH = s_VulkanData.VisualEffectsTextureSlots[0]->GetWidth();
 
-			uint32_t fxIdx = VulkanUtils::TileToFXIndex(tileOriginW, fxGridTopLeftW, pixelSizeWorld,
-				FX_TEXTURE_WIDTH, FX_TEXTURE_HEIGHT, /*worldYDown=*/false);
-			if (fxIdx > CHUNK_GRID_SIZE)
-			{
-				// tile is not inside the grid.
-				continue;
-			}
-
-			// Build push constants for THIS tile
 			EffectPushConstants pc{};
 			pc.textureIndex = tile.slot;
-			pc.textureOrigin = s_VulkanBindlessData.m_slotOriginWorld[tile.slot]; // top-left in world
+			pc.textureOrigin = tileOriginW;
 			pc.pixelSize = pixelSizeWorld;
 
-			// keep your effect params:
+			// Per-hit explosion data:
+			pc.impactCenterWorld = hitPos;
+			pc.hitRadiusWS = radiusW;
+			pc.hitDamage = damage;
+
+			// FX / other params:
 			pc.defaultTimer = s_effectPushConstants.defaultTimer;
 			pc.glowStrength = s_effectPushConstants.glowStrength;
 			pc.maxTimer = s_effectPushConstants.maxTimer;
@@ -1304,36 +1287,79 @@ namespace Engine {
 			pc.destroyedTint = s_effectPushConstants.destroyedTint;
 			pc.flashTint = s_effectPushConstants.flashTint;
 			pc.effectParams0 = s_effectPushConstants.effectParams0;
-			pc.impactCenterWorld = tile.impactCenterWorld;
 
-			glm::vec2 texOriginW = s_VulkanData.VisualEffectsTextureSlots[fxIdx]->GetTextureOrigin();
-			pc.fxIdx = fxIdx;
+			pc.mode = 0; 
 
-			const int col = fxIdx % 3;
-			const int row = fxIdx / 3;
-			const float fxPxW = pixelSizeWorld;
-			
-			glm::vec2 cellSizeW = glm::vec2(FX_TEXTURE_WIDTH, FX_TEXTURE_HEIGHT) * fxPxW;
-			glm::vec2 topLeftW = fxGridTopLeftW
-				+ glm::vec2(col * cellSizeW.x, -row /* flip y */  * cellSizeW.y);
-
-			pc.fxTextureOrigin = topLeftW;
-			pc.hitDamage = tile.totalDamage;
-			pc.hitRadiusWS = tile.maxRadius;
-			pc.mode = 0; // destruction and init effect
-
-			// Push constants
 			vkCmdPushConstants(cmd,
 				s_bindlessDescitproRenderer->GetEffectsPipelineLayout(),
 				VK_SHADER_STAGE_COMPUTE_BIT,
 				0, sizeof(EffectPushConstants), &pc);
 
-			// Dispatch full tile (or use a content rect if you have one)
 			const uint32_t gx = CeilDiv(uint32_t(tileW), kLocalX);
 			const uint32_t gy = CeilDiv(uint32_t(tileH), kLocalY);
 			vkCmdDispatch(cmd, gx, gy, 1);
-
 		}
+
+
+		const int FX_TEXTURE_HEIGHT = s_VulkanData.VisualEffectsTextureSlots[0]->GetHeight();
+		const int FX_TEXTURE_WIDTH = s_VulkanData.VisualEffectsTextureSlots[0]->GetWidth();
+		const float fxPxW = pixelSizeWorld;
+		glm::vec2 cellW = glm::vec2((float)CHUNK_SIZE, (float)CHUNK_SIZE);
+		for (size_t i = 0; i < m_hitsW.size(); ++i)
+		{
+			const glm::vec2& posW = m_hitsW[i];
+			const float      radius = m_radiiW[i];
+			const uint32_t   damage = m_damages[i];
+
+
+			int col = (int)glm::floor((posW.x - fxGridTopLeftW.x) / cellW.x);
+			int row = (int)glm::floor((fxGridTopLeftW.y - posW.y) / cellW.y);
+
+			uint32_t fxIdx = 0xFFFFFFFFu;
+
+			fxIdx = static_cast<uint32_t>((CHUNK_GRID_WIDTH - 1 - row) * CHUNK_GRID_WIDTH + col);
+			if (fxIdx >= CHUNK_GRID_SIZE)
+			{
+				continue;
+			}
+
+			EffectPushConstants pc{};
+			pc.textureIndex = 0xFFFFFFFFu;
+			pc.textureOrigin = glm::vec2(0.0f); // unused in this mode
+			pc.pixelSize = pixelSizeWorld;
+
+			pc.defaultTimer = s_effectPushConstants.defaultTimer;
+			pc.glowStrength = s_effectPushConstants.glowStrength;
+			pc.maxTimer = s_effectPushConstants.maxTimer;
+			pc.flags = s_effectPushConstants.flags;
+			pc.impactTint = s_effectPushConstants.impactTint;
+			pc.destroyedTint = s_effectPushConstants.destroyedTint;
+			pc.flashTint = s_effectPushConstants.flashTint;
+			pc.effectParams0 = s_effectPushConstants.effectParams0;
+
+			pc.impactCenterWorld = posW;
+			pc.hitDamage = damage;
+			pc.hitRadiusWS = radius;
+
+			pc.fxIdx = fxIdx;
+
+
+			glm::vec2 texOriginW = s_VulkanData.VisualEffectsTextureSlots[fxIdx]->GetTextureOrigin();
+			texOriginW.x = texOriginW.x - 0.5f * CHUNK_SIZE;
+			texOriginW.y = texOriginW.y + 0.5f * CHUNK_SIZE;
+			pc.fxTextureOrigin = texOriginW;
+			pc.mode = 3;               // FX-only
+
+
+			vkCmdPushConstants(cmd,
+				s_bindlessDescitproRenderer->GetEffectsPipelineLayout(),
+				VK_SHADER_STAGE_COMPUTE_BIT,
+				0, sizeof(EffectPushConstants), &pc);
+
+			// FX shader only uses invocation (0,0), so 1x1 is enough
+			vkCmdDispatch(cmd, 1, 1, 1);
+		}
+
 
 
 		auto& queue = s_VulkanTilesToDestroyData.TilesDestroyQueu;
@@ -1359,14 +1385,10 @@ namespace Engine {
 
 		for (uint32_t slot : uniqueSlots)
 		{
-			/*
-			*/
-			// transition of all images
 			BarrierLayer(cmd, colorArray, slot,
 				VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
-
 		}
 
 
@@ -2290,6 +2312,15 @@ namespace Engine {
 		s_VulkanBindlessData.m_slotOriginWorld[slot] = origin;
 	}
 
+	void VulkanRenderer2D::SubmitCPUExplosion(glm::vec2 HitWorldPos, float radiWorld, uint32_t damage)
+	{
+		CPUExplosion cpuexplosion = {};
+		cpuexplosion.HitWorldPos = HitWorldPos;
+		cpuexplosion.radiWorld = radiWorld;
+		cpuexplosion.damage = damage;
+		s_CPUExplosionsData.CPUExplosions.push_back(cpuexplosion);
+	}
+	
 	
 	void VulkanRenderer2D::CreateImGuiTextureDescriptors()
 	{

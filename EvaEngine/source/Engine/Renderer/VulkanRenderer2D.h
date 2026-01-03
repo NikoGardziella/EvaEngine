@@ -129,6 +129,21 @@ namespace Engine {
 	};
 
 
+
+	struct CPUExplosion
+	{
+
+		glm::vec2	HitWorldPos;
+		float		radiWorld;
+		uint32_t	damage;
+	};
+
+	struct CPUExplosionData
+	{
+
+		std::vector<CPUExplosion> CPUExplosions;
+	};
+
 	struct CollisionData
 	{
 
@@ -191,6 +206,7 @@ namespace Engine {
 		uint32_t    totalDamage = 0; // sum of damage of all hits affecting this tile
 		float		maxRadius = 0.0f; // max radius among hits affecting this tile
 		glm::vec2	impactCenterWorld;
+		uint32_t    hitIndex;
 	};
 
 	
@@ -258,6 +274,8 @@ namespace Engine {
 		static void SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
 
 		static void SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin);
+
+		static void SubmitCPUExplosion(glm::vec2 HitWorldPos, float radiWorld, uint32_t damage);
 
 
 
@@ -329,6 +347,7 @@ namespace Engine {
 		static VulkanRenderer2DTileDestructionData s_VulkanTilesToDestroyData;
 		static CollisionData s_CollisionData;
 		static EffectPushConstants s_effectPushConstants;
+		static CPUExplosionData s_CPUExplosionsData;
 		//static const uint32_t MaxTextures = 10;
 		//std::array<CollisionTexture, MaxTextures> s_CollisionTextures;
 		//CollisionTexture s_CollisionTextures;

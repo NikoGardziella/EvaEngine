@@ -178,6 +178,9 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
                     // 4) Apply damage if available
                     if (hit && targetEntity.HasComponent<HealthComponent>())
                     {
+
+                        Engine::VulkanRenderer2D::SubmitCPUExplosion(projectilePos, projectileComp.DestructionRadius, projectileComp.Damage);
+
                         HealthComponent& healthComp = targetEntity.GetComponent<HealthComponent>();
                         healthComp.Current -= projectileComp.Damage;
                         NpcAnimationControllerComponent& animControllderComp = targetEntity.GetComponent<NpcAnimationControllerComponent>();
@@ -199,8 +202,14 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
            
                 const bool outOfRange = projectileComp.DistanceTravelled >= projectileComp.ProjectileMaxRange;
 
+                if (outOfRange)
+                {
+                    Engine::VulkanRenderer2D::SubmitCPUExplosion(projectilePos, projectileComp.DestructionRadius, projectileComp.Damage);
+                }
+
                 if (outOfRange || gpuHit)
                 {
+
                     toDestroy.push_back(projectileEntity);
                     return;
                 }

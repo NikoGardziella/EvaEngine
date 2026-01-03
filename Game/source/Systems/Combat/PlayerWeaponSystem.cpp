@@ -380,6 +380,10 @@ void PlayerWeaponSystem::FireThrowableWeapon(Engine::Entity player, Engine::Tran
 
     throwableComp.MaxBounces = 2;
     throwableComp.ExplodeOnImpact = false;
+
+
+    throwableComp.Damge = weaponComp.Damage;
+    throwableComp.DestructionRadius = weaponComp.DestructionRadius;
     throwableComp.renderSlot = Engine::ProjectileVisual::GetSlot(ProjectileVisualType::Grenade);
 }
 

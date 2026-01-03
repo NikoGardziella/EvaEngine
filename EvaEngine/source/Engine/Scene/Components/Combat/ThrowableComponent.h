@@ -18,6 +18,9 @@ struct ThrowableComponent
     glm::vec2 GroundPosWS = glm::vec2(0.0f);
     glm::vec2 VelocityWS = glm::vec2(0.0f);
 
+    float DestructionRadius = 0.1f;
+    uint32_t Damge = 1;
+
     float FuseTime = 0.0f;
     float FuseTimer = 0.0f;
     bool  Triggered = false;

@@ -496,38 +496,32 @@ const bool WORLD_Y_DOWN = true;
 // Returns FX index, *unflipped* pixel in that FX, and that FX's size.
 bool mapWorldToFX(vec2 W, out uint FX, out ivec2 qPix, out ivec2 fsOut)
 {
-    uint  FX0 = (pc.fxIdx < MAX_VISUALEFFECT_TEXTRUES) ? pc.fxIdx : 0u;
-    ivec2 fs0 = imageSize(uFX[nonuniformEXT(FX0)]);
-
-    // pixel coords in the *base* cell (can be negative / > fs0)
-    vec2 qF = (W - pc.fxTextureOrigin) / pc.pixelSize;
-
-    // which neighbor cell (-1,0,+1) in x/y
-    float cx = float(fs0.x);
-    float cy = float(fs0.y);
-    int dx = int(floor(qF.x / cx + 1e-6));
-    int dy = int(floor(qF.y / cy + 1e-6));
-
-    // If your 3×3 indexing is Y-up, invert dy so “up” picks the row above.
-    if (!WORLD_Y_DOWN) dy = -dy;
-
-    int FXn = int(FX0) + dx + dy * 3;
-    if (FXn < 0 || FXn >= int(MAX_VISUALEFFECT_TEXTRUES)) return false;
-
-    // local pixel inside that neighbor (unflipped)
-    float qx = qF.x - float(dx) * cx;
-    float qy = qF.y - float((WORLD_Y_DOWN ? dy : -dy)) * cy;  // undo the row shift in world sense
-    ivec2 q0 = ivec2(round(vec2(qx, qy)));                    // round() handles negatives correctly
-
-    ivec2 fsN = imageSize(uFX[nonuniformEXT(uint(FXn))]);
+    FX = pc.fxIdx;
+    
+    if (FX >= MAX_VISUALEFFECT_TEXTRUES) return false;
+    
+    ivec2 fsN = imageSize(uFX[nonuniformEXT(FX)]);
+    
+    // pc.fxTextureOrigin is the TOP-LEFT of the texture in world space
+    // But texture (0,0) is at BOTTOM-LEFT
+    // So we need to compute offset from bottom-left
+    vec2 textureBottomLeftWorld = pc.fxTextureOrigin - vec2(0.0, float(fsN.y) * pc.pixelSize);
+    
+    vec2 offsetFromOrigin;
+    offsetFromOrigin.x = W.x - textureBottomLeftWorld.x;
+    offsetFromOrigin.y = W.y - textureBottomLeftWorld.y;
+    
+    // Convert to pixel coordinates  
+    vec2 pixelPos = offsetFromOrigin / pc.pixelSize;
+    ivec2 q0 = ivec2(round(pixelPos));
+    
+    // Check bounds
     if (q0.x < 0 || q0.y < 0 || q0.x >= fsN.x || q0.y >= fsN.y) return false;
-
-    FX    = uint(FXn);
-    qPix  = q0;         // unflipped pixel in FXn
+    
+    qPix = q0;
     fsOut = fsN;
     return true;
 }
-
 
 // draw a filled disk into uFX[FX] at qCenter with radius R
 void drawDiskFX_at(uint FX, ivec2 qCenter, int R, vec4 col)
@@ -692,96 +686,149 @@ void splitCopyInPlace_mode2(uint srcSlot, uint dstSlot, uint cutY)
         imageStore(uProps[nonuniformEXT(dstSlot)], p, prd);
     }
 }
+const uint INVALID_TILE = 0xFFFFFFFFu;
+void StampDiskFX(uint fx, ivec2 center, ivec2 fs, int R, vec3 stampRGB, bool liftAlpha, float targetA)
+{
+    if (fx >= MAX_VISUALEFFECT_TEXTRUES) return;
+
+    int r2 = R * R;
+    int y0 = max(center.y - R, 0);
+    int y1 = min(center.y + R, fs.y - 1);
+
+    for (int y = y0; y <= y1; ++y)
+    {
+        int dy    = y - center.y;
+        int dxMax = int(floor(sqrt(max(0.0, float(r2 - dy * dy)))));
+        int x0    = max(center.x - dxMax, 0);
+        int x1    = min(center.x + dxMax, fs.x - 1);
+
+        for (int x = x0; x <= x1; ++x)
+        {
+            ivec2 q = ivec2(x, y);
+
+            vec4 dst = imageLoad(uFX[nonuniformEXT(fx)], q);
+            vec3 outRGB = max(dst.rgb, stampRGB);
+            float outA  = liftAlpha ? max(dst.a, targetA) : dst.a;
+
+            imageStore(uFX[nonuniformEXT(fx)], q, vec4(outRGB, outA));
+        }
+    }
+}
+
+
 
 void main()
 {
-    if(pc.mode == 1)
+    if (pc.mode == 1u)
     {
-        // second pass for fading effect.      
+        // Fade FX
         fadeFXTexture(pc.fxIdx);
-        return; 
+        return;
     }
 
     if (pc.mode == 2u)
     {
+        // Split / copy
         splitCopyInPlace_mode2(pc.TextureIndex, pc.newSlot, pc.cutY);
         return;
     }
 
+    // Destruction + FX-only modes both use a single invocation
+    if (gl_GlobalInvocationID.xy != uvec2(0))
+        return;
 
+    if (pc.mode == 0u)
+    {
+        // Destruction-only
+        if (pc.TextureIndex == INVALID_TILE)
+            return;
 
-    const uint  TILE   = pc.TextureIndex;
-    ivec2       tileSz = imageSize(uColor[nonuniformEXT(TILE)]);
-    vec2        rectMinW = pc.textureOrigin;
-    vec2        rectMaxW = rectMinW + vec2(tileSz) * pc.pixelSize;
+        uint  TILE  = pc.TextureIndex;
+        ivec2 tileSz = imageSize(uColor[nonuniformEXT(TILE)]);
 
-    if (gl_GlobalInvocationID.xy != uvec2(0)) return;
+        vec2 rectMinW = pc.textureOrigin;
+        vec2 rectMaxW = rectMinW + vec2(tileSz) * pc.pixelSize;
 
-    
-        // World-space impact center and radius
         vec2  WorldPos = pc.impactCenterWorld;
         float radiusW  = pc.hitRadiusWS;
 
-        // Skip tiles the AoE doesn't touch
-
-        // Convert to this tile's pixel center
         vec2  centerPxF = (WorldPos - rectMinW) / pc.pixelSize;
         ivec2 centerPx  = ivec2(floor(centerPxF));
         centerPx = clamp(centerPx, ivec2(0), tileSz - ivec2(1));
 
-        // Radius in pixels (for destruction + FX)
         float radiusPxF = (pc.pixelSize > 0.0) ? (radiusW / pc.pixelSize) : radiusW;
         int   R         = max(1, int(round(radiusPxF)));
 
-        // --------- Area destruction on THIS tile ---------
-        ProjectileGPU proj;
-        proj.DestructionRadius = float(R);
-        proj.Damage            = pc.hitDamage;
         processExplosionDiskFalloff_WorldExact(WorldPos, radiusW, pc.hitDamage);
-
-
         markAlivePixelsTile(TILE, tileSz, false);
+        return;
+    }
 
-        // --------- FX: paint a persistent disk in the correct FX texture ---------
-        {
-            uint  FXn;
-            ivec2 qCenter;   // unflipped pixel in FXn
-            ivec2 fsN;       // size of FXn
-            if (mapWorldToFX(WorldPos, FXn, qCenter, fsN))
-            {
-                ivec2 qDrawC = flipY(qCenter, fsN);
+    if (pc.mode == 3u)
+    {
+        vec2  W = pc.impactCenterWorld;
+        float radiusW  = pc.hitRadiusWS;
 
-                int r2 = R * R;
-                int y0 = max(qDrawC.y - R, 0);
-                int y1 = min(qDrawC.y + R, fsN.y - 1);
+        uint  baseFX = pc.fxIdx;
+        if (baseFX >= MAX_VISUALEFFECT_TEXTRUES) return;
 
-                bool liftAlpha = ((pc.flags & 0x2u) != 0u);
-                float targetA  = liftAlpha ? 0.9 : 0.0;
+        ivec2 fs = imageSize(uFX[nonuniformEXT(baseFX)]);
 
-                // Scale brightness by glowStrength
-                vec3 stampRGB = clamp(mix(pc.impactTint.rgb, pc.destroyedTint.rgb, 0.0) * max(pc.glowStrength, 0.1), 0.0, 1.0);
+        vec2 bottomLeftW = pc.fxTextureOrigin - vec2(0.0, float(fs.y) * pc.pixelSize);
+        vec2 pixelPos = (W - bottomLeftW) / pc.pixelSize;
+        ivec2 c0 = ivec2(round(pixelPos));
 
-                for (int y = y0; y <= y1; ++y)
-                {
-                    int dy    = y - qDrawC.y;
-                    int dxMax = int(floor(sqrt(max(0.0, float(r2 - dy*dy)))));
-                    int x0    = max(qDrawC.x - dxMax, 0);
-                    int x1    = min(qDrawC.x + dxMax, fsN.x - 1);
+        if (c0.x < 0 || c0.y < 0 || c0.x >= fs.x || c0.y >= fs.y)
+            return;
 
-                    for (int x = x0; x <= x1; ++x)
-                    {
-                        ivec2 q = ivec2(x, y);
+        float radiusPxF = (pc.pixelSize > 0.0) ? (radiusW / pc.pixelSize) : radiusW;
+        int   R         = max(1, int(round(radiusPxF)));
 
-                        vec4 dst = imageLoad(uFX[nonuniformEXT(pc.fxIdx)], q);
+        bool  liftAlpha = ((pc.flags & 0x2u) != 0u);
+        float targetA   = liftAlpha ? 0.9 : 0.0;
 
-                        vec3 outRGB = max(dst.rgb, stampRGB);
-                        float outA  = liftAlpha ? max(dst.a, targetA) : dst.a;
+        vec3 stampRGB = clamp(
+            mix(pc.impactTint.rgb, pc.destroyedTint.rgb, 0.0) * max(pc.glowStrength, 0.1),
+            0.0, 1.0
+        );
 
-                        imageStore(uFX[nonuniformEXT(pc.fxIdx)], q, vec4(outRGB, outA));
-                    }
-                }
+        // 1) stamp into base
+        StampDiskFX(baseFX, c0, fs, R, stampRGB, liftAlpha, targetA);
 
-            }
-        }
-    
+        // Check which borders we overlap (in pixel space)
+        bool overL = (c0.x - R) < 0;
+        bool overR = (c0.x + R) >= fs.x;
+        bool overD = (c0.y - R) < 0;
+        bool overU = (c0.y + R) >= fs.y;
+
+        // Neighbor indices for your "bottom row first" indexing:
+        // left/right are +-1, up/down are +-3
+        uint fxL = baseFX - 1u;
+        uint fxR = baseFX + 1u;
+        uint fxU = baseFX + 3u;
+        uint fxD = baseFX - 3u;
+
+        // 2) stamp side neighbors (shift center by one texture size)
+        if (overL && (baseFX % 3u) != 0u)                     StampDiskFX(fxL, c0 + ivec2(fs.x, 0), fs, R, stampRGB, liftAlpha, targetA);
+        if (overR && (baseFX % 3u) != 2u)                     StampDiskFX(fxR, c0 - ivec2(fs.x, 0), fs, R, stampRGB, liftAlpha, targetA);
+        if (overU && (baseFX + 3u) < MAX_VISUALEFFECT_TEXTRUES) StampDiskFX(fxU, c0 - ivec2(0, fs.y), fs, R, stampRGB, liftAlpha, targetA);
+        if (overD && baseFX >= 3u)                            StampDiskFX(fxD, c0 + ivec2(0, fs.y), fs, R, stampRGB, liftAlpha, targetA);
+
+        // 3) diagonals (if we overlap a corner)
+        if (overL && overU && (baseFX % 3u) != 0u && (baseFX + 3u) < MAX_VISUALEFFECT_TEXTRUES)
+            StampDiskFX(fxU - 1u, c0 + ivec2(fs.x, -fs.y), fs, R, stampRGB, liftAlpha, targetA);
+
+        if (overR && overU && (baseFX % 3u) != 2u && (baseFX + 3u) < MAX_VISUALEFFECT_TEXTRUES)
+            StampDiskFX(fxU + 1u, c0 + ivec2(-fs.x, -fs.y), fs, R, stampRGB, liftAlpha, targetA);
+
+        if (overL && overD && (baseFX % 3u) != 0u && baseFX >= 3u)
+            StampDiskFX(fxD - 1u, c0 + ivec2(fs.x, fs.y), fs, R, stampRGB, liftAlpha, targetA);
+
+        if (overR && overD && (baseFX % 3u) != 2u && baseFX >= 3u)
+            StampDiskFX(fxD + 1u, c0 + ivec2(-fs.x, fs.y), fs, R, stampRGB, liftAlpha, targetA);
+
+        return;
+    }
+
+
 }
