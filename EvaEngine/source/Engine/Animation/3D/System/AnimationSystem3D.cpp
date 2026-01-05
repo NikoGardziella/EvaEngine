@@ -114,6 +114,7 @@ namespace Engine {
                     const int p = parent[i];
                     const glm::mat4 world = (p >= 0) ? (model[p] * local) : local;
                     model[i] = world;
+                    an.boneModel[i] = world;
 
                     const glm::mat4 invB = (i < invBind.size()) ? invBind[i] : glm::mat4(1.0f);
                     finalMats[i] = world * invB;

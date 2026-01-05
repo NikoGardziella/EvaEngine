@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Systems\Combat\Weapon\EquippedWeaponAttachSystem.h" />
     <ClInclude Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.h" />
     <ClInclude Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.h" />
     <ClInclude Include="source\Systems\NPC\NPCState\NpcBodyStateSystem.h" />
@@ -151,8 +152,10 @@
     <ClInclude Include="source\Systems\Player\PlayerMovementSystem.h" />
     <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
     <ClInclude Include="source\Systems\Combat\ThrowableSystem.h" />
+    <ClInclude Include="source\Systems\Spawning\WeaponSpawnSystem.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Systems\Combat\Weapon\EquippedWeaponAttachSystem.cpp" />
     <ClCompile Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.cpp" />
     <ClCompile Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.cpp" />
     <ClCompile Include="source\Systems\NPC\NPCState\NpcBodyStateSystem.cpp" />
@@ -174,6 +177,7 @@
     <ClCompile Include="source\Systems\Player\PlayerMovementSystem.cpp" />
     <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp" />
     <ClCompile Include="source\Systems\Combat\ThrowableSystem.cpp" />
+    <ClCompile Include="source\Systems\Spawning\WeaponSpawnSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EvaEngine\EvaEngine.vcxproj">

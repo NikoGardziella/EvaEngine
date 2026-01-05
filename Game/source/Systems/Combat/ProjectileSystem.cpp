@@ -201,13 +201,14 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
 
            
                 const bool outOfRange = projectileComp.DistanceTravelled >= projectileComp.ProjectileMaxRange;
+                const bool hitTargetPos = projectileComp.DistanceTravelled >= projectileComp.DistanceToTargetatFireTime;
 
-                if (outOfRange)
+                if (outOfRange || hitTargetPos)
                 {
                     Engine::VulkanRenderer2D::SubmitCPUExplosion(projectilePos, projectileComp.DestructionRadius, projectileComp.Damage);
                 }
 
-                if (outOfRange || gpuHit)
+                if (outOfRange || gpuHit || hitTargetPos)
                 {
 
                     toDestroy.push_back(projectileEntity);

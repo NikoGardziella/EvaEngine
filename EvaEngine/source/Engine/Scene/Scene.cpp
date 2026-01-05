@@ -42,6 +42,7 @@
 #include "Components/Animation/NpcAnimationControllerComponent.h"
 #include "Components/Spawning/NpcSpawnControllerComponent.h"
 #include "Components/Combat/ThrowableComponent.h"
+#include "Components/Combat/EquippedWeaponComponent.h"
 
 
 namespace Engine {
@@ -655,16 +656,21 @@ namespace Engine {
                 // Attach animator
                 /*
                 */
-                auto& anim = playerEntity.AddComponent<Animator3DComponent>();
+                Animator3DComponent& anim = playerEntity.AddComponent<Animator3DComponent>();
                 anim.clipA = testClip;
                 anim.clipB = INVALID_CLIP;
                 anim.timeA = 0.0f;
                 anim.blend = 0.0f;                 // only clipA
                 anim.playbackSpeed = 1.0f;
                 anim.loopAclip = true;
+                anim.boneModel.resize(skel.boneCount);
 
                TransformComponent& playerTransformComp = playerEntity.GetComponent<TransformComponent>();
                playerTransformComp.Rotation.x += glm::radians(90.0f);
+
+              WeaponInventoryComponent& weaponInventoryComp = playerEntity.AddComponent<WeaponInventoryComponent>();
+              weaponInventoryComp.equipDirty = true;
+              weaponInventoryComp.equippedWeaponDefId = 1;
 
             }
             
@@ -1098,7 +1104,7 @@ namespace Engine {
                         float zKey = 0.0f;
                         
 
-                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(throwablePos, zKey, throwable.renderSlot, throwable.RotationZ);
+                      //  VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(throwablePos, zKey, throwable.renderSlot, throwable.RotationZ);
 
                     }
 

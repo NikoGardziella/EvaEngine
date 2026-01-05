@@ -30,20 +30,25 @@ namespace Engine {
             // Static meshes
             if (auto mr = scene->TryGet<MeshRefComponent>(entity))
             {
-                uint32_t bonebase = 0;
+                uint32_t boneBase = 0xFFFFFFFFu;
+                uint32_t boneCount = 0;
 
-                const SkeletonComponent& skeletonComponent = entity.GetComponent<SkeletonComponent>();
-            
-                bonebase = skeletonComponent.boneBase;
+                if (SkeletonComponent* sk = scene->TryGet<SkeletonComponent>(entity))
+                {
+                    boneBase = sk->boneBase;
+                    boneCount = sk->boneCount;
+                }
 
+                
                 InstanceDataGPU inst{};
+                inst.boneBase = boneBase;
+                inst.boneCount = boneCount;
 
 
 
                 inst.world = *pWorldTransform;
                // inst.worldPrev = *pWorldTransform;
-                inst.boneBase = bonebase;
-                inst.boneCount= skeletonComponent.boneCount;
+               
                 //inst.meshId = mr->meshId;
                 //inst.flags = 0;
                 /*
@@ -56,6 +61,7 @@ namespace Engine {
                 */
 
                 // Submit whole submesh range
+                
                 if (EnemyDestructibleComponent* destr = entity.TryGetComponent<EnemyDestructibleComponent>())
                 {
                     bool debugDraw = false;

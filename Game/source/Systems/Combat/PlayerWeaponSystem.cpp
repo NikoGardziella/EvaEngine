@@ -14,6 +14,8 @@
 #include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
 #include <glm/gtc/random.hpp>
 #include <Engine/Scene/Components/Combat/ThrowableComponent.h>
+#include <Engine/Scene/Components/Render/3D/RenderBoundsComponent.h>
+#include <Engine/Scene/Components/Render/3D/MeshRefComponent.h>
 
 
 void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene* scene)
@@ -317,9 +319,8 @@ void PlayerWeaponSystem::FireSingleProjectileWeapon(Engine::Entity player, Engin
     SpawnProjectileEntity(scene, player, origin, dir, weaponComp, endWorld);
 }
 
-
-void PlayerWeaponSystem::FireThrowableWeapon(Engine::Entity player, Engine::TransformComponent& transformComp, const glm::vec2& mouseWorld,
-    const WeaponComponent& weaponComp, Engine::Scene* scene)
+void PlayerWeaponSystem::FireThrowableWeapon(Engine::Entity player, Engine::TransformComponent& transformComp,
+    const glm::vec2& mouseWorld, const WeaponComponent& weaponComp, Engine::Scene* scene)
 {
     const glm::vec2 origin = glm::vec2(transformComp.Translation);
     glm::vec2 dir = mouseWorld - origin;
@@ -329,14 +330,37 @@ void PlayerWeaponSystem::FireThrowableWeapon(Engine::Entity player, Engine::Tran
 
     glm::vec2 dirNorm = dir / dist;
 
-    Engine::Entity grenade = scene->CreateEntity("Grenade");
-    auto& throwableTransformComp = grenade.AddComponent<Engine::TransformComponent>();
-    throwableTransformComp.Translation = glm::vec3(origin, 0.0f);
+    // --- Spawn 3D grenade entity ---
+    Engine::MeshRegistry& meshReg = Engine::AssetManager::GetMeshRegistry();
+    const Engine::MeshAsset* meshAsset = meshReg.GetMeshByKey("nade_low");
+    EE_CORE_ASSERT(meshAsset, "nade_low mesh not found");
 
-    ThrowableComponent& throwableComp = grenade.AddComponent<ThrowableComponent>();
+    Engine::Entity grenade = scene->CreateEntity("Grenade3D");
+
+    auto& grenadeTr = grenade.AddComponent<Engine::TransformComponent>();
+    grenadeTr.Translation = glm::vec3(origin, 0.0f);
+    grenadeTr.Rotation = glm::vec3(0.0f);  // you'll drive Z in ThrowableSystem
+    grenadeTr.Scale = glm::vec3(1.0f);
+
+    auto& rb = grenade.AddComponent<Engine::RenderBoundsComponent>();
+    rb.minL = meshAsset->minL;
+    rb.maxL = meshAsset->maxL;
+
+    // Mesh
+    auto& MeshRefComp = grenade.AddComponent<Engine::MeshRefComponent>();
+    MeshRefComp.meshId = meshAsset->id;
+    MeshRefComp.submeshCount = meshAsset->submeshes.size();
+    MeshRefComp.submeshFirst = 0;
+    // Optional: if you use per-entity override material (otherwise rely on mesh submesh materials)
+    // auto& matRef = grenade.AddComponent<Engine::MaterialRefComponent>();
+    // matRef.materialId = weaponComp.GrenadeMaterialId; // if you have this
+
+    // --- Throwable sim ---
+    auto& throwableComp = grenade.AddComponent<ThrowableComponent>();
+    throwableComp.Type = ThrowableType::Grenade;
+
     throwableComp.GroundPosWS = origin;
 
-    // 1) Initial speed from charged throw
     const float v = weaponComp.ProjectileSpeed;
     throwableComp.InitialSpeed = v;
     throwableComp.VelocityWS = dirNorm * v;
@@ -354,38 +378,35 @@ void PlayerWeaponSystem::FireThrowableWeapon(Engine::Entity player, Engine::Tran
 
     const float minHeight = 0.4f;
     const float maxHeight = 1.2f;
-    float lowSpeedFactor = 1.0f - speed01; // slow -> 1, fast -> 0
+    float lowSpeedFactor = 1.0f - speed01;
     throwableComp.ArcHeightWorld = glm::mix(minHeight, maxHeight, lowSpeedFactor);
 
     const float minLift = 0.5f;
     const float maxLift = 0.6f;
     throwableComp.InitialLift = glm::mix(minLift, maxLift, lowSpeedFactor);
 
-
     const float minArcTime = 0.3f;
     const float maxArcTime = 0.9f;
-
     float travelTime = (v > 0.0f) ? (dist / v) : 0.5f;
-
-    float stylizedArcTime = glm::mix(minArcTime, maxArcTime, lowSpeedFactor);
     throwableComp.ArcDuration = glm::clamp(travelTime, minArcTime, maxArcTime);
 
-
-    //Energy after bounce / how long it rolls:
-    //    - faster throw -> higher MinSpeedToStop + maybe higher bounciness
     throwableComp.MinSpeedToStop = glm::mix(0.5f, 2.0f, speed01);
     throwableComp.Bounciness = glm::mix(0.3f, 0.6f, speed01);
 
-    throwableComp.AirDrag = 1.5f; 
+    throwableComp.AirDrag = 1.5f;
 
     throwableComp.MaxBounces = 2;
     throwableComp.ExplodeOnImpact = false;
 
-
     throwableComp.Damge = weaponComp.Damage;
     throwableComp.DestructionRadius = weaponComp.DestructionRadius;
-    throwableComp.renderSlot = Engine::ProjectileVisual::GetSlot(ProjectileVisualType::Grenade);
+
+    throwableComp.RotationZ = 0.0f;
+    throwableComp.AngularSpeedZ = glm::mix(throwableComp.MinSpinSpeed, throwableComp.MaxSpinSpeed, speed01);
+
+  
 }
+
 
 
 

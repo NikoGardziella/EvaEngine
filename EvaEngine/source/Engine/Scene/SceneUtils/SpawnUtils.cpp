@@ -203,6 +203,7 @@ namespace Engine {
         animComp.timeB = 0.0f;
         animComp.blend = 0.0f;
         animComp.playbackSpeed = 1.0f;
+        animComp.boneModel.resize(skeletonComp.boneCount);
 
         // Destructible pieces
         EnemyDestructibleComponent& destrComp = enemyNPCEntity.AddComponent<EnemyDestructibleComponent>();

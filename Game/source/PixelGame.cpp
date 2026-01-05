@@ -22,6 +22,8 @@
 #include "Systems/NPC/NPCState/NpcBodyStateSystem.h"
 #include "Systems/NPC/Death/NPCDeathCleanupSystem.h"
 #include "Systems/Combat/ThrowableSystem.h"
+#include "Systems/Spawning/WeaponSpawnSystem.h"
+#include "Systems/Combat/Weapon/EquippedWeaponAttachSystem.h"
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -79,6 +81,8 @@ void PixelGame::RegisterSystems()
 	m_activeScene->RegisterSystem(NpcBodyStateSystem::UpdateNpcBodyStateSystem);
 	m_activeScene->RegisterSystem(NPCDeathCleanupSystem::UpdateNPCDeathCleanupSystem);
 	m_activeScene->RegisterSystem(ThrowableSystem::UpdateThrowableSystem);
+	m_activeScene->RegisterSystem(WeaponSpawnSystem::UpdateWeaponSpawnSystem);
+	m_activeScene->RegisterSystem(EquippedWeaponAttachSystem::UpdateEquippedWeaponAttachSystem);
 
 }
 

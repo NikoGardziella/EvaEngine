@@ -109,7 +109,10 @@ namespace Engine {
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombieAnimTrip1.glb");
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombieAnimStandup.glb");
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombieAnimHeadHitGround.glb");
-       // Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombieAnimMeshTpose.glb");
+       
+        Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/weapons/nade_low.glb");
+
+        // Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombieAnimMeshTpose.glb");
         //Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/Engineer.glb");
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -371,7 +374,7 @@ namespace Engine {
         std::scoped_lock lock(s_mutex);
         uint32_t idx = (uint32_t)s_Vulkan3DData.s_instances.size();
         s_Vulkan3DData.s_instances.push_back(inst);
-        s_Vulkan3DData.s_draws.push_back(PendingDraw{ idx, submeshId });
+        s_Vulkan3DData.s_draws.push_back(PendingDraw{ idx, submeshId,0 });
     }
 
     void VulkanRenderer3D::SubmitMeshInstanceRange(const InstanceDataGPU& inst,  uint32_t meshId,
@@ -497,7 +500,15 @@ namespace Engine {
         {
             if (d.meshId != currentMeshId)
             {
-                currentMeshId = d.meshId;
+               // if (d.meshId == 0xFFFFFFFFu)
+                {
+                 //   currentMeshId = d.submeshId;
+                }
+               // else
+                {
+                    currentMeshId = d.meshId;
+
+                }
 
                
 
@@ -550,8 +561,20 @@ namespace Engine {
                     continue;
                 }
 
+
+
                 const SubmeshRange& sm = currentMesh->submeshes[d.submeshId];
-                pc.materialId = (sm.materialDefaultId != 0xFFFFFFFFu) ? sm.materialDefaultId : 0u;
+
+                if (sm.materialDefaultId != 0xFFFFFFFFu)
+                {
+                    pc.materialId = sm.materialDefaultId;
+                }
+                else
+                {
+                    // get first material from submesh
+                    pc.materialId = currentMesh->submeshes[0].materialDefaultId;
+                }
+                //pc.materialId = (sm.materialDefaultId != 0xFFFFFFFFu) ? sm.materialDefaultId : 0u;
                 vkCmdPushConstants(cmd, m_3DPipeline.GetLayout(),
                     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                     0, sizeof(PCDraw3D), &pc);

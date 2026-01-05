@@ -71,6 +71,8 @@
     <ClInclude Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.h" />
     <ClInclude Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.h" />
     <ClInclude Include="source\Systems\Combat\ThrowableSystem.h" />
+    <ClInclude Include="source\Systems\Spawning\WeaponSpawnSystem.h" />
+    <ClInclude Include="source\Systems\Combat\Weapon\EquippedWeaponAttachSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -118,5 +120,7 @@
     <ClCompile Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.cpp" />
     <ClCompile Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.cpp" />
     <ClCompile Include="source\Systems\Combat\ThrowableSystem.cpp" />
+    <ClCompile Include="source\Systems\Spawning\WeaponSpawnSystem.cpp" />
+    <ClCompile Include="source\Systems\Combat\Weapon\EquippedWeaponAttachSystem.cpp" />
   </ItemGroup>
 </Project>

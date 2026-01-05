@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <vector>
+#include <glm/fwd.hpp>
 
 namespace Engine {
 
@@ -21,5 +23,6 @@ namespace Engine {
         uint8_t  frameCounter = 0; 
 
         bool loopAclip = false;
+        std::vector<glm::mat4> boneModel;
     };
 }
