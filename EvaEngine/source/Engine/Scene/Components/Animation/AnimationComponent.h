@@ -21,14 +21,5 @@ namespace Engine {
         AnimatorState state;       // frame/time/speed
     };
 
-    struct AnimationEventBufferComponent {
-        // Simple ring buffer of fired event name hashes per frame
-        static constexpr int MaxEvents = 16;
-        uint32_t events[MaxEvents]{};
-        uint8_t  count = 0;
-        uint8_t  _pad[3]{};
-        inline void Clear() { count = 0; }
-        inline void Push(uint32_t h) { if (count < MaxEvents) events[count++] = h; }
-    };
-
+    
 }

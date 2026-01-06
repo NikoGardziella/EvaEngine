@@ -131,37 +131,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\Systems\Combat\Weapon\EquippedWeaponAttachSystem.h" />
-    <ClInclude Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.h" />
-    <ClInclude Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.h" />
-    <ClInclude Include="source\Systems\NPC\NPCState\NpcBodyStateSystem.h" />
-    <ClInclude Include="source\Systems\Spawning\NpcSpawnControllerSystem.h" />
-    <ClInclude Include="source\Systems\NPC\NPCState\NpcAIStateSystem.h" />
-    <ClInclude Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.h" />
     <ClInclude Include="source\PixelGame.h" />
     <ClInclude Include="source\Systems\Collision\PlayerCollisionSystem.h" />
     <ClInclude Include="source\Systems\Collision\VehicleCollisionSystem.h" />
     <ClInclude Include="source\Systems\Combat\HealthSystem.h" />
     <ClInclude Include="source\Systems\Combat\PlayerWeaponSystem.h" />
     <ClInclude Include="source\Systems\Combat\ProjectileSystem.h" />
+    <ClInclude Include="source\Systems\Combat\ThrowableSystem.h" />
+    <ClInclude Include="source\Systems\Combat\Weapon\EquippedWeaponAttachSystem.h" />
+    <ClInclude Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.h" />
     <ClInclude Include="source\Systems\NPC\NPCAIVisionSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NPCState\NpcAIStateSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NPCState\NpcBodyStateSystem.h" />
+    <ClInclude Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.h" />
     <ClInclude Include="source\Systems\NPC\NpcAIMovementSystem.h" />
     <ClInclude Include="source\Systems\Physics\PhysicsSystem.h" />
+    <ClInclude Include="source\Systems\Player\Animation\CharacterAnimStateSystem.h" />
+    <ClInclude Include="source\Systems\Player\Animation\CharacterAnimationControllerSystem.h" />
     <ClInclude Include="source\Systems\Player\Camera\PlayerCameraSystem.h" />
     <ClInclude Include="source\Systems\Player\CharacterControllerSystem.h" />
     <ClInclude Include="source\Systems\Player\PlayerMovementSystem.h" />
-    <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
-    <ClInclude Include="source\Systems\Combat\ThrowableSystem.h" />
+    <ClInclude Include="source\Systems\Spawning\NpcSpawnControllerSystem.h" />
     <ClInclude Include="source\Systems\Spawning\WeaponSpawnSystem.h" />
+    <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Systems\Combat\Weapon\EquippedWeaponAttachSystem.cpp" />
-    <ClCompile Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.cpp" />
-    <ClCompile Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.cpp" />
-    <ClCompile Include="source\Systems\NPC\NPCState\NpcBodyStateSystem.cpp" />
-    <ClCompile Include="source\Systems\Spawning\NpcSpawnControllerSystem.cpp" />
-    <ClCompile Include="source\Systems\NPC\NPCState\NpcAIStateSystem.cpp" />
-    <ClCompile Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.cpp" />
     <ClCompile Include="source\PixelGame.cpp" />
     <ClCompile Include="source\SandboxApp.cpp" />
     <ClCompile Include="source\Systems\Collision\PlayerCollisionSystem.cpp" />
@@ -169,15 +164,24 @@
     <ClCompile Include="source\Systems\Combat\HealthSystem.cpp" />
     <ClCompile Include="source\Systems\Combat\PlayerWeaponSystem.cpp" />
     <ClCompile Include="source\Systems\Combat\ProjectileSystem.cpp" />
+    <ClCompile Include="source\Systems\Combat\ThrowableSystem.cpp" />
+    <ClCompile Include="source\Systems\Combat\Weapon\EquippedWeaponAttachSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\Death\NPCDeathCleanupSystem.cpp" />
     <ClCompile Include="source\Systems\NPC\NPCAIVisionSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NPCState\NpcAIStateSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NPCState\NpcBodyStateSystem.cpp" />
+    <ClCompile Include="source\Systems\NPC\NPCState\Utils\NPCStateUtils.cpp" />
     <ClCompile Include="source\Systems\NPC\NpcAIMovementSystem.cpp" />
     <ClCompile Include="source\Systems\Physics\PhysicsSystem.cpp" />
+    <ClCompile Include="source\Systems\Player\Animation\CharacterAnimStateSystem.cpp" />
+    <ClCompile Include="source\Systems\Player\Animation\CharacterAnimationControllerSystem.cpp" />
     <ClCompile Include="source\Systems\Player\Camera\PlayerCameraSystem.cpp" />
     <ClCompile Include="source\Systems\Player\CharacterControllerSystem.cpp" />
     <ClCompile Include="source\Systems\Player\PlayerMovementSystem.cpp" />
-    <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp" />
-    <ClCompile Include="source\Systems\Combat\ThrowableSystem.cpp" />
+    <ClCompile Include="source\Systems\Spawning\NpcSpawnControllerSystem.cpp" />
     <ClCompile Include="source\Systems\Spawning\WeaponSpawnSystem.cpp" />
+    <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EvaEngine\EvaEngine.vcxproj">

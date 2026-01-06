@@ -22,7 +22,7 @@ void WeaponSpawnSystem::UpdateWeaponSpawnSystem(float dt, Engine::Scene* scene)
 
                 Engine::MeshRegistry& meshReg = Engine::AssetManager::GetMeshRegistry();
 
-                const Engine::MeshAsset* meshAsset = meshReg.GetMeshByKey("nade_low");
+                const Engine::MeshAsset* meshAsset = meshReg.GetMeshByKey("ak47");
 
 
 

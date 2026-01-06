@@ -1,5 +1,4 @@
 #pragma once
-
 #include "glm/glm.hpp"
 
 struct CharacterControllerComponent
@@ -7,7 +6,6 @@ struct CharacterControllerComponent
     float speed = 5.0f;
     glm::vec2 velocity = { 0.0f, 0.0f };
     bool onGround = false;
-
 
 
     CharacterControllerComponent() = default;

@@ -14,19 +14,26 @@ namespace Engine {
 			std::vector<glm::vec3> T;
 			std::vector<glm::quat> R;
 			std::vector<glm::vec3> S;
+
 			std::vector<glm::vec3> TA;
 			std::vector<glm::quat> RA;
 			std::vector<glm::vec3> SA;
+
 			std::vector<glm::vec3> TB;
 			std::vector<glm::quat> RB;
 			std::vector<glm::vec3> SB;
+
+			std::vector<glm::vec3> TO;
+			std::vector<glm::quat> RO;
+			std::vector<glm::vec3> SO;
+
 			std::vector<glm::mat4> model;
 			std::vector<glm::mat4> finalMats;
 		};
 
 
 	public:
-		void Update(Scene* scene, float dt, const SkeletonRegistry&, const AnimationRegistry&, BonePaletteBuffer&);
+		void Update(Scene* scene, float dt, const SkeletonRegistry&, const AnimationRegistry&);
 
 
 	private:

@@ -37,6 +37,8 @@ struct WeaponComponent
     bool  Explosive = false;
 
     bool IsFiring = false;
+    bool IsAiming = false;
+    bool FiredThisFrame = false;
 
     // --- Grenade charge params ---
     float GrenadeChargeTime = 0.0f;  // current charge

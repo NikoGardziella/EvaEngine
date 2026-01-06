@@ -1562,18 +1562,12 @@ namespace Engine {
                 if (ImGui::Checkbox("useRootMotion", &useRM))
                     component.useRootMotion = useRM ? 1 : 0;
 
-                int updateRate = (int)component.updateRate;
-                if (ImGui::SliderInt("updateRate", &updateRate, 1, 10))
-                    component.updateRate = (uint8_t)glm::clamp(updateRate, 1, 10);
+            
 
-                ImGui::Text("frameCounter: %u", (uint32_t)component.frameCounter);
 
                 ImGui::Separator();
 
-                ImGui::Text("stateId: %u", component.stateId);
-                ImGui::Text("transitionId: %s",
-                    (component.transitionId == INVALID) ? "INVALID" : std::to_string(component.transitionId).c_str());
-
+             
                 ImGui::Separator();
 
                 if (ImGui::Button("Reset Times"))

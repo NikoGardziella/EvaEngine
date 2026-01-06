@@ -146,18 +146,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Animation\NpcAnimationControllerComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Combat\EquippedWeaponComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Combat\ThrowableComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIStateComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\NPC\NPCDeathComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Spawning\NpcSpawnControllerComponent.h" />
-    <ClInclude Include="source\Engine\Scene\SceneUtils\Prefabs\NPCprefab.h" />
-    <ClInclude Include="source\Engine\Scene\SceneUtils\SceneUtils.h" />
-    <ClInclude Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.h" />
-    <ClInclude Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h" />
@@ -170,11 +158,14 @@
     <ClInclude Include="source\Engine\Animation\3D\AnimationRegistry.h" />
     <ClInclude Include="source\Engine\Animation\3D\BonePaletteBuffer.h" />
     <ClInclude Include="source\Engine\Animation\3D\Import\GLTFImporter.h" />
+    <ClInclude Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.h" />
     <ClInclude Include="source\Engine\Animation\3D\MaterialRegistry.h" />
     <ClInclude Include="source\Engine\Animation\3D\MeshRegistry.h" />
     <ClInclude Include="source\Engine\Animation\3D\SkeletonRegistry.h" />
+    <ClInclude Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.h" />
     <ClInclude Include="source\Engine\Animation\3D\System\AnimationSystem3D.h" />
     <ClInclude Include="source\Engine\Animation\3D\System\CullingSystem3D.h" />
+    <ClInclude Include="source\Engine\Animation\3D\System\Render3DUtils\Render3DUtils.h" />
     <ClInclude Include="source\Engine\Animation\3D\System\RenderSystem3D.h" />
     <ClInclude Include="source\Engine\Animation\3D\System\TransformSystem3D.h" />
     <ClInclude Include="source\Engine\Animation\3D\Utils\AnimationUtils.h" />
@@ -209,6 +200,7 @@
     <ClInclude Include="source\Engine\Map\Grid\GridMap.h" />
     <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
     <ClInclude Include="source\Engine\Map\Grid\TileCollisionMask.h" />
+    <ClInclude Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.h" />
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h" />
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h" />
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
@@ -266,12 +258,20 @@
     <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h" />
     <ClInclude Include="source\Engine\Scene\Component.h" />
     <ClInclude Include="source\Engine\Scene\Components\Animation\AnimationComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Animation\NpcAnimationControllerComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Animation\PlayerAnimation\CharacterAnimSetComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Animation\PlayerAnimation\CharacterAnimStateComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Combat\EquippedWeaponComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Combat\ThrowableComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\DirectionalLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\PointLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\NPC\NPCDeathComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIStateComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
@@ -286,19 +286,21 @@
     <ClInclude Include="source\Engine\Scene\Components\Render\DynamicObjectRenderComp.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\RoofRenderComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\TileComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Spawning\NpcSpawnControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Vehicles\DriverComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Vehicles\VehicleComponent.h" />
     <ClInclude Include="source\Engine\Scene\Entity.h" />
     <ClInclude Include="source\Engine\Scene\Scene.h" />
     <ClInclude Include="source\Engine\Scene\SceneCamera.h" />
     <ClInclude Include="source\Engine\Scene\SceneSerializer.h" />
-    <ClInclude Include="source\Engine\Animation\3D\System\Render3DUtils\Render3DUtils.h" />
+    <ClInclude Include="source\Engine\Scene\SceneUtils\Prefabs\NPCprefab.h" />
+    <ClInclude Include="source\Engine\Scene\SceneUtils\SceneUtils.h" />
+    <ClInclude Include="source\Engine\Scene\SceneUtils\SpawnUtils.h" />
     <ClInclude Include="source\Engine\Scene\ScriptableEntity.h" />
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTask.h" />
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />
     <ClInclude Include="source\Engine\Utils\PlatformUtils.h" />
     <ClInclude Include="source\pch.h" />
-    <ClInclude Include="source\Engine\Scene\SceneUtils\SpawnUtils.h" />
     <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="vendor\enkiTS\box2d\src\TaskScheduler.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
@@ -722,19 +724,17 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.cpp" />
-    <ClCompile Include="source\Engine\Scene\SceneUtils\SceneUtils.cpp" />
-    <ClCompile Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.cpp" />
-    <ClCompile Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationSystem2D.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\AnimationRegistry.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\BonePaletteBuffer.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\Import\GLTFImporter.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\MaterialRegistry.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\MeshRegistry.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\SkeletonRegistry.cpp" />
+    <ClCompile Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\System\AnimationSystem3D.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\System\CullingSystem3D.cpp" />
     <ClCompile Include="source\Engine\Animation\3D\System\RenderSystem3D.cpp" />
@@ -756,6 +756,7 @@
     <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\TileCollisionMask.cpp" />
+    <ClCompile Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.cpp" />
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp" />
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
@@ -812,12 +813,13 @@
     <ClCompile Include="source\Engine\Scene\Scene.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneCamera.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneSerializer.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneUtils\SceneUtils.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneUtils\SpawnUtils.cpp" />
     <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTask.cpp" />
     <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.cpp" />
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="source\Engine\Scene\SceneUtils\SpawnUtils.cpp" />
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />

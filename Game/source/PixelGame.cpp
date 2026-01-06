@@ -24,6 +24,8 @@
 #include "Systems/Combat/ThrowableSystem.h"
 #include "Systems/Spawning/WeaponSpawnSystem.h"
 #include "Systems/Combat/Weapon/EquippedWeaponAttachSystem.h"
+#include "Systems/Player/Animation/CharacterAnimStateSystem.h"
+#include "Systems/Player/Animation/CharacterAnimationControllerSystem.h"
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -83,6 +85,8 @@ void PixelGame::RegisterSystems()
 	m_activeScene->RegisterSystem(ThrowableSystem::UpdateThrowableSystem);
 	m_activeScene->RegisterSystem(WeaponSpawnSystem::UpdateWeaponSpawnSystem);
 	m_activeScene->RegisterSystem(EquippedWeaponAttachSystem::UpdateEquippedWeaponAttachSystem);
+	m_activeScene->RegisterSystem(CharacterAnimStateSystem::UpdateCharacterAnimStateSystem);
+	m_activeScene->RegisterSystem(CharacterAnimationControllerSystem::UpdateCharacterAnimationControllerSystem);
 
 }
 

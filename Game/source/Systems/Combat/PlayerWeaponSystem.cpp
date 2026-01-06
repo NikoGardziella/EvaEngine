@@ -39,6 +39,7 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene
         });
 
     const bool fireDown = Engine::Input::IsMouseButtonPressed(Engine::Mouse::Button0);
+    
 
     scene->ForEach<Engine::TransformComponent, WeaponComponent>(
         [&](Engine::Entity playerEntity,
@@ -47,6 +48,8 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene
         {
             const glm::vec2 playerPos = playerTransformComp.Translation;
             const glm::vec2 dir = mouseWorldPosition - playerPos;
+            weaponComp.IsAiming = false;
+            weaponComp.IsFiring = fireDown;
 
             if (weaponComp.Cooldown > 0.0f)
             {
@@ -102,10 +105,16 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene
             }
 
             if (!fireDown)
+            {
+                weaponComp.IsAiming = true;
+
                 return;
+            }
+
 
             if (weaponComp.Cooldown > 0.0f)
                 return;
+            weaponComp.FiredThisFrame = fireDown;
 
             switch (weaponComp.type)
             {

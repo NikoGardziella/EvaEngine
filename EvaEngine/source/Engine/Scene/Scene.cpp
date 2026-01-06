@@ -14,6 +14,9 @@
 #include "Engine/Debug/DebugInterface.h"
 #include "Engine/Map/Tile/TileManager.h"
 #include <Engine/Animation/2D/AnimationSystem2D.h>
+#include <Engine/Scene/Components/Animation/PlayerAnimation/CharacterAnimStateComponent.h>
+#include <Engine/Scene/Components/Animation/PlayerAnimation/CharacterAnimSetComponent.h>
+
 
 #include "Component.h"
 #include "Components/Render/TileComponent.h"
@@ -478,8 +481,8 @@ namespace Engine {
         m_cullingSystem3D = std::make_shared<CullingSystem3D>();
         m_transformSystem3D = std::make_shared<TransformSystem3D>();
 
-        //Entity spwanController = CreateEntity("spawn controller");
-        //spwanController.AddComponent<NpcSpawnControllerComponent>();
+        Entity spwanController = CreateEntity("spawn controller");
+        spwanController.AddComponent<NpcSpawnControllerComponent>();
 
     }
 
@@ -672,6 +675,20 @@ namespace Engine {
               weaponInventoryComp.equipDirty = true;
               weaponInventoryComp.equippedWeaponDefId = 1;
 
+
+              Engine::AnimationRegistry& animReg = Engine::AssetManager::GetAnimationRegistry();
+
+              CharacterAnimSetComponent& CharacterAnimSetComp = playerEntity.AddComponent<CharacterAnimSetComponent>();
+              CharacterAnimSetComp.idle = animReg.FindAnimationClip("MaleIdleAnim")->id;
+              CharacterAnimSetComp.run = animReg.FindAnimationClip("playerAnimRun")->id;
+              CharacterAnimSetComp.aimIdle = animReg.FindAnimationClip("playerAnimAimRifle")->id;
+              CharacterAnimSetComp.fireRifle = animReg.FindAnimationClip("playerAnimShootRifle")->id;
+              
+              
+              
+              CharacterAnimStateComponent& CharacterAnimStateComp = playerEntity.AddComponent<CharacterAnimStateComponent>();
+
+
             }
             
 
@@ -683,7 +700,7 @@ namespace Engine {
 
         m_transformSystem3D->Update(this, timestep);
 
-        m_animationSystem3D.Update(this, timestep, AssetManager::GetSkeletonRegistry(), AssetManager::GetAnimationRegistry(), m_bonePaletteBuffer);
+        m_animationSystem3D.Update(this, timestep, AssetManager::GetSkeletonRegistry(), AssetManager::GetAnimationRegistry());
 
         if(mainCameraComp != nullptr)
         {   

@@ -51,6 +51,7 @@ project "EvaEngine"
         "%{prj.name}/vendor/stb_image/**.cpp",
         "%{prj.name}/vendor/stb_image/**.h",
         "%{prj.name}/vendor/tiny_gltf/**.h",
+        "%{prj.name}/vendor/tiny_gltf/**.cpp",
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp",
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
         "%{prj.name}/vendor/Box2D/box2d/include/**.h",

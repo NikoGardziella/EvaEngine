@@ -64,7 +64,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
             if (Engine::Input::IsKeyPressed(Engine::Key::W)) inputVelocity.y += 1.0f;
             if (Engine::Input::IsKeyPressed(Engine::Key::S)) inputVelocity.y -= 1.0f;
 
-            
+            /*
             if (playerEntity.HasComponent<Engine::Animator3DComponent>())
             {
                 Engine::Animator3DComponent& playerAnimComp = playerEntity.GetComponent<Engine::Animator3DComponent>();
@@ -83,6 +83,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
 
             }
 
+            */
             if (playerEntity.HasComponent<DriverComponent>()) 
             {
                 auto& driver = playerEntity.GetComponent<DriverComponent>();

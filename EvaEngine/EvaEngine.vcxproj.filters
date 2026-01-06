@@ -25,8 +25,17 @@
     <Filter Include="source\Engine\Animation\3D\Import">
       <UniqueIdentifier>{7A866D5A-E6F4-C2D9-2FDE-7DD99B8BB875}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Animation\3D\Import\Utils">
+      <UniqueIdentifier>{5AFB20D7-C68A-E2C1-CF86-C3D93B951DCE}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Animation\3D\System">
       <UniqueIdentifier>{84FB9B72-F069-F1F1-3953-ACF1A500E78D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Animation\3D\System\AnimUtils">
+      <UniqueIdentifier>{09C3DAC6-7528-6E4D-FE00-10266A6563BC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Animation\3D\System\Render3DUtils">
+      <UniqueIdentifier>{1BAFA743-87EA-0707-90DF-8496FC998C37}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\Engine\Animation\3D\Utils">
       <UniqueIdentifier>{D0BB0ED5-BC0C-FA16-E570-E8D8D1208D80}</UniqueIdentifier>
@@ -61,6 +70,9 @@
     <Filter Include="source\Engine\Map\Grid\GridUtils">
       <UniqueIdentifier>{230E00A2-0F5F-EBE3-38C3-D9A524737E4D}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Map\Projectile">
+      <UniqueIdentifier>{8807BE49-74C2-ADF5-1D7A-26400914F885}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Map\TextureStreaming">
       <UniqueIdentifier>{92D5CDCF-7E11-D139-E723-E930D37E7954}</UniqueIdentifier>
     </Filter>
@@ -88,9 +100,6 @@
     <Filter Include="source\Engine\Platform\Vulkan\LayerPool">
       <UniqueIdentifier>{55E9E449-C178-A634-CA74-874C3683E140}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\Engine\Platform\Vulkan\Pixel">
-      <UniqueIdentifier>{600F18CE-CCC8-8278-5528-9D52C1E038E8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="source\Engine\Platform\Windows">
       <UniqueIdentifier>{29216249-1547-2CB0-FE8C-B17BEA51517C}</UniqueIdentifier>
     </Filter>
@@ -112,6 +121,9 @@
     <Filter Include="source\Engine\Scene\Components\Animation">
       <UniqueIdentifier>{DC216087-C89E-53CA-F11B-54DEDDF7EF5D}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Components\Animation\PlayerAnimation">
+      <UniqueIdentifier>{58DE2224-44B3-6AD7-6D62-AAD3599678EE}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene\Components\Combat">
       <UniqueIdentifier>{B224FACC-1EE9-F8BC-E74E-298753D294F2}</UniqueIdentifier>
     </Filter>
@@ -120,6 +132,9 @@
     </Filter>
     <Filter Include="source\Engine\Scene\Components\NPC">
       <UniqueIdentifier>{5D97F967-49D3-FCD1-B2E5-14C99E40A5EC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Components\NPC\Destruction">
+      <UniqueIdentifier>{20D36ACC-0C51-BB65-F548-79FDE165FD8D}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\Engine\Scene\Components\Physics">
       <UniqueIdentifier>{1F4D8245-0B9F-5935-F4BD-9645E0AE721E}</UniqueIdentifier>
@@ -136,8 +151,17 @@
     <Filter Include="source\Engine\Scene\Components\Render\3D">
       <UniqueIdentifier>{C2337E61-AEB0-71A4-D72D-72B8C3090E38}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Components\Spawning">
+      <UniqueIdentifier>{C3BFB2EA-2F4F-74D5-384B-55EDA459AFE1}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene\Components\Vehicles">
       <UniqueIdentifier>{EF6A0870-5BFA-C95A-64F6-AA72D0040567}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\SceneUtils">
+      <UniqueIdentifier>{A6BA4EE4-92E0-184B-7B26-9E1667EB3D17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\SceneUtils\Prefabs">
+      <UniqueIdentifier>{386DACC4-24BF-83B4-0DDE-C0C4F9CE9C9D}</UniqueIdentifier>
     </Filter>
     <Filter Include="source\Engine\Scene\TaskManager">
       <UniqueIdentifier>{957A8D69-015E-9CA9-0A61-CAE576C362FA}</UniqueIdentifier>
@@ -225,6 +249,9 @@
     <ClInclude Include="source\Engine\Animation\3D\Import\GLTFImporter.h">
       <Filter>source\Engine\Animation\3D\Import</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.h">
+      <Filter>source\Engine\Animation\3D\Import\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Animation\3D\MaterialRegistry.h">
       <Filter>source\Engine\Animation\3D</Filter>
     </ClInclude>
@@ -234,11 +261,17 @@
     <ClInclude Include="source\Engine\Animation\3D\SkeletonRegistry.h">
       <Filter>source\Engine\Animation\3D</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.h">
+      <Filter>source\Engine\Animation\3D\System\AnimUtils</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Animation\3D\System\AnimationSystem3D.h">
       <Filter>source\Engine\Animation\3D\System</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Animation\3D\System\CullingSystem3D.h">
       <Filter>source\Engine\Animation\3D\System</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Animation\3D\System\Render3DUtils\Render3DUtils.h">
+      <Filter>source\Engine\Animation\3D\System\Render3DUtils</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Animation\3D\System\RenderSystem3D.h">
       <Filter>source\Engine\Animation\3D\System</Filter>
@@ -256,6 +289,9 @@
       <Filter>source\Engine\AssetManager</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h">
+      <Filter>source\Engine\AssetManager\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\AssetManager\Utils\Statistics.h">
       <Filter>source\Engine\AssetManager\Utils</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.h">
@@ -338,6 +374,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Grid\TileCollisionMask.h">
       <Filter>source\Engine\Map\Grid</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.h">
+      <Filter>source\Engine\Map\Projectile</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h">
       <Filter>source\Engine\Map\TextureStreaming</Filter>
@@ -510,7 +549,22 @@
     <ClInclude Include="source\Engine\Scene\Components\Animation\AnimationComponent.h">
       <Filter>source\Engine\Scene\Components\Animation</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Animation\NpcAnimationControllerComponent.h">
+      <Filter>source\Engine\Scene\Components\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Animation\PlayerAnimation\CharacterAnimSetComponent.h">
+      <Filter>source\Engine\Scene\Components\Animation\PlayerAnimation</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Animation\PlayerAnimation\CharacterAnimStateComponent.h">
+      <Filter>source\Engine\Scene\Components\Animation\PlayerAnimation</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Combat\EquippedWeaponComponent.h">
+      <Filter>source\Engine\Scene\Components\Combat</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h">
+      <Filter>source\Engine\Scene\Components\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Combat\ThrowableComponent.h">
       <Filter>source\Engine\Scene\Components\Combat</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h">
@@ -522,7 +576,19 @@
     <ClInclude Include="source\Engine\Scene\Components\Light\PointLightComponent.h">
       <Filter>source\Engine\Scene\Components\Light</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h">
+      <Filter>source\Engine\Scene\Components\NPC\Destruction</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\NPC\NPCDeathComponent.h">
+      <Filter>source\Engine\Scene\Components\NPC</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h">
+      <Filter>source\Engine\Scene\Components\NPC</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIStateComponent.h">
+      <Filter>source\Engine\Scene\Components\NPC</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h">
       <Filter>source\Engine\Scene\Components\NPC</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h">
@@ -567,6 +633,9 @@
     <ClInclude Include="source\Engine\Scene\Components\Render\TileComponent.h">
       <Filter>source\Engine\Scene\Components\Render</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Spawning\NpcSpawnControllerComponent.h">
+      <Filter>source\Engine\Scene\Components\Spawning</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Vehicles\DriverComponent.h">
       <Filter>source\Engine\Scene\Components\Vehicles</Filter>
     </ClInclude>
@@ -584,6 +653,15 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\SceneSerializer.h">
       <Filter>source\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\SceneUtils\Prefabs\NPCprefab.h">
+      <Filter>source\Engine\Scene\SceneUtils\Prefabs</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\SceneUtils\SceneUtils.h">
+      <Filter>source\Engine\Scene\SceneUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\SceneUtils\SpawnUtils.h">
+      <Filter>source\Engine\Scene\SceneUtils</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\ScriptableEntity.h">
       <Filter>source\Engine\Scene</Filter>
@@ -1857,26 +1935,12 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\stb_image\stb_image_write.h">
+      <Filter>vendor\stb_image</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
-    <ClInclude Include="vendor\stb_image\stb_image_write.h" />
-    <ClInclude Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.h" />
-    <ClInclude Include="source\Engine\AssetManager\Utils\Statistics.h" />
-    <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h" />
-    <ClInclude Include="source\Engine\Animation\3D\System\Render3DUtils\Render3DUtils.h" />
-    <ClInclude Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.h" />
-    <ClInclude Include="source\Engine\Scene\SceneUtils\SceneUtils.h" />
-    <ClInclude Include="source\Engine\Scene\SceneUtils\SpawnUtils.h" />
-    <ClInclude Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Animation\NpcAnimationControllerComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIStateComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Spawning\NpcSpawnControllerComponent.h" />
-    <ClInclude Include="source\Engine\Scene\SceneUtils\Prefabs\NPCprefab.h" />
-    <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\NPC\NPCDeathComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Combat\ThrowableComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Combat\EquippedWeaponComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -1897,6 +1961,9 @@
     <ClCompile Include="source\Engine\Animation\3D\Import\GLTFImporter.cpp">
       <Filter>source\Engine\Animation\3D\Import</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.cpp">
+      <Filter>source\Engine\Animation\3D\Import\Utils</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Animation\3D\MaterialRegistry.cpp">
       <Filter>source\Engine\Animation\3D</Filter>
     </ClCompile>
@@ -1905,6 +1972,9 @@
     </ClCompile>
     <ClCompile Include="source\Engine\Animation\3D\SkeletonRegistry.cpp">
       <Filter>source\Engine\Animation\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.cpp">
+      <Filter>source\Engine\Animation\3D\System\AnimUtils</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Animation\3D\System\AnimationSystem3D.cpp">
       <Filter>source\Engine\Animation\3D\System</Filter>
@@ -1968,6 +2038,9 @@
     </ClCompile>
     <ClCompile Include="source\Engine\Map\Grid\TileCollisionMask.cpp">
       <Filter>source\Engine\Map\Grid</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.cpp">
+      <Filter>source\Engine\Map\Projectile</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp">
       <Filter>source\Engine\Map\TextureStreaming</Filter>
@@ -2137,6 +2210,12 @@
     <ClCompile Include="source\Engine\Scene\SceneSerializer.cpp">
       <Filter>source\Engine\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Scene\SceneUtils\SceneUtils.cpp">
+      <Filter>source\Engine\Scene\SceneUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\SceneUtils\SpawnUtils.cpp">
+      <Filter>source\Engine\Scene\SceneUtils</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTask.cpp">
       <Filter>source\Engine\Scene\TaskManager</Filter>
     </ClCompile>
@@ -2155,12 +2234,9 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp" />
-    <ClCompile Include="source\Engine\Animation\3D\Import\Utils\GLTFIImporterUtils.cpp" />
-    <ClCompile Include="source\Engine\Map\Projectile\ProjectileVisualRegistry.cpp" />
-    <ClCompile Include="source\Engine\Scene\SceneUtils\SceneUtils.cpp" />
-    <ClCompile Include="source\Engine\Scene\SceneUtils\SpawnUtils.cpp" />
-    <ClCompile Include="source\Engine\Animation\3D\System\AnimUtils\AnimUtils.cpp" />
+    <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp">
+      <Filter>vendor\tiny_gltf</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">

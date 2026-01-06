@@ -11,32 +11,39 @@ namespace Engine {
 
 
 
-
-    void AnimationSystem3D::Update(Scene* scene, float dt, const SkeletonRegistry& skelReg, const AnimationRegistry& animReg,
-        BonePaletteBuffer& palette)
+    void AnimationSystem3D::Update(Scene* scene, float dt, const SkeletonRegistry& skelReg,  const AnimationRegistry& animReg)
     {
         EE_PROFILE_FUNCTION();
 
         AnimScratch3D scratch;
 
-        scene->ForEach<SkeletonComponent, Animator3DComponent>([&]
-        (Entity entity, SkeletonComponent& skel, Animator3DComponent& an)
+        scene->ForEach<SkeletonComponent, Animator3DComponent>(
+            [&](Entity /*entity*/, SkeletonComponent& skel, Animator3DComponent& animatorComp)
             {
                 if (skel.boneCount == 0 || skel.skeletonId == 0xFFFFFFFFu)
                     return;
 
-                // 1) Advance times
-                AdvanceTime(an.clipA, an.timeA, dt, an.playbackSpeed, animReg, an.loopAclip);
-
-                // For base crossfade, clipB is a looping base; otherwise overlay is non-looping
-                //const bool loopB = (ctrl.baseXFadeActive != 0);
-                AdvanceTime(an.clipB, an.timeB, dt, an.playbackSpeed, animReg, false);
-
-
                 const SkeletonAsset& sasset = skelReg.Get(skel.skeletonId);
                 const uint32_t boneCount = skel.boneCount;
 
-                // 2) Scratch buffers
+                if (animatorComp.boneModel.size() != boneCount)
+                    animatorComp.boneModel.resize(boneCount);
+
+                // Build overlay mask once (upper body from "spine" descendants, pelvis forced 0, spine softened)
+                if (animatorComp.overlayMask.size() != boneCount)
+                {
+                    Engine::SkeletonRegistry::BuildUpperBodyMask_Player(sasset, animatorComp.overlayMask);
+                }
+
+                AdvanceTime(animatorComp.clipA, animatorComp.timeA, dt, animatorComp.playbackSpeed, animReg, animatorComp.loopAclip);
+                AdvanceTime(animatorComp.clipB, animatorComp.timeB, dt, animatorComp.playbackSpeed, animReg, false);
+                if (animatorComp.overlayRestart)
+                {
+                    animatorComp.overlayTime = 0.0f;
+                    animatorComp.overlayRestart = 0;
+                }
+                AdvanceTime(animatorComp.overlayClip, animatorComp.overlayTime, dt, animatorComp.playbackSpeed, animReg, animatorComp.overlayLoop);
+
                 AnimationUtils::EnsureSize(scratch.TA, boneCount);
                 AnimationUtils::EnsureSize(scratch.RA, boneCount);
                 AnimationUtils::EnsureSize(scratch.SA, boneCount);
@@ -45,6 +52,10 @@ namespace Engine {
                 AnimationUtils::EnsureSize(scratch.RB, boneCount);
                 AnimationUtils::EnsureSize(scratch.SB, boneCount);
 
+                AnimationUtils::EnsureSize(scratch.TO, boneCount);
+                AnimationUtils::EnsureSize(scratch.RO, boneCount);
+                AnimationUtils::EnsureSize(scratch.SO, boneCount);
+
                 AnimationUtils::EnsureSize(scratch.T, boneCount);
                 AnimationUtils::EnsureSize(scratch.R, boneCount);
                 AnimationUtils::EnsureSize(scratch.S, boneCount);
@@ -52,60 +63,62 @@ namespace Engine {
                 auto& locT = scratch.T;
                 auto& locR = scratch.R;
                 auto& locS = scratch.S;
-                auto& model = scratch.model;
-                auto& finalMats = scratch.finalMats;
 
-                // 3) Identity pose (or bind pose if you add it later)
                 for (uint32_t i = 0; i < boneCount; ++i)
                 {
                     glm::vec3 restT; glm::quat restR; glm::vec3 restS;
                     AnimationUtils::DecomposeTRS(sasset.restLocal[i], restT, restR, restS);
 
-                    scratch.TA[i] = restT;
-                    scratch.RA[i] = restR;
-                    scratch.SA[i] = restS;
-
-                    scratch.TB[i] = restT;
-                    scratch.RB[i] = restR;
-                    scratch.SB[i] = restS;
+                    scratch.TA[i] = restT; scratch.RA[i] = restR; scratch.SA[i] = restS;
+                    scratch.TB[i] = restT; scratch.RB[i] = restR; scratch.SB[i] = restS;
+                    scratch.TO[i] = restT; scratch.RO[i] = restR; scratch.SO[i] = restS;
                 }
-                //EE_CORE_INFO("blend={}, clipA={}, clipB={}", an.blend, (uint32_t)an.clipA, (uint32_t)an.clipB);
-                float wB = glm::clamp(an.blend, 0.0f, 1.0f);
 
-                // If clipB is missing, it must not contribute
-                if (an.clipA == INVALID_CLIP && an.clipB != INVALID_CLIP) wB = 1.0f;
-                if (an.clipB == INVALID_CLIP) wB = 0.0f;
+                ApplyClipFullPose(animatorComp.clipA, animatorComp.timeA, boneCount, animReg, scratch.TA, scratch.RA, scratch.SA);
+                ApplyClipFullPose(animatorComp.clipB, animatorComp.timeB, boneCount, animReg, scratch.TB, scratch.RB, scratch.SB);
 
-                float wA = 1.0f - wB;
+                const bool overlayActive =
+                    (animatorComp.overlayClip != INVALID_CLIP) &&
+                    (animatorComp.overlayWeight > 0.0001f);
 
-                ApplyClipFullPose(an.clipA, an.timeA, boneCount, animReg, scratch.TA, scratch.RA, scratch.SA);
-                ApplyClipFullPose(an.clipB, an.timeB, boneCount, animReg, scratch.TB, scratch.RB, scratch.SB);
-               
+                if (overlayActive)
+                    ApplyClipFullPose(animatorComp.overlayClip, animatorComp.overlayTime, boneCount, animReg, scratch.TO, scratch.RO, scratch.SO);
 
-
-
-
-                //EE_CORE_INFO("Entity {}: clipA={}, clipB={}", (uint32_t)entity, an.clipA, an.clipB);
-
-                const auto& parent = sasset.parent;
-                const auto& invBind = sasset.invBind;
+                float wB = glm::clamp(animatorComp.blend, 0.0f, 1.0f);
+                if (animatorComp.clipA == INVALID_CLIP && animatorComp.clipB != INVALID_CLIP) wB = 1.0f;
+                if (animatorComp.clipB == INVALID_CLIP) wB = 0.0f;
 
                 for (uint32_t i = 0; i < boneCount; ++i)
                 {
-                    scratch.T[i] = glm::mix(scratch.TA[i], scratch.TB[i], wB);
-                    scratch.S[i] = glm::mix(scratch.SA[i], scratch.SB[i], wB);
+                    const glm::vec3 baseT = glm::mix(scratch.TA[i], scratch.TB[i], wB);
+                    const glm::vec3 baseS = glm::mix(scratch.SA[i], scratch.SB[i], wB);
+
                     glm::quat a = scratch.RA[i];
                     glm::quat b = scratch.RB[i];
                     if (glm::dot(a, b) < 0.0f) b = -b;
-                    scratch.R[i] = glm::normalize(glm::slerp(a, b, wB));
+                    const glm::quat baseR = glm::normalize(glm::slerp(a, b, wB));
+
+                    float w = 0.0f;
+                    if (overlayActive && !animatorComp.overlayMask.empty())
+                        w = glm::clamp(animatorComp.overlayWeight * animatorComp.overlayMask[i], 0.0f, 1.0f);
+
+                    locT[i] = glm::mix(baseT, scratch.TO[i], w);
+                    locS[i] = glm::mix(baseS, scratch.SO[i], w);
+
+                    glm::quat r0 = baseR;
+                    glm::quat r1 = scratch.RO[i];
+                    if (glm::dot(r0, r1) < 0.0f) r1 = -r1;
+                    locR[i] = glm::normalize(glm::slerp(r0, r1, w));
                 }
-                
 
-                model.resize(boneCount);
-                finalMats.resize(boneCount);
+                scratch.model.resize(boneCount);
+                scratch.finalMats.resize(boneCount);
 
+                auto& model = scratch.model;
+                auto& finalMats = scratch.finalMats;
 
-
+                const auto& parent = sasset.parent;
+                const auto& invBind = sasset.invBind;
 
                 for (uint32_t i = 0; i < boneCount; ++i)
                 {
@@ -113,15 +126,15 @@ namespace Engine {
 
                     const int p = parent[i];
                     const glm::mat4 world = (p >= 0) ? (model[p] * local) : local;
+
                     model[i] = world;
-                    an.boneModel[i] = world;
+                    animatorComp.boneModel[i] = world;
 
                     const glm::mat4 invB = (i < invBind.size()) ? invBind[i] : glm::mat4(1.0f);
                     finalMats[i] = world * invB;
                 }
 
-                // 3) Allocate slice and upload
-                uint32_t base = VulkanRenderer3D::GetBoneCursor();
+                const uint32_t base = VulkanRenderer3D::GetBoneCursor();
                 skel.boneBase = base;
 
                 for (uint32_t i = 0; i < boneCount; ++i)
@@ -131,6 +144,7 @@ namespace Engine {
                 }
             });
     }
+
 
     void AnimationSystem3D::ApplyClipFullPose(uint32_t clipId, float t, uint32_t boneCount, const AnimationRegistry& animReg,
         std::vector<glm::vec3>& T, std::vector<glm::quat>& R, std::vector<glm::vec3>& S)

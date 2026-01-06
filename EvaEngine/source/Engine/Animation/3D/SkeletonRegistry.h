@@ -10,7 +10,8 @@ namespace Engine {
         std::vector<int16_t>    parent;         // parent index per bone (-1 for root)
         std::vector<glm::mat4>  invBind;      // inverse bind matrices
         std::vector<glm::mat4>  restLocal; // local TRS matrix from glTF node
-        std::vector<int>        jointNodes; // glTF node index per bone     
+        std::vector<int>        jointNodes;
+        // glTF node index per bone     
     };
 
     class SkeletonRegistry {
@@ -22,6 +23,16 @@ namespace Engine {
 
     public:
 
+
+        static int FindBoneIndexLower(const SkeletonAsset& skel, const char* nameLower);
+
+        static int FindBoneIndexContainsLower(const SkeletonAsset& skel, const char* keyLower);
+
+        static void BuildUpperBodyMask_Player(const SkeletonAsset& skel, std::vector<float>& outMask);
+
+
+
+
         const SkeletonAsset& SkeletonRegistry::Get(uint32_t id) const
         {
             return m_skeletonAssets[id];
@@ -32,6 +43,13 @@ namespace Engine {
             SkeletonAsset copy = s;
             copy.id = (uint32_t)m_skeletonAssets.size();
             m_skeletonAssets.push_back(copy);
+            /*
+            for (size_t i = 0; i < copy.boneNames.size(); i++)
+            {
+                EE_CORE_INFO("bone name; {}", copy.boneNames[i].c_str());
+                
+            }
+            */
 
             return copy.id;
         }
@@ -45,6 +63,10 @@ namespace Engine {
             return -1;
         }
 
+
+
+    private:
+        static void BuildDescendantMask(const SkeletonAsset& skel, int rootIdx, std::vector<float>& outMask);
 
     private:
 
