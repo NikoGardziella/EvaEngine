@@ -11,6 +11,8 @@ enum class WeaponType : uint8_t
 };
 
 
+
+
 struct WeaponComponent
 {
     WeaponType type = WeaponType::Pistol;

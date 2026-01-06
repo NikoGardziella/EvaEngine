@@ -265,6 +265,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Combat\HealthComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\ThrowableComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponDef.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\DirectionalLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\PointLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h" />

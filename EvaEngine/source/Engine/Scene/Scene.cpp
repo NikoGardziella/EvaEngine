@@ -673,7 +673,7 @@ namespace Engine {
 
               WeaponInventoryComponent& weaponInventoryComp = playerEntity.AddComponent<WeaponInventoryComponent>();
               weaponInventoryComp.equipDirty = true;
-              weaponInventoryComp.equippedWeaponDefId = 1;
+             // weaponInventoryComp.equippedWeaponDefId = 1;
 
 
               Engine::AnimationRegistry& animReg = Engine::AssetManager::GetAnimationRegistry();

@@ -13,6 +13,7 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 #include <Engine/AssetManager/AssetManager.h>
+#include <Engine/Scene/Components/Combat/EquippedWeaponComponent.h>
 
 void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime, Engine::Scene* scene)
 {
@@ -154,4 +155,32 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
             if (v.ExitEnterCooldown > 0.0f)
                 v.ExitEnterCooldown -= deltaTime;
         });
+
+
+    scene->ForEach<WeaponInventoryComponent>(
+        [&](Engine::Entity player, WeaponInventoryComponent& inv)
+        {
+            bool changed = false;
+
+            if (Engine::Input::IsKeyPressed(Engine::Key::D1))
+            {
+                inv.desiredSlot = WeaponSlot::Slot1;
+                changed = true;
+            }
+
+            if (Engine::Input::IsKeyPressed(Engine::Key::D2))
+            {
+                inv.desiredSlot = WeaponSlot::Slot2;
+                changed = true;
+            }
+            if (Engine::Input::IsKeyPressed(Engine::Key::D3))
+            {
+                inv.desiredSlot = WeaponSlot::Slot3;
+                changed = true;
+            }
+
+            if (changed && inv.desiredSlot != inv.equippedSlot)
+                inv.equipDirty = true;
+        });
+
 }
