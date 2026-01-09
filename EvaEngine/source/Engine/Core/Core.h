@@ -88,6 +88,7 @@ const int MAX_FRAMES_IN_FLIGHT = 3;
 
 constexpr size_t TILE_SIZE = 1;
 constexpr size_t MAX_TEXTURES = 32;
+constexpr size_t MAX_UI_TEXTURES = 32;
 constexpr size_t MAX_PROJECTILES = 64;
 constexpr size_t MAX_COLLISION_ENTITIES = 64; // projectiles and player
 constexpr size_t MAX_COLLISION_RESULTS = 32; 

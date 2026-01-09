@@ -14,6 +14,7 @@
 #include <vector>
 #include <Engine/Platform/Vulkan/VulkanBindlessDescriptorSet.h>
 #include "Camera.h"
+#include "UI/VulkanUIGraphicsPipeline.h"
 
 namespace Engine {
 
@@ -78,6 +79,9 @@ namespace Engine {
 		std::array<Ref<VulkanTexture>, GridSize> VisualEffectsTextureSlots;
 		std::array<Ref<VulkanTexture>, GridSize> propertiesTextureSlots;
 		std::array<Ref<VulkanTexture>, GridSize> GridTextureSlots;
+
+		std::unordered_map<uint64_t, uint32_t> TextureSlotLUT;
+
 		uint32_t TextureSlotIndex = 0;
 		uint32_t VisualTextureSlotIndex = 0;
 		uint32_t GridSlotIndex = 0;
@@ -90,7 +94,9 @@ namespace Engine {
 
 		struct CameraData
 		{
-			glm::mat4 ViewProjection;
+			glm::mat4 ViewProjection = glm::mat4(1.0f);
+
+			glm::vec2 viewportPx;
 		};
 		CameraData CameraBuffer;
 		//Ref<UniformBuffer> CameraUniformBuffer;
@@ -227,16 +233,11 @@ namespace Engine {
 		void DrawFrame(uint32_t currentFrame, VkCommandBuffer cmd);
 		void ReadAndResetCollisionBuffer(uint32_t currentFrame);
 		void BeginFrame(uint32_t currentFrame);
-		void BeginPass(VkCommandBuffer cmd, uint32_t currentFrame);
 		void EndFrame(uint32_t currentFrame, VkCommandBuffer cmd);
-		void SubmitFrame(VkCommandBuffer commandBuffer, uint32_t currentFrame);
-		void BindBatchState(VkCommandBuffer cmd, uint32_t currentFrame);
-		void SubmitFrame(uint32_t currentFrame);
+
 		void CalculateCollisionFrame(uint32_t currentFrame, VkCommandBuffer cmd);
-		void ReadPlayerCollisionBuffer();
 		void ReadBlockedTileMask(std::vector<uint32_t>& outDestroyedMask, uint32_t count);
 		bool ReadDirtyOut();
-		void ProcessDirtyOutThisFrame();
 		bool ClearAliveBitsHost();
 		void DeviceWaitIdle();
 
@@ -255,6 +256,8 @@ namespace Engine {
 		static void CalculatePlayerCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType);
 		static void DrawTextureQuadWithProperties(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
+		static void DrawQuadRaw(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3, const Ref<VulkanTexture>& texture, float tilingFactor = 1.0f, const glm::vec4& tintColor = glm::vec4(1));
+		static uint32_t AcquireTextureSlot(const std::shared_ptr<VulkanTexture>& texture);
 		static void DrawVisualEffectTexture(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
@@ -262,7 +265,7 @@ namespace Engine {
 		static void DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color = glm::vec4(1));
 		static void DrawTile(const glm::vec3& transform, const glm::vec4& uv, const glm::vec4& color);
 		static void RemoveTilePixels(const uint32_t slot, const uint32_t newSlot, const std::vector<uint32_t>& words, const int cutY);
-		static void BeginScene(const Camera& camera, const glm::mat4& transform);
+		static void BeginScene(const SceneCamera& camera, const glm::mat4& transform);
 		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(glm::mat4 viewProjectionMatrix);
 		static void BeginScene();
@@ -273,7 +276,6 @@ namespace Engine {
 
 		static void SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
 
-		static void SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin);
 
 		static void SubmitCPUExplosion(glm::vec2 HitWorldPos, float radiWorld, uint32_t damage);
 
@@ -354,7 +356,7 @@ namespace Engine {
 		Ref<VulkanTexture> m_dummyTexture;
 
 		static Ref<VulkanBindlessDescriptorSetRenderer> s_bindlessDescitproRenderer;
-
+		VulkanUIRenderer m_uiRenderer;
 
 	
 	};

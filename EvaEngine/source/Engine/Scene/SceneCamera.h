@@ -30,6 +30,7 @@ namespace Engine {
 
 		void SetViewportSize(uint32_t width, uint32_t height);
 		void SetViewportBounds(const std::array<glm::vec2, 2>& bounds);
+		const std::array<glm::vec2, 2>& GetViewportBounds() const { return m_viewportBounds; };
 
 		ProjectionType GetProjectionType() const { return m_projectionType; }
 		void SetProjectionType(ProjectionType type) { m_projectionType = type; RecalculateProjection(); }
@@ -178,8 +179,6 @@ namespace Engine {
 
 			return screenSpace;
 		}
-		//struct CameraComponent;
-		//struct TransformComponent;
 
 
 		glm::vec4 CalculateCameraWorldBounds(const SceneCamera& Camera, const glm::mat4& cameraTransform);

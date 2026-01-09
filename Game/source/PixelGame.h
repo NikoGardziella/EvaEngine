@@ -2,6 +2,7 @@
 
 #include "Engine.h"
 #include <string>
+#include <Engine/UI/UIContext.h>
 
 class PixelGame : public Engine::Layer
 {
@@ -44,6 +45,7 @@ private:
 
 	Engine::Ref<Engine::Scene> m_activeScene;
 	Engine::Entity m_cameraEntity;
+	Engine::Entity m_uiCameraEntity;
 	//Engine::Entity m_playerEntity;
 
 	bool m_isPlaying = false;
@@ -59,6 +61,10 @@ private:
 
 	// Map
 
+
+
+	//UI
+	
 
 };
 

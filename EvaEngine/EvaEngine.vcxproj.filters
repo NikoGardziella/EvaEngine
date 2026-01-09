@@ -1942,6 +1942,13 @@
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponDef.h" />
+    <ClInclude Include="source\Engine\Renderer\UI\VulkanUIRenderer.h" />
+    <ClInclude Include="source\Engine\UI\UITransform2D.h" />
+    <ClInclude Include="source\Engine\UI\UIUtils\UIUtils.h" />
+    <ClInclude Include="source\Engine\UI\UIElement.h" />
+    <ClInclude Include="source\Engine\UI\UIContext.h" />
+    <ClInclude Include="source\Engine\UI\WeaponHUD.h" />
+    <ClInclude Include="source\Engine\Renderer\UI\VulkanUIGraphicsPipeline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2238,6 +2245,9 @@
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp">
       <Filter>vendor\tiny_gltf</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\UI\VulkanUIRenderer.cpp" />
+    <ClCompile Include="source\Engine\UI\UIUtils\UIUtils.cpp" />
+    <ClCompile Include="source\Engine\Renderer\UI\VulkanUIGraphicsPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">
@@ -2294,5 +2304,6 @@
     <None Include="..\assets\shaders\testShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\VulkanUIShader.glsl" />
   </ItemGroup>
 </Project>

@@ -19,6 +19,7 @@
 #include <Engine/Animation/3D/BonePaletteBuffer.h>
 #include "Component.h"
 #include <Engine/Animation/3D/MeshRegistry.h>
+#include <Engine/UI/UIContext.h>
 
 
 
@@ -60,6 +61,9 @@ namespace Engine {
 
 		void PauseRuntime();
 		void ResumeRuntime();
+
+		void RenderGameUI(UIContext& ui);
+
 
 		void OnUpdateRuntime(Timestep timestep, bool isPlaying = true);
 		void OnUpdateECSRuntime(Timestep timestep);
@@ -107,9 +111,6 @@ namespace Engine {
 			
 		}
 
-
-
-		Entity Get3DcameraEntity();
 
 		Entity GetPrimaryCameraEntity();
 		TextureStreamingSystem& GetTextureStreamingSystem() { return *m_textureStreamingSystem; }
@@ -177,6 +178,10 @@ namespace Engine {
 		Ref<AnimationBank2D> m_animationBank;
 		DestructibleTileSystem m_destructibleTileSystem;
 		bool m_debugDrawLOS = false;
+
+		//UI
+		Engine::UIContext m_gameUIContext;
+
 
 		friend class Entity;
 		friend class SceneSerializer;

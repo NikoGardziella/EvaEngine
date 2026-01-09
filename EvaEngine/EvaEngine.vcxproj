@@ -300,8 +300,13 @@
     <ClInclude Include="source\Engine\Scene\ScriptableEntity.h" />
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTask.h" />
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h" />
+    <ClInclude Include="source\Engine\UI\UIContext.h" />
+    <ClInclude Include="source\Engine\UI\UIElement.h" />
+    <ClInclude Include="source\Engine\UI\UITransform2D.h" />
+    <ClInclude Include="source\Engine\UI\WeaponHUD.h" />
     <ClInclude Include="source\Engine\Utils\PlatformUtils.h" />
     <ClInclude Include="source\pch.h" />
+    <ClInclude Include="source\Engine\UI\UIUtils\UIUtils.h" />
     <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="vendor\enkiTS\box2d\src\TaskScheduler.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
@@ -723,6 +728,8 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
     <ClInclude Include="vendor\stb_image\stb_image_write.h" />
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
+    <ClInclude Include="source\Engine\Renderer\UI\VulkanUIRenderer.h" />
+    <ClInclude Include="source\Engine\Renderer\UI\VulkanUIGraphicsPipeline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
@@ -821,10 +828,13 @@
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="source\Engine\UI\UIUtils\UIUtils.cpp" />
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp" />
+    <ClCompile Include="source\Engine\Renderer\UI\VulkanUIRenderer.cpp" />
+    <ClCompile Include="source\Engine\Renderer\UI\VulkanUIGraphicsPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
@@ -845,6 +855,7 @@
     <None Include="..\assets\shaders\imgui_shader.glsl" />
     <None Include="..\assets\shaders\player_collision_compute.comp" />
     <None Include="..\assets\shaders\testShader.glsl" />
+    <None Include="..\assets\shaders\VulkanUIShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">

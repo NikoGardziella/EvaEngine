@@ -145,6 +145,7 @@ namespace Engine {
 		
 		AssetManager::AddTexture("chess", Engine::AssetManager::GetAssetPath("textures/chess_board.png").string(), false);
 		AssetManager::AddTexture("Idle_gun_000", Engine::AssetManager::GetAssetPath("textures/Idle_gun_000.png").string(), false);
+		AssetManager::AddTexture("ee_logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
 		AssetManager::AddTexture("bullet", Engine::AssetManager::GetAssetPath("textures/Fire_small_asset.png").string(), false);
 		AssetManager::AddTexture("zombie1_walk_000", Engine::AssetManager::GetAssetPath("textures/zombie1_walk_000.png").string(), false);
 		AssetManager::AddTexture("wall_0019", Engine::AssetManager::GetAssetPath("textures/wall_0019.png").string(), false);
@@ -227,6 +228,13 @@ namespace Engine {
 			m_collisionMapped[i] = static_cast<CollisionResultBuffer*>(p);
 		}
 
+
+
+		Engine::VulkanUIRenderer::UIRendererInitConfig uiRendererConfig;
+		uint32_t maxQuads = 20000;
+		uiRendererConfig.maxQuads = maxQuads;
+		uiRendererConfig.maxTextures = MAX_UI_TEXTURES;		
+		m_uiRenderer.Init(uiRendererConfig, m_vulkanContext);
 	}
 
 
@@ -252,6 +260,8 @@ namespace Engine {
 
 		s_bindlessDescitproRenderer->BeginFrame(currentFrame);
 
+
+		m_uiRenderer.BeginFrame(m_uiRenderer, currentFrame, glm::vec2(m_swapchainExtent.width, m_swapchainExtent.height));
 	}
 
 	void VulkanRenderer2D::ReadAndResetCollisionBuffer(uint32_t currentFrame)
@@ -372,6 +382,8 @@ namespace Engine {
 		ConsumeAnimationQueue(currentFrame);
 		s_bindlessDescitproRenderer->EndFrameAndUpload(currentFrame);
 
+
+
 		//move somewhere
 		s_CollisionData.EntitySlotIndex = 0;
 		s_VulkanData.TextureSlotIndex = 0;
@@ -401,6 +413,9 @@ namespace Engine {
 		renderPassInfo.clearValueCount = 2;
 		renderPassInfo.pClearValues = clearValues;
 		vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+
+
 
 		// --- Set viewport and scissor ---
 		VkViewport viewport = {};
@@ -439,7 +454,9 @@ namespace Engine {
 
 
 		Draw();
-		
+
+		m_uiRenderer.EndFrame(cmd);
+
 
 		// End RecordGameDrawCommands render pass
 		vkCmdEndRenderPass(cmd);
@@ -741,15 +758,13 @@ namespace Engine {
 		RecordGameDrawCommands(cmd, m_imageIndex, currentFrame);
 		RecordLineCommanedBuffer(cmd, m_imageIndex, currentFrame);
 
-
+		// is this wrong SwapchainExtent. This is fullscreen. should it be the editor game viewport?
 		s_bindlessDescitproRenderer->RecordTiles(cmd, currentFrame,
 			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent());
 
 	}
 
-	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer cmd,
-		uint32_t imageIndex,
-		uint32_t currentFrame)
+	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
 		
@@ -1971,6 +1986,78 @@ namespace Engine {
 		s_VulkanData.Stats.QuadCount++;
 	}
 
+	
+	void VulkanRenderer2D::DrawQuadRaw(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2,
+		const glm::vec3& p3,const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3,
+		const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor)
+	{
+		EE_PROFILE_FUNCTION();
+
+		if (s_VulkanData.QuadIndexCount >= VulkanRenderer2DData::MaxIndices)
+		{
+			EE_CORE_ASSERT(false, "Quad index count exceeded maximum limit! Need flush/batch break.");
+			return;
+		}
+
+		const uint32_t texSlot = AcquireTextureSlot(texture);
+
+		VulkanQuadVertex* v = s_VulkanData.QuadVertexBufferPtr;
+
+		v[0].Position = p0;
+		v[0].Color = tintColor;
+		v[0].TexCoord = uv0;
+		v[0].TexIndex = texSlot;
+		v[0].TilingFactor = tilingFactor;
+
+		v[1].Position = p1;
+		v[1].Color = tintColor;
+		v[1].TexCoord = uv1;
+		v[1].TexIndex = texSlot;
+		v[1].TilingFactor = tilingFactor;
+
+		v[2].Position = p2;
+		v[2].Color = tintColor;
+		v[2].TexCoord = uv2;
+		v[2].TexIndex = texSlot;
+		v[2].TilingFactor = tilingFactor;
+
+		v[3].Position = p3;
+		v[3].Color = tintColor;
+		v[3].TexCoord = uv3;
+		v[3].TexIndex = texSlot;
+		v[3].TilingFactor = tilingFactor;
+
+		s_VulkanData.QuadVertexBufferPtr += 4;
+		s_VulkanData.QuadIndexCount += 6;
+		s_VulkanData.Stats.QuadCount++;
+	}
+
+	uint32_t VulkanRenderer2D::AcquireTextureSlot(const std::shared_ptr<VulkanTexture>& texture)
+	{
+		EE_CORE_ASSERT(texture, "AcquireTextureSlot: texture is null");
+
+		// Key by pointer (fine as long as texture objects are stable)
+		const uint64_t key = (uint64_t)(uintptr_t)texture.get();
+
+		auto it = s_VulkanData.TextureSlotLUT.find(key);
+		if (it != s_VulkanData.TextureSlotLUT.end())
+			return it->second;
+
+		if (s_VulkanData.TextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
+		{
+			// In your current architecture you likely "flush" elsewhere.
+			// For now, hard-fail or return 0. Better is: FlushAndBeginNewBatch().
+			EE_CORE_WARN("MaxTextureSlots exceeded. Need flush/batch break.");
+			return 0;
+		}
+
+		uint32_t slot = s_VulkanData.TextureSlotIndex++;
+		s_VulkanData.TextureSlots[slot] = texture;
+		s_VulkanData.TextureSlotLUT[key] = slot;
+		return slot;
+	}
+
+
 	void VulkanRenderer2D::DrawVisualEffectTexture(const glm::mat4& transform,
 		const std::shared_ptr<VulkanTexture>& texture)
 	{
@@ -2242,13 +2329,16 @@ namespace Engine {
 
 
 
-	void VulkanRenderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
+	void VulkanRenderer2D::BeginScene(const SceneCamera& camera, const glm::mat4& transform)
 	{
 		EE_PROFILE_FUNCTION();
 
 		
 		//StartBatch();
 		s_VulkanData.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(transform);
+		s_VulkanData.CameraBuffer.viewportPx = camera.GetViewportSize();
+
+
 		//s_VulkanData.CameraBuffer.SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 		//StartBatch();
 
@@ -2306,11 +2396,7 @@ namespace Engine {
 		q.emplace_back(SpriteSubmit{ worldCenter, zKey,rotation, spriteSlot, uvMin16, uvMax16, sizeWorld });
 	}
 
-	void VulkanRenderer2D::SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin)
-	{
-		
-		s_VulkanBindlessData.m_slotOriginWorld[slot] = origin;
-	}
+
 
 	void VulkanRenderer2D::SubmitCPUExplosion(glm::vec2 HitWorldPos, float radiWorld, uint32_t damage)
 	{

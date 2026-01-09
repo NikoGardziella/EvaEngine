@@ -26,6 +26,7 @@
 #include "Systems/Combat/Weapon/EquippedWeaponAttachSystem.h"
 #include "Systems/Player/Animation/CharacterAnimStateSystem.h"
 #include "Systems/Player/Animation/CharacterAnimationControllerSystem.h"
+#include <Engine/UI/WeaponHUD.h>
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -69,7 +70,6 @@ void PixelGame::RegisterSystems()
 	m_activeScene->RegisterSystem(PlayerCameraSystem::UpdatePlayerCameraSystem);
 	m_activeScene->RegisterSystem(PlayerWeaponSystem::UpdatePlayerWeaponSystem);
 
-	//m_activeScene->RegisterSystem(PixelCollisionSystem::UpdatePixelCollisionSystem);
 	m_activeScene->RegisterSystem(ProjectileSystem::UpdateProjectileSystem);
 	m_activeScene->RegisterSystem(HealthSystem::UpdateHealthSystem);
 	m_activeScene->RegisterSystem(NpcAIMovementSystem::UpdateNPCAIMovementSystem);
@@ -119,8 +119,14 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 		{
 			
 
+			//m_activeScene->RenderGameUI(m_gameUIContext, glm::vec2(m_viewportWidth, m_viewportHeight));
+
 			m_activeScene->OnUpdateECSRuntime(timestep);
-			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying); // this first
+
+
+			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
+
+
 
 			const glm::mat4 viewProjection = m_orthoCameraController.GetCamera().GetViewProjectionMatrix();
 					
@@ -157,6 +163,10 @@ void PixelGame::OnGameStart()
 	m_isPlaying = true;
 	auto& cameraComp = m_cameraEntity.GetComponent<Engine::CameraComponent>();
 	cameraComp.Camera.SetPerspectiveFOV(45.0f);
+
+
+
+	
 
 }
 
@@ -215,7 +225,7 @@ void PixelGame::CreateGameEntities()
 	
 	m_cameraEntity = m_activeScene->CreateEntity("camera");
 	auto& cameraComp = m_cameraEntity.AddComponent<Engine::CameraComponent>();
-	cameraComp.FixedAspectRatio = true;
+	cameraComp.FixedAspectRatio = false;
 	cameraComp.Camera.SetProjectionType(Engine::SceneCamera::ProjectionType::Orthographic);
 	cameraComp.Camera.SetOrthographicFarClip(100.0f);
 	//cameraComp.Camera.SetPerspectiveFOV(45.0f);
@@ -229,6 +239,12 @@ void PixelGame::CreateGameEntities()
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
 	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 15.0f);
 	cameraTransformComp.Rotation.x += glm::radians(20.0f);
+
+
+
+
+
+	
 
 	//SpawnChunkGridSprites();
 

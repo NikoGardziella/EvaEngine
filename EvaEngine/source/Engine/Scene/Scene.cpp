@@ -46,6 +46,7 @@
 #include "Components/Spawning/NpcSpawnControllerComponent.h"
 #include "Components/Combat/ThrowableComponent.h"
 #include "Components/Combat/EquippedWeaponComponent.h"
+#include <Engine/UI/WeaponHUD.h>
 
 
 namespace Engine {
@@ -481,8 +482,14 @@ namespace Engine {
         m_cullingSystem3D = std::make_shared<CullingSystem3D>();
         m_transformSystem3D = std::make_shared<TransformSystem3D>();
 
-        Entity spwanController = CreateEntity("spawn controller");
-        spwanController.AddComponent<NpcSpawnControllerComponent>();
+       // Entity spwanController = CreateEntity("spawn controller");
+       // spwanController.AddComponent<NpcSpawnControllerComponent>();
+
+
+        // UI
+        Engine::WeaponHUD weaponUI;
+        weaponUI.Create(m_gameUIContext);
+        weaponUI.SetWeaponIcon(Engine::AssetManager::GetTexture("ee_logo"));
 
     }
 
@@ -561,7 +568,6 @@ namespace Engine {
        // Camera* mainCamera = nullptr;
         CameraComponent* mainCameraComp = nullptr;
         //CameraComponent* camera3DComp = nullptr;
-
         glm::mat4 cameraTransform = glm::mat4(1.0f);
         //glm::mat4 camera3DTransform = glm::mat4(1.0f);
         glm::mat4 cameraView = glm::mat4(1.0f);
@@ -579,15 +585,13 @@ namespace Engine {
 
                     if (camera.Primary)
                     {
+                        
                         //mainCamera = &camera.Camera;
                         cameraTransform = transform.GetTransform();
 						mainCameraComp = &camera;
                         cameraView = glm::inverse(cameraTransform);          
                     }
-                    else
-                    {
-                        
-                    }
+                    
                 }
             }
             
@@ -713,7 +717,7 @@ namespace Engine {
 
 
             //Renderer2D::BeginScene(mainCamera->GetViewProjection(), cameraTransform);
-            Engine::VulkanRenderer2D::BeginScene(mainCameraComp->Camera.GetProjection(), cameraView);
+            Engine::VulkanRenderer2D::BeginScene(mainCameraComp->Camera, cameraTransform);
 
 
 
@@ -1215,7 +1219,13 @@ namespace Engine {
 
             }
 
+            /*
+            glm::mat4 quadTransform = glm::mat4(1);
+            quadTransform
+            Engine::VulkanRenderer2D::DrawTextureQuad(quadTransform, Engine::AssetManager::GetTexture("wall_0019"));
 
+            */
+            RenderGameUI(m_gameUIContext);
             //Engine::Renderer::DrawFrame();
             Engine::VulkanRenderer2D::EndScene();
 
@@ -1236,6 +1246,18 @@ namespace Engine {
             }
         }
 
+    }
+
+    void Scene::RenderGameUI(UIContext& ui)
+    {
+        std::stable_sort(ui.elements.begin(), ui.elements.end(),
+            [](const auto& a, const auto& b) { return a->tr.layer < b->tr.layer; });
+
+        for (auto& e : ui.elements)
+        {
+           
+            e->Draw();
+        }
     }
 
 
@@ -1400,12 +1422,12 @@ namespace Engine {
 
         for (auto entity : view)
         {
-            auto cameraComp = view.get<CameraComponent>(entity);
+            CameraComponent& cameraComp = view.get<CameraComponent>(entity);
             if (!cameraComp.FixedAspectRatio)
             {
                 cameraComp.Camera.SetViewportSize(width, height);
                 cameraComp.Camera.SetViewportBounds(viewportBounds);
-
+                
             }
 
         }

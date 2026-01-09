@@ -764,7 +764,7 @@ namespace Engine {
             {
                 return;
             }
-            Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera.GetProjection(), camera.GetComponent<TransformComponent>().GetTransform());
+           Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
 
         }
         else
@@ -777,6 +777,7 @@ namespace Engine {
 
         if (m_mouseIsInViewPort && !selectedTile.empty())
         {
+            // preview tile placement renderiong
             glm::vec2 ndc;
             ndc.x = (m_localMousePosInViewport.x / m_viewportSize.x) * 2.0f - 1.0f;
             ndc.y = 1.0f - (m_localMousePosInViewport.y / m_viewportSize.y) * 2.0f;

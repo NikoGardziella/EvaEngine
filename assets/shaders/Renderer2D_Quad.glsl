@@ -40,7 +40,6 @@ layout(location = 1) in vec2  v_TexCoord;
 layout(location = 2) in float v_TilingFactor;
 layout(location = 3) in flat uint v_TexIndex;
 
-// NOTE:
 
 layout(set = 1, binding = 1) uniform sampler2D u_Textures[32];
 
