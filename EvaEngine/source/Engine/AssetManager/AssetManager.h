@@ -18,6 +18,8 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 #include <Engine/Animation/3D/AnimationRegistry.h>
+#include "Font/FontLoader.h"
+#include <Engine/UI/Font.h>
 
 
 namespace Engine {
@@ -74,6 +76,8 @@ namespace Engine {
         static SkeletonRegistry& GetSkeletonRegistry()  { return *s_skeletonRegistry; }
         static AnimationRegistry& GetAnimationRegistry() { return *s_animationRegistry; }
 
+        static const Ref<Font> GetFont() { return s_fontAtlas;  }
+
 		static const std::unordered_map<std::string, glm::vec4>& AssetManager::GetTileTextureAtalsUVs() { return  s_tileUVMap; }
 
         // Texture streaming system
@@ -124,6 +128,9 @@ namespace Engine {
         static MaterialRegistry s_materialRegistry;
         static Ref<AnimationRegistry> s_animationRegistry;
         static Ref<SkeletonRegistry> s_skeletonRegistry;
+
+
+        static Ref<Font> s_fontAtlas;
 
     };
 

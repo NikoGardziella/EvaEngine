@@ -1,125 +1,140 @@
 #pragma once
-
-#include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
 #include <memory>
-#include <unordered_map>
 #include <vector>
-#include <array>
-#include <cstdint>
+#include <unordered_map>
+#include <string_view>
+#include <glm/glm.hpp>
+#include <Engine/UI/Font.h>
 #include "VulkanUIGraphicsPipeline.h"
-#include <Engine/Platform/Vulkan/VulkanContext.h>
 #include <Engine/UI/UITransform2D.h>
+#include <Engine/Core/Core.h>
+
 
 namespace Engine
 {
+    class VulkanContext;
     class VulkanTexture;
     class VulkanBuffer;
-    class VulkanUIGraphicsPipeline;
+    class VulkanIndexBuffer;
+
+    class VulkanUITextGraphicsPipeline;   // R8 text coverage
 
 
-
+    struct UIRendererInitConfig
+    {
+        uint32_t maxQuads = 2000;
+        uint32_t maxTextures = 64;
+    };
 
     class VulkanUIRenderer
     {
     public:
-        struct UIRendererInitConfig
-        {
-            uint32_t maxQuads = 20000;
-            uint32_t maxTextures = MAX_UI_TEXTURES;
-        };
+        static VulkanUIRenderer* s_active;
 
+        VulkanUIRenderer();
+        VulkanUIRenderer(VulkanContext* vulkanContext);
+        ~VulkanUIRenderer();
 
-        static void BeginFrame(VulkanUIRenderer& r, uint32_t frame, glm::vec2 viewportPx)
+        void Init(const UIRendererInitConfig& cfg, VulkanContext* vulkanContext);
+        void Shutdown();
+
+        // Called once per frame
+        void Begin(uint32_t frameIndex, glm::vec2 viewportPx);
+        void EndAndRecord(VkCommandBuffer cmd);
+
+        // Static API (callable from Scene/UI elements)
+        static void BeginFrame(VulkanUIRenderer& r, uint32_t frameIndex, glm::vec2 viewportPx)
         {
             s_active = &r;
-            r.Begin(frame, viewportPx);
+            s_active->Begin(frameIndex, viewportPx);
         }
 
         static void EndFrame(VkCommandBuffer cmd)
         {
-            EE_CORE_ASSERT(s_active, "UIRenderer not active");
-            s_active->EndAndRecord(cmd);
-            s_active = nullptr;
+            if (s_active) s_active->EndAndRecord(cmd);
         }
 
-        static void DrawUIIcon(const Ref<VulkanTexture>& icon, UITransform2D tr, glm::vec4 tint)
+        static void DrawUIIcon(const Ref<VulkanTexture>& icon, const UITransform2D& tr, glm::vec4 tint)
         {
-            EE_CORE_ASSERT(s_active, "UIRenderer not active");
-
-            s_active->DrawUIIcon_Impl(icon, tr, tint);
+            if (s_active) s_active->DrawUIIcon_Impl(icon, tr, tint);
         }
 
+        static void DrawUIText(const Ref<Font>& font, std::string_view text,
+            glm::vec2 topLeftPx, glm::vec4 color, float scale = 1.0f)
+        {
+            if (s_active) s_active->DrawText_Impl(font, text, topLeftPx, color, scale);
+        }
 
-
-
-        VulkanUIRenderer() = default;
-        VulkanUIRenderer(VulkanContext* m_vulkanContext);
-
-        ~VulkanUIRenderer();
-
-        VulkanUIRenderer(const VulkanUIRenderer&) = delete;
-        VulkanUIRenderer& operator=(const VulkanUIRenderer&) = delete;
-
-        void Init(const UIRendererInitConfig& cfg, VulkanContext* vulkanContext);
+        glm::vec2 GetViewportPx() const { return m_viewportPx; }
 
     private:
-        void Shutdown();
-
-        void Begin(uint32_t frameIndex, glm::vec2 viewportPx);
-        void EndAndRecord(VkCommandBuffer cmd); 
-
-
-        void DrawUIIcon_Impl(const Ref<VulkanTexture>& icon, UITransform2D tr, glm::vec4 tint);
-
-        void DrawQuadRaw(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3,
-            const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3,
-            const Ref<VulkanTexture>& texture, const glm::vec4& tintColor);
-
-
-    private:
-        void ResetBatch();
-        void UploadVB();
-        void UpdateDescriptors();
-        void BindAndDraw(VkCommandBuffer cmd);
-
-        uint32_t AcquireTextureSlot(const Ref<VulkanTexture>& texture);
-
+        // ====== Common ======
         glm::mat4 MakeUIVP(glm::vec2 viewportPx) const;
 
+        // ====== Icon batch ======
+        void ResetIcons();
+        uint32_t AcquireIconTextureSlot(const Ref<VulkanTexture>& tex);
+        void DrawUIIcon_Impl(const Ref<VulkanTexture>& icon, const UITransform2D& tr, glm::vec4 tint);
+        void DrawQuadRaw_Icons(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3,
+            const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3,
+            const Ref<VulkanTexture>& texture, const glm::vec4& tintColor);
+        void UploadIconsVB();
+        void UpdateIconsDescriptors();
+        void BindAndDrawIcons(VkCommandBuffer cmd);
+
+        // ====== Text batch ======
+        void ResetText();
+        uint32_t AcquireTextTextureSlot(const Ref<VulkanTexture>& tex);
+        void DrawText_Impl(const Ref<Font>& fontRef, std::string_view text,
+            glm::vec2 topLeftPx, glm::vec4 color, float scale);
+        void DrawQuadRaw_Text(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3,
+            const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3,
+            const Ref<VulkanTexture>& texture, const glm::vec4& tintColor);
+        void UploadTextVB();
+        void UpdateTextDescriptors();
+        void BindAndDrawText(VkCommandBuffer cmd);
+
     private:
-
-        static VulkanUIRenderer* s_active;
-
-        VkDevice m_device = VK_NULL_HANDLE;
-
-        Ref<VulkanTexture> m_fallbackWhite;
+        VulkanContext* m_vulkanContext = nullptr;
+        VkDevice m_device = nullptr;
 
         UIRendererInitConfig m_cfg{};
         bool m_initialized = false;
 
-        // Per-frame data
         uint32_t m_frameIndex = 0;
-        glm::vec2 m_viewportPx{ 1.0f, 1.0f };
-        
-        std::vector<VulkanUIGraphicsPipeline::VulkanUIQuadVertex> m_cpuVertices;
-        VulkanUIGraphicsPipeline::VulkanUIQuadVertex* m_vtxPtr = nullptr;
+        glm::vec2 m_viewportPx{ 0, 0 };
 
-        uint32_t m_indexCount = 0;
+        // Pipelines
+        Ref<VulkanUIGraphicsPipeline>     m_iconPipeline; // RGBA icons
+        Ref<VulkanUITextGraphicsPipeline> m_textPipeline; // R8 text
 
-        // GPU buffers
-        Ref<VulkanBuffer> m_vertexBuffer;
+        // Fallback textures
+        Ref<VulkanTexture> m_fallbackWhiteRGBA; // icons fallback (RGBA8 UNORM)
+        Ref<VulkanTexture> m_fallbackWhiteR8;   // text fallback (R8 UNORM, value=255)
+
+        // Index buffer shared
         Ref<VulkanIndexBuffer> m_indexBuffer;
 
-        // Texture slots for this batch (maps to pipeline's set1 texture array)
-        std::vector<Ref<VulkanTexture>> m_textureSlots;
-        uint32_t m_textureSlotCount = 0;
+        // ================== ICONS ==================
+        std::vector<class VulkanUIGraphicsPipeline::VulkanUIQuadVertex> m_iconCPU;
+        class VulkanUIGraphicsPipeline::VulkanUIQuadVertex* m_iconPtr = nullptr;
+        uint32_t m_iconIndexCount = 0;
 
-        std::unordered_map<uint64_t, uint32_t> m_texLUT;
+        Ref<VulkanBuffer> m_iconVB;
 
+        std::vector<Ref<VulkanTexture>> m_iconTextureSlots;
+        std::unordered_map<uint64_t, uint32_t> m_iconTexLUT;
+        uint32_t m_iconTextureSlotCount = 0;
 
-        Ref<VulkanUIGraphicsPipeline> m_uIGraphicsPipeline;
-        VulkanContext* m_vulkanContext;
+        // ================== TEXT ==================
+        std::vector<class VulkanUIGraphicsPipeline::VulkanUIQuadVertex> m_textCPU;
+        class VulkanUIGraphicsPipeline::VulkanUIQuadVertex* m_textPtr = nullptr;
+        uint32_t m_textIndexCount = 0;
 
+        Ref<VulkanBuffer> m_textVB;
+
+        std::vector<Ref<VulkanTexture>> m_textTextureSlots;
+        std::unordered_map<uint64_t, uint32_t> m_textTexLUT;
+        uint32_t m_textTextureSlotCount = 0;
     };
 }

@@ -14,21 +14,15 @@ layout(set = 0, binding = 0) uniform CameraUBO
 layout(location = 0) out vec4 v_Color;
 layout(location = 1) out vec2 v_UV;
 layout(location = 2) flat out uint v_TexIndex;
-
-
 layout(location = 3) out vec2 v_PosUI;
 
 layout(push_constant) uniform UIParams
 {
     float u_GlobalAlpha;
-
-    // Rounded corners:
     float u_RoundRadiusPx;
     float u_RoundFeatherPx;
-
     float _pad0;
-
-    vec4 u_ClipRectPx;
+    vec4  u_ClipRectPx; // minX,minY,maxX,maxY
 } u_UI;
 
 void main()
@@ -37,20 +31,18 @@ void main()
     v_UV = a_TexCoord;
     v_TexIndex = a_TexIndex;
 
-    // Assumes a_Position is already in UI pixel space
+    // a_Position.xy is in UI pixel space already
     v_PosUI = a_Position.xy;
 
     gl_Position = u_Camera.u_ViewProjection * vec4(a_Position, 1.0);
 }
 
-
-
-//****************************************************/
-
-
 #type fragment
 #version 450
-#extension GL_EXT_nonuniform_qualifier : require
+
+// If you use runtime array indexing in GLSL, enable this.
+// (Some compilers need it for sampler arrays with non-constant index.)
+#extension GL_EXT_nonuniform_qualifier : enable
 
 layout(location = 0) in vec4 v_Color;
 layout(location = 1) in vec2 v_UV;
@@ -59,7 +51,6 @@ layout(location = 3) in vec2 v_PosUI;
 
 layout(location = 0) out vec4 o_Color;
 
-// Texture array in set 1 binding 0
 layout(set = 1, binding = 0) uniform sampler2D u_Textures[];
 
 layout(push_constant) uniform UIParams
@@ -68,9 +59,8 @@ layout(push_constant) uniform UIParams
     float u_RoundRadiusPx;
     float u_RoundFeatherPx;
     float _pad0;
-    vec4  u_ClipRectPx;
+    vec4  u_ClipRectPx; // minX,minY,maxX,maxY
 } u_UI;
-
 
 float sdRoundRect(vec2 p, vec2 rectCenter, vec2 rectHalfSize, float r)
 {
@@ -80,14 +70,16 @@ float sdRoundRect(vec2 p, vec2 rectCenter, vec2 rectHalfSize, float r)
 
 void main()
 {
-    // Sample texture
-    vec4 tex = texture(u_Textures[v_TexIndex], v_UV);
-    vec4 col = tex * v_Color;
+    // For R8 atlas: coverage in .r
+    float coverage = texture(u_Textures[nonuniformEXT(v_TexIndex)], v_UV).r;
+
+    // Build final color from vertex tint, with atlas coverage as alpha
+    vec4 col = vec4(v_Color.rgb, v_Color.a * coverage);
 
     // Global alpha multiplier
     col.a *= u_UI.u_GlobalAlpha;
 
-   
+    // Clip rect (optional)
     if (u_UI.u_ClipRectPx.z > u_UI.u_ClipRectPx.x) // maxX > minX
     {
         if (v_PosUI.x < u_UI.u_ClipRectPx.x || v_PosUI.y < u_UI.u_ClipRectPx.y ||
@@ -97,7 +89,7 @@ void main()
         }
     }
 
-
+    // Rounded corners (optional; usually you won’t use this for text, but harmless)
     if (u_UI.u_RoundRadiusPx > 0.0 && u_UI.u_ClipRectPx.z > u_UI.u_ClipRectPx.x)
     {
         vec2 minP = u_UI.u_ClipRectPx.xy;
@@ -110,9 +102,11 @@ void main()
         float feather = max(u_UI.u_RoundFeatherPx, 0.0001);
         float alphaMask = 1.0 - smoothstep(0.0, feather, d);
         col.a *= alphaMask;
-
-        
     }
+
+    // Drop fully transparent pixels (helps avoid dark fringes if blending state is odd)
+    if (col.a <= 0.001)
+        discard;
 
     o_Color = col;
 }

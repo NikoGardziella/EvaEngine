@@ -487,10 +487,13 @@ namespace Engine {
 
 
         // UI
-        Engine::WeaponHUD weaponUI;
-        weaponUI.Create(m_gameUIContext);
-        weaponUI.SetWeaponIcon(Engine::AssetManager::GetTexture("ee_logo"));
 
+
+         Engine::WeaponHUD weaponUI;
+         weaponUI.Create(m_gameUIContext);
+         weaponUI.SetWeaponIcon(Engine::AssetManager::GetTexture("ee_logo"));
+        
+      
     }
 
 
@@ -1225,6 +1228,8 @@ namespace Engine {
             Engine::VulkanRenderer2D::DrawTextureQuad(quadTransform, Engine::AssetManager::GetTexture("wall_0019"));
 
             */
+
+            VulkanUIRenderer::DrawUIText(AssetManager::GetFont(), "HELLO \n WORLD", {20, 20}, {0.5f, 0.76f, 0.43f, 1}, 1.0f);
             RenderGameUI(m_gameUIContext);
             //Engine::Renderer::DrawFrame();
             Engine::VulkanRenderer2D::EndScene();

@@ -43,6 +43,9 @@
     <Filter Include="source\Engine\AssetManager">
       <UniqueIdentifier>{A555E108-9165-8DD9-FA1E-F2F7E64D7C72}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\AssetManager\Font">
+      <UniqueIdentifier>{CB6D5C88-3751-6BC8-4054-9904ACB63119}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\AssetManager\Utils">
       <UniqueIdentifier>{C53EFC94-B18F-E7D6-DAF3-D598C6A37A40}</UniqueIdentifier>
     </Filter>
@@ -109,6 +112,9 @@
     <Filter Include="source\Engine\Renderer\3D">
       <UniqueIdentifier>{671275B8-D3D4-A842-1C85-37CF88868120}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Renderer\UI">
+      <UniqueIdentifier>{CE1675B8-3AD9-A842-8389-37CFEF8A8120}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Renderer\Utils">
       <UniqueIdentifier>{61ADEFEC-4D68-DF98-F61F-58E3E2B92929}</UniqueIdentifier>
     </Filter>
@@ -166,6 +172,12 @@
     <Filter Include="source\Engine\Scene\TaskManager">
       <UniqueIdentifier>{957A8D69-015E-9CA9-0A61-CAE576C362FA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\UI">
+      <UniqueIdentifier>{88B6609B-74AF-7FED-9DE1-647289395FF9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\UI\UIUtils">
+      <UniqueIdentifier>{A6218BF5-9246-DA75-BB91-BF05A715D993}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Utils">
       <UniqueIdentifier>{DBEA90C3-474C-6ED1-D0B9-B4833C1AA590}</UniqueIdentifier>
     </Filter>
@@ -207,6 +219,9 @@
     </Filter>
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\stb_truetype">
+      <UniqueIdentifier>{2C5D82E5-98BE-5FF3-212C-A6A58D8C96B2}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\tiny_gltf">
       <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
@@ -287,6 +302,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\AssetManager\AssetManager.h">
       <Filter>source\Engine\AssetManager</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\AssetManager\Font\FontLoader.h">
+      <Filter>source\Engine\AssetManager\Font</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h">
       <Filter>source\Engine\AssetManager\Utils</Filter>
@@ -531,6 +549,12 @@
     <ClInclude Include="source\Engine\Renderer\Texture.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\UI\VulkanUIGraphicsPipeline.h">
+      <Filter>source\Engine\Renderer\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\UI\VulkanUIRenderer.h">
+      <Filter>source\Engine\Renderer\UI</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Renderer\UniformBuffer.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
@@ -568,6 +592,9 @@
       <Filter>source\Engine\Scene\Components\Combat</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h">
+      <Filter>source\Engine\Scene\Components\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponDef.h">
       <Filter>source\Engine\Scene\Components\Combat</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Light\DirectionalLightComponent.h">
@@ -671,6 +698,24 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.h">
       <Filter>source\Engine\Scene\TaskManager</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\UI\Font.h">
+      <Filter>source\Engine\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\UI\UIContext.h">
+      <Filter>source\Engine\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\UI\UIElement.h">
+      <Filter>source\Engine\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\UI\UITransform2D.h">
+      <Filter>source\Engine\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\UI\UIUtils\UIUtils.h">
+      <Filter>source\Engine\UI\UIUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\UI\WeaponHUD.h">
+      <Filter>source\Engine\UI</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Utils\PlatformUtils.h">
       <Filter>source\Engine\Utils</Filter>
@@ -1938,17 +1983,15 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\stb_truetype\stb_truetype.h">
+      <Filter>vendor\stb_truetype</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponDef.h" />
-    <ClInclude Include="source\Engine\Renderer\UI\VulkanUIRenderer.h" />
-    <ClInclude Include="source\Engine\UI\UITransform2D.h" />
-    <ClInclude Include="source\Engine\UI\UIUtils\UIUtils.h" />
-    <ClInclude Include="source\Engine\UI\UIElement.h" />
-    <ClInclude Include="source\Engine\UI\UIContext.h" />
-    <ClInclude Include="source\Engine\UI\WeaponHUD.h" />
-    <ClInclude Include="source\Engine\Renderer\UI\VulkanUIGraphicsPipeline.h" />
+    <ClInclude Include="source\Engine\AssetManager\Font\stb_truetype.h" />
+    <ClInclude Include="source\Engine\UI\UITextElement .h" />
+    <ClInclude Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -1998,6 +2041,9 @@
     </ClCompile>
     <ClCompile Include="source\Engine\AssetManager\AssetManager.cpp">
       <Filter>source\Engine\AssetManager</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\AssetManager\Font\FontLoader.cpp">
+      <Filter>source\Engine\AssetManager\Font</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\AssetManager\Utils\AssetManagerUtils.cpp">
       <Filter>source\Engine\AssetManager\Utils</Filter>
@@ -2194,6 +2240,12 @@
     <ClCompile Include="source\Engine\Renderer\Texture.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\UI\VulkanUIGraphicsPipeline.cpp">
+      <Filter>source\Engine\Renderer\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\UI\VulkanUIRenderer.cpp">
+      <Filter>source\Engine\Renderer\UI</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Renderer\UniformBuffer.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
@@ -2230,6 +2282,9 @@
     <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTaskScheduler.cpp">
       <Filter>source\Engine\Scene\TaskManager</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\UI\UIUtils\UIUtils.cpp">
+      <Filter>source\Engine\UI\UIUtils</Filter>
+    </ClCompile>
     <ClCompile Include="source\pch.cpp">
       <Filter>source</Filter>
     </ClCompile>
@@ -2245,9 +2300,7 @@
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp">
       <Filter>vendor\tiny_gltf</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Renderer\UI\VulkanUIRenderer.cpp" />
-    <ClCompile Include="source\Engine\UI\UIUtils\UIUtils.cpp" />
-    <ClCompile Include="source\Engine\Renderer\UI\VulkanUIGraphicsPipeline.cpp" />
+    <ClCompile Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">
@@ -2283,6 +2336,9 @@
     <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\VulkanUIShader.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
     <None Include="..\assets\shaders\clearMaskCompute.comp">
       <Filter>assets\shaders</Filter>
     </None>
@@ -2304,6 +2360,6 @@
     <None Include="..\assets\shaders\testShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="..\assets\shaders\VulkanUIShader.glsl" />
+    <None Include="..\assets\shaders\VulkanUITextShader.glsl" />
   </ItemGroup>
 </Project>

@@ -17,6 +17,7 @@
 #include "Engine/Core/Application.h"
 #include <Engine/Math/HashUtils.h>
 #include "Utils/DeltaBitReader.h"
+#include "UI/VulkanUIRenderer.h"
 
 namespace Engine {
 
@@ -43,7 +44,6 @@ namespace Engine {
 
 	VulkanRenderer2D::VulkanRenderer2D()
 	{
-		
 
 	}
 
@@ -230,8 +230,8 @@ namespace Engine {
 
 
 
-		Engine::VulkanUIRenderer::UIRendererInitConfig uiRendererConfig;
-		uint32_t maxQuads = 20000;
+		UIRendererInitConfig uiRendererConfig;
+		uint32_t maxQuads = 2000;
 		uiRendererConfig.maxQuads = maxQuads;
 		uiRendererConfig.maxTextures = MAX_UI_TEXTURES;		
 		m_uiRenderer.Init(uiRendererConfig, m_vulkanContext);

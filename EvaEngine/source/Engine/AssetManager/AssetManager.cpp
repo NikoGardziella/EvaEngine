@@ -7,6 +7,7 @@
 #include <stb_image.h>
 #include <Engine/Animation/3D/Import/GLTFImporter.h>
 #include <Engine/Animation/3D/MeshRegistry.h>
+#include <Engine/UI/Font.h>
 
 
 
@@ -30,7 +31,7 @@ namespace Engine {
     MaterialRegistry AssetManager::s_materialRegistry;
     Ref<AnimationRegistry> AssetManager::s_animationRegistry;
     Ref<SkeletonRegistry> AssetManager::s_skeletonRegistry;
-
+    Ref<Font>  AssetManager::s_fontAtlas;
 
     void AssetManager::Initialize(int maxDepth)
     {
@@ -59,6 +60,9 @@ namespace Engine {
 
         s_skeletonRegistry = std::make_shared<SkeletonRegistry>();
         s_animationRegistry = std::make_shared<AnimationRegistry>(s_skeletonRegistry);
+
+       
+
     }
 
     std::filesystem::path AssetManager::GetAssetPath(const std::string& subPath)
@@ -492,6 +496,13 @@ namespace Engine {
     void AssetManager::CreateTileAtlas()
     {
         EE_PROFILE_FUNCTION();
+        //****fonts atlas********
+        FontLoadDesc fontLoadDesc;
+        fontLoadDesc.forceRGBA = false;
+        s_fontAtlas = FontLoader::LoadTTF(s_AssetPath.string() + "\\fonts\\sigmar\\Sigmar-Regular.ttf", fontLoadDesc);
+        //**********************
+
+
         LoadTileProperties();
         namespace fs = std::filesystem;
 
