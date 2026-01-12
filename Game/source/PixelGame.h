@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include <string>
 #include <Engine/UI/UIContext.h>
+#include "Systems/UI/HUDSystem.h"
 
 class PixelGame : public Engine::Layer
 {
@@ -64,7 +65,10 @@ private:
 
 
 	//UI
-	
+	//UI
+	Engine::UIContext m_gameUIContext;
+
+	HUDSystem m_gameHUDSystem;
 
 };
 

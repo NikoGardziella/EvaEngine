@@ -154,6 +154,8 @@
     <ClInclude Include="source\Systems\Player\PlayerMovementSystem.h" />
     <ClInclude Include="source\Systems\Spawning\NpcSpawnControllerSystem.h" />
     <ClInclude Include="source\Systems\Spawning\WeaponSpawnSystem.h" />
+    <ClInclude Include="source\Systems\UI\HUDSystem.h" />
+    <ClInclude Include="source\Systems\UI\HUDWidgets.h" />
     <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h" />
   </ItemGroup>
   <ItemGroup>
@@ -181,6 +183,7 @@
     <ClCompile Include="source\Systems\Player\PlayerMovementSystem.cpp" />
     <ClCompile Include="source\Systems\Spawning\NpcSpawnControllerSystem.cpp" />
     <ClCompile Include="source\Systems\Spawning\WeaponSpawnSystem.cpp" />
+    <ClCompile Include="source\Systems\UI\HUDSystem.cpp" />
     <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -16,6 +16,7 @@
 #include <Engine/Scene/Components/Combat/ThrowableComponent.h>
 #include <Engine/Scene/Components/Render/3D/RenderBoundsComponent.h>
 #include <Engine/Scene/Components/Render/3D/MeshRefComponent.h>
+#include <Engine/Scene/Components/UI/HUDStateComponent.h>
 
 
 void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene* scene)
@@ -46,6 +47,30 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene
             Engine::TransformComponent& playerTransformComp,
             WeaponComponent& weaponComp)
         {
+
+            if (HUDStateComponent* hudstateComp = playerEntity.TryGetComponent<HUDStateComponent>())
+            {
+                hudstateComp->weaponType = playerEntity.GetComponent<WeaponComponent>().type;
+
+                if (playerEntity.HasComponent<AmmoComponent>())
+                {
+                    auto& ammo = playerEntity.GetComponent<AmmoComponent>();
+                    hudstateComp->ammoInMag = ammo.ammoInMag;
+                    hudstateComp->magSize = ammo.magSize;
+                    hudstateComp->showAmmo = true;
+                }
+                else
+                {
+                    hudstateComp->showAmmo = false;
+                }
+
+
+            }
+            
+
+            
+
+
             const glm::vec2 playerPos = playerTransformComp.Translation;
             const glm::vec2 dir = mouseWorldPosition - playerPos;
             weaponComp.IsAiming = false;
@@ -144,6 +169,13 @@ void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene
 
             weaponComp.Cooldown = weaponComp.FireRate;
         });
+
+
+        
+
+
+
+
 }
 
 

@@ -60,18 +60,19 @@ namespace Engine
         }
 
         static void DrawUIText(const Ref<Font>& font, std::string_view text,
-            glm::vec2 topLeftPx, glm::vec4 color, float scale = 1.0f)
+            const UITransform2D& tr, glm::vec4 color, float scale = 1.0f)
         {
-            if (s_active) s_active->DrawText_Impl(font, text, topLeftPx, color, scale);
+            if (s_active) s_active->DrawText_Impl(font, text, tr, color, scale);
         }
 
         glm::vec2 GetViewportPx() const { return m_viewportPx; }
 
     private:
-        // ====== Common ======
+
+        //  Common 
         glm::mat4 MakeUIVP(glm::vec2 viewportPx) const;
 
-        // ====== Icon batch ======
+        //  Icon batch 
         void ResetIcons();
         uint32_t AcquireIconTextureSlot(const Ref<VulkanTexture>& tex);
         void DrawUIIcon_Impl(const Ref<VulkanTexture>& icon, const UITransform2D& tr, glm::vec4 tint);
@@ -82,11 +83,11 @@ namespace Engine
         void UpdateIconsDescriptors();
         void BindAndDrawIcons(VkCommandBuffer cmd);
 
-        // ====== Text batch ======
+        //  Text batch 
         void ResetText();
         uint32_t AcquireTextTextureSlot(const Ref<VulkanTexture>& tex);
         void DrawText_Impl(const Ref<Font>& fontRef, std::string_view text,
-            glm::vec2 topLeftPx, glm::vec4 color, float scale);
+            const UITransform2D& t, glm::vec4 color, float scale);
         void DrawQuadRaw_Text(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3,
             const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3,
             const Ref<VulkanTexture>& texture, const glm::vec4& tintColor);
@@ -115,7 +116,7 @@ namespace Engine
         // Index buffer shared
         Ref<VulkanIndexBuffer> m_indexBuffer;
 
-        // ================== ICONS ==================
+        //  ICONS 
         std::vector<class VulkanUIGraphicsPipeline::VulkanUIQuadVertex> m_iconCPU;
         class VulkanUIGraphicsPipeline::VulkanUIQuadVertex* m_iconPtr = nullptr;
         uint32_t m_iconIndexCount = 0;
@@ -126,7 +127,7 @@ namespace Engine
         std::unordered_map<uint64_t, uint32_t> m_iconTexLUT;
         uint32_t m_iconTextureSlotCount = 0;
 
-        // ================== TEXT ==================
+        //  TEXT 
         std::vector<class VulkanUIGraphicsPipeline::VulkanUIQuadVertex> m_textCPU;
         class VulkanUIGraphicsPipeline::VulkanUIQuadVertex* m_textPtr = nullptr;
         uint32_t m_textIndexCount = 0;

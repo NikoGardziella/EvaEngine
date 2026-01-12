@@ -1992,6 +1992,8 @@
     <ClInclude Include="source\Engine\AssetManager\Font\stb_truetype.h" />
     <ClInclude Include="source\Engine\UI\UITextElement .h" />
     <ClInclude Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.h" />
+    <ClInclude Include="source\Engine\UI\UIContainer.h" />
+    <ClInclude Include="source\Engine\Scene\Components\UI\HUDStateComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">

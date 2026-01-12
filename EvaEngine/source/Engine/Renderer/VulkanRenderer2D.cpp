@@ -142,8 +142,10 @@ namespace Engine {
 		// Clone "logo" texture to slot 1 after loading it once
 		// Load original textures (not inserted into slots)
 		//AssetManager::AddTexture("logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
+		AssetManager::AddTexture("ui_weapon_bazooka", Engine::AssetManager::GetAssetPath("textures/UI/HUD/bazooka.png").string(), false);
+		AssetManager::AddTexture("ui_weapon_rifle", Engine::AssetManager::GetAssetPath("textures/UI/HUD/Assault_rifle.png").string(), false);
+		AssetManager::AddTexture("ui_weapon_grenade", Engine::AssetManager::GetAssetPath("textures/UI/HUD/grenade.png").string(), false);
 		
-		AssetManager::AddTexture("chess", Engine::AssetManager::GetAssetPath("textures/chess_board.png").string(), false);
 		AssetManager::AddTexture("Idle_gun_000", Engine::AssetManager::GetAssetPath("textures/Idle_gun_000.png").string(), false);
 		AssetManager::AddTexture("ee_logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);
 		AssetManager::AddTexture("bullet", Engine::AssetManager::GetAssetPath("textures/Fire_small_asset.png").string(), false);

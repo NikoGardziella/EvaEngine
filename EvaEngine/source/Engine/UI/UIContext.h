@@ -17,6 +17,11 @@ namespace Engine {
             elements.push_back(std::move(e));
             return ref;
         }
+
+        void Clear()
+        {
+            elements.clear();
+        }
     };
 
 }

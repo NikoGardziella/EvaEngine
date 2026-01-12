@@ -106,18 +106,7 @@ namespace Engine {
 			}
 
 			
-			/*
-			if (result.ElapsedTime > std::chrono::microseconds(10000)) // 10ms
-			{
-				double elapsedMs = std::chrono::duration<double, std::milli>(result.ElapsedTime).count();
-				EE_CORE_WARN("Performance warning! Function: {0} exceeds 10ms. Elapsed time: {1:.2f} ms", result.Name, elapsedMs);
-			}
-			if (result.ElapsedTime > std::chrono::microseconds(16670)) // Exceeds 16.67ms (1 frame at 60 FPS)
-			{
-				double elapsedMs = std::chrono::duration<double, std::milli>(result.ElapsedTime).count();
-				EE_CORE_CRITICAL("Performance warning! Function: {0} exceeds 16.67ms. Elapsed time: {1:.2f} ms", result.Name, elapsedMs);
-			}
-			*/
+			
 
 
 		}

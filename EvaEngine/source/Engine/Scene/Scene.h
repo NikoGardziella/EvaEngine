@@ -179,9 +179,7 @@ namespace Engine {
 		DestructibleTileSystem m_destructibleTileSystem;
 		bool m_debugDrawLOS = false;
 
-		//UI
-		Engine::UIContext m_gameUIContext;
-
+		
 
 		friend class Entity;
 		friend class SceneSerializer;

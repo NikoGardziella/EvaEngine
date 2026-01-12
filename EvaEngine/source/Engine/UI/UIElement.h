@@ -3,6 +3,7 @@
 #include "Engine/Core/Core.h"
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 #include <Engine/Renderer/UI/VulkanUIRenderer.h>
+#include <cstdint>
 
 namespace Engine {
 
@@ -15,9 +16,9 @@ namespace Engine {
 
     struct UIImageElement : UIElement
     {
-        Ref<VulkanTexture> texture;
-        glm::vec4 tint = { 1,1,1,1 };
-
+        Ref<VulkanTexture>  texture;
+        glm::vec4           tint = { 1,1,1,1 };
+        uint32_t            layer;
 
        
 

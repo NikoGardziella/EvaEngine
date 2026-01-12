@@ -10,6 +10,12 @@ enum class WeaponType : uint8_t
     Bazooka
 };
 
+struct AmmoComponent
+{
+    int32_t ammoInMag = 30;
+    int32_t magSize = 30;
+    int32_t ammoReserve = 120; // optional
+};
 
 
 

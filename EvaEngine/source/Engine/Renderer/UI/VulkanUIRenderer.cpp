@@ -38,10 +38,8 @@ namespace Engine
         m_device = m_vulkanContext->GetDeviceManager().GetDevice();
         m_cfg = cfg;
 
-        // IMPORTANT: use UNORM formats for sampled UI textures
-        // Fallback white for icons (RGBA)
+       
         m_fallbackWhiteRGBA = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8G8B8A8_UNORM);
-        // Fallback for text (R8) - your VulkanTexture must support it; if not, use RGBA and treat .a
         m_fallbackWhiteR8 = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8_UNORM);
 
         // Pipelines
@@ -79,8 +77,7 @@ namespace Engine
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-        m_textVB = std::make_shared<VulkanBuffer>(
-            m_device,
+        m_textVB = std::make_shared<VulkanBuffer>(m_device,
             m_vulkanContext->GetDeviceManager().GetPhysicalDevice(),
             sizeof(VulkanUIGraphicsPipeline::VulkanUIQuadVertex) * maxVerts,
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -138,7 +135,6 @@ namespace Engine
 
     void VulkanUIRenderer::EndAndRecord(VkCommandBuffer cmd)
     {
-        // Draw icons first (RGBA)
         if (m_iconIndexCount > 0)
         {
             UploadIconsVB();
@@ -146,7 +142,6 @@ namespace Engine
             BindAndDrawIcons(cmd);
         }
 
-        // Draw text (R8 mask)
         if (m_textIndexCount > 0)
         {
             UploadTextVB();
@@ -161,10 +156,8 @@ namespace Engine
         return glm::ortho(0.0f, viewportPx.x, viewportPx.y, 0.0f, -1.0f, 1.0f);
     }
 
-    // ============================================================
     // ICONS
-    // ============================================================
-
+  
     void VulkanUIRenderer::ResetIcons()
     {
         m_iconIndexCount = 0;
@@ -172,7 +165,9 @@ namespace Engine
         m_iconTextureSlotCount = 0;
         m_iconTexLUT.clear();
         for (uint32_t i = 0; i < m_cfg.maxTextures; ++i)
+        {
             m_iconTextureSlots[i] = m_fallbackWhiteRGBA;
+        }
     }
 
     uint32_t VulkanUIRenderer::AcquireIconTextureSlot(const Ref<VulkanTexture>& texture)
@@ -182,7 +177,9 @@ namespace Engine
 
         auto it = m_iconTexLUT.find(key);
         if (it != m_iconTexLUT.end())
+        {
             return it->second;
+        }
 
         if (m_iconTextureSlotCount >= m_cfg.maxTextures)
             return 0;
@@ -299,9 +296,7 @@ namespace Engine
         vkCmdDrawIndexed(cmd, m_iconIndexCount, 1, 0, 0, 0);
     }
 
-    // ============================================================
     // TEXT
-    // ============================================================
 
     void VulkanUIRenderer::ResetText()
     {
@@ -320,7 +315,10 @@ namespace Engine
 
         auto it = m_textTexLUT.find(key);
         if (it != m_textTexLUT.end())
+        {
             return it->second;
+
+        }
 
         if (m_textTextureSlotCount >= m_cfg.maxTextures)
             return 0;
@@ -332,9 +330,14 @@ namespace Engine
     }
 
     void VulkanUIRenderer::DrawText_Impl(const Ref<Font>& fontRef, std::string_view text,
-        glm::vec2 topLeftPx, glm::vec4 color, float scale)
+        const UITransform2D& tr, glm::vec4 color, float scale)
     {
         if (!fontRef || text.empty()) return;
+
+
+        glm::vec2 topLeftPx = UIUtils::ComputeTopLeftPx(tr, m_viewportPx);
+
+
         const Font& font = *fontRef;
 
         float penX = topLeftPx.x;

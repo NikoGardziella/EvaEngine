@@ -47,6 +47,7 @@
 #include "Components/Combat/ThrowableComponent.h"
 #include "Components/Combat/EquippedWeaponComponent.h"
 #include <Engine/UI/WeaponHUD.h>
+#include "Components/UI/HUDStateComponent.h"
 
 
 namespace Engine {
@@ -489,11 +490,8 @@ namespace Engine {
         // UI
 
 
-         Engine::WeaponHUD weaponUI;
-         weaponUI.Create(m_gameUIContext);
-         weaponUI.SetWeaponIcon(Engine::AssetManager::GetTexture("ee_logo"));
+       
         
-      
     }
 
 
@@ -694,8 +692,10 @@ namespace Engine {
               
               
               CharacterAnimStateComponent& CharacterAnimStateComp = playerEntity.AddComponent<CharacterAnimStateComponent>();
+              HUDStateComponent& HUDStateComp = playerEntity.AddComponent<HUDStateComponent>(); 
+              AmmoComponent& AmmoComp = playerEntity.AddComponent<AmmoComponent>();
 
-
+              /// there will bne day i will move this
             }
             
 
@@ -1229,8 +1229,9 @@ namespace Engine {
 
             */
 
-            VulkanUIRenderer::DrawUIText(AssetManager::GetFont(), "HELLO \n WORLD", {20, 20}, {0.5f, 0.76f, 0.43f, 1}, 1.0f);
-            RenderGameUI(m_gameUIContext);
+           // VulkanUIRenderer::DrawUIText(AssetManager::GetFont(), "HELLO \n WORLD", {20, 20}, {0.5f, 0.76f, 0.43f, 1}, 1.0f);
+            
+            
             //Engine::Renderer::DrawFrame();
             Engine::VulkanRenderer2D::EndScene();
 

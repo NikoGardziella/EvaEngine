@@ -118,6 +118,8 @@
     <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h">
       <Filter>Systems\Vehicle</Filter>
     </ClInclude>
+    <ClInclude Include="source\Systems\UI\HUDSystem.h" />
+    <ClInclude Include="source\Systems\UI\HUDWidgets.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -191,5 +193,6 @@
     <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp">
       <Filter>Systems\Vehicle</Filter>
     </ClCompile>
+    <ClCompile Include="source\Systems\UI\HUDSystem.cpp" />
   </ItemGroup>
 </Project>

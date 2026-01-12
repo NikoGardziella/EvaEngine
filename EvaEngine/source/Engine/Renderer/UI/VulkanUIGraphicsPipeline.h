@@ -102,7 +102,6 @@ namespace Engine {
         UIInitConfig m_cfg{};
         uint32_t m_framesInFlight = 0;
 
-        // Descriptors
         VkDescriptorSetLayout m_setLayoutCamera = VK_NULL_HANDLE;    // set 0
         VkDescriptorSetLayout m_setLayoutUITextures = VK_NULL_HANDLE; // set 1
 
@@ -111,7 +110,6 @@ namespace Engine {
         std::vector<VkDescriptorSet> m_setCamera;
         std::vector<VkDescriptorSet> m_setUITextures;
 
-        // Camera UBO buffers (one per frame)
         struct CameraBuffer
         {
             VkBuffer buffer = VK_NULL_HANDLE;

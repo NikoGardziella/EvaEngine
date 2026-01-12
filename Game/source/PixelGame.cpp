@@ -127,6 +127,9 @@ void PixelGame::OnUpdate(Engine::Timestep timestep)
 			m_activeScene->OnUpdateRuntime(timestep, m_isPlaying);
 
 
+			m_gameHUDSystem.Update(m_activeScene);
+			m_activeScene->RenderGameUI(m_gameUIContext);
+
 
 			const glm::mat4 viewProjection = m_orthoCameraController.GetCamera().GetViewProjectionMatrix();
 					
@@ -165,7 +168,7 @@ void PixelGame::OnGameStart()
 	cameraComp.Camera.SetPerspectiveFOV(45.0f);
 
 
-
+	m_gameHUDSystem.Init(m_gameUIContext, Engine::AssetManager::GetFont());
 	
 
 }
