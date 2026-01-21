@@ -715,6 +715,33 @@ void StampDiskFX(uint fx, ivec2 center, ivec2 fs, int R, vec3 stampRGB, bool lif
     }
 }
 
+void StampDiskVisibilityByte(uint fx, ivec2 center, ivec2 fs, int R, uint frameByte)
+{
+    float a = float(frameByte) / 255.0;
+
+    int r2 = R * R;
+    int y0 = max(center.y - R, 0);
+    int y1 = min(center.y + R, fs.y - 1);
+
+    for (int y = y0; y <= y1; ++y)
+    {
+        int dy = y - center.y;
+        int dxMax = int(floor(sqrt(max(0.0, float(r2 - dy * dy)))));
+        int x0 = max(center.x - dxMax, 0);
+        int x1 = min(center.x + dxMax, fs.x - 1);
+
+        for (int x = x0; x <= x1; ++x)
+        {
+            ivec2 q = ivec2(x, y);
+            vec4 d = imageLoad(uFX[nonuniformEXT(fx)], q);
+
+            // Keep RGB for your existing FX, only stamp alpha tag
+            d.a = max(d.a, a);
+
+            imageStore(uFX[nonuniformEXT(fx)], q, d);
+        }
+    }
+}
 
 
 void main()
@@ -829,6 +856,7 @@ void main()
 
         return;
     }
+
 
 
 }

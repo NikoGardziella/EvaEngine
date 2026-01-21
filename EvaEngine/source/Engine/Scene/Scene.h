@@ -20,6 +20,7 @@
 #include "Component.h"
 #include <Engine/Animation/3D/MeshRegistry.h>
 #include <Engine/UI/UIContext.h>
+#include <Engine/Map/FogOfWar/FogOfWar.h>
 
 
 
@@ -174,6 +175,7 @@ namespace Engine {
 		Ref<TextureStreamingSystem> m_textureStreamingSystem;
 		Ref<TileManager> m_tileMananger;
 		Ref<GridMap> m_gridMap;
+		Ref<FogOfWar> m_fogOfWar;
 		Ref<AnimationSystem2D> m_animationSystem;
 		Ref<AnimationBank2D> m_animationBank;
 		DestructibleTileSystem m_destructibleTileSystem;

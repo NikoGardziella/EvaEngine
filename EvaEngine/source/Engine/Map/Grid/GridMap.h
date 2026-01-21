@@ -6,6 +6,8 @@
 #include "Engine/Map/Grid/GridUtils/GridUtils.h"
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
 #include <Engine/Core/Core.h>
+#include <Engine/Platform/Vulkan/VulkanFogOfWarPipelines.h>
+#include <Engine/Scene/SceneCamera.h>
 
 namespace Engine {
 	
@@ -39,6 +41,12 @@ namespace Engine {
 		std::vector<SubCellOBB>& GetGridSubcells() { return  m_blockedSubCells; }
 		void DrawDebugBlockedTiles() const;
 		void DebugDrawPath(const std::vector<glm::vec3>& path) const;
+		
+		bool IsPointBlocked_Bucketed(const glm::vec2& P, float padding) const;
+
+		
+		
+		void SmoothVisibilityPoly(const std::vector<glm::vec2>& cur, std::vector<glm::vec2>& inout, float alpha);
 	private:
 
 		void DrawDebugLine(glm::vec2 from, glm::vec2 to, const glm::vec4& color) const;
@@ -46,6 +54,16 @@ namespace Engine {
 		static void DrawAABB_LineRect(const glm::vec2& wmin, const glm::vec2& wmax, const glm::vec4& color);
 		void PushDirtyDebugRectWorld(const glm::vec2& wmin, const glm::vec2& wmax, const glm::vec4& color);
 
+		void RebuildSubcellBuckets();
+
+	
+
+
+
+
+
+
+	
 	private:
 		static float PxToWorld(float px) { return px / float(TILE_PIXEL_WIDTH); }
 
@@ -76,6 +94,9 @@ namespace Engine {
 
 
 	private:
+
+	
+
 		// remove // update LOS before
 		std::unordered_set<glm::ivec2, IVec2Hasher, IVec2Equal> m_blockedTiles;
 		std::vector<Engine::SubCellOBB> m_blockedSubCells; 

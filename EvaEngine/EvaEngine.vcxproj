@@ -146,6 +146,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Map\FogOfWar\FogOfWar.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h" />
@@ -738,8 +739,10 @@
     <ClInclude Include="vendor\stb_truetype\stb_truetype.h" />
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
     <ClInclude Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Map\FogOfWar\FogOfWar.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationSystem2D.cpp" />
@@ -845,6 +848,7 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp" />
     <ClCompile Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
@@ -852,6 +856,7 @@
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\Effect_shader.comp" />
     <None Include="..\assets\shaders\FlatColor.glsl" />
+    <None Include="..\assets\shaders\fogOFWar_Shader.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />

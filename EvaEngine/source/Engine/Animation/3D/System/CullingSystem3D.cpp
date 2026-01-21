@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "CullingSystem3D.h"
 #include <algorithm>
-#include <Engine/Scene/Components/Render/3D/Renderable3DComponent.h>
 #include <Engine/Scene/Components/Render/3D/RenderBoundsComponent.h>
 #include <Engine.h>
 #include <Engine/Scene/Entity.h>

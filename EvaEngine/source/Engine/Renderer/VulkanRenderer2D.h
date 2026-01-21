@@ -15,6 +15,9 @@
 #include <Engine/Platform/Vulkan/VulkanBindlessDescriptorSet.h>
 #include "Camera.h"
 #include "UI/VulkanUIGraphicsPipeline.h"
+#include <Engine/Platform/Vulkan/VulkanFogOfWarPipelines.h>
+#include <Engine/Platform/Vulkan/VulkanFogOfWarPipelines.h>
+
 
 namespace Engine {
 
@@ -102,6 +105,18 @@ namespace Engine {
 		//Ref<UniformBuffer> CameraUniformBuffer;
 		uint32_t CurrentFrame = 0;
 
+		struct FogData
+		{
+			VkBuffer buffer = VK_NULL_HANDLE;
+			VkDeviceMemory memory = VK_NULL_HANDLE;
+			void* mapped = nullptr;
+
+			uint32_t capacityVertices = 0;
+			uint32_t cursorVertices = 0;
+			VulkanFogOfWarPipelines::FogSubmitResult submitResult;
+		};
+		FogData Fog;
+
 	};
 	struct SlotContentRect { glm::ivec2 minPx; glm::ivec2 sizePx; };
 
@@ -148,6 +163,12 @@ namespace Engine {
 	{
 
 		std::vector<CPUExplosion> CPUExplosions;
+	};
+
+	struct PlayerData
+	{
+		glm::vec2	PlayerPos;
+		glm::vec2	CameraPos;
 	};
 
 	struct CollisionData
@@ -256,7 +277,7 @@ namespace Engine {
 		static void CalculatePlayerCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType);
 		static void DrawTextureQuadWithProperties(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
 		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
-		static void DrawQuadRaw(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3, const Ref<VulkanTexture>& texture, float tilingFactor = 1.0f, const glm::vec4& tintColor = glm::vec4(1));
+		static void DrawQuadRaw(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static uint32_t AcquireTextureSlot(const std::shared_ptr<VulkanTexture>& texture);
 		static void DrawVisualEffectTexture(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
@@ -276,10 +297,12 @@ namespace Engine {
 
 		static void SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
 
+		static void SubmitFogGeometry(const std::vector<VulkanFogOfWarPipelines::FogVertex>& fanTris, const std::vector<VulkanFogOfWarPipelines::FogVertex>& quadTris);
+
 
 		static void SubmitCPUExplosion(glm::vec2 HitWorldPos, float radiWorld, uint32_t damage);
 
-
+		static void SubmitPlayerData(glm::vec2 playerPos, glm::vec2 cameraPo);
 
 		static Renderer2D::Statistics GetStats();
 		static EffectPushConstants& GetEffects() { return s_effectPushConstants;  }
@@ -299,6 +322,7 @@ namespace Engine {
 		void BuildAffectedTilesCPU(const std::vector<glm::vec2>& hitPositionsW, const std::vector<float>& radiiW, const std::vector<uint32_t>& damagesW, const std::unordered_set<uint32_t>& candidateSlots, float pixelSizeWorld, int tileW, int tileH, std::vector<AffectedTile>& outTiles);
 		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
 		void RecordClearTextureComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
+		void RecordFogOfWarComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex);
 		void ConsumeAnimationQueue(uint32_t frameIndex);
@@ -312,6 +336,7 @@ namespace Engine {
 
 		// holds pipeline for game and present
 		Ref<VulkanGraphicsPipeline> m_vulkanGraphicsPipelines;
+		Ref<VulkanFogOfWarPipelines> m_vulkanFogOfWarPipelines;
 
 		
 
@@ -350,6 +375,7 @@ namespace Engine {
 		static CollisionData s_CollisionData;
 		static EffectPushConstants s_effectPushConstants;
 		static CPUExplosionData s_CPUExplosionsData;
+		static PlayerData s_PlayerData;
 		//static const uint32_t MaxTextures = 10;
 		//std::array<CollisionTexture, MaxTextures> s_CollisionTextures;
 		//CollisionTexture s_CollisionTextures;
@@ -358,6 +384,8 @@ namespace Engine {
 		static Ref<VulkanBindlessDescriptorSetRenderer> s_bindlessDescitproRenderer;
 		VulkanUIRenderer m_uiRenderer;
 
+
+		float m_timer = 0.0f;
 	
 	};
 

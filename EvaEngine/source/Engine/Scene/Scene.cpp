@@ -48,6 +48,7 @@
 #include "Components/Combat/EquippedWeaponComponent.h"
 #include <Engine/UI/WeaponHUD.h>
 #include "Components/UI/HUDStateComponent.h"
+#include <Engine/Map/FogOfWar/FogOfWar.h>
 
 
 namespace Engine {
@@ -76,6 +77,9 @@ namespace Engine {
 		EE_CORE_INFO("Creating new Scene");
         m_registry = entt::registry();
         m_gridMap = std::make_shared<GridMap>();
+
+        m_fogOfWar = std::make_shared<FogOfWar>(m_gridMap); // after gridmap
+
         m_textureStreamingSystem = std::make_unique<TextureStreamingSystem>();
         m_tileMananger = std::make_unique<TileManager>();
         m_animationBank = std::make_unique<AnimationBank2D>();
@@ -613,6 +617,12 @@ namespace Engine {
             auto& playerTransform = playerView.get<Engine::TransformComponent>(entity);
             playerPos.x = playerTransform.Translation.x;
             playerPos.y = playerTransform.Translation.y;
+            glm::vec3 camerapos = glm::vec3(cameraTransform[3]);
+            float x = camerapos.x;
+            float y = camerapos.y;
+
+
+            VulkanRenderer2D::SubmitPlayerData(playerPos, camerapos);
 
             auto& playerIDComp = playerView.get<Engine::IDComponent>(entity);
             playerID = playerIDComp.ID;
@@ -701,6 +711,7 @@ namespace Engine {
 
 
         }
+
         m_textureStreamingSystem->Update(playerPos, this);
 
         m_animationSystem->Update(timestep, this);
@@ -725,6 +736,9 @@ namespace Engine {
 
 
             Engine::VulkanRenderer3D::Begin3DScene(mainCameraComp->Camera.GetProjection(), cameraView);
+           
+            
+            m_fogOfWar->DrawFogOfWar(playerPos, mainCameraComp->Camera);
 
             glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 

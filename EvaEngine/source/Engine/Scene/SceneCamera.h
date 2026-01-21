@@ -4,6 +4,7 @@
 #include "Engine/Debug/Instrumentor.h"
 
 #include "glm/glm.hpp"
+#include <array>
 
 namespace Engine {
 
@@ -11,6 +12,24 @@ namespace Engine {
 	{
 
 	public:
+
+		enum class CameraBounds : size_t
+		{
+			min = 0,
+			max = 1
+		};
+
+		template <typename T, size_t N>
+		static constexpr T& ArrayAt(std::array<T, N>& a, CameraBounds i)
+		{
+			return a[static_cast<size_t>(i)];
+		}
+
+		template <typename T, size_t N>
+		static constexpr const T& ArrayAt(const std::array<T, N>& a, CameraBounds i)
+		{
+			return a[static_cast<size_t>(i)];
+		}
 
 		enum class ProjectionType
 		{

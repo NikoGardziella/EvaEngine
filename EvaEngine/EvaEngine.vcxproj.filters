@@ -1994,6 +1994,8 @@
     <ClInclude Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.h" />
     <ClInclude Include="source\Engine\UI\UIContainer.h" />
     <ClInclude Include="source\Engine\Scene\Components\UI\HUDStateComponent.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.h" />
+    <ClInclude Include="source\Engine\Map\FogOfWar\FogOfWar.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2303,6 +2305,8 @@
       <Filter>vendor\tiny_gltf</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.cpp" />
+    <ClCompile Include="source\Engine\Map\FogOfWar\FogOfWar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">
@@ -2363,5 +2367,6 @@
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\VulkanUITextShader.glsl" />
+    <None Include="..\assets\shaders\fogOFWar_Shader.glsl" />
   </ItemGroup>
 </Project>

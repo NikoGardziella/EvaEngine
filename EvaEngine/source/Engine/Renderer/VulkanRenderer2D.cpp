@@ -28,6 +28,7 @@ namespace Engine {
 	Ref<VulkanBindlessDescriptorSetRenderer> VulkanRenderer2D::s_bindlessDescitproRenderer;
 	CollisionData Engine::VulkanRenderer2D::s_CollisionData;
 	CPUExplosionData Engine::VulkanRenderer2D::s_CPUExplosionsData;
+	PlayerData Engine::VulkanRenderer2D::s_PlayerData;
 
 	EffectPushConstants VulkanRenderer2D::s_effectPushConstants{
 		/*textureOrigin*/ {0.0f, 0.0f},
@@ -56,17 +57,40 @@ namespace Engine {
 			vkDestroySemaphore(device, m_renderFinishedSemaphores[i], nullptr);
 			vkDestroyFence(device, m_inFlightFences[i], nullptr);
 		}
+
+		m_vulkanFogOfWarPipelines->Destroy();
+
+
+		
+		auto& fog = s_VulkanData.Fog;
+		if (fog.mapped)
+		{
+			vkUnmapMemory(m_device, fog.memory);
+			fog.mapped = nullptr;
+		}
+		if (fog.buffer) vkDestroyBuffer(m_device, fog.buffer, nullptr);
+		if (fog.memory) vkFreeMemory(m_device, fog.memory, nullptr);
+
+		fog.buffer = VK_NULL_HANDLE;
+		fog.memory = VK_NULL_HANDLE;
+		fog.capacityVertices = 0;
+		fog.cursorVertices = 0;
+		
+
+
 	}
 
 	void VulkanRenderer2D::Init()
 	{
 
 		m_vulkanContext = VulkanContext::Get();
+		m_device = m_vulkanContext->GetDeviceManager().GetDevice();
+
 		m_swapchain = m_vulkanContext->GetVulkanSwapchain().GetSwapchain();
 		m_swapchainExtent = m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent();
 		m_vulkanGraphicsPipelines = std::make_shared<VulkanGraphicsPipeline>(*m_vulkanContext);
-		m_device = m_vulkanContext->GetDeviceManager().GetDevice();
-
+		
+	
 		// Allocate command buffers and sync objects
 		CreateSyncObjects();
 
@@ -237,6 +261,36 @@ namespace Engine {
 		uiRendererConfig.maxQuads = maxQuads;
 		uiRendererConfig.maxTextures = MAX_UI_TEXTURES;		
 		m_uiRenderer.Init(uiRendererConfig, m_vulkanContext);
+
+
+
+		Engine::VulkanFogOfWarPipelines::VulkanFogOfWarPipelinesCreateInfo createinfo;
+
+		createinfo.device = m_device;
+		createinfo.renderPass = m_vulkanContext->GetGameRenderPass();
+		m_vulkanFogOfWarPipelines = std::make_shared<VulkanFogOfWarPipelines>();
+
+		m_vulkanFogOfWarPipelines->Init(createinfo);
+
+		Engine::VulkanRenderer2DData::FogData& fog = s_VulkanData.Fog;
+
+		const uint32_t kMaxVerts = 65536; // enough for 3*numRays + 6
+		fog.capacityVertices = kMaxVerts;
+
+		const VkDeviceSize bytes = VkDeviceSize(kMaxVerts) * sizeof(Engine::VulkanFogOfWarPipelines::FogVertex);
+
+		Engine::BufferUtils::CreateBuffer(
+			bytes,
+			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			fog.buffer,
+			fog.memory);
+
+		EE_CORE_ASSERT(fog.buffer != VK_NULL_HANDLE, "Fog VB create failed");
+
+		vkMapMemory(m_device, fog.memory, 0, bytes, 0, &fog.mapped);
+
+
 	}
 
 
@@ -454,7 +508,7 @@ namespace Engine {
 		
 		m_vulkanGraphicsPipelines->UpdateGameDrawAndVisualImagesDescriptorSets(currentFrame, s_VulkanData.TextureSlots, s_VulkanData.VisualEffectsTextureSlots);
 
-
+		RecordFogOfWarComputeCommandBuffer(cmd, currentFrame);
 		Draw();
 
 		m_uiRenderer.EndFrame(cmd);
@@ -756,6 +810,7 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
+		
 		//this can be called multiple times per frame
 		RecordGameDrawCommands(cmd, m_imageIndex, currentFrame);
 		RecordLineCommanedBuffer(cmd, m_imageIndex, currentFrame);
@@ -1180,7 +1235,23 @@ namespace Engine {
 		}
 	}
 
+	static bool WorldToFxIdx(
+		const glm::vec2& posW,
+		const glm::vec2& fxGridTopLeftW,
+		uint32_t& outFxIdx)
+	{
+		const glm::vec2 cellW((float)CHUNK_SIZE, (float)CHUNK_SIZE);
 
+		const int col = (int)glm::floor((posW.x - fxGridTopLeftW.x) / cellW.x);
+		const int row = (int)glm::floor((fxGridTopLeftW.y - posW.y) / cellW.y);
+
+		const uint32_t fxIdx = (uint32_t)((CHUNK_GRID_WIDTH - 1 - row) * CHUNK_GRID_WIDTH + col);
+		if (fxIdx >= CHUNK_GRID_SIZE)
+			return false;
+
+		outFxIdx = fxIdx;
+		return true;
+	}
 	
 	void VulkanRenderer2D::RecordEffectComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
 	{
@@ -1412,9 +1483,7 @@ namespace Engine {
 		// Second pass to fade visual effect
 		for (size_t fxIdx = 0; fxIdx < CHUNK_GRID_SIZE; fxIdx++)
 		{
-			const int    FX_TEXTURE_HEIGHT = s_VulkanData.VisualEffectsTextureSlots[0]->GetHeight(); // they should be same size all
-			const int    FX_TEXTURE_WIDTH = s_VulkanData.VisualEffectsTextureSlots[0]->GetWidth();
-
+		
 			EffectPushConstants pc{};		
 			pc.mode = 1; // effect fade
 			pc.fxIdx = fxIdx;
@@ -1431,12 +1500,65 @@ namespace Engine {
 			const uint32_t gx = (FX_TEXTURE_HEIGHT + 16 - 1) / 16;
 			const uint32_t gy = (FX_TEXTURE_WIDTH + 16 - 1) / 16;
 			vkCmdDispatch(cmd, gx, gy, 1);
-		}	
+		}
+
+
 	}
 
+	void VulkanRenderer2D::RecordFogOfWarComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
+	{
+		VkViewport v{};
+		v.x = 0.0f; v.y = 0.0f;
+		v.width = float(m_swapchainExtent.width);
+		v.height = float(m_swapchainExtent.height);
+		v.minDepth = 0.0f; v.maxDepth = 1.0f;
+		vkCmdSetViewport(cmd, 0, 1, &v);
 
+		VkRect2D s{};
+		s.offset = { 0,0 };
+		s.extent = m_swapchainExtent;
+		vkCmdSetScissor(cmd, 0, 1, &s);
 
+		VkBuffer vb = s_VulkanData.Fog.buffer;
+		VkDeviceSize off = 0;
+		vkCmdBindVertexBuffers(cmd, 0, 1, &vb, &off);
 
+		Engine::VulkanFogOfWarPipelines::FogPC fogPC{};
+		fogPC.uVP = s_VulkanData.CameraBuffer.ViewProjection;
+		fogPC.playerPos = s_PlayerData.CameraPos;
+		fogPC.visRadius = 11.0f;
+		fogPC.time = m_timer;
+
+		// 1) FAN -> write stencil = 1 (world-space)
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_vulkanFogOfWarPipelines->GetStencilWritePipeline());
+
+		fogPC.flags = 0u; // world-space fan
+		vkCmdPushConstants(cmd, m_vulkanFogOfWarPipelines->GetFogOverlayPipelineLayout(),
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+			0, sizeof(fogPC), &fogPC);
+
+		if (s_VulkanData.Fog.submitResult.fan.vertexCount > 0)
+			vkCmdDraw(cmd,
+				s_VulkanData.Fog.submitResult.fan.vertexCount, 1,
+				s_VulkanData.Fog.submitResult.fan.firstVertex, 0);
+
+		// 2) QUAD -> draw fog where stencil != 1 (screen-space)
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_vulkanFogOfWarPipelines->GetFogOverlayPipeline());
+
+		fogPC.flags = 1u; // screen-space quad
+		vkCmdPushConstants(cmd, m_vulkanFogOfWarPipelines->GetFogOverlayPipelineLayout(),
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+			0, sizeof(fogPC), &fogPC);
+
+		if (s_VulkanData.Fog.submitResult.quad.vertexCount > 0)
+			vkCmdDraw(cmd,
+				s_VulkanData.Fog.submitResult.quad.vertexCount, 1,
+				s_VulkanData.Fog.submitResult.quad.firstVertex, 0);
+
+		m_timer += 0.01f;
+	}
 
 
 	void VulkanRenderer2D::RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
@@ -2398,6 +2520,47 @@ namespace Engine {
 		q.emplace_back(SpriteSubmit{ worldCenter, zKey,rotation, spriteSlot, uvMin16, uvMax16, sizeWorld });
 	}
 
+	void VulkanRenderer2D::SubmitFogGeometry(const std::vector<VulkanFogOfWarPipelines::FogVertex>& fanTris, const std::vector<VulkanFogOfWarPipelines::FogVertex>& quadTris)
+	{
+		Engine::VulkanRenderer2DData::FogData& fog = s_VulkanData.Fog;
+
+		fog.cursorVertices = 0;
+
+		Engine::VulkanFogOfWarPipelines::FogSubmitResult r{};
+
+		auto append = [&](const std::vector<Engine::VulkanFogOfWarPipelines::FogVertex>& src)
+			-> Engine::VulkanFogOfWarPipelines::FogDrawRange
+			{
+				Engine::VulkanFogOfWarPipelines::FogDrawRange out{};
+				if (src.empty()) return out;
+
+				const uint32_t need = (uint32_t)src.size();
+				if (fog.cursorVertices + need > fog.capacityVertices)
+				{
+					// In your style: assert or clamp
+					EE_CORE_ASSERT(false, "Fog VB overflow");
+					return out;
+				}
+
+				out.firstVertex = fog.cursorVertices;
+				out.vertexCount = need;
+
+				std::memcpy(
+					(uint8_t*)fog.mapped + out.firstVertex * sizeof(Engine::VulkanFogOfWarPipelines::FogVertex),
+					src.data(),
+					need * sizeof(Engine::VulkanFogOfWarPipelines::FogVertex));
+
+				fog.cursorVertices += need;
+				return out;
+			};
+
+		r.fan = append(fanTris);
+		r.quad = append(quadTris);
+
+		s_VulkanData.Fog.submitResult = r;
+
+	}
+
 
 
 	void VulkanRenderer2D::SubmitCPUExplosion(glm::vec2 HitWorldPos, float radiWorld, uint32_t damage)
@@ -2407,6 +2570,13 @@ namespace Engine {
 		cpuexplosion.radiWorld = radiWorld;
 		cpuexplosion.damage = damage;
 		s_CPUExplosionsData.CPUExplosions.push_back(cpuexplosion);
+	}
+
+	void VulkanRenderer2D::SubmitPlayerData(glm::vec2 playerPos, glm::vec2 camerapos)
+	{
+		s_PlayerData.PlayerPos = playerPos;
+		s_PlayerData.CameraPos = camerapos;
+
 	}
 	
 	

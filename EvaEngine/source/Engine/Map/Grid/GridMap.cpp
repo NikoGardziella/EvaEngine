@@ -227,7 +227,7 @@ namespace Engine
             }
         }
 
-        
+        RebuildSubcellBuckets();
     }
 
 
@@ -792,10 +792,7 @@ namespace Engine
             
             Engine::VulkanRenderer2D::DrawLineRect(model, outline, -1.0f);
 
-            // (Optional) draw the edge centerline to visually confirm orientation:
-            // glm::vec2 p0 = obb.center - T * obb.halfExtents.x;
-            // glm::vec2 p1 = obb.center + T * obb.halfExtents.x;
-            // Engine::VulkanRenderer2D::DrawLine(p0, p1, outline);
+          
         }
     }
 
@@ -823,4 +820,49 @@ namespace Engine
         m_debugRects.push_back({ wmin, wmax, color });
     }
 
+
+    void GridMap::RebuildSubcellBuckets()
+    {
+        m_cellToSubcells.clear();
+        m_cellToSubcells.reserve(m_blockedSubCells.size() * 2);
+
+        for (int i = 0; i < (int)m_blockedSubCells.size(); ++i)
+        {
+            const SubCellOBB& obb = m_blockedSubCells[i];
+
+            // Bucket by iso cell of the OBB center
+            glm::ivec2 cell = IsoTileUtils::WorldToIsoCell(obb.center);
+
+            m_cellToSubcells[PackXY(cell.x, cell.y)].push_back(i);
+        }
+    }
+
+    bool GridMap::IsPointBlocked_Bucketed(const glm::vec2& P, float padding) const
+    {
+        glm::ivec2 c = IsoTileUtils::WorldToIsoCell(P);
+
+        // Check this cell + neighbors (important because your OBBs can sit on edges)
+        for (int oy = -1; oy <= 1; ++oy)
+            for (int ox = -1; ox <= 1; ++ox)
+            {
+                uint64_t key = PackXY(c.x + ox, c.y + oy);
+                auto it = m_cellToSubcells.find(key);
+                if (it == m_cellToSubcells.end())
+                    continue;
+
+                const std::vector<int>& indices = it->second;
+                for (int idx : indices)
+                {
+                    // defensive (in case of stale data)
+                    if ((unsigned)idx >= (unsigned)m_blockedSubCells.size())
+                        continue;
+
+                    const SubCellOBB& obb = m_blockedSubCells[idx];
+                    if (GridUtils::PointInSubCellOBB_Padded(P, obb, padding))
+                        return true;
+                }
+            }
+
+        return false;
+    }
 }

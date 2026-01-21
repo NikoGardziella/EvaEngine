@@ -9,6 +9,7 @@ namespace Engine {
     {
         CreateSwapchain();
         CreateImageViews();
+        EE_CORE_INFO("Depth format = {}", (int)m_depthFormat);
 
     }
 
@@ -91,7 +92,6 @@ namespace Engine {
             tracked.mipLevels = 1;
             tracked.layers = 1;
         }
-        
     }
 
     void VulkanSwapchain::CreateImageViews()
@@ -240,8 +240,16 @@ namespace Engine {
 
        
         m_depthFormat = FindSupportedDepthFormat(
-            { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT_S8_UINT },
+            { VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D32_SFLOAT },
             VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+        VkImageAspectFlags aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+        if (m_depthFormat == VK_FORMAT_D24_UNORM_S8_UINT ||
+            m_depthFormat == VK_FORMAT_D32_SFLOAT_S8_UINT)
+        {
+            aspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
+        }
 
         m_depthImages.resize(imageCount);
         m_depthMemories.resize(imageCount);
@@ -256,7 +264,7 @@ namespace Engine {
 
             // 3) Create depth view
             m_depthImageViews[i] = VulkanUtils::CreateImageView(m_depthImages[i], m_depthFormat,
-                VK_IMAGE_ASPECT_DEPTH_BIT, m_device);
+                aspect, m_device);
         }
 
         EE_CORE_INFO("Swapchain color + game buffers + depth images created");

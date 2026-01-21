@@ -9,26 +9,23 @@ layout(push_constant) uniform PC {
     vec2 playerPos;
     float visRadius;
     float time;
+    uint flags;
 } pc;
 
 void main()
 {
-    // Check if this is the screen-space quad (NDC coordinates)
-    if (abs(inPos.x) <= 1.01 && abs(inPos.y) <= 1.01)
+    if ((pc.flags & 1u) != 0u)
     {
-        gl_Position = vec4(inPos.xy, 0.0, 1.0);
+        gl_Position = vec4(inPos, 0, 1);
         fragScreenPos = inPos;
-        
-        // We need actual world position - calculate from inverse VP
-        // Since inverse() is expensive, let's use screen position to derive it
-        fragWorldPos = vec2(0.0); // Will use screen pos in fragment shader
+        fragWorldPos = vec2(0);
     }
     else
     {
-        // World-space geometry (visibility fan)
+        vec4 clip = pc.uVP * vec4(inPos, 0, 1);
+        gl_Position = clip;
         fragWorldPos = inPos;
-        fragScreenPos = (pc.uVP * vec4(inPos, 0.0, 1.0)).xy;
-        gl_Position = pc.uVP * vec4(inPos.xy, 0.0, 1.0);
+        fragScreenPos = clip.xy / clip.w;
     }
 }
 
@@ -43,6 +40,7 @@ layout(push_constant) uniform PC {
     vec2 playerPos;
     float visRadius;
     float time;
+    uint flags;
 } pc;
 
 float hash(vec2 p) {
@@ -77,48 +75,40 @@ float fbm(vec2 p) {
     }
     return value;
 }
-
 void main()
 {
-    // For screen-space quad, use screen position to generate world-like coordinates
-    // This creates variation across the screen
-    vec2 samplePos = fragScreenPos * 20.0 + pc.playerPos * 0.5;
-    
-    // Multiple animated noise layers
+    vec2 uv = fragScreenPos * 0.5 + 0.5; // 0..1
+
+    // screen-space noise domain
+    vec2 samplePos = uv * 12.0 + pc.playerPos * 0.02; // optional world anchoring
+
     float t = pc.time;
-    vec2 uv1 = samplePos * 0.3 + vec2(t * 0.1, t * 0.08);
-    vec2 uv2 = samplePos * 0.5 + vec2(-t * 0.15, t * 0.12);
-    vec2 uv3 = samplePos * 1.0 + vec2(t * 0.05, -t * 0.07);
-    
+
+    vec2 uv1 = samplePos * 0.30 + vec2(t * 0.10,  t * 0.08);
+    vec2 uv2 = samplePos * 0.55 + vec2(-t * 0.15, t * 0.12);
+    vec2 uv3 = samplePos * 1.10 + vec2(t * 0.05, -t * 0.07);
+
     float n1 = fbm(uv1);
     float n2 = fbm(uv2);
     float n3 = noise(uv3);
-    
-    // Create dramatic wispy patterns
+
     float wisps = pow(abs(n1 - n2), 1.5);
-    float detail = n3;
-    
-    // Combine for layered effect
-    float fogPattern = n1 * 0.4 + wisps * 0.4 + detail * 0.2;
-    
-    // Create variation in density
+    float fogPattern = n1 * 0.4 + wisps * 0.4 + n3 * 0.2;
+
     float density = smoothstep(0.3, 0.7, fogPattern);
-    
-    // Color variation based on pattern
-    vec3 color1 = vec3(0.01, 0.01, 0.02);  // Very dark
-    vec3 color2 = vec3(0.04, 0.05, 0.08);  // Dark blue-grey
-    vec3 color3 = vec3(0.08, 0.09, 0.12);  // Lighter grey
-    
+
+    vec3 color1 = vec3(0.01, 0.01, 0.02);
+    vec3 color2 = vec3(0.04, 0.05, 0.08);
+    vec3 color3 = vec3(0.08, 0.09, 0.12);
+
     vec3 fogColor = mix(color1, color2, fogPattern);
     fogColor = mix(fogColor, color3, wisps);
-    
-    // Add some brightness variation
+
     float brightness = 0.85 + sin(t * 0.3 + fogPattern * 6.28) * 0.1;
-    
-    // Final alpha with more variation
+
     float alpha = 0.5 + density * 0.4;
     alpha *= brightness;
     alpha = clamp(alpha, 0.4, 0.95);
-    
+
     outColor = vec4(fogColor, alpha);
 }
