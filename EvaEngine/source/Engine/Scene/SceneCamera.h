@@ -175,7 +175,7 @@ namespace Engine {
 			
 		}
 
-		glm::vec2 SceneCamera::WorldToScreen(const glm::vec3& worldPosition, const glm::mat4& cameraTransform) const
+		glm::vec2 WorldToScreen(const glm::vec3& worldPosition, const glm::mat4& cameraTransform) const
 		{
 			EE_PROFILE_FUNCTION();
 

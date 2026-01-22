@@ -25,7 +25,11 @@ namespace Engine {
 
 
 
-#define EE_FILE_NAME (__FILE__ + std::string_view(__FILE__).rfind('\\') + 1)  // Windows path separator
+#define EE_FILE_NAME ([]() constexpr { \
+    std::string_view sv(__FILE__); \
+    auto pos = sv.rfind('\\'); \
+    return pos == std::string_view::npos ? sv : sv.substr(pos + 1); \
+}())
 
 //#define EE_FILE_NAME (__FILE__ + std::string_view(__FILE__).rfind('/') + 1)  // Unix path separator
 
