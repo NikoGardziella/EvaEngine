@@ -19,6 +19,7 @@
 #include "Utils/EditorUtils.h"
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 #include <Engine/Scene/Components/Spawning/NpcSpawnControllerComponent.h>
+#include <Engine/Scene/Components/Player/PlayerVisionComponent.h>
 
 
 namespace Engine {
@@ -1497,6 +1498,19 @@ namespace Engine {
                 if (newEntity)
                 {
                     m_sceneHierarchyPanelScene->GetRegistry().get<ProjectileComponent>(newEntity) = component;
+                }
+
+            });
+
+        DrawComponent<PlayerVisionComp>("Player Vision", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
+            {
+
+                ImGui::DragFloat("Vision distance", &component.visionDistanceW, 0.01, 0.0f, 20.0f);
+                
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                if (newEntity)
+                {
+                    m_sceneHierarchyPanelScene->GetRegistry().get<PlayerVisionComp>(newEntity) = component;
                 }
 
             });

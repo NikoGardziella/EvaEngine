@@ -1996,6 +1996,8 @@
     <ClInclude Include="source\Engine\Scene\Components\UI\HUDStateComponent.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.h" />
     <ClInclude Include="source\Engine\Map\FogOfWar\FogOfWar.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Player\PlayerVisionComponent.h" />
+    <ClInclude Include="source\Engine\Renderer\Utils\PlayerData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">

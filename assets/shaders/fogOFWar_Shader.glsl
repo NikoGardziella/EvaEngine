@@ -68,13 +68,15 @@ vec2 WorldFromNdc(vec2 ndcXY)
     return p.xy;
 }
 
-float hash(vec2 p) {
+float hash(vec2 p)
+{
     p = fract(p * vec2(123.34, 456.21));
     p += dot(p, p + 45.32);
     return fract(p.x * p.y);
 }
 
-float noise(vec2 p) {
+float noise(vec2 p)
+{
     vec2 i = floor(p);
     vec2 f = fract(p);
     vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
@@ -87,11 +89,13 @@ float noise(vec2 p) {
     return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 }
 
-float fbm(vec2 p) {
+float fbm(vec2 p)
+{
     float value = 0.0;
     float amplitude = 0.5;
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
+    {
         value += amplitude * noise(p);
         p *= 2.0;
         amplitude *= 0.5;
@@ -99,72 +103,69 @@ float fbm(vec2 p) {
     return value;
 }
 
-
 void main()
 {
     // World position directly from vertex
     vec2 worldPos = ((pc.flags & 1u) != 0u) ? WorldFromNdc(vNdc) : fragWorldPos;
-
-      
     
     // Fog pattern in WORLD space
     vec2 samplePos = worldPos * 0.5;
-
     float t = pc.time;
     vec2 uv1 = samplePos * 0.30 + vec2(t * 0.10,  t * 0.08);
     vec2 uv2 = samplePos * 0.55 + vec2(-t * 0.15, t * 0.12);
     vec2 uv3 = samplePos * 1.10 + vec2(t * 0.05, -t * 0.07);
-
+    
     float n1 = fbm(uv1);
     float n2 = fbm(uv2);
     float n3 = noise(uv3);
-
+    
     float wisps = pow(abs(n1 - n2), 1.5);
     float fogPattern = n1 * 0.4 + wisps * 0.4 + n3 * 0.2;
     float density = smoothstep(0.3, 0.7, fogPattern);
-
+    
     vec3 color1 = vec3(0.01, 0.01, 0.02);
     vec3 color2 = vec3(0.04, 0.05, 0.08);
     vec3 color3 = vec3(0.08, 0.09, 0.12);
-
+    
     vec3 fogColor = mix(color1, color2, fogPattern);
     fogColor = mix(fogColor, color3, wisps);
-
+    
     float brightness = 0.85 + sin(t * 0.3 + fogPattern * 6.2831853) * 0.1;
-
+    
     float alpha = 0.5 + density * 0.4;
     alpha *= brightness;
+    
 
-    // ===================================================================
-    // Distance calculation in SCREEN SPACE to match projected oval shape
-    // ===================================================================
+    // Project player position to screen space
+    vec4 playerClip = pc.uVP * vec4(pc.playerPos, 0.0, 1.0);
+    vec2 playerScreen = playerClip.xy / max(abs(playerClip.w), 1e-6);
+    
+    // Project radius along X axis
+    vec4 radiusXClip = pc.uVP * vec4(pc.playerPos + vec2(pc.visRadius, 0.0), 0.0, 1.0);
+    vec2 radiusXScreen = radiusXClip.xy / max(abs(radiusXClip.w), 1e-6);
+    float screenRadiusX = length(radiusXScreen - playerScreen);
+    
+    // Project radius along Y axis
+    vec4 radiusYClip = pc.uVP * vec4(pc.playerPos + vec2(0.0, pc.visRadius), 0.0, 1.0);
+    vec2 radiusYScreen = radiusYClip.xy / max(abs(radiusYClip.w), 1e-6);
+    float screenRadiusY = length(radiusYScreen - playerScreen);
     
     // Project fragment world position to screen space
     vec4 fragClip = pc.uVP * vec4(worldPos, 0.0, 1.0);
     vec2 fragScreen = fragClip.xy / max(abs(fragClip.w), 1e-6);
     
-    // Project player position to screen space
-    vec4 playerClip = pc.uVP * vec4(pc.playerPos, 0.0, 1.0);
-    vec2 playerScreen = playerClip.xy / max(abs(playerClip.w), 1e-6);
+    // Calculate ellipse distance (normalized by both radii)
+    vec2 screenDiff = fragScreen - playerScreen;
+    float normalizedDist = length(vec2(screenDiff.x / screenRadiusX, screenDiff.y / screenRadiusY));
     
-    // Distance in screen space
-    float screenDist = length(fragScreen - playerScreen);
+    // Fade at edge of visibility (matches elliptical shape)
+    //float edgeFade = smoothstep(0.97, 1.03, normalizedDist);
     
-    // Project the visibility radius to screen space
-    vec4 radiusClip = pc.uVP * vec4(pc.playerPos + vec2(pc.visRadius, 0.0), 0.0, 1.0);
-    vec2 radiusScreen = radiusClip.xy / max(abs(radiusClip.w), 1e-6);
-    float screenRadius = length(radiusScreen - playerScreen);
-    
-    // Normalized distance (1.0 = at the edge of visibility)
-    float normalizedDist = screenDist / max(screenRadius, 1e-6);
-
-    // Fade at edge of visibility (oval-shaped due to camera projection)
-    //float edgeFade = smoothstep(0.95, 1.05, normalizedDist);
     //float distanceFromEdge = abs(normalizedDist - 1.0);
-   // float isNearEdge = 1.0 - smoothstep(0.0, 0.15, distanceFromEdge);
-
-    //alpha = mix(alpha, alpha * edgeFade, isNearEdge);
+   // float isNearEdge = 1.0 - smoothstep(0.0, 0.06, distanceFromEdge);
+    
+   // alpha = mix(alpha, alpha * edgeFade, isNearEdge);
     alpha = clamp(alpha, 0.0, 0.95);
-
+    
     outColor = vec4(fogColor, alpha);
 }

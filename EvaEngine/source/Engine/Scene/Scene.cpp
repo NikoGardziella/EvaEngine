@@ -49,6 +49,8 @@
 #include <Engine/UI/WeaponHUD.h>
 #include "Components/UI/HUDStateComponent.h"
 #include <Engine/Map/FogOfWar/FogOfWar.h>
+#include "Components/Player/PlayerVisionComponent.h"
+#include <Engine/Renderer/Utils/PlayerData.h>
 
 
 namespace Engine {
@@ -487,8 +489,8 @@ namespace Engine {
         m_cullingSystem3D = std::make_shared<CullingSystem3D>();
         m_transformSystem3D = std::make_shared<TransformSystem3D>();
 
-       // Entity spwanController = CreateEntity("spawn controller");
-       // spwanController.AddComponent<NpcSpawnControllerComponent>();
+        Entity spwanController = CreateEntity("spawn controller");
+        spwanController.AddComponent<NpcSpawnControllerComponent>();
 
 
         // UI
@@ -610,10 +612,14 @@ namespace Engine {
         glm::vec2 playerPos;
         auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent, SpriteRendererComponent>();
         uint64_t playerID = 0;
+        PlayerData playerStateData;
 
         Entity playerEntity = Entity{};
         for (auto entity : playerView)
         {
+
+            playerEntity = Entity{ entity, this };
+
             auto& playerTransform = playerView.get<Engine::TransformComponent>(entity);
             playerPos.x = playerTransform.Translation.x;
             playerPos.y = playerTransform.Translation.y;
@@ -622,11 +628,23 @@ namespace Engine {
             float y = camerapos.y;
 
 
-            VulkanRenderer2D::SubmitPlayerData(playerPos, camerapos);
+
+            playerStateData.CameraPos = camerapos;
+            playerStateData.PlayerPos = playerPos;
+            if (PlayerVisionComp* visionCOmp = playerEntity.TryGetComponent<PlayerVisionComp>())
+            {
+                playerStateData.visionRadiusW = visionCOmp->visionDistanceW;
+            }
+            else
+            {
+                playerStateData.visionRadiusW = 1.0f;
+            }
+
+            VulkanRenderer2D::SubmitPlayerData(playerStateData);
 
             auto& playerIDComp = playerView.get<Engine::IDComponent>(entity);
             playerID = playerIDComp.ID;
-            playerEntity = Entity{ entity, this };
+            
 
             if (!playerEntity.HasComponent<DriverComponent>())
             {
@@ -704,7 +722,8 @@ namespace Engine {
               CharacterAnimStateComponent& CharacterAnimStateComp = playerEntity.AddComponent<CharacterAnimStateComponent>();
               HUDStateComponent& HUDStateComp = playerEntity.AddComponent<HUDStateComponent>(); 
               AmmoComponent& AmmoComp = playerEntity.AddComponent<AmmoComponent>();
-
+              PlayerVisionComp& visionComp = playerEntity.AddComponent<PlayerVisionComp>();
+              visionComp.visionDistanceW = 10.0f;
               /// there will bne day i will move this
             }
             
@@ -724,7 +743,7 @@ namespace Engine {
         {   
 
 
-            VisibleSet& visibleSet = m_cullingSystem3D->BuildVisible(this, mainCameraComp->Camera, *m_transformSystem3D, cameraTransform);
+            VisibleSet& visibleSet = m_cullingSystem3D->BuildVisible(this, mainCameraComp->Camera, *m_transformSystem3D, cameraTransform, m_fogOfWar);
 
             m_renderSystem3D.Render(visibleSet, this, *m_transformSystem3D,
                 AssetManager::GetMeshRegistry(), AssetManager::GetMaterialRegistry());
@@ -738,7 +757,7 @@ namespace Engine {
             Engine::VulkanRenderer3D::Begin3DScene(mainCameraComp->Camera.GetProjection(), cameraView);
            
             
-            m_fogOfWar->DrawFogOfWar(playerPos, mainCameraComp->Camera);
+            m_fogOfWar->DrawFogOfWar(playerStateData, mainCameraComp->Camera, cameraTransform);
 
             glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
 

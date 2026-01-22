@@ -6,6 +6,8 @@
 #include <Engine/Scene/Entity.h>
 #include <Engine/Animation/3D/VisibleSet.h>
 #include <glm/gtc/matrix_access.hpp>
+#include <Engine/Core/Core.h>
+#include <Engine/Map/FogOfWar/FogOfWar.h>
 
 namespace Engine {
 
@@ -42,7 +44,8 @@ namespace Engine {
 
 
 
-    VisibleSet CullingSystem3D::BuildVisible(Scene* scene, const Camera& cam, const TransformSystem3D& xforms, const glm::mat4& cameraWorld)
+    VisibleSet CullingSystem3D::BuildVisible(Scene* scene, const Camera& cam,
+        const TransformSystem3D& xforms, const glm::mat4& cameraWorld, Ref<FogOfWar> fogOfwarRef)
     {
         EE_PROFILE_FUNCTION();
 
@@ -88,8 +91,10 @@ namespace Engine {
                         break;
                     }
                 }
+                glm::vec2 pos = glm::vec2((*Wptr)[3].x, (*Wptr)[3].y);
+                bool npcInFog = fogOfwarRef->IsPointVisible(pos);
 
-                if (inside)
+                if (inside && npcInFog)
                 {
                     vis.entities.push_back(e);
                 }

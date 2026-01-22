@@ -85,6 +85,9 @@ namespace Engine {
 
 		void WriteProfile(const ProfileResult& result)
 		{
+
+			
+
 			std::stringstream json;
 
 			json << std::setprecision(3) << std::fixed;
@@ -94,7 +97,9 @@ namespace Engine {
 			json << "\"name\":\"" << result.Name << "\",";
 			json << "\"ph\":\"X\",";
 			json << "\"pid\":0,";
-			json << "\"tid\":" << result.ThreadID << ",";
+
+			uint32_t tid = (uint32_t)std::hash<std::thread::id>{}(result.ThreadID);
+			json << "\"tid\":" << tid << ",";
 			json << "\"ts\":" << result.Start.count();
 			json << "}";
 
@@ -104,11 +109,14 @@ namespace Engine {
 				m_OutputStream << json.str();
 				m_OutputStream.flush();
 			}
-
-			
-			
-
-
+			else
+			{
+				// Log warning: trying to write profile without active session
+				if (Engine::Log::GetCoreLogger())
+				{
+					EE_CORE_WARN("Attempted to write profile '{}' without active session", result.Name);
+				}
+			}
 		}
 
 		static Instrumentor& Get()
@@ -180,6 +188,9 @@ namespace Engine {
 
 		void Stop()
 		{
+			if (m_Stopped)
+				return;
+
 			auto endTimepoint = std::chrono::steady_clock::now();
 			auto highResStart = FloatingPointMicroseconds{ m_StartTimepoint.time_since_epoch() };
 			m_elapsedTime = std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint).time_since_epoch() - std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimepoint).time_since_epoch();

@@ -239,7 +239,6 @@ namespace Engine {
 
                 if (ImGui::MenuItem("Exit"))
                 {
-                    
                     //vkDeviceWaitIdle(VulkanContext::Get()->GetDeviceManager().GetDevice());
                     Engine::Application::Get().Close();
                 }

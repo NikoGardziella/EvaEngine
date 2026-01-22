@@ -74,6 +74,7 @@ namespace Engine
 
 	void Application::Close()
 	{
+
 		m_isRunning = false;
 	}
 
@@ -122,7 +123,9 @@ namespace Engine
 			Renderer::EndFrame();
 
 			
-		}	
+		}
+		EE_PROFILE_END_SESSION();
+
 	}
 
 	void Application::OnEvent(Event& e)

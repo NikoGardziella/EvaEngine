@@ -8,6 +8,8 @@
 #include <Engine/Map/Grid/GridUtils/GridUtils.h>
 #include "Engine/Map/Utils/IsoTileUtils.h"
 #include <Engine/Debug/Instrumentor.h>
+#include <Engine/Scene/SceneCamera.h>
+#include <glm/fwd.hpp>
 
 
 namespace Engine {
@@ -24,15 +26,17 @@ namespace Engine {
         m_gridRef = gridRef;
     }
 
-    void FogOfWar::DrawFogOfWar(glm::vec2 playerPos, const SceneCamera& cam)
+    void FogOfWar::DrawFogOfWar(PlayerData playerStateData, const SceneCamera& cam, const glm::mat4& transform)
     {
         EE_PROFILE_FUNCTION();
 
         std::vector<glm::vec2> outPtsW;
-        float radiusW = 10.0f;
-        int numRays = 100;
+        float radiusW = playerStateData.visionRadiusW;
+        int numRays = 50;
 
-        BuildVisibilityPolygon(playerPos, radiusW, numRays, outPtsW);
+        const glm::mat4 vp = cam.GetProjection() * glm::inverse(transform);
+
+        BuildVisibilityPolygon(playerStateData.PlayerPos, radiusW, numRays, outPtsW, vp);
         //DebugDrawVisibilityPoly(playerPos, outPtsW);
 
         std::vector<Engine::VulkanFogOfWarPipelines::FogVertex> fanTris, quadTris;
@@ -41,9 +45,9 @@ namespace Engine {
         std::vector<glm::vec2> smoothed = outPtsW;
         SmoothVisibilityPoly(outPtsW, smoothed, 0.50f);// smaller = smoother
 
-        BuildFogFan(playerPos, smoothed, fanTris);
+        BuildFogFan(playerStateData.PlayerPos, smoothed, fanTris);
 
-
+        m_currentVisibilityPolygon = smoothed;
         const std::array<glm::vec2, 2>& camBounds = cam.GetViewportBounds();
 
         glm::vec2 b0 = SceneCamera::ArrayAt(camBounds, SceneCamera::CameraBounds::min);
@@ -57,8 +61,35 @@ namespace Engine {
         VulkanRenderer2D::SubmitFogGeometry(fanTris, quadTris);
     }
 
+    bool FogOfWar::IsPointVisible(glm::vec2 worldPos) const
+    {
+        return IsPointInVisibilityPolygon(worldPos, m_currentVisibilityPolygon);
+    }
 
+    // Add this to your FogOfWar or GridMap class
+    bool FogOfWar::IsPointInVisibilityPolygon(glm::vec2 point, const std::vector<glm::vec2>& visibilityPolygon) const
+    {
+        if (visibilityPolygon.size() < 3)
+            return false;
 
+        // Point-in-polygon test (ray casting algorithm)
+        bool inside = false;
+        int n = (int)visibilityPolygon.size();
+
+        for (int i = 0, j = n - 1; i < n; j = i++)
+        {
+            glm::vec2 vi = visibilityPolygon[i];
+            glm::vec2 vj = visibilityPolygon[j];
+
+            if ((vi.y > point.y) != (vj.y > point.y) &&
+                (point.x < (vj.x - vi.x) * (point.y - vi.y) / (vj.y - vi.y) + vi.x))
+            {
+                inside = !inside;
+            }
+        }
+
+        return inside;
+    }
 
     void FogOfWar::SmoothVisibilityPoly(const std::vector<glm::vec2>& cur, std::vector<glm::vec2>& inout, float alpha /*0..1*/)
     {
@@ -78,20 +109,46 @@ namespace Engine {
     }
 
     void FogOfWar::BuildVisibilityPolygon(const glm::vec2& originW, float radiusW,
-        int numRays, std::vector<glm::vec2>& outPtsW) const
+        int numRays, std::vector<glm::vec2>& outPtsW, const glm::mat4& viewProjection) const
     {
         outPtsW.clear();
         outPtsW.reserve((size_t)numRays);
 
         const float twoPi = 6.28318530718f;
 
+        // Determine the isometric stretch factor
+
+        glm::vec4 originClip = viewProjection * glm::vec4(originW, 0.0f, 1.0f);
+        glm::vec2 originNDC = glm::vec2(originClip.x, originClip.y) / originClip.w;
+
+        // Test how 1 unit in world X maps to screen
+        glm::vec4 xClip = viewProjection * glm::vec4(originW.x + 1.0f, originW.y, 0.0f, 1.0f);
+        glm::vec2 xNDC = glm::vec2(xClip.x, xClip.y) / xClip.w;
+        float xStretch = glm::length(xNDC - originNDC);
+
+        // Test how 1 unit in world Y maps to screen
+        glm::vec4 yClip = viewProjection * glm::vec4(originW.x, originW.y + 1.0f, 0.0f, 1.0f);
+        glm::vec2 yNDC = glm::vec2(yClip.x, yClip.y) / yClip.w;
+        float yStretch = glm::length(yNDC - originNDC);
+
+        // Inverse of the screen stretch
+        float radiusX = radiusW * (yStretch / xStretch);
+        float radiusY = radiusW;
+
         for (int i = 0; i < numRays; ++i)
         {
             float a = twoPi * (float(i) / float(numRays));
-            glm::vec2 dir = glm::normalize(glm::vec2(std::cos(a), std::sin(a)));
+
+            // Create ellipse in world space
+            float x = std::cos(a) * radiusX;
+            float y = std::sin(a) * radiusY;
+            glm::vec2 ellipseDir = glm::normalize(glm::vec2(x, y));
+
+            // Raycast with ellipse-adjusted length
+            float maxDist = glm::length(glm::vec2(x, y));
 
             bool hit = false;
-            glm::vec2 p = RaycastFirstBlock(originW, dir, radiusW, &hit);
+            glm::vec2 p = RaycastFirstBlock(originW, ellipseDir, maxDist, &hit);
 
             outPtsW.push_back(p);
         }
@@ -157,7 +214,7 @@ namespace Engine {
         float radiusW = 10.0f;
         int numRays = 100;
 
-        BuildVisibilityPolygon(playerPos, radiusW, numRays, outPtsW);
+        //BuildVisibilityPolygon(playerPos, radiusW, numRays, outPtsW);
         DebugDrawVisibilityPoly(playerPos, outPtsW);
     }
 

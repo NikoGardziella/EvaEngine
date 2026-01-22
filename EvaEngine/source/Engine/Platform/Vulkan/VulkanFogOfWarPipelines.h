@@ -28,13 +28,14 @@ namespace Engine {
             glm::vec2 pos;
         };
 
-        struct FogPC {
-            glm::mat4 uVP;        // 64 bytes (offset 0)
-            glm::vec2 playerPos;  // 8 bytes  (offset 64)
-            float visRadius;      // 4 bytes  (offset 72)
-            float time;           // 4 bytes  (offset 76)
+        struct alignas(16) FogPC {
+            glm::mat4 uVP;
+            glm::mat4 uInvVP;
+            glm::vec2 playerPos;
+            float visRadius;
+            float time;
             uint32_t flags;
-            // Total: 80 bytes
+            uint32_t _pad0; // pad to 16-byte multiple
         };
         //static_assert(sizeof(FogPC) == 80, "FogPC push constant size must match GLSL");
 

@@ -1,5 +1,7 @@
 #pragma once
 #include <Engine/Renderer/Camera.h>
+#include <Engine/Core/Core.h>
+#include <Engine/Map/FogOfWar/FogOfWar.h>
 
 namespace Engine {
 
@@ -11,7 +13,7 @@ namespace Engine {
 	class CullingSystem3D
 	{
 		public:
-			VisibleSet BuildVisible(Scene* scene, const Camera& cam, const TransformSystem3D& xforms, const glm::mat4& cameraWorld);
+			VisibleSet BuildVisible(Scene* scene, const Camera& cam, const TransformSystem3D& xforms, const glm::mat4& cameraWorld, Ref<FogOfWar> fogOfwarRef);
 	};
 
 

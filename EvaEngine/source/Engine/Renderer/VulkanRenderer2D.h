@@ -165,11 +165,7 @@ namespace Engine {
 		std::vector<CPUExplosion> CPUExplosions;
 	};
 
-	struct PlayerData
-	{
-		glm::vec2	PlayerPos;
-		glm::vec2	CameraPos;
-	};
+	
 
 	struct CollisionData
 	{
@@ -302,7 +298,7 @@ namespace Engine {
 
 		static void SubmitCPUExplosion(glm::vec2 HitWorldPos, float radiWorld, uint32_t damage);
 
-		static void SubmitPlayerData(glm::vec2 playerPos, glm::vec2 cameraPo);
+		static void SubmitPlayerData(PlayerData playerStateData);
 
 		static Renderer2D::Statistics GetStats();
 		static EffectPushConstants& GetEffects() { return s_effectPushConstants;  }

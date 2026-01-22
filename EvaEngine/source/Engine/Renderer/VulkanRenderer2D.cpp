@@ -18,6 +18,7 @@
 #include <Engine/Math/HashUtils.h>
 #include "Utils/DeltaBitReader.h"
 #include "UI/VulkanUIRenderer.h"
+#include "Utils/PlayerData.h"
 
 namespace Engine {
 
@@ -1525,15 +1526,16 @@ namespace Engine {
 
 		Engine::VulkanFogOfWarPipelines::FogPC fogPC{};
 		fogPC.uVP = s_VulkanData.CameraBuffer.ViewProjection;
+		fogPC.uInvVP = glm::inverse(s_VulkanData.CameraBuffer.ViewProjection);
 		fogPC.playerPos = s_PlayerData.CameraPos;
-		fogPC.visRadius = 11.0f;
+		fogPC.visRadius = s_PlayerData.visionRadiusW;
 		fogPC.time = m_timer;
+		fogPC.flags = 0u; // world-space fan
 
 		// 1) FAN -> write stencil = 1 (world-space)
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_vulkanFogOfWarPipelines->GetStencilWritePipeline());
 
-		fogPC.flags = 0u; // world-space fan
 		vkCmdPushConstants(cmd, m_vulkanFogOfWarPipelines->GetFogOverlayPipelineLayout(),
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			0, sizeof(fogPC), &fogPC);
@@ -1557,7 +1559,8 @@ namespace Engine {
 				s_VulkanData.Fog.submitResult.quad.vertexCount, 1,
 				s_VulkanData.Fog.submitResult.quad.firstVertex, 0);
 
-		m_timer += 0.01f;
+		float fogMovementSpeed = 0.07f;
+		m_timer += fogMovementSpeed;
 	}
 
 
@@ -2572,10 +2575,11 @@ namespace Engine {
 		s_CPUExplosionsData.CPUExplosions.push_back(cpuexplosion);
 	}
 
-	void VulkanRenderer2D::SubmitPlayerData(glm::vec2 playerPos, glm::vec2 camerapos)
+	void VulkanRenderer2D::SubmitPlayerData(PlayerData playerStateData)
 	{
-		s_PlayerData.PlayerPos = playerPos;
-		s_PlayerData.CameraPos = camerapos;
+		s_PlayerData.PlayerPos = playerStateData.PlayerPos;
+		s_PlayerData.CameraPos = playerStateData.CameraPos;
+		s_PlayerData.visionRadiusW = playerStateData.visionRadiusW;
 
 	}
 	

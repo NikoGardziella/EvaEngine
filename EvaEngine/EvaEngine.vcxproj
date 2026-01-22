@@ -259,6 +259,7 @@
     <ClInclude Include="source\Engine\Renderer\UI\VulkanUIRenderer.h" />
     <ClInclude Include="source\Engine\Renderer\UniformBuffer.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
+    <ClInclude Include="source\Engine\Renderer\Utils\PlayerData.h" />
     <ClInclude Include="source\Engine\Renderer\VertexArray.h" />
     <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h" />
     <ClInclude Include="source\Engine\Scene\Component.h" />
@@ -280,6 +281,7 @@
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Player\PlayerVisionComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\3D\AnimatorComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Render\3D\MaterialRefComponent.h" />
