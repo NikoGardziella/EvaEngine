@@ -2,7 +2,7 @@
 
 #include "Engine/Renderer/Shader.h"
 #include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
+
 #include <unordered_map>
 #include <string>
 #include <vector>

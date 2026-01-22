@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/Core/Core.h"
+
 #include <Engine/Core/UUID.h>
 #include "SceneCamera.h"
 
@@ -9,7 +9,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/glm.hpp>
+
 
 #include <string>
 #include <Engine/Animation/2D/SpriteInstanceData.h>

@@ -1,6 +1,5 @@
 #include "pch.h"
-#include "Scene.h"
-#include "Engine.h"
+
 #include "Engine/UI/UIContext.h"
 
 namespace Engine {

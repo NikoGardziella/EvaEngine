@@ -1,0 +1,668 @@
+[
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationBank2D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationBank2D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationBank2D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationBank2D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationLoader2D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationLoader2D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationLoader2D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationLoader2D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationSystem2D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationSystem2D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationSystem2D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\2D\\AnimationSystem2D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\AnimationRegistry.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\AnimationRegistry.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\AnimationRegistry.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\AnimationRegistry.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\BonePaletteBuffer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\BonePaletteBuffer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\BonePaletteBuffer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\BonePaletteBuffer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\Import\\GLTFImporter.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\Import\\GLTFImporter.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\Import\\GLTFImporter.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\Import\\GLTFImporter.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\Import\\Utils\\GLTFIImporterUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\Import\\Utils\\GLTFIImporterUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\Import\\Utils\\GLTFIImporterUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\Import\\Utils\\GLTFIImporterUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\MaterialRegistry.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\MaterialRegistry.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\MaterialRegistry.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\MaterialRegistry.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\MeshRegistry.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\MeshRegistry.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\MeshRegistry.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\MeshRegistry.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\SkeletonRegistry.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\SkeletonRegistry.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\SkeletonRegistry.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\SkeletonRegistry.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\AnimUtils\\AnimUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\AnimUtils\\AnimUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\AnimUtils\\AnimUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\AnimUtils\\AnimUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\AnimationSystem3D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\AnimationSystem3D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\AnimationSystem3D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\AnimationSystem3D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\CullingSystem3D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\CullingSystem3D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\CullingSystem3D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\CullingSystem3D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\RenderSystem3D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\RenderSystem3D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\RenderSystem3D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\RenderSystem3D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\TransformSystem3D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\TransformSystem3D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\TransformSystem3D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Animation\\3D\\System\\TransformSystem3D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\AssetManager\\AssetManager.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\AssetManager\\AssetManager.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\AssetManager\\AssetManager.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\AssetManager\\AssetManager.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\AssetManager\\Font\\FontLoader.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\AssetManager\\Font\\FontLoader.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\AssetManager\\Font\\FontLoader.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\AssetManager\\Font\\FontLoader.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\AssetManagerUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\AssetManagerUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\AssetManagerUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\AssetManagerUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\TilePaletteSerializer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\TilePaletteSerializer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\TilePaletteSerializer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\TilePaletteSerializer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\TileSerializer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\TileSerializer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\TileSerializer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\AssetManager\\Utils\\TileSerializer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\Application.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\Application.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\Application.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\Application.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\Layer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\Layer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\Layer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\Layer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\LayerStack.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\LayerStack.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\LayerStack.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\LayerStack.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\Log.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\Log.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\Log.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\Log.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\UUID.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\UUID.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\UUID.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\UUID.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\Window.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\Window.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Core\\Window.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Core\\Window.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Debug\\DebugInterface.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Debug\\DebugInterface.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Debug\\DebugInterface.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Debug\\DebugInterface.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Debug\\DebugUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Debug\\DebugUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Debug\\DebugUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Debug\\DebugUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\ImGui\\ImGuiLayer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\ImGui\\ImGuiLayer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\ImGui\\ImGuiLayer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\ImGui\\ImGuiLayer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\ImGui\\imGuiBuild.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\ImGui\\imGuiBuild.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\ImGui\\imGuiBuild.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\ImGui\\imGuiBuild.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\FogOfWar\\FogOfWar.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\FogOfWar\\FogOfWar.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\FogOfWar\\FogOfWar.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\FogOfWar\\FogOfWar.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Grid\\GridMap.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Grid\\GridMap.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Grid\\GridMap.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Grid\\GridMap.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Grid\\GridUtils\\GridUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Grid\\GridUtils\\GridUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Grid\\GridUtils\\GridUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Grid\\GridUtils\\GridUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Grid\\TileCollisionMask.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Grid\\TileCollisionMask.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Grid\\TileCollisionMask.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Grid\\TileCollisionMask.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Projectile\\ProjectileVisualRegistry.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Projectile\\ProjectileVisualRegistry.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Projectile\\ProjectileVisualRegistry.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Projectile\\ProjectileVisualRegistry.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\TextureStreaming\\TextureStreamingSystem.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\TextureStreaming\\TextureStreamingSystem.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\TextureStreaming\\TextureStreamingSystem.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\TextureStreaming\\TextureStreamingSystem.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\TextureStreaming\\TextureStreamingUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\TextureStreaming\\TextureStreamingUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\TextureStreaming\\TextureStreamingUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\TextureStreaming\\TextureStreamingUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Tile\\DestrutibleTileSystem.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Tile\\DestrutibleTileSystem.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Tile\\DestrutibleTileSystem.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Tile\\DestrutibleTileSystem.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Tile\\TileManager.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Tile\\TileManager.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Tile\\TileManager.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Tile\\TileManager.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Tile\\Utils\\TileManagerUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Tile\\Utils\\TileManagerUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Map\\Tile\\Utils\\TileManagerUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Map\\Tile\\Utils\\TileManagerUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Math\\Math.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Math\\Math.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Math\\Math.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Math\\Math.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLBuffer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLBuffer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLBuffer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLBuffer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLContext.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLContext.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLContext.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLContext.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLFramebuffer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLFramebuffer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLFramebuffer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLFramebuffer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLRendererAPI.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLRendererAPI.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLRendererAPI.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLRendererAPI.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLShader.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLShader.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLShader.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLShader.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLTexture.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLTexture.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLTexture.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLTexture.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLUniformBuffer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLUniformBuffer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLUniformBuffer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLUniformBuffer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLVertexArray.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLVertexArray.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLVertexArray.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\OpenGl\\OpenGLVertexArray.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\LayerPool\\LayerPool.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\LayerPool\\LayerPool.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\LayerPool\\LayerPool.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\LayerPool\\LayerPool.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanBindlessDescriptorSet.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanBindlessDescriptorSet.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanBindlessDescriptorSet.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanBindlessDescriptorSet.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanBuffer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanBuffer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanBuffer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanBuffer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanContext.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanContext.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanContext.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanContext.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDescriptorPool.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDescriptorPool.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDescriptorPool.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDescriptorPool.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDescriptorSet.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDescriptorSet.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDescriptorSet.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDescriptorSet.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDevice.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDevice.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDevice.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanDevice.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanFogOfWarPipelines.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanFogOfWarPipelines.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanFogOfWarPipelines.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanFogOfWarPipelines.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanGraphicsPipeline.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanGraphicsPipeline.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanGraphicsPipeline.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanGraphicsPipeline.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanInstance.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanInstance.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanInstance.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanInstance.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanRendererAPI.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanRendererAPI.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanRendererAPI.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanRendererAPI.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanShader.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanShader.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanShader.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanShader.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanSwapchain.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanSwapchain.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanSwapchain.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanSwapchain.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanTexture.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanTexture.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanTexture.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanTexture.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanTrackedImage.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanTrackedImage.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanTrackedImage.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanTrackedImage.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanVertexArray.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanVertexArray.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanVertexArray.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Vulkan\\VulkanVertexArray.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsInput.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsInput.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsInput.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsInput.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsPlatformUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsPlatformUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsPlatformUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsPlatformUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsWindow.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsWindow.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsWindow.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Platform\\Windows\\WindowsWindow.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\3D\\Vulkan3DGraphicsPipeline.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\3D\\Vulkan3DGraphicsPipeline.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\3D\\Vulkan3DGraphicsPipeline.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\3D\\Vulkan3DGraphicsPipeline.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\3D\\VulkanRenderer3D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\3D\\VulkanRenderer3D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\3D\\VulkanRenderer3D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\3D\\VulkanRenderer3D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Buffer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Buffer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Buffer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Buffer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Camera.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Camera.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Camera.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Camera.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\EditorCamera.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\EditorCamera.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\EditorCamera.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\EditorCamera.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Framebuffer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Framebuffer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Framebuffer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Framebuffer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\OrthographicCamera.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\OrthographicCamera.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\OrthographicCamera.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\OrthographicCamera.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\OrthographicCameraController.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\OrthographicCameraController.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\OrthographicCameraController.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\OrthographicCameraController.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\RenderCommand.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\RenderCommand.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\RenderCommand.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\RenderCommand.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Renderer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Renderer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Renderer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Renderer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Renderer2D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Renderer2D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Renderer2D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Renderer2D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\RendererAPI.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\RendererAPI.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\RendererAPI.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\RendererAPI.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Shader.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Shader.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Shader.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Shader.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\SubTexture2D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\SubTexture2D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\SubTexture2D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\SubTexture2D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Texture.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Texture.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Texture.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Texture.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUIGraphicsPipeline.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUIGraphicsPipeline.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUIGraphicsPipeline.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUIGraphicsPipeline.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUIRenderer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUIRenderer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUIRenderer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUIRenderer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUITextGraphicsPipeline.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUITextGraphicsPipeline.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUITextGraphicsPipeline.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\UI\\VulkanUITextGraphicsPipeline.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\UniformBuffer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\UniformBuffer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\UniformBuffer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\UniformBuffer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Utils\\DeltaBitReader.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Utils\\DeltaBitReader.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\Utils\\DeltaBitReader.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\Utils\\DeltaBitReader.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\VertexArray.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\VertexArray.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\VertexArray.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\VertexArray.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\VulkanRenderer2D.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\VulkanRenderer2D.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Renderer\\VulkanRenderer2D.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Renderer\\VulkanRenderer2D.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\Entity.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\Entity.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\Entity.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\Entity.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\Scene.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\Scene.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\Scene.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\Scene.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\SceneCamera.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\SceneCamera.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\SceneCamera.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\SceneCamera.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\SceneSerializer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\SceneSerializer.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\SceneSerializer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\SceneSerializer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\SceneUtils\\SceneUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\SceneUtils\\SceneUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\SceneUtils\\SceneUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\SceneUtils\\SceneUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\SceneUtils\\SpawnUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\SceneUtils\\SpawnUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\SceneUtils\\SpawnUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\SceneUtils\\SpawnUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\TaskManager\\PhysicsTask.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\TaskManager\\PhysicsTask.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\TaskManager\\PhysicsTask.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\TaskManager\\PhysicsTask.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\TaskManager\\PhysicsTaskScheduler.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\TaskManager\\PhysicsTaskScheduler.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\Scene\\TaskManager\\PhysicsTaskScheduler.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\Scene\\TaskManager\\PhysicsTaskScheduler.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\UI\\HUDSystem.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\UI\\HUDSystem.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\UI\\HUDSystem.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\UI\\HUDSystem.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\UI\\UIUtils\\UIUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\Engine\\UI\\UIUtils\\UIUtils.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\Engine\\UI\\UIUtils\\UIUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\Engine\\UI\\UIUtils\\UIUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\pch.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\EvaEngine\\source\\pch.cpp",
+  "file": "C:\\EvaEngine\\EvaEngine\\source\\pch.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\EvaEngine\\source\\pch.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\Editor\\source\\EditorApp.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\Editor\\source\\EditorApp.cpp",
+  "file": "C:\\EvaEngine\\Editor\\source\\EditorApp.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\Editor\\source\\EditorApp.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\Editor\\source\\EditorLayer.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\Editor\\source\\EditorLayer.cpp",
+  "file": "C:\\EvaEngine\\Editor\\source\\EditorLayer.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\Editor\\source\\EditorLayer.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\ContentBrowserPanel.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\Editor\\source\\Panels\\ContentBrowserPanel.cpp",
+  "file": "C:\\EvaEngine\\Editor\\source\\Panels\\ContentBrowserPanel.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\ContentBrowserPanel.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\DebugPanel.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\Editor\\source\\Panels\\DebugPanel.cpp",
+  "file": "C:\\EvaEngine\\Editor\\source\\Panels\\DebugPanel.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\DebugPanel.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\EffectsPanel.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\Editor\\source\\Panels\\EffectsPanel.cpp",
+  "file": "C:\\EvaEngine\\Editor\\source\\Panels\\EffectsPanel.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\EffectsPanel.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\SceneHierarchyPanel.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\Editor\\source\\Panels\\SceneHierarchyPanel.cpp",
+  "file": "C:\\EvaEngine\\Editor\\source\\Panels\\SceneHierarchyPanel.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\SceneHierarchyPanel.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\TileEditorPanel.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\Editor\\source\\Panels\\TileEditorPanel.cpp",
+  "file": "C:\\EvaEngine\\Editor\\source\\Panels\\TileEditorPanel.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\TileEditorPanel.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\Utils\\EditorDebugUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\Editor\\source\\Panels\\Utils\\EditorDebugUtils.cpp",
+  "file": "C:\\EvaEngine\\Editor\\source\\Panels\\Utils\\EditorDebugUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\Utils\\EditorDebugUtils.cpp.obj"
+},
+{
+  "directory": "C:/EvaEngine/cmake_build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx86\\x86\\cl.exe  /nologo /TP -IC:\\EvaEngine\\EvaEngine\\source -IC:\\EvaEngine\\Editor\\source -IC:\\EvaEngine\\Game\\source -IC:\\EvaEngine\\EvaEngine\\vendor\\spdlog\\include -IC:\\EvaEngine\\EvaEngine\\vendor\\glm -IC:\\EvaEngine\\EvaEngine\\vendor\\stb -IC:\\EvaEngine\\EvaEngine\\vendor\\imgui -IC:\\EvaEngine\\EvaEngine\\vendor\\vulkan\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd /FoCMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\Utils\\EditorUtils.cpp.obj /FdCMakeFiles\\EvaEngine.dir\\ /FS -c C:\\EvaEngine\\Editor\\source\\Panels\\Utils\\EditorUtils.cpp",
+  "file": "C:\\EvaEngine\\Editor\\source\\Panels\\Utils\\EditorUtils.cpp",
+  "output": "CMakeFiles\\EvaEngine.dir\\Editor\\source\\Panels\\Utils\\EditorUtils.cpp.obj"
+}
+]

@@ -1,18 +1,16 @@
 #include "pch.h"
 #include "DestrutibleTileSystem.h"
-
 #include <Engine/Map/Grid/TileCollisionMask.h>
-#include <Engine/Core/Log.h>
 #include <Engine/Renderer/VulkanRenderer2D.h>
 #include <Engine/Math/HashUtils.h>
 #include <Engine/Scene/Components/Physics/PhysicsComponent.h>
 
-#include <vector>
 #include <queue>
 #include <cstdint>
 #include <algorithm>
 #include <cmath>
-#include "glm/glm.hpp"
+
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 namespace Engine {
 

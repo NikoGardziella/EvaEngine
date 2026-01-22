@@ -3,6 +3,7 @@
 
 #include "Engine/Renderer/Renderer.h"
 #include "Engine/Platform/OpenGl/OpenGLUniformBuffer.h"
+#include <Engine/Core/Assert.h>
 
 
 namespace Engine {

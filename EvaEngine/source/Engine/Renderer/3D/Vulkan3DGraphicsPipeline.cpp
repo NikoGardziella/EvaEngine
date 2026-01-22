@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Vulkan3DGraphicsPipeline.h"
 #include <cstring>
+#include <Engine/Core/Log.h>
 
 namespace Engine {
 

@@ -1,13 +1,16 @@
 #pragma once
+#include "Engine.h" 
 #include <Engine/Renderer/3D/VulkanRenderer3D.h>
-#include <vector>
 #include <Engine/Animation/3D/Import/GLTFImporter.h>
-#include <glm/fwd.hpp>
+
 #include <limits>
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
-#include <Engine/Core/Core.h>
-#include <Engine/Core/Log.h>
+
 #include <Engine/Animation/3D/SkeletonRegistry.h>
+
+#include <Engine/Animation/3D/MeshRegistry.h>
+#include <cstdint>
+#include <memory>
 
 namespace Engine {
 
@@ -16,7 +19,8 @@ namespace Engine {
 
 	public:
 
-        struct GLTFAggregator {
+        struct GLTFAggregator 
+        {
             std::vector<Vertex>   allVerts;
             std::vector<uint32_t> allIdx;
         };

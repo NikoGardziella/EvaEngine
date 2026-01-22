@@ -6,6 +6,7 @@
 #include <Engine/Scene/Entity.h>
 #include <Engine/Animation/3D/Utils/AnimationUtils.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
+#include <glm/gtc/quaternion.hpp>
 
 namespace Engine {
 

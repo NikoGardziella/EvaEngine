@@ -2,6 +2,7 @@
 #include "OrthographicCamera.h"
 
 #include "glm/gtc/matrix_transform.hpp"
+#include <Engine/Debug/Instrumentor.h>
 
 namespace Engine {
 

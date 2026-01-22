@@ -146,6 +146,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Core\Assert.h" />
+    <ClInclude Include="source\Engine\Core\Config.h" />
     <ClInclude Include="source\Engine\Map\FogOfWar\FogOfWar.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
@@ -744,6 +746,7 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Core\Assert.cpp" />
     <ClCompile Include="source\Engine\Map\FogOfWar\FogOfWar.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp" />

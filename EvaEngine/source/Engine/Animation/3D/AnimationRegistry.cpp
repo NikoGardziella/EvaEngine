@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "AnimationRegistry.h"
+#include <Engine/Core/Assert.h>
 
 
 namespace Engine {

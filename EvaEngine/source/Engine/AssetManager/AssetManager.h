@@ -13,7 +13,6 @@
 #include <Engine/Animation/3D/MeshRegistry.h>
 #include "Utils/AssetManagerUtils.h"
 #include <Engine/Core/Core.h>
-#include <glm/fwd.hpp>
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -21,6 +20,9 @@
 #include "Font/FontLoader.h"
 #include <Engine/UI/Font.h>
 
+
+#include "glm/glm.hpp"
+#include <Engine/Animation/3D/SkeletonRegistry.h>
 
 namespace Engine {
 

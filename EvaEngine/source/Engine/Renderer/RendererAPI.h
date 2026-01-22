@@ -2,6 +2,7 @@
 
 #include "glm/glm.hpp"
 #include <Engine/Platform/OpenGl/OpenGLVertexArray.h>
+#include <Engine/Core/Assert.h>
 
 namespace Engine {
 

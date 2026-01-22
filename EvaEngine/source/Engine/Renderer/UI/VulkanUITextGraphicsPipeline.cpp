@@ -9,6 +9,7 @@
 #include <Engine/Platform/Vulkan/VulkanShader.h>
 #include "VulkanUIGraphicsPipeline.h"
 #include "VulkanUIRenderer.h"
+#include <Engine/Core/Assert.h>
 
 
 namespace Engine {

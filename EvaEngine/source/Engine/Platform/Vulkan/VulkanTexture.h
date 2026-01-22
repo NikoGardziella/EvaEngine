@@ -6,6 +6,7 @@
 
 #include "glm/glm.hpp"
 #include <Engine/Animation/3D/Import/GLTFImporter.h>
+#include <Engine/Core/Core.h>
 
 namespace Engine {
 

@@ -4,10 +4,7 @@
 
 //#include <imgui/backends/imgui_impl_vulkan.h>
 
-#include "Engine/Core/Core.h"
 
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <Engine/Debug/Instrumentor.h>
 
 #include "Engine/Scene/SceneSerializer.h"
@@ -32,6 +29,9 @@
 #include <algorithm>
 #include "Engine/Math/HashUtils.h"
 #include <Engine/AssetManager/Utils/Statistics.h>
+#include <Engine/Events/KeyEvent.h>
+#include <Engine/Events/MouseEvent.h>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Engine {
 

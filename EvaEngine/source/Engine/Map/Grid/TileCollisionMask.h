@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <cstring> // for std::memcpy
 
-#include <glm/glm.hpp> // Use <glm/glm.hpp> instead of <glm/fwd.hpp>
+ // Use <glm/glm.hpp> instead of <glm/fwd.hpp>
 #include <Engine/Map/Utils/IVec2Hasher.h>
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
 #include <Engine/Renderer/Utils/DeltaBitReader.h>

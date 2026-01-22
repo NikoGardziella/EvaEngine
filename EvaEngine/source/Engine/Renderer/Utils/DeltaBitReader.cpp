@@ -2,6 +2,8 @@
 #include "DeltaBitReader.h"
 #include "DeltaBitReader.h"
 #include <cstring>
+#include <Engine/Debug/Instrumentor.h>
+#include <Engine/Core/Assert.h>
 
 namespace Engine {
 

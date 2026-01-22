@@ -11,6 +11,8 @@
 
 #include "VulkanUtils.h"
 #include <Engine/Renderer/Renderer.h>
+#include "VulkanDescriptorPool.h"
+#include <Engine/Core/Log.h>
 
 namespace Engine {
 

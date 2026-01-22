@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <glm/glm.hpp>
+
 #include <Engine.h>
 
 namespace Engine {

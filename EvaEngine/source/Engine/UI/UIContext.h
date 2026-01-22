@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Engine/Core/Core.h"
+
 #include "UIElement.h"
 
 namespace Engine {

@@ -1,8 +1,9 @@
 #pragma once
-#include "Engine/Core/Core.h"
 
-#include "glm/glm.hpp"
+#include "Engine.h" 
+
 #include <array>
+
 
 namespace Engine {
 

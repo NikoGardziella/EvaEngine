@@ -1,6 +1,9 @@
 #include "HUDSystem.h"
 #include <Engine/UI/Font.h>
 #include <Engine/AssetManager/AssetManager.h>
+#include <Engine/Scene/Entity.h>
+#include <Engine/UI/UIContext.h>
+#include <Engine/Scene/Components/UI/HUDStateComponent.h>
 
 void HUDSystem::Init(Engine::UIContext& ui, const Engine::Ref<Engine::Font>& font)
 {

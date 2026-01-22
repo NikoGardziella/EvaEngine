@@ -1,5 +1,12 @@
 #pragma once
 
+#include <Engine/Core/Config.h>
+#include <Engine/Core/Core.h>
+#include <Engine/Platform/Vulkan/VulkanShader.h>
+#include "OrthographicCamera.h"
+#include <Engine/Scene/SceneCamera.h>
+#include <vulkan/vulkan_core.h>
+
 #include "Renderer2D.h"
 #include "VertexArray.h"
 #include "Engine/Renderer/EditorCamera.h"
@@ -9,15 +16,17 @@
 #include "Engine/Platform/Vulkan/VulkanGraphicsPipeline.h"
 
 #include "vulkan/vulkan.h"
-#include <Engine/Events/Public/CollisionEvents.h>
-#include <Engine/Scene/Entity.h>
 #include <vector>
 #include <Engine/Platform/Vulkan/VulkanBindlessDescriptorSet.h>
-#include "Camera.h"
-#include "UI/VulkanUIGraphicsPipeline.h"
+
 #include <Engine/Platform/Vulkan/VulkanFogOfWarPipelines.h>
 #include "Engine/Renderer/Utils/PlayerData.h"
-#include "Engine/Renderer/UI/VulkanUIRenderer.h"
+#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
+#include <Engine/Platform/Vulkan/VulkanBuffer.h>
+#include <unordered_map>
+#include <array>
+
+#include <glm/glm.hpp>
 
 namespace Engine {
 
@@ -99,7 +108,7 @@ namespace Engine {
 		{
 			glm::mat4 ViewProjection = glm::mat4(1.0f);
 
-			glm::vec2 viewportPx;
+			glm::vec2 viewportPx = glm::vec2(1.0f);
 		};
 		CameraData CameraBuffer;
 		//Ref<UniformBuffer> CameraUniformBuffer;
@@ -234,7 +243,7 @@ namespace Engine {
 
 	
 
-
+	class VulkanUIRenderer;
 	class VulkanRenderer2D
 	{
 	
@@ -288,7 +297,7 @@ namespace Engine {
 		static void BeginScene();
 		static void EndScene();
 
-		static void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos,
+		static void SubmitDestructibleTile(const glm::vec2& worldPos,
 			const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias);
 
 		static void SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
@@ -378,7 +387,7 @@ namespace Engine {
 		Ref<VulkanTexture> m_dummyTexture;
 
 		static Ref<VulkanBindlessDescriptorSetRenderer> s_bindlessDescitproRenderer;
-		VulkanUIRenderer m_uiRenderer;
+		Ref<VulkanUIRenderer> m_uiRenderer;
 
 
 		float m_timer = 0.0f;

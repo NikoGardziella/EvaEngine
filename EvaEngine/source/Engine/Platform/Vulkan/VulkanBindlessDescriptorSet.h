@@ -1,18 +1,23 @@
 #pragma once
-#include <vulkan/vulkan.h>
+
+#include "Engine.h" 
 #include <vector>
 #include <array>
 #include <unordered_map>
 #include <memory>
-#include <glm/glm.hpp>
-#include <entt.hpp>
-#include <Engine/Scene/Components/Render/TileComponent.h>
+
 #include "LayerPool/LayerPool.h"
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
+
+#include <cstdint>
+#include <cstddef>
+
+
 
 namespace Engine {
 
     class Camera;
+    class VulkanTexture;
     class VulkanShader; // fwd
     class VulkanBindlessDescriptorSetRenderer {
 

@@ -2,6 +2,8 @@
 #include "VulkanBuffer.h"
 #include "VulkanContext.h"
 #include <Engine/AssetManager/Utils/Statistics.h>
+#include <Engine/Core/Assert.h>
+#include <Engine/Core/Log.h>
 
 namespace Engine {
 

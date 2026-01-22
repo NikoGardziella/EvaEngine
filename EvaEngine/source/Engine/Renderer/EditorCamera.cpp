@@ -4,9 +4,10 @@
 #include "Engine/Core/Input.h"
 #include <Engine/Events/MouseEvent.h>
 
-#include "Engine/Core/Core.h"
+
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <Engine/Core/Core.h>
 
 namespace Engine {
 

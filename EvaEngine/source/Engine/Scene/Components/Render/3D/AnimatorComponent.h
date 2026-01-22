@@ -1,7 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <vector>
-#include <glm/fwd.hpp>
+#include "glm/glm.hpp"
+#include <Engine/Core/Config.h>
 
 namespace Engine {
 

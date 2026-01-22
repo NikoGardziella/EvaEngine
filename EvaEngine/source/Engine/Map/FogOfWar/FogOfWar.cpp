@@ -1,15 +1,23 @@
 #include "pch.h"
+
+
 #include "FogOfWar.h"
 #include <Engine/Platform/Vulkan/VulkanFogOfWarPipelines.h>
 #include <Engine/Renderer/VulkanRenderer2D.h>
 
-#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 
-#include <Engine/Map/Grid/GridUtils/GridUtils.h>
-#include "Engine/Map/Utils/IsoTileUtils.h"
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Scene/SceneCamera.h>
+
+#include <vector>
+#include <Engine/Map/Grid/GridMap.h>
+#include <Engine/Renderer/Utils/PlayerData.h>
+
 #include <glm/fwd.hpp>
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstdint>
 
 
 namespace Engine {

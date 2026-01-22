@@ -2,6 +2,7 @@
 #include "Engine/Renderer/RendererAPI.h"
 #include <Engine/Platform/Vulkan/VulkanRendererAPI.h>
 #include "Engine/Platform/OpenGl/OpenGLRendererAPI.h"
+#include <Engine/Core/Assert.h>
 
 namespace Engine {
 

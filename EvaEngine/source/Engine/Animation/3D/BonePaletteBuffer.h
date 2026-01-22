@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <utility>
-#include <glm/glm.hpp>
+
 #include "MaterialRegistry.h"
 
 namespace Engine {

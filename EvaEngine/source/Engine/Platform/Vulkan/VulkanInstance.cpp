@@ -3,6 +3,8 @@
 #include <vector>
 #include <cstring>
 #include <GLFW/glfw3.h>
+#include <Engine/Core/Log.h>
+#include <Engine/Core/Assert.h>
 
 namespace Engine {
 

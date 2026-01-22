@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Engine/Core/Core.h"
+
 #include "Engine/Events/Event.h"
 #include "Engine/Core/Timestep.h"
+#include "Core.h"
+#include <string>
 
 namespace Engine {
 

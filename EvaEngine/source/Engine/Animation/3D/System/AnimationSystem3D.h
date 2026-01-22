@@ -3,6 +3,7 @@
 #include <Engine/Animation/3D/AnimationRegistry.h>
 #include <Engine/Animation/3D/BonePaletteBuffer.h>
 
+#include <glm/gtc/quaternion.hpp>
 
 namespace Engine {
 

@@ -16,6 +16,7 @@
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 #include <string>
 #include "Components/Vehicles/VehicleComponent.h"
+#include <Engine/Core/Assert.h>
 
 
 namespace Engine {

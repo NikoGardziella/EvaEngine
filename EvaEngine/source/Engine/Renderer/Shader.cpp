@@ -7,6 +7,7 @@
 //#include "glad/glad.h"
 #include "Engine/Core/Log.h"
 #include <Engine/Platform/Vulkan/VulkanShader.h>
+#include <Engine/Core/Assert.h>
 //#include <glm/gtc/type_ptr.hpp>
 
 

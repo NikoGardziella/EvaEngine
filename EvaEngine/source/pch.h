@@ -1,6 +1,6 @@
 #pragma once
 
-
+// STANDARD LIBRARY - Keep (rarely changes, big compilation cost)
 #include <iostream>
 #include <memory>
 #include <utility>
@@ -12,22 +12,25 @@
 #include <unordered_set>
 #include <array>
 #include <filesystem>
+#include <set>
 
-#include "Engine/Core/Log.h"
-#include "Engine/Debug/Instrumentor.h"
-
-#if EE_PLATFORM_WINDOWS
-	#include <Windows.h>
-#endif
-
-
+// Parallelism/Threading
 #include <execution>
 #include <future>
-
 #include <queue>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <functional>
 #include <atomic>
-#include <set>
+
+// ============================================================================
+// PLATFORM SPECIFIC
+// ============================================================================
+#ifdef EE_PLATFORM_WINDOWS
+#define WIN32_LEAN_AND_MEAN  // Exclude rarely-used Windows headers
+#define NOMINMAX             // Prevent Windows min/max macros
+#include <Windows.h>
+#endif
+
+// ============================================================================
+#include "Engine.h"

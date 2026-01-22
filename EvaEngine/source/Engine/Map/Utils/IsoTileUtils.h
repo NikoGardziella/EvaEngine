@@ -1,6 +1,6 @@
-#include <Engine/Core/Core.h>
 
 #include <glm/glm.hpp>
+#include <Engine/Core/Config.h>
 
 namespace Engine {
 

@@ -4,6 +4,8 @@
 #include "stb_image.h"
 #include <Engine/Core/Core.h>
 #include <glad/glad.h>
+#include <Engine/Debug/Instrumentor.h>
+#include <Engine/Core/Assert.h>
 
 namespace Engine {
 

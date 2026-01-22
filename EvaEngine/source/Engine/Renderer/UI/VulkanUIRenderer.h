@@ -1,14 +1,15 @@
 #pragma once
-#include <memory>
-#include <vector>
-#include <unordered_map>
-#include <string_view>
+#include "VulkanUIGraphicsPipeline.h"
 #include <glm/glm.hpp>
 #include <Engine/UI/Font.h>
-#include "VulkanUIGraphicsPipeline.h"
 #include <Engine/UI/UITransform2D.h>
 #include <Engine/Core/Core.h>
 
+#include <vector>
+#include <unordered_map>
+#include <string_view>
+#include <cstdint>
+#include <vulkan/vulkan_core.h>
 
 namespace Engine
 {
@@ -117,8 +118,8 @@ namespace Engine
         Ref<VulkanIndexBuffer> m_indexBuffer;
 
         //  ICONS 
-        std::vector<class VulkanUIGraphicsPipeline::VulkanUIQuadVertex> m_iconCPU;
-        class VulkanUIGraphicsPipeline::VulkanUIQuadVertex* m_iconPtr = nullptr;
+        std::vector<VulkanUIGraphicsPipeline::VulkanUIQuadVertex> m_iconCPU;
+        VulkanUIGraphicsPipeline::VulkanUIQuadVertex* m_iconPtr = nullptr;
         uint32_t m_iconIndexCount = 0;
 
         Ref<VulkanBuffer> m_iconVB;
@@ -128,8 +129,8 @@ namespace Engine
         uint32_t m_iconTextureSlotCount = 0;
 
         //  TEXT 
-        std::vector<class VulkanUIGraphicsPipeline::VulkanUIQuadVertex> m_textCPU;
-        class VulkanUIGraphicsPipeline::VulkanUIQuadVertex* m_textPtr = nullptr;
+        std::vector<VulkanUIGraphicsPipeline::VulkanUIQuadVertex> m_textCPU;
+        VulkanUIGraphicsPipeline::VulkanUIQuadVertex* m_textPtr = nullptr;
         uint32_t m_textIndexCount = 0;
 
         Ref<VulkanBuffer> m_textVB;

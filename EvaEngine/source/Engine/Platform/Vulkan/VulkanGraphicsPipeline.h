@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Core/Core.h"
+
 #include "VulkanBuffer.h"
 #include "VulkanShader.h"
 #include "VulkanTexture.h"
@@ -7,10 +7,11 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-#include <glm/glm.hpp>
+
 #include <cstddef>
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 #include "VulkanBindlessDescriptorSet.h"
+#include <Engine/Core/Config.h>
 
 
 namespace Engine {

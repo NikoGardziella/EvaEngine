@@ -1,5 +1,7 @@
 #pragma once
-#include "Engine/Core/Core.h"
+
+#include <string>
+#include <Engine/Core/Core.h>
 
 namespace Engine
 {

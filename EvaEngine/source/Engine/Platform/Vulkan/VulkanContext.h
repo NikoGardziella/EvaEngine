@@ -8,6 +8,7 @@
 #include "VulkanDevice.h"
 #include "VulkanSwapchain.h"
 #include "VulkanDescriptorPool.h"
+#include <Engine/Core/Core.h>
 
 namespace Engine {
 

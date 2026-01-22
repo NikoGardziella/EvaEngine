@@ -1,10 +1,9 @@
 #pragma once
-#include "Engine/Core/Core.h"
+
 
 #include <string>
-#include <functional>
 
-#include <spdlog/formatter.h>
+#include <Engine/Core/Core.h>
 
 namespace Engine {
 	enum class EventType

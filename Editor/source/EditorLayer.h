@@ -16,6 +16,8 @@
 #include "Panels/DebugPanel.h"
 #include "Panels/TileEditorPanel.h"
 #include "Panels/EffectsPanel.h"
+#include <Engine/Events/KeyEvent.h>
+#include <filesystem>
 
 namespace Engine {
 

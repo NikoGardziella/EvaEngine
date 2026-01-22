@@ -1,24 +1,22 @@
 #include "pch.h"
 #include "VulkanRenderer2D.h"
+
 #include "Engine/Platform/Vulkan/VulkanContext.h"
 #include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
 #include "Engine/AssetManager/AssetManager.h"
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 #include <Engine/Events/Public/CollisionEvents.h>
 
-
 #include "Renderer.h"
 #include <backends/imgui_impl_vulkan.h>
 #include <Engine/Map/Grid/TileCollisionMask.h>
 #include <algorithm>
-#include <Engine/Core/Core.h>
 #include <utility>
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
-#include "Engine/Core/Application.h"
 #include <Engine/Math/HashUtils.h>
 #include "Utils/DeltaBitReader.h"
-#include "UI/VulkanUIRenderer.h"
 #include "Utils/PlayerData.h"
+#include "UI/VulkanUIRenderer.h"
 
 namespace Engine {
 
@@ -256,12 +254,12 @@ namespace Engine {
 		}
 
 
-
+		m_uiRenderer = std::make_unique<VulkanUIRenderer>(m_vulkanContext);
 		UIRendererInitConfig uiRendererConfig;
 		uint32_t maxQuads = 2000;
 		uiRendererConfig.maxQuads = maxQuads;
 		uiRendererConfig.maxTextures = MAX_UI_TEXTURES;		
-		m_uiRenderer.Init(uiRendererConfig, m_vulkanContext);
+		m_uiRenderer->Init(uiRendererConfig, m_vulkanContext);
 
 
 
@@ -318,7 +316,7 @@ namespace Engine {
 		s_bindlessDescitproRenderer->BeginFrame(currentFrame);
 
 
-		m_uiRenderer.BeginFrame(m_uiRenderer, currentFrame, glm::vec2(m_swapchainExtent.width, m_swapchainExtent.height));
+		m_uiRenderer->BeginFrame(*m_uiRenderer, currentFrame, glm::vec2(m_swapchainExtent.width, m_swapchainExtent.height));
 	}
 
 	void VulkanRenderer2D::ReadAndResetCollisionBuffer(uint32_t currentFrame)
@@ -512,7 +510,7 @@ namespace Engine {
 		RecordFogOfWarComputeCommandBuffer(cmd, currentFrame);
 		Draw();
 
-		m_uiRenderer.EndFrame(cmd);
+		m_uiRenderer->EndFrame(cmd);
 
 
 		// End RecordGameDrawCommands render pass

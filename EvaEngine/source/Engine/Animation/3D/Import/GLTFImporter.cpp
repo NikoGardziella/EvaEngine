@@ -10,6 +10,7 @@
 #include "Engine/Animation/3D/Import/Utils/GLTFIImporterUtils.h"
 
 #include <tiny_gltf.h>
+#include <Engine/Core/Log.h>
 
 namespace Engine {
 

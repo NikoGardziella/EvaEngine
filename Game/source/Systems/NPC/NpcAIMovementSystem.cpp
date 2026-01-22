@@ -1,7 +1,7 @@
 #include "NpcAIMovementSystem.h"
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 
-#include <glm/glm.hpp>
+
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Scene/Scene.h>
 #include <Engine/Map/Grid/GridMap.h>

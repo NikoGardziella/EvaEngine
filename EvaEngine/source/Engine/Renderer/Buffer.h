@@ -1,6 +1,7 @@
 #pragma once
-#include <Engine/Core/Core.h>
-
+#include "Engine/Core/Assert.h"
+#include <string>
+#include <vector>
 
 namespace Engine {
 

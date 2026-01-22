@@ -1,8 +1,8 @@
 #pragma once
-#include <glm/fwd.hpp>
-#include <glm/common.hpp>
 #include "TextureStreamingSystem.h"
 #include <Engine/Scene/Scene.h>
+
+#include "glm/glm.hpp"
 
 namespace Engine {
 

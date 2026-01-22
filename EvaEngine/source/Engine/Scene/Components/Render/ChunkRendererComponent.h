@@ -1,6 +1,6 @@
 #pragma once
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
-#include "Engine/Core/Core.h"
+
 #include "glm/glm.hpp"
 
 namespace Engine {

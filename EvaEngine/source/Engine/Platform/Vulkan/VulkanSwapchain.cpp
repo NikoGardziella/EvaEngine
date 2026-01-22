@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "VulkanSwapchain.h"
 #include "VulkanUtils.h"
+#include <Engine/Core/Assert.h>
 
 namespace Engine {
 

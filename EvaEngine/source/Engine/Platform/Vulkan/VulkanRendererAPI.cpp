@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "VulkanRendererAPI.h"
 #include <Engine/Renderer/VertexArray.h>
+#include <Engine/Core/Log.h>
 
 
 namespace Engine {

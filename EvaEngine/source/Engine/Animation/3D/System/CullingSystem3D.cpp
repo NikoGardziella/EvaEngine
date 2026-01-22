@@ -1,12 +1,11 @@
 #include "pch.h"
+
+
 #include "CullingSystem3D.h"
 #include <algorithm>
 #include <Engine/Scene/Components/Render/3D/RenderBoundsComponent.h>
-#include <Engine.h>
-#include <Engine/Scene/Entity.h>
 #include <Engine/Animation/3D/VisibleSet.h>
 #include <glm/gtc/matrix_access.hpp>
-#include <Engine/Core/Core.h>
 #include <Engine/Map/FogOfWar/FogOfWar.h>
 #include <Engine/Animation/3D/System/TransformSystem3D.h>
 

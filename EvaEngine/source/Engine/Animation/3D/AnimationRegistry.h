@@ -1,8 +1,14 @@
 #pragma once
-#include "glm/glm.hpp"
-#include "SkeletonRegistry.h"
+
+
+#include <cstdint>
+#include <unordered_map>
+#include <string>
 #include <glm/gtc/quaternion.hpp>
-#include "Engine/Core/Core.h"
+#include <Engine/Core/Core.h>
+#include <Engine/Core/Config.h>
+#include <Engine/Core/Log.h>
+
 
 namespace Engine
 {

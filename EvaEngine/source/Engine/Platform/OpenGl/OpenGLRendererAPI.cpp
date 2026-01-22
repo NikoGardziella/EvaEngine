@@ -2,7 +2,8 @@
 #include "OpenGLRendererAPI.h"
 
 #include "glad/glad.h"
-#include "Engine/Core/Core.h"
+
+#include <Engine/Debug/Instrumentor.h>
 
 namespace Engine {
 

@@ -4,13 +4,14 @@
 #include "VulkanUtils.h"
 #include "Engine/AssetManager/AssetManager.h"
 #include "Engine/Scene/Component.h"
-#include "Engine/Core/Core.h"
+
 #include "Engine/Math/HashUtils.h"
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 #include <Engine.h>
 #include <Engine/Renderer/VulkanRenderer2D.h>
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 #include <Engine/AssetManager/Utils/Statistics.h>
+#include <Engine/Core/Assert.h>
 
 namespace Engine {
 

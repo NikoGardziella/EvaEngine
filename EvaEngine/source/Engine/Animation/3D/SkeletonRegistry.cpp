@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "SkeletonRegistry.h"
+#include <Engine/Debug/Instrumentor.h>
 
 
 namespace Engine {

@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <Engine/Renderer/Utils/DeltaBitReader.h>
-
+#include <glm/glm.hpp>
 
 namespace Engine
 {

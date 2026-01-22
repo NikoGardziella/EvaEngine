@@ -2,7 +2,7 @@
 #include "VulkanGraphicsPipeline.h"
 #include "Engine/AssetManager/AssetManager.h"
 #include "VulkanBuffer.h"
-#include "Engine/Core/Core.h"
+
 
 
 #include <stdexcept>
@@ -14,6 +14,7 @@
 #include "VulkanTexture.h"
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 #include <Engine/AssetManager/Utils/Statistics.h>
+#include <Engine/Core/Log.h>
 
 
 

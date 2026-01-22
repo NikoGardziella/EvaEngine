@@ -1,13 +1,10 @@
 #pragma once
 #include <unordered_set>
-#include <glm/glm.hpp>
 #include <Engine/Map/Utils/IVec2Hasher.h>
 #include <vector>
 #include "Engine/Map/Grid/GridUtils/GridUtils.h"
-#include <Engine/Platform/Vulkan/VulkanGraphicsPipeline.h>
-#include <Engine/Core/Core.h>
-#include <Engine/Platform/Vulkan/VulkanFogOfWarPipelines.h>
-#include <Engine/Scene/SceneCamera.h>
+
+#include <Engine/Core/Config.h>
 
 namespace Engine {
 	

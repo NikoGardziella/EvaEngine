@@ -9,6 +9,7 @@
 #include <Engine/Core/Log.h>
 #include "AnimationToRenderer.h"
 #include "DirectionSelector.h"
+#include "Engine/Scene/Entity.h"
 
 namespace Engine {
 

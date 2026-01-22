@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Renderer/Framebuffer.h"
+#include <Engine/Core/Assert.h>
 
 namespace Engine {
 

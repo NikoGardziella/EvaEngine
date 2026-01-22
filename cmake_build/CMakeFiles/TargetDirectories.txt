@@ -1,0 +1,3 @@
+C:/EvaEngine/cmake_build/CMakeFiles/EvaEngine.dir
+C:/EvaEngine/cmake_build/CMakeFiles/edit_cache.dir
+C:/EvaEngine/cmake_build/CMakeFiles/rebuild_cache.dir

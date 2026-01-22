@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <Engine/Platform/Vulkan/VulkanShader.h>
+#include <Engine/Core/Assert.h>
 
 
 namespace Engine {

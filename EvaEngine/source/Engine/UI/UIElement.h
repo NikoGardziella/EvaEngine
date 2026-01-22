@@ -1,6 +1,6 @@
 #pragma once
 #include "UITransform2D.h"
-#include "Engine/Core/Core.h"
+
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 #include <Engine/Renderer/UI/VulkanUIRenderer.h>
 #include <cstdint>

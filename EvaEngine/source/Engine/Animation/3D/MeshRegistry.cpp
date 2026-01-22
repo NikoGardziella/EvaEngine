@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "MeshRegistry.h"
+#include <Engine/Core/Core.h>
 
 namespace Engine {
 

@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "LayerPool.h"
+#include <Engine/Core/Core.h>
+#include <Engine/Core/Assert.h>
 
 
 namespace Engine {

@@ -9,6 +9,8 @@
 #include <Engine/Animation/3D/Import/GLTFImporter.h>
 #include <memory>
 #include <Engine/AssetManager/Utils/Statistics.h>
+#include <Engine/Core/Assert.h>
+#include <Engine/Core/Core.h>
 
 namespace Engine {
 

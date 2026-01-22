@@ -1,6 +1,4 @@
 ﻿#include "pch.h"
-#include "Scene.h"
-#include "Engine.h"
 
 
 #include "Engine/Map/Grid/GridMap.h"
@@ -8,7 +6,7 @@
 #include "Engine/Map/Tile/TileManager.h"
 #include "Component.h"
 #include "Components/NPC/NpcAIComponent.h"
-#include <glm/glm.hpp>
+
 
 #include "Components/Spawning/NpcSpawnControllerComponent.h"
 

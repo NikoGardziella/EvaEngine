@@ -2,7 +2,7 @@
 #include "Engine/Scene/Components/NPC/NpcAIComponent.h"
 #include "Engine/Scene/Component.h"
 
-#include <glm/glm.hpp>
+
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Scene/Scene.h>

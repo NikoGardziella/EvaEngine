@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 #include "glm/glm.hpp"
-#include <glm/fwd.hpp>
 
 enum class UIAnchorPreset
 {

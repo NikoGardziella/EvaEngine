@@ -1,6 +1,6 @@
 #pragma once
 #include <Engine/UI/UIContext.h>
-#include "Engine/Core/Core.h"
+
 #include <Engine/UI/Font.h>
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Components/UI/HUDStateComponent.h>

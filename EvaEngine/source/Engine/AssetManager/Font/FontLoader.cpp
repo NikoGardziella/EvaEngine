@@ -12,6 +12,7 @@
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 #include <Engine/Core/Core.h>
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
+#include <Engine/UI/Font.h>
 
 
 namespace Engine

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <glm/glm.hpp>
+
 #include <vulkan/vulkan_core.h>
 #include <functional>
 #include <Engine/Animation/3D/MeshRegistry.h>

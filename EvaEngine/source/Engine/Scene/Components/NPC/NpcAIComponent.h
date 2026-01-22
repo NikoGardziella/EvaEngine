@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <glm/glm.hpp>
+
 #include <cstdint>
 #include <Engine/Scene/Component.h>
 #include "Engine/Scene/Entity.h"

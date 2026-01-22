@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Engine/Core/Core.h"
+
 #include "Engine/Events/Event.h"
 
 #include <sstream>
+#include <functional>
 
 namespace Engine {
 

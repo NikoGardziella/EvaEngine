@@ -1998,6 +1998,8 @@
     <ClInclude Include="source\Engine\Map\FogOfWar\FogOfWar.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\PlayerVisionComponent.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\PlayerData.h" />
+    <ClInclude Include="source\Engine\Core\Assert.h" />
+    <ClInclude Include="source\Engine\Core\Config.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2314,6 +2316,7 @@
     <ClCompile Include="source\Engine\Scene\SceneSerialization.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneSpawning.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneUI.cpp" />
+    <ClCompile Include="source\Engine\Core\Assert.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">

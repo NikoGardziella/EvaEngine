@@ -5,6 +5,7 @@
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <imgui/imgui.h>
 #include <Engine/AssetManager/Utils/TileSerializer.h>
+#include <Engine/Core/Log.h>
 
 
 namespace Engine

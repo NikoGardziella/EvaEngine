@@ -13,6 +13,7 @@
 #include "Engine/Scene/Entity.h"
 #include <utility>
 #include <Engine/Map/Utils/IVec2Hasher.h>
+#include <Engine/Core/Assert.h>
 
 
 namespace Engine {

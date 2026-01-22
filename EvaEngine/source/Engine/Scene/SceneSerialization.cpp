@@ -1,6 +1,5 @@
 #include "pch.h"
-#include "Scene.h"
-#include "Engine.h"
+
 #include "Components/Player/CharacterControllerComponent.h"
 #include "Components/Combat/HealthComponent.h"
 #include "Components/Projectiles/ProjectileComponent.h"

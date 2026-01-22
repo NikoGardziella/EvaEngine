@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Engine/UI/Font.h>
+#include <Engine/Core/Core.h>
 
 namespace Engine
 {

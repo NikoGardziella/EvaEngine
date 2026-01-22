@@ -5,6 +5,7 @@
 
 #include <shaderc/shaderc.hpp>
 #include "Engine/Debug/Instrumentor.h"
+#include <Engine/Core/Assert.h>
 
 namespace Engine {
 

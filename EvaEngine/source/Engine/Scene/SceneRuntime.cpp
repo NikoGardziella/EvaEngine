@@ -1,6 +1,5 @@
 #include "pch.h"
-#include "Scene.h"
-#include "Engine.h"
+
 #include <Engine/Renderer/Utils/PlayerData.h>
 
 #include "Engine/AssetManager/AssetManager.h"

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "VulkanDevice.h"
 #include "VulkanUtils.h"
+#include <Engine/Core/Assert.h>
 
 namespace Engine {
 
@@ -128,7 +129,8 @@ namespace Engine {
         {
             VkPhysicalDeviceFeatures2 probe{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
             void* tail = nullptr;
-            if (hasVk12) {
+            if (hasVk12)
+            {
                 VkPhysicalDeviceVulkan12Features supp{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
                 tail = &supp; probe.pNext = tail;
                 vkGetPhysicalDeviceFeatures2(m_physicalDevice, &probe);
