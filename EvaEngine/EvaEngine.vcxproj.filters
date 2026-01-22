@@ -2309,6 +2309,11 @@
     <ClCompile Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.cpp" />
     <ClCompile Include="source\Engine\Map\FogOfWar\FogOfWar.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneRuntime.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneEditor.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneSerialization.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneSpawning.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">

@@ -2,6 +2,7 @@
 #include "glm/glm.hpp"
 #include "SkeletonRegistry.h"
 #include <glm/gtc/quaternion.hpp>
+#include "Engine/Core/Core.h"
 
 namespace Engine
 {
@@ -24,6 +25,7 @@ namespace Engine
         // optional compression metadata / cached indices
     };
 
+    class SkeletonRegistry;
     class AnimationRegistry
     {
 

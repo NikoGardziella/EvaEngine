@@ -836,7 +836,12 @@
     <ClCompile Include="source\Engine\Scene\Entity.cpp" />
     <ClCompile Include="source\Engine\Scene\Scene.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneCamera.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneEditor.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneRuntime.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneSerialization.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneSerializer.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneSpawning.cpp" />
+    <ClCompile Include="source\Engine\Scene\SceneUI.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneUtils\SceneUtils.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneUtils\SpawnUtils.cpp" />
     <ClCompile Include="source\Engine\Scene\TaskManager\PhysicsTask.cpp" />

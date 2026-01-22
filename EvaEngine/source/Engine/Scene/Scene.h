@@ -1,35 +1,41 @@
 #pragma once
 
+// Standard library - keep these
 #include <entt.hpp>
 #include "Engine/Core/Timestep.h"
-#include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Core/UUID.h"
-
 #include "box2d/id.h"
 #include <functional>
+#include <array>
+#include <vector>
+#include <string>
+#include <unordered_map>
 
-#include "TaskManager/PhysicsTaskScheduler.h"
 #include <Engine/Map/Tile/DestrutibleTileSystem.h>
-#include <Engine/Animation/2D/AnimationSystem2D.h>
-#include <Engine/Animation/2D/AnimationBank2D.h>
-#include <Engine/Animation/3D/System/RenderSystem3D.h>
-#include <Engine/Animation/3D/System/TransformSystem3D.h>
-#include <Engine/Animation/3D/System/CullingSystem3D.h>
-#include <Engine/Animation/3D/System/AnimationSystem3D.h>
-#include <Engine/Animation/3D/BonePaletteBuffer.h>
-#include "Component.h"
-#include <Engine/Animation/3D/MeshRegistry.h>
-#include <Engine/UI/UIContext.h>
-#include <Engine/Map/FogOfWar/FogOfWar.h>
-
-
+#include <Engine/Animation/3D/System/RenderSystem3D.h> 
+#include <Engine/Animation/3D/System/AnimationSystem3D.h> 
+#include <Engine/Animation/3D/BonePaletteBuffer.h>    
 
 namespace Engine {
 
+	class EditorCamera;
+	class PhysicsTaskScheduler;
+	class DestructibleTileSystem;
+	class AnimationSystem2D;
+	class AnimationBank2D;
+	class RenderSystem3D;
+	class TransformSystem3D;
+	class CullingSystem3D;
+	class AnimationSystem3D;
+	class BonePaletteBuffer;
+	class MeshRegistry;
+	class UIContext;
+	class FogOfWar;
 	class TileManager;
 	class TextureStreamingSystem;
 	class Entity;
 	class GridMap;
+	struct MeshAsset;
 	class Scene
 	{
 
@@ -43,14 +49,6 @@ namespace Engine {
 		static void CopyEntities(Ref<Scene> sourceScene, Ref<Scene> combinedScene, std::unordered_map<UUID, entt::entity>& enttMap);
 		static void CopyAllComponents(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap);
 
-
-
-
-		void Scene::SpawnEnemies(uint32_t enemyCount,
-			const MeshAsset& meshAsset,
-			uint32_t skeletonId,
-			const glm::vec2& originXZ,
-			const glm::vec2& spacingXZ);
 
 		Entity CreateEntity(const std::string& name = std::string());
 		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());

@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_access.hpp>
 #include <Engine/Core/Core.h>
 #include <Engine/Map/FogOfWar/FogOfWar.h>
+#include <Engine/Animation/3D/System/TransformSystem3D.h>
 
 namespace Engine {
 

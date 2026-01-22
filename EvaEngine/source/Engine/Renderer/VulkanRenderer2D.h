@@ -16,8 +16,8 @@
 #include "Camera.h"
 #include "UI/VulkanUIGraphicsPipeline.h"
 #include <Engine/Platform/Vulkan/VulkanFogOfWarPipelines.h>
-#include <Engine/Platform/Vulkan/VulkanFogOfWarPipelines.h>
-
+#include "Engine/Renderer/Utils/PlayerData.h"
+#include "Engine/Renderer/UI/VulkanUIRenderer.h"
 
 namespace Engine {
 
