@@ -115,6 +115,12 @@
     <Filter Include="source\Engine\Renderer\3D">
       <UniqueIdentifier>{671275B8-D3D4-A842-1C85-37CF88868120}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Renderer\Renderer2D">
+      <UniqueIdentifier>{7D20B506-E98E-0A86-3278-C5859E250022}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Renderer\Renderer2D\Utils">
+      <UniqueIdentifier>{9DCB22CC-095B-E4B6-1257-C5CE7E651FC3}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Renderer\UI">
       <UniqueIdentifier>{CE1675B8-3AD9-A842-8389-37CFEF8A8120}</UniqueIdentifier>
     </Filter>
@@ -555,6 +561,12 @@
     <ClInclude Include="source\Engine\Renderer\Renderer2D.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Renderer2D\Utils\Renderer2DUtils.h">
+      <Filter>source\Engine\Renderer\Renderer2D\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.h">
+      <Filter>source\Engine\Renderer\Renderer2D</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Renderer\RendererAPI.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
@@ -586,9 +598,6 @@
       <Filter>source\Engine\Renderer\Utils</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Renderer\VertexArray.h">
-      <Filter>source\Engine\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Component.h">
@@ -2022,7 +2031,6 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Renderer\Renderer2D\Utils\Renderer2DUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2268,6 +2276,27 @@
     <ClCompile Include="source\Engine\Renderer\Renderer2D.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.cpp">
+      <Filter>source\Engine\Renderer\Renderer2D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DCollision.cpp">
+      <Filter>source\Engine\Renderer\Renderer2D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DDrawing.cpp">
+      <Filter>source\Engine\Renderer\Renderer2D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DEffects.cpp">
+      <Filter>source\Engine\Renderer\Renderer2D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DFog.cpp">
+      <Filter>source\Engine\Renderer\Renderer2D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DLines.cpp">
+      <Filter>source\Engine\Renderer\Renderer2D</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DTiles.cpp">
+      <Filter>source\Engine\Renderer\Renderer2D</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Renderer\RendererAPI.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
@@ -2296,9 +2325,6 @@
       <Filter>source\Engine\Renderer\Utils</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp">
-      <Filter>source\Engine\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Scene\Entity.cpp">
@@ -2358,12 +2384,6 @@
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp">
       <Filter>vendor\tiny_gltf</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DCollision.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DEffects.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DTiles.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DDrawing.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DLines.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DFog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">

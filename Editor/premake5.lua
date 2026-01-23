@@ -14,7 +14,7 @@ project "Editor"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-obj/" .. outputdir .. "/%{prj.name}")
-
+    targetname "Editor" 
     --YAMLCppDir = "../EvaEngine/vendor/yaml-cpp" 
     --IncludeDir["yaml_cpp"] = "%{YAMLCppDir}/include"
 

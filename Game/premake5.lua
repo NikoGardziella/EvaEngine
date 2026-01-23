@@ -1,6 +1,6 @@
 
     project "Game"
-        location "."
+        location ""
         kind "StaticLib" 
         language "C++"
         architecture "x64"

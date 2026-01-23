@@ -267,6 +267,7 @@
     <ClInclude Include="source\Engine\Renderer\Renderer.h" />
     <ClInclude Include="source\Engine\Renderer\Renderer2D.h" />
     <ClInclude Include="source\Engine\Renderer\Renderer2D\Utils\Renderer2DUtils.h" />
+    <ClInclude Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.h" />
     <ClInclude Include="source\Engine\Renderer\RendererAPI.h" />
     <ClInclude Include="source\Engine\Renderer\Shader.h" />
     <ClInclude Include="source\Engine\Renderer\SubTexture2D.h" />
@@ -278,7 +279,6 @@
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\PlayerData.h" />
     <ClInclude Include="source\Engine\Renderer\VertexArray.h" />
-    <ClInclude Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.h" />
     <ClInclude Include="source\Engine\Scene\Component.h" />
     <ClInclude Include="source\Engine\Scene\Components\Animation\AnimationComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Animation\NpcAnimationControllerComponent.h" />
@@ -839,11 +839,13 @@
     <ClCompile Include="source\Engine\Renderer\RenderCommand.cpp" />
     <ClCompile Include="source\Engine\Renderer\Renderer.cpp" />
     <ClCompile Include="source\Engine\Renderer\Renderer2D.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.cpp" />
     <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DCollision.cpp" />
     <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DDrawing.cpp" />
     <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DEffects.cpp" />
     <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DFog.cpp" />
     <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DLines.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DTiles.cpp" />
     <ClCompile Include="source\Engine\Renderer\RendererAPI.cpp" />
     <ClCompile Include="source\Engine\Renderer\Shader.cpp" />
     <ClCompile Include="source\Engine\Renderer\SubTexture2D.cpp" />
@@ -854,7 +856,6 @@
     <ClCompile Include="source\Engine\Renderer\UniformBuffer.cpp" />
     <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.cpp" />
     <ClCompile Include="source\Engine\Scene\Entity.cpp" />
     <ClCompile Include="source\Engine\Scene\Scene.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneCamera.cpp" />
@@ -876,7 +877,6 @@
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DTiles.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
