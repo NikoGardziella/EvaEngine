@@ -3,7 +3,7 @@
 
 #include "FogOfWar.h"
 #include <Engine/Platform/Vulkan/VulkanFogOfWarPipelines.h>
-#include <Engine/Renderer/VulkanRenderer2D.h>
+#include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 
 
 #include <Engine/Debug/Instrumentor.h>

@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <Engine/Platform/Vulkan/VulkanBuffer.h>
-#include <Engine/Renderer/VulkanRenderer2D.h>
+#include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 #include <Engine/Animation/3D/MaterialRegistry.h>
 
 

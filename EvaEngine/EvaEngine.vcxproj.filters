@@ -67,6 +67,9 @@
     <Filter Include="source\Engine\Map">
       <UniqueIdentifier>{08697707-747F-759D-BDF6-00BF294C4625}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Map\FogOfWar">
+      <UniqueIdentifier>{B2B49D26-9EC4-49F7-077E-AE15F3AC3890}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Map\Grid">
       <UniqueIdentifier>{7DAFA54D-69A9-CE9F-5216-65B03EAF340C}</UniqueIdentifier>
     </Filter>
@@ -160,6 +163,9 @@
     <Filter Include="source\Engine\Scene\Components\Spawning">
       <UniqueIdentifier>{C3BFB2EA-2F4F-74D5-384B-55EDA459AFE1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Components\UI">
+      <UniqueIdentifier>{BA1C3641-268B-8BC0-6F74-46C0DB21815C}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene\Components\Vehicles">
       <UniqueIdentifier>{EF6A0870-5BFA-C95A-64F6-AA72D0040567}</UniqueIdentifier>
     </Filter>
@@ -219,9 +225,6 @@
     </Filter>
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="vendor\stb_truetype">
-      <UniqueIdentifier>{2C5D82E5-98BE-5FF3-212C-A6A58D8C96B2}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\tiny_gltf">
       <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
@@ -306,6 +309,9 @@
     <ClInclude Include="source\Engine\AssetManager\Font\FontLoader.h">
       <Filter>source\Engine\AssetManager\Font</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\AssetManager\Font\stb_truetype.h">
+      <Filter>source\Engine\AssetManager\Font</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\AssetManager\Utils\AssetManagerUtils.h">
       <Filter>source\Engine\AssetManager\Utils</Filter>
     </ClInclude>
@@ -319,6 +325,12 @@
       <Filter>source\Engine\AssetManager\Utils</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Core\Application.h">
+      <Filter>source\Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Core\Assert.h">
+      <Filter>source\Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Core\Config.h">
       <Filter>source\Engine\Core</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Core\Core.h">
@@ -383,6 +395,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\ImGui\ImGuiLayer.h">
       <Filter>source\Engine\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\FogOfWar\FogOfWar.h">
+      <Filter>source\Engine\Map\FogOfWar</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Grid\GridMap.h">
       <Filter>source\Engine\Map\Grid</Filter>
@@ -471,6 +486,9 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.h">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.h">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClInclude>
@@ -555,16 +573,22 @@
     <ClInclude Include="source\Engine\Renderer\UI\VulkanUIRenderer.h">
       <Filter>source\Engine\Renderer\UI</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.h">
+      <Filter>source\Engine\Renderer\UI</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Renderer\UniformBuffer.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h">
       <Filter>source\Engine\Renderer\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Utils\PlayerData.h">
+      <Filter>source\Engine\Renderer\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Renderer\VertexArray.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h">
+    <ClInclude Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Component.h">
@@ -624,6 +648,9 @@
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h">
       <Filter>source\Engine\Scene\Components\Player</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Player\PlayerVisionComponent.h">
+      <Filter>source\Engine\Scene\Components\Player</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h">
       <Filter>source\Engine\Scene\Components\Projectiles</Filter>
     </ClInclude>
@@ -662,6 +689,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Spawning\NpcSpawnControllerComponent.h">
       <Filter>source\Engine\Scene\Components\Spawning</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\UI\HUDStateComponent.h">
+      <Filter>source\Engine\Scene\Components\UI</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Vehicles\DriverComponent.h">
       <Filter>source\Engine\Scene\Components\Vehicles</Filter>
@@ -702,10 +732,16 @@
     <ClInclude Include="source\Engine\UI\Font.h">
       <Filter>source\Engine\UI</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\UI\UIContainer.h">
+      <Filter>source\Engine\UI</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\UI\UIContext.h">
       <Filter>source\Engine\UI</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\UI\UIElement.h">
+      <Filter>source\Engine\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\UI\UITextElement .h">
       <Filter>source\Engine\UI</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\UI\UITransform2D.h">
@@ -1983,23 +2019,10 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="vendor\stb_truetype\stb_truetype.h">
-      <Filter>vendor\stb_truetype</Filter>
-    </ClInclude>
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\AssetManager\Font\stb_truetype.h" />
-    <ClInclude Include="source\Engine\UI\UITextElement .h" />
-    <ClInclude Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.h" />
-    <ClInclude Include="source\Engine\UI\UIContainer.h" />
-    <ClInclude Include="source\Engine\Scene\Components\UI\HUDStateComponent.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.h" />
-    <ClInclude Include="source\Engine\Map\FogOfWar\FogOfWar.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Player\PlayerVisionComponent.h" />
-    <ClInclude Include="source\Engine\Renderer\Utils\PlayerData.h" />
-    <ClInclude Include="source\Engine\Core\Assert.h" />
-    <ClInclude Include="source\Engine\Core\Config.h" />
+    <ClInclude Include="source\Engine\Renderer\Renderer2D\Utils\Renderer2DUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2065,6 +2088,9 @@
     <ClCompile Include="source\Engine\Core\Application.cpp">
       <Filter>source\Engine\Core</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Core\Assert.cpp">
+      <Filter>source\Engine\Core</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Core\Layer.cpp">
       <Filter>source\Engine\Core</Filter>
     </ClCompile>
@@ -2091,6 +2117,9 @@
     </ClCompile>
     <ClCompile Include="source\Engine\ImGui\imGuiBuild.cpp">
       <Filter>source\Engine\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\FogOfWar\FogOfWar.cpp">
+      <Filter>source\Engine\Map\FogOfWar</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp">
       <Filter>source\Engine\Map\Grid</Filter>
@@ -2165,6 +2194,9 @@
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp">
+      <Filter>source\Engine\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.cpp">
       <Filter>source\Engine\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.cpp">
@@ -2254,6 +2286,9 @@
     <ClCompile Include="source\Engine\Renderer\UI\VulkanUIRenderer.cpp">
       <Filter>source\Engine\Renderer\UI</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.cpp">
+      <Filter>source\Engine\Renderer\UI</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Renderer\UniformBuffer.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
@@ -2263,7 +2298,7 @@
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Renderer\VulkanRenderer2D.cpp">
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Scene\Entity.cpp">
@@ -2275,7 +2310,22 @@
     <ClCompile Include="source\Engine\Scene\SceneCamera.cpp">
       <Filter>source\Engine\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Scene\SceneEditor.cpp">
+      <Filter>source\Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\SceneRuntime.cpp">
+      <Filter>source\Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\SceneSerialization.cpp">
+      <Filter>source\Engine\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Scene\SceneSerializer.cpp">
+      <Filter>source\Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\SceneSpawning.cpp">
+      <Filter>source\Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\SceneUI.cpp">
       <Filter>source\Engine\Scene</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Scene\SceneUtils\SceneUtils.cpp">
@@ -2308,15 +2358,12 @@
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp">
       <Filter>vendor\tiny_gltf</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.cpp" />
-    <ClCompile Include="source\Engine\Map\FogOfWar\FogOfWar.cpp" />
-    <ClCompile Include="source\Engine\Scene\SceneRuntime.cpp" />
-    <ClCompile Include="source\Engine\Scene\SceneEditor.cpp" />
-    <ClCompile Include="source\Engine\Scene\SceneSerialization.cpp" />
-    <ClCompile Include="source\Engine\Scene\SceneSpawning.cpp" />
-    <ClCompile Include="source\Engine\Scene\SceneUI.cpp" />
-    <ClCompile Include="source\Engine\Core\Assert.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DCollision.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DEffects.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DTiles.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DDrawing.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DLines.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DFog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">
@@ -2355,6 +2402,9 @@
     <None Include="..\assets\shaders\VulkanUIShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\VulkanUITextShader.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
     <None Include="..\assets\shaders\clearMaskCompute.comp">
       <Filter>assets\shaders</Filter>
     </None>
@@ -2362,6 +2412,9 @@
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\dda_compute.comp">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\fogOFWar_Shader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\fullscreen_shader.glsl">
@@ -2376,7 +2429,5 @@
     <None Include="..\assets\shaders\testShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="..\assets\shaders\VulkanUITextShader.glsl" />
-    <None Include="..\assets\shaders\fogOFWar_Shader.glsl" />
   </ItemGroup>
 </Project>

@@ -4,7 +4,7 @@
 #include "Engine/Debug/DebugInterface.h"
 #include "imgui/imgui.h"
 #include <imgui/imgui_internal.h>
-#include <Engine/Renderer/VulkanRenderer2D.h>
+#include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 #include <Engine/Scene/Component.h>
 #include "Engine/Scene/Entity.h"
 #include "../EditorApp.h"

@@ -3,12 +3,10 @@
 #include <Engine/Core/Config.h>
 #include <Engine/Core/Core.h>
 #include <Engine/Platform/Vulkan/VulkanShader.h>
-#include "OrthographicCamera.h"
 #include <Engine/Scene/SceneCamera.h>
 #include <vulkan/vulkan_core.h>
 
-#include "Renderer2D.h"
-#include "VertexArray.h"
+
 #include "Engine/Renderer/EditorCamera.h"
 #include "Engine/Platform/Vulkan/VulkanContext.h"
 
@@ -27,6 +25,7 @@
 #include <array>
 
 #include <glm/glm.hpp>
+#include <Engine/Renderer/Renderer2D.h>
 
 namespace Engine {
 

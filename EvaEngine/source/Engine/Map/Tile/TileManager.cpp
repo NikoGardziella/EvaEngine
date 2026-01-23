@@ -5,7 +5,7 @@
 #include <Engine/Scene/Component.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <Engine/Platform/Vulkan/VulkanContext.h>
-#include "Engine/Renderer/VulkanRenderer2D.h"
+#include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 #include <Engine/Map/Projectile/ProjectileVisualRegistry.h>
 
 namespace Engine {

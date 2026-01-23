@@ -249,5 +249,8 @@ ebuild completed at 13.53 and took 02:26,381 minutes
     after adding engine.h to pch.h
 
 
-    
+    02:51,622 minutes with  flags { "MultiProcessorCompile" } 
+    buildoptions { "/MP" }      -- Enable multi-processor comp
+
+     02:48,669 minutes ========== after splitting renderer2d
 }

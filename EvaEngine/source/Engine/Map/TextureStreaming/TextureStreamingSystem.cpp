@@ -4,7 +4,7 @@
 #include "Engine/AssetManager/AssetManager.h"
 #include <Engine/Scene/Component.h>
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
-#include <Engine/Renderer/VulkanRenderer2D.h>
+#include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
 #include <Engine/Scene/Components/Render/ChunkRendererComponent.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>

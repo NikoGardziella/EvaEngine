@@ -43,6 +43,9 @@
     <Filter Include="Systems\Spawning">
       <UniqueIdentifier>{334F87F2-1F48-A644-487A-8BC934D28550}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Systems\UI">
+      <UniqueIdentifier>{2AD86F8A-1690-B1D7-7F97-8A336B6E4CC8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Systems\Vehicle">
       <UniqueIdentifier>{6C6CEF39-D8F7-5CFE-E108-E0F24D13B9FE}</UniqueIdentifier>
     </Filter>
@@ -115,11 +118,15 @@
     <ClInclude Include="source\Systems\Spawning\WeaponSpawnSystem.h">
       <Filter>Systems\Spawning</Filter>
     </ClInclude>
+    <ClInclude Include="source\Systems\UI\HUDSystem.h">
+      <Filter>Systems\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Systems\UI\HUDWidgets.h">
+      <Filter>Systems\UI</Filter>
+    </ClInclude>
     <ClInclude Include="source\Systems\Vehicle\VehicleSystem.h">
       <Filter>Systems\Vehicle</Filter>
     </ClInclude>
-    <ClInclude Include="source\Systems\UI\HUDSystem.h" />
-    <ClInclude Include="source\Systems\UI\HUDWidgets.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\PixelGame.cpp" />
@@ -190,9 +197,11 @@
     <ClCompile Include="source\Systems\Spawning\WeaponSpawnSystem.cpp">
       <Filter>Systems\Spawning</Filter>
     </ClCompile>
+    <ClCompile Include="source\Systems\UI\HUDSystem.cpp">
+      <Filter>Systems\UI</Filter>
+    </ClCompile>
     <ClCompile Include="source\Systems\Vehicle\VehicleSystem.cpp">
       <Filter>Systems\Vehicle</Filter>
     </ClCompile>
-    <ClCompile Include="source\Systems\UI\HUDSystem.cpp" />
   </ItemGroup>
 </Project>

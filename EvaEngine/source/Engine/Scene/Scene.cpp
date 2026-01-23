@@ -52,6 +52,9 @@ namespace Engine {
 
     void Scene::OnRunTimeStart()
     {
+
+        EE_CORE_INFO("Starting runtime!");
+
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
 
         // makes sure textures are reloaded to the right registry

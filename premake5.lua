@@ -1,18 +1,16 @@
 include "Dependencies.lua"
 
--- Define the workspace, its name, and the architecture used
 workspace "EvaEngine"
-    architecture "x86_64"  -- Specify 64-bit architecture
+    architecture "x86_64"
+    startproject "Editor"
 
-    -- Define the available build configurations
     configurations
     {
-        "Debug",     -- Configuration for development with debug symbols
-        "Release",   -- Configuration for optimized build without debug symbols
-        "Dist"       -- Configuration for distribution (final product) with high optimization
+        "Debug",
+        "Release",
+        "Dist"
     }
 
--- Variable to determine the output directory format based on configuration, system, and architecture
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 include "EvaEngine/vendor/GLFW"
@@ -23,27 +21,25 @@ include "EvaEngine/vendor/Box2D"
 include "Game"
 include "Editor"
 
--- Define the "EvaEngine" project
 project "EvaEngine"
-    location "EvaEngine"  -- The directory where project files are generated
-    kind "StaticLib"      -- The project outputs a static library 
-    language "C++"        -- The programming language used
-    cppdialect "C++17"    -- Use C++17 standard
-    staticruntime "off"   -- Use dynamic runtime
+    location "EvaEngine"
+    kind "StaticLib"
+    language "C++"
+    cppdialect "C++17"
+    staticruntime "off"
+    
+    flags { "MultiProcessorCompile" }
+    buildoptions { "/MP" } 
 
-    -- Directories for the output of compiled binaries and intermediate object files
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-obj/" .. outputdir .. "/%{prj.name}")
 
     pchheader "pch.h"
     pchsource "EvaEngine/source/pch.cpp"
 
-    
-
-    -- Specify the files to include in the project compilation
     files
     {
-        "%{prj.name}/source/pch.cpp",  -- Add the pch.cpp here explicitly
+        "%{prj.name}/source/pch.cpp",
         "%{prj.name}/source/**.h",  
         "%{prj.name}/source/**.cpp", 
         "%{prj.name}/vendor/glm/glm/**.hpp",
@@ -57,10 +53,8 @@ project "EvaEngine"
         "%{prj.name}/vendor/Box2D/box2d/include/**.h",
         "%{prj.name}/vendor/enkiTS/box2d/src/TaskScheduler.h",
         "%{prj.name}/vendor/enkiTS/src/TaskScheduler.cpp", 
-        "assets/shaders/*"  -- Match all files and subdirectories under assets
+        "assets/shaders/*"
     }
- 
-
 
     defines
     {
@@ -69,11 +63,10 @@ project "EvaEngine"
         "YAML_CPP_STATIC_DEFINE"
     }
 
-    -- Include directories required for the project
     includedirs
     {
         "EvaEngine/source",
-        "EvaEngine/vendor/spdlog/include",  -- Include path for the spdlog logging library
+        "EvaEngine/vendor/spdlog/include",
         "EvaEngine/vendor/vcpkg/x64-windows/include",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.GLAD}",
@@ -97,27 +90,36 @@ project "EvaEngine"
         "%{LibraryDir.VulkanSDK}",
         "%{LibraryDir.Box2D}",
         "EvaEngine/vendor/vcpkg/x64-windows/lib"
-
     }
 
-    -- Apply settings specifically when building for Windows
     filter "system:windows"
-        systemversion "latest"  -- Use the latest Windows SDK
+        systemversion "latest"
 
-        -- Preprocessor definitions for the Windows platform
         defines
         {
-            "EE_PLATFORM_WINDOWS",  -- Indicates Windows platform
-            "EE_BUILD_DLL",         -- Indicates the build is for a DLL
+            "EE_PLATFORM_WINDOWS",
+            "EE_BUILD_DLL",
             "GLFW_INCLUDE_NONE",
             "SPDLOG_NO_UNICODE"
-        } 
+        }
 
-    -- Settings specific to the Debug configuration
+
     filter "configurations:Debug"
-        defines "EE_DEBUG"  -- Define a macro for debug configuration
-        symbols "On"        -- Enable debug symbols
+        defines { 
+            "EE_DEBUG",
+            "EE_PROFILE=0"  --  Disable profiling in debug for faster builds
+        }
+        symbols "On"
         runtime "Debug"
+        
+        --  Faster debug info format (works with ccache)
+        buildoptions { "/Z7" }
+        
+        --  Faster linking
+        linkoptions { "/DEBUG:FASTLINK" }
+        
+        --  Optional: Disable optimizations for faster iteration
+        optimize "Off"
         
         links
         {
@@ -135,11 +137,15 @@ project "EvaEngine"
             "libcurl"
         }
 
-    -- Settings specific to the Release configuration
     filter "configurations:Release"
-        defines "EE_RELEASE"  -- Define a macro for release configuration
-        optimize "On"         -- Enable code optimization
+        defines { 
+            "EE_RELEASE",
+            "EE_PROFILE=1"  --  Enable profiling in release
+        }
+        optimize "Speed" 
         runtime "Release"
+        
+        flags { "LinkTimeOptimization" }
         
         links
         {
@@ -155,11 +161,16 @@ project "EvaEngine"
             "%{Library.Vulkan}",
         }
 
-    -- Settings specific to the Distribution configuration
     filter "configurations:Dist"
-        defines "EE_DIST"     -- Define a macro for distribution configuration
-        optimize "On"         -- Enable code optimization
+        defines { 
+            "EE_DIST",
+            "EE_PROFILE=0"  --  Disable profiling in distribution
+        }
+        optimize "Speed"
         runtime "Release"
+        
+        --  Maximum optimizations for distribution
+        flags { "LinkTimeOptimization" }
         
         links
         {
@@ -174,5 +185,3 @@ project "EvaEngine"
             "%{Library.spirv_tools_Release}",
             "%{Library.Vulkan}",
         }
-
-

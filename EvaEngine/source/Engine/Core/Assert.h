@@ -6,7 +6,7 @@ namespace Engine
 {
     enum class AssertChannel : uint8_t { Core, Client };
 
-    // These are implemented in Assert.cpp (can include fmt/spdlog there).
+    
     void AssertFailNoMsg(AssertChannel channel,
         const char* expr,
         const char* file,

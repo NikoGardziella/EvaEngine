@@ -33,12 +33,14 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -76,11 +78,14 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;..;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_DEBUG;EE_PROFILE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
+      <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/MP /Z7 %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -91,6 +96,7 @@
     <Lib>
       <AdditionalDependencies>opengl32.lib;shaderc_sharedd.lib;spirv-cross-cored.lib;spirv-cross-glsld.lib;SPIRV-Toolsd.lib;vulkan-1.lib;box2dd.lib;libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\VulkanSDK\1.4.304.1\Lib;vendor\Box2D\bin\Debug-windows-x86_64\Box2D;vendor\vcpkg\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/DEBUG:FASTLINK %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -98,14 +104,16 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;..;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <Optimization>Full</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_RELEASE;EE_PROFILE=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -113,6 +121,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Lib>
       <AdditionalDependencies>opengl32.lib;shaderc_shared.lib;spirv-cross-core.lib;spirv-cross-glsl.lib;SPIRV-Tools.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -124,14 +133,16 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;..;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <Optimization>Full</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;GLFW_INCLUDE_NONE;SPDLOG_NO_UNICODE;EE_DIST;EE_PROFILE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -139,6 +150,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Lib>
       <AdditionalDependencies>opengl32.lib;shaderc_shared.lib;spirv-cross-core.lib;spirv-cross-glsl.lib;SPIRV-Tools.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -146,9 +158,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="source\Engine\Core\Assert.h" />
-    <ClInclude Include="source\Engine\Core\Config.h" />
-    <ClInclude Include="source\Engine\Map\FogOfWar\FogOfWar.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h" />
@@ -181,6 +190,8 @@
     <ClInclude Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.h" />
     <ClInclude Include="source\Engine\AssetManager\Utils\TileSerializer.h" />
     <ClInclude Include="source\Engine\Core\Application.h" />
+    <ClInclude Include="source\Engine\Core\Assert.h" />
+    <ClInclude Include="source\Engine\Core\Config.h" />
     <ClInclude Include="source\Engine\Core\Core.h" />
     <ClInclude Include="source\Engine\Core\EntryPoint.h" />
     <ClInclude Include="source\Engine\Core\Input.h" />
@@ -202,6 +213,7 @@
     <ClInclude Include="source\Engine\Events\Public\CollisionEvents.h" />
     <ClInclude Include="source\Engine\Events\TouchEvent.h" />
     <ClInclude Include="source\Engine\ImGui\ImGuiLayer.h" />
+    <ClInclude Include="source\Engine\Map\FogOfWar\FogOfWar.h" />
     <ClInclude Include="source\Engine\Map\Grid\GridMap.h" />
     <ClInclude Include="source\Engine\Map\Grid\GridUtils\GridUtils.h" />
     <ClInclude Include="source\Engine\Map\Grid\TileCollisionMask.h" />
@@ -231,6 +243,7 @@
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDescriptorSet.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanDevice.h" />
+    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanInstance.h" />
     <ClInclude Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.h" />
@@ -253,17 +266,19 @@
     <ClInclude Include="source\Engine\Renderer\RenderCommand.h" />
     <ClInclude Include="source\Engine\Renderer\Renderer.h" />
     <ClInclude Include="source\Engine\Renderer\Renderer2D.h" />
+    <ClInclude Include="source\Engine\Renderer\Renderer2D\Utils\Renderer2DUtils.h" />
     <ClInclude Include="source\Engine\Renderer\RendererAPI.h" />
     <ClInclude Include="source\Engine\Renderer\Shader.h" />
     <ClInclude Include="source\Engine\Renderer\SubTexture2D.h" />
     <ClInclude Include="source\Engine\Renderer\Texture.h" />
     <ClInclude Include="source\Engine\Renderer\UI\VulkanUIGraphicsPipeline.h" />
     <ClInclude Include="source\Engine\Renderer\UI\VulkanUIRenderer.h" />
+    <ClInclude Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.h" />
     <ClInclude Include="source\Engine\Renderer\UniformBuffer.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\PlayerData.h" />
     <ClInclude Include="source\Engine\Renderer\VertexArray.h" />
-    <ClInclude Include="source\Engine\Renderer\VulkanRenderer2D.h" />
+    <ClInclude Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.h" />
     <ClInclude Include="source\Engine\Scene\Component.h" />
     <ClInclude Include="source\Engine\Scene\Components\Animation\AnimationComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Animation\NpcAnimationControllerComponent.h" />
@@ -740,14 +755,9 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
     <ClInclude Include="vendor\stb_image\stb_image_write.h" />
-    <ClInclude Include="vendor\stb_truetype\stb_truetype.h" />
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
-    <ClInclude Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.h" />
-    <ClInclude Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\Engine\Core\Assert.cpp" />
-    <ClCompile Include="source\Engine\Map\FogOfWar\FogOfWar.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationSystem2D.cpp" />
@@ -769,6 +779,7 @@
     <ClCompile Include="source\Engine\AssetManager\Utils\TilePaletteSerializer.cpp" />
     <ClCompile Include="source\Engine\AssetManager\Utils\TileSerializer.cpp" />
     <ClCompile Include="source\Engine\Core\Application.cpp" />
+    <ClCompile Include="source\Engine\Core\Assert.cpp" />
     <ClCompile Include="source\Engine\Core\Layer.cpp" />
     <ClCompile Include="source\Engine\Core\LayerStack.cpp" />
     <ClCompile Include="source\Engine\Core\Log.cpp" />
@@ -778,6 +789,7 @@
     <ClCompile Include="source\Engine\Debug\DebugUtils.cpp" />
     <ClCompile Include="source\Engine\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="source\Engine\ImGui\imGuiBuild.cpp" />
+    <ClCompile Include="source\Engine\Map\FogOfWar\FogOfWar.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\GridMap.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\GridUtils\GridUtils.cpp" />
     <ClCompile Include="source\Engine\Map\Grid\TileCollisionMask.cpp" />
@@ -803,6 +815,7 @@
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorPool.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDescriptorSet.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanDevice.cpp" />
+    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanGraphicsPipeline.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanInstance.cpp" />
     <ClCompile Include="source\Engine\Platform\Vulkan\VulkanRendererAPI.cpp" />
@@ -826,16 +839,22 @@
     <ClCompile Include="source\Engine\Renderer\RenderCommand.cpp" />
     <ClCompile Include="source\Engine\Renderer\Renderer.cpp" />
     <ClCompile Include="source\Engine\Renderer\Renderer2D.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DCollision.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DDrawing.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DEffects.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DFog.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DLines.cpp" />
     <ClCompile Include="source\Engine\Renderer\RendererAPI.cpp" />
     <ClCompile Include="source\Engine\Renderer\Shader.cpp" />
     <ClCompile Include="source\Engine\Renderer\SubTexture2D.cpp" />
     <ClCompile Include="source\Engine\Renderer\Texture.cpp" />
     <ClCompile Include="source\Engine\Renderer\UI\VulkanUIGraphicsPipeline.cpp" />
     <ClCompile Include="source\Engine\Renderer\UI\VulkanUIRenderer.cpp" />
+    <ClCompile Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.cpp" />
     <ClCompile Include="source\Engine\Renderer\UniformBuffer.cpp" />
     <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp" />
-    <ClCompile Include="source\Engine\Renderer\VulkanRenderer2D.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2D.cpp" />
     <ClCompile Include="source\Engine\Scene\Entity.cpp" />
     <ClCompile Include="source\Engine\Scene\Scene.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneCamera.cpp" />
@@ -857,8 +876,7 @@
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp" />
-    <ClCompile Include="source\Engine\Renderer\UI\VulkanUITextGraphicsPipeline.cpp" />
-    <ClCompile Include="source\Engine\Platform\Vulkan\VulkanFogOfWarPipelines.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Renderer2D\VulkanRenderer2DTiles.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
@@ -866,7 +884,6 @@
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\Effect_shader.comp" />
     <None Include="..\assets\shaders\FlatColor.glsl" />
-    <None Include="..\assets\shaders\fogOFWar_Shader.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
@@ -874,14 +891,15 @@
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />
     <None Include="..\assets\shaders\VulkanUIShader.glsl" />
+    <None Include="..\assets\shaders\VulkanUITextShader.glsl" />
     <None Include="..\assets\shaders\clearMaskCompute.comp" />
     <None Include="..\assets\shaders\compute.comp" />
     <None Include="..\assets\shaders\dda_compute.comp" />
+    <None Include="..\assets\shaders\fogOFWar_Shader.glsl" />
     <None Include="..\assets\shaders\fullscreen_shader.glsl" />
     <None Include="..\assets\shaders\imgui_shader.glsl" />
     <None Include="..\assets\shaders\player_collision_compute.comp" />
     <None Include="..\assets\shaders\testShader.glsl" />
-    <None Include="..\assets\shaders\VulkanUITextShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">

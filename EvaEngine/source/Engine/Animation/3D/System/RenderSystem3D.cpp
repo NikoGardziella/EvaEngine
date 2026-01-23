@@ -11,7 +11,7 @@
 #include <Engine/Scene/Component.h>
 #include "Engine/Animation/3D/System/Render3DUtils/Render3DUtils.h"
 #include <Engine/Scene/Components/NPC/Destruction/EnemyDestructibleComponent.h>
-#include <Engine/Renderer/VulkanRenderer2D.h>
+#include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 
 namespace Engine {
 
