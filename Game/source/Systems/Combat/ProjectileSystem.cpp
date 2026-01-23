@@ -1,17 +1,19 @@
 #include "ProjectileSystem.h"
+#include "Engine.h"
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
 #include <Engine/Events/Public/CollisionEvents.h>
 #include <Engine/Scene/Components/Projectiles/ProjectileComponent.h>
-#include <Engine/Scene/Scene.h>
-#include <Engine/Core/Log.h>
+
 #include <Engine/Scene/Components/Render/3D/MeshRefComponent.h>
 #include <Engine/Scene/Components/Render/3D/SkeletonComponent.h>
 #include "Engine/AssetManager/AssetManager.h"
 #include <Engine/Scene/Components/Render/3D/RenderBoundsComponent.h>
 #include <Engine/Scene/Components/Physics/PhysicsComponent.h>
-#include "glm/glm.hpp"
+
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
+
+#include "Engine/Renderer/Renderer2D/VulkanRenderer2D.h"
 
 void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* scene)
 {

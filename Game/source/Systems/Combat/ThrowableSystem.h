@@ -1,8 +1,9 @@
 #pragma once
-#include <Engine.h>
 #include <Engine/Scene/Components/Combat/ThrowableComponent.h>
 #include <Engine/Core/Core.h>
 #include <Engine/Scene/Scene.h>
+#include <Engine/Scene/Component.h>
+
 class ThrowableSystem
 {
 public:

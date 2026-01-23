@@ -69,7 +69,7 @@ void NPCDeathCleanupSystem::UpdateNPCDeathCleanupSystem(float dt, Engine::Scene*
                 if (e.HasComponent<Engine::EnemyDestructibleComponent>())
                     e.RemoveComponent<Engine::EnemyDestructibleComponent>();
 
-                // Note: we intentionally KEEP:
+                // Note: intentionally KEEP:
                 //  - TransformComponent
                 //  - MeshRefComponent
                 //  - RenderBoundsComponent

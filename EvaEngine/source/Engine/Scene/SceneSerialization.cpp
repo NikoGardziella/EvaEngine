@@ -11,6 +11,8 @@
 
 #include "Engine/AssetManager/AssetManager.h"
 
+#include "Engine/Map/TextureStreaming/TextureStreamingSystem.h"
+
 namespace Engine {
 
 

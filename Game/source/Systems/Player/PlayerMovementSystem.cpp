@@ -1,9 +1,9 @@
 #include "PlayerMovementSystem.h"
 #include <Engine/Scene/Components/Player/CharacterControllerComponent.h>
 #include <Engine/Debug/Instrumentor.h>
+#include <Engine/Scene/Component.h>
 
 
-// Remove this?!
 
 
 void PlayerMovementSystem::MovementSystem(float deltaTime, Engine::Scene* scene)

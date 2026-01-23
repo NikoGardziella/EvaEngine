@@ -3,6 +3,8 @@
 #include "Components/Player/CharacterControllerComponent.h"
 #include "Components/Render/TileComponent.h"
 
+#include "Engine/Renderer/Renderer2D/VulkanRenderer2D.h"
+
 namespace Engine {
 
 

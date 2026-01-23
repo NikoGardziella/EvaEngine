@@ -29,6 +29,10 @@
 #include "Components/Combat/ThrowableComponent.h"
 #include "Components/NPC/NpcAIComponent.h"
 
+#include "Engine/Map/TextureStreaming/TextureStreamingSystem.h"
+
+#include "Engine/Renderer/Renderer2D/VulkanRenderer2D.h"
+
 namespace Engine {
 
 

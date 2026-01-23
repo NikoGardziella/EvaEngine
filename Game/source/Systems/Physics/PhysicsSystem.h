@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Engine.h"
 #include <Engine/Scene/Scene.h>
 
 class PhysicsSystem

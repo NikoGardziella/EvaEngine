@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Engine.h"
 #include <Engine/Map/Grid/GridMap.h>
 #include "Engine/Map/Grid/GridUtils/GridUtils.h"
+#include <Engine/Scene/Scene.h>
 
 
 class Scene;

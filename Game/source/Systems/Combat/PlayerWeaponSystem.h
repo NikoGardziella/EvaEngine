@@ -1,7 +1,7 @@
 #pragma once
-#include "Engine.h"
 #include <Engine/Scene/Components/Combat/WeaponComponent.h>
 #include <Engine/Scene/Scene.h>
+#include <Engine/Scene/Component.h>
 
 
 class Scene;

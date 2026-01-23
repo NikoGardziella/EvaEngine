@@ -1,6 +1,6 @@
 #pragma once
-#include "Engine.h"
 #include <Engine/Scene/Components/NPC/Destruction/EnemyDestructibleComponent.h>
+#include <Engine/Scene/Scene.h>
 
 
 class Scene;

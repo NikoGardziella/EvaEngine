@@ -4,7 +4,8 @@
 #include <Engine/Debug/Instrumentor.h>
 
 #include <Engine/Scene/Scene.h>
-
+#include <Engine/Scene/Component.h>
+#include "Engine/Scene/Entity.h"
 
 
 void PlayerCollisionSystem::UpdatePlayerCollision(float dt, Engine::Scene* scene)

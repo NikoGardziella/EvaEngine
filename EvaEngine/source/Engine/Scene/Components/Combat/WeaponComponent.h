@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 enum class WeaponType : uint8_t
 {

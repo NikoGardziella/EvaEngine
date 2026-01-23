@@ -17,6 +17,7 @@
 #include <Engine/Scene/Components/Render/3D/RenderBoundsComponent.h>
 #include <Engine/Scene/Components/Render/3D/MeshRefComponent.h>
 #include <Engine/Scene/Components/UI/HUDStateComponent.h>
+#include <Engine/Scene/Component.h>
 
 
 void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene* scene)

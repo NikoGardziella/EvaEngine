@@ -1,6 +1,7 @@
 #include "NpcBodyStateSystem.h"
 #include <Engine/Debug/Instrumentor.h>
 #include <Engine/Scene/Scene.h>
+#include <Engine/Scene/Entity.h>
 
 #include <Engine/Scene/Components/NPC/NpcBodyStateComponent.h>
 #include <Engine/Scene/Components/NPC/Destruction/EnemyDestructibleComponent.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine.h"
+#include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 

@@ -1,6 +1,7 @@
 #include "EquippedWeaponAttachSystem.h"
 #include <Engine/Scene/Components/Combat/EquippedWeaponComponent.h>
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
+#include <Engine/Scene/Component.h>
 
 void EquippedWeaponAttachSystem::UpdateEquippedWeaponAttachSystem(float dt, Engine::Scene* scene)
 {

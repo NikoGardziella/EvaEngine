@@ -1,8 +1,9 @@
 #pragma once
-#include "Engine.h"
+#include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 #include <Engine/Scene/Components/NPC/NpcBodyStateComponent.h>
+#include <Engine/Animation/3D/AnimationRegistry.h>
 
 
 class Scene;

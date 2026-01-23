@@ -4,6 +4,10 @@
 #include <Engine/Map/Grid/GridMap.h>
 #include <Engine/Scene/Scene.h>
 #include <random>
+#include <Engine/Debug/Instrumentor.h>
+#include <Engine/Scene/Component.h>
+#include <Engine/Scene/Entity.h>
+#include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 
 
 void ThrowableSystem::UpdateThrowableSystem(float dt, Engine::Scene* scene)
