@@ -127,6 +127,11 @@ namespace Engine {
             UpdateBonePaletteDesciptorsSet(i);
 
         }
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            UpdateLightDescriptorsSet(i);
+
+        }
     }
 
 
@@ -454,7 +459,6 @@ namespace Engine {
         UpdateBones(frameIndex);
 
         UpdateAlbedoImageDesciptorsSet(frameIndex);
-        UpdateLightDescriptorsSet(frameIndex);
 
         const uint32_t numberOfInstances = (uint32_t)s_Vulkan3DData.s_instances.size();
         if (numberOfInstances)

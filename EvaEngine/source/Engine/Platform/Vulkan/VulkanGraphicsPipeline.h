@@ -184,6 +184,7 @@ namespace Engine {
         void UpdateGameDrawAndVisualImagesDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, MAX_TEXTURES>& textures, const std::array<Ref<VulkanTexture>, CHUNK_GRID_SIZE>& visualTextures);
         void UpdateTrackedImageDescriptorSets(size_t frameIndex, const std::vector<Ref<VulkanTexture>>& textures);
 
+        void UpdateLightescriptorSets();
 
         void UpdateCameraUBODescriptorSets();
         void UpdateBulletUBODescriptorSets();
@@ -269,7 +270,7 @@ namespace Engine {
         void CreatePlayerCollisionDescriptorSets();
         void CreatePresentDescriptorSet();
         void CreatePresentSampler();
-        void CreateCameraDescriptorSetLayout();
+        void CreateCameraAndLightDescriptorSetLayout();
         void CreateCameraDescriptorSet();
         void CreatePlayerCollisionResultBuffer();
         void CreateClearMaskBuffer();
@@ -321,7 +322,6 @@ namespace Engine {
         std::vector<VulkanBuffer> m_playerUniformBuffers;
         std::vector<VulkanBuffer> m_textureUniformBuffers;
 
-        Ref<VulkanShader> m_pixelGameShader;
         Ref<VulkanShader> m_fullscreenShader;
         Ref<VulkanShader> m_lineShader;
         Ref<VulkanShader> m_vulkanGameRenderShader;

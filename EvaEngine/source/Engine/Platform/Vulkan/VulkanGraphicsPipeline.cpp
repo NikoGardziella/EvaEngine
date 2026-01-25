@@ -15,7 +15,8 @@
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 #include <Engine/AssetManager/Utils/Statistics.h>
 #include <Engine/Core/Log.h>
-
+#include <Engine/Renderer/Lights/GPULightBuffer.h>
+#include "Engine/Renderer/Lights/VulkanLighting.h"
 
 
 namespace Engine {
@@ -33,7 +34,6 @@ namespace Engine {
         m_descriptorPool = vulkanContext.GetDescriptorPool();
 		m_lineDescriptorPool = vulkanContext.GetLineDescriptorPool();
 
-        m_pixelGameShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/PixelGameShader.GLSL").string());
         m_fullscreenShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/fullscreen_shader.GLSL").string());
         m_lineShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Line_shader.GLSL").string());
         m_playerCollisionComputeShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/player_collision_compute.comp").string());
@@ -101,7 +101,7 @@ namespace Engine {
         CreateClearMaskBuffer();
 
         CreateDescriptorSetLayouts(); 
-        CreateCameraDescriptorSetLayout();
+        CreateCameraAndLightDescriptorSetLayout();
         CreateClearMaskDescriptorSetLayout();
         
         CreatePlayerCollisionDescriptorSetLayout();
@@ -138,7 +138,6 @@ namespace Engine {
 
         m_whiteTexture = AssetManager::GetTexture("logo");
         m_dummyTexture = std::make_shared<VulkanTexture>(1, 1, VK_FORMAT_R8_UINT);
-
     }
 
     VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
@@ -1312,24 +1311,31 @@ namespace Engine {
 
     }
 
-	void VulkanGraphicsPipeline::CreateCameraDescriptorSetLayout()
-	{
-
+    void VulkanGraphicsPipeline::CreateCameraAndLightDescriptorSetLayout()
+    {
+        // Binding 0: Camera
         VkDescriptorSetLayoutBinding cameraBinding{};
         cameraBinding.binding = 0;
         cameraBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         cameraBinding.descriptorCount = 1;
         cameraBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        cameraBinding.pImmutableSamplers = nullptr;
 
-        VkDescriptorSetLayoutCreateInfo cameraLayoutInfo{};
-        cameraLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        cameraLayoutInfo.bindingCount = 1;
-        cameraLayoutInfo.pBindings = &cameraBinding;
+        // Binding 1: Lights (NEW)
+        VkDescriptorSetLayoutBinding lightBinding{};
+        lightBinding.binding = 1;
+        lightBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        lightBinding.descriptorCount = 1;
+        lightBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        vkCreateDescriptorSetLayout(m_device, &cameraLayoutInfo, nullptr, &m_cameraDescriptorSetLayout);
+        VkDescriptorSetLayoutBinding bindings[] = { cameraBinding, lightBinding };
 
-	}
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = 2; 
+        layoutInfo.pBindings = bindings;
+
+        vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_cameraDescriptorSetLayout);
+    }
 
     void VulkanGraphicsPipeline::CreateCameraDescriptorSet()
     {
@@ -1660,6 +1666,30 @@ namespace Engine {
         }
 
     }
+    void VulkanGraphicsPipeline::UpdateLightescriptorSets()
+    {
+        // During init, after VulkanLighting buffer is created
+        for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+        {
+            VkDescriptorBufferInfo lightBufferInfo{};
+            lightBufferInfo.buffer = VulkanLighting::GetLightBuffer()->GetBuffer();
+            lightBufferInfo.offset = 0;
+            lightBufferInfo.range = sizeof(GPULightBuffer);
+
+            VkWriteDescriptorSet lightWrite{};
+            lightWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            lightWrite.dstSet = m_cameraDescriptorSets[i];  // Your camera descriptor sets
+            lightWrite.dstBinding = 1;
+            lightWrite.dstArrayElement = 0;
+            lightWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            lightWrite.descriptorCount = 1;
+            lightWrite.pBufferInfo = &lightBufferInfo;
+
+            vkUpdateDescriptorSets(m_device, 1, &lightWrite, 0, nullptr);
+        }
+    }
+
+
 
     void VulkanGraphicsPipeline::UpdateBulletUBODescriptorSets()
     {

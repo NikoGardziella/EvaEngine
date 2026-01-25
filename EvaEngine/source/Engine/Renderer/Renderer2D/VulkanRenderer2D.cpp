@@ -318,8 +318,9 @@ namespace Engine {
 			{
 				EE_CORE_INFO("Initializing light buffer descriptor for set {}", i);
 				s_bindlessDescitproRenderer->UpdateLightBufferDescriptor(i);
+				
 			}
-
+			m_vulkanGraphicsPipelines->UpdateLightescriptorSets();
 
 
 

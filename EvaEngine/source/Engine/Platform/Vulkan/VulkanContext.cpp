@@ -150,11 +150,14 @@ namespace Engine {
         uint32_t maxSets = 200;
         uint32_t maxUniformBuffers = 100;
         uint32_t maxCombinedImageSamplers = 100;
-        VkDescriptorPoolSize generalSizes[2];
+        VkDescriptorPoolSize generalSizes[3];
         generalSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         generalSizes[0].descriptorCount = maxUniformBuffers;
         generalSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         generalSizes[1].descriptorCount = maxCombinedImageSamplers;
+        uint32_t lightBuffercount = 1;
+        generalSizes[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        generalSizes[2].descriptorCount = lightBuffercount;
 
         m_descriptorPool = std::make_shared<VulkanDescriptorPool>(dev, maxSets, generalSizes, 2, 0);
         m_lineDescriptorPool = std::make_shared<VulkanDescriptorPool>(dev, maxSets, generalSizes, 2, 0);
