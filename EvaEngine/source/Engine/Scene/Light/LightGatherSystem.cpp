@@ -9,7 +9,7 @@
 
 namespace Engine {
 
-    void LightGatherSystem::Update(Engine::Scene* scene, uint32_t frameIndex)
+    void LightGatherSystem::Update(Engine::Scene* scene)
     {
 
         scene->ForEach<DirectionalLightComponent>([&](Entity e, DirectionalLightComponent& dl)

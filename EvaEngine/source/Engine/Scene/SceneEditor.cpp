@@ -4,6 +4,8 @@
 #include "Components/Render/TileComponent.h"
 
 #include "Engine/Renderer/Renderer2D/VulkanRenderer2D.h"
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Components/Light/PointLightComponent.h"
 
 namespace Engine {
 
@@ -14,6 +16,26 @@ namespace Engine {
         EE_PROFILE_FUNCTION();
 
         Engine::VulkanRenderer2D::BeginScene(camera);
+
+        
+        bool editorHasLight = false;
+        ForEach<DirectionalLightComponent>([&](Entity e, DirectionalLightComponent& dl)
+            {
+                editorHasLight = true;
+            });
+
+        if (!editorHasLight)
+        {
+            Entity editorLightEntity = CreateEntity("editor light");
+            DirectionalLightComponent& lightCmomp = editorLightEntity.AddComponent<DirectionalLightComponent>();
+            lightCmomp.intensity = 1.0f;
+
+            editorLightEntity.AddComponent<TransformComponent>();
+
+        }
+
+        m_lightGatherSystem.Update(this);
+        
 
 
         {

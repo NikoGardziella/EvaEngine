@@ -74,7 +74,7 @@ layout(set=0, binding=3) uniform sampler2D uSprites[];
 
 
 // ============================================================================
-// LIGHTING SYSTEM - Inlined
+// LIGHTING SYSTEM
 // ============================================================================
 
 struct GPUDirectionalLight {
@@ -105,7 +105,7 @@ const uint MAX_DIR_LIGHTS = 1;
 const uint MAX_POINT_LIGHTS = 64;
 const uint MAX_SPOT_LIGHTS = 16;
 
-layout(std430, set=0, binding=4) buffer LightBuffer {
+layout(std430, set=0, binding=4) readonly buffer LightBuffer {
     GPULightHeader header;
     GPUDirectionalLight dir[MAX_DIR_LIGHTS];
     GPUPointLight point[MAX_POINT_LIGHTS];
@@ -175,6 +175,7 @@ vec3 applyLighting(vec3 worldPos, vec3 normal, vec3 albedo, float ambientStrengt
     
     return lighting;
 }
+
 
 void main()
 {

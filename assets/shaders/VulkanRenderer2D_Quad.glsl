@@ -153,7 +153,7 @@ void main()
     vec4 baseColor = v_Color * tex;
     
     // Ground normal points up
-    vec3 normal = vec3(0.0, 1.0, 0.0);
+    vec3 normal = vec3(0.0, 0.0, 1.0);
     
     // Apply lighting
     vec3 litColor = applyLighting(v_WorldPos, normal, baseColor.rgb, 0.2);

@@ -8,7 +8,7 @@ namespace Engine {
 	{
 
 	public:
-		void Update(Engine::Scene* scene, uint32_t frameIndex);
+		void Update(Engine::Scene* scene);
 
 	};
 }

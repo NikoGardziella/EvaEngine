@@ -58,6 +58,21 @@ namespace Engine {
 
         EE_CORE_INFO("Starting runtime!");
 
+        ForEach<DirectionalLightComponent>([&](Entity e, DirectionalLightComponent& dl)
+            {
+                // Destroy editor camera.
+                DestroyEntity(e);
+            });
+
+        
+
+        m_lightGatherSystem.Update(this);
+
+
+
+
+
+
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
 
         // makes sure textures are reloaded to the right registry
@@ -83,11 +98,11 @@ namespace Engine {
 
 
         Entity Light = CreateEntity("Light");
-        PointLightComponent& lightComp = Light.AddComponent<PointLightComponent>();
+        DirectionalLightComponent& lightComp = Light.AddComponent<DirectionalLightComponent>();
         TransformComponent& lightTransformComp = Light.AddComponent<TransformComponent>();
-        //lightComp.radius = 50.0f;
-        //lightTransformComp.Translation.x = 10.0f;
-        // UI
+        //lightComp.directionWS = glm::vec3(0.5f, -1.0f, 0.5f);  // Down and diagonal
+        lightComp.color = glm::vec3(1.0f, 1.0f, 1.0f);
+        lightComp.intensity = 1.0f;
 
 
        
