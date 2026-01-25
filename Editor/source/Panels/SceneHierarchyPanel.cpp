@@ -20,6 +20,9 @@
 #include <Engine/Scene/Components/Render/3D/AnimatorComponent.h>
 #include <Engine/Scene/Components/Spawning/NpcSpawnControllerComponent.h>
 #include <Engine/Scene/Components/Player/PlayerVisionComponent.h>
+#include <Engine/Scene/Components/Light/SpotLightComponent.h>
+#include <Engine/Scene/Components/Light/PointLightComponent.h>
+#include <Engine/Scene/Components/Light/DirectionalLightComponent.h>
 
 
 namespace Engine {
@@ -1258,6 +1261,74 @@ namespace Engine {
 
             });
         
+        DrawComponent<DirectionalLightComponent>("Directional Light", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
+            {
+                
+
+                ImGui::DragFloat3("Direction", glm::value_ptr(component.directionWS), 0.01f);
+                ImGui::ColorEdit3("Color", glm::value_ptr(component.color));
+                ImGui::DragFloat("Intensity", &component.intensity, 0.01f, 0.0f, 10.0f);
+
+                // Normalize direction button
+                if (ImGui::Button("Normalize Direction"))
+                {
+                    component.directionWS = glm::normalize(component.directionWS);
+                    
+                }
+
+               
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                if (newEntity)
+                {
+                    m_sceneHierarchyPanelScene->GetRegistry().get<DirectionalLightComponent>(newEntity) = component;
+                }
+                
+            });
+
+        DrawComponent<PointLightComponent>("Point Light", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
+            {
+                ImGui::ColorEdit3("Color", glm::value_ptr(component.color));
+                ImGui::DragFloat("Intensity", &component.intensity, 0.01f, 0.0f, 10.0f);
+                ImGui::DragFloat("Radius", &component.radius, 0.1f, 0.1f, 100.0f);
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                if (newEntity)
+                {
+                    m_sceneHierarchyPanelScene->GetRegistry().get<PointLightComponent>(newEntity) = component;
+                }
+            });
+
+        DrawComponent<SpotLightComponent>("Spot Light", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
+            {
+                ImGui::DragFloat3("Direction", glm::value_ptr(component.directionWS), 0.01f);
+                ImGui::ColorEdit3("Color", glm::value_ptr(component.color));
+                ImGui::DragFloat("Intensity", &component.intensity, 0.01f, 0.0f, 10.0f);
+                ImGui::DragFloat("Range", &component.range, 0.1f, 0.1f, 100.0f);
+
+                float innerAngleDeg = glm::degrees(component.innerAngleRad);
+                float outerAngleDeg = glm::degrees(component.outerAngleRad);
+
+                if (ImGui::DragFloat("Inner Angle", &innerAngleDeg, 0.5f, 0.0f, 90.0f))
+                {
+                    component.innerAngleRad = glm::radians(innerAngleDeg);
+                }
+                if (ImGui::DragFloat("Outer Angle", &outerAngleDeg, 0.5f, 0.0f, 90.0f))
+                {
+                    component.outerAngleRad = glm::radians(outerAngleDeg);
+                }
+
+                if (component.innerAngleRad > component.outerAngleRad)
+                {
+                    component.innerAngleRad = component.outerAngleRad;
+                }
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                if (newEntity)
+                {
+                    m_sceneHierarchyPanelScene->GetRegistry().get<SpotLightComponent>(newEntity) = component;
+                }
+            });
+
         DrawComponent<NPCAIMovementComponent>("NPC movement", entity, m_sceneHierarchyPanelScene.get(),
             [this, &entity](auto& component)
             {

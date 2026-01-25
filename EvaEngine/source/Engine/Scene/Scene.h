@@ -15,6 +15,7 @@
 #include <Engine/Animation/3D/System/RenderSystem3D.h> 
 #include <Engine/Animation/3D/System/AnimationSystem3D.h> 
 #include <Engine/Animation/3D/BonePaletteBuffer.h>    
+#include "Light/LightGatherSystem.h"
 
 namespace Engine {
 
@@ -177,6 +178,7 @@ namespace Engine {
 		Ref<AnimationSystem2D> m_animationSystem;
 		Ref<AnimationBank2D> m_animationBank;
 		DestructibleTileSystem m_destructibleTileSystem;
+		LightGatherSystem m_lightGatherSystem;
 		bool m_debugDrawLOS = false;
 
 		

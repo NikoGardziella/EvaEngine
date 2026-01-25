@@ -17,7 +17,8 @@
 
 #include "Engine/Renderer/Renderer2D/Utils/Renderer2DUtils.h"
 
-
+#include "Engine/Renderer/Lights/VulkanLighting.h"
+#include <Engine/Renderer/Lights/GPULightBuffer.h>
 namespace Engine {
 
 	//VulkanRenderer2D::SceneData* VulkanRenderer2D::m_sceneData = new SceneData();
@@ -290,6 +291,39 @@ namespace Engine {
 		vkMapMemory(m_device, fog.memory, 0, bytes, 0, &fog.mapped);
 
 
+
+	
+
+			VulkanLighting::GetLightBuffer() = std::make_shared<VulkanBuffer>(
+				m_device,
+				m_vulkanContext->GetDeviceManager().GetPhysicalDevice(),
+				sizeof(GPULightBuffer),
+				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+			);
+
+			VkResult mapResult = VulkanLighting::GetLightBuffer()->Map(sizeof(GPULightBuffer), 0);
+
+			if (mapResult != VK_SUCCESS || !VulkanLighting::GetLightBuffer()->Mapped())
+			{
+				EE_CORE_ERROR("Failed to map light buffer {}");
+			}
+			else
+			{
+				EE_CORE_INFO("Light buffer {} mapped successfully at {}",
+					VulkanLighting::GetLightBuffer()->Mapped());
+			}
+			
+			for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+			{
+				EE_CORE_INFO("Initializing light buffer descriptor for set {}", i);
+				s_bindlessDescitproRenderer->UpdateLightBufferDescriptor(i);
+			}
+
+
+
+
+
 	}
 
 
@@ -317,6 +351,8 @@ namespace Engine {
 
 
 		m_uiRenderer->BeginFrame(*m_uiRenderer, currentFrame, glm::vec2(m_swapchainExtent.width, m_swapchainExtent.height));
+
+		VulkanLighting::BeginFrame(currentFrame);
 	}
 
 
@@ -403,6 +439,13 @@ namespace Engine {
 		s_bindlessDescitproRenderer->SetCurrentFrameIndex(currentFrame);
 		ConsumeDestructibleQueue(cmd, currentFrame);
 		ConsumeAnimationQueue(currentFrame);
+
+
+		VulkanLighting::FlushAndUpload(cmd, currentFrame);
+		s_bindlessDescitproRenderer->UpdateLightBufferDescriptor(currentFrame);
+
+
+
 		s_bindlessDescitproRenderer->EndFrameAndUpload(currentFrame);
 
 
@@ -606,7 +649,7 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-		
+
 		//this can be called multiple times per frame
 		RecordGameDrawCommands(cmd, m_imageIndex, currentFrame);
 		RecordLineCommanedBuffer(cmd, m_imageIndex, currentFrame);

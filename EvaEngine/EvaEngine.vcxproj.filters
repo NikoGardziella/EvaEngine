@@ -235,6 +235,12 @@
     <Filter Include="vendor\tiny_gltf">
       <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Renderer\Lights">
+      <UniqueIdentifier>{0b106cc9-8158-4707-8de3-3e4c457a3470}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Lights">
+      <UniqueIdentifier>{d770cc67-28e2-4ed8-bc60-75c083ab1a12}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Engine.h">
@@ -2031,6 +2037,20 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Light\LightGatherSystem.h">
+      <Filter>source\Engine\Scene\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Lights\VulkanLighting.h">
+      <Filter>source\Engine\Renderer\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Lights\GPULights.h">
+      <Filter>source\Engine\Renderer\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Lights\LightSubmitFrame.h">
+      <Filter>source\Engine\Renderer\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Light\SpotLightComponent.h" />
+    <ClInclude Include="source\Engine\Renderer\Lights\GPULightBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2384,6 +2404,12 @@
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp">
       <Filter>vendor\tiny_gltf</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Scene\Light\LightGatherSystem.cpp">
+      <Filter>source\Engine\Scene\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Lights\VulkanLighting.cpp">
+      <Filter>source\Engine\Renderer\Lights</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">
@@ -2449,5 +2475,6 @@
     <None Include="..\assets\shaders\testShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\lighting_common.glsl" />
   </ItemGroup>
 </Project>

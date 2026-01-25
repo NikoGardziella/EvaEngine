@@ -13,6 +13,9 @@
 #include <Engine/AssetManager/Utils/Statistics.h>
 #include <Engine/Core/Assert.h>
 
+#include "Engine/Renderer/Lights/VulkanLighting.h"
+#include <Engine/Renderer/Lights/GPULightBuffer.h>
+
 namespace Engine {
 
     using std::uint32_t;
@@ -63,7 +66,6 @@ namespace Engine {
 
         auto atlas = AssetManager::GetTileTextureIconAtlas();
 
-        // Also tell the bindless system your per-tile pixel size (whatever you use for the per-tile layer)
         SetTileDimensions(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
 
     }
@@ -183,6 +185,7 @@ namespace Engine {
 
         }
     }
+
     void VulkanBindlessDescriptorSetRenderer::CreateBindlessSetLayout(VkDevice device, bool updateAfterBindSupported)
     {
         // binding 0: tiles sampled array (you already have this)
@@ -206,16 +209,23 @@ namespace Engine {
         bInstances.descriptorCount = 1;
         bInstances.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
-        // NEW: binding 3: spritesheets sampled array
+        // binding 3: spritesheets sampled array
         VkDescriptorSetLayoutBinding bSprites{};
         bSprites.binding = 3;
         bSprites.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        bSprites.descriptorCount = MAX_SPRITESHEETS;        
-        bSprites.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;  
+        bSprites.descriptorCount = MAX_SPRITESHEETS;
+        bSprites.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        VkDescriptorSetLayoutBinding bindings[4] = { bColor, bStorage, bInstances, bSprites };
+        // binding 4: light buffer (uniform buffer)
+        VkDescriptorSetLayoutBinding bLights{};
+        bLights.binding = 4;
+        bLights.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bLights.descriptorCount = 1;
+        bLights.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        VkDescriptorBindingFlags flags[4]{};
+        VkDescriptorSetLayoutBinding bindings[5] = { bColor, bStorage, bInstances, bSprites, bLights };
+
+        VkDescriptorBindingFlags flags[5]{};
         flags[0] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
             (updateAfterBindSupported ? VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT : 0);
         flags[1] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
@@ -223,25 +233,25 @@ namespace Engine {
         flags[2] = 0;
         flags[3] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
             (updateAfterBindSupported ? VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT : 0);
+        flags[4] = 0;  // Light buffer doesn't need partial bound or update after bind
 
         VkDescriptorSetLayoutBindingFlagsCreateInfo bindFlags{
             VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO
         };
-        bindFlags.bindingCount = 4;
+        bindFlags.bindingCount = 5;
         bindFlags.pBindingFlags = flags;
 
         VkDescriptorSetLayoutCreateInfo dslci{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
         dslci.pNext = &bindFlags;
-        dslci.bindingCount = 4;
+        dslci.bindingCount = 5;
         dslci.pBindings = bindings;
         dslci.flags = updateAfterBindSupported ? VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT : 0;
 
         if (vkCreateDescriptorSetLayout(device, &dslci, nullptr, &m_bindlessSetLayout) != VK_SUCCESS)
         {
-            EE_CORE_ASSERT(false, "failed to create bindless set layoytu");
+            EE_CORE_ASSERT(false, "failed to create bindless set layout");
         }
     }
-
 
 
     void VulkanBindlessDescriptorSetRenderer::CreateTilesPipeline(VkDevice device, VkRenderPass renderPass)
@@ -392,12 +402,19 @@ namespace Engine {
     void VulkanBindlessDescriptorSetRenderer::CreateBindlessPoolAndSet(VkDevice device, bool updateAfterBindSupported)
     {
         VkDescriptorPoolSize poolSizes[] = {
-            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_RESIDENT },
-            { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          MAX_RESIDENT },
-            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         FRAMES_IN_FLIGHT },
-            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_SPRITESHEETS }
+            // Binding 0 (tiles) + Binding 3 (spritesheets) = combined samplers
+            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_RESIDENT + MAX_SPRITESHEETS },
 
+            // Binding 1: storage images
+            { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, MAX_RESIDENT },
+
+            // Binding 2: instances SSBO (1 buffer)
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1 },
+
+            // Binding 4: light buffer (1 uniform buffer)
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1 }
         };
+
 
         VkDescriptorPoolCreateInfo dpci{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
         dpci.flags = updateAfterBindSupported ? VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT : 0;
@@ -1208,6 +1225,38 @@ namespace Engine {
 
         vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
     }
+
+    void VulkanBindlessDescriptorSetRenderer::UpdateLightBufferDescriptor(uint32_t frameIndex)
+    {
+        const uint32_t fi = 0;
+        Ref<VulkanBuffer> lightBuffer = VulkanLighting::GetLightBuffer();
+
+        if (!lightBuffer)
+        {
+            EE_CORE_WARN("Light buffer not initialized for frame {}");
+            return;
+        }
+
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = lightBuffer->GetBuffer();
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(GPULightBuffer);
+
+
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = m_bindlessSet[frameIndex];
+        descriptorWrite.dstBinding = 4;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+
+
+        vkUpdateDescriptorSets(m_device, 1, &descriptorWrite, 0, nullptr);
+    }
+
 
     bool VulkanBindlessDescriptorSetRenderer::IsInsideView(const Camera&, glm::vec2) const
     {

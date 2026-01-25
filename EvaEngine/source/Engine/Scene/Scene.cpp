@@ -16,6 +16,9 @@
 #include <Engine/Animation/2D/AnimationSystem2D.h>
 #include <Engine/Animation/3D/System/TransformSystem3D.h>
 #include <Engine/Animation/2D/AnimationBank2D.h>
+#include "Components/Light/DirectionalLightComponent.h"
+#include "Components/Light/PointLightComponent.h"
+#include "Components/Light/SpotLightComponent.h"
 
 namespace Engine {
 
@@ -75,10 +78,15 @@ namespace Engine {
         m_cullingSystem3D = std::make_shared<CullingSystem3D>();
         m_transformSystem3D = std::make_shared<TransformSystem3D>();
 
-        Entity spwanController = CreateEntity("spawn controller");
-        spwanController.AddComponent<NpcSpawnControllerComponent>();
+       // Entity spwanController = CreateEntity("spawn controller");
+       // spwanController.AddComponent<NpcSpawnControllerComponent>();
 
 
+        Entity Light = CreateEntity("Light");
+        PointLightComponent& lightComp = Light.AddComponent<PointLightComponent>();
+        TransformComponent& lightTransformComp = Light.AddComponent<TransformComponent>();
+        //lightComp.radius = 50.0f;
+        //lightTransformComp.Translation.x = 10.0f;
         // UI
 
 

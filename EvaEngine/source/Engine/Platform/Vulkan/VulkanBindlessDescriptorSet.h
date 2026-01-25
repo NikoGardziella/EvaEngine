@@ -81,6 +81,8 @@ namespace Engine {
  
         void UpdateEffectImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, CHUNK_GRID_WIDTH* CHUNK_GRID_WIDTH>& textures);
 
+        void UpdateLightBufferDescriptor(uint32_t frameIndex);
+
 
         void SetCurrentFrameIndex(uint32_t fi) { m_currentFrame = fi; }
         void EvictAllTiles();

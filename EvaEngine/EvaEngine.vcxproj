@@ -261,6 +261,10 @@
     <ClInclude Include="source\Engine\Renderer\EditorCamera.h" />
     <ClInclude Include="source\Engine\Renderer\Framebuffer.h" />
     <ClInclude Include="source\Engine\Renderer\GraphicsContext.h" />
+    <ClInclude Include="source\Engine\Renderer\Lights\GPULightBuffer.h" />
+    <ClInclude Include="source\Engine\Renderer\Lights\GPULights.h" />
+    <ClInclude Include="source\Engine\Renderer\Lights\LightSubmitFrame.h" />
+    <ClInclude Include="source\Engine\Renderer\Lights\VulkanLighting.h" />
     <ClInclude Include="source\Engine\Renderer\OrthographicCamera.h" />
     <ClInclude Include="source\Engine\Renderer\OrthographicCameraController.h" />
     <ClInclude Include="source\Engine\Renderer\RenderCommand.h" />
@@ -291,6 +295,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponDef.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\DirectionalLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\PointLightComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Light\SpotLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NPCDeathComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
@@ -316,6 +321,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Vehicles\DriverComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Vehicles\VehicleComponent.h" />
     <ClInclude Include="source\Engine\Scene\Entity.h" />
+    <ClInclude Include="source\Engine\Scene\Light\LightGatherSystem.h" />
     <ClInclude Include="source\Engine\Scene\Scene.h" />
     <ClInclude Include="source\Engine\Scene\SceneCamera.h" />
     <ClInclude Include="source\Engine\Scene\SceneSerializer.h" />
@@ -834,6 +840,7 @@
     <ClCompile Include="source\Engine\Renderer\Camera.cpp" />
     <ClCompile Include="source\Engine\Renderer\EditorCamera.cpp" />
     <ClCompile Include="source\Engine\Renderer\Framebuffer.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Lights\VulkanLighting.cpp" />
     <ClCompile Include="source\Engine\Renderer\OrthographicCamera.cpp" />
     <ClCompile Include="source\Engine\Renderer\OrthographicCameraController.cpp" />
     <ClCompile Include="source\Engine\Renderer\RenderCommand.cpp" />
@@ -857,6 +864,7 @@
     <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp" />
     <ClCompile Include="source\Engine\Scene\Entity.cpp" />
+    <ClCompile Include="source\Engine\Scene\Light\LightGatherSystem.cpp" />
     <ClCompile Include="source\Engine\Scene\Scene.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneCamera.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneEditor.cpp" />
@@ -884,6 +892,7 @@
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\Effect_shader.comp" />
     <None Include="..\assets\shaders\FlatColor.glsl" />
+    <None Include="..\assets\shaders\lighting_common.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />

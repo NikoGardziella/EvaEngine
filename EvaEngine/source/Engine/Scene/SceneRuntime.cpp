@@ -235,7 +235,7 @@ namespace Engine {
 
 
         }
-
+        m_lightGatherSystem.Update(this ,0);
         m_textureStreamingSystem->Update(playerPos, this);
 
         m_animationSystem->Update(timestep, this);

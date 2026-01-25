@@ -27,6 +27,12 @@ constexpr size_t PLAYER_COUNT = 1;
 constexpr size_t MAX_EXPLOSIONS = 32;
 constexpr size_t MAX_MATERIALS = 32;
 
+// lights
+static constexpr uint32_t MAX_DIR_LIGHTS = 1;
+static constexpr uint32_t MAX_POINT_LIGHTS = 64;
+static constexpr uint32_t MAX_SPOT_LIGHTS = 16;
+
+
 // 3D rendering types
 using MeshId = uint32_t;
 using SkeletonId = uint32_t;
