@@ -8,8 +8,9 @@
 #include <Engine/Platform/Vulkan/VulkanBuffer.h>
 #include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 #include <Engine/Animation/3D/MaterialRegistry.h>
+#include <Engine/Renderer/Lights/GPULightBuffer.h>
 
-
+#include "Engine/Renderer/Lights/VulkanLighting.h"
 
 namespace Engine {
 
@@ -171,12 +172,19 @@ namespace Engine {
         bonePalette.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         bonePalette.pImmutableSamplers = nullptr;
 
+        VkDescriptorSetLayoutBinding bLights{};
+        bLights.binding = 5;
+        bLights.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bLights.descriptorCount = 1;
+        bLights.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
         VkDescriptorSetLayoutBinding bindings[] = {
             cam,
             instances,
             albedoArray,
             materialBuf,
-            bonePalette
+            bonePalette,
+            bLights
         };
 
         VkDescriptorSetLayoutCreateInfo ci{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
@@ -446,6 +454,7 @@ namespace Engine {
         UpdateBones(frameIndex);
 
         UpdateAlbedoImageDesciptorsSet(frameIndex);
+        UpdateLightDescriptorsSet(frameIndex);
 
         const uint32_t numberOfInstances = (uint32_t)s_Vulkan3DData.s_instances.size();
         if (numberOfInstances)
@@ -694,6 +703,20 @@ namespace Engine {
             wBones.pBufferInfo = &bonesInfo;
             writes.push_back(wBones);
 
+
+            VkDescriptorBufferInfo lightBufferInfo{};
+            lightBufferInfo.buffer = VulkanLighting::GetLightBuffer()->GetBuffer();
+            lightBufferInfo.offset = 0;
+            lightBufferInfo.range = sizeof(GPULightBuffer);
+
+            VkWriteDescriptorSet wLigts{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+            wLigts.dstSet = m_frames[i].set0Global;
+            wLigts.dstBinding = 5;
+            wLigts.dstArrayElement = 0;
+            wLigts.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            wLigts.descriptorCount = 1;
+            wLigts.pBufferInfo = &lightBufferInfo;
+
             vkUpdateDescriptorSets(m_device,
                 (uint32_t)writes.size(),
                 writes.data(),
@@ -743,6 +766,36 @@ namespace Engine {
         vkUpdateDescriptorSets(m_device, 1, &w, 0, nullptr);
     }
 
+    void VulkanRenderer3D::UpdateLightDescriptorsSet(uint32_t frame)
+    {
+        if (m_frames[frame].set0Global == VK_NULL_HANDLE)
+            return;
+
+        // Get the light buffer
+        Ref<VulkanBuffer> lightBuffer = VulkanLighting::GetLightBuffer();
+        if (!lightBuffer)
+        {
+            EE_CORE_WARN("Light buffer not initialized");
+            return;
+        }
+
+        // Write light buffer descriptor
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = lightBuffer->GetBuffer();
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(GPULightBuffer);
+
+        VkWriteDescriptorSet lightWrite{};
+        lightWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        lightWrite.dstSet = m_frames[frame].set0Global;
+        lightWrite.dstBinding = 5;  // Light buffer binding
+        lightWrite.dstArrayElement = 0;
+        lightWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        lightWrite.descriptorCount = 1;
+        lightWrite.pBufferInfo = &bufferInfo;
+
+        vkUpdateDescriptorSets(m_device, 1, &lightWrite, 0, nullptr);
+    }
 
     void VulkanRenderer3D::UpdateBonePaletteDesciptorsSet(uint32_t frame)
     {

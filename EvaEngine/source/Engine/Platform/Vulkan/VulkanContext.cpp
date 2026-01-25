@@ -182,7 +182,7 @@ namespace Engine {
     
 
         VkDescriptorPoolCreateFlags falgs3d = 0;
-        VkDescriptorPoolSize gfx3DSizes[3];
+        VkDescriptorPoolSize gfx3DSizes[4];
 
         // 0) Camera UBO  (binding 0: VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
         gfx3DSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -195,6 +195,10 @@ namespace Engine {
         // 2) Albedo texture array (binding 2: VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
         gfx3DSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         gfx3DSizes[2].descriptorCount = framesInFlight * MAX_ALBEDO_TEXTURES;
+
+        uint32_t numberOfLightsbuffers = 1;
+        gfx3DSizes[3].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        gfx3DSizes[3].descriptorCount = numberOfLightsbuffers;
 
         m_descriptorPool3D = std::make_shared<VulkanDescriptorPool>(dev, framesInFlight, gfx3DSizes, 3, falgs3d);
 

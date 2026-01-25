@@ -159,6 +159,7 @@ namespace Engine {
         static uint32_t RegisterAlbedoTexture(const Ref<VulkanTexture>& tex);
 
         void UpdateAlbedoImageDesciptorsSet(uint32_t frame);
+        void UpdateLightDescriptorsSet(uint32_t frame);
 
         void UpdateBonePaletteDesciptorsSet(uint32_t frame);
 
