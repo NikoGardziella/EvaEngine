@@ -7,6 +7,7 @@
 #include "3D/VulkanRenderer3D.h"
 #include <vector>
 #include "vulkan/vulkan.h"
+#include "VulkanSharedResources.h"
 
 namespace Engine {
 
@@ -30,6 +31,7 @@ namespace Engine {
 		static void BeginScene(OrthographicCamera& camera);
 
 		static void DrawFrame();
+		static void DrawShadowFrame();
 
 		static void StartFrame();
 		static void EndScene();
@@ -56,6 +58,8 @@ namespace Engine {
 		static SceneData* m_sceneData;
 		static std::unique_ptr<VulkanRenderer2D> s_VulkanRenderer2D;
 		static std::unique_ptr<VulkanRenderer3D> s_VulkanRenderer3D;
+		static std::unique_ptr<VulkanSharedResources> s_vulkanSharedResources;
+
 		static uint32_t s_currentFrame;
 
 

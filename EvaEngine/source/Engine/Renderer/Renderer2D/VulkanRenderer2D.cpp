@@ -19,6 +19,7 @@
 
 #include "Engine/Renderer/Lights/VulkanLighting.h"
 #include <Engine/Renderer/Lights/GPULightBuffer.h>
+#include <Engine/Renderer/Lights/VulkanLighting.cpp>
 namespace Engine {
 
 	//VulkanRenderer2D::SceneData* VulkanRenderer2D::m_sceneData = new SceneData();
@@ -80,9 +81,9 @@ namespace Engine {
 
 	}
 
-	void VulkanRenderer2D::Init()
+	void VulkanRenderer2D::Init(Ref<VulkanShadowMap> shadowMap)
 	{
-
+		m_shadowMap = shadowMap;
 		m_vulkanContext = VulkanContext::Get();
 		m_device = m_vulkanContext->GetDeviceManager().GetDevice();
 
@@ -322,9 +323,10 @@ namespace Engine {
 			}
 			m_vulkanGraphicsPipelines->UpdateLightescriptorSets();
 
+			VulkanLighting::GetLightSubmitFrameData() = std::make_shared<LightSubmitFrame>();
 
-
-
+			m_vulkanGraphicsPipelines->UpdateShadowMapDescriptorSets(shadowMap);
+			
 	}
 
 
@@ -347,6 +349,10 @@ namespace Engine {
 		vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
 		StartBatch();
+
+
+
+
 
 		s_bindlessDescitproRenderer->BeginFrame(currentFrame);
 
@@ -402,6 +408,8 @@ namespace Engine {
 		
 		CalculateCollisionFrame(currentFrame, cmd);
 		s_VulkanData.CurrentFrame = currentFrame;
+
+		Renderer::DrawShadowFrame();
 
 		
 
@@ -652,16 +660,33 @@ namespace Engine {
 
 
 		//this can be called multiple times per frame
-		RecordGameDrawCommands(cmd, m_imageIndex, currentFrame);
+		RecordGameDrawCommands(cmd, currentFrame);
 		RecordLineCommanedBuffer(cmd, m_imageIndex, currentFrame);
 
-		// is this wrong SwapchainExtent. This is fullscreen. should it be the editor game viewport?
-		s_bindlessDescitproRenderer->RecordTiles(cmd, currentFrame,
-			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent());
+		
 
 	}
 
-	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame)
+	void VulkanRenderer2D::DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd)
+	{
+		s_bindlessDescitproRenderer->RecordTiles(cmd, currentFrame,
+			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent());
+	}
+
+	void VulkanRenderer2D::DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap)
+	{
+
+		//ConsumeAnimationQueue(frameIndex);
+		//s_bindlessDescitproRenderer->EndFrameAndUpload(frameIndex);
+
+		s_bindlessDescitproRenderer->DrawTilesShadowPass(cmd, frameIndex,
+			shadowMap->GetShadowPipeline()->GetTilesShadowPipeline(),
+			shadowMap->GetShadowPipeline()->GetTilesShadowPipelineLayout(),
+			shadowMap->GetLightSpaceMatrix());
+	}
+
+
+	void VulkanRenderer2D::RecordGameDrawCommands(VkCommandBuffer cmd, uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
 		
@@ -670,6 +695,14 @@ namespace Engine {
 		VkPipeline pipe2D = m_vulkanGraphicsPipelines->GetGamePipeline();
 		VkPipelineLayout layout2D = m_vulkanGraphicsPipelines->GetGamePipelineLayout();
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipe2D);
+
+		glm::mat4 L = m_shadowMap->GetLightSpaceMatrix();
+		
+
+
+
+		vkCmdPushConstants(cmd, layout2D, VK_SHADER_STAGE_VERTEX_BIT,
+			0, sizeof(glm::mat4), &L);
 
 		// 1) Bind both descriptor sets for the 2D pipeline in one go
 		VkDescriptorSet setCamera = m_vulkanGraphicsPipelines->GetCameraDescriptorSet(currentFrame); // set = 0
@@ -694,7 +727,26 @@ namespace Engine {
 		s_VulkanData.Stats.DrawCalls++;
 	}
 
+	void VulkanRenderer2D::RecordGameShadowPass(VkCommandBuffer cmd, uint32_t currentFrame,
+		VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix)
+	{
+		// Bind shadow pipeline
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowPipeline);
 
+		// Push light space matrix
+		vkCmdPushConstants(cmd, shadowPipelineLayout,
+			VK_SHADER_STAGE_VERTEX_BIT,
+			0, sizeof(glm::mat4), &lightSpaceMatrix);
+
+		// Bind vertex/index buffers
+		VkBuffer vb = s_VulkanData.QuadVertexBuffer->GetBuffer();
+		VkDeviceSize offs = 0;
+		vkCmdBindVertexBuffers(cmd, 0, 1, &vb, &offs);
+		vkCmdBindIndexBuffer(cmd, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		// Draw (depth only) - NO DESCRIPTOR SETS!
+		vkCmdDrawIndexed(cmd, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
+	}
 
 
 	void VulkanRenderer2D::RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)

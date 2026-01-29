@@ -27,10 +27,20 @@ namespace Engine {
             return s_gpuLightBuffer;
         }
 
+        static Ref<LightSubmitFrame>& GetLightSubmitFrameData()
+        {
+            return s_lightSubmitData;
+        }
+
+
+    private:
+     
     private:
         static Ref<VulkanBuffer> s_gpuLightBuffer;
 
-        static LightSubmitFrame s_submitData;
+        static Ref<LightSubmitFrame> s_lightSubmitData;
+
+  
 
     };
 

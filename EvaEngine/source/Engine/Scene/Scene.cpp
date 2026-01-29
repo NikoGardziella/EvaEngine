@@ -93,9 +93,10 @@ namespace Engine {
         m_cullingSystem3D = std::make_shared<CullingSystem3D>();
         m_transformSystem3D = std::make_shared<TransformSystem3D>();
 
-       // Entity spwanController = CreateEntity("spawn controller");
-       // spwanController.AddComponent<NpcSpawnControllerComponent>();
-
+        Entity spwanController = CreateEntity("spawn controller");
+        NpcSpawnControllerComponent& npcSpawnControllerComponent  = spwanController.AddComponent<NpcSpawnControllerComponent>();
+        npcSpawnControllerComponent.maxAlive = 800;
+        npcSpawnControllerComponent.spawnInterval = 0.001f;
 
         Entity Light = CreateEntity("Light");
         DirectionalLightComponent& lightComp = Light.AddComponent<DirectionalLightComponent>();
@@ -104,7 +105,10 @@ namespace Engine {
         lightComp.color = glm::vec3(1.0f, 1.0f, 1.0f);
         lightComp.intensity = 1.0f;
 
+        lightTransformComp.Translation.z = 20.0f;
+        //lightTransformComp.Scale = glm::vec3(3);
 
+        lightComp.directionWS = glm::normalize(glm::vec3(0.3f, -0.5f, -0.8f));
        
         
     }

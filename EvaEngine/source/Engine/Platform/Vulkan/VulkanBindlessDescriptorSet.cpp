@@ -1260,7 +1260,7 @@ namespace Engine {
 
     bool VulkanBindlessDescriptorSetRenderer::IsInsideView(const Camera&, glm::vec2) const
     {
-        // TODO: plug real culling here
+        // TODO: plug real culling
         return true;
     }
 
@@ -1288,42 +1288,57 @@ namespace Engine {
         vkCmdDraw(cmd, /*vertexCount*/4, /*instanceCount*/m_drawCount, 0, 0);
     }
 
-    // Called when a tile UID first appears in view.
-    // uploadCmd: a command buffer submit BEFORE the draw that uses this tile.
-    uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResident(uint64_t uid,  const glm::vec4& atlasUV,   // uv.x, uv.y = TOP-LEFT in atlas (min);
-        VkCommandBuffer uploadCmd)  // recorded BEFORE render pass
+    // In your bindless tiles renderer
+    void VulkanBindlessDescriptorSetRenderer::DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex,
+        VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout,
+        const glm::mat4& lightSpaceMatrix)
+    {
+        if (m_drawCount == 0) return;
+
+        // Bind shadow pipeline
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowPipeline);
+
+        // Bind instance buffer descriptor set
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            shadowPipelineLayout, 0, 1, &m_bindlessSet[frameIndex], 0, nullptr);
+
+        // Push light space matrix
+        vkCmdPushConstants(cmd, shadowPipelineLayout,
+            VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &lightSpaceMatrix);
+
+        // Draw instanced (no vertex/index buffers - uses gl_VertexIndex/gl_InstanceIndex)
+        vkCmdDraw(cmd, 4, m_drawCount, 0, 0);  // 4 vertices per quad, N instances
+    }
+
+   
+    uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResident(uint64_t uid,  const glm::vec4& atlasUV,
+        VkCommandBuffer uploadCmd)
     {
         if (auto it = m_tileToSlot.find(uid); it != m_tileToSlot.end())
             return it->second;
 
-        // 1) Acquire a free array layer (= bindless slot)
         const uint32_t layer = m_colorLayerPool.Acquire();
         VkImageView colorView = m_colorLayerPool.View(layer);
 
-        // 2) Copy atlas patch -> this array layer (does proper per-image/per-layer barriers)
-        //    Make sure this uses your real atlas image:
+      
         VkImage atlasImg = AssetManager::GetTileTextureIconAtlas()->GetImage();
         CopyFromAtlasUVToLayer(uploadCmd,
             atlasImg,
             atlasUV,              // expects uv.x/uv.y to be pixel-aligned top-left
             m_colorArrayImage,
             layer,
-            m_tileW, m_tileH);    // e.g. 128 x 256
+            m_tileW, m_tileH);
 
-        // 3) Descriptor writes
-        // If you DO NOT use update-after-bind, write this slot into ALL per-frame sets here.
+      
         for (uint32_t f = 0; f < MAX_FRAMES_IN_FLIGHT; ++f)
         {
-            // binding 0: sampled for graphics
+            
             WriteCombinedImageSampler(m_device, m_bindlessSet[f],
                 /*binding*/0, /*arrayIndex*/layer,
                 m_tileSampler, colorView,
                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-            // If your compute pass writes to COLOR, also expose it as STORAGE_IMAGE (same view):
-            // WriteStorageImage(m_device, m_bindlessSet[f],
-            //     /*binding*/1, /*arrayIndex*/layer,
-            //     colorView, VK_IMAGE_LAYOUT_GENERAL);
+           
         }
 
         m_tileToSlot.emplace(uid, layer);

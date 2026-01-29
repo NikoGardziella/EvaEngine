@@ -77,6 +77,8 @@ namespace Engine {
         CreatePresentRenderPass();
         CreateImGuiRenderPass();
         CreateGameRenderPass();
+
+
         CreateOffscreenRenderPass();
 
         CreateSwapchainFramebuffers();
@@ -185,7 +187,7 @@ namespace Engine {
     
 
         VkDescriptorPoolCreateFlags falgs3d = 0;
-        VkDescriptorPoolSize gfx3DSizes[4];
+        VkDescriptorPoolSize gfx3DSizes[5];
 
         // 0) Camera UBO  (binding 0: VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
         gfx3DSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -202,6 +204,9 @@ namespace Engine {
         uint32_t numberOfLightsbuffers = 1;
         gfx3DSizes[3].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         gfx3DSizes[3].descriptorCount = numberOfLightsbuffers;
+
+        gfx3DSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        gfx3DSizes[4].descriptorCount = framesInFlight;
 
         m_descriptorPool3D = std::make_shared<VulkanDescriptorPool>(dev, framesInFlight, gfx3DSizes, 3, falgs3d);
 
@@ -454,6 +459,8 @@ namespace Engine {
             EE_CORE_INFO("Vulkan Game render pass created");
         }
     }
+
+
 
 
 

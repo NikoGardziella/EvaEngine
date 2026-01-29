@@ -52,13 +52,15 @@ namespace Engine
         iconInit.viewportWidth = swapchainExtent.width;
         iconInit.viewportHeight = swapchainExtent.height;
         iconInit.renderPass = m_vulkanContext->GetGameRenderPass();
-        m_iconPipeline->Init(iconInit, MAX_FRAMES_IN_FLIGHT);
+        iconInit.fallbackTexture = std::make_shared<VulkanTexture>(1,1);
+        m_iconPipeline->InitUIGraphicsPipeline(iconInit, MAX_FRAMES_IN_FLIGHT);
 
-        VulkanUITextGraphicsPipeline::UIInitConfig textInit{};
+        VulkanUIGraphicsPipeline::UIInitConfig textInit{};
         textInit.viewportWidth = swapchainExtent.width;
         textInit.viewportHeight = swapchainExtent.height;
+        textInit.fallbackTexture = std::make_shared<VulkanTexture>(1, 1);
         textInit.renderPass = m_vulkanContext->GetGameRenderPass();
-        m_textPipeline->Init(textInit, MAX_FRAMES_IN_FLIGHT);
+        m_textPipeline->InitUITextGraphicsPipeline(textInit, MAX_FRAMES_IN_FLIGHT);
 
         // Buffers
         const uint32_t maxVerts = m_cfg.maxQuads * 4;
@@ -425,8 +427,14 @@ namespace Engine
 
     void VulkanUIRenderer::BindAndDrawText(VkCommandBuffer cmd)
     {
+
+
+
         VkPipeline pipe = m_textPipeline->GetPipeline();
         VkPipelineLayout layout = m_textPipeline->GetPipelineLayout();
+
+
+
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipe);
 
         VulkanUIGraphicsPipeline::UIPushConstants pc{};

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "VulkanRenderer2D.h"
 #include "Engine/Renderer/Renderer2D/Utils/Renderer2DUtils.h"
+#include <Engine/Renderer/Lights/VulkanLighting.h>
 
 namespace Engine {
 

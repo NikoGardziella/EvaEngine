@@ -9,6 +9,7 @@
 #include <Engine/Core/Core.h>
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 #include <Engine/Platform/Vulkan/VulkanShader.h>
+#include "VulkanUIGraphicsPipeline.h"
 
 
 class VulkanDevice;
@@ -24,16 +25,7 @@ namespace Engine {
      
 
     public:
-        struct UIInitConfig
-        {
-            VkRenderPass renderPass = VK_NULL_HANDLE;
-            uint32_t subpassIndex = 0;
-
-            uint32_t maxTextures = MAX_UI_TEXTURES;
-
-            uint32_t viewportWidth = 1;
-            uint32_t viewportHeight = 1;
-        };
+        
 
         struct CameraUBO
         {
@@ -47,7 +39,7 @@ namespace Engine {
         VulkanUITextGraphicsPipeline(const VulkanUITextGraphicsPipeline&) = delete;
         VulkanUITextGraphicsPipeline& operator=(const VulkanUITextGraphicsPipeline&) = delete;
 
-        void Init(const UIInitConfig& cfg, uint32_t framesInFlight);
+        void InitUITextGraphicsPipeline(const VulkanUIGraphicsPipeline::UIInitConfig& cfg, uint32_t framesInFlight);
         void Shutdown();
 
         VkDescriptorSet GetCameraDescriptorSet(uint32_t frame) const;
@@ -72,7 +64,7 @@ namespace Engine {
         void DestroyCameraBuffers();
 
         void CreatePipelineLayout();
-        void CreatePipeline(const UIInitConfig& cfg);
+        void CreatePipeline(const VulkanUIGraphicsPipeline::UIInitConfig& cfg);
 
 
         void FillVertexInputState(VkPipelineVertexInputStateCreateInfo& vi, std::array<VkVertexInputBindingDescription, 1>& bindings,
@@ -82,7 +74,7 @@ namespace Engine {
         VkDevice m_device = VK_NULL_HANDLE;
         VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 
-        UIInitConfig m_cfg{};
+        VulkanUIGraphicsPipeline::UIInitConfig m_cfg{};
         uint32_t m_framesInFlight = 0;
 
         // Descriptors
@@ -114,7 +106,6 @@ namespace Engine {
     private:
 
         uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
-        void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& outBuffer, VkDeviceMemory& outMemory, void** outMapped);
         void DestroyBuffer(VkBuffer& buffer, VkDeviceMemory& memory, void** mapped);
     };
 }

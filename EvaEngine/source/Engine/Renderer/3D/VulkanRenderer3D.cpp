@@ -11,6 +11,7 @@
 #include <Engine/Renderer/Lights/GPULightBuffer.h>
 
 #include "Engine/Renderer/Lights/VulkanLighting.h"
+#include <imgui.h>
 
 namespace Engine {
 
@@ -29,8 +30,9 @@ namespace Engine {
         memset(&s_stats3D, 0, sizeof(Statistics3D));
     }
 
-    void VulkanRenderer3D::InitVulkanRenderer3D()
+    void VulkanRenderer3D::InitVulkanRenderer3D(Ref<VulkanShadowMap> shadowMap)
     {
+        m_shadowMap = shadowMap;
 
         m_3DRenderShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/Vulkan3DRender.GLSL").string());
         
@@ -57,15 +59,15 @@ namespace Engine {
         Engine::Vulkan3DGraphicsPipeline::VertexInput vertexInput{};
         vertexInput.bindings =
         {
-            { 0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX }
+            { 0, sizeof(Vertex3D), VK_VERTEX_INPUT_RATE_VERTEX }
         };
         vertexInput.attributes = {
             // location, binding, format,                             offset
-            { 0, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(Vertex, pos)     }, // pos
-            { 1, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(Vertex, nrm)     }, // nrm
-            { 2, 0, VK_FORMAT_R32G32_SFLOAT,       offsetof(Vertex, uv)      }, // uv
-            { 3, 0, VK_FORMAT_R32G32B32A32_UINT,   offsetof(Vertex, joints)  }, // joints
-            { 4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, weights) }  // weights
+            { 0, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(Vertex3D, pos)     }, // pos
+            { 1, 0, VK_FORMAT_R32G32B32_SFLOAT,    offsetof(Vertex3D, nrm)     }, // nrm
+            { 2, 0, VK_FORMAT_R32G32_SFLOAT,       offsetof(Vertex3D, uv)      }, // uv
+            { 3, 0, VK_FORMAT_R32G32B32A32_UINT,   offsetof(Vertex3D, joints)  }, // joints
+            { 4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex3D, weights) }  // weights
         };
 
         Engine::Vulkan3DGraphicsPipeline::RasterState rasterState{};
@@ -127,9 +129,16 @@ namespace Engine {
             UpdateBonePaletteDesciptorsSet(i);
 
         }
+        
+
+
+   
+
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
             UpdateLightDescriptorsSet(i);
+            UpdateShadowMapDescriptor(i);
+            UpdateAlbedoImageDesciptorsSet(i);
 
         }
     }
@@ -183,13 +192,21 @@ namespace Engine {
         bLights.descriptorCount = 1;
         bLights.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
+        VkDescriptorSetLayoutBinding shadowMapBinding{};
+        shadowMapBinding.binding = 6;
+        shadowMapBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        shadowMapBinding.descriptorCount = 1;
+        shadowMapBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+
         VkDescriptorSetLayoutBinding bindings[] = {
             cam,
             instances,
             albedoArray,
             materialBuf,
             bonePalette,
-            bLights
+            bLights,
+            shadowMapBinding
         };
 
         VkDescriptorSetLayoutCreateInfo ci{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
@@ -458,7 +475,6 @@ namespace Engine {
         UpdateCamera(frameIndex, s_Vulkan3DData.s_cameraData.uView, s_Vulkan3DData.s_cameraData.uProj);
         UpdateBones(frameIndex);
 
-        UpdateAlbedoImageDesciptorsSet(frameIndex);
 
         const uint32_t numberOfInstances = (uint32_t)s_Vulkan3DData.s_instances.size();
         if (numberOfInstances)
@@ -555,6 +571,9 @@ namespace Engine {
             pc.submeshId = d.submeshId;
             pc.flags = s_debug3DFlags;
 
+            glm::mat4 L = m_shadowMap->GetLightSpaceMatrix();
+           
+            pc.lightSpaceMatrix = L;
             
 
             if (d.submeshId == WHOLE_MESH)
@@ -607,6 +626,149 @@ namespace Engine {
         s_Vulkan3DData.s_draws.clear();
     }
 
+    void VulkanRenderer3D::DrawAll3DMeshesDepthOnly(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowGraphicsPipeline> shadowPipeline)
+    {
+        if (s_Vulkan3DData.s_draws.empty())
+            return;
+
+        VkDescriptorSet set0 = m_frames[frameIndex].set0Global;
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            shadowPipeline->Get3DShadowPipelineLayout(),
+            0, 1, &set0, 0, nullptr);  // Only 1 set!
+
+        uint32_t currentMeshId = UINT32_MAX;
+        const MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
+        const MeshAsset* currentMesh = nullptr;
+
+        for (const PendingDraw& d : s_Vulkan3DData.s_draws)
+        {
+            if (d.meshId != currentMeshId)
+            {
+                currentMeshId = d.meshId;
+                currentMesh = &meshReg.GetMesh(currentMeshId);
+
+                VkDeviceSize vbOff = currentMesh->vbOffset;
+                vkCmdBindVertexBuffers(cmd, 0, 1, &currentMesh->vertexBuffer, &vbOff);
+                vkCmdBindIndexBuffer(cmd, currentMesh->indexBuffer, currentMesh->ibOffset, VK_INDEX_TYPE_UINT32);
+            }
+
+            if (!currentMesh) continue;
+
+           
+
+            ShadowPC pc{};
+            glm::mat4 L = m_shadowMap->GetLightSpaceMatrix();
+            pc.lightSpaceMatrix = L;
+            pc.instanceIndex = d.instanceIndex;
+
+         
+            vkCmdPushConstants(cmd, shadowPipeline->Get3DShadowPipelineLayout(),
+                VK_SHADER_STAGE_VERTEX_BIT,
+                0, sizeof(ShadowPC), &pc);
+
+      
+            // Draw submeshes
+            if (d.submeshId == WHOLE_MESH)
+            {
+                for (const auto& sm : currentMesh->submeshes)
+                {
+                    vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, (int32_t)sm.baseVertex, 0);
+                }
+            }
+            else
+            {
+                const SubmeshRange& sm = currentMesh->submeshes[d.submeshId];
+                vkCmdDrawIndexed(cmd, sm.indexCount, 1, sm.firstIndex, (int32_t)sm.baseVertex, 0);
+            }
+        }
+    }
+
+
+    void VulkanRenderer3D::DrawShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap)
+    {
+        // Get light direction
+
+
+
+        const auto& submitData = VulkanLighting::GetLightSubmitFrameData();
+        if (submitData->dirs.empty()) {
+            EE_CORE_WARN("No directional light for shadows!");
+            return;
+        }
+
+        glm::vec3 lightDirection = glm::vec3(submitData->dirs[0].direction_intensity);
+        glm::vec3 sceneCenter(Engine::VulkanRenderer2D::s_PlayerData.CameraPos, 0.0f);
+
+        float sceneRadius = 20.0f;
+
+        shadowMap->UpdateLightSpaceMatrix(lightDirection, sceneCenter, sceneRadius);
+
+
+       
+
+
+        // LOG THE MATRIX
+        glm::mat4 lightSpace = shadowMap->GetLightSpaceMatrix();
+       
+        /*
+        EE_CORE_INFO("Light direction: ({}, {}, {})", lightDirection.x, lightDirection.y, lightDirection.z);
+        EE_CORE_INFO("Light space matrix[3]: ({}, {}, {}, {})",
+            lightSpace[3][0], lightSpace[3][1], lightSpace[3][2], lightSpace[3][3]);
+
+        */
+        // Begin shadow render pass
+        VkRenderPassBeginInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = shadowMap->GetShadowRenderPass();
+        renderPassInfo.framebuffer = shadowMap->GetShadowFramebuffer();
+        renderPassInfo.renderArea.offset = { 0, 0 };
+        renderPassInfo.renderArea.extent = {
+            shadowMap->GetShadowMapSize(),
+            shadowMap->GetShadowMapSize()
+        };
+
+        VkClearValue clearValue{};
+        clearValue.depthStencil = { 1.0f, 0 };
+        renderPassInfo.clearValueCount = 1;
+        renderPassInfo.pClearValues = &clearValue;
+
+        vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        // Set viewport
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float)shadowMap->GetShadowMapSize();
+        viewport.height = (float)shadowMap->GetShadowMapSize();
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+        VkRect2D scissor{};
+        scissor.offset = { 0, 0 };
+        scissor.extent = { shadowMap->GetShadowMapSize(), shadowMap->GetShadowMapSize() };
+        vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+        // Bind pipeline
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            shadowMap->GetShadowPipeline()->Get3DShadowPipeline());
+
+        /*
+        // Push light space matrix
+        vkCmdPushConstants(cmd,
+            shadowMap->GetShadowPipeline()->Get3DShadowPipelineLayout(),
+            VK_SHADER_STAGE_VERTEX_BIT,
+            0, sizeof(glm::mat4), &lightSpace);
+
+        */
+        // Draw meshes
+        DrawAll3DMeshesDepthOnly(cmd, frameIndex, shadowMap->GetShadowPipeline());
+
+
+        
+
+        //EE_CORE_INFO("Shadow pass completed - drew {} meshes", s_Vulkan3DData.s_draws.size());
+    }
 
 
 
@@ -676,8 +838,8 @@ namespace Engine {
                 wAlbedo.dstBinding = 2;
                 wAlbedo.dstArrayElement = 0;
                 wAlbedo.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                wAlbedo.descriptorCount = 1;
-                wAlbedo.pImageInfo = &m_albedoImageInfos[0]; // use slot 0 for test
+                wAlbedo.descriptorCount = (uint32_t)m_albedoImageInfos.size();
+                wAlbedo.pImageInfo = m_albedoImageInfos.data();
                 writes.push_back(wAlbedo);
             }
 
@@ -708,6 +870,8 @@ namespace Engine {
             writes.push_back(wBones);
 
 
+
+            // also UpdateLightDescriptorsSet(uint32_t frame) ?
             VkDescriptorBufferInfo lightBufferInfo{};
             lightBufferInfo.buffer = VulkanLighting::GetLightBuffer()->GetBuffer();
             lightBufferInfo.offset = 0;
@@ -720,6 +884,9 @@ namespace Engine {
             wLigts.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
             wLigts.descriptorCount = 1;
             wLigts.pBufferInfo = &lightBufferInfo;
+            writes.push_back(wLigts);
+
+
 
             vkUpdateDescriptorSets(m_device,
                 (uint32_t)writes.size(),
@@ -800,6 +967,26 @@ namespace Engine {
 
         vkUpdateDescriptorSets(m_device, 1, &lightWrite, 0, nullptr);
     }
+
+    void VulkanRenderer3D::UpdateShadowMapDescriptor(uint32_t frame)
+    {
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = m_shadowMap->GetShadowMapView();
+        imageInfo.sampler = m_shadowMap->GetShadowMapSampler();
+
+        VkWriteDescriptorSet write{};
+        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write.dstSet = m_frames[frame].set0Global;
+        write.dstBinding = 6;
+        write.dstArrayElement = 0;
+        write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        write.descriptorCount = 1;
+        write.pImageInfo = &imageInfo;
+
+        vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+    }
+
 
     void VulkanRenderer3D::UpdateBonePaletteDesciptorsSet(uint32_t frame)
     {

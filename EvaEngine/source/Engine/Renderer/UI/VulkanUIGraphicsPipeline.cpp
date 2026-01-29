@@ -8,7 +8,7 @@
 #include <cstring>
 #include <Engine/Platform/Vulkan/VulkanShader.h>
 #include <Engine/Core/Assert.h>
-
+#include <vulkan/vulkan_core.h>
 
 namespace Engine {
 
@@ -16,7 +16,11 @@ namespace Engine {
     VulkanUIGraphicsPipeline::VulkanUIGraphicsPipeline(VkDevice device, VkPhysicalDevice physicalDevice)
         : m_device(device), m_physicalDevice(physicalDevice)
     {
-        EE_CORE_ASSERT(m_device != VK_NULL_HANDLE, "VulkanUIGraphicsPipeline: device is null");
+        if (m_device == VK_NULL_HANDLE)
+        {
+            EE_CORE_ERROR("m_device is VK_NULL_HANDLE in VulkanUIGraphicsPipeline::Init!");
+            throw std::runtime_error("Device not initialized");
+        }
         EE_CORE_ASSERT(m_physicalDevice != VK_NULL_HANDLE, "VulkanUIGraphicsPipeline: physical device is null");
     }
 
@@ -25,7 +29,7 @@ namespace Engine {
         Shutdown();
     }
 
-    void VulkanUIGraphicsPipeline::Init(const UIInitConfig& cfg, uint32_t framesInFlight)
+    void VulkanUIGraphicsPipeline::InitUIGraphicsPipeline(const UIInitConfig& cfg, uint32_t framesInFlight)
     {
         EE_CORE_ASSERT(cfg.renderPass != VK_NULL_HANDLE, "UI pipeline requires a valid render pass");
         EE_CORE_ASSERT(framesInFlight > 0, "framesInFlight must be > 0");
@@ -129,14 +133,15 @@ namespace Engine {
     void VulkanUIGraphicsPipeline::UpdateUITextures(uint32_t frame, const std::vector<Ref<VulkanTexture>>& textures)
     {
         EE_CORE_ASSERT(frame < m_setUITextures.size(), "UpdateUITextures: frame out of range");
+        EE_CORE_ASSERT(m_setUITextures[frame] != VK_NULL_HANDLE, "UpdateUITextures: descriptor set is null");
+        EE_CORE_ASSERT(m_cfg.fallbackTexture != nullptr, "UpdateUITextures: fallbackTexture is null");
         EE_CORE_ASSERT((uint32_t)textures.size() <= m_cfg.maxTextures, "UpdateUITextures: textures.size exceeds maxTextures");
 
-        std::vector<VkDescriptorImageInfo> infos;
-        infos.resize(m_cfg.maxTextures);
+        std::vector<VkDescriptorImageInfo> infos(m_cfg.maxTextures);
 
         for (uint32_t i = 0; i < m_cfg.maxTextures; ++i)
         {
-            Ref<VulkanTexture> t;
+            Ref<VulkanTexture> t = m_cfg.fallbackTexture;
             if (i < (uint32_t)textures.size() && textures[i] != nullptr)
                 t = textures[i];
 
@@ -145,8 +150,7 @@ namespace Engine {
             infos[i].sampler = t->GetSampler();
         }
 
-        VkWriteDescriptorSet write{};
-        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        VkWriteDescriptorSet write{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
         write.dstSet = m_setUITextures[frame];
         write.dstBinding = 0;
         write.dstArrayElement = 0;
@@ -157,8 +161,15 @@ namespace Engine {
         vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
     }
 
+
     void VulkanUIGraphicsPipeline::CreateDescriptorSetLayouts()
     {
+        // Verify device first
+        if (m_device == VK_NULL_HANDLE) {
+            EE_CORE_ERROR("m_device is null in CreateDescriptorSetLayouts!");
+            throw std::runtime_error("Device not initialized");
+        }
+
         // set 0: camera UBO (binding 0)
         VkDescriptorSetLayoutBinding camUBO{};
         camUBO.binding = 0;
@@ -172,9 +183,13 @@ namespace Engine {
         camLayoutCI.bindingCount = 1;
         camLayoutCI.pBindings = &camUBO;
 
-        EE_CORE_ASSERT(vkCreateDescriptorSetLayout(m_device, &camLayoutCI, nullptr, &m_setLayoutCamera) == VK_SUCCESS,
-            "Failed to create UI camera descriptor set layout");
+        VkResult result = vkCreateDescriptorSetLayout(m_device, &camLayoutCI, nullptr, &m_setLayoutCamera);
+        if (result != VK_SUCCESS || m_setLayoutCamera == VK_NULL_HANDLE) {
+            EE_CORE_ERROR("Failed to create UI camera descriptor set layout: {}", (int)result);
+            throw std::runtime_error("Failed to create camera descriptor set layout");
+        }
 
+        // set 1: texture array
         VkDescriptorSetLayoutBinding texArr{};
         texArr.binding = 0;
         texArr.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -187,18 +202,26 @@ namespace Engine {
         texLayoutCI.bindingCount = 1;
         texLayoutCI.pBindings = &texArr;
 
-        EE_CORE_ASSERT(vkCreateDescriptorSetLayout(m_device, &texLayoutCI, nullptr, &m_setLayoutUITextures) == VK_SUCCESS,
-            "Failed to create UI textures descriptor set layout");
+        result = vkCreateDescriptorSetLayout(m_device, &texLayoutCI, nullptr, &m_setLayoutUITextures);
+        if (result != VK_SUCCESS || m_setLayoutUITextures == VK_NULL_HANDLE) {
+            EE_CORE_ERROR("Failed to create UI textures descriptor set layout: {}", (int)result);
+            throw std::runtime_error("Failed to create textures descriptor set layout");
+        }
+
+        EE_CORE_INFO("UI m_setLayoutCamera = {}", (void*)m_setLayoutCamera);
+        EE_CORE_INFO("UI m_setLayoutUITextures = {}", (void*)m_setLayoutUITextures);
     }
 
     void VulkanUIGraphicsPipeline::CreateDescriptorPool(uint32_t framesInFlight)
     {
-    
-        std::array<VkDescriptorPoolSize, 2> sizes{};
+        if (m_device == VK_NULL_HANDLE) {
+            EE_CORE_ERROR("m_device is null in CreateDescriptorPool!");
+            throw std::runtime_error("Device not initialized");
+        }
 
+        std::array<VkDescriptorPoolSize, 2> sizes{};
         sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         sizes[0].descriptorCount = framesInFlight;
-
         sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         sizes[1].descriptorCount = framesInFlight * m_cfg.maxTextures;
 
@@ -206,15 +229,28 @@ namespace Engine {
         poolCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolCI.poolSizeCount = (uint32_t)sizes.size();
         poolCI.pPoolSizes = sizes.data();
-        poolCI.maxSets = framesInFlight * 2; // set0 + set1 per frame
-        poolCI.flags = 0;
+        poolCI.maxSets = framesInFlight * 2;
 
-        EE_CORE_ASSERT(vkCreateDescriptorPool(m_device, &poolCI, nullptr, &m_descriptorPool) == VK_SUCCESS,
-            "Failed to create UI descriptor pool");
+        VkResult result = vkCreateDescriptorPool(m_device, &poolCI, nullptr, &m_descriptorPool);
+        if (result != VK_SUCCESS) {
+            EE_CORE_ERROR("vkCreateDescriptorPool failed: {}", (int)result);
+            throw std::runtime_error("Failed to create descriptor pool");
+        }
+
+        if (m_descriptorPool == VK_NULL_HANDLE) {
+            EE_CORE_ERROR("Descriptor pool is null after creation!");
+            throw std::runtime_error("Descriptor pool is null");
+        }
     }
 
     void VulkanUIGraphicsPipeline::AllocateDescriptorSets(uint32_t framesInFlight)
     {
+
+        EE_CORE_INFO("UI VkDevice        = {}", (void*)m_device);
+        EE_CORE_INFO("UI VkPhysicalDevice= {}", (void*)m_physicalDevice);
+        EE_CORE_INFO("UI VkDescriptorPool= {}", (void*)m_descriptorPool);
+        EE_CORE_INFO("UI SetLayout       = {}", (void*)m_setLayoutCamera);
+
         m_setCamera.resize(framesInFlight);
         m_setUITextures.resize(framesInFlight);
 
@@ -227,8 +263,19 @@ namespace Engine {
             alloc.descriptorSetCount = framesInFlight;
             alloc.pSetLayouts = layouts.data();
 
-            EE_CORE_ASSERT(vkAllocateDescriptorSets(m_device, &alloc, m_setCamera.data()) == VK_SUCCESS,
-                "Failed to allocate UI camera descriptor sets");
+            VkResult result = vkAllocateDescriptorSets(m_device, &alloc, m_setCamera.data());
+            if (result != VK_SUCCESS) {
+                EE_CORE_ERROR("Failed to allocate UI camera descriptor sets: {}", (int)result);
+                throw std::runtime_error("Failed to allocate UI camera descriptor sets");
+            }
+
+            // Verify they're not null
+            for (uint32_t i = 0; i < framesInFlight; ++i) {
+                if (m_setCamera[i] == VK_NULL_HANDLE) {
+                    EE_CORE_ERROR("Camera descriptor set {} is VK_NULL_HANDLE after allocation!", i);
+                    throw std::runtime_error("Camera descriptor set is null");
+                }
+            }
         }
 
         // Allocate texture sets
@@ -240,10 +287,14 @@ namespace Engine {
             alloc.descriptorSetCount = framesInFlight;
             alloc.pSetLayouts = layouts.data();
 
-            EE_CORE_ASSERT(vkAllocateDescriptorSets(m_device, &alloc, m_setUITextures.data()) == VK_SUCCESS,
-                "Failed to allocate UI texture descriptor sets");
+            VkResult result = vkAllocateDescriptorSets(m_device, &alloc, m_setUITextures.data());
+            if (result != VK_SUCCESS) {
+                EE_CORE_ERROR("Failed to allocate UI texture descriptor sets: {}", (int)result);
+                throw std::runtime_error("Failed to allocate UI texture descriptor sets");
+            }
         }
 
+        // Update camera descriptor sets
         for (uint32_t frame = 0; frame < framesInFlight; ++frame)
         {
             VkDescriptorBufferInfo bi{};
@@ -267,13 +318,19 @@ namespace Engine {
     void VulkanUIGraphicsPipeline::CreateCameraBuffers(uint32_t framesInFlight)
     {
         m_cameraBuffers.resize(framesInFlight);
-
+        if (m_device == VK_NULL_HANDLE)
+        {
+            EE_CORE_ERROR("m_device is null in CreateCameraBuffers!");
+            return;
+        }
+        EE_CORE_INFO("UI pipeline device = {}", (void*)m_device);
+        EE_CORE_INFO("UI pipeline device = {}", (void*)m_physicalDevice);
         for (uint32_t i = 0; i < framesInFlight; ++i)
         {
             CameraBuffer& cb = m_cameraBuffers[i];
             cb.size = sizeof(CameraUBO);
 
-            CreateBuffer(cb.size,
+            BufferUtils::CreateBufferMapped(cb.size,
                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                 cb.buffer, cb.memory, &cb.mapped);
@@ -299,7 +356,7 @@ namespace Engine {
         VkPushConstantRange pcr{};
         pcr.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
         pcr.offset = 0;
-        pcr.size = 32; // sizeof(UIPushConstants)
+        pcr.size = sizeof(UIPushConstants);
 
         VkPipelineLayoutCreateInfo pl{};
         pl.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -308,8 +365,14 @@ namespace Engine {
         pl.pushConstantRangeCount = 1;
         pl.pPushConstantRanges = &pcr;
 
-        EE_CORE_ASSERT(vkCreatePipelineLayout(m_device, &pl, nullptr, &m_pipelineLayout) == VK_SUCCESS,
-            "Failed to create UI pipeline layout");
+        VkResult res = vkCreatePipelineLayout(m_device, &pl, nullptr, &m_pipelineLayout);
+        EE_CORE_INFO("vkCreatePipelineLayout res={} layout={}", (int)res, (void*)m_pipelineLayout);
+
+        if (res != VK_SUCCESS || m_pipelineLayout == VK_NULL_HANDLE)
+        {
+            EE_CORE_ERROR("CreatePipelineLayout failed");
+            return;
+        }
     }
 
 
@@ -360,7 +423,6 @@ namespace Engine {
 
     void VulkanUIGraphicsPipeline::CreatePipeline(const UIInitConfig& cfg)
     {
-        EE_CORE_ASSERT(m_uiShader->GetVertexShaderModule() != VK_NULL_HANDLE && m_uiShader->GetFragmentShaderModule() != VK_NULL_HANDLE, "UI shaders not loaded");
         EE_CORE_ASSERT(m_pipelineLayout != VK_NULL_HANDLE, "UI pipeline layout not created");
 
         VkPipelineShaderStageCreateInfo stages[2]{};
@@ -455,8 +517,8 @@ namespace Engine {
         gp.renderPass = cfg.renderPass;
         gp.subpass = cfg.subpassIndex;
 
-        EE_CORE_ASSERT(vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &gp, nullptr, &m_pipeline) == VK_SUCCESS,
-            "Failed to create UI graphics pipeline");
+   
+        vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &gp, nullptr, &m_pipeline);
     }
 
  
@@ -475,33 +537,7 @@ namespace Engine {
         return 0;
     }
 
-    void VulkanUIGraphicsPipeline::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, 
-        VkBuffer& outBuffer, VkDeviceMemory& outMemory, void** outMapped)
-    {
-        VkBufferCreateInfo bci{};
-        bci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bci.size = size;
-        bci.usage = usage;
-        bci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-        EE_CORE_ASSERT(vkCreateBuffer(m_device, &bci, nullptr, &outBuffer) == VK_SUCCESS, "Failed to create buffer");
-
-        VkMemoryRequirements req{};
-        vkGetBufferMemoryRequirements(m_device, outBuffer, &req);
-
-        VkMemoryAllocateInfo mai{};
-        mai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        mai.allocationSize = req.size;
-        mai.memoryTypeIndex = FindMemoryType(req.memoryTypeBits, properties);
-
-        EE_CORE_ASSERT(vkAllocateMemory(m_device, &mai, nullptr, &outMemory) == VK_SUCCESS, "Failed to allocate buffer memory");
-        EE_CORE_ASSERT(vkBindBufferMemory(m_device, outBuffer, outMemory, 0) == VK_SUCCESS, "Failed to bind buffer memory");
-
-        if (outMapped)
-        {
-            EE_CORE_ASSERT(vkMapMemory(m_device, outMemory, 0, size, 0, outMapped) == VK_SUCCESS, "Failed to map buffer");
-        }
-    }
+   
 
     void VulkanUIGraphicsPipeline::DestroyBuffer(VkBuffer& buffer, VkDeviceMemory& memory, void** mapped)
     {

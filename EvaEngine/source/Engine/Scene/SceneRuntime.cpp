@@ -208,7 +208,7 @@ namespace Engine {
 
                 TransformComponent& playerTransformComp = playerEntity.GetComponent<TransformComponent>();
                 playerTransformComp.Rotation.x += glm::radians(90.0f);
-
+                playerTransformComp.Translation.z = 0.01f;
                 WeaponInventoryComponent& weaponInventoryComp = playerEntity.AddComponent<WeaponInventoryComponent>();
                 weaponInventoryComp.equipDirty = true;
                 // weaponInventoryComp.equippedWeaponDefId = 1;

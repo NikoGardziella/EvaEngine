@@ -2051,6 +2051,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Light\SpotLightComponent.h" />
     <ClInclude Include="source\Engine\Renderer\Lights\GPULightBuffer.h" />
+    <ClInclude Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowMap.h" />
+    <ClInclude Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowGraphicsPipeline.h" />
+    <ClInclude Include="source\Engine\Renderer\VulkanSharedResources.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2410,6 +2413,9 @@
     <ClCompile Include="source\Engine\Renderer\Lights\VulkanLighting.cpp">
       <Filter>source\Engine\Renderer\Lights</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowMap.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowGraphicsPipeline.cpp" />
+    <ClCompile Include="source\Engine\Renderer\VulkanSharedResources.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">
@@ -2476,5 +2482,8 @@
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\lighting_common.glsl" />
+    <None Include="..\assets\shaders\shadow_ground_Vertex.glsl" />
+    <None Include="..\assets\shaders\shadow_tiles_Vertex.glsl" />
+    <None Include="..\assets\shaders\shadow_3d_Vertex.glsl" />
   </ItemGroup>
 </Project>

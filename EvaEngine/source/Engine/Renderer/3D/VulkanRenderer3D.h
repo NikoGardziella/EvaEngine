@@ -9,6 +9,8 @@
 #include <Engine/Renderer/Camera.h>
 #include <Engine/Core/Core.h>
 #include <Engine/Scene/Components/NPC/Destruction/EnemyDestructibleComponent.h>
+#include <Engine/Renderer/Lights/Shadow/VulkanShadowGraphicsPipeline.h>
+#include <Engine/Renderer/Lights/Shadow/VulkanShadowMap.h>
 
 namespace Engine {
 
@@ -52,7 +54,28 @@ namespace Engine {
     class MaterialRegistry;
     class VulkanRenderer3D
     {
+    public:
+
+        struct Vertex3D {
+            glm::vec3 pos;   // location = 0  -> VK_FORMAT_R32G32B32_SFLOAT
+            glm::vec3 nrm;   // location = 1  -> VK_FORMAT_R32G32B32_SFLOAT
+            glm::vec2 uv;    // location = 2  -> VK_FORMAT_R32G32_SFLOAT
+            glm::uvec4 joints; // location 3 (JOINTS_0)
+            glm::vec4  weights;// location 4 (WEIGHTS_0)
+        };
+
+        
+        struct ShadowPC
+        {
+            glm::mat4 lightSpaceMatrix;
+            uint32_t instanceIndex;
+            uint32_t _pad0, _pad1, _pad2;
+        };
+
+
     private:
+
+      
         
         struct Renderer3DPerFrame 
         {
@@ -63,25 +86,17 @@ namespace Engine {
             VkDescriptorSet set0Global = VK_NULL_HANDLE;
         };
 
-        
-        struct Vertex {
-            glm::vec3 pos;   // location = 0  -> VK_FORMAT_R32G32B32_SFLOAT
-            glm::vec3 nrm;   // location = 1  -> VK_FORMAT_R32G32B32_SFLOAT
-            glm::vec2 uv;    // location = 2  -> VK_FORMAT_R32G32_SFLOAT
-            glm::uvec4 joints; // location 3 (JOINTS_0)
-            glm::vec4  weights;// location 4 (WEIGHTS_0)
-        };
-
-       
-        static_assert(offsetof(Vertex, pos) == 0 && offsetof(Vertex, nrm) == 12 && offsetof(Vertex, uv) == 24);
+     
+        static_assert(offsetof(Vertex3D, pos) == 0 && offsetof(Vertex3D, nrm) == 12 && offsetof(Vertex3D, uv) == 24);
 
         struct PCDraw3D {
             uint32_t instanceIndex;
             uint32_t materialId;
             uint32_t submeshId;
             uint32_t flags;
+            glm::mat4 lightSpaceMatrix;
         };
-        static_assert(sizeof(PCDraw3D) == 16, "Expect 16 bytes");
+        //static_assert(sizeof(PCDraw3D) == 16, "Expect 16 bytes");
 
 
 
@@ -104,13 +119,16 @@ namespace Engine {
 
     public:
 
-        void InitVulkanRenderer3D();
+        void InitVulkanRenderer3D(Ref<VulkanShadowMap> shadowMap);
 
         bool Create3dDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& descriptorSetLayoutOut);
 
         // per-frame updates
     
         // descriptor infos for binding
+
+
+        const VkDescriptorSetLayout Get3DDescriptorSetLayout() { return m_descriptorSetLayout3D;};
         const VkDescriptorSet GetSet0(uint32_t frame) const { return m_frames[frame].set0Global; }
         VkDescriptorBufferInfo CameraInfo(uint32_t frame) const;
         VkDescriptorBufferInfo InstanceInfo(uint32_t frame) const;
@@ -149,6 +167,11 @@ namespace Engine {
 
         void Draw(uint32_t frameIndex, VkCommandBuffer cmd);
 
+        void DrawAll3DMeshesDepthOnly(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowGraphicsPipeline> shadowPipeline);
+
+        void DrawShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap);
+
+
         // Record and upload everything. Call from your render pass code.
         // You already have MeshRegistry/MaterialRegistry in your renderer, so pass them in.
         void Flush3D(const MeshRegistry& meshes, const MaterialRegistry& materials);
@@ -161,10 +184,15 @@ namespace Engine {
         void UpdateAlbedoImageDesciptorsSet(uint32_t frame);
         void UpdateLightDescriptorsSet(uint32_t frame);
 
+        void UpdateShadowMapDescriptor(uint32_t frame);
+
         void UpdateBonePaletteDesciptorsSet(uint32_t frame);
 
         static void SetDebugFlags(uint32_t flags) { s_debug3DFlags = flags; }
         static uint32_t GetDebugFlags() { return s_debug3DFlags; }
+
+
+        Ref<VulkanShadowMap> GetShadowMap() { return m_shadowMap; };
 
     private:
        inline void UpdateBuffer(const VulkanBuffer& buf, const void* src, VkDeviceSize bytes, VkDeviceSize dstOffset) const;
@@ -178,6 +206,7 @@ namespace Engine {
         static std::vector<Ref<VulkanTexture>>      m_albedoTextures;
 
         Vulkan3DGraphicsPipeline m_3DPipeline;
+        
         Ref<VulkanShader> m_3DRenderShader;
         VkDevice m_device;
         VkDescriptorSetLayout m_descriptorSetLayout3D;
@@ -194,6 +223,9 @@ namespace Engine {
         //stats
         static Statistics3D s_stats3D;    
         static uint32_t s_debug3DFlags;
+
+
+        Ref<VulkanShadowMap> m_shadowMap;
     };
 
 }

@@ -4,7 +4,7 @@
 layout(location = 0) in vec3  a_Position;
 layout(location = 1) in vec4  a_Color;
 layout(location = 2) in vec2  a_TexCoord;
-layout(location = 3) in uint  a_TexIndex; 
+layout(location = 3) in uint  a_TexIndex;
 layout(location = 4) in float a_TilingFactor;
 
 layout(std140, set = 0, binding = 0) uniform Camera
@@ -16,7 +16,12 @@ layout(location = 0) out vec4  v_Color;
 layout(location = 1) out vec2  v_TexCoord;
 layout(location = 2) out float v_TilingFactor;
 layout(location = 3) out flat uint v_TexIndex;
-layout(location = 4) out vec3  v_WorldPos;  // NEW - for lighting
+layout(location = 4) out vec3  v_WorldPos;
+layout(location = 5) out vec4  v_PosLightSpace;
+
+layout(push_constant) uniform PC {
+    mat4 lightSpaceMatrix;
+} pc;
 
 void main()
 {
@@ -24,9 +29,10 @@ void main()
     v_TexCoord     = a_TexCoord;
     v_TilingFactor = a_TilingFactor;
     v_TexIndex     = a_TexIndex;
-    v_WorldPos     = a_Position;  // NEW - pass world position
-    
-    gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+    v_WorldPos     = a_Position;
+
+    gl_Position     = u_ViewProjection * vec4(a_Position, 1.0);
+    v_PosLightSpace = pc.lightSpaceMatrix * vec4(a_Position, 1.0);
 }
 
 #type fragment
@@ -39,9 +45,11 @@ layout(location = 0) in vec4  v_Color;
 layout(location = 1) in vec2  v_TexCoord;
 layout(location = 2) in float v_TilingFactor;
 layout(location = 3) in flat uint v_TexIndex;
-layout(location = 4) in vec3  v_WorldPos;  // NEW
+layout(location = 4) in vec3  v_WorldPos;
+layout(location = 5) in vec4  v_PosLightSpace;
 
 layout(set = 1, binding = 1) uniform sampler2D u_Textures[32];
+layout(set = 0, binding = 2) uniform sampler2D uShadowMap;
 
 // ============================================================================
 // LIGHTING SYSTEM
@@ -146,17 +154,54 @@ vec3 applyLighting(vec3 worldPos, vec3 normal, vec3 albedo, float ambientStrengt
     return lighting;
 }
 
+// ============================================================================
+// SHADOW SYSTEM
+// ============================================================================
+
+float ShadowFactor(vec4 posLightSpace)
+{
+    vec3 proj = posLightSpace.xyz / posLightSpace.w;
+    vec2 uv = proj.xy * 0.5 + 0.5;
+    
+    // Outside shadow map = fully lit
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
+        return 1.0;
+    
+    float currentDepth = proj.z;
+    float bias = 0.0015;
+    
+    // 3x3 PCF for soft shadows
+    vec2 texelSize = 1.0 / vec2(textureSize(uShadowMap, 0));
+    float shadow = 0.0;
+    
+    for (int y = -1; y <= 1; ++y) {
+        for (int x = -1; x <= 1; ++x) {
+            float shadowDepth = texture(uShadowMap, uv + vec2(x, y) * texelSize).r;
+            shadow += (currentDepth - bias > shadowDepth) ? 0.0 : 1.0;
+        }
+    }
+    
+    return shadow / 9.0;
+}
+
 void main()
 {
     uint idx = min(v_TexIndex, 31u);
     vec4 tex = texture(u_Textures[idx], v_TexCoord * v_TilingFactor);
     vec4 baseColor = v_Color * tex;
     
-    // Ground normal points up
-    vec3 normal = vec3(0.0, 0.0, 1.0);
+    // Ground normal (adjust based on your coordinate system)
+    vec3 normal = vec3(0.0, 0.0, 1.0);  // Z-up, or use (0,1,0) for Y-up
     
     // Apply lighting
     vec3 litColor = applyLighting(v_WorldPos, normal, baseColor.rgb, 0.2);
     
-    o_Color = vec4(litColor, baseColor.a);
+    // Apply shadows only to directional light
+    float shadow = ShadowFactor(v_PosLightSpace);
+    
+    vec3 ambient = baseColor.rgb * 0.2;
+    vec3 directional = litColor - ambient;
+    vec3 finalColor = ambient + directional * shadow;
+    
+    o_Color = vec4(finalColor, baseColor.a);
 }

@@ -102,6 +102,8 @@ namespace Engine {
 
         void CreateGameRenderPass();
 
+        void CreateShadowRenderPass(VkFormat shadowDepthFormat);
+
 
 		void CreateSwapchainFramebuffers();
 

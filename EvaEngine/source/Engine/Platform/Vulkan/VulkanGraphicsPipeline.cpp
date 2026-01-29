@@ -309,12 +309,16 @@ namespace Engine {
             m_cameraDescriptorSetLayout,  
             m_gameDescriptorSetLayout   
         };
+        VkPushConstantRange pushConstant{};
+        pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        pushConstant.offset = 0;
+        pushConstant.size = sizeof(glm::mat4);
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-        pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
-        pipelineLayoutInfo.setLayoutCount = 2; // Ensure this is NOT zero
+        pipelineLayoutInfo.pushConstantRangeCount = 1; 
+        pipelineLayoutInfo.pPushConstantRanges = &pushConstant; 
+        pipelineLayoutInfo.setLayoutCount = 2; 
         pipelineLayoutInfo.pSetLayouts = setLayouts;
 
 
@@ -763,6 +767,8 @@ namespace Engine {
         bindings[1].descriptorCount = MAX_TEXTURES; // 32 textures
         bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         bindings[1].pImmutableSamplers = nullptr;
+
+        
 
         VkDescriptorSetLayoutCreateInfo layoutInfo = {};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -1310,7 +1316,6 @@ namespace Engine {
         }
 
     }
-
     void VulkanGraphicsPipeline::CreateCameraAndLightDescriptorSetLayout()
     {
         // Binding 0: Camera
@@ -1320,18 +1325,29 @@ namespace Engine {
         cameraBinding.descriptorCount = 1;
         cameraBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        // Binding 1: Lights (NEW)
+        // Binding 1: Lights
         VkDescriptorSetLayoutBinding lightBinding{};
         lightBinding.binding = 1;
         lightBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         lightBinding.descriptorCount = 1;
         lightBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        VkDescriptorSetLayoutBinding bindings[] = { cameraBinding, lightBinding };
+        // Binding 2: Shadow map (NEW!)
+        VkDescriptorSetLayoutBinding shadowBinding{};
+        shadowBinding.binding = 2;
+        shadowBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        shadowBinding.descriptorCount = 1;
+        shadowBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        VkDescriptorSetLayoutBinding bindings[] = {
+            cameraBinding,
+            lightBinding,
+            shadowBinding
+        };
 
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = 2; 
+        layoutInfo.bindingCount = 3;
         layoutInfo.pBindings = bindings;
 
         vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_cameraDescriptorSetLayout);
@@ -1666,6 +1682,7 @@ namespace Engine {
         }
 
     }
+
     void VulkanGraphicsPipeline::UpdateLightescriptorSets()
     {
         // During init, after VulkanLighting buffer is created
@@ -1674,7 +1691,7 @@ namespace Engine {
             VkDescriptorBufferInfo lightBufferInfo{};
             lightBufferInfo.buffer = VulkanLighting::GetLightBuffer()->GetBuffer();
             lightBufferInfo.offset = 0;
-            lightBufferInfo.range = sizeof(GPULightBuffer);
+            lightBufferInfo.range = VK_WHOLE_SIZE;
 
             VkWriteDescriptorSet lightWrite{};
             lightWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1689,7 +1706,27 @@ namespace Engine {
         }
     }
 
+    // In VulkanGraphicsPipeline.cpp
+    void VulkanGraphicsPipeline::UpdateShadowMapDescriptorSets(Ref<VulkanShadowMap> shadowMap)
+    {
+        for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+        {
+            VkDescriptorImageInfo shadowInfo{};
+            shadowInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            shadowInfo.imageView = shadowMap->GetShadowMapView();
+            shadowInfo.sampler = shadowMap->GetShadowMapSampler();
 
+            VkWriteDescriptorSet write{};
+            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write.dstSet = m_cameraDescriptorSets[i];  // Ground's camera descriptor set
+            write.dstBinding = 2;  // Binding 2 in camera descriptor set
+            write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            write.descriptorCount = 1;
+            write.pImageInfo = &shadowInfo;
+
+            vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+        }
+    }
 
     void VulkanGraphicsPipeline::UpdateBulletUBODescriptorSets()
     {

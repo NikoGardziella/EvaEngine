@@ -45,6 +45,67 @@ namespace Engine {
           
         }
 
+        void CreateBufferMapped(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+            VkBuffer& outBuffer, VkDeviceMemory& outMemory, void** outMapped)
+        {
+            VulkanContext* context = VulkanContext::Get();
+            EE_CORE_ASSERT(context != nullptr, "VulkanContext is null");
+
+            VkDevice device = context->GetDeviceManager().GetDevice();
+            EE_CORE_ASSERT(device != VK_NULL_HANDLE, "VkDevice is null");
+
+            outBuffer = VK_NULL_HANDLE;
+            outMemory = VK_NULL_HANDLE;
+            if (outMapped) *outMapped = nullptr;
+
+            VkBufferCreateInfo bci{};
+            bci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            bci.size = size;
+            bci.usage = usage;
+            bci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+            VkResult res = vkCreateBuffer(device, &bci, nullptr, &outBuffer);
+            if (res != VK_SUCCESS || outBuffer == VK_NULL_HANDLE)
+            {
+                EE_CORE_ERROR("vkCreateBuffer failed: {}", (int)res);
+                return;
+            }
+
+            VkMemoryRequirements req{};
+            vkGetBufferMemoryRequirements(device, outBuffer, &req);
+
+            VkMemoryAllocateInfo mai{};
+            mai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            mai.allocationSize = req.size;
+            mai.memoryTypeIndex = context->FindMemoryType(req.memoryTypeBits, properties);
+
+            res = vkAllocateMemory(device, &mai, nullptr, &outMemory);
+            if (res != VK_SUCCESS || outMemory == VK_NULL_HANDLE)
+            {
+                EE_CORE_ERROR("vkAllocateMemory failed: {}", (int)res);
+                return;
+            }
+
+            res = vkBindBufferMemory(device, outBuffer, outMemory, 0);
+            if (res != VK_SUCCESS)
+            {
+                EE_CORE_ERROR("vkBindBufferMemory failed: {}", (int)res);
+                return;
+            }
+
+            if (outMapped)
+            {
+                res = vkMapMemory(device, outMemory, 0, size, 0, outMapped);
+                if (res != VK_SUCCESS || *outMapped == nullptr)
+                {
+                    EE_CORE_ERROR("vkMapMemory failed: {}", (int)res);
+                    return;
+                }
+            }
+        }
+
+
+
         void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
         {
             VulkanContext* context = VulkanContext::Get();

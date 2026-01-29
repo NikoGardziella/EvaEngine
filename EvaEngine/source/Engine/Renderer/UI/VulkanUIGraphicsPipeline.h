@@ -49,7 +49,8 @@ namespace Engine {
             uint32_t maxTextures = MAX_UI_TEXTURES;
 
             uint32_t viewportWidth = 1;
-            uint32_t viewportHeight = 1;    
+            uint32_t viewportHeight = 1;
+            Ref<VulkanTexture> fallbackTexture;
         };
 
         struct CameraUBO
@@ -64,7 +65,7 @@ namespace Engine {
         VulkanUIGraphicsPipeline(const VulkanUIGraphicsPipeline&) = delete;
         VulkanUIGraphicsPipeline& operator=(const VulkanUIGraphicsPipeline&) = delete;
 
-        void Init(const UIInitConfig& cfg, uint32_t framesInFlight);
+        void InitUIGraphicsPipeline(const UIInitConfig& cfg, uint32_t framesInFlight);
         void Shutdown();
 
         VkDescriptorSet GetCameraDescriptorSet(uint32_t frame) const;
@@ -129,7 +130,6 @@ namespace Engine {
     private:
 
         uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
-        void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& outBuffer, VkDeviceMemory& outMemory, void** outMapped);  
         void DestroyBuffer(VkBuffer& buffer, VkDeviceMemory& memory, void** mapped);
     };
 }

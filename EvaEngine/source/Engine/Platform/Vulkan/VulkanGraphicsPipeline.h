@@ -187,6 +187,7 @@ namespace Engine {
         void UpdateLightescriptorSets();
 
         void UpdateCameraUBODescriptorSets();
+        void UpdateShadowMapDescriptorSets(Ref<VulkanShadowMap> shadowMap);
         void UpdateBulletUBODescriptorSets();
         void UpdateTextureInfoDescriptorSets();
         void UpdateCameraUniformBuffer(uint32_t currentFrame, const glm::mat4& viewProjectionMatrix);

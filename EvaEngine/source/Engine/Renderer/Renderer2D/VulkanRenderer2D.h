@@ -254,8 +254,10 @@ namespace Engine {
 		VulkanRenderer2D();
 		~VulkanRenderer2D();
 
-		void Init();
+		void Init(Ref<VulkanShadowMap> shadowMap);
 		void DrawFrame(uint32_t currentFrame, VkCommandBuffer cmd);
+		void DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd);
+		void DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap);
 		void ReadAndResetCollisionBuffer(uint32_t currentFrame);
 		void BeginFrame(uint32_t currentFrame);
 		void EndFrame(uint32_t currentFrame, VkCommandBuffer cmd);
@@ -273,7 +275,8 @@ namespace Engine {
 
 		// for rendering game in Editor
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
-		
+		Ref<VulkanGraphicsPipeline> GetGraphicsPipelines() { return m_vulkanGraphicsPipelines; };
+
 		static void CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size, float rotation, uint64_t entityID, eCollisionType collisionType, uint32_t damage);
 		static void CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID,
 			eCollisionType collisionType, uint32_t damage, const float destructionRadius, glm::vec2  projectileDirection,
@@ -284,6 +287,7 @@ namespace Engine {
 		static void DrawQuadRaw(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static uint32_t AcquireTextureSlot(const std::shared_ptr<VulkanTexture>& texture);
 		static void DrawVisualEffectTexture(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture);
+		void RecordShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID = -1);
@@ -314,11 +318,12 @@ namespace Engine {
 
 		static void ResetStats();
 
+		void RecordGameShadowPass(VkCommandBuffer cmd, uint32_t currentFrame, VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix);
 	private:
 
 		void CreateImGuiTextureDescriptors();
 		void RecordEditorDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
-		void RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
+		void RecordGameDrawCommands(VkCommandBuffer commandBuffer, uint32_t currentFrame);
 		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		//void RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
@@ -335,6 +340,10 @@ namespace Engine {
 
 
 		void TransitionImageLayout(VkCommandBuffer cmd, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
+
+	public:
+		static PlayerData s_PlayerData;
+
 
 	private:
 
@@ -379,7 +388,6 @@ namespace Engine {
 		static CollisionData s_CollisionData;
 		static EffectPushConstants s_effectPushConstants;
 		static CPUExplosionData s_CPUExplosionsData;
-		static PlayerData s_PlayerData;
 		//static const uint32_t MaxTextures = 10;
 		//std::array<CollisionTexture, MaxTextures> s_CollisionTextures;
 		//CollisionTexture s_CollisionTextures;
@@ -391,7 +399,11 @@ namespace Engine {
 
 		float m_timer = 0.0f;
 	
-	};
+
+		Ref<VulkanShadowMap> m_shadowMap;
+
+
+};
 
 
 

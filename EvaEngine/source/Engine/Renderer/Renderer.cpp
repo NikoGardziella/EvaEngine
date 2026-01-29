@@ -14,6 +14,7 @@ namespace Engine {
 	Renderer::SceneData* Renderer::m_sceneData = new SceneData();
 	std::unique_ptr<Engine::VulkanRenderer2D> Engine::Renderer::s_VulkanRenderer2D = nullptr;
 	std::unique_ptr<Engine::VulkanRenderer3D> Engine::Renderer::s_VulkanRenderer3D = nullptr;
+	std::unique_ptr<Engine::VulkanSharedResources> Engine::Renderer::s_vulkanSharedResources = nullptr;
 	std::vector<VkCommandBuffer> Renderer::m_commandBuffers;
 
 	uint32_t Renderer::s_currentFrame = 0;
@@ -28,15 +29,36 @@ namespace Engine {
 		RenderCommand::Init();
 		if (api == RendererAPI::API::Vulkan)
 		{
-			s_VulkanRenderer2D = std::make_unique<VulkanRenderer2D>();
-			s_VulkanRenderer2D->Init();
-
-			s_VulkanRenderer3D = std::make_unique<VulkanRenderer3D>();
-			s_VulkanRenderer3D->InitVulkanRenderer3D();
 
 			VulkanContext* vulkanContext = VulkanContext::Get();
 
+			s_vulkanSharedResources = std::make_unique<VulkanSharedResources>();
+			s_vulkanSharedResources->Init(vulkanContext);
+
+			s_VulkanRenderer2D = std::make_unique<VulkanRenderer2D>();
+			s_VulkanRenderer2D->Init(s_vulkanSharedResources->GetShadowMap());
+
+			s_VulkanRenderer3D = std::make_unique<VulkanRenderer3D>();
+			s_VulkanRenderer3D->InitVulkanRenderer3D(s_vulkanSharedResources->GetShadowMap());
+
+
+			// MOOVE
+			s_vulkanSharedResources->GetShadowMap()->GetShadowPipeline()->Create3DShadowPipeline(vulkanContext->GetDeviceManager().GetDevice(),
+				s_vulkanSharedResources->GetShadowMap()->GetShadowRenderPass(), s_VulkanRenderer3D->Get3DDescriptorSetLayout());
+
+			s_vulkanSharedResources->GetShadowMap()->GetShadowPipeline()->CreateGroundShadowPipeline(vulkanContext->GetDeviceManager().GetDevice(),
+				s_vulkanSharedResources->GetShadowMap()->GetShadowRenderPass());
+
+			s_vulkanSharedResources->GetShadowMap()->GetShadowPipeline()->CreateTilesShadowPipeline(vulkanContext->GetDeviceManager().GetDevice(),
+				s_vulkanSharedResources->GetShadowMap()->GetShadowRenderPass(), s_VulkanRenderer2D->GetBindlessDescriptorSetRenderer()->GetSetLayout());
+
+
+
+
 			AllocateCommandBuffers(vulkanContext->GetDeviceManager().GetDevice(), vulkanContext->GetCommandPool());
+
+
+			
 
 
 		}
@@ -65,9 +87,15 @@ namespace Engine {
 			Engine::VulkanRenderer3D::ResetStats3D(); // there is probably better place for this
 
 			//s_VulkanRenderer2D->BeginFrame(s_currentFrame);
-			s_VulkanRenderer3D->Draw(s_currentFrame, m_commandBuffers[s_currentFrame]);
+
+			//s_VulkanRenderer2D->RecordShadowPass(m_commandBuffers[s_currentFrame], s_currentFrame, s_vulkanSharedResources->GetShadowMap());
+
 
 			s_VulkanRenderer2D->DrawFrame(s_currentFrame, m_commandBuffers[s_currentFrame]);
+
+			s_VulkanRenderer3D->Draw(s_currentFrame, m_commandBuffers[s_currentFrame]);
+
+			s_VulkanRenderer2D->DrawTiles(s_currentFrame, m_commandBuffers[s_currentFrame]);
 
 			//s_VulkanRenderer2D->EndFrame(s_currentFrame);
 		}
@@ -78,6 +106,41 @@ namespace Engine {
 			RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.0f });
 		}
 
+	}
+
+	void Renderer::DrawShadowFrame()
+	{
+		s_VulkanRenderer3D->DrawShadowPass(m_commandBuffers[s_currentFrame], s_currentFrame, s_vulkanSharedResources->GetShadowMap());
+
+		s_VulkanRenderer2D->DrawTilesShadowPass(m_commandBuffers[s_currentFrame], s_currentFrame, s_vulkanSharedResources->GetShadowMap());
+
+		//s_VulkanRenderer2D->RecordGameShadowPass(m_commandBuffers[s_currentFrame], s_currentFrame, s_vulkanSharedResources->GetShadowMap()->GetShadowPipeline()->GetGroundShadowPipeline(),
+		//	s_vulkanSharedResources->GetShadowMap()->GetShadowPipeline()->GetGroundShadowPipelineLayout(), s_vulkanSharedResources->GetShadowMap()->GetLightSpaceMatrix());
+		
+		vkCmdEndRenderPass(m_commandBuffers[s_currentFrame]);
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL; // because finalLayout
+		barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+		barrier.image = s_vulkanSharedResources->GetShadowMap()->GetShadowMapImage();              // <- your VkImage
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+
+		vkCmdPipelineBarrier(
+			m_commandBuffers[s_currentFrame],
+			VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		);
 	}
 
 	void Renderer::StartFrame()
