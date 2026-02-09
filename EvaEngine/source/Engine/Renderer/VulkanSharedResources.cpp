@@ -15,5 +15,8 @@ namespace Engine {
 
 		m_shadowMap->InitShadowMap(ctx->GetDeviceManager().GetDevice(), ctx->GetDeviceManager().GetPhysicalDevice());
 
+
+
+
 	}
 }

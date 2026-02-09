@@ -18,9 +18,13 @@ struct Instance {
 layout(location=0) out flat uint vSlot;
 layout(location=1) out        vec2 vUV;
 layout(location=2) out flat uint vFlags;
-layout(location=3) out        vec2 vWorldPos;  // For lighting
+layout(location=3) out        vec2 vWorldPos;
+layout(location=4) out        vec4 vPosLightSpace;
 
-layout(push_constant) uniform PC { mat4 VP; } pc;
+layout(push_constant) uniform PC { 
+    mat4 VP; 
+    mat4 lightSpaceMatrix;
+} pc;
 
 layout(std430, set=0, binding=2) readonly buffer Instances {
     Instance inst[];
@@ -44,17 +48,28 @@ void main()
     vec2 rotated = R * local;
     vec2 pos     = center + rotated;
     
-    vWorldPos = pos;  // Pass world position for lighting
+    vWorldPos = pos; 
+
+    //float heightPercent = q.y; 
+    //float shadowZ = heightPercent * inst[i].size.y;
+
+    float shadowZ = 0.0; 
     
-    gl_Position = pc.VP * vec4(pos, 0.0, 1.0);
-    
+    gl_Position = pc.VP * vec4(pos, 0.0, 1.0); 
+
+    // CALCULATE Shadow coordinates from Light perspective
+    vPosLightSpace = pc.lightSpaceMatrix * vec4(pos, shadowZ, 1.0);
+
+    // Pass metadata
+    vSlot = inst[i].slot;
+    vFlags = inst[i].flags;
+
+    // UVs
     vec2 uvMin = vec2(inst[i].uvMin16) / 65535.0;
     vec2 uvMax = vec2(inst[i].uvMax16) / 65535.0;
     vec2 t = q;
     if ((inst[i].flags & 1u) != 0u) t.y = 1.0 - t.y;
-    vUV   = mix(uvMin, uvMax, t);
-    vSlot  = inst[i].slot;
-    vFlags = inst[i].flags;
+    vUV = mix(uvMin, uvMax, t);
 }
 
 #type fragment
@@ -66,11 +81,14 @@ layout(location=0) in  flat uint vSlot;
 layout(location=1) in        vec2 vUV;
 layout(location=2) in  flat uint vFlags;
 layout(location=3) in        vec2 vWorldPos;
+layout(location=4) in        vec4 vPosLightSpace;
+
 
 layout(location=0) out vec4 outColor;
 
 layout(set=0, binding=0) uniform sampler2D uTiles[];
 layout(set=0, binding=3) uniform sampler2D uSprites[];
+layout(set=0, binding=5) uniform sampler2D uShadowMap;
 
 
 // ============================================================================
@@ -176,6 +194,35 @@ vec3 applyLighting(vec3 worldPos, vec3 normal, vec3 albedo, float ambientStrengt
     return lighting;
 }
 
+float ShadowFactor_PCF(vec4 posLightSpace)
+{
+    vec3 proj = posLightSpace.xyz / posLightSpace.w;   // NDC
+    vec2 uv = proj.xy * 0.5 + 0.5;
+
+    // Vulkan often needs Y flip depending on how you built light VP / render target
+    // If your debug shows the map "upside down", enable this:
+    uv.y = 1.0 - uv.y;
+
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
+        return 1.0;
+
+    float currentDepth = proj.z;
+
+    // A bit larger than 0.001 usually needed for 2D pixels-as-world
+    float bias = 0.002;
+
+    vec2 texel = 1.0 / vec2(textureSize(uShadowMap, 0));
+
+    // 3x3 PCF
+    float sum = 0.0;
+    for (int y = -1; y <= 1; ++y)
+    for (int x = -1; x <= 1; ++x)
+    {
+        float d = texture(uShadowMap, uv + vec2(x, y) * texel).r;
+        sum += (currentDepth - bias > d) ? 0.0 : 1.0;
+    }
+    return sum / 9.0;
+}
 
 void main()
 {
@@ -186,12 +233,25 @@ void main()
     
     if (base.a <= 0.001) discard;
     
-    // 2D sprites face the camera
     vec3 normal = vec3(0.0, 0.0, 1.0);
     vec3 worldPos3D = vec3(vWorldPos, 0.0);
     
-    // Apply lighting with 20% ambient
     vec3 litColor = applyLighting(worldPos3D, normal, base.rgb, 0.2);
     
-    outColor = vec4(litColor, base.a);
+    // Apply shadows
+    float shadow = ShadowFactor_PCF(vPosLightSpace);
+    
+    vec3 ambient = base.rgb * 0.2;
+    vec3 directional = litColor - ambient;
+    vec3 finalColor = ambient + directional * shadow;
+    
+    vec3 proj = vPosLightSpace.xyz / vPosLightSpace.w;
+    vec2 uv = proj.xy * 0.5 + 0.5;
+    // try with and without this line
+    // uv.y = 1.0 - uv.y;
+
+    float depth = texture(uShadowMap, uv).r;
+    outColor = vec4(finalColor, 1.0);
+
+
 }

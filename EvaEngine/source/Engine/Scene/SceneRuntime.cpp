@@ -115,9 +115,9 @@ namespace Engine {
 
 
         glm::vec2 playerPos;
-        auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent, Engine::IDComponent, SpriteRendererComponent>();
+        auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent>();
         uint64_t playerID = 0;
-        PlayerData playerStateData;
+        PlayerData playerStateData{};
 
         Entity playerEntity = Entity{};
         for (auto entity : playerView)
@@ -144,13 +144,24 @@ namespace Engine {
             {
                 playerStateData.visionRadiusW = 1.0f;
             }
+            const std::array<glm::vec2, 2>& bounds = mainCameraComp->Camera.GetViewportBounds(); 
+            glm::vec2 min = bounds[0];
+            glm::vec2 max = bounds[1];
+
+           ;
+
+            // radius = half-diagonal (or half max extent)
+            float rx = (max.x - min.x) * 0.5f;
+            float ry = (max.y - min.y) * 0.5f;
+            playerStateData.SceneRadius = std::max(rx, ry);
+
 
             VulkanRenderer2D::SubmitPlayerData(playerStateData);
 
-            auto& playerIDComp = playerView.get<Engine::IDComponent>(entity);
+            Engine::IDComponent& playerIDComp = playerEntity.GetComponent<Engine::IDComponent>();
             playerID = playerIDComp.ID;
 
-
+            /*
             if (!playerEntity.HasComponent<DriverComponent>())
             {
                 float playerRadius = 0.5f;
@@ -164,72 +175,10 @@ namespace Engine {
                // Engine::VulkanRenderer2D::DrawTextureQuad(playerTransform.GetTransform(), spriteComp.Texture, tiling, glm::vec4(1));
                 Engine::VulkanRenderer2D::CalculatePlayerCircleCollision(playerPos, playerRadius, playerID, eCollisionType::PLAYER);
             }
+            */
 
             if (!playerEntity.HasComponent<Animator3DComponent>())
             {
-                EE_CORE_WARN("move this stuff somewher");
-                MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
-
-                const MeshAsset* meshAsset = meshReg.GetMeshByKey("playerMeshes");
-
-                const uint32_t submeshCount = (uint32_t)meshAsset->submeshes.size();
-
-
-                auto& meshComp = playerEntity.AddComponent<MeshRefComponent>();
-                meshComp.meshId = meshAsset->id;
-                meshComp.submeshFirst = 0;
-                meshComp.submeshCount = submeshCount;
-
-
-
-                RenderBoundsComponent& renderBoundsComp = playerEntity.AddComponent<RenderBoundsComponent>();
-                renderBoundsComp.maxL = meshAsset->maxL;
-                renderBoundsComp.minL = meshAsset->minL;
-
-                auto& skel = playerEntity.AddComponent<SkeletonComponent>();
-                skel.skeletonId = meshAsset->skeletonId;      // returned by importer
-                skel.boneCount = AssetManager::GetSkeletonRegistry().Get(meshAsset->skeletonId).parent.size();
-                skel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
-
-
-                uint32_t testClip = 1;
-                uint32_t testClipB = 0;
-                // Attach animator
-                /*
-                */
-                Animator3DComponent& anim = playerEntity.AddComponent<Animator3DComponent>();
-                anim.clipA = testClip;
-                anim.clipB = INVALID_CLIP;
-                anim.timeA = 0.0f;
-                anim.blend = 0.0f;                 // only clipA
-                anim.playbackSpeed = 1.0f;
-                anim.loopAclip = true;
-                anim.boneModel.resize(skel.boneCount);
-
-                TransformComponent& playerTransformComp = playerEntity.GetComponent<TransformComponent>();
-                playerTransformComp.Rotation.x += glm::radians(90.0f);
-                playerTransformComp.Translation.z = 0.01f;
-                WeaponInventoryComponent& weaponInventoryComp = playerEntity.AddComponent<WeaponInventoryComponent>();
-                weaponInventoryComp.equipDirty = true;
-                // weaponInventoryComp.equippedWeaponDefId = 1;
-
-
-                Engine::AnimationRegistry& animReg = Engine::AssetManager::GetAnimationRegistry();
-
-                CharacterAnimSetComponent& CharacterAnimSetComp = playerEntity.AddComponent<CharacterAnimSetComponent>();
-                CharacterAnimSetComp.idle = animReg.FindAnimationClip("MaleIdleAnim")->id;
-                CharacterAnimSetComp.run = animReg.FindAnimationClip("playerAnimRun")->id;
-                CharacterAnimSetComp.aimIdle = animReg.FindAnimationClip("playerAnimAimRifle")->id;
-                CharacterAnimSetComp.fireRifle = animReg.FindAnimationClip("playerAnimShootRifle")->id;
-
-
-
-                CharacterAnimStateComponent& CharacterAnimStateComp = playerEntity.AddComponent<CharacterAnimStateComponent>();
-                HUDStateComponent& HUDStateComp = playerEntity.AddComponent<HUDStateComponent>();
-                AmmoComponent& AmmoComp = playerEntity.AddComponent<AmmoComponent>();
-                PlayerVisionComp& visionComp = playerEntity.AddComponent<PlayerVisionComp>();
-                visionComp.visionDistanceW = 10.0f;
-                /// there will bne day i will move this
             }
 
 

@@ -115,6 +115,12 @@
     <Filter Include="source\Engine\Renderer\3D">
       <UniqueIdentifier>{671275B8-D3D4-A842-1C85-37CF88868120}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Renderer\Lights">
+      <UniqueIdentifier>{1BB51E75-87CD-059F-507A-9538BC519A38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Renderer\Lights\Shadow">
+      <UniqueIdentifier>{B0B9F028-9CA0-B220-45F1-183E31B72B87}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Renderer\Renderer2D">
       <UniqueIdentifier>{7D20B506-E98E-0A86-3278-C5859E250022}</UniqueIdentifier>
     </Filter>
@@ -175,6 +181,9 @@
     <Filter Include="source\Engine\Scene\Components\Vehicles">
       <UniqueIdentifier>{EF6A0870-5BFA-C95A-64F6-AA72D0040567}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Light">
+      <UniqueIdentifier>{3FFCDCB9-ABBE-1044-F46E-9FD06070E921}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene\SceneUtils">
       <UniqueIdentifier>{A6BA4EE4-92E0-184B-7B26-9E1667EB3D17}</UniqueIdentifier>
     </Filter>
@@ -234,12 +243,6 @@
     </Filter>
     <Filter Include="vendor\tiny_gltf">
       <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\Engine\Renderer\Lights">
-      <UniqueIdentifier>{0b106cc9-8158-4707-8de3-3e4c457a3470}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\Engine\Scene\Lights">
-      <UniqueIdentifier>{d770cc67-28e2-4ed8-bc60-75c083ab1a12}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -552,6 +555,24 @@
     <ClInclude Include="source\Engine\Renderer\GraphicsContext.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Lights\GPULightBuffer.h">
+      <Filter>source\Engine\Renderer\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Lights\GPULights.h">
+      <Filter>source\Engine\Renderer\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Lights\LightSubmitFrame.h">
+      <Filter>source\Engine\Renderer\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowGraphicsPipeline.h">
+      <Filter>source\Engine\Renderer\Lights\Shadow</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowMap.h">
+      <Filter>source\Engine\Renderer\Lights\Shadow</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\Lights\VulkanLighting.h">
+      <Filter>source\Engine\Renderer\Lights</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Renderer\OrthographicCamera.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
@@ -606,6 +627,9 @@
     <ClInclude Include="source\Engine\Renderer\VertexArray.h">
       <Filter>source\Engine\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Renderer\VulkanSharedResources.h">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Component.h">
       <Filter>source\Engine\Scene</Filter>
     </ClInclude>
@@ -640,6 +664,9 @@
       <Filter>source\Engine\Scene\Components\Light</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Light\PointLightComponent.h">
+      <Filter>source\Engine\Scene\Components\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Light\SpotLightComponent.h">
       <Filter>source\Engine\Scene\Components\Light</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h">
@@ -716,6 +743,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Entity.h">
       <Filter>source\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Light\LightGatherSystem.h">
+      <Filter>source\Engine\Scene\Light</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Scene.h">
       <Filter>source\Engine\Scene</Filter>
@@ -2037,23 +2067,6 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Light\LightGatherSystem.h">
-      <Filter>source\Engine\Scene\Lights</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Engine\Renderer\Lights\VulkanLighting.h">
-      <Filter>source\Engine\Renderer\Lights</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Engine\Renderer\Lights\GPULights.h">
-      <Filter>source\Engine\Renderer\Lights</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Engine\Renderer\Lights\LightSubmitFrame.h">
-      <Filter>source\Engine\Renderer\Lights</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Components\Light\SpotLightComponent.h" />
-    <ClInclude Include="source\Engine\Renderer\Lights\GPULightBuffer.h" />
-    <ClInclude Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowMap.h" />
-    <ClInclude Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowGraphicsPipeline.h" />
-    <ClInclude Include="source\Engine\Renderer\VulkanSharedResources.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2284,6 +2297,15 @@
     <ClCompile Include="source\Engine\Renderer\Framebuffer.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowGraphicsPipeline.cpp">
+      <Filter>source\Engine\Renderer\Lights\Shadow</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowMap.cpp">
+      <Filter>source\Engine\Renderer\Lights\Shadow</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\Lights\VulkanLighting.cpp">
+      <Filter>source\Engine\Renderer\Lights</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Renderer\OrthographicCamera.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
@@ -2350,8 +2372,14 @@
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp">
       <Filter>source\Engine\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Renderer\VulkanSharedResources.cpp">
+      <Filter>source\Engine\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Scene\Entity.cpp">
       <Filter>source\Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\Light\LightGatherSystem.cpp">
+      <Filter>source\Engine\Scene\Light</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Scene\Scene.cpp">
       <Filter>source\Engine\Scene</Filter>
@@ -2407,15 +2435,6 @@
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp">
       <Filter>vendor\tiny_gltf</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Scene\Light\LightGatherSystem.cpp">
-      <Filter>source\Engine\Scene\Lights</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Engine\Renderer\Lights\VulkanLighting.cpp">
-      <Filter>source\Engine\Renderer\Lights</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowMap.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowGraphicsPipeline.cpp" />
-    <ClCompile Include="source\Engine\Renderer\VulkanSharedResources.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">
@@ -2475,15 +2494,23 @@
     <None Include="..\assets\shaders\imgui_shader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\lighting_common.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
     <None Include="..\assets\shaders\player_collision_compute.comp">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\shadow_3d_Vertex.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\shadow_ground_Vertex.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\shadow_tiles_Vertex.glsl">
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\testShader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="..\assets\shaders\lighting_common.glsl" />
-    <None Include="..\assets\shaders\shadow_ground_Vertex.glsl" />
-    <None Include="..\assets\shaders\shadow_tiles_Vertex.glsl" />
-    <None Include="..\assets\shaders\shadow_3d_Vertex.glsl" />
   </ItemGroup>
 </Project>

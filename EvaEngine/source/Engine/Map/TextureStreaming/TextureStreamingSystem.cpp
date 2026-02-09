@@ -645,7 +645,10 @@ namespace Engine {
                     if (tile.Category != eTileCategory::Terrain)
                         continue;
 
-                    const glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
+                    const float yoffset = 1.0f;
+
+                    glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
+                    worldTilePos.y += yoffset;
 
                     std::vector<uint8_t> pixelData;
                     std::vector<uint8_t> healthData;

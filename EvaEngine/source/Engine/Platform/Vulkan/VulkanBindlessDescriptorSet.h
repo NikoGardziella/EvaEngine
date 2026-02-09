@@ -11,6 +11,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <Engine/Renderer/Lights/Shadow/VulkanShadowMap.h>
 
 
 
@@ -20,6 +21,17 @@ namespace Engine {
     class VulkanTexture;
     class VulkanShader; // fwd
     class VulkanBindlessDescriptorSetRenderer {
+
+    public:
+        struct TilePC
+        {
+            glm::mat4 VP;
+            glm::mat4 LightSpaceMatrix;
+        };
+
+
+       
+
 
     private:
         struct SpriteRec {
@@ -73,6 +85,8 @@ namespace Engine {
         void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, uint32_t flags = 0);
         void EndFrameAndUpload(uint32_t frameIndex);
 
+        void Upload(uint32_t frameIndex);
+
         // Call once after swapchain/device init
         void SetTileDimensions(uint32_t w, uint32_t h) { m_tileW = w; m_tileH = h; }
         void SetAtlasExtent(VkExtent3D e) { m_atlasExtent = e; }
@@ -82,14 +96,15 @@ namespace Engine {
         void UpdateEffectImageDescriptorSets(size_t frameIndex, const std::array<Ref<VulkanTexture>, CHUNK_GRID_WIDTH* CHUNK_GRID_WIDTH>& textures);
 
         void UpdateLightBufferDescriptor(uint32_t frameIndex);
+        void UpdateShadowMapDescriptorSets(Ref<VulkanShadowMap> shadowmap);
 
 
         void SetCurrentFrameIndex(uint32_t fi) { m_currentFrame = fi; }
         void EvictAllTiles();
 
         // Build visible instances and stream into SSBO; updates binding 2 for this frame
-        void RecordTiles(VkCommandBuffer cmd, uint32_t frameIndex, const glm::mat4& VP, VkExtent2D fbExtent);
-        void DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix);
+        void RecordTiles(VkCommandBuffer cmd, uint32_t frameIndex, const glm::mat4& VP, VkExtent2D fbExtent, const glm::mat4& lightMat);
+        void DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix, const glm::mat4& VP);
         uint32_t EnsureTileResident(uint64_t uid, const glm::vec4& atlasUV, VkCommandBuffer uploadCmd);
         uint32_t EnsureTileResidentFromRaw(uint64_t uid, const uint8_t* colorData, size_t colorSize, const uint8_t* propsData, size_t propsSize, VkCommandBuffer uploadCB);
         void ComputeBindBuffers(uint32_t frameIndex, VkBuffer resultsBuf, VkDeviceSize resultsSize, VkBuffer projectilesBuf, VkDeviceSize projSize, VkBuffer blockedMaskBuf, VkDeviceSize maskSize);

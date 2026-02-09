@@ -1706,7 +1706,7 @@ namespace Engine {
         }
     }
 
-    // In VulkanGraphicsPipeline.cpp
+    
     void VulkanGraphicsPipeline::UpdateShadowMapDescriptorSets(Ref<VulkanShadowMap> shadowMap)
     {
         for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)

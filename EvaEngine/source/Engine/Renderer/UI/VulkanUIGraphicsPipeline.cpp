@@ -164,11 +164,7 @@ namespace Engine {
 
     void VulkanUIGraphicsPipeline::CreateDescriptorSetLayouts()
     {
-        // Verify device first
-        if (m_device == VK_NULL_HANDLE) {
-            EE_CORE_ERROR("m_device is null in CreateDescriptorSetLayouts!");
-            throw std::runtime_error("Device not initialized");
-        }
+
 
         // set 0: camera UBO (binding 0)
         VkDescriptorSetLayoutBinding camUBO{};
@@ -184,7 +180,8 @@ namespace Engine {
         camLayoutCI.pBindings = &camUBO;
 
         VkResult result = vkCreateDescriptorSetLayout(m_device, &camLayoutCI, nullptr, &m_setLayoutCamera);
-        if (result != VK_SUCCESS || m_setLayoutCamera == VK_NULL_HANDLE) {
+        if (result != VK_SUCCESS || m_setLayoutCamera == VK_NULL_HANDLE)
+        {
             EE_CORE_ERROR("Failed to create UI camera descriptor set layout: {}", (int)result);
             throw std::runtime_error("Failed to create camera descriptor set layout");
         }
@@ -208,16 +205,12 @@ namespace Engine {
             throw std::runtime_error("Failed to create textures descriptor set layout");
         }
 
-        EE_CORE_INFO("UI m_setLayoutCamera = {}", (void*)m_setLayoutCamera);
-        EE_CORE_INFO("UI m_setLayoutUITextures = {}", (void*)m_setLayoutUITextures);
+        
     }
 
     void VulkanUIGraphicsPipeline::CreateDescriptorPool(uint32_t framesInFlight)
     {
-        if (m_device == VK_NULL_HANDLE) {
-            EE_CORE_ERROR("m_device is null in CreateDescriptorPool!");
-            throw std::runtime_error("Device not initialized");
-        }
+
 
         std::array<VkDescriptorPoolSize, 2> sizes{};
         sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -232,24 +225,19 @@ namespace Engine {
         poolCI.maxSets = framesInFlight * 2;
 
         VkResult result = vkCreateDescriptorPool(m_device, &poolCI, nullptr, &m_descriptorPool);
-        if (result != VK_SUCCESS) {
+        if (result != VK_SUCCESS) 
+        {
             EE_CORE_ERROR("vkCreateDescriptorPool failed: {}", (int)result);
-            throw std::runtime_error("Failed to create descriptor pool");
         }
 
-        if (m_descriptorPool == VK_NULL_HANDLE) {
+        if (m_descriptorPool == VK_NULL_HANDLE) 
+        {
             EE_CORE_ERROR("Descriptor pool is null after creation!");
-            throw std::runtime_error("Descriptor pool is null");
         }
     }
 
     void VulkanUIGraphicsPipeline::AllocateDescriptorSets(uint32_t framesInFlight)
     {
-
-        EE_CORE_INFO("UI VkDevice        = {}", (void*)m_device);
-        EE_CORE_INFO("UI VkPhysicalDevice= {}", (void*)m_physicalDevice);
-        EE_CORE_INFO("UI VkDescriptorPool= {}", (void*)m_descriptorPool);
-        EE_CORE_INFO("UI SetLayout       = {}", (void*)m_setLayoutCamera);
 
         m_setCamera.resize(framesInFlight);
         m_setUITextures.resize(framesInFlight);
@@ -264,21 +252,20 @@ namespace Engine {
             alloc.pSetLayouts = layouts.data();
 
             VkResult result = vkAllocateDescriptorSets(m_device, &alloc, m_setCamera.data());
-            if (result != VK_SUCCESS) {
+            if (result != VK_SUCCESS) 
+            {
                 EE_CORE_ERROR("Failed to allocate UI camera descriptor sets: {}", (int)result);
-                throw std::runtime_error("Failed to allocate UI camera descriptor sets");
             }
 
-            // Verify they're not null
-            for (uint32_t i = 0; i < framesInFlight; ++i) {
-                if (m_setCamera[i] == VK_NULL_HANDLE) {
+            for (uint32_t i = 0; i < framesInFlight; ++i) 
+            {
+                if (m_setCamera[i] == VK_NULL_HANDLE)
+                {
                     EE_CORE_ERROR("Camera descriptor set {} is VK_NULL_HANDLE after allocation!", i);
-                    throw std::runtime_error("Camera descriptor set is null");
                 }
             }
         }
 
-        // Allocate texture sets
         {
             std::vector<VkDescriptorSetLayout> layouts(framesInFlight, m_setLayoutUITextures);
             VkDescriptorSetAllocateInfo alloc{};
@@ -288,13 +275,12 @@ namespace Engine {
             alloc.pSetLayouts = layouts.data();
 
             VkResult result = vkAllocateDescriptorSets(m_device, &alloc, m_setUITextures.data());
-            if (result != VK_SUCCESS) {
+            if (result != VK_SUCCESS)
+            {
                 EE_CORE_ERROR("Failed to allocate UI texture descriptor sets: {}", (int)result);
-                throw std::runtime_error("Failed to allocate UI texture descriptor sets");
             }
         }
 
-        // Update camera descriptor sets
         for (uint32_t frame = 0; frame < framesInFlight; ++frame)
         {
             VkDescriptorBufferInfo bi{};
@@ -323,8 +309,7 @@ namespace Engine {
             EE_CORE_ERROR("m_device is null in CreateCameraBuffers!");
             return;
         }
-        EE_CORE_INFO("UI pipeline device = {}", (void*)m_device);
-        EE_CORE_INFO("UI pipeline device = {}", (void*)m_physicalDevice);
+
         for (uint32_t i = 0; i < framesInFlight; ++i)
         {
             CameraBuffer& cb = m_cameraBuffers[i];

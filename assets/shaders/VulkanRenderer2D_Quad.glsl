@@ -20,7 +20,7 @@ layout(location = 4) out vec3  v_WorldPos;
 layout(location = 5) out vec4  v_PosLightSpace;
 
 layout(push_constant) uniform PC {
-    mat4 lightSpaceMatrix;
+    mat4 lightSpaceMatrix; // this is only using mat4
 } pc;
 
 void main()
@@ -31,8 +31,13 @@ void main()
     v_TexIndex     = a_TexIndex;
     v_WorldPos     = a_Position;
 
-    gl_Position     = u_ViewProjection * vec4(a_Position, 1.0);
-    v_PosLightSpace = pc.lightSpaceMatrix * vec4(a_Position, 1.0);
+    // 1. Render to screen using Camera
+    gl_Position    = u_ViewProjection * vec4(a_Position, 1.0);
+
+    // 2. Project ground into Shadow Space
+    // IMPORTANT: If your tiles are at Z=5.0, your ground is likely at Z=0.0.
+    // Ensure this Z (0.0) is what the shadow pass expects for the ground plane.
+    v_PosLightSpace = pc.lightSpaceMatrix * vec4(a_Position.xy, 0.0, 1.0);
 }
 
 #type fragment
@@ -163,19 +168,21 @@ float ShadowFactor(vec4 posLightSpace)
     vec3 proj = posLightSpace.xyz / posLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
     
-    // Outside shadow map = fully lit
+    // VULKAN Y-FLIP: Ensure this matches your Tile shader logic
+
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
         return 1.0;
     
     float currentDepth = proj.z;
-    float bias = 0.0015;
+    float bias = 0.0005;
     
-    // 3x3 PCF for soft shadows
     vec2 texelSize = 1.0 / vec2(textureSize(uShadowMap, 0));
     float shadow = 0.0;
     
-    for (int y = -1; y <= 1; ++y) {
-        for (int x = -1; x <= 1; ++x) {
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
             float shadowDepth = texture(uShadowMap, uv + vec2(x, y) * texelSize).r;
             shadow += (currentDepth - bias > shadowDepth) ? 0.0 : 1.0;
         }
@@ -184,24 +191,60 @@ float ShadowFactor(vec4 posLightSpace)
     return shadow / 9.0;
 }
 
+float ShadowFactor_PCF(vec4 posLightSpace)
+{
+    vec3 proj = posLightSpace.xyz / posLightSpace.w;
+    vec2 uv = proj.xy * 0.5 + 0.5;
+    uv.y = 1.0 - uv.y; // Standard Vulkan flip
+
+    // If outside the shadow frustum, return "Lit" (1.0)
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0) 
+        return 1.0;
+
+    float currentDepth = proj.z;
+    
+    // REDUCE BIAS: If it's too high, it "pushes" the shadow through the floor
+    float bias = 0.0001; 
+    
+    // Simple 1-tap check first to see if it works
+    float shadowDepth = texture(uShadowMap, uv).r;
+    
+    // If current point is further than the map, it's 0.3 (dark), else 1.0 (bright)
+
+    float shadowStrength = 0.05;
+    return (currentDepth - bias > shadowDepth) ? shadowStrength : 1.0;
+}
+
+
 void main()
 {
+
+    // DEBUG: Force visualize the shadow map on the ground
+    vec3 proj = v_PosLightSpace.xyz / v_PosLightSpace.w;
+    vec2 uv = proj.xy * 0.5 + 0.5;
+    float d = texture(uShadowMap, uv).r;
+
+   // o_Color = vec4(vec3(d), 1.0); 
+   // return;
+
+    // 1. Base Texture Lookup
     uint idx = min(v_TexIndex, 31u);
     vec4 tex = texture(u_Textures[idx], v_TexCoord * v_TilingFactor);
-    vec4 baseColor = v_Color * tex;
+    if (tex.a < 0.1) discard;
+
+    // 2. Lighting & Normal Setup
+    vec3 normal = vec3(0.0, 0.0, 1.0); // 2D flat ground
+    vec3 litColor = applyLighting(v_WorldPos, normal, tex.rgb, 0.2);
     
-    // Ground normal (adjust based on your coordinate system)
-    vec3 normal = vec3(0.0, 0.0, 1.0);  // Z-up, or use (0,1,0) for Y-up
-    
-    // Apply lighting
-    vec3 litColor = applyLighting(v_WorldPos, normal, baseColor.rgb, 0.2);
-    
-    // Apply shadows only to directional light
+    // 3. Shadow Calculation
     float shadow = ShadowFactor(v_PosLightSpace);
     
-    vec3 ambient = baseColor.rgb * 0.2;
-    vec3 directional = litColor - ambient;
-    vec3 finalColor = ambient + directional * shadow;
+    // 4. Combine: Only apply shadow to the "Direct" lighting, not Ambient
+    vec3 ambient = tex.rgb * 0.2;
+    vec3 direct = litColor - ambient;
     
-    o_Color = vec4(finalColor, baseColor.a);
+    // final color = ambient + shadowed direct light
+    vec3 finalColor = ambient + (direct * shadow);
+    
+    o_Color = vec4(finalColor, tex.a);
 }

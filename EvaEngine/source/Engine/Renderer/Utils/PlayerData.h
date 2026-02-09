@@ -8,5 +8,6 @@ namespace Engine {
 		glm::vec2	PlayerPos;
 		glm::vec2	CameraPos;
 		float		visionRadiusW;
+		float		SceneRadius;
 	};
 }

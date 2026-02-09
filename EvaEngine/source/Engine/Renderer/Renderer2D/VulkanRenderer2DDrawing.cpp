@@ -113,7 +113,7 @@ namespace Engine {
 		s_VulkanData.Stats.QuadCount++;
 	}
 
-	void VulkanRenderer2D::DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor)
+	void VulkanRenderer2D::DrawTextureQuad(glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor)
 	{
 		EE_PROFILE_FUNCTION();
 

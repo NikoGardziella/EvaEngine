@@ -691,20 +691,26 @@ namespace Engine {
 
 
         const auto& submitData = VulkanLighting::GetLightSubmitFrameData();
-        if (submitData->dirs.empty()) {
+        if (submitData->dirs.empty())
+        {
             EE_CORE_WARN("No directional light for shadows!");
             return;
         }
 
-        glm::vec3 lightDirection = glm::vec3(submitData->dirs[0].direction_intensity);
-        glm::vec3 sceneCenter(Engine::VulkanRenderer2D::s_PlayerData.CameraPos, 0.0f);
+        glm::vec3 lightDirection = glm::normalize(glm::vec3(submitData->dirs[0].direction_intensity));
+        glm::vec2 camPos = Engine::VulkanRenderer2D::s_PlayerData.CameraPos;
 
-        float sceneRadius = 20.0f;
+        // 1. Center exactly on the camera's pixel coordinates
+        //glm::vec3 sceneCenter(Engine::VulkanRenderer2D::s_PlayerData.CameraPos.x, Engine::VulkanRenderer2D::s_PlayerData.CameraPos.y, 0.0f);
+        glm::vec3 sceneCenter(0.0f, 0.0f, 0.0f);
 
-        shadowMap->UpdateLightSpaceMatrix(lightDirection, sceneCenter, sceneRadius);
+        //EE_CORE_INFO("radius {}, x {}, y {}", Engine::VulkanRenderer2D::s_PlayerData.SceneRadius, sceneCenter.x, sceneCenter.y);
+        // 3. Update the matrix (Ensure this function uses the logic below)
+        
+        float zoomLevel = 20.0f;
+        shadowMap->UpdateLightSpaceMatrix(lightDirection, sceneCenter, zoomLevel);
 
-
-       
+    
 
 
         // LOG THE MATRIX
@@ -717,6 +723,8 @@ namespace Engine {
 
         */
         // Begin shadow render pass
+
+
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = shadowMap->GetShadowRenderPass();

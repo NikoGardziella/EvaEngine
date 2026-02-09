@@ -14,13 +14,15 @@ namespace Engine {
         VulkanShadowMap() = default;
         ~VulkanShadowMap() = default;
 
+        void UpdateTileShadowMatrix(const glm::vec3& lightDir, const glm::vec2& cameraPixelPos);
+
         void InitShadowMap(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t shadowMapSize = 2048);
         void CleanupShadowMap(VkDevice device);
 
         // Update light space matrix based on directional light
-        void UpdateLightSpaceMatrix(const glm::vec3& lightDirection,
-            const glm::vec3& sceneCenter,
-            float sceneRadius);
+        void UpdateLightSpaceMatrix(const glm::vec3& lightDirection, const glm::vec3& sceneCenter,  float sceneRadius);
+
+        void UpdateTileShadowMatrix(const glm::vec3& lightDir, const glm::vec3& center, float radius);
 
         // Getters
         VkImage GetShadowMapImage() const { return m_shadowMapImage; }

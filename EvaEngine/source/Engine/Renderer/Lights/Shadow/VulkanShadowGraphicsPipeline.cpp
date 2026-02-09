@@ -122,7 +122,7 @@ namespace Engine {
         VkPushConstantRange pushConstant{};
         pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         pushConstant.offset = 0;
-        pushConstant.size = sizeof(glm::mat4);
+        pushConstant.size = sizeof(Engine::VulkanBindlessDescriptorSetRenderer::TilePC);
 
         VkPipelineLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -134,10 +134,10 @@ namespace Engine {
         vkCreatePipelineLayout(device, &layoutInfo, nullptr, &m_tilesShadowPipelineLayout);
 
     
-        CreateDepthOnlyPipeline(
+        CreateDepthOnlyTilePipeline(
             device,
             shadowRenderPass,
-            m_tilesShadowShader->GetVertexShaderModule(),
+            m_tilesShadowShader,
             vertexInputInfo,
             m_tilesShadowPipelineLayout,
             m_tilesShadowPipeline
@@ -198,6 +198,7 @@ namespace Engine {
         const VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineLayout pipelineLayout,VkPipeline& outPipeline)
     {
         // Shader stage (vertex only, no fragment)
+
         VkPipelineShaderStageCreateInfo vertStage{};
         vertStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -234,7 +235,7 @@ namespace Engine {
         rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizer.cullMode = VK_CULL_MODE_NONE;  // Front-face culling reduces shadow acne
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-        rasterizer.depthBiasEnable = VK_FALSE;  // Depth bias for shadow quality
+        rasterizer.depthBiasEnable = VK_TRUE;  // Depth bias for shadow quality
         rasterizer.depthBiasConstantFactor = 1.25f;
         rasterizer.depthBiasSlopeFactor = 1.75f;
         rasterizer.lineWidth = 1.0f;
@@ -282,4 +283,99 @@ namespace Engine {
         }
     }
 
+    void VulkanShadowGraphicsPipeline::CreateDepthOnlyTilePipeline(VkDevice device, VkRenderPass renderPass, Ref<VulkanShader> shader,
+        const VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineLayout pipelineLayout, VkPipeline& outPipeline)
+    {
+        // Shader stage (vertex only, no fragment)
+
+        VkPipelineShaderStageCreateInfo vs{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
+        vs.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vs.module = shader->GetVertexShaderModule();
+        vs.pName = "main";
+
+        VkPipelineShaderStageCreateInfo fs{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
+        fs.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fs.module = shader->GetFragmentShaderModule();
+        fs.pName = "main";
+
+        VkPipelineShaderStageCreateInfo shaderStages[2] = { vs, fs };
+        // Input assembly
+        VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+        inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+        // Viewport state (dynamic)
+        VkPipelineViewportStateCreateInfo viewportState{};
+        viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        viewportState.viewportCount = 1;
+        viewportState.scissorCount = 1;
+
+        VkDynamicState dynamicStates[] = {
+            VK_DYNAMIC_STATE_VIEWPORT,
+            VK_DYNAMIC_STATE_SCISSOR
+        };
+
+        VkPipelineDynamicStateCreateInfo dynamicState{};
+        dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dynamicState.dynamicStateCount = 2;
+        dynamicState.pDynamicStates = dynamicStates;
+
+        // Rasterization
+        VkPipelineRasterizationStateCreateInfo rasterizer{};
+        rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+        rasterizer.depthClampEnable = VK_FALSE;
+        rasterizer.rasterizerDiscardEnable = VK_FALSE;
+        rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizer.cullMode = VK_CULL_MODE_NONE;  // Front-face culling reduces shadow acne
+        rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        rasterizer.depthBiasEnable = VK_FALSE;  // Depth bias for shadow quality
+       // rasterizer.depthBiasConstantFactor = 1.25f;
+        //rasterizer.depthBiasSlopeFactor = 1.75f;
+        rasterizer.depthBiasConstantFactor = 0.01f;
+        rasterizer.depthBiasSlopeFactor = 0.01f;
+        rasterizer.lineWidth = 1.0f;
+
+        // Multisample
+        VkPipelineMultisampleStateCreateInfo multisampling{};
+        multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        multisampling.sampleShadingEnable = VK_FALSE;
+
+        // Depth stencil
+        VkPipelineDepthStencilStateCreateInfo depthStencil{};
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = VK_TRUE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.stencilTestEnable = VK_FALSE;
+
+
+        // No color blend (depth-only pass)
+        VkPipelineColorBlendStateCreateInfo colorBlend{};
+        colorBlend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        colorBlend.attachmentCount = 0;
+
+        // Create pipeline
+        VkGraphicsPipelineCreateInfo pipelineInfo{};
+        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        pipelineInfo.stageCount = 2;  // Only vertex shaderf
+        pipelineInfo.pStages = shaderStages;
+        pipelineInfo.pVertexInputState = &vertexInputInfo;
+        pipelineInfo.pInputAssemblyState = &inputAssembly;
+        pipelineInfo.pViewportState = &viewportState;
+        pipelineInfo.pRasterizationState = &rasterizer;
+        pipelineInfo.pMultisampleState = &multisampling;
+        pipelineInfo.pDepthStencilState = &depthStencil;
+        pipelineInfo.pColorBlendState = &colorBlend;
+        pipelineInfo.pDynamicState = &dynamicState;
+        pipelineInfo.layout = pipelineLayout;
+        pipelineInfo.renderPass = renderPass;
+        pipelineInfo.subpass = 0;
+
+        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &outPipeline) != VK_SUCCESS) {
+            EE_CORE_ERROR("Failed to create shadow pipeline");
+        }
+    }
 }

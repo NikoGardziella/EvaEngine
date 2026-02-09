@@ -56,6 +56,7 @@ namespace Engine {
         void CreateDepthOnlyPipeline(VkDevice device,VkRenderPass renderPass, VkShaderModule vertShader, const VkPipelineVertexInputStateCreateInfo& vertexInputInfo,
             VkPipelineLayout pipelineLayout, VkPipeline& outPipeline
         );
+        void CreateDepthOnlyTilePipeline(VkDevice device, VkRenderPass renderPass, Ref<VulkanShader> shader, const VkPipelineVertexInputStateCreateInfo& vertexInputInfo, VkPipelineLayout pipelineLayout, VkPipeline& outPipeline);
     };
 
 }

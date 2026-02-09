@@ -56,6 +56,8 @@ namespace Engine {
 		bool DestroyEntity(Entity entity);
 		static entt::entity GetEntityByUUID(entt::registry& registry, UUID uuid);
 
+		void SpawnPlayer();
+
 		void OnRunTimeStart();
 		void OnRunTimeStop();
 

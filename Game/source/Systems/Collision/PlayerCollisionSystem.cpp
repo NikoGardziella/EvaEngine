@@ -16,7 +16,6 @@ void PlayerCollisionSystem::UpdatePlayerCollision(float dt, Engine::Scene* scene
     scene->ForEach<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent >(
         [&](Engine::Entity e, Engine::TransformComponent& trsformComp, CharacterControllerComponent& ctrlComp, Engine::CircleCollider2DComponent& cir)
         {
-            
             glm::vec2 p0 = glm::vec2(trsformComp.Translation);
             glm::vec2 delta = ctrlComp.velocity * (ctrlComp.speed * dt); // your move
             float     R = cir.Radius;

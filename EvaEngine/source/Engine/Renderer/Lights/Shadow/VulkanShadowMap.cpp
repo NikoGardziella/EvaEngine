@@ -5,25 +5,41 @@
 
 namespace Engine {
 
-    void VulkanShadowMap::UpdateLightSpaceMatrix(const glm::vec3& lightDir, const glm::vec3& center, float radius)
+    void VulkanShadowMap::UpdateLightSpaceMatrix(const glm::vec3& lightDir, const glm::vec3& cameraPos, float radius)
     {
         glm::vec3 dir = glm::normalize(lightDir);
 
-        // Put light far enough back to see the whole region
-        glm::vec3 lightPos = center - dir * (radius * 2.0f);
+        // Position the light "behind" the camera relative to light direction
+        // 100.0f is fine, but ensure the Z-range in ortho covers the scene
+        glm::vec3 lightPos = cameraPos - dir * 50.0f;
 
-        glm::vec3 up = (glm::abs(dir.y) > 0.9f) ? glm::vec3(1, 0, 0) : glm::vec3(0, 1, 0);
+        glm::vec3 up = glm::vec3(0, 1, 0);
+        if (std::abs(glm::dot(dir, up)) > 0.99f) up = glm::vec3(0, 0, 1);
 
+        glm::mat4 lightView = glm::lookAtRH(lightPos, cameraPos, up);
+
+        // Keep the near/far planes tight around the radius to maximize depth precision
+        float ortho = radius;
+        glm::mat4 lightProj = glm::orthoRH_ZO(-ortho, ortho, -ortho, ortho, 0.0f, 100.0f);
+
+        m_lightSpaceMatrix = lightProj * lightView;
+    }
+
+
+    // This matrix is specifically for the 2D Pixel World
+    void VulkanShadowMap::UpdateTileShadowMatrix(const glm::vec3& lightDir, const glm::vec3& center, float radius) {
+        glm::vec3 dir = glm::normalize(lightDir);
+        // Move light 4000 pixels away
+        glm::vec3 lightPos = center - dir * 4000.0f;
+
+        glm::vec3 up = (std::abs(dir.z) > 0.99f) ? glm::vec3(0, 1, 0) : glm::vec3(0, 0, 1);
         glm::mat4 lightView = glm::lookAtRH(lightPos, center, up);
 
-        float ortho = radius;
-        glm::mat4 lightProj = glm::orthoRH_ZO(
-            -ortho, ortho,
-            -ortho, ortho,
-            0.1f, radius * 6.0f
-        );
+        // Ortho view that matches the sceneRadius
+        // Near: 1.0, Far: 8000.0 to ensure the 4000-unit distance is covered
+        glm::mat4 lightProj = glm::orthoRH_ZO(-radius, radius, -radius, radius, 1.0f, 8000.0f);
 
-        m_lightSpaceMatrix = lightProj * lightView; // IMPORTANT: NO bias here
+        m_lightSpaceMatrix = lightProj * lightView;
     }
 
 

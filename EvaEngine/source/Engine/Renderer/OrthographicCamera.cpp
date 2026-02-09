@@ -17,7 +17,7 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-		m_projectionMatrix = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
+		m_projectionMatrix = glm::orthoRH_ZO(left, right, bottom, top, -1.0f, 1.0f);
 		RecalculateViewMatrix();
 	}
 

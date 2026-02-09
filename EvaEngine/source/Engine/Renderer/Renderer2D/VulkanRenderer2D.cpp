@@ -322,11 +322,10 @@ namespace Engine {
 				
 			}
 			m_vulkanGraphicsPipelines->UpdateLightescriptorSets();
-
+			m_vulkanGraphicsPipelines->UpdateShadowMapDescriptorSets(shadowMap);
 			VulkanLighting::GetLightSubmitFrameData() = std::make_shared<LightSubmitFrame>();
 
-			m_vulkanGraphicsPipelines->UpdateShadowMapDescriptorSets(shadowMap);
-			
+			s_bindlessDescitproRenderer->UpdateShadowMapDescriptorSets(shadowMap);
 	}
 
 
@@ -405,11 +404,19 @@ namespace Engine {
 	void VulkanRenderer2D::EndFrame(uint32_t currentFrame, VkCommandBuffer cmd)
 	{
 		EE_PROFILE_FUNCTION();
-		
+		vkResetCommandBuffer(cmd, 0);
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkBeginCommandBuffer(cmd, &beginInfo);
+
+
+
 		CalculateCollisionFrame(currentFrame, cmd);
 		s_VulkanData.CurrentFrame = currentFrame;
 
-		Renderer::DrawShadowFrame();
 
 		
 
@@ -445,18 +452,22 @@ namespace Engine {
 		vkBeginCommandBuffer(cmd, &beginInfo);
 		*/
 
+
+
+
 		s_bindlessDescitproRenderer->SetCurrentFrameIndex(currentFrame);
 		ConsumeDestructibleQueue(cmd, currentFrame);
 		ConsumeAnimationQueue(currentFrame);
 
+		s_bindlessDescitproRenderer->EndFrameAndUpload(currentFrame);
 
 		VulkanLighting::FlushAndUpload(cmd, currentFrame);
 		s_bindlessDescitproRenderer->UpdateLightBufferDescriptor(currentFrame);
 
 
 
-		s_bindlessDescitproRenderer->EndFrameAndUpload(currentFrame);
 
+		Renderer::DrawShadowFrame();
 
 
 		//move somewhere
@@ -667,10 +678,10 @@ namespace Engine {
 
 	}
 
-	void VulkanRenderer2D::DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd)
+	void VulkanRenderer2D::DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd, Ref<VulkanShadowMap> shadowMap)
 	{
 		s_bindlessDescitproRenderer->RecordTiles(cmd, currentFrame,
-			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent());
+			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent(), shadowMap->GetLightSpaceMatrix());
 	}
 
 	void VulkanRenderer2D::DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap)
@@ -682,7 +693,7 @@ namespace Engine {
 		s_bindlessDescitproRenderer->DrawTilesShadowPass(cmd, frameIndex,
 			shadowMap->GetShadowPipeline()->GetTilesShadowPipeline(),
 			shadowMap->GetShadowPipeline()->GetTilesShadowPipelineLayout(),
-			shadowMap->GetLightSpaceMatrix());
+			shadowMap->GetLightSpaceMatrix(), s_VulkanData.CameraBuffer.ViewProjection);
 	}
 
 
@@ -1083,6 +1094,7 @@ namespace Engine {
 		s_PlayerData.PlayerPos = playerStateData.PlayerPos;
 		s_PlayerData.CameraPos = playerStateData.CameraPos;
 		s_PlayerData.visionRadiusW = playerStateData.visionRadiusW;
+		s_PlayerData.SceneRadius = playerStateData.SceneRadius;
 
 	}
 	

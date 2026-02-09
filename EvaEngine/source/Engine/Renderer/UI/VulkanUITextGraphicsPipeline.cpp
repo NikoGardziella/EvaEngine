@@ -259,10 +259,12 @@ namespace Engine {
             VkResult res = vkAllocateDescriptorSets(m_device, &alloc, m_setCamera.data());
             EE_CORE_INFO("vkAllocateDescriptorSets(camera) res={}", (int)res);
 
-            if (res != VK_SUCCESS) return;
+            if (res != VK_SUCCESS)
+            {
 
-            for (uint32_t i = 0; i < framesInFlight; ++i)
-                EE_CORE_INFO("m_setCamera[{}] = {}", i, (void*)m_setCamera[i]);
+                return;
+            }
+
         }
 
         // Allocate texture sets
@@ -487,9 +489,7 @@ namespace Engine {
         gp.renderPass = cfg.renderPass;
         gp.subpass = cfg.subpassIndex;
 
-        EE_CORE_INFO("m_pipelineLayout {}", (void*)m_pipelineLayout);
-        EE_CORE_INFO("cfg.renderPass {}", (void*)cfg.renderPass);
-        EE_CORE_INFO("m_pipelineLayout {}", (void*)m_pipelineLayout);
+
 
         vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &gp, nullptr, &m_pipeline);
     }

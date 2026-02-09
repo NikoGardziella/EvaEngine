@@ -264,6 +264,8 @@
     <ClInclude Include="source\Engine\Renderer\Lights\GPULightBuffer.h" />
     <ClInclude Include="source\Engine\Renderer\Lights\GPULights.h" />
     <ClInclude Include="source\Engine\Renderer\Lights\LightSubmitFrame.h" />
+    <ClInclude Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowGraphicsPipeline.h" />
+    <ClInclude Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowMap.h" />
     <ClInclude Include="source\Engine\Renderer\Lights\VulkanLighting.h" />
     <ClInclude Include="source\Engine\Renderer\OrthographicCamera.h" />
     <ClInclude Include="source\Engine\Renderer\OrthographicCameraController.h" />
@@ -283,6 +285,7 @@
     <ClInclude Include="source\Engine\Renderer\Utils\DeltaBitReader.h" />
     <ClInclude Include="source\Engine\Renderer\Utils\PlayerData.h" />
     <ClInclude Include="source\Engine\Renderer\VertexArray.h" />
+    <ClInclude Include="source\Engine\Renderer\VulkanSharedResources.h" />
     <ClInclude Include="source\Engine\Scene\Component.h" />
     <ClInclude Include="source\Engine\Scene\Components\Animation\AnimationComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Animation\NpcAnimationControllerComponent.h" />
@@ -762,9 +765,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
     <ClInclude Include="vendor\stb_image\stb_image_write.h" />
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
-    <ClInclude Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowMap.h" />
-    <ClInclude Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowGraphicsPipeline.h" />
-    <ClInclude Include="source\Engine\Renderer\VulkanSharedResources.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
@@ -843,6 +843,8 @@
     <ClCompile Include="source\Engine\Renderer\Camera.cpp" />
     <ClCompile Include="source\Engine\Renderer\EditorCamera.cpp" />
     <ClCompile Include="source\Engine\Renderer\Framebuffer.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowGraphicsPipeline.cpp" />
+    <ClCompile Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowMap.cpp" />
     <ClCompile Include="source\Engine\Renderer\Lights\VulkanLighting.cpp" />
     <ClCompile Include="source\Engine\Renderer\OrthographicCamera.cpp" />
     <ClCompile Include="source\Engine\Renderer\OrthographicCameraController.cpp" />
@@ -866,6 +868,7 @@
     <ClCompile Include="source\Engine\Renderer\UniformBuffer.cpp" />
     <ClCompile Include="source\Engine\Renderer\Utils\DeltaBitReader.cpp" />
     <ClCompile Include="source\Engine\Renderer\VertexArray.cpp" />
+    <ClCompile Include="source\Engine\Renderer\VulkanSharedResources.cpp" />
     <ClCompile Include="source\Engine\Scene\Entity.cpp" />
     <ClCompile Include="source\Engine\Scene\Light\LightGatherSystem.cpp" />
     <ClCompile Include="source\Engine\Scene\Scene.cpp" />
@@ -888,9 +891,6 @@
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowMap.cpp" />
-    <ClCompile Include="source\Engine\Renderer\Lights\Shadow\VulkanShadowGraphicsPipeline.cpp" />
-    <ClCompile Include="source\Engine\Renderer\VulkanSharedResources.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl" />
@@ -898,13 +898,9 @@
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\Effect_shader.comp" />
     <None Include="..\assets\shaders\FlatColor.glsl" />
-    <None Include="..\assets\shaders\lighting_common.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
-    <None Include="..\assets\shaders\shadow_3d_Vertex.glsl" />
-    <None Include="..\assets\shaders\shadow_ground_Vertex.glsl" />
-    <None Include="..\assets\shaders\shadow_tiles_Vertex.glsl" />
     <None Include="..\assets\shaders\Vulkan3DRender.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />
@@ -916,7 +912,11 @@
     <None Include="..\assets\shaders\fogOFWar_Shader.glsl" />
     <None Include="..\assets\shaders\fullscreen_shader.glsl" />
     <None Include="..\assets\shaders\imgui_shader.glsl" />
+    <None Include="..\assets\shaders\lighting_common.glsl" />
     <None Include="..\assets\shaders\player_collision_compute.comp" />
+    <None Include="..\assets\shaders\shadow_3d_Vertex.glsl" />
+    <None Include="..\assets\shaders\shadow_ground_Vertex.glsl" />
+    <None Include="..\assets\shaders\shadow_tiles_Vertex.glsl" />
     <None Include="..\assets\shaders\testShader.glsl" />
   </ItemGroup>
   <ItemGroup>

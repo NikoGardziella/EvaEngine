@@ -21,8 +21,8 @@ void PlayerMovementSystem::MovementSystem(float deltaTime, Engine::Scene* scene)
         if (glm::length2(controllerComp.velocity) < 0.0001f)
             continue;
 
-        // Apply movement
-       // transform.Translation.x += controllerComp.velocity.x * deltaTime * controllerComp.speed;
-        //transform.Translation.y += controllerComp.velocity.y * deltaTime * controllerComp.speed;
+         ///Apply movement
+        transform.Translation.x += controllerComp.velocity.x * deltaTime * controllerComp.speed;
+        transform.Translation.y += controllerComp.velocity.y * deltaTime * controllerComp.speed;
     }
 }

@@ -247,7 +247,13 @@ namespace Engine {
 	{
 	
 
-		
+	public:
+
+		struct GroundPC {
+			glm::mat4 lightSpaceMatrix;
+			glm::vec4 lightDirection;
+		};
+
 
 
 	public:
@@ -256,7 +262,7 @@ namespace Engine {
 
 		void Init(Ref<VulkanShadowMap> shadowMap);
 		void DrawFrame(uint32_t currentFrame, VkCommandBuffer cmd);
-		void DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd);
+		void DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd, Ref<VulkanShadowMap> shadowMap);
 		void DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap);
 		void ReadAndResetCollisionBuffer(uint32_t currentFrame);
 		void BeginFrame(uint32_t currentFrame);
@@ -283,7 +289,7 @@ namespace Engine {
 			glm::vec2  TargetPositionAtFireTime, float  DistanceToTargetatFireTime, float  TargetPositionHeightZ1);
 		static void CalculatePlayerCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType);
 		static void DrawTextureQuadWithProperties(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
-		static void DrawTextureQuad(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
+		static void DrawTextureQuad(glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
 		static void DrawQuadRaw(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static uint32_t AcquireTextureSlot(const std::shared_ptr<VulkanTexture>& texture);
 		static void DrawVisualEffectTexture(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture);

@@ -27,6 +27,7 @@
 #include "Systems/Player/Animation/CharacterAnimStateSystem.h"
 #include "Systems/Player/Animation/CharacterAnimationControllerSystem.h"
 #include <Engine/UI/WeaponHUD.h>
+#include "Systems/Player/PlayerMovementSystem.h"
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -241,7 +242,7 @@ void PixelGame::CreateGameEntities()
 	
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
 	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 15.0f);
-	cameraTransformComp.Rotation.x += glm::radians(20.0f);
+	//cameraTransformComp.Rotation.x += glm::radians(20.0f);
 
 
 
