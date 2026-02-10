@@ -50,7 +50,9 @@ namespace Engine {
     void EditorLayer::OnAttach()
     {
         EE_PROFILE_FUNCTION();
-       
+        ImGuiIO& io = ImGui::GetIO();
+        io.IniFilename = "Editor/imgui.ini";
+
         m_iconPlay = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string(), VK_FORMAT_R8G8B8A8_UNORM, "iconPlay", true);
         m_iconStop = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/stop-button.png").string(), VK_FORMAT_R8G8B8A8_UNORM, "iconStop", true);
         m_iconPause = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/video-pause-button.png").string(), VK_FORMAT_R8G8B8A8_UNORM, "iconPause", true);
