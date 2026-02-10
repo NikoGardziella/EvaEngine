@@ -71,4 +71,10 @@ EvaEngine/Editor/trace/
 EvaEngine/EvaEngine/trace/
 EvaEngine/Sandbox/trace/
 
+#vcpkg
+EvaEngine/vendor/vcpkg/installed/
+EvaEngine/vendor/vcpkg/buildtrees/
+EvaEngine/vendor/vcpkg/packages/
+EvaEngine/vendor/vcpkg/downloads/
+
 *.enc
