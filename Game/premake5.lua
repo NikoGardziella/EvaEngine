@@ -1,68 +1,61 @@
+project "Game"
+    -- location "Game"  -- optional; you can set this if you want the vcxproj in /Game
+    kind "StaticLib"
+    language "C++"
+    cppdialect "C++17"
+    staticruntime "off"
+    architecture "x64"
 
-    project "Game"
-        location ""
-        kind "StaticLib" 
-        language "C++"
-        architecture "x64"
-        staticruntime "off"
-        cppdialect "C++17"
+    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+    objdir    ("bin-obj/" .. outputdir .. "/%{prj.name}")
 
-        targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-        objdir ("bin-obj/" .. outputdir .. "/%{prj.name}")
+    files
+    {
+        "source/**.h",
+        "source/**.cpp"
+    }
 
-        ROOT_DIR = path.getabsolute(os.getcwd()) 
+    includedirs
+    {
+        "../EvaEngine/source",
+        "../EvaEngine/vendor/spdlog/include",
 
-        files
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.entt}",
+        "%{IncludeDir.enkiTS}",
+        "%{IncludeDir.Box2D}",
+        "%{IncludeDir.GLFW}",
+        "%{IncludeDir.VulkanSDK}"
+    }
+
+    links
+    {
+        "EvaEngine",
+        "Box2D"
+    }
+
+    filter "system:windows"
+        systemversion "latest"
+        buildoptions { "/utf-8" }
+        defines
         {
-            "source/**.h",
-            "source/**.cpp"
+            "EE_SANDBOX",
+            "EE_PLATFORM_WINDOWS"
         }
 
+    filter "configurations:Debug"
+        defines { "EE_DEBUG" }
+        symbols "On"
+        runtime "Debug"
 
+    filter "configurations:Release"
+        defines { "EE_RELEASE" }
+        optimize "On"
+        runtime "Release"
 
-        includedirs
-        {
-            "../EvaEngine/vendor/spdlog/include",
-            "../EvaEngine/source",
-            "../EvaEngine/vendor",
-            "../EvaEngine/vendor/glm",
-            "../EvaEngine/vendor/entt/include",
-            "../EvaEngine/vendor/Box2D/include",
-            "../EvaEngine/vendor/enkiTS/src",
-            "%{IncludeDir.VulkanSDK}",
-            "../EvaEngine/vendor/GLFW/include",
+    filter "configurations:Dist"
+        defines { "EE_DIST" }
+        optimize "On"
+        runtime "Release"
 
-
-        }
-
-
-        links
-        {
-            "EvaEngine",
-            
-        }
-
-        filter "system:windows"
-            systemversion "latest"
-            defines
-            {
-                "EE_SANDBOX",
-                "EE_PLATFORM_WINDOWS"
-            }
-
-        filter "configurations:Debug"
-            defines "EE_DEBUG"
-            symbols "On"
-            runtime "Debug"
-
-        filter "configurations:Release"
-            defines "EE_RELEASE"
-            optimize "On"
-            runtime "Release"
-
-        filter "configurations:Dist"
-            defines "EE_DIST"
-            optimize "On"
-            runtime "Release"
-
-
+    filter {}

@@ -2,13 +2,14 @@
 
 #include "DebugPanel.h"
 #include "Engine/Debug/DebugInterface.h"
-#include "imgui/imgui.h"
-#include <imgui/imgui_internal.h>
+#include <imgui.h>
+#include <imgui.h>
 #include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 #include <Engine/Scene/Component.h>
 #include "Engine/Scene/Entity.h"
 #include "../EditorApp.h"
 #include "Engine/Map/Grid/GridMap.h"
+#include <imgui_internal.h>
 
 namespace Engine {
    

@@ -1,11 +1,5 @@
---VULKAN_SDK = "C:/VulkanSDK/1.4.304.1"
---IncludeDir = {}
- --IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
-
--- Setup the Editor application project
-
 project "Editor"
-    location "."
+    -- location "Editor" -- optional
     kind "ConsoleApp"
     language "C++"
     architecture "x64"
@@ -13,72 +7,62 @@ project "Editor"
     cppdialect "C++17"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-obj/" .. outputdir .. "/%{prj.name}")
-    targetname "Editor" 
-    --YAMLCppDir = "../EvaEngine/vendor/yaml-cpp" 
-    --IncludeDir["yaml_cpp"] = "%{YAMLCppDir}/include"
-
+    objdir    ("bin-obj/" .. outputdir .. "/%{prj.name}")
+    targetname "Editor"
 
     files
     {
         "source/**.h",
-        "source/**.cpp",
-
+        "source/**.cpp"
     }
-
-
 
     includedirs
     {
-        "../EvaEngine/vendor/spdlog/include",
         "../EvaEngine/source",
-        "../EvaEngine/vendor",
-        "../EvaEngine/vendor/glm",
-        "../EvaEngine/vendor/entt/include",
-        "../EvaEngine/vendor/Box2D/include",
-        "../EvaEngine/vendor/enkiTS/src",
-        "../EvaEngine/vendor/GLFW/include",
-       -- "../EvaEngine/vendor/vcpkg/x64-windows/include",
-        "../EvaEngine/vendor/yaml-cpp/include",
-        "../Sandbox/source", 
-        "../Sandbox/vendor",
+        "../EvaEngine/vendor/spdlog/include",
+        "%{IncludeDir.ImGuizmo}",
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.entt}",
+        "%{IncludeDir.enkiTS}",
+        "%{IncludeDir.Box2D}",
+        "%{IncludeDir.GLFW}",
         "%{IncludeDir.ImGui}",
-       -- "%{IncludeDir.yaml_cpp}",
-
+        "%{IncludeDir.yaml_cpp}",
         "%{IncludeDir.VulkanSDK}",
-     
-
+        "%{IncludeDir.vcpkg}",
+        "%{IncludeDir.stb_image}",
     }
-
 
     links
     {
         "EvaEngine",
         "Game",
-        "yaml-cpp"
-        
+        "yaml-cpp",
+        "Box2D"
     }
 
-    
     filter "system:windows"
         systemversion "latest"
+        buildoptions { "/utf-8" }
         defines
         {
             "EE_PLATFORM_WINDOWS",
-            "YAML_CPP_STATIC_DEFINE" 
+            "YAML_CPP_STATIC_DEFINE"
         }
 
     filter "configurations:Debug"
-        defines "EE_DEBUG"
+        defines { "EE_DEBUG" }
         symbols "On"
         runtime "Debug"
 
     filter "configurations:Release"
-        defines "EE_RELEASE"
+        defines { "EE_RELEASE" }
         optimize "On"
         runtime "Release"
 
     filter "configurations:Dist"
-        defines "EE_DIST"
+        defines { "EE_DIST" }
         optimize "On"
         runtime "Release"
+
+    filter {}

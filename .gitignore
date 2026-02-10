@@ -28,6 +28,22 @@ bin-intermediate/
 Thumbs.db
 desktop.ini
 
+# vcpkg (never commit binaries)
+# vcpkg: ignore local registry/cache contents
+EvaEngine/vendor/vcpkg/installed/
+EvaEngine/vendor/vcpkg/buildtrees/
+EvaEngine/vendor/vcpkg/packages/
+EvaEngine/vendor/vcpkg/downloads/
+EvaEngine/vendor/vcpkg/ports/
+EvaEngine/vendor/vcpkg/registries/
+EvaEngine/vendor/vcpkg/versions/
+EvaEngine/vendor/vcpkg/scripts/
+EvaEngine/vendor/vcpkg/docs/
+EvaEngine/vendor/vcpkg/doc/
+EvaEngine/vendor/vcpkg/triplets/
+# vcpkg temp/cache
+EvaEngine/vendor/vcpkg/*.log
+EvaEngine/vendor/vcpkg/.vcpkg-root
 
 # Prerequisites
 *.d

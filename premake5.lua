@@ -1,47 +1,62 @@
+-- premake5.lua (repo root)
+
 include "Dependencies.lua"
 
 workspace "EvaEngine"
+    location "."
     architecture "x86_64"
     startproject "Editor"
+    buildoptions { "/utf-8" }
+    configurations { "Debug", "Release", "Dist" }
 
-    configurations
-    {
-        "Debug",
-        "Release",
-        "Dist"
-    }
+-- Common path constants (keeps wrappers and projects consistent)
+ENGINE_DIR = "EvaEngine"
+VENDOR_DIR = ENGINE_DIR .. "/vendor"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-include "EvaEngine/vendor/GLFW"
-include "EvaEngine/vendor/GLAD"
-include "EvaEngine/vendor/imgui"
-include "EvaEngine/vendor/yaml-cpp"
-include "EvaEngine/vendor/Box2D"
+-- 3rd-party wrappers (tracked in your repo)
+include "premake/box2d.lua"
+include "premake/glad.lua"
+include "premake/glfw.lua"
+include "premake/imgui.lua"
+include "premake/nlohmannjson.lua"
+include "premake/yaml-cpp.lua"
+
+-- Your projects
 include "Game"
 include "Editor"
 
 project "EvaEngine"
-    location "EvaEngine"
+    location (ENGINE_DIR)
     kind "StaticLib"
     language "C++"
     cppdialect "C++17"
     staticruntime "off"
-    
-    flags { "MultiProcessorCompile" }
-    buildoptions { "/MP" } 
+
+    filter "files:**/vendor/ImGuizmo/ImGuizmo.cpp or files:**/vendor/enkiTS/src/TaskScheduler.cpp"
+        pchsource ""
+    filter {}
+    filter "files:**/vendor/ImGuizmo/ImGuizmo.cpp"
+        buildoptions { "/Y-" }
+    filter "files:**/vendor/enkiTS/src/TaskScheduler.cpp"
+        buildoptions { "/Y-" }
+    filter {}
+
+    multiprocessorcompile "On"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-obj/" .. outputdir .. "/%{prj.name}")
+    objdir    ("bin-obj/" .. outputdir .. "/%{prj.name}")
 
     pchheader "pch.h"
-    pchsource "EvaEngine/source/pch.cpp"
+    pchsource (ENGINE_DIR .. "/source/pch.cpp")
 
     files
     {
         "%{prj.name}/source/pch.cpp",
-        "%{prj.name}/source/**.h",  
-        "%{prj.name}/source/**.cpp", 
+        "%{prj.name}/source/**.h",
+        "%{prj.name}/source/**.cpp",
+
         "%{prj.name}/vendor/glm/glm/**.hpp",
         "%{prj.name}/vendor/glm/glm/**.inl",
         "%{prj.name}/vendor/stb_image/**.cpp",
@@ -50,9 +65,12 @@ project "EvaEngine"
         "%{prj.name}/vendor/tiny_gltf/**.cpp",
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp",
         "%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
-        "%{prj.name}/vendor/Box2D/box2d/include/**.h",
-        "%{prj.name}/vendor/enkiTS/box2d/src/TaskScheduler.h",
-        "%{prj.name}/vendor/enkiTS/src/TaskScheduler.cpp", 
+
+        -- NOTE: double-check these two paths are correct in your repo
+        "%{prj.name}/vendor/Box2D/include/**.h",
+        "%{prj.name}/vendor/enkiTS/src/TaskScheduler.h",
+        "%{prj.name}/vendor/enkiTS/src/TaskScheduler.cpp",
+
         "assets/shaders/*"
     }
 
@@ -65,9 +83,12 @@ project "EvaEngine"
 
     includedirs
     {
-        "EvaEngine/source",
-        "EvaEngine/vendor/spdlog/include",
-        "EvaEngine/vendor/vcpkg/x64-windows/include",
+        ENGINE_DIR .. "/source",
+        VENDOR_DIR .. "/spdlog/include",
+
+        "%{IncludeDir.vcpkg}",
+
+        -- From Dependencies.lua
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.GLAD}",
         "%{IncludeDir.json}",
@@ -82,106 +103,113 @@ project "EvaEngine"
         "%{IncludeDir.VulkanSDK}",
         "%{IncludeDir.shaderc}",
         "%{IncludeDir.SPIRV_Cross}",
-        "%{IncludeDir.tiny_gltf}",
+        "%{IncludeDir.tiny_gltf}"
     }
 
     libdirs
     {
         "%{LibraryDir.VulkanSDK}",
-        "%{LibraryDir.Box2D}",
-        "EvaEngine/vendor/vcpkg/x64-windows/lib"
+        "%{LibraryDir.vcpkg}"
     }
 
     filter "system:windows"
         systemversion "latest"
-
         defines
         {
             "EE_PLATFORM_WINDOWS",
             "EE_BUILD_DLL",
-            "GLFW_INCLUDE_NONE",
             "SPDLOG_NO_UNICODE"
         }
 
-
     filter "configurations:Debug"
-        defines { 
+        defines
+        {
             "EE_DEBUG",
-            "EE_PROFILE=0"  --  Disable profiling in debug for faster builds
+            "EE_PROFILE=0"
         }
         symbols "On"
         runtime "Debug"
-        
-        --  Faster debug info format (works with ccache)
         buildoptions { "/Z7" }
-        
-        --  Faster linking
-        linkoptions { "/DEBUG:FASTLINK" }
-        
-        --  Optional: Disable optimizations for faster iteration
+        linkoptions  { "/DEBUG:FASTLINK" }
         optimize "Off"
-        
         links
         {
-            "%{Library.GLFW}",
+            "GLFW",
+            "GLAD",
+            "ImGui",
+            "yaml-cpp",
+            "Box2D",
+
             "%{Library.OpenGL}",
-            "%{Library.GLAD}",
-            "%{Library.ImGui}",
-            "%{Library.yaml_cpp}",
             "%{Library.shaderc_Debug}",
             "%{Library.spirv_cross_core_Debug}",
             "%{Library.spirv_cross_glsl_Debug}",
             "%{Library.spirv_tools_Debug}",
             "%{Library.Vulkan}",
-            "%{Library.Box2D}",
-            "libcurl"
+
+            "%{Library.libcurl}",
+            "%{Library.zlib}"
         }
+
+
 
     filter "configurations:Release"
-        defines { 
-            "EE_RELEASE",
-            "EE_PROFILE=1"  --  Enable profiling in release
-        }
-        optimize "Speed" 
-        runtime "Release"
-        
-        flags { "LinkTimeOptimization" }
-        
-        links
+        defines
         {
-            "%{Library.GLFW}",
-            "%{Library.OpenGL}",
-            "%{Library.GLAD}",
-            "%{Library.ImGui}",
-            "%{Library.yaml_cpp}",
-            "%{Library.shaderc_Release}",
-            "%{Library.spirv_cross_core_Release}",
-            "%{Library.spirv_cross_glsl_Release}",
-            "%{Library.spirv_tools_Release}",
-            "%{Library.Vulkan}",
-        }
-
-    filter "configurations:Dist"
-        defines { 
-            "EE_DIST",
-            "EE_PROFILE=0"  --  Disable profiling in distribution
+            "EE_RELEASE",
+            "EE_PROFILE=1"
         }
         optimize "Speed"
         runtime "Release"
-        
-        --  Maximum optimizations for distribution
-        flags { "LinkTimeOptimization" }
-        
+        linktimeoptimization "On"
         links
         {
-            "%{Library.GLFW}",
+            "GLFW",
+            "GLAD",
+            "ImGui",
+            "yaml-cpp",
+            "Box2D",
+
             "%{Library.OpenGL}",
-            "%{Library.GLAD}",
-            "%{Library.ImGui}",
-            "%{Library.yaml_cpp}",
             "%{Library.shaderc_Release}",
             "%{Library.spirv_cross_core_Release}",
             "%{Library.spirv_cross_glsl_Release}",
             "%{Library.spirv_tools_Release}",
             "%{Library.Vulkan}",
+
+            "%{Library.libcurl}",
+            "%{Library.zlib}"
         }
+
+
+
+    filter "configurations:Dist"
+        defines
+        {
+            "EE_DIST",
+            "EE_PROFILE=0"
+        }
+        optimize "Speed"
+        runtime "Release"
+        linktimeoptimization "On"
+        links
+        {
+            "GLFW",
+            "GLAD",
+            "ImGui",
+            "yaml-cpp",
+            "Box2D",
+
+            "%{Library.OpenGL}",
+            "%{Library.shaderc_Release}",
+            "%{Library.spirv_cross_core_Release}",
+            "%{Library.spirv_cross_glsl_Release}",
+            "%{Library.spirv_tools_Release}",
+            "%{Library.Vulkan}",
+
+            "%{Library.libcurl}",
+            "%{Library.zlib}"
+        }
+
+
+    filter {}

@@ -1,7 +1,7 @@
 #include "EditorUtils.h"
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include <Engine/Scene/Components/NPC/NpcAIStateComponent.h>
-#include <imgui/imgui.h>
+#include <imgui.h>
 #include <Engine/Scene/Components/Render/3D/MeshRefComponent.h>
 #include <Engine/Scene/Components/Render/3D/SkeletonComponent.h>
 #include <Engine/AssetManager/AssetManager.h>

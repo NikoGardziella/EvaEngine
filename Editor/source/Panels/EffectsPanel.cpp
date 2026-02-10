@@ -1,7 +1,7 @@
 #include "pch.h"
 
 #include "EffectsPanel.h"
-#include <imgui/imgui.h>
+#include <imgui.h>
 #include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 
 namespace Engine {

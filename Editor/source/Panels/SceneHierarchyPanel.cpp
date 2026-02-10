@@ -6,9 +6,10 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "imgui/imgui.h"
-#include <imgui/imgui_internal.h>
-#include "ImGuizmo/ImGuizmo.h"
+#include <imgui.h>
+#include "ImGuizmo.h"
+
+
 #include <Engine/Scene/Components/Combat/HealthComponent.h>
 #include <Engine/Scene/Components/NPC/NpcAIComponent.h>
 #include <Engine/Scene/Components/Combat/WeaponComponent.h>
@@ -23,6 +24,7 @@
 #include <Engine/Scene/Components/Light/SpotLightComponent.h>
 #include <Engine/Scene/Components/Light/PointLightComponent.h>
 #include <Engine/Scene/Components/Light/DirectionalLightComponent.h>
+#include <imgui_internal.h>
 
 
 namespace Engine {
