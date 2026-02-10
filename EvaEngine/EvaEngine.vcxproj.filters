@@ -205,17 +205,20 @@
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\Box2D">
+      <UniqueIdentifier>{01D80FEE-ED3A-9F92-96C0-D74882026B15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\Box2D\include">
+      <UniqueIdentifier>{747071FB-60FF-FAC4-091E-0FC0F58B0B6B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\Box2D\include\box2d">
+      <UniqueIdentifier>{C2B1F7DC-AEC1-A3AD-177B-08CC03AA9246}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor\ImGuizmo">
       <UniqueIdentifier>{73BF7F4C-DF4A-ED10-E85B-700554664911}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\enkiTS">
       <UniqueIdentifier>{10199701-7CD9-1238-4514-5CB5B1935714}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="vendor\enkiTS\box2d">
-      <UniqueIdentifier>{5E5F384B-CAC0-1559-532E-5C0BBF8E4C18}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="vendor\enkiTS\box2d\src">
-      <UniqueIdentifier>{759C10E5-E1D3-587C-EADD-BC9F56947F75}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\enkiTS\src">
       <UniqueIdentifier>{27DFB8BA-93F5-B650-DC6C-427248C287D8}</UniqueIdentifier>
@@ -804,11 +807,29 @@
     <ClInclude Include="source\pch.h">
       <Filter>source</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\Box2D\include\box2d\base.h">
+      <Filter>vendor\Box2D\include\box2d</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\Box2D\include\box2d\box2d.h">
+      <Filter>vendor\Box2D\include\box2d</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\Box2D\include\box2d\collision.h">
+      <Filter>vendor\Box2D\include\box2d</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\Box2D\include\box2d\id.h">
+      <Filter>vendor\Box2D\include\box2d</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\Box2D\include\box2d\math_functions.h">
+      <Filter>vendor\Box2D\include\box2d</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\Box2D\include\box2d\types.h">
+      <Filter>vendor\Box2D\include\box2d</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h">
       <Filter>vendor\ImGuizmo</Filter>
     </ClInclude>
-    <ClInclude Include="vendor\enkiTS\box2d\src\TaskScheduler.h">
-      <Filter>vendor\enkiTS\box2d\src</Filter>
+    <ClInclude Include="vendor\enkiTS\src\TaskScheduler.h">
+      <Filter>vendor\enkiTS\src</Filter>
     </ClInclude>
     <ClInclude Include="vendor\glm\glm\common.hpp">
       <Filter>vendor\glm\glm</Filter>

@@ -1,52 +1,64 @@
+-- Dependencies.lua
 
 VULKAN_SDK = "C:/VulkanSDK/1.4.304.1"
-ROOT_DIR = path.getabsolute(os.getcwd()) 
 
-IncludeDir = {}
-IncludeDir["GLFW"] = "EvaEngine/vendor/GLFW/include"
-IncludeDir["GLAD"] = "EvaEngine/vendor/GLAD/include"
-IncludeDir["curl"] = "EvaEngine/vendor/curl/include"
-IncludeDir["json"] = "EvaEngine/vendor/nlohmannjson/include"
-IncludeDir["ImGui"] = "EvaEngine/vendor/imgui"
-IncludeDir["glm"] = "EvaEngine/vendor/glm"
-IncludeDir["entt"] = "EvaEngine/vendor/entt/include"
-IncludeDir["stb_image"] = "EvaEngine/vendor/stb_image"
-IncludeDir["yaml_cpp"] = "EvaEngine/vendor/yaml-cpp/include"
-IncludeDir["ImGuizmo"] = "EvaEngine/vendor/ImGuizmo"
-IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
-IncludeDir["shaderc"] = "%{VULKAN_SDK}/Include/shaderc"
-IncludeDir["SPIRV_Cross"] = "%{VULKAN_SDK}/Include/spirv_cross"
-IncludeDir["Box2D"] =  "EvaEngine/vendor/Box2D/include"
-IncludeDir["Sandbox"] = ROOT_DIR .. "/Sandbox/source"
-IncludeDir["enkiTS"] = "EvaEngine/vendor/enkiTS/src"
-IncludeDir["tiny_gltf"] = "EvaEngine/vendor/tiny_gltf"
+ROOT_DIR   = _MAIN_SCRIPT_DIR
+ENGINE_DIR = "EvaEngine"
+VENDOR_DIR = ENGINE_DIR .. "/vendor"
 
--- Organize library directories
-LibraryDir = {}
-LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
-LibraryDir["Box2D"] = "EvaEngine/vendor/Box2D/bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/Box2D"
+local function R(p) return path.join(ROOT_DIR, p) end
 
--- Organize libraries with separate Debug and Release versions
-Library = {}
--- Common libraries
-Library["GLFW"] = "GLFW"
-Library["GLAD"] = "GLAD"
-Library["curl"] = "curl"
+VCPKG_TRIPLET   = "x64-windows"
+VCPKG_INSTALLED = VENDOR_DIR .. "/vcpkg/installed/" .. VCPKG_TRIPLET
 
-Library["ImGui"] = "imgui"
-Library["yaml_cpp"] = "yaml-cpp"
-Library["OpenGL"] = "opengl32.lib"
-Library["Vulkan"] = "vulkan-1.lib"
-Library["Box2D"] = "box2dd.lib"
 
--- Debug specific libraries
-Library["shaderc_Debug"] = "shaderc_sharedd.lib"
-Library["spirv_cross_core_Debug"] = "spirv-cross-cored.lib"
-Library["spirv_cross_glsl_Debug"] = "spirv-cross-glsld.lib"
-Library["spirv_tools_Debug"] = "SPIRV-Toolsd.lib"
+IncludeDir = {
+    GLFW      = R(VENDOR_DIR .. "/GLFW/include"),
+    GLAD      = R(VENDOR_DIR .. "/GLAD/include"),
+    Box2D     = R(VENDOR_DIR .. "/Box2D/include"),
+    json      = R(VENDOR_DIR .. "/nlohmannjson/include"),
+    ImGui     = R(VENDOR_DIR .. "/imgui"),
+    glm       = R(VENDOR_DIR .. "/glm"),
+    entt      = R(VENDOR_DIR .. "/entt/include"),
+    stb_image = R(VENDOR_DIR .. "/stb_image"),
+    yaml_cpp  = R(VENDOR_DIR .. "/yaml-cpp/include"),
+    ImGuizmo  = R(VENDOR_DIR .. "/ImGuizmo"),
+    enkiTS    = R(VENDOR_DIR .. "/enkiTS/src"),
+    tiny_gltf = R(VENDOR_DIR .. "/tiny_gltf"),
+    ImGuizmo = R(VENDOR_DIR .. "/ImGuizmo"),
 
--- Release specific libraries
-Library["shaderc_Release"] = "shaderc_shared.lib"
-Library["spirv_cross_core_Release"] = "spirv-cross-core.lib"
-Library["spirv_cross_glsl_Release"] = "spirv-cross-glsl.lib"
-Library["spirv_tools_Release"] = "SPIRV-Tools.lib"
+    vcpkg     = R(VCPKG_INSTALLED .. "/include"),
+    curl      = R(VCPKG_INSTALLED .. "/include"),
+
+   
+
+    VulkanSDK   = VULKAN_SDK .. "/Include",
+    shaderc     = VULKAN_SDK .. "/Include/shaderc",
+    SPIRV_Cross = VULKAN_SDK .. "/Include/spirv_cross",
+    Sandbox     = R("Sandbox/source")
+}
+
+
+LibraryDir = {
+    VulkanSDK = VULKAN_SDK .. "/Lib",
+    vcpkg     = R(VCPKG_INSTALLED .. "/lib")
+}
+
+
+Library = {
+    OpenGL = "opengl32.lib",
+    Vulkan = "vulkan-1.lib",
+
+    shaderc_Debug            = "shaderc_sharedd.lib",
+    spirv_cross_core_Debug   = "spirv-cross-cored.lib",
+    spirv_cross_glsl_Debug   = "spirv-cross-glsld.lib",
+    spirv_tools_Debug        = "SPIRV-Toolsd.lib",
+
+    shaderc_Release          = "shaderc_shared.lib",
+    spirv_cross_core_Release = "spirv-cross-core.lib",
+    spirv_cross_glsl_Release = "spirv-cross-glsl.lib",
+    spirv_tools_Release      = "SPIRV-Tools.lib",
+
+    libcurl = "libcurl",
+    zlib    = "zlib"
+}

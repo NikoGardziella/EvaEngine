@@ -1,0 +1,209 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Dist|x64">
+      <Configuration>Dist</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7FA9857C-6BE0-860D-14CD-6C1000E3020F}</ProjectGuid>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Game</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(ProjectDir)Game\bin\Debug-windows-x86_64\Game\</OutDir>
+    <IntDir>$(ProjectDir)Game\bin-obj\Debug-windows-x86_64\Game\</IntDir>
+    <TargetName>Game</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(ProjectDir)Game\bin\Release-windows-x86_64\Game\</OutDir>
+    <IntDir>$(ProjectDir)Game\bin-obj\Release-windows-x86_64\Game\</IntDir>
+    <TargetName>Game</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <OutDir>$(ProjectDir)Game\bin\Dist-windows-x86_64\Game\</OutDir>
+    <IntDir>$(ProjectDir)Game\bin-obj\Dist-windows-x86_64\Game\</IntDir>
+    <TargetName>Game</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>EE_SANDBOX;EE_PLATFORM_WINDOWS;EE_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>EvaEngine\source;EvaEngine\vendor\spdlog\include;EvaEngine\vendor\glm;EvaEngine\vendor\entt\include;EvaEngine\vendor\enkiTS\src;EvaEngine\vendor\Box2D\include;EvaEngine\vendor\GLFW\include;C:\VulkanSDK\1.4.304.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <ProjectReference>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>EE_SANDBOX;EE_PLATFORM_WINDOWS;EE_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>EvaEngine\source;EvaEngine\vendor\spdlog\include;EvaEngine\vendor\glm;EvaEngine\vendor\entt\include;EvaEngine\vendor\enkiTS\src;EvaEngine\vendor\Box2D\include;EvaEngine\vendor\GLFW\include;C:\VulkanSDK\1.4.304.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <ProjectReference>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>EE_SANDBOX;EE_PLATFORM_WINDOWS;EE_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>EvaEngine\source;EvaEngine\vendor\spdlog\include;EvaEngine\vendor\glm;EvaEngine\vendor\entt\include;EvaEngine\vendor\enkiTS\src;EvaEngine\vendor\Box2D\include;EvaEngine\vendor\GLFW\include;C:\VulkanSDK\1.4.304.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <ProjectReference>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="Game\source\PixelGame.h" />
+    <ClInclude Include="Game\source\Systems\Collision\PlayerCollisionSystem.h" />
+    <ClInclude Include="Game\source\Systems\Collision\VehicleCollisionSystem.h" />
+    <ClInclude Include="Game\source\Systems\Combat\HealthSystem.h" />
+    <ClInclude Include="Game\source\Systems\Combat\PlayerWeaponSystem.h" />
+    <ClInclude Include="Game\source\Systems\Combat\ProjectileSystem.h" />
+    <ClInclude Include="Game\source\Systems\Combat\ThrowableSystem.h" />
+    <ClInclude Include="Game\source\Systems\Combat\Weapon\EquippedWeaponAttachSystem.h" />
+    <ClInclude Include="Game\source\Systems\NPC\Death\NPCDeathCleanupSystem.h" />
+    <ClInclude Include="Game\source\Systems\NPC\NPCAIVisionSystem.h" />
+    <ClInclude Include="Game\source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.h" />
+    <ClInclude Include="Game\source\Systems\NPC\NPCState\NpcAIStateSystem.h" />
+    <ClInclude Include="Game\source\Systems\NPC\NPCState\NpcBodyStateSystem.h" />
+    <ClInclude Include="Game\source\Systems\NPC\NPCState\Utils\NPCStateUtils.h" />
+    <ClInclude Include="Game\source\Systems\NPC\NpcAIMovementSystem.h" />
+    <ClInclude Include="Game\source\Systems\Physics\PhysicsSystem.h" />
+    <ClInclude Include="Game\source\Systems\Player\Animation\CharacterAnimStateSystem.h" />
+    <ClInclude Include="Game\source\Systems\Player\Animation\CharacterAnimationControllerSystem.h" />
+    <ClInclude Include="Game\source\Systems\Player\Camera\PlayerCameraSystem.h" />
+    <ClInclude Include="Game\source\Systems\Player\CharacterControllerSystem.h" />
+    <ClInclude Include="Game\source\Systems\Player\PlayerMovementSystem.h" />
+    <ClInclude Include="Game\source\Systems\Spawning\NpcSpawnControllerSystem.h" />
+    <ClInclude Include="Game\source\Systems\Spawning\WeaponSpawnSystem.h" />
+    <ClInclude Include="Game\source\Systems\UI\HUDSystem.h" />
+    <ClInclude Include="Game\source\Systems\UI\HUDWidgets.h" />
+    <ClInclude Include="Game\source\Systems\Vehicle\VehicleSystem.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Game\source\PixelGame.cpp" />
+    <ClCompile Include="Game\source\SandboxApp.cpp" />
+    <ClCompile Include="Game\source\Systems\Collision\PlayerCollisionSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Collision\VehicleCollisionSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Combat\HealthSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Combat\PlayerWeaponSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Combat\ProjectileSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Combat\ThrowableSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Combat\Weapon\EquippedWeaponAttachSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\NPC\Death\NPCDeathCleanupSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\NPC\NPCAIVisionSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\NPC\NPCAnimation\NPCAnimationControllerSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\NPC\NPCState\NpcAIStateSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\NPC\NPCState\NpcBodyStateSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\NPC\NPCState\Utils\NPCStateUtils.cpp" />
+    <ClCompile Include="Game\source\Systems\NPC\NpcAIMovementSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Physics\PhysicsSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Player\Animation\CharacterAnimStateSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Player\Animation\CharacterAnimationControllerSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Player\Camera\PlayerCameraSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Player\CharacterControllerSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Player\PlayerMovementSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Spawning\NpcSpawnControllerSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Spawning\WeaponSpawnSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\UI\HUDSystem.cpp" />
+    <ClCompile Include="Game\source\Systems\Vehicle\VehicleSystem.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="EvaEngine\EvaEngine.vcxproj">
+      <Project>{D7E7C411-4352-7988-8C90-2A2EF83957DD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Box2D.vcxproj">
+      <Project>{A434E80C-1049-10BE-D9CA-B31D459E0CEF}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

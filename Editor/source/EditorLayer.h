@@ -12,7 +12,8 @@
 
 #include "FPSCounter.h"
 #include "AI/json.hpp"
-#include <imgui/imgui.h>
+#include <imgui.h>
+
 #include "Panels/DebugPanel.h"
 #include "Panels/TileEditorPanel.h"
 #include "Panels/EffectsPanel.h"
