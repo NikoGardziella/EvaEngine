@@ -709,7 +709,7 @@ namespace Engine {
         
         float zoomLevel = 20.0f;
         shadowMap->UpdateLightSpaceMatrix(lightDirection, sceneCenter, zoomLevel);
-
+        shadowMap->SetLightDirection(lightDirection);
     
 
 
@@ -727,18 +727,20 @@ namespace Engine {
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = shadowMap->GetShadowRenderPass();
-        renderPassInfo.framebuffer = shadowMap->GetShadowFramebuffer();
+        renderPassInfo.renderPass = shadowMap->Get3DShadowmap().renderPass;
+        renderPassInfo.framebuffer = shadowMap->Get3DShadowmap().framebuffer;
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent = {
             shadowMap->GetShadowMapSize(),
             shadowMap->GetShadowMapSize()
         };
 
-        VkClearValue clearValue{};
-        clearValue.depthStencil = { 1.0f, 0 };
-        renderPassInfo.clearValueCount = 1;
+        VkClearValue clearValue;
+        // R = 1.0 (Far Depth), G = -10000.0 (Very far Y position)
+        clearValue.color = { { 1.0f, -10000.0f, 0.0f, 0.0f } };
+
         renderPassInfo.pClearValues = &clearValue;
+        renderPassInfo.clearValueCount = 1;
 
         vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -979,9 +981,9 @@ namespace Engine {
     void VulkanRenderer3D::UpdateShadowMapDescriptor(uint32_t frame)
     {
         VkDescriptorImageInfo imageInfo{};
-        imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = m_shadowMap->GetShadowMapView();
-        imageInfo.sampler = m_shadowMap->GetShadowMapSampler();
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = m_shadowMap->Get3DShadowmap().view;
+        imageInfo.sampler = m_shadowMap->Get3DShadowmap().sampler;
 
         VkWriteDescriptorSet write{};
         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

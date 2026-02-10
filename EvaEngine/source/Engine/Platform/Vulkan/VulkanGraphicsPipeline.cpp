@@ -820,50 +820,7 @@ namespace Engine {
 
 
     }
-    /*
-    void VulkanGraphicsPipeline::CreateComputeDescriptorSetLayout()
-    {
-        
-        VkDescriptorSetLayoutBinding inputImageBinding{};
-        inputImageBinding.binding = 0;
-        inputImageBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        inputImageBinding.descriptorCount = 1;
-        inputImageBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        inputImageBinding.pImmutableSamplers = nullptr;
 
-        VkDescriptorSetLayoutBinding outputImageBinding{};
-        outputImageBinding.binding = 1;
-        outputImageBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        outputImageBinding.descriptorCount = 1;
-        outputImageBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-        outputImageBinding.pImmutableSamplers = nullptr;
-
-        VkDescriptorSetLayoutBinding resultBufferBinding{};
-        resultBufferBinding.binding = 2;
-        resultBufferBinding.descriptorCount = 1;
-        resultBufferBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        resultBufferBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-
-        VkDescriptorSetLayoutBinding healthBinding{};
-        healthBinding.binding = 3;
-        healthBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        healthBinding.descriptorCount = 1;
-        healthBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-        std::array<VkDescriptorSetLayoutBinding, 4> bindings = {
-            inputImageBinding, outputImageBinding, resultBufferBinding, healthBinding
-        };
-
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-        layoutInfo.pBindings = bindings.data();
-
-        vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_computeDescriptorSetLayout);
-
-    }
-    */
 
 
     void VulkanGraphicsPipeline::CreatePlayerCollisionDescriptorSetLayout() {
@@ -1121,10 +1078,8 @@ namespace Engine {
 
           
 
-            vkUpdateDescriptorSets(m_device,
-                static_cast<uint32_t>(descriptorWrites.size()),
-                descriptorWrites.data(),
-                0, nullptr);
+            vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()),
+                descriptorWrites.data(), 0, nullptr);
         }
 
     }
@@ -1141,21 +1096,18 @@ namespace Engine {
         VulkanContext* context = VulkanContext::Get();
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            // Allocate the descriptor set from the descriptor pool (assumed to be pre-created)
             VkDescriptorSetAllocateInfo allocInfo{};
             allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            allocInfo.descriptorPool = context->GetDescriptorPool(); // Descriptor pool used for allocation
+            allocInfo.descriptorPool = context->GetDescriptorPool(); 
             allocInfo.descriptorSetCount = 1;
-            allocInfo.pSetLayouts = &m_presentDescriptorSetLayout; // Layout for the present pass
+            allocInfo.pSetLayouts = &m_presentDescriptorSetLayout;
 
-            // Allocate the descriptor set for the present pass
             VkResult result = vkAllocateDescriptorSets(m_device, &allocInfo, &m_presentDescriptorSets[i]);
             if (result != VK_SUCCESS)
             {
                 throw std::runtime_error("Failed to allocate present descriptor set!");
             }
 
-            // Update the present descriptor set with resources (swapchain image, etc.)
             UpdatePresentDescriptorSet(i);
 
         }
@@ -1165,22 +1117,21 @@ namespace Engine {
     {
         VulkanContext* context = VulkanContext::Get();
 
-        // Create a descriptor write for the swapchain image (assuming it's a sampled image)
         VkDescriptorImageInfo imageInfo{};
-        imageInfo.sampler = m_presentSampler; // Use the appropriate sampler (could be a default one)
+        imageInfo.sampler = m_presentSampler; 
         imageInfo.imageView = context->GetVulkanSwapchain().GetGameTrackedImage(imageIndex).view; // Swapchain image view
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; // Image layout for reading in fragment shader
 
         VkWriteDescriptorSet writeSet{};
         writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        writeSet.dstSet = m_presentDescriptorSets[imageIndex]; // The descriptor set to update
-        writeSet.dstBinding = 0; // Binding index for the present pass (adjust accordingly)
+        writeSet.dstSet = m_presentDescriptorSets[imageIndex]; 
+        writeSet.dstBinding = 0; 
         writeSet.dstArrayElement = 0;
         writeSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         writeSet.descriptorCount = 1;
         writeSet.pImageInfo = &imageInfo;
 
-        // Update the present descriptor set
+     
         vkUpdateDescriptorSets(m_device, 1, &writeSet, 0, nullptr);
     }
 
@@ -1200,14 +1151,14 @@ namespace Engine {
         VkDescriptorSet dst = m_playerCollisionDescriptorSets[frameIndex];
 
         VkDescriptorImageInfo health{};
-        health.imageLayout = VK_IMAGE_LAYOUT_GENERAL;                  // must match the image's current layout
+        health.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
         health.imageView = healthTextures[CENTER]->GetImageView();
         health.sampler = VK_NULL_HANDLE;
 
         VkWriteDescriptorSet write{};
         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         write.dstSet = dst;
-        write.dstBinding = 0;                                     // binding 0: u_Health (single)
+        write.dstBinding = 0;
         write.dstArrayElement = 0;
         write.descriptorCount = 1;
         write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
@@ -1712,9 +1663,9 @@ namespace Engine {
         for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
         {
             VkDescriptorImageInfo shadowInfo{};
-            shadowInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-            shadowInfo.imageView = shadowMap->GetShadowMapView();
-            shadowInfo.sampler = shadowMap->GetShadowMapSampler();
+            shadowInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            shadowInfo.imageView = shadowMap->GetTileShadowmap().view;
+            shadowInfo.sampler = shadowMap->GetTileShadowmap().sampler;
 
             VkWriteDescriptorSet write{};
             write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

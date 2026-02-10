@@ -190,7 +190,7 @@ namespace Engine {
     void VulkanBindlessDescriptorSetRenderer::CreateBindlessSetLayout(VkDevice device, bool updateAfterBindSupported)
     {
 
-        const uint32_t totalBingingCount = 6;
+        const uint32_t totalBingingCount = 7;
         // binding 0: tiles sampled array (you already have this)
         VkDescriptorSetLayoutBinding bColor{};
         bColor.binding = 0;
@@ -226,13 +226,20 @@ namespace Engine {
         bLights.descriptorCount = 1;
         bLights.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        VkDescriptorSetLayoutBinding shadowMapBinding{};
-        shadowMapBinding.binding = 5;
-        shadowMapBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        shadowMapBinding.descriptorCount = 1;
-        shadowMapBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        VkDescriptorSetLayoutBinding shadowMap3DBinding{};
+        shadowMap3DBinding.binding = 5;
+        shadowMap3DBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        shadowMap3DBinding.descriptorCount = 1;
+        shadowMap3DBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        VkDescriptorSetLayoutBinding bindings[totalBingingCount] = { bColor, bStorage, bInstances, bSprites, bLights, shadowMapBinding };
+        VkDescriptorSetLayoutBinding tileShadowBinding{};
+        tileShadowBinding.binding = 6;
+        tileShadowBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        tileShadowBinding.descriptorCount = 1;
+        tileShadowBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        VkDescriptorSetLayoutBinding bindings[totalBingingCount] =
+        { bColor, bStorage, bInstances, bSprites, bLights, shadowMap3DBinding, tileShadowBinding };
 
         VkDescriptorBindingFlags flags[totalBingingCount]{};
         flags[0] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
@@ -244,6 +251,7 @@ namespace Engine {
             (updateAfterBindSupported ? VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT : 0);
         flags[4] = 0;  // Light buffer doesn't need partial bound or update after bind
         flags[5] = 0;  // 
+        flags[6] = 0;  // 
 
         VkDescriptorSetLayoutBindingFlagsCreateInfo bindFlags{
             VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO
@@ -1278,8 +1286,8 @@ namespace Engine {
         {
             VkDescriptorImageInfo shadowMapInfo{};
             shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            shadowMapInfo.imageView = shadowmap->GetShadowMapView();  // Your shadow map
-            shadowMapInfo.sampler = shadowmap->GetShadowMapSampler();
+            shadowMapInfo.imageView = shadowmap->GetTileShadowmap().view;  // Your shadow map
+            shadowMapInfo.sampler = shadowmap->GetTileShadowmap().sampler;
 
             VkWriteDescriptorSet shadowWrite{};
             shadowWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1293,6 +1301,24 @@ namespace Engine {
             vkUpdateDescriptorSets(m_device, 1, &shadowWrite, 0, nullptr);
         }
 
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            VkDescriptorImageInfo shadowMapInfo{};
+            shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            shadowMapInfo.imageView = shadowmap->Get3DShadowmap().view;  // Your shadow map
+            shadowMapInfo.sampler = shadowmap->Get3DShadowmap().sampler;
+
+            VkWriteDescriptorSet shadowWrite{};
+            shadowWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            shadowWrite.dstSet = m_bindlessSet[i];
+            shadowWrite.dstBinding = 6;
+            shadowWrite.dstArrayElement = 0;
+            shadowWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            shadowWrite.descriptorCount = 1;
+            shadowWrite.pImageInfo = &shadowMapInfo;
+
+            vkUpdateDescriptorSets(m_device, 1, &shadowWrite, 0, nullptr);
+        }
         
     }
 
@@ -1333,7 +1359,7 @@ namespace Engine {
     // In your bindless tiles renderer
     void VulkanBindlessDescriptorSetRenderer::DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex,
         VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout,
-        const glm::mat4& lightSpaceMatrix, const glm::mat4& vp)
+        const glm::mat4& lightSpaceMatrix, const glm::vec3& lightDir)
     {
         if (m_drawCount == 0) return;
 
@@ -1344,18 +1370,18 @@ namespace Engine {
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
             shadowPipelineLayout, 0, 1, &m_bindlessSet[frameIndex], 0, nullptr);
 
-        TilePC tilePC{};
+        ShadowPC tilePC{};
 
 
 
-        tilePC.VP = glm::mat4(1);
+        tilePC.LightDirecion = glm::vec4(lightDir, 1.0f);
         tilePC.LightSpaceMatrix = lightSpaceMatrix;
         // Push light space matrix
         vkCmdPushConstants(cmd, shadowPipelineLayout,
-            VK_SHADER_STAGE_VERTEX_BIT , 0, sizeof(TilePC), &tilePC);
+            VK_SHADER_STAGE_VERTEX_BIT , 0, sizeof(ShadowPC), &tilePC);
 
         // Draw instanced (no vertex/index buffers - uses gl_VertexIndex/gl_InstanceIndex)
-        vkCmdDraw(cmd, 4, m_drawCount, 0, 0);   // 4 vertices per quad, N instances
+        vkCmdDraw(cmd, 36, m_drawCount, 0, 0);   // 4 vertices per quad, N instances
     }
 
    

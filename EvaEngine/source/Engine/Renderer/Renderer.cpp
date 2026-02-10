@@ -44,13 +44,13 @@ namespace Engine {
 
 			// MOOVE
 			s_vulkanSharedResources->GetShadowMap()->GetShadowPipeline()->Create3DShadowPipeline(vulkanContext->GetDeviceManager().GetDevice(),
-				s_vulkanSharedResources->GetShadowMap()->GetShadowRenderPass(), s_VulkanRenderer3D->Get3DDescriptorSetLayout());
+				s_vulkanSharedResources->GetShadowMap()->Get3DShadowmap().renderPass, s_VulkanRenderer3D->Get3DDescriptorSetLayout());
 
 			s_vulkanSharedResources->GetShadowMap()->GetShadowPipeline()->CreateGroundShadowPipeline(vulkanContext->GetDeviceManager().GetDevice(),
-				s_vulkanSharedResources->GetShadowMap()->GetShadowRenderPass());
+				s_vulkanSharedResources->GetShadowMap()->GetTileShadowmap().renderPass);
 
 			s_vulkanSharedResources->GetShadowMap()->GetShadowPipeline()->CreateTilesShadowPipeline(vulkanContext->GetDeviceManager().GetDevice(),
-				s_vulkanSharedResources->GetShadowMap()->GetShadowRenderPass(), s_VulkanRenderer2D->GetBindlessDescriptorSetRenderer()->GetSetLayout());
+				s_vulkanSharedResources->GetShadowMap()->GetTileShadowmap().renderPass, s_VulkanRenderer2D->GetBindlessDescriptorSetRenderer()->GetSetLayout());
 
 
 
@@ -110,6 +110,11 @@ namespace Engine {
 
 	void Renderer::DrawShadowFrame()
 	{
+
+		s_vulkanSharedResources->GetShadowMap()->TransitionToReadable(m_commandBuffers[s_currentFrame], s_vulkanSharedResources->GetShadowMap()->Get3DShadowmap());
+		s_vulkanSharedResources->GetShadowMap()->TransitionToReadable(m_commandBuffers[s_currentFrame], s_vulkanSharedResources->GetShadowMap()->GetTileShadowmap());
+
+
 		s_VulkanRenderer3D->DrawShadowPass(m_commandBuffers[s_currentFrame], s_currentFrame, s_vulkanSharedResources->GetShadowMap());
 
 		s_VulkanRenderer2D->DrawTilesShadowPass(m_commandBuffers[s_currentFrame], s_currentFrame, s_vulkanSharedResources->GetShadowMap());

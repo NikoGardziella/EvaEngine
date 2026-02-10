@@ -693,7 +693,7 @@ namespace Engine {
 		s_bindlessDescitproRenderer->DrawTilesShadowPass(cmd, frameIndex,
 			shadowMap->GetShadowPipeline()->GetTilesShadowPipeline(),
 			shadowMap->GetShadowPipeline()->GetTilesShadowPipelineLayout(),
-			shadowMap->GetLightSpaceMatrix(), s_VulkanData.CameraBuffer.ViewProjection);
+			shadowMap->GetLightSpaceMatrix(), shadowMap->GetLightDirection());
 	}
 
 

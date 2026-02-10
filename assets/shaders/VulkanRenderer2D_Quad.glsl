@@ -168,7 +168,6 @@ float ShadowFactor(vec4 posLightSpace)
     vec3 proj = posLightSpace.xyz / posLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
     
-    // VULKAN Y-FLIP: Ensure this matches your Tile shader logic
 
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
         return 1.0;
@@ -206,7 +205,6 @@ float ShadowFactor_PCF(vec4 posLightSpace)
     // REDUCE BIAS: If it's too high, it "pushes" the shadow through the floor
     float bias = 0.0001; 
     
-    // Simple 1-tap check first to see if it works
     float shadowDepth = texture(uShadowMap, uv).r;
     
     // If current point is further than the map, it's 0.3 (dark), else 1.0 (bright)

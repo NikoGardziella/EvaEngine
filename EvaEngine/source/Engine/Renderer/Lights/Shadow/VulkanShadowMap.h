@@ -10,48 +10,62 @@ namespace Engine {
 
     class VulkanShadowMap
     {
+    private:
+        struct ShadowTarget
+        {
+            VkImage        image = VK_NULL_HANDLE;
+            VkDeviceMemory memory = VK_NULL_HANDLE;
+            VkImageView    view = VK_NULL_HANDLE;
+            VkSampler      sampler = VK_NULL_HANDLE;
+            VkRenderPass   renderPass = VK_NULL_HANDLE;
+            VkFramebuffer  framebuffer = VK_NULL_HANDLE;
+        };
+
+
+
     public:
         VulkanShadowMap() = default;
         ~VulkanShadowMap() = default;
 
-        void UpdateTileShadowMatrix(const glm::vec3& lightDir, const glm::vec2& cameraPixelPos);
 
         void InitShadowMap(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t shadowMapSize = 2048);
         void CleanupShadowMap(VkDevice device);
+
+        void TransitionToReadable(VkCommandBuffer cmd, ShadowTarget& target);
 
         // Update light space matrix based on directional light
         void UpdateLightSpaceMatrix(const glm::vec3& lightDirection, const glm::vec3& sceneCenter,  float sceneRadius);
 
         void UpdateTileShadowMatrix(const glm::vec3& lightDir, const glm::vec3& center, float radius);
-
+        void CreateShadowTarget(VkDevice device, uint32_t size, ShadowTarget& target);
+        void DestroyShadowTarget(VkDevice device, ShadowTarget& target);
         // Getters
-        VkImage GetShadowMapImage() const { return m_shadowMapImage; }
-        VkImageView GetShadowMapView() const { return m_shadowMapView; }
-        VkSampler GetShadowMapSampler() const { return m_shadowMapSampler; }
-        VkFramebuffer GetShadowFramebuffer() const { return m_shadowFramebuffer; }
-        VkRenderPass GetShadowRenderPass() const { return m_shadowRenderPass; }
+     
         const glm::mat4& GetLightSpaceMatrix() const { return m_lightSpaceMatrix; }
+        const glm::vec3& GetLightDirection() const { return m_lightDirection; }
+        void SetLightDirection(glm::vec3 m_lightDirection) {  m_lightDirection = m_lightDirection; }
         uint32_t GetShadowMapSize() const { return m_shadowMapSize; }
 
         Ref<VulkanShadowGraphicsPipeline> GetShadowPipeline() { return m_shadowPipeline; };
 
+        ShadowTarget Get3DShadowmap() const { return m_3dShadow; }
+        ShadowTarget GetTileShadowmap() const { return m_tileShadow; }
+
     private:
 
         Ref<VulkanShadowGraphicsPipeline> m_shadowPipeline;
+        ShadowTarget m_3dShadow;
+        ShadowTarget m_tileShadow;
 
 
 
         VkDevice m_device = VK_NULL_HANDLE;
         uint32_t m_shadowMapSize = 2048;
 
-        VkImage m_shadowMapImage = VK_NULL_HANDLE;
-        VkDeviceMemory m_shadowMapMemory = VK_NULL_HANDLE;
-        VkImageView m_shadowMapView = VK_NULL_HANDLE;
-        VkSampler m_shadowMapSampler = VK_NULL_HANDLE;
-        VkFramebuffer m_shadowFramebuffer = VK_NULL_HANDLE;
-        VkRenderPass m_shadowRenderPass = VK_NULL_HANDLE;
 
         glm::mat4 m_lightSpaceMatrix = glm::mat4(1.0f);
+
+        glm::vec3 m_lightDirection = glm::vec3(1.0f);
     };
 
 } 

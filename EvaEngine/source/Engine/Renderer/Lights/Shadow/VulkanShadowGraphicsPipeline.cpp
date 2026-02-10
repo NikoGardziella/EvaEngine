@@ -3,6 +3,7 @@
 #include "Engine/Platform/Vulkan/VulkanShader.h"
 #include "Engine/AssetManager/AssetManager.h"
 #include "Engine/Renderer/Renderer2D/VulkanRenderer2D.h"
+#include <Engine/Platform/Vulkan/VulkanBindlessDescriptorSet.h>
 
 namespace Engine {
 
@@ -95,10 +96,10 @@ namespace Engine {
         vkCreatePipelineLayout(device, &layoutInfo, nullptr, &m_3dShadowPipelineLayout);
 
         // Create pipeline
-        CreateDepthOnlyPipeline(
+        CreateDepthOnlyTilePipeline(
             device,
             shadowRenderPass,
-            m_3dShadowShader->GetVertexShaderModule(),
+            m_3dShadowShader,
             vertexInputInfo,
             m_3dShadowPipelineLayout,
             m_3dShadowPipeline
@@ -122,7 +123,7 @@ namespace Engine {
         VkPushConstantRange pushConstant{};
         pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
         pushConstant.offset = 0;
-        pushConstant.size = sizeof(Engine::VulkanBindlessDescriptorSetRenderer::TilePC);
+        pushConstant.size = sizeof(Engine::VulkanBindlessDescriptorSetRenderer::ShadowPC);
 
         VkPipelineLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -257,10 +258,18 @@ namespace Engine {
      
      
         // No color blend (depth-only pass)
-        VkPipelineColorBlendStateCreateInfo colorBlend{};
-        colorBlend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlend.attachmentCount = 0;
-     
+        // No color blend (depth-only pass)
+        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.blendEnable = VK_FALSE; // We just want to overwrite the values
+
+        // 2. Define the global blend state
+        VkPipelineColorBlendStateCreateInfo colorBlending{};
+        colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        colorBlending.logicOpEnable = VK_FALSE;
+        colorBlending.attachmentCount = 1;
+        colorBlending.pAttachments = &colorBlendAttachment;
+
         // Create pipeline
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -272,7 +281,7 @@ namespace Engine {
         pipelineInfo.pRasterizationState = &rasterizer;
         pipelineInfo.pMultisampleState = &multisampling;
         pipelineInfo.pDepthStencilState = &depthStencil;
-        pipelineInfo.pColorBlendState = &colorBlend;
+        pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
         pipelineInfo.layout = pipelineLayout;
         pipelineInfo.renderPass = renderPass;
@@ -353,9 +362,16 @@ namespace Engine {
 
 
         // No color blend (depth-only pass)
-        VkPipelineColorBlendStateCreateInfo colorBlend{};
-        colorBlend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlend.attachmentCount = 0;
+        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.blendEnable = VK_FALSE; // We just want to overwrite the values
+
+        // 2. Define the global blend state
+        VkPipelineColorBlendStateCreateInfo colorBlending{};
+        colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        colorBlending.logicOpEnable = VK_FALSE;
+        colorBlending.attachmentCount = 1; 
+        colorBlending.pAttachments = &colorBlendAttachment;
 
         // Create pipeline
         VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -368,7 +384,7 @@ namespace Engine {
         pipelineInfo.pRasterizationState = &rasterizer;
         pipelineInfo.pMultisampleState = &multisampling;
         pipelineInfo.pDepthStencilState = &depthStencil;
-        pipelineInfo.pColorBlendState = &colorBlend;
+        pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
         pipelineInfo.layout = pipelineLayout;
         pipelineInfo.renderPass = renderPass;

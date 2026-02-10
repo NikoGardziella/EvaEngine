@@ -39,26 +39,30 @@ void main()
 {
     uint i = gl_InstanceIndex;
     vec2 q = quad[gl_VertexIndex];
-    vec2 center = inst[i].worldPos + vec2(0.0, 0.5 * inst[i].size.y);
-    vec2 local = (q - vec2(0.5)) * inst[i].size;
+    
+    // CHANGE: Pivot at FEET (matches shadow pass)
+    vec2 anchor = inst[i].worldPos; 
+    vec2 local = vec2((q.x - 0.5) * inst[i].size.x, q.y * inst[i].size.y);
+    
     float ang = inst[i].rotation;
-    float c   = cos(ang);
-    float s   = sin(ang);
-    mat2 R    = mat2(c,  s, -s, c);
-    vec2 rotated = R * local;
-    vec2 pos     = center + rotated;
+    float c = cos(ang);
+    float s = sin(ang);
+    mat2 R = mat2(c, s, -s, c);
     
+    vec2 pos = anchor + (R * local);
     vWorldPos = pos; 
-
-    //float heightPercent = q.y; 
-    //float shadowZ = heightPercent * inst[i].size.y;
-
-    float shadowZ = 0.0; 
     
+    float pushBackY = 0.25;
+    vec2 shadowPos = pos;
+    shadowPos.y += pushBackY;
+
     gl_Position = pc.VP * vec4(pos, 0.0, 1.0); 
 
-    // CALCULATE Shadow coordinates from Light perspective
-    vPosLightSpace = pc.lightSpaceMatrix * vec4(pos, shadowZ, 1.0);
+    // CALCULATE Shadow coordinates 
+    // We use a small lookupBias (0.05) to look slightly "above" the floor
+    // so the tile doesn't shadow itself.
+    float receiverZ = 0.0; 
+    vPosLightSpace = pc.lightSpaceMatrix * vec4(shadowPos, 0.0, 1.0);
 
     // Pass metadata
     vSlot = inst[i].slot;
@@ -83,16 +87,15 @@ layout(location=2) in  flat uint vFlags;
 layout(location=3) in        vec2 vWorldPos;
 layout(location=4) in        vec4 vPosLightSpace;
 
-
 layout(location=0) out vec4 outColor;
 
 layout(set=0, binding=0) uniform sampler2D uTiles[];
 layout(set=0, binding=3) uniform sampler2D uSprites[];
-layout(set=0, binding=5) uniform sampler2D uShadowMap;
-
+layout(set=0, binding=5) uniform sampler2D uShadowMap3D;
+layout(set=0, binding=6) uniform sampler2D uShadowMapTiles;
 
 // ============================================================================
-// LIGHTING SYSTEM
+// LIGHTING SYSTEM (unchanged)
 // ============================================================================
 
 struct GPUDirectionalLight {
@@ -136,93 +139,106 @@ vec3 calculateDirectionalLight(GPUDirectionalLight light, vec3 normal, vec3 albe
     return albedo * light.color.rgb * light.direction_intensity.w * NdotL;
 }
 
-vec3 calculatePointLight(GPUPointLight light, vec3 worldPos, vec3 normal, vec3 albedo) {
+vec3 calculatePointLight(GPUPointLight light, vec3 worldPos, vec3 normal, vec3 albedo)
+{
     vec3 toLight = light.position_radius.xyz - worldPos;
     float distance = length(toLight);
     float radius = light.position_radius.w;
-    
     if (distance > radius) return vec3(0.0);
-    
     vec3 lightDir = toLight / distance;
     float NdotL = max(dot(normal, lightDir), 0.0);
-    
     float attenuation = 1.0 - (distance / radius);
     attenuation = attenuation * attenuation;
-    
     return albedo * light.color_intensity.rgb * light.color_intensity.w * NdotL * attenuation;
 }
 
-vec3 calculateSpotLight(GPUSpotLight light, vec3 worldPos, vec3 normal, vec3 albedo) {
+vec3 calculateSpotLight(GPUSpotLight light, vec3 worldPos, vec3 normal, vec3 albedo)
+{
     vec3 toLight = light.position_range.xyz - worldPos;
     float distance = length(toLight);
     float range = light.position_range.w;
-    
     if (distance > range) return vec3(0.0);
-    
     vec3 lightDir = toLight / distance;
     float NdotL = max(dot(normal, lightDir), 0.0);
-    
     vec3 spotDir = normalize(-light.direction_inner.xyz);
     float cosTheta = dot(lightDir, spotDir);
     float cosInner = light.direction_inner.w;
     float cosOuter = light.color_outer.w;
-    
     float spotEffect = smoothstep(cosOuter, cosInner, cosTheta);
-    
     float attenuation = 1.0 - (distance / range);
     attenuation = attenuation * attenuation;
-    
     return albedo * light.color_outer.rgb * light.intensity_pad.x * NdotL * attenuation * spotEffect;
 }
 
 vec3 applyLighting(vec3 worldPos, vec3 normal, vec3 albedo, float ambientStrength) {
     vec3 ambient = albedo * ambientStrength;
     vec3 lighting = ambient;
-    
-    for (uint i = 0; i < lights.header.numDir; ++i) {
+    for (uint i = 0; i < lights.header.numDir; ++i)
         lighting += calculateDirectionalLight(lights.dir[i], normal, albedo);
-    }
-    
-    for (uint i = 0; i < lights.header.numPoint; ++i) {
+    for (uint i = 0; i < lights.header.numPoint; ++i)
         lighting += calculatePointLight(lights.point[i], worldPos, normal, albedo);
-    }
-    
-    for (uint i = 0; i < lights.header.numSpot; ++i) {
+    for (uint i = 0; i < lights.header.numSpot; ++i)
         lighting += calculateSpotLight(lights.spot[i], worldPos, normal, albedo);
-    }
-    
     return lighting;
 }
 
-float ShadowFactor_PCF(vec4 posLightSpace)
+// ============================================================================
+// SHADOW: 3D objects (with Y-sort check)
+// ============================================================================
+float ShadowFactor_3D(vec4 posLightSpace, float receiverY)
 {
-    vec3 proj = posLightSpace.xyz / posLightSpace.w;   // NDC
+    vec3 proj = posLightSpace.xyz / posLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
-
-    // Vulkan often needs Y flip depending on how you built light VP / render target
-    // If your debug shows the map "upside down", enable this:
-    uv.y = 1.0 - uv.y;
 
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
         return 1.0;
 
     float currentDepth = proj.z;
+    vec2 texelSize = 1.0 / vec2(textureSize(uShadowMap3D, 0));
+    float shadowSum = 0.0;
 
-    // A bit larger than 0.001 usually needed for 2D pixels-as-world
-    float bias = 0.002;
+    for (int y = -1; y <= 1; ++y) {
+        for (int x = -1; x <= 1; ++x) {
+            vec2 data = texture(uShadowMap3D, uv + vec2(x, y) * texelSize).rg;
+            float casterDepth = data.r;
+            float casterY = data.g;
 
-    vec2 texel = 1.0 / vec2(textureSize(uShadowMap, 0));
+            // Object is behind receiver — no shadow
+            if (receiverY - casterY < -0.1) {
+                shadowSum += 1.0;
+                continue;
+            }
 
-    // 3x3 PCF
-    float sum = 0.0;
-    for (int y = -1; y <= 1; ++y)
-    for (int x = -1; x <= 1; ++x)
-    {
-        float d = texture(uShadowMap, uv + vec2(x, y) * texel).r;
-        sum += (currentDepth - bias > d) ? 0.0 : 1.0;
+            float bias = 0.002;
+            shadowSum += (currentDepth <= casterDepth + bias) ? 1.0 : 0.0;
+        }
     }
-    return sum / 9.0;
+    return shadowSum / 9.0;
 }
+
+
+float ShadowFactor_Tile(vec4 posLightSpace)
+{
+    vec3 proj = posLightSpace.xyz / posLightSpace.w;
+    vec2 uv = proj.xy * 0.5 + 0.5;
+
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
+        return 1.0;
+
+    float currentDepth = proj.z;
+    vec2 texelSize = 1.0 / vec2(textureSize(uShadowMapTiles, 0));
+    float shadowSum = 0.0;
+
+    for (int y = -1; y <= 1; ++y) {
+        for (int x = -1; x <= 1; ++x) {
+            float casterDepth = texture(uShadowMapTiles, uv + vec2(x, y) * texelSize).r;
+            float bias = 0.002;
+            shadowSum += (currentDepth <= casterDepth + bias) ? 1.0 : 0.0;
+        }
+    }
+    return shadowSum / 9.0;
+}
+
 
 void main()
 {
@@ -230,28 +246,22 @@ void main()
     vec4 base = isSprite
         ? texture(uSprites[nonuniformEXT(vSlot)], vUV)
         : texture(uTiles[nonuniformEXT(vSlot)], vUV);
-    
+
     if (base.a <= 0.001) discard;
-    
+
     vec3 normal = vec3(0.0, 0.0, 1.0);
     vec3 worldPos3D = vec3(vWorldPos, 0.0);
-    
+
     vec3 litColor = applyLighting(worldPos3D, normal, base.rgb, 0.2);
-    
-    // Apply shadows
-    float shadow = ShadowFactor_PCF(vPosLightSpace);
-    
+
+    // Sample both shadow maps, darkest wins
+    float shadow3D   = ShadowFactor_3D(vPosLightSpace, vWorldPos.y);
+    float shadowTile = ShadowFactor_Tile(vPosLightSpace);
+    float shadow     = min(shadow3D, shadowTile);
+
     vec3 ambient = base.rgb * 0.2;
     vec3 directional = litColor - ambient;
     vec3 finalColor = ambient + directional * shadow;
-    
-    vec3 proj = vPosLightSpace.xyz / vPosLightSpace.w;
-    vec2 uv = proj.xy * 0.5 + 0.5;
-    // try with and without this line
-    // uv.y = 1.0 - uv.y;
 
-    float depth = texture(uShadowMap, uv).r;
-    outColor = vec4(finalColor, 1.0);
-
-
+    outColor = vec4(finalColor, base.a);
 }
