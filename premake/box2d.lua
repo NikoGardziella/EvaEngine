@@ -7,8 +7,8 @@ project "Box2D"
     local root  = path.getabsolute(_MAIN_SCRIPT_DIR)
     local box2d = path.join(root, "EvaEngine/vendor/Box2D")
 
-    targetdir (path.join(root, "bin", outputdir, "%{prj.name}"))
-    objdir    (path.join(root, "bin-obj", outputdir, "%{prj.name}"))
+    targetdir ("build/bin/" .. outputdir .. "/%{prj.name}")
+    objdir    ("build/bin-int/" .. outputdir .. "/%{prj.name}")
 
     files
     {

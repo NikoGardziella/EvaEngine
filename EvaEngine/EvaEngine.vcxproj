@@ -936,19 +936,19 @@
     <None Include="..\assets\shaders\testShader.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GLFW.vcxproj">
+    <ProjectReference Include="..\build\vs2022\GLFW.vcxproj">
       <Project>{154B857C-0182-860D-AA6E-6C109684020F}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\GLAD.vcxproj">
+    <ProjectReference Include="..\build\vs2022\GLAD.vcxproj">
       <Project>{5D4A857C-4981-860D-F26D-6C10DE83020F}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\ImGui.vcxproj">
+    <ProjectReference Include="..\build\vs2022\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\yaml-cpp.vcxproj">
+    <ProjectReference Include="..\build\vs2022\yaml-cpp.vcxproj">
       <Project>{88F1A057-74BE-FB62-9DD7-E90A890331F1}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Box2D.vcxproj">
+    <ProjectReference Include="..\build\vs2022\Box2D.vcxproj">
       <Project>{A434E80C-1049-10BE-D9CA-B31D459E0CEF}</Project>
     </ProjectReference>
   </ItemGroup>

@@ -6,8 +6,8 @@ project "Editor"
     staticruntime "off"
     cppdialect "C++17"
 
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir    ("bin-obj/" .. outputdir .. "/%{prj.name}")
+    targetdir ("build/bin/" .. outputdir .. "/%{prj.name}")
+    objdir    ("build/bin-int/" .. outputdir .. "/%{prj.name}")
     targetname "Editor"
 
     files

@@ -3,11 +3,11 @@ project "GLAD"
     language "C"
     staticruntime "off"
 
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir    ("bin-int/" .. outputdir .. "/%{prj.name}")
+    targetdir ("build/bin/" .. outputdir .. "/%{prj.name}")
+    objdir    ("build/bin-int/" .. outputdir .. "/%{prj.name}")
 
-   local ROOT = _MAIN_SCRIPT_DIR
-local glad = path.join(ROOT, "EvaEngine/vendor/GLAD")
+    local ROOT = _MAIN_SCRIPT_DIR
+    local glad = path.join(ROOT, "EvaEngine/vendor/GLAD")
 
     files
     {

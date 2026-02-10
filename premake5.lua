@@ -2,12 +2,43 @@
 
 include "Dependencies.lua"
 
+-- MUST be defined before any included scripts that use it
+outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
+-- Common path constants
+ENGINE_DIR = "EvaEngine"
+VENDOR_DIR = ENGINE_DIR .. "/vendor"
+
+local ACTION = _ACTION or "vs2022"
+
 workspace "EvaEngine"
-    location "."
     architecture "x86_64"
     startproject "Editor"
-    buildoptions { "/utf-8" }
     configurations { "Debug", "Release", "Dist" }
+
+    -- Keep generated solution/projects out of repo root
+    location ("build/" .. ACTION)
+
+    -- Apply globally on Windows (spdlog/fmt wants this)
+    filter "system:windows"
+        systemversion "latest"
+        buildoptions { "/utf-8" }
+    filter {}
+
+group "Dependencies"
+    include "premake/box2d.lua"
+    include "premake/glad.lua"
+    include "premake/glfw.lua"
+    include "premake/imgui.lua"
+    include "premake/nlohmannjson.lua"
+    include "premake/yaml-cpp.lua"
+group ""
+
+group "Apps"
+    include "Game"
+    include "Editor"
+group ""
+
 
 -- Common path constants (keeps wrappers and projects consistent)
 ENGINE_DIR = "EvaEngine"
@@ -16,12 +47,6 @@ VENDOR_DIR = ENGINE_DIR .. "/vendor"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- 3rd-party wrappers (tracked in your repo)
-include "premake/box2d.lua"
-include "premake/glad.lua"
-include "premake/glfw.lua"
-include "premake/imgui.lua"
-include "premake/nlohmannjson.lua"
-include "premake/yaml-cpp.lua"
 
 -- Your projects
 include "Game"

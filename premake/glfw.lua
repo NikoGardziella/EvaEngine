@@ -3,8 +3,8 @@ project "GLFW"
     language "C"
     staticruntime "off"
 
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir    ("bin-int/" .. outputdir .. "/%{prj.name}")
+    targetdir ("build/bin/" .. outputdir .. "/%{prj.name}")
+    objdir    ("build/bin-int/" .. outputdir .. "/%{prj.name}")
 
     local ROOT = _MAIN_SCRIPT_DIR
     local glfw = path.join(ROOT, "EvaEngine/vendor/GLFW")
