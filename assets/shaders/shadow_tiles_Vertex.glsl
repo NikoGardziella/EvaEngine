@@ -18,7 +18,8 @@ struct Instance {
 layout(location=0) out flat uint vSlot;
 layout(location=1) out vec2 vUV;
 layout(location=2) out flat uint vFlags;
-layout(location = 3) out float vWorldY;
+layout(location=3) out float vWorldY;
+layout(location=4) out flat int vFaceType;
 
 layout(push_constant) uniform PC {
     vec4 lightDirection;       
@@ -27,74 +28,64 @@ layout(push_constant) uniform PC {
 
 layout(std430, set=0, binding=2) readonly buffer Instances { Instance inst[]; };
 
-const vec3 unitCube[36] = vec3[](
-    // Back face
-    vec3(-0.5, 0.0, -0.5), vec3( 0.5, 0.0, -0.5), vec3( 0.5, 1.0, -0.5),
-    vec3( 0.5, 1.0, -0.5), vec3(-0.5, 1.0, -0.5), vec3(-0.5, 0.0, -0.5),
-    // Front face
-    vec3(-0.5, 0.0,  0.5), vec3( 0.5, 0.0,  0.5), vec3( 0.5, 1.0,  0.5),
-    vec3( 0.5, 1.0,  0.5), vec3(-0.5, 1.0,  0.5), vec3(-0.5, 0.0,  0.5),
-    // Left face
-    vec3(-0.5, 1.0,  0.5), vec3(-0.5, 1.0, -0.5), vec3(-0.5, 0.0, -0.5),
-    vec3(-0.5, 0.0, -0.5), vec3(-0.5, 0.0,  0.5), vec3(-0.5, 1.0,  0.5),
-    // Right face
-    vec3( 0.5, 1.0,  0.5), vec3( 0.5, 1.0, -0.5), vec3( 0.5, 0.0, -0.5),
-    vec3( 0.5, 0.0, -0.5), vec3( 0.5, 0.0,  0.5), vec3( 0.5, 1.0,  0.5),
-    // Bottom face
-    vec3(-0.5, 0.0, -0.5), vec3( 0.5, 0.0, -0.5), vec3( 0.5, 0.0,  0.5),
-    vec3( 0.5, 0.0,  0.5), vec3(-0.5, 0.0,  0.5), vec3(-0.5, 0.0, -0.5),
-    // Top face
-    vec3(-0.5, 1.0, -0.5), vec3( 0.5, 1.0, -0.5), vec3( 0.5, 1.0,  0.5),
-    vec3( 0.5, 1.0,  0.5), vec3(-0.5, 1.0,  0.5), vec3(-0.5, 1.0, -0.5)
+// 6 vertices for a single flat quad (Front face silhouette)
+const vec3 unitQuad[6] = vec3[](
+    vec3(-0.5, 0.0, 0.0), // Bottom Left
+    vec3( 0.5, 0.0, 0.0), // Bottom Right
+    vec3( 0.5, 1.0, 0.0), // Top Right
+    
+    vec3( 0.5, 1.0, 0.0), // Top Right
+    vec3(-0.5, 1.0, 0.0), // Top Left
+    vec3(-0.5, 0.0, 0.0)  // Bottom Left
 );
+
 void main()
 {
     uint i = gl_InstanceIndex;
-    int vIdx = int(gl_VertexIndex % 36);
-    vec3 cubePos = unitCube[vIdx];
+    int vIdx = int(gl_VertexIndex % 6); 
+    vec3 quadPos = unitQuad[vIdx]; // FIXED: No more +6 offset
 
-    //float thickness = inst[i].size.x * 0.5; 
-    float thickness = 0.01;
-
-
-    // cube-Y (0 to 1) is Height (world-Z)
-    // cube-Z is Thickness (world-Y)
+    // 1. Calculate Local Position
+    // localPos.z is the height of the sprite
+    // Scale the width (x) slightly to bridge the gap between tiles
+    float overlapFactor = 1.09; 
     vec3 localPos = vec3(
-        cubePos.x * inst[i].size.x, 
-        cubePos.z * thickness,      
-        cubePos.y * inst[i].size.y   
+        quadPos.x * inst[i].size.x * overlapFactor, 
+        0.0, 
+        quadPos.y * inst[i].size.y
     );
 
-    float ang = inst[i].rotation;
-    float c = cos(ang);
-    float s = sin(ang);
-    mat2 R = mat2(c, s, -s, c);
-    
+    // 2. THE LEAN-BACK (Standard 2.5D Trick)
+    // We tilt the sprite slightly back on the Y axis based on its height.
+    // This ensures it has a "footprint" on the floor even if the light is 90 deg.
+    localPos.y += localPos.z * 0.15; 
+
+    // 3. Rotation (Horizontal Plane)
+    float ang = radians(35.0); 
+    mat2 R = mat2(cos(ang), sin(ang), -sin(ang), cos(ang));
     vec2 rotatedXY = R * localPos.xy;
 
-    // PUSH-BACK: Move the shadow caster slightly into the screen (Y)
-    // and slightly below the floor (Z) so it never clips the receiver.
-    float pushBackY = 0.25; 
-
+    // 4. Construct World Position
     vec3 worldPos = vec3(inst[i].worldPos + rotatedXY, localPos.z);
-    worldPos.y += pushBackY; 
-    
+    worldPos.y += 0.30;
+    worldPos.x += 0.25;
 
-    float tileTag = 1000000.0f;
-    vWorldY = worldPos.y + tileTag;
-
-    gl_Position = pc.lightSpaceMatrix * vec4(worldPos, 1.0);
-
+    // 5. Outputs
     vSlot = inst[i].slot;
     vFlags = inst[i].flags;
+    vWorldY = worldPos.y;
+    vFaceType = 0; // Silhouette mode
+    
+    gl_Position = pc.lightSpaceMatrix * vec4(worldPos, 1.0);
+
+    // 6. UVs
+    vec2 t = vec2(quadPos.x + 0.5, quadPos.y);
+    if ((inst[i].flags & 1u) != 0u) t.y = 1.0 - t.y;
+
     vec2 uvMin = vec2(inst[i].uvMin16) / 65535.0;
     vec2 uvMax = vec2(inst[i].uvMax16) / 65535.0;
-    
-    vec2 t = vec2(cubePos.x + 0.5, cubePos.y);
-    if ((inst[i].flags & 1u) != 0u) t.y = 1.0 - t.y;
     vUV = mix(uvMin, uvMax, t);
 }
-
 
 #type fragment
 #version 460
@@ -104,21 +95,17 @@ layout(location=0) in flat uint vSlot;
 layout(location=1) in vec2 vUV;
 layout(location=2) in flat uint vFlags;
 layout(location=3) in float vWorldY;
+layout(location=4) flat in int vFaceType;
 
-// CHANGE: This must be location 0 to match your RenderPass setup
 layout(location=0) out vec2 outData; 
-
 layout(set=0, binding=0) uniform sampler2D uTiles[];
 
-// Inside your Shadow Fragment Shader (Tile version)
 void main()
 {
     vec4 texColor = texture(uTiles[nonuniformEXT(vSlot)], vUV);
-    if (texColor.a < 0.5) discard;
 
-    // Discard the bottom 2% of the texture.
-    // This prevents the "feet" from creating acne on the tile they stand on.
-    if (vUV.y > 0.98) discard; 
+    // Alpha discard is essential for the silhouette look
+    if (texColor.a < 0.5) discard;
 
     outData = vec2(gl_FragCoord.z, vWorldY);
 }
