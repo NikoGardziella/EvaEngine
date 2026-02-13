@@ -13,13 +13,7 @@
 
     void PlaceTileCommand::Execute()
     {
-        // Redo logic: Push the tile back into the component
-        if (m_Entity)
-        {
-            TileComponent& tc = m_Entity.GetComponent<TileComponent>();
-
-            tc.tiles.push_back(m_TileData);
-        }
+        
     }
 
     void PlaceTileCommand::Undo()
