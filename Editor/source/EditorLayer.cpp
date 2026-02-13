@@ -34,6 +34,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <Engine/Events/MouseCodes.h>
+//#include "Commands/PlaceTileCommand.h"
+#include <utility>
+#include "Commands/PlaceTileCommand.h"
 
 namespace Engine {
 
@@ -670,10 +673,8 @@ namespace Engine {
         }
     }
 
-
-    void EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory)
+    glm::vec2 EditorLayer::GetSnappedIsoPosition()
     {
-        // Ray  world Z=0 (unchanged)
         glm::vec2 ndc;
         ndc.x = (m_localMousePosInViewport.x / m_viewportSize.x) * 2.0f - 1.0f;
         ndc.y = 1.0f - (m_localMousePosInViewport.y / m_viewportSize.y) * 2.0f;
@@ -693,7 +694,16 @@ namespace Engine {
 
         // Snap to cell & compute its ground point
         glm::ivec2 isoCell = IsoTileUtils::WorldToIsoCellInt(p);
+        return isoCell;
+    }
+
+
+    TileInfo EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory)
+    {
+        // Ray  world Z=0 (unchanged)
+        glm::ivec2 isoCell = GetSnappedIsoPosition();
         glm::vec2  groundPos = IsoTileUtils::IsoToWorldGround(isoCell);
+        TileInfo newTile;
 
         // Duplicate check (compare iso cells)
         auto& registry = m_editor->GetGameLayer()->GetActiveGameScene()->GetRegistry();
@@ -709,7 +719,7 @@ namespace Engine {
                     if (IsoTileUtils::WorldToIsoCellInt(tileGround) == isoCell &&
                         tinfo.name == selectedTileName)
                     {
-                        return;
+                        return newTile;
                     }
                 }
             }
@@ -720,6 +730,7 @@ namespace Engine {
         bool isRoof = (tileCategory == eTileCategory::Roofs);
         TileProperties& tileProps = m_tileEditorPanel.GetSelectedTileProperties();
 
+       ;
 
         // Place
         if (m_selectedEntity)
@@ -734,7 +745,7 @@ namespace Engine {
             uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, deltaGround, float(TILE_SIZE));
 
             auto& tc = m_selectedEntity.GetComponent<TileComponent>();
-            TileInfo newTile;
+            newTile;
             newTile.position = deltaGround;
             newTile.UV = UV;
             newTile.name = selectedTileName;
@@ -764,7 +775,7 @@ namespace Engine {
             uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, glm::vec2(0.0f), float(TILE_SIZE));
 
             auto& tc = e.AddComponent<TileComponent>();
-            TileInfo newTile;
+            newTile;
             newTile.position = glm::vec3(0);
             newTile.UV = UV;
             newTile.name = selectedTileName;
@@ -789,6 +800,8 @@ namespace Engine {
         }
 
         SortIsometricTilesByY();
+
+        return newTile;
     }
 
 
@@ -988,20 +1001,52 @@ namespace Engine {
             */
             
            OnOverlayRender();
-
-           // Brush
+           
+           
+          
            if (m_mouseIsInViewPort && m_sceneState == eSceneState::Edit)
            {
                std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
 
                if (Input::IsMouseButtonPressed(Mouse::Button0) && !selectedTile.empty())
                {
-                   // Optional: Add a 'debounce' or distance check so you don't 
-                   // spam CreateTileEntity on the exact same coordinate 60 times a second.
-                   OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile),
-                       m_tileEditorPanel.GetSelectedTileCategory());
+                   // 1. Start a new stroke if we haven't yet
+                   if (!m_ActiveStroke) 
+                   {
+                       m_ActiveStroke = std::make_unique<CommandGroup>();
+                       // If no entity is selected, the first tile will create one
+                       m_StrokeCreatedNewEntity = !m_selectedEntity;
+                   }
+
+                   // 2. Perform your existing snap/debounce check
+                   glm::ivec2 isoCell = GetSnappedIsoPosition();
+                   glm::vec2  snapped = IsoTileUtils::IsoToWorldGround(isoCell);
+                   if (snapped != m_LastPlacedTilePos)
+                   {
+                       // 3. Place the tile and get the data back
+                       TileInfo placedTile = OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
+
+                       // 4. Record the action
+                       // Note: Only the FIRST tile in a stroke counts as 'CreatedNewEntity'
+                       Scope<PlaceTileCommand> cmd = std::make_unique<PlaceTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                           m_selectedEntity, placedTile, m_StrokeCreatedNewEntity);
+
+                       m_ActiveStroke->AddCommand(std::move(cmd));
+
+                       m_LastPlacedTilePos = snapped;
+                       m_StrokeCreatedNewEntity = false; // Reset for subsequent tiles in this stroke
+                   }
+               }
+               else if (m_ActiveStroke)
+               {
+                   if (!m_ActiveStroke->IsEmpty())
+                   {
+                       m_CommandHistory.Push(std::move(m_ActiveStroke));
+                   }
+                   m_ActiveStroke = nullptr;
                }
            }
+            
 
         }
 
@@ -1046,7 +1091,7 @@ namespace Engine {
                 }
 
                 EE_CORE_INFO("Selected tile: {}", selectedTile);
-				OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
+				//OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
             }
 
             if (!ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt) && selectedTile == "")
@@ -1156,6 +1201,29 @@ namespace Engine {
 
         switch (e.GetKeyCode())
         {
+        
+        case Key::Z:
+        {
+            if (m_controlPressed && !shiftPressed)
+            {
+                m_CommandHistory.Undo();
+                return true;
+            }
+            
+            break;
+        }
+        case Key::Y:
+        {
+            if (m_controlPressed)
+            {
+                m_CommandHistory.Redo();
+                return true;
+            }
+            break;
+        }
+        
+
+
         case Key::N:
         {
             if (m_controlPressed)

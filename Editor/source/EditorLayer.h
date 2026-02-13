@@ -20,6 +20,10 @@
 #include <Engine/Events/KeyEvent.h>
 #include <filesystem>
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include "Commands/CommandHistory.h"
+#include "Commands/CommandGroup.h"
+
+
 
 namespace Engine {
 
@@ -50,6 +54,9 @@ namespace Engine {
 		void OnUpdate(Timestep timestep) override;
 		void OnUpdateECS(Timestep timestep) override;
 		void OnEvent(Event& event) override;
+
+		TileInfo OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory);
+
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
@@ -74,7 +81,8 @@ namespace Engine {
 		void OnDuplicateEntity();
 		void SortIsometricTilesByY();
 		TileDirection GetDirectionFromTileName(const std::string& tileName);
-		void OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory);
+
+		glm::vec2 GetSnappedIsoPosition();
 
 		void OnOverlayRender();
 
@@ -140,6 +148,16 @@ namespace Engine {
 		// key shortcuts
 
 		bool m_controlPressed = false;
+
+		
+	private:
+		// commands
+		glm::vec2 m_LastPlacedTilePos;
+
+		CommandHistory m_CommandHistory;
+		std::unique_ptr<CommandGroup> m_ActiveStroke = nullptr;
+
+		bool m_StrokeCreatedNewEntity = false;
 		
 	};
 
