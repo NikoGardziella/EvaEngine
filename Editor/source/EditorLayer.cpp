@@ -32,6 +32,8 @@
 #include <Engine/Events/KeyEvent.h>
 #include <Engine/Events/MouseEvent.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
+#include <Engine/Events/MouseCodes.h>
 
 namespace Engine {
 
@@ -51,7 +53,7 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
         ImGuiIO& io = ImGui::GetIO();
-        io.IniFilename = "Editor/imgui.ini";
+        io.IniFilename = "imgui.ini";
 
         m_iconPlay = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/play-button-arrowhead.png").string(), VK_FORMAT_R8G8B8A8_UNORM, "iconPlay", true);
         m_iconStop = std::make_shared<VulkanTexture>(AssetManager::GetAssetPath("icons/stop-button.png").string(), VK_FORMAT_R8G8B8A8_UNORM, "iconStop", true);
@@ -651,7 +653,22 @@ namespace Engine {
     }
 
 
+    TileDirection EditorLayer::GetDirectionFromTileName(const std::string& tileName)
+    {
+        if (tileName.empty()) return TileDirection::Unknown;
 
+        // Get the last character
+        char lastChar = tileName.back();
+
+        switch (lastChar)
+        {
+            case 'N': return TileDirection::North;
+            case 'S': return TileDirection::South;
+            case 'E': return TileDirection::East;
+            case 'W': return TileDirection::West;
+            default:  return TileDirection::Unknown;
+        }
+    }
 
 
     void EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory)
@@ -692,7 +709,6 @@ namespace Engine {
                     if (IsoTileUtils::WorldToIsoCellInt(tileGround) == isoCell &&
                         tinfo.name == selectedTileName)
                     {
-                        EE_CORE_WARN("Tile already exists at iso cell: ({}, {})", isoCell.x, isoCell.y);
                         return;
                     }
                 }
@@ -718,11 +734,21 @@ namespace Engine {
             uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, deltaGround, float(TILE_SIZE));
 
             auto& tc = m_selectedEntity.GetComponent<TileComponent>();
-            tc.tiles.push_back(TileInfo{
-                deltaGround, UV, selectedTileName,
-                destructible, isRoof, tileCategory,
-                tileProps.material, tileProps.health ,tileID
-                });
+            TileInfo newTile;
+            newTile.position = deltaGround;
+            newTile.UV = UV;
+            newTile.name = selectedTileName;
+            newTile.IsDestructible = destructible;
+            newTile.IsRoof = isRoof;
+            newTile.Category = tileCategory;
+            newTile.Material = tileProps.material;
+            newTile.TileHealth = tileProps.health;
+            newTile.UID = tileID;
+
+            newTile.TileDirection = GetDirectionFromTileName(selectedTileName);
+
+
+            tc.tiles.push_back(newTile);
             
             EE_CORE_INFO("adding tile: {}", tc.tiles.size());
         }
@@ -738,11 +764,25 @@ namespace Engine {
             uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, glm::vec2(0.0f), float(TILE_SIZE));
 
             auto& tc = e.AddComponent<TileComponent>();
-            tc.tiles.push_back(TileInfo{
-                glm::vec2(0.0f), UV, selectedTileName,
-                destructible, isRoof, tileCategory,
-                tileProps.material, tileProps.health, tileID
-                });
+            TileInfo newTile;
+            newTile.position = glm::vec3(0);
+            newTile.UV = UV;
+            newTile.name = selectedTileName;
+            newTile.IsDestructible = destructible;
+            newTile.IsRoof = isRoof;
+            newTile.Category = tileCategory;
+            newTile.Material = tileProps.material;
+            newTile.TileHealth = tileProps.health;
+            newTile.UID = tileID;
+
+            // 2. Set the direction using the helper function we made
+            newTile.TileDirection = GetDirectionFromTileName(selectedTileName);
+
+
+
+            // 4. Push it to the component
+            tc.tiles.push_back(newTile);
+
 
             m_selectedEntity = e;
             m_sceneHierarchyPanel.SetSelectedEntity(e);
@@ -776,7 +816,7 @@ namespace Engine {
 
         std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
 
-        if (m_mouseIsInViewPort && !selectedTile.empty())
+        if (m_mouseIsInViewPort && !selectedTile.empty() && m_sceneState == eSceneState::Edit)
         {
             // preview tile placement renderiong
             glm::vec2 ndc;
@@ -948,6 +988,20 @@ namespace Engine {
             */
             
            OnOverlayRender();
+
+           // Brush
+           if (m_mouseIsInViewPort && m_sceneState == eSceneState::Edit)
+           {
+               std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
+
+               if (Input::IsMouseButtonPressed(Mouse::Button0) && !selectedTile.empty())
+               {
+                   // Optional: Add a 'debounce' or distance check so you don't 
+                   // spam CreateTileEntity on the exact same coordinate 60 times a second.
+                   OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile),
+                       m_tileEditorPanel.GetSelectedTileCategory());
+               }
+           }
 
         }
 

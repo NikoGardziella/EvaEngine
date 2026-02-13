@@ -19,6 +19,7 @@
 #include "Panels/EffectsPanel.h"
 #include <Engine/Events/KeyEvent.h>
 #include <filesystem>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 namespace Engine {
 
@@ -72,6 +73,7 @@ namespace Engine {
 
 		void OnDuplicateEntity();
 		void SortIsometricTilesByY();
+		TileDirection GetDirectionFromTileName(const std::string& tileName);
 		void OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory);
 
 		void OnOverlayRender();
