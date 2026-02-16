@@ -231,12 +231,13 @@ ebuild completed at 13.53 and took 02:26,381 minutes
     3. reduce build time? Done
 
     4. improve map editor so it scales to build huge maps
-    5. lights
+    5. lights + shadwos. done
     6. vehicles
-    7. fix draw order
+    7. fix draw order. done
     8. more culling
     9. tile streaming
-     
+
+    10. tile transparendy when over player?
 }
 22.01.2026
 {

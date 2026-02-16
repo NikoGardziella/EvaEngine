@@ -441,7 +441,7 @@ namespace Engine {
     GLTFImportResult GLTFImporter::Import(const std::string& path,MeshRegistry& meshReg, MaterialRegistry& matReg,
         SkeletonRegistry& skelReg, AnimationRegistry& animReg, const GLTFImportOptions& opts)
     {
-        GLTFImportResult R{};
+        GLTFImportResult importResult{};
         tinygltf::Model model;
         tinygltf::TinyGLTF loader;
         std::string err, warn;
@@ -463,9 +463,9 @@ namespace Engine {
         }
         if (!ok || !err.empty())
         {
-            R.report.ok = false;
-            R.report.message = "tinygltf load failed: " + (err.empty() ? std::string("unknown") : err);
-            return R;
+            importResult.report.ok = false;
+            importResult.report.message = "tinygltf load failed: " + (err.empty() ? std::string("unknown") : err);
+            return importResult;
         }
 
         EE_CORE_INFO("[GLTF] Images: {}, Textures: {}, Materials: {}",
@@ -481,23 +481,23 @@ namespace Engine {
         if (!model.skins.empty())
         {
             skeletonId = GLTFIImporterUtils::LoadSkeletonFromModel(model, skelReg, path.c_str());
-            R.skeletonId = skeletonId;
+            importResult.skeletonId = skeletonId;
         }
 
         if (skeletonId != 0xFFFFFFFFu && !model.animations.empty()) 
         {
             GLTFIImporterUtils::LoadClipsFromModel(model, animReg, skeletonId, path.c_str(), clipIds);
-            R.clipIds = clipIds;
+            importResult.clipIds = clipIds;
         }
 
 
 
         // materials first
-        R.materialIds.reserve(model.materials.size());
+        importResult.materialIds.reserve(model.materials.size());
         for (const auto& m : model.materials)
         {
             uint32_t id = RegisterMaterial(model, m, opts, matReg);
-            R.materialIds.push_back(id);
+            importResult.materialIds.push_back(id);
 
             EE_CORE_INFO("[GLTF] Material: baseColorTexIdx = {}, ormTexIdx = {}, normalTexIdx = {}, emissiveTexIdx = {}",
                 m.pbrMetallicRoughness.baseColorTexture.index,
@@ -795,11 +795,13 @@ namespace Engine {
                     if (opts.uploadPrimitive) sub = opts.uploadPrimitive(up);
 
                     // material
-                    if (prim.material >= 0 && prim.material < (int)R.materialIds.size())
+                    if (prim.material >= 0 && prim.material < (int)importResult.materialIds.size())
                     {
-                        uint32_t matAsset = R.materialIds[prim.material];
+                        uint32_t matAsset = importResult.materialIds[prim.material];
                         if (matAsset != 0xFFFFFFFFu)
+                        {
                             sub.materialDefaultId = matReg.ToRowId(matAsset);
+                        }
                     }
 
                     sub.aabbMin = aabbMin;
@@ -823,8 +825,8 @@ namespace Engine {
         {
             EE_CORE_INFO("  [{}] '{}'", i, meshAsset.submeshes[i].name);
         }
-        bool hasAnimation = !R.clipIds.empty();
-        bool hasSkeleton = (R.skeletonId != 0xFFFFFFFFu);
+        bool hasAnimation = !importResult.clipIds.empty();
+        bool hasSkeleton = (importResult.skeletonId != 0xFFFFFFFFu);
         bool hasMesh = !meshAsset.submeshes.empty();
 
         if (hasMesh)
@@ -835,26 +837,26 @@ namespace Engine {
             std::filesystem::path p(path);
             std::string meshName = p.stem().string();
 
-            R.meshId = meshReg.RegisterMesh(meshName, meshAsset);
-            R.report.ok = true;
-            R.report.message = "Imported mesh (and animations): " + path;
+            importResult.meshId = meshReg.RegisterMesh(meshName, meshAsset);
+            importResult.report.ok = true;
+            importResult.report.message = "Imported mesh (and animations): " + path;
 
             EE_CORE_INFO("[GLTF] final MeshAsset has {} submeshes", meshAsset.submeshes.size());
         }
         else if (hasAnimation || hasSkeleton)
         {
             // Animation-only or skeleton-only file  still valid!
-            R.meshId = kInvalidMeshId; // no mesh
-            R.report.ok = true;
-            R.report.message = "Imported animation/skeleton only: " + path;
+            importResult.meshId = kInvalidMeshId; // no mesh
+            importResult.report.ok = true;
+            importResult.report.message = "Imported animation/skeleton only: " + path;
         }
         else 
         {
             // Nothing usable
-            R.report.ok = false;
-            R.report.message = "No mesh, skeleton, or animation found in: " + path;
+            importResult.report.ok = false;
+            importResult.report.message = "No mesh, skeleton, or animation found in: " + path;
         }
-        return R;
+        return importResult;
     }
 
 } // namespace Engine

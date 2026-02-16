@@ -242,7 +242,7 @@ void PixelGame::CreateGameEntities()
 	
 	auto& cameraTransformComp = m_cameraEntity.AddComponent<Engine::TransformComponent>();
 	cameraTransformComp.Translation += glm::vec3(0.0f, 0.0f, 15.0f);
-	//cameraTransformComp.Rotation.x += glm::radians(20.0f);
+	cameraTransformComp.Rotation.x += glm::radians(20.0f);
 
 
 

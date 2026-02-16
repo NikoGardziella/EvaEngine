@@ -121,6 +121,7 @@ namespace Engine {
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/weapons/shotgun.glb");
         Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/weapons/rocketlaucher.glb");
 
+       
         // Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/zombie_male/zombieAnimMeshTpose.glb");
         //Engine::AssetManager::ImportGLTF(AssetManager::GetAssetFolderPath().string() + "/animations/3D/player/Engineer.glb");
 
