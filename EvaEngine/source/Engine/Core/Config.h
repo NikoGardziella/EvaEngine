@@ -1,6 +1,12 @@
 #pragma once
 #include <cstdint>
 
+//WINDOW
+
+constexpr size_t WINDOW_WIDTH = 1600;
+constexpr size_t WINDOW_HEIGHT = 900;
+
+
 // Engine constants
 constexpr int MAX_FRAMES_IN_FLIGHT = 3;
 constexpr size_t TILE_SIZE = 1;

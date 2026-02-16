@@ -40,6 +40,7 @@ namespace Engine {
 
 
         CreateTileSampler(device);
+        CreateTileParamsBuffers(device);
         CreateBindlessSetLayout(device, updateAfterBindSupported);
         CreateComputeArrayDescriptorSetLayout(MAX_RESIDENT_LAYERS, false);
         CreateEffectsDescriptorSetLayout();
@@ -69,6 +70,11 @@ namespace Engine {
 
         SetTileDimensions(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
 
+
+        for (size_t i = 0; i < FRAMES_IN_FLIGHT; i++)
+        {
+            WriteTileParamsDescriptor(device, m_bindlessSet[i], i);
+        }
 
     }
 
@@ -198,10 +204,69 @@ namespace Engine {
         }
     }
 
+
+    void VulkanBindlessDescriptorSetRenderer::CreateTileParamsBuffers(VkDevice device)
+    {
+        VkDeviceSize size = sizeof(TilePassParams);
+
+        for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+        {
+            VkBufferCreateInfo bufferInfo{};
+            bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            bufferInfo.size = size;
+            bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+            bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            vkCreateBuffer(device, &bufferInfo, nullptr, &m_tileParamsBuffer[i]);
+
+            VkMemoryRequirements memReqs;
+            vkGetBufferMemoryRequirements(device, m_tileParamsBuffer[i], &memReqs);
+
+            VkMemoryAllocateInfo allocInfo{};
+            allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocInfo.allocationSize = memReqs.size;
+            allocInfo.memoryTypeIndex = VulkanContext::Get()->FindMemoryType(
+                memReqs.memoryTypeBits,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            vkAllocateMemory(device, &allocInfo, nullptr, &m_tileParamsMemory[i]);
+            vkBindBufferMemory(device, m_tileParamsBuffer[i], m_tileParamsMemory[i], 0);
+            vkMapMemory(device, m_tileParamsMemory[i], 0, size, 0, &m_tileParamsMapped[i]);
+        }
+    }
+
+    // Call once per frame before drawing
+    void VulkanBindlessDescriptorSetRenderer::UpdateTileParams(uint32_t frameIndex, glm::vec2 playerPos, glm::vec2 playerSCreenPos, float playerFootY) const
+    {
+
+        TilePassParams params{};
+        params.playerFootY = playerFootY;
+        params.fadeRadius = 200.0f;
+        params.playerSCreenPos = playerSCreenPos;
+        memcpy(m_tileParamsMapped[frameIndex], &params, sizeof(TilePassParams));
+    }
+
+    void VulkanBindlessDescriptorSetRenderer::WriteTileParamsDescriptor(VkDevice device, VkDescriptorSet descriptorSet, uint32_t frameIndex)
+    {
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = m_tileParamsBuffer[frameIndex];
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(TilePassParams);
+
+        VkWriteDescriptorSet write{};
+        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write.dstSet = descriptorSet;
+        write.dstBinding = 7;
+        write.dstArrayElement = 0;
+        write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write.descriptorCount = 1;
+        write.pBufferInfo = &bufferInfo;
+
+        vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+    }
+
     void VulkanBindlessDescriptorSetRenderer::CreateBindlessSetLayout(VkDevice device, bool updateAfterBindSupported)
     {
 
-        const uint32_t totalBingingCount = 7;
+        const uint32_t totalBingingCount = 8;
         // binding 0: tiles sampled array (you already have this)
         VkDescriptorSetLayoutBinding bColor{};
         bColor.binding = 0;
@@ -249,8 +314,15 @@ namespace Engine {
         tileShadowBinding.descriptorCount = 1;
         tileShadowBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
+        // player data / TilePassParams 
+        VkDescriptorSetLayoutBinding tileParamsBinding{};
+        tileParamsBinding.binding = 7;
+        tileParamsBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        tileParamsBinding.descriptorCount = 1;
+        tileParamsBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
         VkDescriptorSetLayoutBinding bindings[totalBingingCount] =
-        { bColor, bStorage, bInstances, bSprites, bLights, shadowMap3DBinding, tileShadowBinding };
+        { bColor, bStorage, bInstances, bSprites, bLights, shadowMap3DBinding, tileShadowBinding, tileParamsBinding };
 
         VkDescriptorBindingFlags flags[totalBingingCount]{};
         flags[0] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
@@ -263,6 +335,7 @@ namespace Engine {
         flags[4] = 0;  // Light buffer doesn't need partial bound or update after bind
         flags[5] = 0;  // 
         flags[6] = 0;  // 
+        flags[7] = 0;  // 
 
         VkDescriptorSetLayoutBindingFlagsCreateInfo bindFlags{
             VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO
@@ -1290,6 +1363,8 @@ namespace Engine {
 
         vkUpdateDescriptorSets(m_device, 1, &descriptorWrite, 0, nullptr);
     }
+
+
 
     void VulkanBindlessDescriptorSetRenderer::UpdateShadowMapDescriptorSets(Ref<VulkanShadowMap> shadowmap)
     {

@@ -465,6 +465,10 @@ namespace Engine {
 		VulkanLighting::FlushAndUpload(cmd, currentFrame);
 		s_bindlessDescitproRenderer->UpdateLightBufferDescriptor(currentFrame);
 
+		glm::vec2 playerPOs = Engine::VulkanRenderer2D::s_PlayerData.PlayerPos;
+		glm::vec2 playerscreenPOs = Engine::VulkanRenderer2D::s_PlayerData.PlayerScreenPos;
+
+		s_bindlessDescitproRenderer->UpdateTileParams(currentFrame, playerPOs, playerscreenPOs, playerPOs.y);
 
 
 
@@ -661,6 +665,7 @@ namespace Engine {
 		//Draw();
 	}
 
+	// this makes no sense. s_VulkanRenderer3D->Draw is called from here
 	void VulkanRenderer2D::Draw()
 	{
 		Renderer::DrawFrame();
@@ -681,6 +686,9 @@ namespace Engine {
 
 	void VulkanRenderer2D::DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd, Ref<VulkanShadowMap> shadowMap)
 	{
+
+
+
 		s_bindlessDescitproRenderer->RecordTiles(cmd, currentFrame,
 			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent(), shadowMap->GetLightSpaceMatrix());
 	}
@@ -1101,6 +1109,7 @@ namespace Engine {
 		s_PlayerData.CameraPos = playerStateData.CameraPos;
 		s_PlayerData.visionRadiusW = playerStateData.visionRadiusW;
 		s_PlayerData.SceneRadius = playerStateData.SceneRadius;
+		s_PlayerData.PlayerScreenPos = playerStateData.PlayerScreenPos;
 
 	}
 	

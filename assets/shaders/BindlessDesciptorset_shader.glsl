@@ -3,29 +3,31 @@
 #extension GL_EXT_nonuniform_qualifier : require
 
 struct Instance {
-    vec2  worldPos;      // 0
-    vec2  size;          // 8
-    float rotation;      // 16
-    float zSortKey;      // 20
-    uint  slot;          // 24
-    uint  flags;         // 28
-    uint  direction;     // 32
-    uint  _pad0;         // 36
-    uvec2 uvMin16;       // 40
-    uvec2 uvMax16;       // 48
-    uvec2 opaqueMin16;   // 56
-    uvec2 opaqueMax16;   // 64
+    vec2  worldPos;
+    vec2  size;
+    float rotation;
+    float zSortKey;
+    uint  slot;
+    uint  flags;
+    uint  direction;
+    uint  _pad0;
+    uvec2 uvMin16;
+    uvec2 uvMax16;
+    uvec2 opaqueMin16;
+    uvec2 opaqueMax16;
 };
 
-layout(location=0) out flat     uint vSlot;
-layout(location=1) out          vec2 vUV;
-layout(location=2) out flat     uint vFlags;
-layout(location=3) out          vec2 vWorldPos;
-layout(location=4) out          vec4 vPosLightSpace;
-layout(location=5) out flat     float vFootY;
+layout(location=0) out flat uint  vSlot;
+layout(location=1) out vec2       vUV;
+layout(location=2) out flat uint  vFlags;
+layout(location=3) out vec2       vWorldPos;
+layout(location=4) out vec4       vPosLightSpace;
+layout(location=5) out flat float vFootY;
+layout(location=6) out vec2       vLocalPos;
+layout(location=7) out flat uint  vDirection;
 
-layout(push_constant) uniform PC { 
-    mat4 VP; 
+layout(push_constant) uniform PC {
+    mat4 VP;
     mat4 lightSpaceMatrix;
 } pc;
 
@@ -34,45 +36,35 @@ layout(std430, set=0, binding=2) readonly buffer Instances {
 };
 
 const vec2 quad[4] = vec2[](
-    vec2(0.0,0.0), vec2(1.0,0.0),
-    vec2(0.0,1.0), vec2(1.0,1.0)
+    vec2(0.0, 0.0), vec2(1.0, 0.0),
+    vec2(0.0, 1.0), vec2(1.0, 1.0)
 );
 
 void main()
 {
     uint i = gl_InstanceIndex;
     vec2 q = quad[gl_VertexIndex];
-    
-    // CHANGE: Pivot at FEET (matches shadow pass)
-    vec2 anchor = inst[i].worldPos; 
+
+    vec2 anchor = inst[i].worldPos;
     vec2 local = vec2((q.x - 0.5) * inst[i].size.x, q.y * inst[i].size.y);
-    
+
     float ang = inst[i].rotation;
     float c = cos(ang);
     float s = sin(ang);
     mat2 R = mat2(c, s, -s, c);
-    
+
     vec2 pos = anchor + (R * local);
-    vWorldPos = pos; 
-    vFootY = inst[i].worldPos.y;
 
-    float pushBackY = 0.0;
-    vec2 shadowPos = pos;
-    shadowPos.y += pushBackY;
+    gl_Position = pc.VP * vec4(pos, 0.0, 1.0);
+    vPosLightSpace = pc.lightSpaceMatrix * vec4(pos, 0.0, 1.0);
 
-    gl_Position = pc.VP * vec4(pos, 0.0, 1.0); 
-
-    // CALCULATE Shadow coordinates 
-    // We use a small lookupBias (0.05) to look slightly "above" the floor
-    // so the tile doesn't shadow itself.
-    float receiverZ = 0.0; 
-    vPosLightSpace = pc.lightSpaceMatrix * vec4(shadowPos, 0.0, 1.0);
-
-    // Pass metadata
     vSlot = inst[i].slot;
     vFlags = inst[i].flags;
+    vWorldPos = pos;
+    vFootY = inst[i].worldPos.y;
+    vLocalPos = vec2(q.x - 0.5, q.y);
+    vDirection = inst[i].direction;
 
-    // UVs
     vec2 uvMin = vec2(inst[i].uvMin16) / 65535.0;
     vec2 uvMax = vec2(inst[i].uvMax16) / 65535.0;
     vec2 t = q;
@@ -85,12 +77,14 @@ void main()
 #extension GL_EXT_nonuniform_qualifier : require
 #extension GL_EXT_scalar_block_layout : enable
 
-layout(location=0) in  flat uint vSlot;
-layout(location=1) in        vec2 vUV;
-layout(location=2) in  flat uint vFlags;
-layout(location=3) in        vec2 vWorldPos;
-layout(location=4) in        vec4 vPosLightSpace;
+layout(location=0) in flat uint  vSlot;
+layout(location=1) in vec2       vUV;
+layout(location=2) in flat uint  vFlags;
+layout(location=3) in vec2       vWorldPos;
+layout(location=4) in vec4       vPosLightSpace;
 layout(location=5) in flat float vFootY;
+layout(location=6) in vec2       vLocalPos;
+layout(location=7) in flat uint  vDirection;
 
 layout(location=0) out vec4 outColor;
 
@@ -99,8 +93,14 @@ layout(set=0, binding=3) uniform sampler2D uSprites[];
 layout(set=0, binding=5) uniform sampler2D uShadowMap3D;
 layout(set=0, binding=6) uniform sampler2D uShadowMapTiles;
 
+layout(std140, set=0, binding=7) uniform PlayerData {
+    vec2  playerScreenPos;
+    float playerFootY;
+    float fadeRadius;
+} player;
+
 // ============================================================================
-// LIGHTING SYSTEM (unchanged)
+// LIGHTING
 // ============================================================================
 
 struct GPUDirectionalLight {
@@ -144,8 +144,7 @@ vec3 calculateDirectionalLight(GPUDirectionalLight light, vec3 normal, vec3 albe
     return albedo * light.color.rgb * light.direction_intensity.w * NdotL;
 }
 
-vec3 calculatePointLight(GPUPointLight light, vec3 worldPos, vec3 normal, vec3 albedo)
-{
+vec3 calculatePointLight(GPUPointLight light, vec3 worldPos, vec3 normal, vec3 albedo) {
     vec3 toLight = light.position_radius.xyz - worldPos;
     float distance = length(toLight);
     float radius = light.position_radius.w;
@@ -157,8 +156,7 @@ vec3 calculatePointLight(GPUPointLight light, vec3 worldPos, vec3 normal, vec3 a
     return albedo * light.color_intensity.rgb * light.color_intensity.w * NdotL * attenuation;
 }
 
-vec3 calculateSpotLight(GPUSpotLight light, vec3 worldPos, vec3 normal, vec3 albedo)
-{
+vec3 calculateSpotLight(GPUSpotLight light, vec3 worldPos, vec3 normal, vec3 albedo) {
     vec3 toLight = light.position_range.xyz - worldPos;
     float distance = length(toLight);
     float range = light.position_range.w;
@@ -188,13 +186,14 @@ vec3 applyLighting(vec3 worldPos, vec3 normal, vec3 albedo, float ambientStrengt
 }
 
 // ============================================================================
-// SHADOW: 3D objects (with Y-sort check)
+// SHADOWS
 // ============================================================================
+
 float ShadowFactor_3D(vec4 posLightSpace, float receiverY)
 {
     vec3 proj = posLightSpace.xyz / posLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
-
+    
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
         return 1.0;
 
@@ -205,56 +204,101 @@ float ShadowFactor_3D(vec4 posLightSpace, float receiverY)
     for (int y = -1; y <= 1; ++y) {
         for (int x = -1; x <= 1; ++x) {
             vec2 data = texture(uShadowMap3D, uv + vec2(x, y) * texelSize).rg;
-            float casterDepth = data.r;
-            float casterY = data.g;
-
-            // Object is behind receiver — no shadow
-            if (receiverY - casterY < -0.1) {
-                shadowSum += 1.0;
-                continue;
+            
+            // FIX: If the shadow caster (data.g) is further back (smaller Y) 
+            // than the current pixel (receiverY), it cannot cast a shadow on us.
+            // Adjust the epsilon (0.1) based on your world scale.
+            if (data.g < receiverY - 0.1)
+            { 
+                shadowSum += 1.0; 
+                continue; 
             }
 
-            float bias = 0.002;
-            shadowSum += (currentDepth <= casterDepth + bias) ? 1.0 : 0.0;
+            shadowSum += (currentDepth <= data.r + 0.002) ? 1.0 : 0.0;
         }
     }
     return shadowSum / 9.0;
 }
 
-
-float ShadowFactor_Tile(vec4 posLightSpace, float receiverY)
-{
+float ShadowFactor_Tile(vec4 posLightSpace, float receiverY) {
     vec3 proj = posLightSpace.xyz / posLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
-
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
         return 1.0;
-
     float currentDepth = proj.z;
     vec2 texelSize = 1.0 / vec2(textureSize(uShadowMapTiles, 0));
     float shadowSum = 0.0;
-
-    for (int y = -1; y <= 1; ++y)
-    {
-        for (int x = -1; x <= 1; ++x)
-        {
+    for (int y = -1; y <= 1; ++y) {
+        for (int x = -1; x <= 1; ++x) {
             vec2 data = texture(uShadowMapTiles, uv + vec2(x, y) * texelSize).rg;
-            float casterDepth = data.r;
-            float casterY = data.g;
-
-            // Skip if caster is NOT behind receiver (self-shadow + in-front check)
-            if (casterY - receiverY < 10.5)
-            {
-                shadowSum += 1.0;
-                continue;
-            }
-
-            float bias = 0.002;
-            shadowSum += (currentDepth <= casterDepth + bias) ? 1.0 : 0.0;
+            if (data.g - receiverY < 10.5) { shadowSum += 1.0; continue; }
+            shadowSum += (currentDepth <= data.r + 0.002) ? 1.0 : 0.0;
         }
     }
     return shadowSum / 9.0;
 }
+
+// ============================================================================
+// OCCLUSION FADE
+// ============================================================================
+
+float directionToAngle(uint direction)
+{
+    switch (direction) {
+        case 0: return radians(-30.0);
+        case 1: return radians(30.0);
+        case 2: return radians(150.0);
+        case 3: return radians(150.0);
+        case 4: return radians(0.0);
+        case 5: return radians(0.0);
+        default: return radians(0.0);
+    }
+}
+
+bool shouldFadeOcclusion(vec2 localPos, uint direction)
+{
+
+    float dist = distance(gl_FragCoord.xy, player.playerScreenPos);
+    bool inFront = vFootY < player.playerFootY;
+
+    if (!inFront || dist >= player.fadeRadius) return false;
+
+    float closeness = 1.0 - (dist / player.fadeRadius);
+    float cutoff = 1.0 - closeness * 0.66;
+    float tilt = sin(directionToAngle(direction)) * localPos.x * 0.3;
+
+    return (localPos.y + tilt > cutoff);
+}
+
+float getOcclusionAlpha(vec2 localPos, uint direction)
+{
+    float dist = distance(gl_FragCoord.xy, player.playerScreenPos);
+    
+    // Check if tile is in front of the player
+    bool inFront = vFootY < player.playerFootY;
+
+    // If tile is behind player or far away, it's fully opaque
+    if (!inFront || dist >= player.fadeRadius) return 1.0;
+
+    // 1. Calculate closeness (0.0 at edge of circle, 1.0 at center)
+    float closeness = 1.0 - (dist / player.fadeRadius);
+    
+    // 2. Determine the "Fade Zone"
+    // Tilt helps align the fade with the perspective of the tile
+    float tilt = sin(directionToAngle(direction)) * localPos.x * 0.3;
+    
+    // This creates a soft gradient based on the height (localPos.y)
+    // As the player gets closer, the "hole" grows taller
+    float holeStrength = smoothstep(0.0, 0.5, localPos.y + tilt - (1.0 - closeness));
+
+    // 3. Inverse the result: 0.0 means "hide", 1.0 means "show"
+    // We cap it at 0.3 so the wall never becomes completely invisible
+    return mix(1.0, 0.0, holeStrength);
+}
+
+// ============================================================================
+// MAIN
+// ============================================================================
 
 void main()
 {
@@ -262,19 +306,30 @@ void main()
     vec4 base = isSprite
         ? texture(uSprites[nonuniformEXT(vSlot)], vUV)
         : texture(uTiles[nonuniformEXT(vSlot)], vUV);
+
+    // Keep the discard for the actual texture transparency (holes in the sprite)
     if (base.a <= 0.001) discard;
 
+    // --- Occlusion Fade Logic ---
+    float occlusionAlpha = 1.0;
+    if (!isSprite) {
+        occlusionAlpha = getOcclusionAlpha(vLocalPos, vDirection);
+    }
+
+    // --- Lighting Logic ---
     vec3 normal = vec3(0.0, 0.0, 1.0);
     vec3 worldPos3D = vec3(vWorldPos, 0.0);
     vec3 litColor = applyLighting(worldPos3D, normal, base.rgb, 0.2);
 
-    float shadow3D   = ShadowFactor_3D(vPosLightSpace, vFootY);
+
+    float shadow3D   = ShadowFactor_3D(vPosLightSpace, vWorldPos.y);
     float shadowTile = ShadowFactor_Tile(vPosLightSpace, vFootY);
     float shadow     = min(shadow3D, shadowTile);
 
     vec3 ambient = base.rgb * 0.2;
-    vec3 directional = litColor - ambient;
-    vec3 finalColor = ambient + directional * shadow;
+    vec3 finalColor = ambient + (litColor - ambient) * shadow;
 
-    outColor = vec4(finalColor, base.a);
+    // --- Final Output ---
+    // Multiply the texture's original alpha by our occlusion fade
+    outColor = vec4(finalColor, base.a * occlusionAlpha);
 }

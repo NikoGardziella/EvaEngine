@@ -213,7 +213,7 @@ void main()
     {
         // Front/back: normal alpha test
         float alpha = texture(uTiles[nonuniformEXT(vSlot)], vUV).a;
-        //if (alpha < 0.5) discard;
+        if (alpha < 0.5) discard;
     }
     else 
     {

@@ -37,6 +37,11 @@ namespace Engine {
             glm::mat4 LightSpaceMatrix;
         };
 
+        struct TilePassParams {
+            glm::vec2 playerSCreenPos; 
+            float playerFootY;
+            float fadeRadius;
+        };
 
     private:
         struct SpriteRec {
@@ -93,6 +98,7 @@ namespace Engine {
         void AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation, TileDirection  tileDirection);
         void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, TileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, uint32_t flags = 0);
         void EndFrameAndUpload(uint32_t frameIndex);
+        void UpdateTileParams(uint32_t frameIndex, glm::vec2 playerPos, glm::vec2 playerSCreenPos, float playerFootY) const;
 
         void Upload(uint32_t frameIndex);
 
@@ -154,6 +160,8 @@ namespace Engine {
     private:
         // ----- internal helpers
         void CreateTileSampler(VkDevice device);
+        void CreateTileParamsBuffers(VkDevice device);
+        void WriteTileParamsDescriptor(VkDevice device, VkDescriptorSet descriptorSet, uint32_t frameIndex);
         void CreateBindlessSetLayout(VkDevice device, bool updateAfterBindSupported);
         void CreateTilesPipeline(VkDevice device, VkRenderPass renderPass);
         void CreateBindlessPoolAndSet(VkDevice device, bool updateAfterBindSupported);
@@ -274,6 +282,12 @@ namespace Engine {
         std::unordered_map<uint32_t, std::string>  m_spritePathBySlot;
         std::vector<uint32_t>                      m_freeSpriteSlots;
         uint32_t                                   m_nextSpriteSlot = 0;
+
+
+        // tiles params;:
+        VkBuffer m_tileParamsBuffer[MAX_FRAMES_IN_FLIGHT];
+        VkDeviceMemory m_tileParamsMemory[MAX_FRAMES_IN_FLIGHT];
+        void* m_tileParamsMapped[MAX_FRAMES_IN_FLIGHT];
     };
 
 } 

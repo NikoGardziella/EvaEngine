@@ -199,6 +199,18 @@ namespace Engine {
 			return screenSpace;
 		}
 
+		glm::vec2 WorldToFramebuffer(const glm::vec3& worldPosition, const glm::mat4& cameraTransform) const
+		{
+			glm::mat4 viewMatrix = glm::inverse(cameraTransform);
+			glm::mat4 viewProj = m_projection * viewMatrix;
+			glm::vec4 clip = viewProj * glm::vec4(worldPosition, 1.0f);
+			glm::vec3 ndc = glm::vec3(clip) / clip.w;
+
+			glm::vec2 screen;
+			screen.x = (ndc.x + 1.0f) * 0.5f * m_viewportSize.x;
+			screen.y = (1.0f - ndc.y) * 0.5f * m_viewportSize.y;
+			return screen;
+		}
 
 		glm::vec4 CalculateCameraWorldBounds(const SceneCamera& Camera, const glm::mat4& cameraTransform);
 		

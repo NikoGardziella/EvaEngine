@@ -124,7 +124,7 @@ namespace Engine {
 
             playerEntity = Entity{ entity, this };
 
-            auto& playerTransform = playerView.get<Engine::TransformComponent>(entity);
+            TransformComponent& playerTransform = playerView.get<Engine::TransformComponent>(entity);
             playerPos.x = playerTransform.Translation.x;
             playerPos.y = playerTransform.Translation.y;
             glm::vec3 camerapos = glm::vec3(cameraTransform[3]);
@@ -154,6 +154,10 @@ namespace Engine {
             float ry = (max.y - min.y) * 0.5f;
             playerStateData.SceneRadius = std::max(rx, ry);
 
+
+            // does not support window resize. 
+            uint32_t playerOffset = 50;
+            playerStateData.PlayerScreenPos = glm::vec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - playerOffset);
 
             VulkanRenderer2D::SubmitPlayerData(playerStateData);
 
