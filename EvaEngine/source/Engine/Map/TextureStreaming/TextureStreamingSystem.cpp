@@ -628,7 +628,7 @@ namespace Engine {
 
     }
 
-
+     // terrain only
     void TextureStreamingSystem::BakeTilesIntoChunks(Scene* scene)
     {
         EE_PROFILE_FUNCTION();
@@ -651,9 +651,9 @@ namespace Engine {
                     worldTilePos.y += yoffset;
 
                     std::vector<uint8_t> pixelData;
-                    std::vector<uint8_t> healthData;
+                 
                     int w = 0, h = 0;
-                    if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, healthData, w, h))
+                    if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, w, h))
                         continue;
 
                     // If you also mark blocked subtiles, do it here
@@ -666,45 +666,7 @@ namespace Engine {
         );
 
 
-        // ********* ONLY USE TERRAIN FOR NOW *********
-        return;
-
-        // Pass B: per-entity bakes + NON-TERRAIN tiles
-        scene->ForEach<TransformComponent, TileComponent>(
-            [&](Entity entity, TransformComponent& transformComp, TileComponent& tileComp)
-            {
-                // Per-entity baked textures (pass the Entity as requested)
-                TextureStreamingUtils::BakeRoofTextureIfNeeded(scene, entity);
-                TextureStreamingUtils::BakeVehicleTextureIfNeeded(scene, entity);
-                TextureStreamingUtils::BakeDynamicObjectIfNeeded(scene, entity);
-                for (const TileInfo& tile : tileComp.tiles)
-                {
-                    if (tile.Category == eTileCategory::Terrain ||
-                        tile.Category == eTileCategory::dynamicObjects)
-                        continue;
-
-                    const glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
-
-                    std::vector<uint8_t> pixelData;
-                    std::vector<uint8_t> propertiesData;
-                    int w = 0, h = 0;
-                    if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, propertiesData, w, h))
-                        continue;
-
-                    // If you also mark blocked subtiles, do it here
-                    // m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData, w, h);
-
-                    UploadToChunkFromTexture(
-                        worldTilePos,
-                        tileComp.TileID,
-                        tile.name,
-                        pixelData,
-                        propertiesData,
-                        static_cast<uint32_t>(w),
-                        static_cast<uint32_t>(h));
-                }
-            }
-        );
+       
 
         // DebugMarkChunks();
     }

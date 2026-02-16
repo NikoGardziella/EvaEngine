@@ -1,6 +1,7 @@
 #include "EditorDebugUtils.h"
 #include "Engine/Scene/Component.h "
 #include "Engine/Core/Log.h"
+#include <Engine/Scene/Scene.h>
 
 namespace Engine {
 

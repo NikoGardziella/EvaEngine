@@ -101,7 +101,7 @@ namespace Engine {
         CreateClearMaskBuffer();
 
         CreateDescriptorSetLayouts(); 
-        CreateCameraAndLightDescriptorSetLayout();
+        CreateGameQuadDescriptorSetLayout();
         CreateClearMaskDescriptorSetLayout();
         
         CreatePlayerCollisionDescriptorSetLayout();
@@ -1267,7 +1267,7 @@ namespace Engine {
         }
 
     }
-    void VulkanGraphicsPipeline::CreateCameraAndLightDescriptorSetLayout()
+    void VulkanGraphicsPipeline::CreateGameQuadDescriptorSetLayout()
     {
         // Binding 0: Camera
         VkDescriptorSetLayoutBinding cameraBinding{};
@@ -1283,22 +1283,31 @@ namespace Engine {
         lightBinding.descriptorCount = 1;
         lightBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        // Binding 2: Shadow map (NEW!)
-        VkDescriptorSetLayoutBinding shadowBinding{};
-        shadowBinding.binding = 2;
-        shadowBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        shadowBinding.descriptorCount = 1;
-        shadowBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        
+        // Binding 2: Shadow map tile
+        VkDescriptorSetLayoutBinding shadow3DBinding{};
+        shadow3DBinding.binding = 2;
+        shadow3DBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        shadow3DBinding.descriptorCount = 1;
+        shadow3DBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        // Binding 3: Shadow map3d
+        VkDescriptorSetLayoutBinding shadowTileBinding{};
+        shadowTileBinding.binding = 3;
+        shadowTileBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        shadowTileBinding.descriptorCount = 1;
+        shadowTileBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         VkDescriptorSetLayoutBinding bindings[] = {
             cameraBinding,
             lightBinding,
-            shadowBinding
+            shadowTileBinding,
+            shadow3DBinding
         };
 
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = 3;
+        layoutInfo.bindingCount = 4;
         layoutInfo.pBindings = bindings;
 
         vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_cameraDescriptorSetLayout);
@@ -1664,13 +1673,31 @@ namespace Engine {
         {
             VkDescriptorImageInfo shadowInfo{};
             shadowInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            shadowInfo.imageView = shadowMap->Get3DShadowmap().view;
+            shadowInfo.sampler = shadowMap->Get3DShadowmap().sampler;
+
+            VkWriteDescriptorSet write{};
+            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write.dstSet = m_cameraDescriptorSets[i]; 
+            write.dstBinding = 2;
+            write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            write.descriptorCount = 1;
+            write.pImageInfo = &shadowInfo;
+
+            vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+        }
+
+        for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+        {
+            VkDescriptorImageInfo shadowInfo{};
+            shadowInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             shadowInfo.imageView = shadowMap->GetTileShadowmap().view;
             shadowInfo.sampler = shadowMap->GetTileShadowmap().sampler;
 
             VkWriteDescriptorSet write{};
             write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            write.dstSet = m_cameraDescriptorSets[i];  // Ground's camera descriptor set
-            write.dstBinding = 2;  // Binding 2 in camera descriptor set
+            write.dstSet = m_cameraDescriptorSets[i]; 
+            write.dstBinding = 3; 
             write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             write.descriptorCount = 1;
             write.pImageInfo = &shadowInfo;

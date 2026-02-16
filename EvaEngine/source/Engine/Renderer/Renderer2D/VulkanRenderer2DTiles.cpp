@@ -233,16 +233,16 @@ namespace Engine {
 	void VulkanRenderer2D::ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex)
 	{
 		EE_PROFILE_FUNCTION();
-		std::vector<DestructibleSubmit>& queu = s_VulkanBindlessData.submitQueues[frameIndex];
+		std::vector<DestructibleSubmit>& submitQueu = s_VulkanBindlessData.submitQueues[frameIndex];
 
 		const float tileWorldW = float(TILE_SIZE);
 		const float tileWorldH = float(TILE_SIZE);
 
-		for (size_t i = 0; i < queu.size(); ++i)
+		for (size_t i = 0; i < submitQueu.size(); ++i)
 		{
 
 
-			const DestructibleSubmit& submitTile = queu[i];
+			const DestructibleSubmit& submitTile = submitQueu[i];
 
 			glm::ivec2 qpos = HashUtils::QuantizeToTile(submitTile.localPos, float(TILE_SIZE));
 			const uint64_t uid = submitTile.nameHash;
@@ -259,7 +259,7 @@ namespace Engine {
 			const float zKey = groundY * 1024.0f + submitTile.zBias + tie;
 
 			// Pass the real world size so the quad matches exactly
-			s_bindlessDescitproRenderer->AddInstance(center, zKey, slot, 0.0f, 0u);
+			s_bindlessDescitproRenderer->AddInstance(center, zKey, slot, 0.0f,submitQueu[i].tileDirection, submitTile.outOpaqueMin, submitTile.outOpaqueMax,0u);
 
 			// Compute wants bottom-left in world units
 			const float tileWorldW = float(TILE_SIZE);
@@ -269,7 +269,7 @@ namespace Engine {
 			s_VulkanBindlessData.m_slotOriginWorld[slot] = center - randomOffset;
 		}
 
-		queu.clear();
+		submitQueu.clear();
 	}
 
 

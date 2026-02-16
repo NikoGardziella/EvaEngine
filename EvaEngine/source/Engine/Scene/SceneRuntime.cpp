@@ -82,7 +82,6 @@ namespace Engine {
         }
 
 
-
         CameraComponent* mainCameraComp = nullptr;
         glm::mat4 cameraTransform = glm::mat4(1.0f);
         glm::mat4 cameraView = glm::mat4(1.0f);
@@ -346,24 +345,27 @@ namespace Engine {
 
                         // Minimal: uses your Scene::ForEachConst helper
                         ForEachConst<TransformComponent, TileComponent>(
-                            [&](Entity e, const TransformComponent& tr, const TileComponent& tc)
+                            [&](Entity e, const TransformComponent& transformComp, const TileComponent& tileComp)
                             {
-                                for (const TileInfo& t : tc.tiles)
+                                for (const TileInfo& tile : tileComp.tiles)
                                 {
-                                    if (t.Category == eTileCategory::Terrain)
+                                    if (tile.Category == eTileCategory::Terrain)
                                         continue; // skip terrain
 
 
                                     // Trivial submit: NO residency work here, just append an instance
                                     VulkanRenderer2D::SubmitDestructibleTile(
-                                        tr.Translation,   // entity world origin
-                                        t.position,       // tile local offset
-                                        t.UV,
-                                        t.UID,            // precomputed UID  slot resolved elsewhere
-                                        0.01f             // zBias
+                                        transformComp.Translation,   // entity world origin
+                                        tile.position,       // tile local offset
+                                        tile.UV,
+                                        tile.UID,            // precomputed UID  slot resolved elsewhere
+                                        0.01f,             // zBias
+                                        tile.TileDirection,
+                                        tile.opaqueMin,
+                                        tile.opaqueMax
                                     );
-                                    minWorld.x = std::min(minWorld.x, tr.Translation.x);
-                                    minWorld.y = std::min(minWorld.y, tr.Translation.y);
+                                    minWorld.x = std::min(minWorld.x, transformComp.Translation.x);
+                                    minWorld.y = std::min(minWorld.y, transformComp.Translation.y);
                                 }
                             });
 
@@ -587,8 +589,10 @@ namespace Engine {
                         float zKey = 0.0f;
                         float rotation = std::atan2(projectile.Direction.y, projectile.Direction.x);
 
-
-                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation);
+                        // this could be set somwhere
+                        const glm::ivec2 outOpaqueMin = glm::ivec2(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
+                        const glm::ivec2 outOpaqueMax = glm::ivec2(0);
+                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation, TileDirection::Center, outOpaqueMin, outOpaqueMax);
 
                     }
 

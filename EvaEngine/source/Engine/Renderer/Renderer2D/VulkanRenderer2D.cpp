@@ -20,6 +20,7 @@
 #include "Engine/Renderer/Lights/VulkanLighting.h"
 #include <Engine/Renderer/Lights/GPULightBuffer.h>
 #include <Engine/Renderer/Lights/VulkanLighting.cpp>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 namespace Engine {
 
 	//VulkanRenderer2D::SceneData* VulkanRenderer2D::m_sceneData = new SceneData();
@@ -686,14 +687,39 @@ namespace Engine {
 
 	void VulkanRenderer2D::DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap)
 	{
+		// Begin the TILE shadow render pass
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = shadowMap->GetTileShadowmap().renderPass;
+		renderPassInfo.framebuffer = shadowMap->GetTileShadowmap().framebuffer;
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = {
+			shadowMap->GetShadowMapSize(),
+			shadowMap->GetShadowMapSize()
+		};
 
-		//ConsumeAnimationQueue(frameIndex);
-		//s_bindlessDescitproRenderer->EndFrameAndUpload(frameIndex);
+		VkClearValue clearValues[2];
+		clearValues[0].color = { { 1.0f, 0.0f, 0.0f, 0.0f } }; // color: far depth
+		clearValues[1].depthStencil = { 1.0f, 0 };            // depth: far
 
+		renderPassInfo.clearValueCount = 2;
+		renderPassInfo.pClearValues = clearValues;
+
+		vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		// Set viewport/scissor
+		VkViewport viewport{ 0, 0, (float)shadowMap->GetShadowMapSize(), (float)shadowMap->GetShadowMapSize(), 0.0f, 1.0f };
+		vkCmdSetViewport(cmd, 0, 1, &viewport);
+		VkRect2D scissor{ {0, 0}, {shadowMap->GetShadowMapSize(), shadowMap->GetShadowMapSize()} };
+		vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+		// Draw tiles into the tile shadow map
 		s_bindlessDescitproRenderer->DrawTilesShadowPass(cmd, frameIndex,
 			shadowMap->GetShadowPipeline()->GetTilesShadowPipeline(),
 			shadowMap->GetShadowPipeline()->GetTilesShadowPipelineLayout(),
 			shadowMap->GetLightSpaceMatrix(), shadowMap->GetLightDirection());
+
+		vkCmdEndRenderPass(cmd);
 	}
 
 
@@ -738,26 +764,6 @@ namespace Engine {
 		s_VulkanData.Stats.DrawCalls++;
 	}
 
-	void VulkanRenderer2D::RecordGameShadowPass(VkCommandBuffer cmd, uint32_t currentFrame,
-		VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix)
-	{
-		// Bind shadow pipeline
-		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowPipeline);
-
-		// Push light space matrix
-		vkCmdPushConstants(cmd, shadowPipelineLayout,
-			VK_SHADER_STAGE_VERTEX_BIT,
-			0, sizeof(glm::mat4), &lightSpaceMatrix);
-
-		// Bind vertex/index buffers
-		VkBuffer vb = s_VulkanData.QuadVertexBuffer->GetBuffer();
-		VkDeviceSize offs = 0;
-		vkCmdBindVertexBuffers(cmd, 0, 1, &vb, &offs);
-		vkCmdBindIndexBuffer(cmd, s_VulkanData.QuadIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-		// Draw (depth only) - NO DESCRIPTOR SETS!
-		vkCmdDrawIndexed(cmd, s_VulkanData.QuadIndexCount, 1, 0, 0, 0);
-	}
 
 
 	void VulkanRenderer2D::RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
@@ -946,7 +952,7 @@ namespace Engine {
 		
 		for (const SpriteSubmit& s : animationQueu)
 		{
-			s_bindlessDescitproRenderer->AddSpriteInstance(s.center, s.zKey, s.slot, s.uvMin16, s.uvMax16, s.sizeWorld, s.rotation);
+			s_bindlessDescitproRenderer->AddSpriteInstance(s.center, s.zKey, s.slot, s.uvMin16, s.uvMax16, s.sizeWorld, s.rotation, TileDirection::Unknown);
 		}
 
 		animationQueu.clear();
@@ -1056,7 +1062,7 @@ namespace Engine {
 		
 	}
 
-	void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias)
+	void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias, TileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax)
 	{
 
 		const size_t fi = static_cast<size_t>(s_VulkanData.CurrentFrame) % MAX_FRAMES_IN_FLIGHT;
@@ -1065,7 +1071,7 @@ namespace Engine {
 		std::vector<DestructibleSubmit>& submitQueue = s_VulkanBindlessData.submitQueues[fi];
 
 		// Push one item
-		submitQueue.emplace_back(DestructibleSubmit{worldPos, localPos, atlasUV, nameHash, zBias });
+		submitQueue.emplace_back(DestructibleSubmit{worldPos, localPos, atlasUV, nameHash, zBias, tileDirection, outOpaqueMin ,outOpaqueMax });
 	
 		
 	}

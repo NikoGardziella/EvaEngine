@@ -54,8 +54,8 @@ layout(location = 4) in vec3  v_WorldPos;
 layout(location = 5) in vec4  v_PosLightSpace;
 
 layout(set = 1, binding = 1) uniform sampler2D u_Textures[32];
-layout(set = 0, binding = 2) uniform sampler2D uShadowMap;
-
+layout(set = 0, binding = 2) uniform sampler2D uShadowMap3D;
+layout(set = 0, binding = 3) uniform sampler2D uShadowMapTiles;
 // ============================================================================
 // LIGHTING SYSTEM
 // ============================================================================
@@ -163,54 +163,48 @@ vec3 applyLighting(vec3 worldPos, vec3 normal, vec3 albedo, float ambientStrengt
 // SHADOW SYSTEM
 // ============================================================================
 
-float ShadowFactor(vec4 posLightSpace)
+float ShadowFactor_3D(vec4 posLightSpace)
 {
     vec3 proj = posLightSpace.xyz / posLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
-    
 
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
         return 1.0;
-    
+
     float currentDepth = proj.z;
-    float bias = 0.0005;
-    
-    vec2 texelSize = 1.0 / vec2(textureSize(uShadowMap, 0));
-    float shadow = 0.0;
-    
-    for (int y = -1; y <= 1; ++y)
-    {
-        for (int x = -1; x <= 1; ++x)
-        {
-            float shadowDepth = texture(uShadowMap, uv + vec2(x, y) * texelSize).r;
-            shadow += (currentDepth - bias > shadowDepth) ? 0.0 : 1.0;
+    vec2 texelSize = 1.0 / vec2(textureSize(uShadowMap3D, 0));
+    float shadowSum = 0.0;
+
+    for (int y = -1; y <= 1; ++y) {
+        for (int x = -1; x <= 1; ++x) {
+            float casterDepth = texture(uShadowMap3D, uv + vec2(x, y) * texelSize).r;
+            float bias = 0.002;
+            shadowSum += (currentDepth <= casterDepth + bias) ? 1.0 : 0.0;
         }
     }
-    
-    return shadow / 9.0;
+    return shadowSum / 9.0;
 }
 
-float ShadowFactor_PCF(vec4 posLightSpace)
+float ShadowFactor_Tile(vec4 posLightSpace)
 {
     vec3 proj = posLightSpace.xyz / posLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
-    uv.y = 1.0 - uv.y; // Standard Vulkan flip
 
-    // If outside the shadow frustum, return "Lit" (1.0)
-    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0) 
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
         return 1.0;
 
     float currentDepth = proj.z;
-    
-    // REDUCE BIAS: If it's too high, it "pushes" the shadow through the floor
-    float bias = 0.0001; 
-    
-    float shadowDepth = texture(uShadowMap, uv).r;
-    
-    // If current point is further than the map, it's 0.3 (dark), else 1.0 (bright)
+    vec2 texelSize = 1.0 / vec2(textureSize(uShadowMapTiles, 0));
+    float shadowSum = 0.0;
 
-    float shadowStrength = 0.05;
-    return (currentDepth - bias > shadowDepth) ? shadowStrength : 1.0;
+    for (int y = -1; y <= 1; ++y) {
+        for (int x = -1; x <= 1; ++x) {
+            float casterDepth = texture(uShadowMapTiles, uv + vec2(x, y) * texelSize).r;
+            float bias = 0.002;
+            shadowSum += (currentDepth <= casterDepth + bias) ? 1.0 : 0.0;
+        }
+    }
+    return shadowSum / 9.0;
 }
 
 
@@ -220,7 +214,7 @@ void main()
     // DEBUG: Force visualize the shadow map on the ground
     vec3 proj = v_PosLightSpace.xyz / v_PosLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
-    float d = texture(uShadowMap, uv).r;
+   // float d = texture(uShadowMap, uv).r;
 
    // o_Color = vec4(vec3(d), 1.0); 
    // return;
@@ -235,7 +229,9 @@ void main()
     vec3 litColor = applyLighting(v_WorldPos, normal, tex.rgb, 0.2);
     
     // 3. Shadow Calculation
-    float shadow = ShadowFactor(v_PosLightSpace);
+    float shadow3D   = ShadowFactor_3D(v_PosLightSpace);
+    float shadowTile = ShadowFactor_Tile(v_PosLightSpace);
+    float shadow     = min(shadow3D, shadowTile);
     
     // 4. Combine: Only apply shadow to the "Direct" lighting, not Ambient
     vec3 ambient = tex.rgb * 0.2;

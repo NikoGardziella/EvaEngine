@@ -2,14 +2,12 @@
 #include <entt.hpp>
 #include "Engine/Core/UUID.h"
 #include "Engine/Scene/Component.h"
+#include "Engine/Core/Assert.h"
+
 #include "Engine/Scene/Scene.h"
-
-
-
 
 namespace Engine {
 
-   // class Scene;
 
 	class Entity
 	{

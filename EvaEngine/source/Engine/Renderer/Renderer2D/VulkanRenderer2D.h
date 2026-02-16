@@ -26,6 +26,7 @@
 
 #include <glm/glm.hpp>
 #include <Engine/Renderer/Renderer2D.h>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 namespace Engine {
 
@@ -129,12 +130,14 @@ namespace Engine {
 	struct SlotContentRect { glm::ivec2 minPx; glm::ivec2 sizePx; };
 
 	struct DestructibleSubmit {
-		glm::vec2    worldPos;   // center in world units
-		glm::vec2    localPos;   // tile's local pos in entity space (for UID)
-		glm::vec4    atlasUV;    // UNFLIPPED source UV in the atlas
-		uint64_t     nameHash;   // hash of t.name to avoid storing strings // UID
-		float        zBias = 0.0f;
-
+		glm::vec2		worldPos;   // center in world units
+		glm::vec2		localPos;   // tile's local pos in entity space (for UID)
+		glm::vec4		atlasUV;    // UNFLIPPED source UV in the atlas
+		uint64_t		nameHash;   // hash of t.name to avoid storing strings // UID
+		float			zBias = 0.0f;
+		TileDirection	tileDirection; // N,S,W,E directions for shadows.
+		glm::ivec2		outOpaqueMin = glm::ivec2(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
+		glm::ivec2		outOpaqueMax = glm::ivec2(0);
 	};
 
 	struct SpriteSubmit {
@@ -306,8 +309,8 @@ namespace Engine {
 		static void BeginScene();
 		static void EndScene();
 
-		static void SubmitDestructibleTile(const glm::vec2& worldPos,
-			const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias);
+		static void SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, 
+			uint64_t nameHash, float zBias, TileDirection tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMa);
 
 		static void SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
 

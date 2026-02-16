@@ -15,6 +15,7 @@
 
 #include "Engine/Renderer/Lights/VulkanLighting.h"
 #include <Engine/Renderer/Lights/GPULightBuffer.h>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 namespace Engine {
 
@@ -136,7 +137,7 @@ namespace Engine {
     }
 
     void VulkanBindlessDescriptorSetRenderer::AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot,
-        glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation)
+        glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation, TileDirection  tileDirection)
     {
         RenderInstance I{};
         I.worldPos = worldCenter;          // using the “center” convention you fixed
@@ -148,11 +149,12 @@ namespace Engine {
         I.uvMin16 = uvMin16;
         I.uvMax16 = uvMax16;
         I.rotation = rotation;
+        I.tileDirection = static_cast<uint32_t>(tileDirection);
         m_instances.push_back(I);
     }
 
 
-    void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, uint32_t flags)
+    void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, TileDirection  tileDirection, const glm::ivec2 opaqueMin, const glm::ivec2 opaqueMax, uint32_t flags)
     {
         glm::vec2 size = glm::vec2(TILE_SIZE, TILE_SIZE * 2); // 1:2 ratio per tile
 
@@ -166,6 +168,15 @@ namespace Engine {
         I.uvMin16 = { 0u, 0u };                 // full texture UVs
         I.uvMax16 = { 65535u, 65535u };
         I.rotation = rotation;
+        I.tileDirection = static_cast<uint32_t>(tileDirection);
+        constexpr float pixelW = TILE_PIXEL_WIDTH;
+        constexpr float pixelH = TILE_PIXEL_HEIGHT;
+
+        I.opaqueMin16 = { uint16_t((float(opaqueMin.x) / pixelW) * 65535),
+                           uint16_t((float(opaqueMin.y) / pixelH) * 65535) };
+        I.opaqueMax16 = { uint16_t((float(opaqueMax.x) / pixelW) * 65535),
+                           uint16_t((float(opaqueMax.y) / pixelH) * 65535) };
+        
         m_instances.push_back(I);
     }
 
@@ -1286,13 +1297,13 @@ namespace Engine {
         {
             VkDescriptorImageInfo shadowMapInfo{};
             shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            shadowMapInfo.imageView = shadowmap->GetTileShadowmap().view;  // Your shadow map
+            shadowMapInfo.imageView = shadowmap->GetTileShadowmap().view;
             shadowMapInfo.sampler = shadowmap->GetTileShadowmap().sampler;
 
             VkWriteDescriptorSet shadowWrite{};
             shadowWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             shadowWrite.dstSet = m_bindlessSet[i];
-            shadowWrite.dstBinding = 5;
+            shadowWrite.dstBinding = 6;
             shadowWrite.dstArrayElement = 0;
             shadowWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             shadowWrite.descriptorCount = 1;
@@ -1305,13 +1316,13 @@ namespace Engine {
         {
             VkDescriptorImageInfo shadowMapInfo{};
             shadowMapInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            shadowMapInfo.imageView = shadowmap->Get3DShadowmap().view;  // Your shadow map
+            shadowMapInfo.imageView = shadowmap->Get3DShadowmap().view;
             shadowMapInfo.sampler = shadowmap->Get3DShadowmap().sampler;
 
             VkWriteDescriptorSet shadowWrite{};
             shadowWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             shadowWrite.dstSet = m_bindlessSet[i];
-            shadowWrite.dstBinding = 6;
+            shadowWrite.dstBinding = 5;
             shadowWrite.dstArrayElement = 0;
             shadowWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             shadowWrite.descriptorCount = 1;
@@ -1356,32 +1367,29 @@ namespace Engine {
         vkCmdDraw(cmd, /*vertexCount*/4, /*instanceCount*/m_drawCount, 0, 0);
     }
 
-    // In your bindless tiles renderer
     void VulkanBindlessDescriptorSetRenderer::DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex,
         VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout,
-        const glm::mat4& lightSpaceMatrix, const glm::vec3& lightDir)
+        const glm::mat4& lightSpaceMatrix, const glm::vec3 lightDir)
     {
         if (m_drawCount == 0) return;
 
-        // Bind shadow pipeline
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowPipeline);
 
-        // Bind instance buffer descriptor set
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
             shadowPipelineLayout, 0, 1, &m_bindlessSet[frameIndex], 0, nullptr);
 
         ShadowPC tilePC{};
 
 
-
         tilePC.LightDirecion = glm::vec4(lightDir, 1.0f);
+
         tilePC.LightSpaceMatrix = lightSpaceMatrix;
         // Push light space matrix
         vkCmdPushConstants(cmd, shadowPipelineLayout,
             VK_SHADER_STAGE_VERTEX_BIT , 0, sizeof(ShadowPC), &tilePC);
 
-        // Draw instanced (no vertex/index buffers - uses gl_VertexIndex/gl_InstanceIndex)
-        vkCmdDraw(cmd, 36, m_drawCount, 0, 0);   // 4 vertices per quad, N instances
+
+        vkCmdDraw(cmd, 36, m_drawCount , 0, 0); 
     }
 
    

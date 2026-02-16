@@ -17,6 +17,8 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
+        EE_CORE_ASSERT(false, " remove");
+
         auto& reg = scene->GetRegistry();
         if (!reg.all_of<TileComponent, TransformComponent>(entity)) return false;
 
@@ -53,8 +55,11 @@ namespace Engine {
 
             SrcTile S;
             S.basePx = basePx;
+            glm::ivec2& outOpaqueMin = glm::ivec2(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
+            glm::ivec2& outOpaqueMax = glm::ivec2(0);
 
-            if (!AssetManager::ExtractPixelsFromTilePallette(t, S.color, S.props, S.w, S.h))
+
+            if (!AssetManager::ExtractPixelsAndPropertiesFromTilePallette(t, S.color, S.props, S.w, S.h, outOpaqueMin, outOpaqueMax))
                 continue;
 
             // AABB contribution using bottom-center pivot (identical logic to uploader)

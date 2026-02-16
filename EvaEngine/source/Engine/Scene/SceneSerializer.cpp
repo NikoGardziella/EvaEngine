@@ -305,6 +305,7 @@ namespace Engine {
                 out << YAML::Key << "Material" << YAML::Value << ToString(tile.Material);
                 out << YAML::Key << "Health" << YAML::Value << tile.TileHealth;
                 out << YAML::Key << "UID" << YAML::Value << tile.UID;
+                out << YAML::Key << "TileDirection" << YAML::Value << TileDirectionToString(tile.TileDirection);
 
                 out << YAML::EndMap;
             }
@@ -437,6 +438,7 @@ namespace Engine {
                     tile.IsRoof = tileNode["IsRoof"] ? tileNode["IsRoof"].as<bool>() : false;
                     tile.Category = CategoryFromString(tileNode["Category"].as<std::string>());
                     tile.Material = MaterialFromString(tileNode["Material"].as<std::string>());
+                    tile.TileDirection = TileDirectionFromString(tileNode["TileDirection"].as<std::string>());
                     tile.TileHealth = tileNode["Health"].as<uint32_t>();
                     tile.UID = tileNode["UID"].as<uint64_t>();
                     tileComp.tiles.push_back(tile);

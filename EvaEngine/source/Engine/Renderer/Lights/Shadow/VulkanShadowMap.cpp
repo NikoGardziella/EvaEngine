@@ -33,10 +33,9 @@ namespace Engine {
         m_lightSpaceMatrix = lightProj * lightView;
     }
 
- 
-    void VulkanShadowMap::CreateShadowTarget(VkDevice device, uint32_t size, ShadowTarget& target)
+    void VulkanShadowMap::CreateShadowTarget(VkDevice device, uint32_t size, ShadowTarget& target, bool needsDepth)
     {
-        // 1. Image
+        // 1. Color image (R32G32 for depth + worldY)
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -50,7 +49,6 @@ namespace Engine {
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         vkCreateImage(device, &imageInfo, nullptr, &target.image);
 
-        // 2. Memory
         VkMemoryRequirements memReqs;
         vkGetImageMemoryRequirements(device, target.image, &memReqs);
 
@@ -58,13 +56,10 @@ namespace Engine {
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memReqs.size;
         allocInfo.memoryTypeIndex = VulkanContext::Get()->FindMemoryType(
-            memReqs.memoryTypeBits,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-        );
+            memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         vkAllocateMemory(device, &allocInfo, nullptr, &target.memory);
         vkBindImageMemory(device, target.image, target.memory, 0);
 
-        // 3. Image view
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image = target.image;
@@ -77,7 +72,7 @@ namespace Engine {
         viewInfo.subresourceRange.layerCount = 1;
         vkCreateImageView(device, &viewInfo, nullptr, &target.view);
 
-        // 4. Sampler
+        // 2. Sampler
         VkSamplerCreateInfo samplerInfo{};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
         samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -88,51 +83,120 @@ namespace Engine {
         samplerInfo.compareEnable = VK_FALSE;
         vkCreateSampler(device, &samplerInfo, nullptr, &target.sampler);
 
-        // 5. Render pass
-        VkAttachmentDescription attachment{};
-        attachment.format = VK_FORMAT_R32G32_SFLOAT;
-        attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        // 3. Depth image (optional)
+        if (needsDepth)
+        {
+            VkImageCreateInfo depthImageInfo{};
+            depthImageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+            depthImageInfo.imageType = VK_IMAGE_TYPE_2D;
+            depthImageInfo.format = VK_FORMAT_D32_SFLOAT;
+            depthImageInfo.extent = { size, size, 1 };
+            depthImageInfo.mipLevels = 1;
+            depthImageInfo.arrayLayers = 1;
+            depthImageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+            depthImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+            depthImageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            depthImageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            vkCreateImage(device, &depthImageInfo, nullptr, &target.depthImage);
+
+            VkMemoryRequirements depthMemReqs;
+            vkGetImageMemoryRequirements(device, target.depthImage, &depthMemReqs);
+
+            VkMemoryAllocateInfo depthAllocInfo{};
+            depthAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            depthAllocInfo.allocationSize = depthMemReqs.size;
+            depthAllocInfo.memoryTypeIndex = VulkanContext::Get()->FindMemoryType(
+                depthMemReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            vkAllocateMemory(device, &depthAllocInfo, nullptr, &target.depthMemory);
+            vkBindImageMemory(device, target.depthImage, target.depthMemory, 0);
+
+            VkImageViewCreateInfo depthViewInfo{};
+            depthViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            depthViewInfo.image = target.depthImage;
+            depthViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            depthViewInfo.format = VK_FORMAT_D32_SFLOAT;
+            depthViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+            depthViewInfo.subresourceRange.baseMipLevel = 0;
+            depthViewInfo.subresourceRange.levelCount = 1;
+            depthViewInfo.subresourceRange.baseArrayLayer = 0;
+            depthViewInfo.subresourceRange.layerCount = 1;
+            vkCreateImageView(device, &depthViewInfo, nullptr, &target.depthView);
+        }
+
+        // 4. Render pass
+        std::vector<VkAttachmentDescription> attachments;
+
+        // Color attachment
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = VK_FORMAT_R32G32_SFLOAT;
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        attachments.push_back(colorAttachment);
 
         VkAttachmentReference colorRef{};
         colorRef.attachment = 0;
         colorRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+        VkAttachmentReference depthRef{};
+
+        if (needsDepth)
+        {
+            VkAttachmentDescription depthAttachment{};
+            depthAttachment.format = VK_FORMAT_D32_SFLOAT;
+            depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // we don't sample it
+            depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            attachments.push_back(depthAttachment);
+
+            depthRef.attachment = 1;
+            depthRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        }
+
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &colorRef;
-        subpass.pDepthStencilAttachment = nullptr;
+        subpass.pDepthStencilAttachment = needsDepth ? &depthRef : nullptr;
 
         VkSubpassDependency dep{};
         dep.srcSubpass = 0;
         dep.dstSubpass = VK_SUBPASS_EXTERNAL;
-        dep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dep.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dep.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
         dep.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         dep.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         VkRenderPassCreateInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.attachmentCount = 1;
-        renderPassInfo.pAttachments = &attachment;
+        renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        renderPassInfo.pAttachments = attachments.data();
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &dep;
         vkCreateRenderPass(device, &renderPassInfo, nullptr, &target.renderPass);
 
-        // 6. Framebuffer
+        // 5. Framebuffer
+        std::vector<VkImageView> fbAttachments = { target.view };
+        if (needsDepth)
+            fbAttachments.push_back(target.depthView);
+
         VkFramebufferCreateInfo fbInfo{};
         fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         fbInfo.renderPass = target.renderPass;
-        fbInfo.attachmentCount = 1;
-        fbInfo.pAttachments = &target.view;
+        fbInfo.attachmentCount = static_cast<uint32_t>(fbAttachments.size());
+        fbInfo.pAttachments = fbAttachments.data();
         fbInfo.width = size;
         fbInfo.height = size;
         fbInfo.layers = 1;
@@ -147,6 +211,9 @@ namespace Engine {
         if (target.view)        vkDestroyImageView(device, target.view, nullptr);
         if (target.image)       vkDestroyImage(device, target.image, nullptr);
         if (target.memory)      vkFreeMemory(device, target.memory, nullptr);
+        if (target.depthView)   vkDestroyImageView(device, target.depthView, nullptr);
+        if (target.depthImage)  vkDestroyImage(device, target.depthImage, nullptr);
+        if (target.depthMemory) vkFreeMemory(device, target.depthMemory, nullptr);
         target = {};
     }
 
@@ -155,8 +222,8 @@ namespace Engine {
     {
         m_device = device;
 
-        CreateShadowTarget(device, shadowMapSize, m_3dShadow);
-        CreateShadowTarget(device, shadowMapSize, m_tileShadow);
+        CreateShadowTarget(device, shadowMapSize, m_3dShadow, false);
+        CreateShadowTarget(device, shadowMapSize, m_tileShadow, true);
 
         EE_CORE_INFO("Shadow maps initialized: {}x{} (3D + Tile)", shadowMapSize, shadowMapSize);
 

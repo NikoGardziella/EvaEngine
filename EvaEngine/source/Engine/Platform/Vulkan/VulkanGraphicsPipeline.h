@@ -271,7 +271,7 @@ namespace Engine {
         void CreatePlayerCollisionDescriptorSets();
         void CreatePresentDescriptorSet();
         void CreatePresentSampler();
-        void CreateCameraAndLightDescriptorSetLayout();
+        void CreateGameQuadDescriptorSetLayout();
         void CreateCameraDescriptorSet();
         void CreatePlayerCollisionResultBuffer();
         void CreateClearMaskBuffer();

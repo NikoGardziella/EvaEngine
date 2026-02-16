@@ -53,8 +53,9 @@ namespace Engine {
         static Ref<VulkanTexture> AddTextureToCache(const std::string& name, Ref<VulkanTexture> texture);
 		static Ref<VulkanTexture> GetTexture(const std::string& name);
         static Ref<VulkanTexture> CloneTexture(const std::string& name);
-        static bool ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, std::vector<uint8_t>& outHealthData, int& outWidth, int& outHeight);
         static bool ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, int& outWidth, int& outHeight);
+        static bool ExtractPixelsAndPropertiesFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, std::vector<uint8_t>& outPropertiesData, int& outWidth, int& outHeight, glm::ivec2& outOpaqueMin, glm::ivec2& outOpaqueMax);
+        static bool ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, int& outWidth, int& outHeight, glm::ivec2& outOpaqueMin, glm::ivec2& outOpaqueMax);
         static  std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures();
 
         static const std::vector<std::string>& AssetManager::GetTileNamesByCategoryAndMaterial(eTileCategory category, eTileMaterial material);

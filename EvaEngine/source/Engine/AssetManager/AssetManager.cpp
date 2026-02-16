@@ -276,11 +276,12 @@ namespace Engine {
         return true;
     }
 
-    bool AssetManager::ExtractPixelsFromTilePallette(
+    bool AssetManager::ExtractPixelsAndPropertiesFromTilePallette(
         const TileInfo& tile,
         std::vector<uint8_t>& outPixelData,      // RGBA8, row 0 = bottom
         std::vector<uint8_t>& outPropertiesData, // RGBA8UI: R=health, G=rows-above-pivot, B=aux, A=flags+category
-        int& outWidth, int& outHeight)
+        int& outWidth, int& outHeight,
+        glm::ivec2& outOpaqueMin, glm::ivec2& outOpaqueMax)
     {
         Ref<VulkanTexture> atlas = GetTileTextureIconAtlas();
         const auto& pixels = atlas->GetCPUPixelData();
@@ -367,7 +368,7 @@ namespace Engine {
                 outPixelData[di + 2] = Ba;
                 outPixelData[di + 3] = Aa;
 
-                const bool visible = (Aa != 0);
+                const bool visible = (Aa > 10);
 
                 // --- R: health ---
                 uint8_t healthR =  0u;
@@ -375,6 +376,9 @@ namespace Engine {
                 {
                     // even if invisible (alpha 0), foot-band should still carry health for collision
                     healthR = static_cast<uint8_t>(tile.TileHealth);
+
+                    outOpaqueMin = glm::min(outOpaqueMin, glm::ivec2(x, y));
+                    outOpaqueMax = glm::max(outOpaqueMax, glm::ivec2(x, y));
                 }
 
                 // --- G: rows above pivot (1..255), 0 at/under pivot or if invisible ---
@@ -402,7 +406,8 @@ namespace Engine {
                 outPropertiesData[di + 3] = flagsA;  // A (flags + category)
             }
         }
-
+        //outOpaqueMin = glm::vec2(outOpaqueMin) / glm::vec2(w, h);
+        //outOpaqueMax = glm::vec2(outOpaqueMax + glm::ivec2(1)) / glm::vec2(w, h);
         return true;
     }
 

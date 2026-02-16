@@ -11,14 +11,17 @@ namespace Engine {
     class VulkanShadowMap
     {
     private:
-        struct ShadowTarget
-        {
+        struct ShadowTarget {
             VkImage        image = VK_NULL_HANDLE;
             VkDeviceMemory memory = VK_NULL_HANDLE;
             VkImageView    view = VK_NULL_HANDLE;
             VkSampler      sampler = VK_NULL_HANDLE;
             VkRenderPass   renderPass = VK_NULL_HANDLE;
             VkFramebuffer  framebuffer = VK_NULL_HANDLE;
+            // Depth (optional)
+            VkImage        depthImage = VK_NULL_HANDLE;
+            VkDeviceMemory depthMemory = VK_NULL_HANDLE;
+            VkImageView    depthView = VK_NULL_HANDLE;
         };
 
 
@@ -37,13 +40,14 @@ namespace Engine {
         void UpdateLightSpaceMatrix(const glm::vec3& lightDirection, const glm::vec3& sceneCenter,  float sceneRadius);
 
         void UpdateTileShadowMatrix(const glm::vec3& lightDir, const glm::vec3& center, float radius);
+        void CreateShadowTarget(VkDevice device, uint32_t size, ShadowTarget& target, bool needsDepth);
         void CreateShadowTarget(VkDevice device, uint32_t size, ShadowTarget& target);
         void DestroyShadowTarget(VkDevice device, ShadowTarget& target);
         // Getters
      
         const glm::mat4& GetLightSpaceMatrix() const { return m_lightSpaceMatrix; }
         const glm::vec3& GetLightDirection() const { return m_lightDirection; }
-        void SetLightDirection(glm::vec3 m_lightDirection) {  m_lightDirection = m_lightDirection; }
+        void SetLightDirection(glm::vec3 lightDirection) {  m_lightDirection = lightDirection; }
         uint32_t GetShadowMapSize() const { return m_shadowMapSize; }
 
         Ref<VulkanShadowGraphicsPipeline> GetShadowPipeline() { return m_shadowPipeline; };

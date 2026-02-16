@@ -338,11 +338,10 @@ namespace Engine {
         rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizer.cullMode = VK_CULL_MODE_NONE;  // Front-face culling reduces shadow acne
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-        rasterizer.depthBiasEnable = VK_FALSE;  // Depth bias for shadow quality
-       // rasterizer.depthBiasConstantFactor = 1.25f;
-        //rasterizer.depthBiasSlopeFactor = 1.75f;
-        rasterizer.depthBiasConstantFactor = 0.01f;
-        rasterizer.depthBiasSlopeFactor = 0.01f;
+        rasterizer.depthBiasEnable = VK_TRUE;  // Depth bias for shadow quality
+        rasterizer.depthBiasConstantFactor = 1.0f;
+        rasterizer.depthBiasSlopeFactor = 1.0f;
+      
         rasterizer.lineWidth = 1.0f;
 
         // Multisample
@@ -363,14 +362,19 @@ namespace Engine {
 
         // No color blend (depth-only pass)
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachment.blendEnable = VK_FALSE; // We just want to overwrite the values
+        colorBlendAttachment.blendEnable = VK_TRUE;
+        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_MIN;
+        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_MIN;
+        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT;
 
-        // 2. Define the global blend state
         VkPipelineColorBlendStateCreateInfo colorBlending{};
         colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
         colorBlending.logicOpEnable = VK_FALSE;
-        colorBlending.attachmentCount = 1; 
+        colorBlending.attachmentCount = 1;
         colorBlending.pAttachments = &colorBlendAttachment;
 
         // Create pipeline

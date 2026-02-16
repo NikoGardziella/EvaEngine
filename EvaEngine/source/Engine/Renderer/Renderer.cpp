@@ -122,7 +122,6 @@ namespace Engine {
 		//s_VulkanRenderer2D->RecordGameShadowPass(m_commandBuffers[s_currentFrame], s_currentFrame, s_vulkanSharedResources->GetShadowMap()->GetShadowPipeline()->GetGroundShadowPipeline(),
 		//	s_vulkanSharedResources->GetShadowMap()->GetShadowPipeline()->GetGroundShadowPipelineLayout(), s_vulkanSharedResources->GetShadowMap()->GetLightSpaceMatrix());
 		
-		vkCmdEndRenderPass(m_commandBuffers[s_currentFrame]);
 
 		
 	}

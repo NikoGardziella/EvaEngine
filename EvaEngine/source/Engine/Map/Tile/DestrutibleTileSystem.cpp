@@ -455,10 +455,12 @@ namespace Engine {
                             }
                         });
 
-                    if (!found) {
+                    if (!found)
+                    {
                         EE_CORE_WARN("Split: owner entity for slot {} not found", slot);
                     }
-                    else {
+                    else 
+                    {
                         const Engine::TransformComponent& srcXf = srcEntity.GetComponent<Engine::TransformComponent>();
                         const Engine::TileComponent& srcTc = srcEntity.GetComponent<Engine::TileComponent>();
                         const Engine::IDComponent& srcId = srcEntity.GetComponent<Engine::IDComponent>();
@@ -497,6 +499,8 @@ namespace Engine {
                         TileInfo newTIle = srcTi;
                         newTIle.Slot = newSlot;
                         newTIle.UID  = newTileUID;
+                        newTIle.opaqueMax = glm::ivec2(0);
+                        newTIle.opaqueMin = glm::ivec2(0);
                         tcNew.tiles.push_back(newTIle);
 
                         cfg.lastAlive = totalAlive;

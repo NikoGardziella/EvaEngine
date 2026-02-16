@@ -707,8 +707,9 @@ namespace Engine {
         //EE_CORE_INFO("radius {}, x {}, y {}", Engine::VulkanRenderer2D::s_PlayerData.SceneRadius, sceneCenter.x, sceneCenter.y);
         // 3. Update the matrix (Ensure this function uses the logic below)
         
-        float zoomLevel = 20.0f;
+        float zoomLevel = 10.0f;
         shadowMap->UpdateLightSpaceMatrix(lightDirection, sceneCenter, zoomLevel);
+
         shadowMap->SetLightDirection(lightDirection);
     
 
@@ -775,7 +776,8 @@ namespace Engine {
         DrawAll3DMeshesDepthOnly(cmd, frameIndex, shadowMap->GetShadowPipeline());
 
 
-        
+        vkCmdEndRenderPass(cmd);
+
 
         //EE_CORE_INFO("Shadow pass completed - drew {} meshes", s_Vulkan3DData.s_draws.size());
     }

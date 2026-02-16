@@ -32,6 +32,16 @@ namespace Engine {
         dynamicObjects
     };
 
+    enum class TileDirection : uint32_t
+    {
+        North = 0,
+        South,
+        East,
+        West,
+        Center, // BUllet light=
+
+        Unknown
+    };
 
     struct TileInfo {
         glm::vec2       position; // local position within group
@@ -44,6 +54,11 @@ namespace Engine {
         eTileMaterial   Material;
         uint32_t        TileHealth;
         uint32_t        Slot = UINT32_MAX;
+        TileDirection   TileDirection;
+        glm::ivec2      opaqueMin;
+        glm::ivec2      opaqueMax;
+
+
         TileInfo(const glm::vec2& pos = glm::vec2(0.0f), const glm::vec4& uvCoords = glm::vec4(0.0f),
             const std::string& tileName = "", bool destructible = false, bool roof = false,
             eTileCategory category = eTileCategory::Undefined, eTileMaterial material = eTileMaterial::Undefined,
@@ -81,6 +96,20 @@ namespace Engine {
         }
     }
 
+    inline const char* TileDirectionToString(TileDirection direction)
+    {
+        switch (direction)
+        {
+        case TileDirection::North:      return "North";
+        case TileDirection::South:      return "South";
+        case TileDirection::East:       return "East";
+        case TileDirection::West:       return "West";
+        case TileDirection::Center:     return "Center";
+        case TileDirection::Unknown:    return "Unknown";
+
+        default: return "Invalid";
+        }
+    }
     
 
     inline const char* ToString(eTileMaterial material)
@@ -110,6 +139,18 @@ namespace Engine {
         if (str == "Metal")    return eTileMaterial::Metal;
         if (str == "Glass")    return eTileMaterial::Glass;
         return eTileMaterial::None;
+    }
+
+    inline TileDirection TileDirectionFromString(const std::string& str)
+    {
+        if (str == "North" || str == "N") return TileDirection::North;
+        if (str == "South" || str == "S") return TileDirection::South;
+        if (str == "East" || str == "E") return TileDirection::East;
+        if (str == "West" || str == "W") return TileDirection::West;
+        if (str == "Center") return TileDirection::Center;
+        if (str == "Unkown") return TileDirection::Unknown;
+
+        return TileDirection::Unknown;
     }
 
 

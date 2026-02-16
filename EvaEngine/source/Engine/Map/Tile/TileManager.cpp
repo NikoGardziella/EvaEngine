@@ -97,36 +97,40 @@ namespace Engine {
     {
         ClearTemplates();
 
-        scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
-            [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& idComp)
+        scene->ForEach<TransformComponent, TileComponent, IDComponent>(
+            [&](Entity e, TransformComponent& tr, TileComponent& tc, IDComponent& idComp)
             {
-                for (const TileInfo& t : tc.tiles)
+                for (TileInfo& tile : tc.tiles)
                 {
-                    if (t.Category == eTileCategory::Terrain)
+                    if (tile.Category == eTileCategory::Terrain)
                     {
                         continue;
                     }
        
                     // If not set, compute it here the same when placing tiles.
-                    uint64_t uid = t.UID;
+                    uint64_t uid = tile.UID;
                     if (!uid)
                     {
                         // deltaGround == t.position in layout
-                        uid = HashUtils::MakeTileUID((uint64_t)idComp.ID, t.position, float(TILE_SIZE));
+                        uid = HashUtils::MakeTileUID((uint64_t)idComp.ID, tile.position, float(TILE_SIZE));
                     }
 
                     // Skip if already cached
                     if (m_colorByUID.count(uid) && m_propsByUID.count(uid))
                         continue;
 
+                    glm::ivec2 outOpaqueMin = glm::ivec2(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
+                    glm::ivec2 outOpaqueMax = glm::ivec2(-1);
 
                     std::vector<uint8_t> colorRGBA, propsRGBA;
                     int w = 0, h = 0;
-                    if (!AssetManager::ExtractPixelsFromTilePallette(t, colorRGBA, propsRGBA, w, h))
+                    if (!AssetManager::ExtractPixelsAndPropertiesFromTilePallette(tile, colorRGBA, propsRGBA, w, h, outOpaqueMin, outOpaqueMax))
                     {
-                        EE_CORE_WARN("ExtractPixelsFromTilePallette failed for tile '{}'", t.name);
+                        EE_CORE_WARN("ExtractPixelsFromTilePallette failed for tile '{}'", tile.name);
                         continue;
                     }
+                    tile.opaqueMax = outOpaqueMax;
+                    tile.opaqueMin = outOpaqueMin;
 
 
                     m_colorByUID.emplace(uid, ColorTemplate{ w, h, std::move(colorRGBA) });

@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <Engine/Renderer/Lights/Shadow/VulkanShadowMap.h>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 
 
@@ -55,21 +56,25 @@ namespace Engine {
 
         // --------- Render instance (std430-friendly, 32 bytes)
         struct RenderInstance {
-            glm::vec2 worldPos;  // 0..7
-            glm::vec2 size;      // 8..15
-            float     rotation;  // 16..19
-            float     zSortKey;  // 20..23
-            uint32_t  slot;      // 24..27
-            uint32_t  flags;     // 28..31
-            uint32_t  _pad0;     // 32..35
-            uint32_t  _pad1;     // 36..39
+            glm::vec2 worldPos;     // 0
+            glm::vec2 size;         // 8
+            float     rotation;     // 16
+            float     zSortKey;     // 20
+            uint32_t  slot;         // 24
+            uint32_t  flags;        // 28
+            uint32_t  tileDirection;// 32
+            uint32_t  _pad0;        // 36 (Ensures the following uvec2 is on 8-byte boundary)
 
-            alignas(8) glm::uvec2 uvMin16;  // 40..47
-            glm::uvec2            uvMax16;  // 48..55
+            // alignas(8) ensures C++ starts this at byte 40
+            alignas(8) glm::uvec2 uvMin16;     // 40
+            glm::uvec2            uvMax16;     // 48
+            glm::uvec2            opaqueMin16; // 56
+            glm::uvec2            opaqueMax16; // 64
         };
+        // Total size: 72 bytes. 
+        static_assert(sizeof(RenderInstance) == 72, "Pack alignment error!");
 
-        static_assert(offsetof(RenderInstance, uvMin16) == 40);
-        static_assert(sizeof(RenderInstance) == 56);
+       
 
 
 
@@ -85,8 +90,8 @@ namespace Engine {
 
 
         void BeginFrame(uint32_t frameIndex);
-        void AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
-        void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, uint32_t flags = 0);
+        void AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation, TileDirection  tileDirection);
+        void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, TileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, uint32_t flags = 0);
         void EndFrameAndUpload(uint32_t frameIndex);
 
         void Upload(uint32_t frameIndex);
@@ -108,7 +113,7 @@ namespace Engine {
 
         // Build visible instances and stream into SSBO; updates binding 2 for this frame
         void RecordTiles(VkCommandBuffer cmd, uint32_t frameIndex, const glm::mat4& VP, VkExtent2D fbExtent, const glm::mat4& lightMat);
-        void DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix, const glm::vec3& lightDir);
+        void DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix, const glm::vec3 lightDir);
         uint32_t EnsureTileResident(uint64_t uid, const glm::vec4& atlasUV, VkCommandBuffer uploadCmd);
         uint32_t EnsureTileResidentFromRaw(uint64_t uid, const uint8_t* colorData, size_t colorSize, const uint8_t* propsData, size_t propsSize, VkCommandBuffer uploadCB);
         void ComputeBindBuffers(uint32_t frameIndex, VkBuffer resultsBuf, VkDeviceSize resultsSize, VkBuffer projectilesBuf, VkDeviceSize projSize, VkBuffer blockedMaskBuf, VkDeviceSize maskSize);

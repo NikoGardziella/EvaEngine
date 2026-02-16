@@ -3,23 +3,26 @@
 #extension GL_EXT_nonuniform_qualifier : require
 
 struct Instance {
-    vec2  worldPos;
-    vec2  size;
-    float rotation;
-    float zSortKey;
-    uint  slot;
-    uint  flags;
-    uint  _pad0;
-    uint  _pad1;
-    uvec2 uvMin16;
-    uvec2 uvMax16;
+    vec2  worldPos;      // 0
+    vec2  size;          // 8
+    float rotation;      // 16
+    float zSortKey;      // 20
+    uint  slot;          // 24
+    uint  flags;         // 28
+    uint  direction;     // 32
+    uint  _pad0;         // 36
+    uvec2 uvMin16;       // 40
+    uvec2 uvMax16;       // 48
+    uvec2 opaqueMin16;   // 56
+    uvec2 opaqueMax16;   // 64
 };
 
-layout(location=0) out flat uint vSlot;
-layout(location=1) out        vec2 vUV;
-layout(location=2) out flat uint vFlags;
-layout(location=3) out        vec2 vWorldPos;
-layout(location=4) out        vec4 vPosLightSpace;
+layout(location=0) out flat     uint vSlot;
+layout(location=1) out          vec2 vUV;
+layout(location=2) out flat     uint vFlags;
+layout(location=3) out          vec2 vWorldPos;
+layout(location=4) out          vec4 vPosLightSpace;
+layout(location=5) out flat     float vFootY;
 
 layout(push_constant) uniform PC { 
     mat4 VP; 
@@ -51,8 +54,9 @@ void main()
     
     vec2 pos = anchor + (R * local);
     vWorldPos = pos; 
-    
-    float pushBackY = 0.25;
+    vFootY = inst[i].worldPos.y;
+
+    float pushBackY = 0.0;
     vec2 shadowPos = pos;
     shadowPos.y += pushBackY;
 
@@ -86,6 +90,7 @@ layout(location=1) in        vec2 vUV;
 layout(location=2) in  flat uint vFlags;
 layout(location=3) in        vec2 vWorldPos;
 layout(location=4) in        vec4 vPosLightSpace;
+layout(location=5) in flat float vFootY;
 
 layout(location=0) out vec4 outColor;
 
@@ -217,7 +222,7 @@ float ShadowFactor_3D(vec4 posLightSpace, float receiverY)
 }
 
 
-float ShadowFactor_Tile(vec4 posLightSpace)
+float ShadowFactor_Tile(vec4 posLightSpace, float receiverY)
 {
     vec3 proj = posLightSpace.xyz / posLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
@@ -229,9 +234,21 @@ float ShadowFactor_Tile(vec4 posLightSpace)
     vec2 texelSize = 1.0 / vec2(textureSize(uShadowMapTiles, 0));
     float shadowSum = 0.0;
 
-    for (int y = -1; y <= 1; ++y) {
-        for (int x = -1; x <= 1; ++x) {
-            float casterDepth = texture(uShadowMapTiles, uv + vec2(x, y) * texelSize).r;
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            vec2 data = texture(uShadowMapTiles, uv + vec2(x, y) * texelSize).rg;
+            float casterDepth = data.r;
+            float casterY = data.g;
+
+            // Skip if caster is NOT behind receiver (self-shadow + in-front check)
+            if (casterY - receiverY < 10.5)
+            {
+                shadowSum += 1.0;
+                continue;
+            }
+
             float bias = 0.002;
             shadowSum += (currentDepth <= casterDepth + bias) ? 1.0 : 0.0;
         }
@@ -239,24 +256,20 @@ float ShadowFactor_Tile(vec4 posLightSpace)
     return shadowSum / 9.0;
 }
 
-
 void main()
 {
     bool isSprite = (vFlags & 1u) != 0u;
     vec4 base = isSprite
         ? texture(uSprites[nonuniformEXT(vSlot)], vUV)
         : texture(uTiles[nonuniformEXT(vSlot)], vUV);
-
     if (base.a <= 0.001) discard;
 
     vec3 normal = vec3(0.0, 0.0, 1.0);
     vec3 worldPos3D = vec3(vWorldPos, 0.0);
-
     vec3 litColor = applyLighting(worldPos3D, normal, base.rgb, 0.2);
 
-    // Sample both shadow maps, darkest wins
-    float shadow3D   = ShadowFactor_3D(vPosLightSpace, vWorldPos.y);
-    float shadowTile = ShadowFactor_Tile(vPosLightSpace);
+    float shadow3D   = ShadowFactor_3D(vPosLightSpace, vFootY);
+    float shadowTile = ShadowFactor_Tile(vPosLightSpace, vFootY);
     float shadow     = min(shadow3D, shadowTile);
 
     vec3 ambient = base.rgb * 0.2;

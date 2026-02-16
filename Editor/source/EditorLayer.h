@@ -55,6 +55,7 @@ namespace Engine {
 		void OnUpdateECS(Timestep timestep) override;
 		void OnEvent(Event& event) override;
 
+
 		TileInfo OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory);
 
 	private:
@@ -83,6 +84,7 @@ namespace Engine {
 		TileDirection GetDirectionFromTileName(const std::string& tileName);
 
 		glm::vec2 GetSnappedIsoPosition();
+		bool CanPlaceTile(std::string selectedTileName, glm::ivec2 groundPos);
 
 		void OnOverlayRender();
 

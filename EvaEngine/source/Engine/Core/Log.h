@@ -6,6 +6,9 @@
 #pragma warning(push, 0)
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
+
+#include <glm/glm.hpp>
+
 #pragma warning(pop)
 
 namespace Engine {
@@ -40,3 +43,32 @@ namespace Engine {
 #define EE_WARN(msg, ...)          ::Engine::Log::GetClientLogger()->warn("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
 #define EE_ERROR(msg, ...)         ::Engine::Log::GetClientLogger()->error("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
 #define EE_CRITICAL(msg, ...)      ::Engine::Log::GetClientLogger()->critical("[{}] " msg, EE_FILE_NAME, __VA_ARGS__)
+
+
+template <> struct fmt::formatter<glm::vec2> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const glm::vec2& v, FormatContext& ctx) const {
+        return format_to(ctx.out(), "({:.2f}, {:.2f})", v.x, v.y);
+    }
+};
+
+template <> struct fmt::formatter<glm::vec3> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const glm::vec3& v, FormatContext& ctx) const {
+        return format_to(ctx.out(), "({:.2f}, {:.2f}, {:.2f})", v.x, v.y, v.z);
+    }
+};
+
+// 3. Added ivec2 (Integer vector) formatter
+template <> struct fmt::formatter<glm::ivec2> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const glm::ivec2& v, FormatContext& ctx) const {
+        return format_to(ctx.out(), "({}, {})", v.x, v.y);
+    }
+};

@@ -93,7 +93,7 @@ EvaEngine/vendor/vcpkg/buildtrees/
 EvaEngine/vendor/vcpkg/packages/
 EvaEngine/vendor/vcpkg/downloads/
 
-/build/
+
 /bin/
 /bin-obj/
 *.sln

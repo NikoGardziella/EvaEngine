@@ -698,14 +698,8 @@ namespace Engine {
     }
 
 
-    TileInfo EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory)
+    bool EditorLayer::CanPlaceTile(std::string selectedTileName, glm::ivec2 isoCell)
     {
-        // Ray  world Z=0 (unchanged)
-        glm::ivec2 isoCell = GetSnappedIsoPosition();
-        glm::vec2  groundPos = IsoTileUtils::IsoToWorldGround(isoCell);
-        TileInfo newTile;
-
-        // Duplicate check (compare iso cells)
         auto& registry = m_editor->GetGameLayer()->GetActiveGameScene()->GetRegistry();
         {
             auto view = registry.view<TileComponent, TransformComponent, IDComponent>();
@@ -715,22 +709,34 @@ namespace Engine {
                 const auto& tr = view.get<TransformComponent>(entity);
                 for (const auto& tinfo : tc.tiles)
                 {
-                    glm::vec2 tileGround = glm::vec2(tr.Translation) + tinfo.position; 
+                    glm::vec2 tileGround = glm::vec2(tr.Translation) + tinfo.position;
                     if (IsoTileUtils::WorldToIsoCellInt(tileGround) == isoCell &&
                         tinfo.name == selectedTileName)
                     {
-                        return newTile;
+                        return false;
                     }
                 }
             }
         }
+        return true;
+    }
+
+    TileInfo EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory)
+    {
+        // Ray  world Z=0 (unchanged)
+        glm::ivec2 isoCell = GetSnappedIsoPosition();
+        glm::vec2  groundPos = IsoTileUtils::IsoToWorldGround(isoCell);
+        TileInfo newTile;
+
+        // Duplicate check (compare iso cells)
+        
 
         // Flags
         bool destructible = (tileCategory == eTileCategory::Buildings);
         bool isRoof = (tileCategory == eTileCategory::Roofs);
         TileProperties& tileProps = m_tileEditorPanel.GetSelectedTileProperties();
 
-       ;
+       
 
         // Place
         if (m_selectedEntity)
@@ -1003,7 +1009,7 @@ namespace Engine {
            OnOverlayRender();
            
            
-          
+           
            if (m_mouseIsInViewPort && m_sceneState == eSceneState::Edit)
            {
                std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
@@ -1024,17 +1030,29 @@ namespace Engine {
                    if (snapped != m_LastPlacedTilePos)
                    {
                        // 3. Place the tile and get the data back
-                       TileInfo placedTile = OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
 
-                       // 4. Record the action
-                       // Note: Only the FIRST tile in a stroke counts as 'CreatedNewEntity'
-                       Scope<PlaceTileCommand> cmd = std::make_unique<PlaceTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
-                           m_selectedEntity, placedTile, m_StrokeCreatedNewEntity);
+                       if(CanPlaceTile(selectedTile, isoCell))
+                       {
+                           TileInfo placedTile = OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
+                           EE_CORE_INFO(" placeed {}", isoCell);
 
-                       m_ActiveStroke->AddCommand(std::move(cmd));
+                           // 4. Record the action
+                           // Note: Only the FIRST tile in a stroke counts as 'CreatedNewEntity'
+                           Scope<PlaceTileCommand> cmd = std::make_unique<PlaceTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                               m_selectedEntity, placedTile, m_StrokeCreatedNewEntity);
 
-                       m_LastPlacedTilePos = snapped;
-                       m_StrokeCreatedNewEntity = false; // Reset for subsequent tiles in this stroke
+                           m_ActiveStroke->AddCommand(std::move(cmd));
+
+                           m_LastPlacedTilePos = snapped;
+                           m_StrokeCreatedNewEntity = false; // Reset for subsequent tiles in this stroke
+                       }
+                       else
+                       {
+                            EE_CORE_INFO("cant place {}", isoCell);
+
+                       }
+
+                       
                    }
                }
                else if (m_ActiveStroke)
@@ -1083,16 +1101,7 @@ namespace Engine {
         if (e.GetMouseButton() == Mouse::Button0)
         {
             std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
-            if (m_mouseIsInViewPort && selectedTile != "")
-            {
-                if (m_sceneState != eSceneState::Edit)
-                {
-                    return false;
-                }
-
-                EE_CORE_INFO("Selected tile: {}", selectedTile);
-				//OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
-            }
+            
 
             if (!ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt) && selectedTile == "")
             {
