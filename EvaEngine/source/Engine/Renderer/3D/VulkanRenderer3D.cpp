@@ -775,7 +775,9 @@ namespace Engine {
         */
         // Draw meshes
         DrawAll3DMeshesDepthOnly(cmd, frameIndex, shadowMap->GetShadowPipeline());
+        // In DrawShadowPass, after creating renderPassInfo:
 
+        // In UpdateShadowMapDescriptorSets:
 
         vkCmdEndRenderPass(cmd);
 
@@ -996,8 +998,8 @@ namespace Engine {
         write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         write.descriptorCount = 1;
         write.pImageInfo = &imageInfo;
-
         vkUpdateDescriptorSets(m_device, 1, &write, 0, nullptr);
+
     }
 
 

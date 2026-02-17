@@ -67,7 +67,7 @@ vec2 directionToOffset(uint direction)
 {
     switch (direction)
     {
-        case 0: return vec2( 0.0,   0.5);   // N
+        case 0: return vec2( 0.25,   0.5);   // N
         case 1: return vec2( 0.0,   0.75);   // S
         case 2: return vec2( -0.25,   0.5);   // E
         case 3: return vec2( 0.40,   0.65);   // W

@@ -138,29 +138,43 @@ layout(std430, set=0, binding=4) readonly buffer LightBuffer {
     GPUSpotLight spot[MAX_SPOT_LIGHTS];
 } lights;
 
-vec3 calculateDirectionalLight(GPUDirectionalLight light, vec3 normal, vec3 albedo) {
+vec3 calculateDirectionalLight(GPUDirectionalLight light, vec3 normal, vec3 albedo)
+{
     vec3 lightDir = normalize(-light.direction_intensity.xyz);
     float NdotL = max(dot(normal, lightDir), 0.0);
     return albedo * light.color.rgb * light.direction_intensity.w * NdotL;
 }
 
-vec3 calculatePointLight(GPUPointLight light, vec3 worldPos, vec3 normal, vec3 albedo) {
+vec3 calculatePointLight(GPUPointLight light, vec3 worldPos, vec3 normal, vec3 albedo)
+{
     vec3 toLight = light.position_radius.xyz - worldPos;
     float distance = length(toLight);
     float radius = light.position_radius.w;
-    if (distance > radius) return vec3(0.0);
+
+    if (distance > radius)
+    {
+        return vec3(0.0);
+    }
+
     vec3 lightDir = toLight / distance;
     float NdotL = max(dot(normal, lightDir), 0.0);
     float attenuation = 1.0 - (distance / radius);
     attenuation = attenuation * attenuation;
+
     return albedo * light.color_intensity.rgb * light.color_intensity.w * NdotL * attenuation;
 }
 
-vec3 calculateSpotLight(GPUSpotLight light, vec3 worldPos, vec3 normal, vec3 albedo) {
+vec3 calculateSpotLight(GPUSpotLight light, vec3 worldPos, vec3 normal, vec3 albedo)
+{
     vec3 toLight = light.position_range.xyz - worldPos;
     float distance = length(toLight);
     float range = light.position_range.w;
-    if (distance > range) return vec3(0.0);
+
+    if (distance > range)
+    {
+        return vec3(0.0);
+    }
+
     vec3 lightDir = toLight / distance;
     float NdotL = max(dot(normal, lightDir), 0.0);
     vec3 spotDir = normalize(-light.direction_inner.xyz);
@@ -173,15 +187,24 @@ vec3 calculateSpotLight(GPUSpotLight light, vec3 worldPos, vec3 normal, vec3 alb
     return albedo * light.color_outer.rgb * light.intensity_pad.x * NdotL * attenuation * spotEffect;
 }
 
-vec3 applyLighting(vec3 worldPos, vec3 normal, vec3 albedo, float ambientStrength) {
+vec3 applyLighting(vec3 worldPos, vec3 normal, vec3 albedo, float ambientStrength)
+{
     vec3 ambient = albedo * ambientStrength;
     vec3 lighting = ambient;
+
     for (uint i = 0; i < lights.header.numDir; ++i)
+    {
         lighting += calculateDirectionalLight(lights.dir[i], normal, albedo);
+    }
+
     for (uint i = 0; i < lights.header.numPoint; ++i)
+    {
         lighting += calculatePointLight(lights.point[i], worldPos, normal, albedo);
+    }
     for (uint i = 0; i < lights.header.numSpot; ++i)
+    {
         lighting += calculateSpotLight(lights.spot[i], worldPos, normal, albedo);
+    }
     return lighting;
 }
 
@@ -189,7 +212,7 @@ vec3 applyLighting(vec3 worldPos, vec3 normal, vec3 albedo, float ambientStrengt
 // SHADOWS
 // ============================================================================
 
-float ShadowFactor_3D(vec4 posLightSpace, float receiverY)
+float ShadowFactor_3D(vec4 posLightSpace, float receiverFootY)
 {
     vec3 proj = posLightSpace.xyz / posLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
@@ -197,30 +220,22 @@ float ShadowFactor_3D(vec4 posLightSpace, float receiverY)
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
         return 1.0;
 
-    float currentDepth = proj.z;
-    vec2 texelSize = 1.0 / vec2(textureSize(uShadowMap3D, 0));
-    float shadowSum = 0.0;
 
-    for (int y = -1; y <= 1; ++y) {
-        for (int x = -1; x <= 1; ++x) {
-            vec2 data = texture(uShadowMap3D, uv + vec2(x, y) * texelSize).rg;
-            
-            // FIX: If the shadow caster (data.g) is further back (smaller Y) 
-            // than the current pixel (receiverY), it cannot cast a shadow on us.
-            // Adjust the epsilon (0.1) based on your world scale.
-            if (data.g < receiverY - 0.1)
-            { 
-                shadowSum += 1.0; 
-                continue; 
-            }
-
-            shadowSum += (currentDepth <= data.r + 0.002) ? 1.0 : 0.0;
-        }
+    if (receiverFootY < player.playerFootY + 0.5) {
+        return 1.0; 
     }
-    return shadowSum / 9.0;
+
+    float currentDepth = proj.z;
+    float casterDepth = texture(uShadowMap3D, uv).r;
+
+    // Standard shadow check
+    return (currentDepth <= casterDepth + 0.002) ? 1.0 : 0.0;
 }
 
-float ShadowFactor_Tile(vec4 posLightSpace, float receiverY) {
+
+
+float ShadowFactor_Tile(vec4 posLightSpace, float receiverY)
+{
     vec3 proj = posLightSpace.xyz / posLightSpace.w;
     vec2 uv = proj.xy * 0.5 + 0.5;
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || proj.z > 1.0)
@@ -228,10 +243,16 @@ float ShadowFactor_Tile(vec4 posLightSpace, float receiverY) {
     float currentDepth = proj.z;
     vec2 texelSize = 1.0 / vec2(textureSize(uShadowMapTiles, 0));
     float shadowSum = 0.0;
-    for (int y = -1; y <= 1; ++y) {
-        for (int x = -1; x <= 1; ++x) {
+    for (int y = -1; y <= 1; ++y) 
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
             vec2 data = texture(uShadowMapTiles, uv + vec2(x, y) * texelSize).rg;
-            if (data.g - receiverY < 10.5) { shadowSum += 1.0; continue; }
+            if (data.g - receiverY < 10.5)
+            {
+                shadowSum += 1.0;
+                continue;
+            }
             shadowSum += (currentDepth <= data.r + 0.002) ? 1.0 : 0.0;
         }
     }
@@ -261,7 +282,10 @@ bool shouldFadeOcclusion(vec2 localPos, uint direction)
     float dist = distance(gl_FragCoord.xy, player.playerScreenPos);
     bool inFront = vFootY < player.playerFootY;
 
-    if (!inFront || dist >= player.fadeRadius) return false;
+    if (!inFront || dist >= player.fadeRadius)
+    {
+        return false;
+    }
 
     float closeness = 1.0 - (dist / player.fadeRadius);
     float cutoff = 1.0 - closeness * 0.66;
@@ -269,6 +293,7 @@ bool shouldFadeOcclusion(vec2 localPos, uint direction)
 
     return (localPos.y + tilt > cutoff);
 }
+
 
 float getOcclusionAlpha(vec2 localPos, uint direction)
 {
@@ -278,8 +303,10 @@ float getOcclusionAlpha(vec2 localPos, uint direction)
     bool inFront = vFootY < player.playerFootY;
 
     // If tile is behind player or far away, it's fully opaque
-    if (!inFront || dist >= player.fadeRadius) return 1.0;
-
+    if (!inFront || dist >= player.fadeRadius)
+    {
+        return 1.0;
+    }
     // 1. Calculate closeness (0.0 at edge of circle, 1.0 at center)
     float closeness = 1.0 - (dist / player.fadeRadius);
     
@@ -292,8 +319,8 @@ float getOcclusionAlpha(vec2 localPos, uint direction)
     float holeStrength = smoothstep(0.0, 0.5, localPos.y + tilt - (1.0 - closeness));
 
     // 3. Inverse the result: 0.0 means "hide", 1.0 means "show"
-    // We cap it at 0.3 so the wall never becomes completely invisible
-    return mix(1.0, 0.0, holeStrength);
+    // We cap it at 0.2 so the wall never becomes completely invisible
+    return mix(1.0, 0.2, holeStrength);
 }
 
 // ============================================================================
@@ -302,6 +329,8 @@ float getOcclusionAlpha(vec2 localPos, uint direction)
 
 void main()
 {
+
+
     bool isSprite = (vFlags & 1u) != 0u;
     vec4 base = isSprite
         ? texture(uSprites[nonuniformEXT(vSlot)], vUV)
@@ -322,7 +351,7 @@ void main()
     vec3 litColor = applyLighting(worldPos3D, normal, base.rgb, 0.2);
 
 
-    float shadow3D   = ShadowFactor_3D(vPosLightSpace, vWorldPos.y);
+    float shadow3D   = ShadowFactor_3D(vPosLightSpace, vFootY);
     float shadowTile = ShadowFactor_Tile(vPosLightSpace, vFootY);
     float shadow     = min(shadow3D, shadowTile);
 

@@ -44,7 +44,7 @@ void main()
     vec4 worldPos = inst.world * localPos;
     
     // Pass the actual Y position for the X-Ray occlusion check
-    vWorldY = worldPos.y;
+    vWorldY = inst.world[3].y;
 
     gl_Position = pc.lightVP * worldPos;
 }
@@ -60,4 +60,5 @@ void main()
     // R channel gets the standard 0-1 depth
     // G channel gets the World Y coordinate
     outData = vec2(gl_FragCoord.z, vWorldY);
+
 }
