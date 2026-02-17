@@ -316,7 +316,14 @@ float getOcclusionAlpha(vec2 localPos, uint direction)
     
     // This creates a soft gradient based on the height (localPos.y)
     // As the player gets closer, the "hole" grows taller
-    float holeStrength = smoothstep(0.0, 0.5, localPos.y + tilt - (1.0 - closeness));
+
+    // Soft 
+    //float holeStrength = smoothstep(0.0, 0.5, localPos.y + tilt - (1.0 - closeness));
+    // Hard
+    //float holeStrength = smoothstep(0.0, 0.05, localPos.y - (1.0 - closeness));
+    // Hardest (binary cut)
+    float holeStrength = localPos.y - (1.0 - closeness) > 0.0 ? 1.0 : 0.0;
+
 
     // 3. Inverse the result: 0.0 means "hide", 1.0 means "show"
     // We cap it at 0.2 so the wall never becomes completely invisible
