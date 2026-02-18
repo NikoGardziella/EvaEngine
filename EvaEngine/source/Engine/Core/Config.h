@@ -2,18 +2,20 @@
 #include <cstdint>
 
 //WINDOW
-
 constexpr size_t WINDOW_WIDTH = 1600;
 constexpr size_t WINDOW_HEIGHT = 900;
 
-
-// Engine constants
-constexpr int MAX_FRAMES_IN_FLIGHT = 3;
+//TILES
 constexpr size_t TILE_SIZE = 1;
 constexpr size_t TILE_PIXEL_WIDTH = 128;
 constexpr size_t TILE_PIXEL_HEIGHT = 256;
 constexpr float GRID_TILE_W = (float)TILE_SIZE;
 constexpr float GRID_TILE_H = GRID_TILE_W * 0.5f;
+constexpr uint32_t TILE_FILE_MAGIC = 0x544C4532; // "TLE2"
+constexpr uint32_t TILE_FILE_VERSION = 2;
+
+// Engine constants
+constexpr int MAX_FRAMES_IN_FLIGHT = 3;
 constexpr size_t MAX_TEXTURES = 32;
 constexpr size_t MAX_UI_TEXTURES = 32;
 constexpr size_t MAX_ALBEDO_TEXTURES = 256;
@@ -32,6 +34,7 @@ constexpr uint32_t WORD_BITS = 32;
 constexpr size_t PLAYER_COUNT = 1;
 constexpr size_t MAX_EXPLOSIONS = 32;
 constexpr size_t MAX_MATERIALS = 32;
+
 
 // lights
 static constexpr uint32_t MAX_DIR_LIGHTS = 1;

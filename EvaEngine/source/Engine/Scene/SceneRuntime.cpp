@@ -30,6 +30,7 @@
 #include "Components/NPC/NpcAIComponent.h"
 
 #include "Engine/Map/TextureStreaming/TextureStreamingSystem.h"
+#include "Engine/Map/Tile/TileManager.h"
 
 #include "Engine/Renderer/Renderer2D/VulkanRenderer2D.h"
 
@@ -187,6 +188,8 @@ namespace Engine {
 
 
         }
+        m_tileMananger->Update(this, playerPos);
+
         m_lightGatherSystem.Update(this);
         m_textureStreamingSystem->Update(playerPos, this);
 
@@ -356,6 +359,10 @@ namespace Engine {
                                     if (tile.Category == eTileCategory::Terrain)
                                         continue; // skip terrain
 
+                                    if (tile.Slot == UINT32_MAX)
+                                    {
+                                        continue;
+                                    }
 
                                     // Trivial submit: NO residency work here, just append an instance
                                     VulkanRenderer2D::SubmitDestructibleTile(

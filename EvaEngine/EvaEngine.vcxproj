@@ -79,7 +79,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLFW_INCLUDE_NONE;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;SPDLOG_NO_UNICODE;EE_DEBUG;EE_PROFILE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\installed\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\installed\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;vendor\lz4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -107,7 +107,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLFW_INCLUDE_NONE;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;SPDLOG_NO_UNICODE;EE_RELEASE;EE_PROFILE=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\installed\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\installed\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;vendor\lz4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -138,7 +138,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLFW_INCLUDE_NONE;YAML_CPP_STATIC_DEFINE;EE_PLATFORM_WINDOWS;EE_BUILD_DLL;SPDLOG_NO_UNICODE;EE_DIST;EE_PROFILE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\installed\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>source;vendor\spdlog\include;vendor\vcpkg\installed\x64-windows\include;vendor\GLFW\include;vendor\GLAD\include;vendor\nlohmannjson\include;vendor\Box2D\include;vendor\imgui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\enkiTS\src;vendor\yaml-cpp\include;vendor\ImGuizmo;C:\VulkanSDK\1.4.304.1\Include;C:\VulkanSDK\1.4.304.1\Include\shaderc;C:\VulkanSDK\1.4.304.1\Include\spirv_cross;vendor\tiny_gltf;vendor\lz4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -228,6 +228,8 @@
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h" />
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
     <ClInclude Include="source\Engine\Map\Tile\TileManager.h" />
+    <ClInclude Include="source\Engine\Map\Tile\TileStreaming.h" />
+    <ClInclude Include="source\Engine\Map\Tile\Utils\CompressUtils.h" />
     <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h" />
     <ClInclude Include="source\Engine\Map\Utils\IVec2Hasher.h" />
     <ClInclude Include="source\Engine\Map\Utils\IsoTileUtils.h" />
@@ -774,6 +776,8 @@
     <ClInclude Include="vendor\glm\glm\vec3.hpp" />
     <ClInclude Include="vendor\glm\glm\vec4.hpp" />
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
+    <ClInclude Include="vendor\lz4\lz4.h" />
+    <ClInclude Include="vendor\lz4\lz4hc.h" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
     <ClInclude Include="vendor\stb_image\stb_image_write.h" />
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
@@ -819,6 +823,7 @@
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\TileStreaming.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp" />
     <ClCompile Include="source\Engine\Math\Math.cpp" />
     <ClCompile Include="source\Engine\Platform\OpenGl\OpenGLBuffer.cpp" />
@@ -905,6 +910,8 @@
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp">
       <AdditionalOptions>/Y- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="vendor\lz4\lz4_wrapper.cpp" />
+    <ClCompile Include="vendor\lz4\lz4hc_wrapper.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp" />
   </ItemGroup>

@@ -7,6 +7,7 @@
 #include <Engine/Platform/Vulkan/VulkanContext.h>
 #include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 #include <Engine/Map/Projectile/ProjectileVisualRegistry.h>
+#include <Engine/Map/Grid/TileCollisionMask.h>
 
 namespace Engine {
 
@@ -18,36 +19,36 @@ namespace Engine {
     
     void TileManager::BuildInitialResidency(Scene* scene)
     {
-
         VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EvictAllTiles();
         EE_PROFILE_FUNCTION();
 
+        // Initialize streaming system
+        StreamingConfig config;
+        config.gpuRadius = 30.0f;
+        config.cpuRadius = 60.0f;
+        config.hysteresis = 2.0f;
+        config.maxTransitionsPerFrame = 4;
+        config.cachePath = "tile_cache";
+        m_streaming.InitTileStreaming(this, config);
+
         {
             EE_PROFILE_SCOPE("get tile center");
-
             m_centerByUID.clear();
             scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
                 [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& id) {
-                
                     for (size_t i = 0; i < tc.tiles.size(); ++i)
                     {
                         const TileInfo& t = tc.tiles[i];
                         if (t.Category == eTileCategory::Terrain) continue;
-
                         glm::vec2 center = glm::vec2(tr.Translation) + t.position;
-                        m_centerByUID[t.UID] = center; // cache thios
-
+                        m_centerByUID[t.UID] = center;
                     }
                 });
-
         }
 
         VulkanContext* ctx = VulkanContext::Get();
         VkCommandBuffer cb = ctx->BeginSingleTimeCommands();
 
-     
-
-        // For each UID we’ve prepared, upload once and write descriptors.
         for (const auto& [uid, col] : m_colorByUID)
         {
             auto pit = m_propsByUID.find(uid);
@@ -57,17 +58,30 @@ namespace Engine {
                 continue;
             }
             const PropsTemplate& pr = pit->second;
-           
+
             uint32_t slot = VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EnsureTileResidentFromRaw(uid,
                 col.rgba.data(), col.rgba.size(), pr.rgba.data(), pr.rgba.size(), cb);
-
             m_slotByUID[uid] = slot;
 
+            // *** NEW: Register with streaming system ***
+            glm::vec2 center = { 0.0f, 0.0f };
+            auto cit = m_centerByUID.find(uid);
+            if (cit != m_centerByUID.end()) center = cit->second;
+
+            // Get opaque bounds if available, otherwise default to full tile
+            glm::ivec2 opaqueMin = { 0, 0 };
+            glm::ivec2 opaqueMax = { TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT };
+            // opaqueMin = tileInfo.opaqueMin;
+            // opaqueMax = tileInfo.opaqueMax;
+
+            m_streaming.RegisterTile(uid, center,
+                col.rgba, pr.rgba,
+                opaqueMin, opaqueMax,
+                "", // tileName — fill in if you have it
+                slot);
         }
 
-
         ctx->EndSingleTimeCommands(cb);
-
 
         scene->ForEach<TileComponent>([&](Entity e, TileComponent& tc)
             {
@@ -77,18 +91,15 @@ namespace Engine {
                     if (it != m_slotByUID.end()) t.Slot = it->second;
                 }
             });
-
-
+        
         uint64_t bulletUID = HashUtils::MakeTileUID_String("bullet_sprite");
-
         uint32_t bulletSlot = GetSlotForUID(bulletUID);
         ProjectileVisual::RegisterVisual(ProjectileVisualType::Bullet, bulletUID, bulletSlot);
 
         uint64_t grenadeUID = HashUtils::MakeTileUID_String("grenade");
-
         uint32_t grenadeSlot = GetSlotForUID(grenadeUID);
         ProjectileVisual::RegisterVisual(ProjectileVisualType::Grenade, grenadeUID, grenadeSlot);
-
+        
     }
 
 
@@ -114,6 +125,7 @@ namespace Engine {
                         // deltaGround == t.position in layout
                         uid = HashUtils::MakeTileUID((uint64_t)idComp.ID, tile.position, float(TILE_SIZE));
                     }
+                    EE_CORE_INFO("tile build template {}", uid);
 
                     // Skip if already cached
                     if (m_colorByUID.count(uid) && m_propsByUID.count(uid))
@@ -137,7 +149,7 @@ namespace Engine {
                     m_propsByUID.emplace(uid, PropsTemplate{ w, h, std::move(propsRGBA) });
                 }
             });
-
+        
         {
             // projectiles
             std::vector<uint8_t> colorRGBA;
@@ -219,6 +231,16 @@ namespace Engine {
         m_propsByUID.rehash(0);
     }
 
+    void TileManager::Update(Scene* scene, glm::vec2 playerPos)
+    {
+        m_streaming.SyncDirtyFlags(TileBlockedMaskCPU::DirtyTileRuntime);
+
+        m_streaming.UpdateStreaming(scene, playerPos);
+    }
 
 
+    void TileManager::Shutdown()
+    {
+         m_streaming.Shutdown();
+      }
 }

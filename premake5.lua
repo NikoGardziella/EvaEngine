@@ -68,6 +68,10 @@ project "EvaEngine"
         buildoptions { "/Y-" }
     filter {}
 
+    filter { "files:**/vendor/lz4/lz4.c" }
+        enablepch "Off"
+    filter {}
+
     multiprocessorcompile "On"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -95,7 +99,10 @@ project "EvaEngine"
         "%{prj.name}/vendor/Box2D/include/**.h",
         "%{prj.name}/vendor/enkiTS/src/TaskScheduler.h",
         "%{prj.name}/vendor/enkiTS/src/TaskScheduler.cpp",
-
+        "%{prj.name}/vendor/lz4/lz4.h",
+        "%{prj.name}/vendor/lz4/lz4_wrapper.cpp",
+        "%{prj.name}/vendor/lz4/lz4hc.h",
+        "%{prj.name}/vendor/lz4/lz4hc_wrapper.cpp",
         "assets/shaders/*"
     }
 
@@ -128,7 +135,8 @@ project "EvaEngine"
         "%{IncludeDir.VulkanSDK}",
         "%{IncludeDir.shaderc}",
         "%{IncludeDir.SPIRV_Cross}",
-        "%{IncludeDir.tiny_gltf}"
+        "%{IncludeDir.tiny_gltf}",
+        "%{IncludeDir.lz4}"
     }
 
     libdirs

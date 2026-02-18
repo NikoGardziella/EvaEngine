@@ -142,6 +142,9 @@ namespace Engine {
         m_drawCount = 0;
     }
 
+
+
+
     void VulkanBindlessDescriptorSetRenderer::AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot,
         glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation, TileDirection  tileDirection)
     {
@@ -202,6 +205,124 @@ namespace Engine {
             EE_CORE_ERROR("Failed to create tile sampler");
 
         }
+    }
+    void VulkanBindlessDescriptorSetRenderer::EvictTile(uint64_t uid)
+    {
+        auto it = m_tileToSlot.find(uid);
+        if (it == m_tileToSlot.end()) return;
+    
+
+        uint32_t slot = it->second;
+
+        EE_CORE_INFO("registered tile uid:{}  | slot{}", uid, slot);
+
+
+        m_colorLayerPool.Release(slot);
+        m_propsLayerPool.Release(slot);
+        m_tileToSlot.erase(it);
+    }
+
+    void VulkanBindlessDescriptorSetRenderer::ReadbackArrayLayer(uint32_t slot, std::vector<uint8_t>& outColor, std::vector<uint8_t>& outProps)
+    {
+        VulkanContext* ctx = VulkanContext::Get();
+        VkDevice device = ctx->GetDeviceManager().GetDevice();
+
+        const size_t byteSize = size_t(m_tileW) * size_t(m_tileH) * 4;
+
+        // Create staging buffer
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingMemory;
+
+        VkBufferCreateInfo bufInfo{};
+        bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufInfo.size = byteSize;
+        bufInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        vkCreateBuffer(device, &bufInfo, nullptr, &stagingBuffer);
+
+        VkMemoryRequirements memReqs;
+        vkGetBufferMemoryRequirements(device, stagingBuffer, &memReqs);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memReqs.size;
+        allocInfo.memoryTypeIndex = ctx->FindMemoryType(
+            memReqs.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        vkAllocateMemory(device, &allocInfo, nullptr, &stagingMemory);
+        vkBindBufferMemory(device, stagingBuffer, stagingMemory, 0);
+
+        auto readLayer = [&](VkImage srcImage, VkImageLayout srcLayout,
+            std::vector<uint8_t>& outData)
+            {
+                outData.resize(byteSize);
+
+                VkCommandBuffer cb = ctx->BeginSingleTimeCommands();
+
+                // Transition to transfer src
+                VkImageMemoryBarrier barrier{};
+                barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                barrier.oldLayout = srcLayout;
+                barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+                barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                barrier.image = srcImage;
+                barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                barrier.subresourceRange.baseMipLevel = 0;
+                barrier.subresourceRange.levelCount = 1;
+                barrier.subresourceRange.baseArrayLayer = slot;
+                barrier.subresourceRange.layerCount = 1;
+
+                vkCmdPipelineBarrier(cb,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                    VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+                // Copy image layer to staging buffer
+                VkBufferImageCopy region{};
+                region.bufferOffset = 0;
+                region.bufferRowLength = 0;
+                region.bufferImageHeight = 0;
+                region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                region.imageSubresource.mipLevel = 0;
+                region.imageSubresource.baseArrayLayer = slot;
+                region.imageSubresource.layerCount = 1;
+                region.imageOffset = { 0, 0, 0 };
+                region.imageExtent = { m_tileW, m_tileH, 1 };
+
+                vkCmdCopyImageToBuffer(cb, srcImage,
+                    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                    stagingBuffer, 1, &region);
+
+                // Transition back
+                barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                barrier.newLayout = srcLayout;
+                barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+                vkCmdPipelineBarrier(cb,
+                    VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                    0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+                ctx->EndSingleTimeCommands(cb);
+
+                // Map and copy
+                void* mapped;
+                vkMapMemory(device, stagingMemory, 0, byteSize, 0, &mapped);
+                memcpy(outData.data(), mapped, byteSize);
+                vkUnmapMemory(device, stagingMemory);
+            };
+
+        // Read color
+        readLayer(m_colorArrayImage, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, outColor);
+
+        // Read props
+        readLayer(m_propsArrayImage, VK_IMAGE_LAYOUT_GENERAL, outProps);
+
+        // Cleanup staging
+        vkDestroyBuffer(device, stagingBuffer, nullptr);
+        vkFreeMemory(device, stagingMemory, nullptr);
     }
 
 
@@ -480,12 +601,7 @@ namespace Engine {
         WriteInstanceBufferToDescriptor(m_device, m_bindlessSet[frameIndex], m_instanceBuffer.buf[frameIndex]);
     }
 
-    void VulkanBindlessDescriptorSetRenderer::Upload(uint32_t frameIndex)
-    {
-        
-        WriteInstanceBufferToDescriptor(m_device, m_bindlessSet[frameIndex], m_instanceBuffer.buf[frameIndex]);
-    }
-
+ 
     void VulkanBindlessDescriptorSetRenderer::CreateTilesPipelineLayout(VkDevice device)
     {
         VkPushConstantRange pc{};
@@ -588,6 +704,7 @@ namespace Engine {
         const VkImageUsageFlags usage =
             VK_IMAGE_USAGE_SAMPLED_BIT |
             VK_IMAGE_USAGE_STORAGE_BIT |
+            VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
             VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
         VkPhysicalDeviceProperties props{};
@@ -711,6 +828,7 @@ namespace Engine {
         ci.tiling = VK_IMAGE_TILING_OPTIMAL;
         ci.usage = VK_IMAGE_USAGE_STORAGE_BIT |
             VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+            VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
             VK_IMAGE_USAGE_SAMPLED_BIT; // for effects
         ci.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
@@ -1467,12 +1585,24 @@ namespace Engine {
         vkCmdDraw(cmd, 36, m_drawCount , 0, 0); 
     }
 
-   
+    uint32_t VulkanBindlessDescriptorSetRenderer::GetTileSlotWithUid(uint64_t uid)
+    {
+        if (auto it = m_tileToSlot.find(uid); it != m_tileToSlot.end())
+        {
+            return it->second;
+        }
+        return UINT32_MAX;
+    }
+
     uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResident(uint64_t uid,  const glm::vec4& atlasUV,
         VkCommandBuffer uploadCmd)
     {
         if (auto it = m_tileToSlot.find(uid); it != m_tileToSlot.end())
+        {
             return it->second;
+        }
+
+       
 
         const uint32_t layer = m_colorLayerPool.Acquire();
         VkImageView colorView = m_colorLayerPool.View(layer);

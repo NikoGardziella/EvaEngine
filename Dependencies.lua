@@ -25,7 +25,8 @@ IncludeDir = {
     ImGuizmo  = R(VENDOR_DIR .. "/ImGuizmo"),
     enkiTS    = R(VENDOR_DIR .. "/enkiTS/src"),
     tiny_gltf = R(VENDOR_DIR .. "/tiny_gltf"),
-    ImGuizmo = R(VENDOR_DIR .. "/ImGuizmo"),
+    ImGuizmo  = R(VENDOR_DIR .. "/ImGuizmo"),
+    lz4       = R(VENDOR_DIR .. "/lz4"),
 
     vcpkg     = R(VCPKG_INSTALLED .. "/include"),
     curl      = R(VCPKG_INSTALLED .. "/include"),

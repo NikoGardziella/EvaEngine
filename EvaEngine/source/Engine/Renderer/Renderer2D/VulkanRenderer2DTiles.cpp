@@ -247,7 +247,14 @@ namespace Engine {
 			glm::ivec2 qpos = HashUtils::QuantizeToTile(submitTile.localPos, float(TILE_SIZE));
 			const uint64_t uid = submitTile.nameHash;
 
-			const uint32_t slot = s_bindlessDescitproRenderer->EnsureTileResident(uid, submitTile.atlasUV, uploadCB);
+
+
+
+			const uint32_t slot = s_bindlessDescitproRenderer->GetTileSlotWithUid(uid);
+			if (slot == UINT32_MAX)
+			{
+				continue;
+			}
 
 			// CENTER is provided by you:
 			const glm::vec2 center = submitTile.worldPos + submitTile.localPos;
@@ -259,6 +266,7 @@ namespace Engine {
 			const float zKey = groundY * 1024.0f + submitTile.zBias + tie;
 
 			// Pass the real world size so the quad matches exactly
+			
 			s_bindlessDescitproRenderer->AddInstance(center, zKey, slot, 0.0f,submitQueu[i].tileDirection, submitTile.outOpaqueMin, submitTile.outOpaqueMax,0u);
 
 			// Compute wants bottom-left in world units

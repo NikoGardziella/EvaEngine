@@ -241,6 +241,9 @@
     <Filter Include="vendor\glm\glm\gtx">
       <UniqueIdentifier>{B3A6A76B-9F8A-68C1-08EB-6214F4ED5243}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\lz4">
+      <UniqueIdentifier>{5CB6C5A8-486E-07F6-B175-E0519D4CA2E6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
     </Filter>
@@ -439,6 +442,9 @@
       <Filter>source\Engine\Map\Tile</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\TileManager.h">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\TileStreaming.h">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h">
@@ -2079,6 +2085,12 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\lz4\lz4.h">
+      <Filter>vendor\lz4</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\lz4\lz4hc.h">
+      <Filter>vendor\lz4</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
@@ -2087,6 +2099,9 @@
     </ClInclude>
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\Utils\CompressUtils.h">
+      <Filter>source\Engine\Map\Tile\Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2208,6 +2223,9 @@
       <Filter>source\Engine\Map\Tile</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\TileStreaming.cpp">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp">
@@ -2449,6 +2467,12 @@
     </ClCompile>
     <ClCompile Include="vendor\enkiTS\src\TaskScheduler.cpp">
       <Filter>vendor\enkiTS\src</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\lz4\lz4_wrapper.cpp">
+      <Filter>vendor\lz4</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\lz4\lz4hc_wrapper.cpp">
+      <Filter>vendor\lz4</Filter>
     </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>

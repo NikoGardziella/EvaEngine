@@ -74,7 +74,7 @@
     physics: 7.165 ms
 
 
-}			EE_CORE_WARN("Unsupported layout transition: {} -> {}", std::to_string(oldLayout), std::to_string(newLayout));
+}			
 
 
 
@@ -237,7 +237,8 @@ ebuild completed at 13.53 and took 02:26,381 minutes
     8. more culling
     9. tile streaming
 
-    10. tile transparendy when over player?
+    10. tile transparendy when over player? done
+    11.. bring back the roof
 }
 22.01.2026
 {

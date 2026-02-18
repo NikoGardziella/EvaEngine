@@ -960,6 +960,11 @@ namespace Engine {
 		
 		for (const SpriteSubmit& s : animationQueu)
 		{
+			if (s.slot == UINT32_MAX)
+			{
+				continue;
+			}
+
 			s_bindlessDescitproRenderer->AddSpriteInstance(s.center, s.zKey, s.slot, s.uvMin16, s.uvMax16, s.sizeWorld, s.rotation, TileDirection::Unknown);
 		}
 

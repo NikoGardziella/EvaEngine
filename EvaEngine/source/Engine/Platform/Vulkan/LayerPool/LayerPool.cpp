@@ -12,7 +12,8 @@ namespace Engine {
         m_format = format;
         m_views.resize(layerCount);
 
-        for (uint32_t i = 0; i < layerCount; ++i) {
+        for (uint32_t i = 0; i < layerCount; ++i)
+        {
             VkImageViewCreateInfo vi{};
             vi.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
             vi.pNext = nullptr;

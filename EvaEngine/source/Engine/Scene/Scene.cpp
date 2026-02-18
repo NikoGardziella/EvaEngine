@@ -222,6 +222,7 @@ namespace Engine {
 
 
         m_textureStreamingSystem->UnloadAllChunks(this);
+        m_tileMananger->Shutdown();
     }
 
     void Scene::PauseRuntime()

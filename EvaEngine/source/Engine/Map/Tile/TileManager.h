@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
+#include "TileStreaming.h"
 
 namespace Engine {
 
@@ -17,6 +18,8 @@ namespace Engine {
 
 		void BuildTemplatesForScene(Scene* scene);
 		void ClearTemplates();
+		void Update(Scene* scene, glm::vec2 playerPos);
+		void Shutdown();
 		void SetTileWorldSize(float w, float h)
 		{
 			m_tileWorldW = w; 
@@ -50,6 +53,19 @@ namespace Engine {
 			return it->second;
 		}
 		
+		bool GetOriginalTileData(uint64_t uid,
+			const std::vector<uint8_t>*& outColor,
+			const std::vector<uint8_t>*& outProps) const
+		{
+			auto cit = m_colorByUID.find(uid);
+			auto pit = m_propsByUID.find(uid);
+			if (cit == m_colorByUID.end() || pit == m_propsByUID.end())
+				return false;
+			outColor = &cit->second.rgba;
+			outProps = &pit->second.rgba;
+			return true;
+		}
+
 	private:
 
 
@@ -65,6 +81,8 @@ namespace Engine {
 		std::vector<glm::vec2> m_slotOriginWorld; 
 		float m_tileWorldW = TILE_PIXEL_WIDTH;              
 		float m_tileWorldH = TILE_PIXEL_HEIGHT;
+
+		TileStreamingSystem m_streaming;
 	};
 }
 
