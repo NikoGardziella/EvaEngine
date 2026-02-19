@@ -14,6 +14,8 @@
 #include <utility>
 #include <Engine/Map/Utils/IVec2Hasher.h>
 #include <Engine/Core/Assert.h>
+#include <lz4hc.c>
+#include <filesystem>
 
 
 namespace Engine {
@@ -21,40 +23,91 @@ namespace Engine {
 
 	TextureStreamingSystem::TextureStreamingSystem()
     {
-      
+        std::filesystem::create_directories(m_chunkCachePath);
     }
 
     TextureStreamingSystem::~TextureStreamingSystem()
     {
 
     }
-
     void TextureStreamingSystem::Update(const glm::vec2& playerPos, Scene* scene)
     {
         EE_PROFILE_FUNCTION();
 
         bool chunksPackedDirty = false;
-
         glm::ivec2 playerChunk = glm::ivec2(glm::floor(playerPos / float(CHUNK_SIZE)));
-        if (m_chunkMap.empty())
-        {
-            return;
-        }
+
+        if (m_chunkMap.empty()) return;
+
+      
+        int transitions = 0;
+
         for (auto& [id, chunk] : m_chunkMap)
         {
+            if (transitions >= MAX_TRANSITIONS) break;
+
             glm::ivec2 chunkCoords = chunk.ChunkCoords;
-            int dist = std::max(glm::abs(chunkCoords.x - playerChunk.x), glm::abs(chunkCoords.y - playerChunk.y));
+            int dist = std::max(
+                glm::abs(chunkCoords.x - playerChunk.x),
+                glm::abs(chunkCoords.y - playerChunk.y));
 
-            if (dist <= LOAD_RADIUS && !chunk.IsLoaded)
+            switch (chunk.Residency)
             {
-                LoadChunkToGPU(chunk, scene);
-                chunksPackedDirty = true;
-            }
-            else if (dist > UNLOAD_RADIUS && chunk.IsLoaded)
-            {
-                UnloadChunkFromGPU(chunk, scene);
-                chunksPackedDirty = true;
+            case ChunkResidency::GPU:
+                if (dist > UNLOAD_RADIUS)
+                {
+                    UnloadChunkFromGPU(chunk, scene);
+                    chunk.Residency = ChunkResidency::CPU;
+                    chunksPackedDirty = true;
+                    transitions++;
 
+                    if (dist > DISK_RADIUS)
+                    {
+                        FlushChunkToDisk(chunk);
+                        chunk.Residency = ChunkResidency::Disk;
+                        transitions++;
+                    }
+                }
+                break;
+
+            case ChunkResidency::CPU:
+                if (dist <= LOAD_RADIUS)
+                {
+                    LoadChunkToGPU(chunk, scene);
+                    chunk.Residency = ChunkResidency::GPU;
+                    chunksPackedDirty = true;
+                    transitions++;
+                }
+                else if (dist > DISK_RADIUS)
+                {
+                    FlushChunkToDisk(chunk);
+                    chunk.Residency = ChunkResidency::Disk;
+                    transitions++;
+                }
+                break;
+
+            case ChunkResidency::Disk:
+                if (dist <= LOAD_RADIUS)
+                {
+                    LoadChunkFromDisk(chunk, scene);
+                    chunk.Residency = ChunkResidency::CPU;
+                    transitions++;
+
+                    if (transitions < MAX_TRANSITIONS)
+                    {
+                        LoadChunkToGPU(chunk, scene);
+                        chunk.Residency = ChunkResidency::GPU;
+                        chunksPackedDirty = true;
+                        transitions++;
+                    }
+                }
+                else if (dist <= UNLOAD_RADIUS)
+                {
+                    LoadChunkFromDisk(chunk, scene);
+                    chunk.Residency = ChunkResidency::CPU;
+                    transitions++;
+                }
+                break;
             }
         }
 
@@ -62,7 +115,6 @@ namespace Engine {
         {
             SortChunksRowMajor(scene);
         }
-
     }
 
     void TextureStreamingSystem::UnloadAllChunks(Scene* scene)
@@ -77,27 +129,20 @@ namespace Engine {
         m_chunkMap.rehash(0);
     }
 
-    void TextureStreamingSystem::UploadToChunkFromTexture(
-        const glm::vec2& worldPosition,
-        UUID id,
-        const std::string& name,
-        const std::vector<uint8_t>& textureData,      // RGBA8, row 0 = bottom (already flipped)
+    void TextureStreamingSystem::UploadToChunkFromTexture(const glm::vec2& worldPosition,
+        UUID id, const std::string& name, const std::vector<uint8_t>& textureData,
         const std::vector<uint8_t>& propertiesData,   // RGBA8UI: R=health, G=height, B=mask/effect scratch, A=[category:flags]
-        uint32_t textureWidth,
-        uint32_t textureHeight)
+        uint32_t textureWidth, uint32_t textureHeight)
     {
         EE_PROFILE_FUNCTION();
 
-        // square grid (1:1 chunk ratio)
         const int CELL = int(TILE_PIXEL_WIDTH);
         const int chunkWpx = int(CHUNK_SIZE) * CELL;
         const int chunkHpx = chunkWpx;
 
-        // world -> atlas pixel coords (bottom-origin)
         const int groundPxX = int(std::floor(worldPosition.x * float(CELL)));
         const int groundPxY = int(std::floor(worldPosition.y * float(CELL)));
 
-        // placement: keep your previous convention
         const int destX0_global = groundPxX - int(textureWidth) / 2;
         const int destY0_global = groundPxY - 1;
         const int dstX1_global = destX0_global + int(textureWidth);
@@ -118,6 +163,7 @@ namespace Engine {
         }
 
         for (int cy = minChunkY; cy <= maxChunkY; ++cy)
+        {
             for (int cx = minChunkX; cx <= maxChunkX; ++cx)
             {
                 const glm::ivec2 chunkCoords(cx, cy);
@@ -126,7 +172,6 @@ namespace Engine {
 
                 const size_t totalPixels = size_t(chunkWpx) * size_t(chunkHpx);
 
-                // allocate destination buffers on demand
                 if (!textureData.empty() && chunk.PixelData.empty())
                 {
                     chunk.PixelData.assign(totalPixels * 4, 0);
@@ -171,7 +216,7 @@ namespace Engine {
 
                 for (int dstY = top; dstY < bottom; ++dstY)
                 {
-                    const int srcY = dstY - destY0_global; // source row 0 = bottom
+                    const int srcY = dstY - destY0_global;
                     if ((unsigned)srcY >= textureHeight)
                     {
                         continue;
@@ -223,7 +268,6 @@ namespace Engine {
                             const uint8_t sPb = propertiesData[si + 2];
                             const uint8_t sPa = propertiesData[si + 3];
 
-                            // coverage gate: follow texture alpha if available; else assume covered
                             const uint8_t sAcov = textureData.empty() ? 255 : textureData[si + 3];
 
                             wroteProps |= TextureStreamingUtils::MergePropertiesPixel(
@@ -239,19 +283,13 @@ namespace Engine {
                     chunk.IsDirty = true;
                 }
             }
+        }
+            
     }
 
-
-
-
    
-    void TextureStreamingSystem::UploadTerrainToChunkFromTexture(
-        const glm::vec2& worldPosition,
-        UUID id,
-        std::string name,
-        const std::vector<uint8_t>& textureData,   
-        uint32_t textureWidth,
-        uint32_t textureHeight)
+    void TextureStreamingSystem::UploadTerrainToChunkFromTexture(const glm::vec2& worldPosition, UUID id, std::string name,
+        const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight)
     {
         EE_PROFILE_FUNCTION();
 
@@ -280,6 +318,8 @@ namespace Engine {
         
         EE_CORE_ASSERT(textureData.size() >= size_t(textureWidth) * textureHeight * 4, "terrain textureData too small");
         for (int cy = minChunkY; cy <= maxChunkY; ++cy)
+        {
+
             for (int cx = minChunkX; cx <= maxChunkX; ++cx)
             {
                 const glm::ivec2 chunkCoords(cx, cy);
@@ -345,6 +385,8 @@ namespace Engine {
 
                 chunk.IsDirty = true;
             }
+        }
+
     }
 
 
@@ -742,6 +784,251 @@ namespace Engine {
 		EE_CORE_INFO("Added {} chunk entities to registry", m_chunkMap.size());
     }
 
+    void TextureStreamingSystem::FlushChunkToDisk(TextureChunk& chunk)
+    {
+        EE_PROFILE_FUNCTION();
+
+        if (!chunk.IsDirtyPixels)
+        {
+            // Never modified — can reconstruct from BakeTilesIntoChunks later
+            chunk.TerrainData.clear();
+            chunk.TerrainData.shrink_to_fit();
+            chunk.PixelData.clear();
+            chunk.PixelData.shrink_to_fit();
+            chunk.PropertiesData.clear();
+            chunk.PropertiesData.shrink_to_fit();
+
+            EE_CORE_TRACE("ChunkStreaming: CPU -> Disk (clean) [{},{}]",
+                chunk.ChunkCoords.x, chunk.ChunkCoords.y);
+            return;
+        }
+
+        std::string path = GetChunkDiskPath(chunk.ChunkCoords);
+        std::ofstream out(path, std::ios::binary);
+        if (!out.is_open())
+        {
+            EE_CORE_ERROR("ChunkStreaming: failed to write '{}'", path);
+            return;
+        }
+
+        // Magic + version
+        uint32_t magic = 0x434E4B32; // "CNK2"
+        uint32_t version = 1;
+        out.write((const char*)&magic, 4);
+        out.write((const char*)&version, 4);
+
+        // Chunk metadata
+        out.write((const char*)&chunk.Width, 4);
+        out.write((const char*)&chunk.Height, 4);
+        out.write((const char*)&chunk.ChunkCoords, sizeof(glm::ivec2));
+
+        // Flags: which buffers are present
+        uint8_t flags = 0;
+        if (!chunk.TerrainData.empty())    flags |= 0x01;
+        if (!chunk.PixelData.empty())      flags |= 0x02;
+        if (!chunk.PropertiesData.empty()) flags |= 0x04;
+        out.write((const char*)&flags, 1);
+
+        auto writeCompressed = [&](const std::vector<uint8_t>& data)
+            {
+                uint32_t originalSize = static_cast<uint32_t>(data.size());
+                int maxSize = LZ4_compressBound(originalSize);
+                std::vector<uint8_t> compressed(maxSize);
+                int compressedSize = LZ4_compress_HC(
+                    (const char*)data.data(),
+                    (char*)compressed.data(),
+                    originalSize, maxSize,
+                    LZ4HC_CLEVEL_DEFAULT);
+
+                uint32_t compSize = static_cast<uint32_t>(compressedSize);
+                out.write((const char*)&originalSize, 4);
+                out.write((const char*)&compSize, 4);
+                out.write((const char*)compressed.data(), compressedSize);
+            };
+
+        if (flags & 0x01) writeCompressed(chunk.TerrainData);
+        if (flags & 0x02) writeCompressed(chunk.PixelData);
+        if (flags & 0x04) writeCompressed(chunk.PropertiesData);
+
+        out.close();
+
+        // Free RAM
+        chunk.TerrainData.clear();
+        chunk.TerrainData.shrink_to_fit();
+        chunk.PixelData.clear();
+        chunk.PixelData.shrink_to_fit();
+        chunk.PropertiesData.clear();
+        chunk.PropertiesData.shrink_to_fit();
+
+       
+    }
+
+    void TextureStreamingSystem::LoadChunkFromDisk(TextureChunk& chunk, Scene* scene)
+    {
+        EE_PROFILE_FUNCTION();
+
+        if (!chunk.IsDirtyPixels)
+        {
+            // Clean chunk — reconstruct from atlas
+            ReconstructChunkFromAtlas(chunk, scene);
+            EE_CORE_TRACE("ChunkStreaming: Disk -> CPU (from atlas) [{},{}]",
+                chunk.ChunkCoords.x, chunk.ChunkCoords.y);
+            return;
+        }
+
+        std::string path = GetChunkDiskPath(chunk.ChunkCoords);
+        std::ifstream in(path, std::ios::binary);
+        if (!in.is_open())
+        {
+            EE_CORE_ERROR("ChunkStreaming: failed to read '{}', falling back to atlas", path);
+            ReconstructChunkFromAtlas(chunk, scene);
+            chunk.IsDirtyPixels = false;
+            return;
+        }
+
+        uint32_t magic, version;
+        in.read((char*)&magic, 4);
+        in.read((char*)&version, 4);
+
+        if (magic != 0x434E4B32 || version != 1)
+        {
+            EE_CORE_ERROR("ChunkStreaming: invalid file '{}'", path);
+            in.close();
+            ReconstructChunkFromAtlas(chunk, scene);
+            chunk.IsDirtyPixels = false;
+            return;
+        }
+
+        in.read((char*)&chunk.Width, 4);
+        in.read((char*)&chunk.Height, 4);
+        in.read((char*)&chunk.ChunkCoords, sizeof(glm::ivec2));
+
+        uint8_t flags;
+        in.read((char*)&flags, 1);
+
+        auto readCompressed = [&](std::vector<uint8_t>& data)
+            {
+                uint32_t originalSize, compSize;
+                in.read((char*)&originalSize, 4);
+                in.read((char*)&compSize, 4);
+
+                std::vector<uint8_t> compressed(compSize);
+                in.read((char*)compressed.data(), compSize);
+
+                data.resize(originalSize);
+                LZ4_decompress_safe(
+                    (const char*)compressed.data(),
+                    (char*)data.data(),
+                    compSize, originalSize);
+            };
+
+        if (flags & 0x01) readCompressed(chunk.TerrainData);
+        if (flags & 0x02) readCompressed(chunk.PixelData);
+        if (flags & 0x04) readCompressed(chunk.PropertiesData);
+
+        in.close();
+
+        EE_CORE_TRACE("ChunkStreaming: Disk -> CPU [{},{}]",
+            chunk.ChunkCoords.x, chunk.ChunkCoords.y);
+    }
+
+    std::string TextureStreamingSystem::GetChunkDiskPath(const glm::ivec2& coords) const
+    {
+        return m_chunkCachePath + "/chunk_" +
+            std::to_string(coords.x) + "_" +
+            std::to_string(coords.y) + ".chunk";
+    }
+    void TextureStreamingSystem::ReconstructChunkFromAtlas(TextureChunk& chunk, Scene* scene)
+    {
+        EE_PROFILE_FUNCTION();
+
+        const int CELL = int(TILE_PIXEL_WIDTH);
+        const int chunkWpx = int(CHUNK_SIZE) * CELL;
+        const int chunkHpx = chunkWpx;
+
+        size_t totalPixels = size_t(chunkWpx) * size_t(chunkHpx);
+        chunk.TerrainData.assign(totalPixels * 4, 0);
+        chunk.Width = uint32_t(chunkWpx);
+        chunk.Height = uint32_t(chunkHpx);
+
+        const int chunkX0 = chunk.ChunkCoords.x * chunkWpx;
+        const int chunkY0 = chunk.ChunkCoords.y * chunkHpx;
+        const int chunkX1 = chunkX0 + chunkWpx;
+        const int chunkY1 = chunkY0 + chunkHpx;
+
+        scene->ForEach<TransformComponent, TileComponent>(
+            [&](Entity entity, TransformComponent& transformComp, TileComponent& tileComp)
+            {
+                for (const TileInfo& tile : tileComp.tiles)
+                {
+                    if (tile.Category != eTileCategory::Terrain)
+                        continue;
+
+                    const float yoffset = 1.0f;
+                    glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
+                    worldTilePos.y += yoffset;
+
+                    const int groundPxX = int(std::floor(worldTilePos.x * float(CELL)));
+                    const int groundPxY = int(std::floor(worldTilePos.y * float(CELL)));
+
+                    const int estX0 = groundPxX - int(TILE_PIXEL_WIDTH) / 2;
+                    const int estY0 = groundPxY - 1;
+                    const int estX1 = estX0 + int(TILE_PIXEL_WIDTH);
+                    const int estY1 = estY0 + int(TILE_PIXEL_HEIGHT);
+
+                    if (estX1 <= chunkX0 || estX0 >= chunkX1 ||
+                        estY1 <= chunkY0 || estY0 >= chunkY1)
+                        continue;
+
+                    std::vector<uint8_t> pixelData;
+                    int w = 0, h = 0;
+                    if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, w, h))
+                        continue;
+
+                    const int destX0 = groundPxX - w / 2;
+                    const int destY0 = groundPxY - 1;
+
+                    const int left = std::max(destX0, chunkX0);
+                    const int right = std::min(destX0 + w, chunkX1);
+                    const int top = std::max(destY0, chunkY0);
+                    const int bottom = std::min(destY0 + h, chunkY1);
+
+                    if (left >= right || top >= bottom)
+                        continue;
+
+                    for (int dstY = top; dstY < bottom; ++dstY)
+                    {
+                        const int srcY = dstY - destY0;
+                        if (srcY < 0 || srcY >= h) continue;
+
+                        const int dstY_inChunk = dstY - chunkY0;
+                        const size_t dstRow = size_t(dstY_inChunk) * size_t(chunkWpx) * 4;
+                        const size_t srcRow = size_t(srcY) * size_t(w) * 4;
+
+                        for (int dstX = left; dstX < right; ++dstX)
+                        {
+                            const int srcX = dstX - destX0;
+                            if (srcX < 0 || srcX >= w) continue;
+
+                            const int dstX_inChunk = dstX - chunkX0;
+                            const size_t si = srcRow + size_t(srcX) * 4;
+                            const size_t di = dstRow + size_t(dstX_inChunk) * 4;
+
+                            const uint8_t a = pixelData[si + 3];
+                            if (!a) continue;
+
+                            chunk.TerrainData[di + 0] = pixelData[si + 0];
+                            chunk.TerrainData[di + 1] = pixelData[si + 1];
+                            chunk.TerrainData[di + 2] = pixelData[si + 2];
+                            chunk.TerrainData[di + 3] = a;
+                        }
+                    }
+                }
+            }
+        );
+
+        
+    }
 
     void TextureStreamingSystem::DebugMarkChunks()
     {
@@ -849,7 +1136,7 @@ namespace Engine {
 
     namespace fs = std::filesystem;
     void TextureStreamingSystem::DumpRGBA(const std::string& filename, int w, int h, const std::vector<uint8_t>& rgba) {
-        fs::path folder = "C:/EvaEngine/debug";
+        fs::path folder = "D:/EvaEngine/debug";
         fs::create_directories(folder);
         fs::path out = folder / filename;
 

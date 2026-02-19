@@ -14,6 +14,10 @@ constexpr float GRID_TILE_H = GRID_TILE_W * 0.5f;
 constexpr uint32_t TILE_FILE_MAGIC = 0x544C4532; // "TLE2"
 constexpr uint32_t TILE_FILE_VERSION = 2;
 
+//texture streming
+constexpr size_t CHUNK_SIZE = 16;
+constexpr size_t GRID_SUBDIVISIONS = 3;
+
 // Engine constants
 constexpr int MAX_FRAMES_IN_FLIGHT = 3;
 constexpr size_t MAX_TEXTURES = 32;
@@ -23,8 +27,7 @@ constexpr size_t MAX_PROJECTILES = 64;
 constexpr size_t MAX_COLLISION_ENTITIES = 64;
 constexpr size_t MAX_COLLISION_RESULTS = 32;
 constexpr size_t MAX_3D_INSTANCES = 1024;
-constexpr size_t CHUNK_SIZE = 16;
-constexpr size_t GRID_SUBDIVISIONS = 3;
+
 constexpr size_t MAX_RESIDENT_LAYERS = 1024;
 constexpr size_t MAX_SPRITESHEETS = 128;
 constexpr size_t MAX_TILES_IN_CLEAR_BUFFER = 16;

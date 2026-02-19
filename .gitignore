@@ -101,4 +101,11 @@ EvaEngine/vendor/vcpkg/downloads/
 *.vcxproj.filters
 *.vcxproj.user
 
+
+#tiles and chunk on disk¨
+EvaEngine/build/vs2022/tile_cache/
+*.tile
+EvaEngine/build/vs2022/chunk_cache/
+
+
 *.enc

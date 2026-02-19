@@ -10,7 +10,9 @@ namespace Engine{
     const int UNLOAD_RADIUS = 1; 
     const int CHUNK_GRID_WIDTH = LOAD_RADIUS * 2 + 1;
     const int CHUNK_GRID_SIZE = CHUNK_GRID_WIDTH * CHUNK_GRID_WIDTH;
+    const int DISK_RADIUS = UNLOAD_RADIUS + 3;
 
+    const int MAX_TRANSITIONS = 2;
 
 
 
@@ -23,7 +25,15 @@ namespace Engine{
 
     private:
 
-        struct TextureChunk {
+        enum class ChunkResidency : uint8_t
+        {
+            GPU,    // on GPU + CPU
+            CPU,    // CPU only
+            Disk    // flushed to disk
+        };
+
+        struct TextureChunk 
+        {
             UUID ID;
             std::string Name;
             std::string AssetName;
@@ -41,10 +51,13 @@ namespace Engine{
             uint32_t Height = 0;
             uint32_t TextureCount = 0;
             uint32_t RenderSlot = 0;
-
-
+            ChunkResidency Residency = ChunkResidency::CPU;
+            bool IsDirtyPixels = false;
 
         };
+
+
+        
 
     public:
         TextureStreamingSystem();
@@ -68,6 +81,10 @@ namespace Engine{
         void BakeTilesIntoChunks(Scene* scene);
         void SortIsoTilesByY(Scene* scene);
         void AddChunkEntitiesToRegistry(Scene* scene);
+        void FlushChunkToDisk(TextureChunk& chunk);
+        void LoadChunkFromDisk(TextureChunk& chunk, Scene* scene);
+        std::string GetChunkDiskPath(const glm::ivec2& coords) const;
+        void ReconstructChunkFromAtlas(TextureChunk& chunk, Scene* scene);
         void DebugMarkChunks();
         //debug
         void ResetAllChunks(Scene* scene);
@@ -90,7 +107,7 @@ namespace Engine{
         std::unordered_map<UUID, TextureChunk> m_chunkMap;
         Ref<GridMap> m_gridMap;
 
-        
+        std::string m_chunkCachePath = "chunk_cache";
 
     };
 

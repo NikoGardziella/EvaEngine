@@ -191,7 +191,6 @@ namespace Engine {
 
         UpdateTileSlot(scene, entry.uid, entry.slot);
 
-        EE_CORE_TRACE("TileStreaming: CPU -> GPU [uid={:016x} '{}' slot={}]", entry.uid, entry.tileName, entry.slot);
 
         entry.residency = TileResidency::GPU;
     }
@@ -215,8 +214,7 @@ namespace Engine {
             entry.propsData.clear();
             entry.propsData.shrink_to_fit();
 
-            EE_CORE_TRACE("TileStreaming: CPU -> Disk (clean, no write) [uid={:016x} '{}']",
-                entry.uid, entry.tileName);
+          
 
             entry.residency = TileResidency::Disk;
             return;
@@ -300,9 +298,7 @@ namespace Engine {
         uint32_t savedSize = colorCompSize + propsCompSize;
         float ratio = fullSize > 0 ? (float(savedSize) / float(fullSize)) * 100.0f : 0.0f;
 
-        EE_CORE_TRACE("TileStreaming: CPU -> Disk [uid={:016x} '{}' rect={}x{} full={} saved={} ({:.1f}%)]",
-            entry.uid, entry.tileName, w, h, fullSize, savedSize, ratio);
-
+    
         // Free RAM
         entry.colorData.clear();
         entry.colorData.shrink_to_fit();
@@ -329,8 +325,7 @@ namespace Engine {
             // Clean tile — reconstruct from atlas, no disk read
             ReconstructFromAtlas(entry);
             entry.residency = TileResidency::CPU;
-            EE_CORE_TRACE("TileStreaming: Disk -> CPU (from atlas) [uid={:016x} '{}']",
-                entry.uid, entry.tileName);
+        
             return;
         }
 
@@ -412,8 +407,7 @@ namespace Engine {
         CompressUtils::InsertSubRect(entry.colorData, colorSub, TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT, x0, y0, w, h);
         CompressUtils::InsertSubRect(entry.propsData, propsSub, TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT, x0, y0, w, h);
 
-        EE_CORE_TRACE("TileStreaming: Disk -> CPU [uid={:016x} '{}' rect={}x{}]",
-            entry.uid, entry.tileName, w, h);
+        
 
         entry.residency = TileResidency::CPU;
     }
@@ -437,7 +431,6 @@ namespace Engine {
         {
             entry.colorData = *color;
             entry.propsData = *props;
-            EE_CORE_TRACE("TileStreaming: reconstructed from atlas [uid={:016x}]", entry.uid);
         }
         else
         {
