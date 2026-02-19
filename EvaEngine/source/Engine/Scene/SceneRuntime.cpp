@@ -244,16 +244,23 @@ namespace Engine {
                         // chunkComp.TerrainTexture->SetTextureOrigin(worldPos); 
                         // chunkComp.VisualEffectTexture->SetTextureOrigin(worldPos);
 
-                        glm::mat4 model =
-                            glm::translate(glm::mat4(1.0f),
+                        glm::mat4 model = glm::translate(glm::mat4(1.0f),
                                 glm::vec3(worldPos.x, worldPos.y, 0.0f))
                             * glm::scale(glm::mat4(1.0f),
                                 glm::vec3(CHUNK_SIZE, CHUNK_SIZE, 1.0f));
 
 
 
-                        Engine::VulkanRenderer2D::DrawVisualEffectTexture(model, chunkComp.VisualEffectTexture);
                         Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.TerrainTexture);
+
+                        glm::mat4 modelVisualEffects = glm::translate(glm::mat4(1.0f),
+                            glm::vec3(worldPos.x, worldPos.y, 1.0f))
+                            * glm::scale(glm::mat4(1.0f),
+                                glm::vec3(CHUNK_SIZE, CHUNK_SIZE, 1.0f));
+
+
+
+                        Engine::VulkanRenderer2D::DrawVisualEffectTexture(modelVisualEffects, chunkComp.VisualEffectTexture);
 
 
                     }
