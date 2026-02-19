@@ -28,6 +28,7 @@
 #include "Systems/Player/Animation/CharacterAnimationControllerSystem.h"
 #include <Engine/UI/WeaponHUD.h>
 #include "Systems/Player/PlayerMovementSystem.h"
+#include "Systems/Environment/DayNightSystem.h"
 
 
 PixelGame::PixelGame(const std::string scene)
@@ -88,6 +89,7 @@ void PixelGame::RegisterSystems()
 	m_activeScene->RegisterSystem(EquippedWeaponAttachSystem::UpdateEquippedWeaponAttachSystem);
 	m_activeScene->RegisterSystem(CharacterAnimStateSystem::UpdateCharacterAnimStateSystem);
 	m_activeScene->RegisterSystem(CharacterAnimationControllerSystem::UpdateCharacterAnimationControllerSystem);
+	m_activeScene->RegisterSystem(DayNightSystem::UpdateDayNightSystem);
 
 }
 

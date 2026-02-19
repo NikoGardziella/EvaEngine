@@ -30,6 +30,7 @@
 #include "Components/UI/HUDStateComponent.h"
 #include "Components/Player/PlayerVisionComponent.h"
 #include "Components/Player/CharacterControllerComponent.h"
+#include "Components/Environment/DayNightComponent.h"
 
 namespace Engine {
 
@@ -192,7 +193,14 @@ namespace Engine {
         lightComp.directionWS = glm::normalize(glm::vec3(0.0f, -0.7f, -0.7f));
        
         SpawnPlayer();
+
+        Entity sun = CreateEntity("DayNight");
+        auto& dn = sun.AddComponent<DayNightComponent>();
+        dn.dayLengthSeconds = 600.0f;
+        dn.timeNormalized = 0.35f; // ~8:24 AM
+
     }
+
 
 
 

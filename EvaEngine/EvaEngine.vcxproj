@@ -164,6 +164,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DayNightComponent.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h" />
@@ -304,6 +305,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Combat\ThrowableComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponDef.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Environment\DayNightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\DirectionalLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\PointLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\SpotLightComponent.h" />

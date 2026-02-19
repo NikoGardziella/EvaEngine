@@ -250,6 +250,9 @@
     <Filter Include="vendor\tiny_gltf">
       <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Components\Environment">
+      <UniqueIdentifier>{5a537caa-99f8-410a-a426-10188712441b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Engine.h">
@@ -2103,6 +2106,10 @@
     <ClInclude Include="source\Engine\Map\Tile\Utils\CompressUtils.h">
       <Filter>source\Engine\Map\Tile\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="DayNightComponent.h">
+      <Filter>source\Engine\Scene\Components\Environment</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Environment\DayNightComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">

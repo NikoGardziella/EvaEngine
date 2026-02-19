@@ -25,6 +25,7 @@
 #include <Engine/Scene/Components/Light/PointLightComponent.h>
 #include <Engine/Scene/Components/Light/DirectionalLightComponent.h>
 #include <imgui_internal.h>
+#include <Engine/Scene/Components/Environment/DayNightComponent.h>
 
 
 namespace Engine {
@@ -1261,6 +1262,45 @@ namespace Engine {
                     m_sceneHierarchyPanelScene->GetRegistry().get<BoxCollider2DComponent>(newEntity) = component;
                 }
 
+            });
+
+
+        DrawComponent<DayNightComponent>("Day Night Cycle", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
+            {
+                // Time control
+                float hours = component.timeNormalized * 24.0f;
+                if (ImGui::SliderFloat("Time of Day", &hours, 0.0f, 24.0f, "%.1f h"))
+                    component.timeNormalized = hours / 24.0f;
+
+                int h = int(hours);
+                int m = int((hours - float(h)) * 60.0f);
+                ImGui::Text("Clock: %02d:%02d", h, m);
+
+                ImGui::Checkbox("Paused", &component.paused);
+                ImGui::DragFloat("Time Scale", &component.timeScale, 0.1f, 0.1f, 20.0f);
+                ImGui::DragFloat("Day Length (s)", &component.dayLengthSeconds, 1.0f, 10.0f, 7200.0f);
+
+                ImGui::Separator();
+
+                // Sun orbit
+                ImGui::DragFloat("Orbit Tilt", &component.orbitTiltDeg, 0.5f, 0.0f, 90.0f);
+                ImGui::DragFloat("Sun Min Angle", &component.sunMinAngleDeg, 0.5f, -30.0f, 0.0f);
+                ImGui::DragFloat("Sun Max Angle", &component.sunMaxAngleDeg, 0.5f, 30.0f, 90.0f);
+
+                ImGui::Separator();
+
+                // Read-only computed values
+                ImGui::Text("Sun Dir: %.2f, %.2f, %.2f", component.sunDirection.x, component.sunDirection.y, component.sunDirection.z);
+                ImGui::Text("Sun Intensity: %.2f", component.sunIntensity);
+                ImGui::ColorEdit3("Sun Color", glm::value_ptr(component.sunColor), ImGuiColorEditFlags_NoInputs);
+                ImGui::ColorEdit3("Ambient Color", glm::value_ptr(component.ambientColor), ImGuiColorEditFlags_NoInputs);
+                ImGui::Text("Ambient Intensity: %.2f", component.ambientIntensity);
+
+                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
+                if (newEntity)
+                {
+                    m_sceneHierarchyPanelScene->GetRegistry().get<DayNightComponent>(newEntity) = component;
+                }
             });
         
         DrawComponent<DirectionalLightComponent>("Directional Light", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
