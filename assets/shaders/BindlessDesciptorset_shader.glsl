@@ -46,7 +46,17 @@ void main()
     vec2 q = quad[gl_VertexIndex];
 
     vec2 anchor = inst[i].worldPos;
-    vec2 local = vec2((q.x - 0.5) * inst[i].size.x, q.y * inst[i].size.y);
+    vec2 local;
+    if (inst[i].size.y < 0.5)
+    {
+        // Small object (projectile): center both axes
+        local = vec2((q.x - 0.5) * inst[i].size.x, (q.y - 0.5) * inst[i].size.y);
+    }
+    else
+    {
+        // Tile: bottom-center anchor
+        local = vec2((q.x - 0.5) * inst[i].size.x, q.y * inst[i].size.y);
+    }
 
     float ang = inst[i].rotation;
     float c = cos(ang);

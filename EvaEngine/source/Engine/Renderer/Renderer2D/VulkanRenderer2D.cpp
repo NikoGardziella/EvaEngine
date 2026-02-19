@@ -171,6 +171,7 @@ namespace Engine {
 		AssetManager::AddTexture("ui_weapon_bazooka", Engine::AssetManager::GetAssetPath("textures/UI/HUD/bazooka.png").string(), false);
 		AssetManager::AddTexture("ui_weapon_rifle", Engine::AssetManager::GetAssetPath("textures/UI/HUD/Assault_rifle.png").string(), false);
 		AssetManager::AddTexture("ui_weapon_grenade", Engine::AssetManager::GetAssetPath("textures/UI/HUD/grenade.png").string(), false);
+		AssetManager::AddTexture("ui_weapon_shotgun", Engine::AssetManager::GetAssetPath("textures/UI/HUD/shotgun.png").string(), false);
 		
 		AssetManager::AddTexture("Idle_gun_000", Engine::AssetManager::GetAssetPath("textures/Idle_gun_000.png").string(), false);
 		AssetManager::AddTexture("ee_logo", Engine::AssetManager::GetAssetPath("textures/ee_logo.png").string(), false);

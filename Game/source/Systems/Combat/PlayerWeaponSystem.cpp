@@ -242,24 +242,24 @@ void PlayerWeaponSystem::FireShotgunWeapon(Engine::Entity player, Engine::Transf
     for (uint32_t i = 0; i < pellets; ++i)
     {
         glm::vec2 dir = baseDir;
-
         if (spreadRad > 0.0f)
         {
-            // Random angle offset in [-spread/2, spread/2]
             const float offset = glm::linearRand(-spreadRad * 0.5f, spreadRad * 0.5f);
             const float c = std::cos(offset);
             const float s = std::sin(offset);
-
             dir = glm::vec2(
                 baseDir.x * c - baseDir.y * s,
                 baseDir.x * s + baseDir.y * c
             );
         }
 
-        // Correct end position in world space for this pellet
-        const glm::vec2 pelletEndWorld = origin + dir * travelDist;
+        glm::vec2 perp = glm::vec2(-baseDir.y, baseDir.x);
+        float backOffset = glm::linearRand(-0.05f, 0.2f);
+        float sideOffset = glm::linearRand(-0.08f, 0.08f);
+        glm::vec2 pelletOrigin = origin - baseDir * backOffset + perp * sideOffset;
 
-        SpawnProjectileEntity(scene, player, origin, dir, weaponComp, pelletEndWorld);
+        const glm::vec2 pelletEndWorld = pelletOrigin + dir * travelDist;
+        SpawnProjectileEntity(scene, player, pelletOrigin, dir, weaponComp, pelletEndWorld);
     }
 }
 

@@ -235,7 +235,7 @@ ebuild completed at 13.53 and took 02:26,381 minutes
     6. vehicles
     7. fix draw order. done
     8. more culling
-    9. tile streaming
+    9. tile streaming - done
 
     10. tile transparendy when over player? done
     11.. bring back the roof
@@ -260,7 +260,22 @@ ebuild completed at 13.53 and took 02:26,381 minutes
      took 02:42,767 minutes afterchangin engine include to scene forward declaration in ssytems
 }
 
+
+
+
 09.02.2026
 {
     
+}
+
+{
+    TODO.
+    1. sounds system
+    2. roof.
+    3. vehicle
+    4.map editor.
+    5. physics pushback from explosions etc,
+    6.shotgun fix
+    7. day system 
+
 }

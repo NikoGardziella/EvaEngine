@@ -263,7 +263,8 @@ namespace Engine {
 
 		if (s_VulkanData.VisualTextureSlotIndex >= VulkanRenderer2DData::GridSize)
 		{
-			EE_CORE_ASSERT(false, "visual Texture slot index exceeded maximum limit!");
+			//EE_CORE_ASSERT(false, "visual Texture slot index exceeded maximum limit!");
+			EE_CORE_WARN("visual Texture slot index exceeded maximum limit!");
 			return;
 		}
 

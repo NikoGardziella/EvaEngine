@@ -96,7 +96,7 @@ namespace Engine {
 
         void BeginFrame(uint32_t frameIndex);
         void AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation, TileDirection  tileDirection);
-        void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, TileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, uint32_t flags = 0);
+        void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, TileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, glm::vec2 size,uint32_t flags = 0);
         void EndFrameAndUpload(uint32_t frameIndex);
         void UpdateTileParams(uint32_t frameIndex, glm::vec2 playerPos, glm::vec2 playerSCreenPos, float playerFootY) const;
 

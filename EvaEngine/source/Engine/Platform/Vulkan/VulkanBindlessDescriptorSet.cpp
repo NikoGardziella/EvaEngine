@@ -163,16 +163,15 @@ namespace Engine {
     }
 
 
-    void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, TileDirection  tileDirection, const glm::ivec2 opaqueMin, const glm::ivec2 opaqueMax, uint32_t flags)
+    void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, TileDirection  tileDirection, const glm::ivec2 opaqueMin, const glm::ivec2 opaqueMax, glm::vec2 size, uint32_t flags)
     {
-        glm::vec2 size = glm::vec2(TILE_SIZE, TILE_SIZE * 2); // 1:2 ratio per tile
 
         RenderInstance I{};
         I.worldPos = worldPos;   // center point (as before)
         I.size = size;
         I.zSortKey = zSortKey;
         I.slot = slot;
-        I.flags = (flags & ~1u);              // ensure isSprite = 0 for tiles
+        I.flags = flags;              // ensure isSprite = 0 for tiles
         I._pad0 = 0;
         I.uvMin16 = { 0u, 0u };                 // full texture UVs
         I.uvMax16 = { 65535u, 65535u };

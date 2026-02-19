@@ -254,7 +254,7 @@ namespace Engine {
                         Engine::VulkanRenderer2D::DrawTextureQuad(model, chunkComp.TerrainTexture);
 
                         glm::mat4 modelVisualEffects = glm::translate(glm::mat4(1.0f),
-                            glm::vec3(worldPos.x, worldPos.y, 1.0f))
+                            glm::vec3(worldPos.x, worldPos.y, 0.01f))
                             * glm::scale(glm::mat4(1.0f),
                                 glm::vec3(CHUNK_SIZE, CHUNK_SIZE, 1.0f));
 
@@ -586,7 +586,6 @@ namespace Engine {
                         projectilePos.x = projectileTransform.Translation.x;
                         projectilePos.y = projectileTransform.Translation.y;
                         glm::vec2 randomOffset = glm::vec2(0.0f, 1.0f);
-                        projectilePos = projectilePos - randomOffset;
                         const float backOffset = 0.5f;
 
                         // make sure direction is normalized (optional if you already guarantee it)
@@ -594,13 +593,11 @@ namespace Engine {
                         if (glm::length2(dir) > 0.0f)
                             dir = glm::normalize(dir);
 
-                        // move slightly *behind* the direction
-                        glm::vec2 projectilePosTipOffset = projectilePos;
-                        projectilePosTipOffset += dir * backOffset;
+                       
 
                         // make struct
 
-                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePosTipOffset, projectile.ProjectileRadius, IDComp.ID,
+                        Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.ProjectileRadius, IDComp.ID,
                             eCollisionType::PROJECTILE, projectile.Damage, projectile.DestructionRadius, projectile.Direction,
                             projectile.TargetPositionAtFireTime, projectile.DistanceToTargetatFireTime, projectile.TargetPositionHeightZ1);
 
@@ -610,7 +607,9 @@ namespace Engine {
                         // this could be set somwhere
                         const glm::ivec2 outOpaqueMin = glm::ivec2(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
                         const glm::ivec2 outOpaqueMax = glm::ivec2(0);
-                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation, TileDirection::Center, outOpaqueMin, outOpaqueMax);
+
+                        glm::vec2 size = glm::vec2(0.4f, 0.4f);
+                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation, TileDirection::Center, outOpaqueMin, outOpaqueMax, size);
 
                     }
 
