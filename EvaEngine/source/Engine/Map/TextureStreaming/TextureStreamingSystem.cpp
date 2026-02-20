@@ -288,23 +288,37 @@ namespace Engine {
     }
 
    
-    void TextureStreamingSystem::UploadTerrainToChunkFromTexture(const glm::vec2& worldPosition, UUID id, std::string name,
+    void TextureStreamingSystem::UploadTerrainToChunkFromTexture(glm::vec2& worldPosition, UUID id, std::string name,
         const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight)
     {
         EE_PROFILE_FUNCTION();
 
         const int CELL_W = int(TILE_PIXEL_WIDTH);
-        const int CELL_H = int(TILE_PIXEL_WIDTH); // this is intended 
+       // const int CELL_H = int(TILE_PIXEL_WIDTH); // this is intended 
+        const int CELL_H = int(TILE_PIXEL_WIDTH);
         const int chunkWpx = int(CHUNK_SIZE) * CELL_W;
         const int chunkHpx = int(CHUNK_SIZE) * CELL_H;
 
-        const int groundPxX = int(std::floor(worldPosition.x * float(CELL_W)));
-        const int groundPxY = int(std::floor(worldPosition.y * float(CELL_H)));
+
+   
+
+
+        const int groundPxX = floor(worldPosition.x * CELL_W);
+        const int groundPxY = floor(worldPosition.y * CELL_H);
+
 
         const int destX0_global = groundPxX - int(textureWidth) / 2;
-        const int destY0_global = groundPxY - int(textureHeight) + CELL_H;
+        const int destY0_global = groundPxY - int(textureHeight);
         const int dstX1_global = destX0_global + int(textureWidth);
         const int dstY1_global = destY0_global + int(textureHeight);
+      
+        EE_CORE_INFO("Terrain '{}': world=({:.3f},{:.3f}) dest=({},{}) to ({},{}) size={}x{}",
+            name,
+            worldPosition.x, worldPosition.y,
+            destX0_global, destY0_global,
+            dstX1_global, dstY1_global,
+            textureWidth, textureHeight);
+
 
         auto floorDiv = [](int a, int b) {
             int q = a / b, r = a % b;
@@ -374,7 +388,9 @@ namespace Engine {
                         const size_t di = dstRow + size_t(dstX_inChunk) * 4;
 
                         const uint8_t a = textureData[si + 3];
-                        if (!a) continue;
+                        if (a == 0) continue; // skip transparent atlas background
+                        if (a < chunk.TerrainData[di + 3]) continue; // don't overwrite more opaque pixels
+
 
                         chunk.TerrainData[di + 0] = textureData[si + 0];
                         chunk.TerrainData[di + 1] = textureData[si + 1];
@@ -698,21 +714,26 @@ namespace Engine {
                     if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, w, h))
                         continue;
 
+
+                    
                     // If you also mark blocked subtiles, do it here
                     // m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData, w, h);
 
                     UploadTerrainToChunkFromTexture(worldTilePos, tileComp.TileID,
                         tile.name, pixelData, static_cast<uint32_t>(w), static_cast<uint32_t>(h));
+
+
+                    
+
                 }
             }
         );
 
-
+        
        
 
         // DebugMarkChunks();
     }
-
 
     void TextureStreamingSystem::SortIsoTilesByY(Scene* scene)
     {
@@ -968,8 +989,8 @@ namespace Engine {
                     glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
                     worldTilePos.y += yoffset;
 
-                    const int groundPxX = int(std::floor(worldTilePos.x * float(CELL)));
-                    const int groundPxY = int(std::floor(worldTilePos.y * float(CELL)));
+                    const int groundPxX = int(std::round(worldTilePos.x * float(CELL)));
+                    const int groundPxY = int(std::round(worldTilePos.y * float(CELL)));
 
                     const int estX0 = groundPxX - int(TILE_PIXEL_WIDTH) / 2;
                     const int estY0 = groundPxY - 1;

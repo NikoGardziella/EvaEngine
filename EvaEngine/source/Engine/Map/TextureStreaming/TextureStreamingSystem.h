@@ -72,13 +72,14 @@ namespace Engine{
 		void TextureStreamingSystem::UploadToChunkFromTexture(const glm::vec2& worldPosition, UUID ID,
             const std::string& name, const std::vector<uint8_t>& textureData, const std::vector<uint8_t>& propertiesData, uint32_t textureWidth, uint32_t textureHeight);
 
-        void UploadTerrainToChunkFromTexture(const glm::vec2& worldPosition, UUID ID, std::string name, const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
+        void UploadTerrainToChunkFromTexture(glm::vec2& worldPosition, UUID ID, std::string name, const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
         
 		std::unordered_map<UUID, TextureChunk>& GetChunkMap() { return m_chunkMap; }
 
         void SetGridMap(Ref<GridMap>& gridmap) { m_gridMap = gridmap; }
             
         void BakeTilesIntoChunks(Scene* scene);
+        void FillTerrainGaps(TextureChunk& chunk);
         void SortIsoTilesByY(Scene* scene);
         void AddChunkEntitiesToRegistry(Scene* scene);
         void FlushChunkToDisk(TextureChunk& chunk);
@@ -91,9 +92,9 @@ namespace Engine{
         void DebugDrawChunkOutlines(Scene* scene);
         
         
-        bool DebugWriteTGA32(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
-        bool DebugWritePPM(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
-        void DumpRGBA(const std::string& filename, int w, int h, const std::vector<uint8_t>& rgba);
+        static bool DebugWriteTGA32(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
+        static bool DebugWritePPM(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
+        static void DumpRGBA(const std::string& filename, int w, int h, const std::vector<uint8_t>& rgba);
     private:
         void SortChunksRowMajor(Scene* scene);
         uint64_t HashCoords(const glm::ivec2& coords);

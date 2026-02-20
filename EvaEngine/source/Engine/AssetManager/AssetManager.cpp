@@ -8,6 +8,7 @@
 #include <Engine/Animation/3D/Import/GLTFImporter.h>
 #include <Engine/Animation/3D/MeshRegistry.h>
 #include <Engine/UI/Font.h>
+#include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
 
 
 
@@ -242,13 +243,28 @@ namespace Engine {
 
         uint32_t texWidth = texture->GetWidth();
         uint32_t texHeight = texture->GetHeight();
+
+
+        static bool atlasDumped = false;
+        if (!atlasDumped)
+        {
+            TextureStreamingSystem::DumpRGBA("atlas.tga", texWidth, texHeight, pixelData);
+            atlasDumped = true;
+        }
+
+       
+     
         constexpr uint32_t channels = 4; // Assuming RGBA8 format
 
         // Convert normalized UVs to absolute pixel coordinates
-        uint32_t x0 = static_cast<uint32_t>(uv.x * texWidth);
-        uint32_t y0 = static_cast<uint32_t>(uv.y * texHeight);
-        uint32_t x1 = static_cast<uint32_t>(uv.z * texWidth);
-        uint32_t y1 = static_cast<uint32_t>(uv.w * texHeight);
+        auto& props = AssetManager::GetTileProperties(tile.name);
+        uint32_t x0 = props.pixelRect.x ;  // match the 0.5px 1px inset
+        uint32_t y0 = props.pixelRect.y ;
+        outWidth = props.pixelRect.w - 2;    // 126
+        outHeight = props.pixelRect.h - 2;    // 254
+
+        uint32_t x1 = static_cast<uint32_t>(uv.z * texWidth);  // floor truncation
+        uint32_t y1 = static_cast<uint32_t>(uv.w * texHeight);  // floor trunc
 
         // Sanity check
         if (x1 <= x0 || y1 <= y0 || x1 > texWidth || y1 > texHeight)
@@ -256,15 +272,18 @@ namespace Engine {
             EE_CORE_ERROR("Invalid UV bounds for extraction: ({}, {}, {}, {})", uv.x, uv.y, uv.z, uv.w);
             return false;
         }
+        EE_CORE_INFO("UV region: {}x{} at ({},{})", x1 - x0, y1 - y0, x0, y0);
+   
 
-        outWidth = x1 - x0;
-        outHeight = y1 - y0;
+       
         outPixelData.resize(outWidth * outHeight * channels);
 
-        for (uint32_t y = 0; y < outHeight; ++y) {
-            for (uint32_t x = 0; x < outWidth; ++x) {
-                uint32_t srcX = flipHorizontal ? (x1 - 1 - x) : (x0 + x);
-                uint32_t srcY = flipVertical ? (y1 - 1 - y) : (y0 + y);
+        for (uint32_t y = 0; y < outHeight; ++y)
+        {
+            for (uint32_t x = 0; x < outWidth; ++x)
+            {
+                uint32_t srcX = flipHorizontal ? (x0 + outWidth - 1 - x) : (x0 + x);
+                uint32_t srcY = flipVertical ? (y0 + outHeight - 1 - y) : (y0 + y);
 
                 size_t srcIndex = (srcY * texWidth + srcX) * channels;
                 size_t dstIndex = (y * outWidth + x) * channels;
@@ -272,6 +291,10 @@ namespace Engine {
                 memcpy(&outPixelData[dstIndex], &pixelData[srcIndex], channels);
             }
         }
+        
+            TextureStreamingSystem::DumpRGBA("outPixelData.tga", outWidth, outHeight, outPixelData);
+        
+
 
         return true;
     }
@@ -605,7 +628,7 @@ namespace Engine {
 
         // Packing params
         constexpr int ATLAS_W = 1024;   // 8 iso cells per row at 128px width
-        constexpr int GUTTER = 1;      // px between tiles to prevent bleeding
+        constexpr int GUTTER = 5;      // px between tiles to prevent bleeding
         const int atlasWidth = ATLAS_W;
 
         int currentX = GUTTER;
