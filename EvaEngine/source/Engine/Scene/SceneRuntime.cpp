@@ -455,6 +455,47 @@ namespace Engine {
                 }
 
                 {
+
+                    EE_PROFILE_SCOPE("Car update"); // RMEOVE=
+
+                    ForEachConst<TransformComponent,  VehicleComponent, IDComponent>(
+                        [&](Entity e, const TransformComponent& vehicleTransformComp, const VehicleComponent& vehicleComp, const IDComponent& carIDComponent)
+                        {
+
+
+                            float rot = vehicleTransformComp.Rotation.z + 90;
+
+                            // In isometric space, the vehicle footprint is a diamond/parallelogram
+                            // We need to project the box size onto the isometric axes
+                            float cosR = std::cos(rot);
+                            float sinR = std::sin(rot);
+
+                            // Isometric scale factors (2:1 projection)
+                            constexpr float kIsoX = 1.0f;
+                            constexpr float kIsoY = 0.5f; // Y is compressed by 2:1 ratio
+
+                            glm::vec2 isoSize = glm::vec2(
+                                std::abs(cosR) * 0.45f * kIsoX + std::abs(sinR) * 1.0f * kIsoY,
+                                std::abs(sinR) * 0.45f * kIsoX + std::abs(cosR) * 1.0f * kIsoY
+                            );
+
+
+                            glm::vec2 size = glm::vec2{ 1.0f ,1.0f };
+
+                            uint32_t vehicleCurrentSpeed = (uint32_t)vehicleComp.CurrentSpeed;
+                            uint32_t vehicleMass = (uint32_t)vehicleComp.Mass;
+                            uint32_t decreaseForceMultiplier = 500;
+                            uint32_t vehicleCollisionDamge = (vehicleMass * vehicleCurrentSpeed * vehicleCurrentSpeed) / decreaseForceMultiplier;
+
+                            Engine::VulkanRenderer2D::CalculateBoxCollision(vehicleTransformComp.Translation, size, vehicleTransformComp.Translation.z,
+                                carIDComponent.ID, eCollisionType::VEHICLE, vehicleCollisionDamge);
+
+
+                        });
+
+                }
+
+                {
                     EE_PROFILE_SCOPE("Texture update"); // RMEOVE=
 
                     entt::basic_view view = m_registry.view<SpriteRendererComponent, TransformComponent, IDComponent>();
@@ -508,45 +549,6 @@ namespace Engine {
 
 
 
-                            if (m_registry.any_of<VehicleComponent>(entity))
-                            {
-                                VehicleComponent& vehicleComp = m_registry.get<VehicleComponent>(entity);
-
-                                glm::vec2 textureSizeInTiles = glm::vec2(
-                                    quadSprite.Texture->GetWidth(),
-                                    quadSprite.Texture->GetHeight()
-                                ) / float(TILE_PIXEL_WIDTH);
-
-                                glm::vec2 textureSizeWorld = textureSizeInTiles * float(TILE_SIZE);
-
-                                float tiling = 1.0f;
-                                glm::vec4 color = glm::vec4(1);
-
-                                glm::mat4 model =
-                                    glm::translate(glm::mat4(1.0f), transform.Translation) *
-                                    glm::rotate(glm::mat4(1.0f), transform.Rotation.z + 0.0f, glm::vec3(0.0f, 0.0f, 1.0f)) *
-                                    glm::scale(glm::mat4(1.0f), glm::vec3(textureSizeWorld, 1.0f));
-
-                                float pixelSize = quadSprite.Texture->GetWidth();
-
-                                quadSprite.Texture->SetCheckCollision(false);
-                                //quadSprite.Texture->SetTextureOrigin(transform.Translation);
-                               // quadSprite.Texture->SetPixelSize(pixelSize);
-                                float radius = 0.1f;
-
-                                // glm::vec2 size = glm::vec2{ quadSprite.Texture->GetWidth()  ,quadSprite.Texture->GetHeight() };
-                                glm::vec2 size = glm::vec2{ 2  ,1 };
-
-                                uint32_t vehicleCurrentSpeed = (uint32_t)vehicleComp.CurrentSpeed;
-                                uint32_t vehicleMass = (uint32_t)vehicleComp.Mass;
-                                uint32_t decreaseForceMultiplier = 500;
-                                uint32_t vehicleCollisionDamge = (vehicleMass * vehicleCurrentSpeed * vehicleCurrentSpeed) / decreaseForceMultiplier;
-
-                                Engine::VulkanRenderer2D::CalculateBoxCollision(transform.Translation, size, transform.Rotation.z, IDcomp.ID, eCollisionType::VEHICLE, vehicleCollisionDamge);
-
-                                Engine::VulkanRenderer2D::DrawTextureQuad(model, quadSprite.Texture, tiling, quadSprite.Color);
-
-                            }
                         }
 
 

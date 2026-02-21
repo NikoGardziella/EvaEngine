@@ -23,7 +23,7 @@ namespace Engine {
 		s_CollisionData.CollisionEntities[index].Rotation = rotation;
 		s_CollisionData.CollisionEntities[index].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
 		s_CollisionData.CollisionEntities[index].ID_High = static_cast<uint32_t>(entityID >> 32);
-		s_CollisionData.EntitySlotIndex;
+		s_CollisionData.EntitySlotIndex++;
 	}
 
 
@@ -107,7 +107,7 @@ namespace Engine {
 				{
 					continue;
 				}
-				//EE_CORE_INFO("collision at world {} | {}", r.CollisionPosition.x, r.CollisionPosition.y);
+				EE_CORE_INFO("collision at world {} | {}", r.CollisionPosition.x, r.CollisionPosition.y);
 
 				// for effects pass
 				m_hitsW.push_back(r.CollisionPosition);

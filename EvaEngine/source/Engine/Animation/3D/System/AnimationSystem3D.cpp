@@ -19,10 +19,13 @@ namespace Engine {
         AnimScratch3D scratch;
 
         scene->ForEach<SkeletonComponent, Animator3DComponent>(
-            [&](Entity /*entity*/, SkeletonComponent& skel, Animator3DComponent& animatorComp)
+            [&](Entity entity, SkeletonComponent& skel, Animator3DComponent& animatorComp)
             {
                 if (skel.boneCount == 0 || skel.skeletonId == 0xFFFFFFFFu)
+                {
+
                     return;
+                }
 
                 const SkeletonAsset& sasset = skelReg.Get(skel.skeletonId);
                 const uint32_t boneCount = skel.boneCount;

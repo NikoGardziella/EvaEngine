@@ -79,6 +79,7 @@ namespace Engine {
         default: out.clear(); break;
         }
     }
+
     static uint32_t RegisterMaterial(const tinygltf::Model& model, const tinygltf::Material& m,
         const GLTFImportOptions& opts, MaterialRegistry& matReg)
     {
@@ -445,6 +446,9 @@ namespace Engine {
         tinygltf::Model model;
         tinygltf::TinyGLTF loader;
         std::string err, warn;
+
+        EE_CORE_INFO("-------------IMPORTING {} ----------", path);
+
 
         bool ok = false;
         if (path.size() >= 4)

@@ -160,8 +160,7 @@ namespace Engine {
 		const uint32_t tileW = TILE_PIXEL_WIDTH;         // must match shader
 		const uint32_t tileH = TILE_PIXEL_HEIGHT;        // must match shader
 
-		if (!reader.Map(m_device,
-			m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory(), // HOST_VISIBLE memory
+		if (!reader.Map(m_device, m_vulkanGraphicsPipelines->GetBlockedTileMaskMemory(), // HOST_VISIBLE memory
 			numTiles, tileW, tileH,
 			/*offsetBytes=*/0))
 		{

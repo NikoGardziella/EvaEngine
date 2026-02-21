@@ -31,6 +31,7 @@
 #include "Components/Player/PlayerVisionComponent.h"
 #include "Components/Player/CharacterControllerComponent.h"
 #include "Components/Environment/DayNightComponent.h"
+#include "Components/Vehicles/VehicleComponent.h"
 
 namespace Engine {
 
@@ -70,11 +71,13 @@ namespace Engine {
         EE_CORE_WARN("move this stuff somewher");
         MeshRegistry& meshReg = AssetManager::GetMeshRegistry();
 
+        //const MeshAsset* meshAsset = meshReg.GetMeshByKey("playerMeshes");
         const MeshAsset* meshAsset = meshReg.GetMeshByKey("playerMeshes");
 
         const uint32_t submeshCount = (uint32_t)meshAsset->submeshes.size();
 
         Entity playerEntity = CreateEntity("player");
+        EE_CORE_INFO("player ID {}", (uint32_t)playerEntity.Handle());
 
         Engine::CircleCollider2DComponent& circleCollider2DComponent = playerEntity.AddComponent<Engine::CircleCollider2DComponent>();
         TransformComponent& transformComp = playerEntity.AddComponent<TransformComponent>();
@@ -86,7 +89,7 @@ namespace Engine {
         meshComp.meshId = meshAsset->id;
         meshComp.submeshFirst = 0;
         meshComp.submeshCount = submeshCount;
-
+        EE_CORE_INFO("car mesh id{}", meshComp.meshId);
 
 
         RenderBoundsComponent& renderBoundsComp = playerEntity.AddComponent<RenderBoundsComponent>();
@@ -102,8 +105,7 @@ namespace Engine {
         uint32_t testClip = 1;
         uint32_t testClipB = 0;
         // Attach animator
-        /*
-        */
+        
         Animator3DComponent& anim = playerEntity.AddComponent<Animator3DComponent>();
         anim.clipA = testClip;
         anim.clipB = INVALID_CLIP;
@@ -112,6 +114,7 @@ namespace Engine {
         anim.playbackSpeed = 1.0f;
         anim.loopAclip = true;
         anim.boneModel.resize(skel.boneCount);
+        
 
         TransformComponent& playerTransformComp = playerEntity.GetComponent<TransformComponent>();
         playerTransformComp.Rotation.x += glm::radians(90.0f);
@@ -137,6 +140,40 @@ namespace Engine {
         PlayerVisionComp& visionComp = playerEntity.AddComponent<PlayerVisionComp>();
         visionComp.visionDistanceW = 10.0f;
         /// there will bne day i will move this
+
+
+        //****************** spawn car ********************
+
+        Entity carEntity = CreateEntity("car");
+        const MeshAsset* meshAssetCar = meshReg.GetMeshByKey("PickUp");
+        TransformComponent& carTransformComp = carEntity.AddComponent<TransformComponent>();
+        carTransformComp.Rotation.x += glm::radians(90.0f);
+
+        carTransformComp.Scale = glm::vec3(0.3f, 0.3f, 0.3f);
+
+
+
+        const uint32_t carsubmeshCount = (uint32_t)meshAssetCar->submeshes.size();
+
+
+        MeshRefComponent& carMeshComp = carEntity.AddComponent<MeshRefComponent>();
+        carMeshComp.meshId = meshAssetCar->id;
+        carMeshComp.submeshFirst = 0;
+        carMeshComp.submeshCount = carsubmeshCount;
+
+
+        RenderBoundsComponent& carRenderBoundsComp = carEntity.AddComponent<RenderBoundsComponent>();
+        carRenderBoundsComp.maxL = meshAssetCar->maxL;
+        carRenderBoundsComp.minL = meshAssetCar->minL;
+
+        SkeletonComponent& carSkel = carEntity.AddComponent<SkeletonComponent>();
+        carSkel.skeletonId = meshAssetCar->skeletonId;      // returned by importer
+        carSkel.boneCount = AssetManager::GetSkeletonRegistry().Get(meshAssetCar->skeletonId).parent.size();
+        carSkel.boneBase = 0xFFFFFFFFu;     // let BonePalette allocate
+
+        VehicleComponent& carVehicleComp = carEntity.AddComponent<VehicleComponent>();
+
+        
     }
 
 

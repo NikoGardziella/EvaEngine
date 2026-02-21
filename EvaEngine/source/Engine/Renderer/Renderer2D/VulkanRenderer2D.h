@@ -326,6 +326,7 @@ namespace Engine {
 		static Ref<VulkanBindlessDescriptorSetRenderer>& GetBindlessDescriptorSetRenderer() { return s_bindlessDescitproRenderer;  }
 
 		static void ResetStats();
+		void RecordFogOfWarComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
 
 		void RecordGameShadowPass(VkCommandBuffer cmd, uint32_t currentFrame, VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix);
 	private:
@@ -340,7 +341,6 @@ namespace Engine {
 		void BuildAffectedTilesCPU(const std::vector<glm::vec2>& hitPositionsW, const std::vector<float>& radiiW, const std::vector<uint32_t>& damagesW, const std::unordered_set<uint32_t>& candidateSlots, float pixelSizeWorld, int tileW, int tileH, std::vector<AffectedTile>& outTiles);
 		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
 		void RecordClearTextureComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
-		void RecordFogOfWarComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex);
 		void ConsumeAnimationQueue(uint32_t frameIndex);

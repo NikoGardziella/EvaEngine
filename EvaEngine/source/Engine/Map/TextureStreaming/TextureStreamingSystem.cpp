@@ -312,12 +312,6 @@ namespace Engine {
         const int dstX1_global = destX0_global + int(textureWidth);
         const int dstY1_global = destY0_global + int(textureHeight);
       
-        EE_CORE_INFO("Terrain '{}': world=({:.3f},{:.3f}) dest=({},{}) to ({},{}) size={}x{}",
-            name,
-            worldPosition.x, worldPosition.y,
-            destX0_global, destY0_global,
-            dstX1_global, dstY1_global,
-            textureWidth, textureHeight);
 
 
         auto floorDiv = [](int a, int b) {

@@ -95,6 +95,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
                     controller.velocity = glm::vec3(0.0f);    // player stands still while driving
                     // keep player “inside” vehicle transform:
                     playerTransformComp.Translation = driver.Vehicle.GetComponent<Engine::TransformComponent>().Translation;
+                    playerTransformComp.Rotation.z = driver.Vehicle.GetComponent<Engine::TransformComponent>().Rotation.z;
                 }
                 else 
                 {
@@ -136,6 +137,8 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
                         v.ExitEnterCooldown = 1.0f;
                     }
                     playerEntity.RemoveComponent<DriverComponent>();
+                    playerEntity.AddComponent<Engine::CircleCollider2DComponent>();
+
                 }
                 else if (!veh.Driver)
                 {
@@ -143,6 +146,9 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
                     veh.Driver = playerEntity;
                     veh.ExitEnterCooldown = 1.0f;
                     playerEntity.AddComponent<DriverComponent>(Engine::Entity{ vehEnt, scene });
+
+                    playerEntity.RemoveComponent<Engine::CircleCollider2DComponent>();
+
                 }
                 handled = true;
             });

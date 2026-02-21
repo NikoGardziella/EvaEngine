@@ -184,12 +184,19 @@ float ShadowFactor(vec4 posLightSpace, vec3 normalWS, vec3 lightDirWS)
 
 void main()
 {
+
     Material mat = gMaterials.materials[pc.materialId];
 
     vec2 uv = clamp(vUV, 0.0, 1.0);
-    vec4 texColor  = texture(uAlbedo[nonuniformEXT(mat.baseColorTex)], uv);
-    vec4 baseColor = texColor * mat.baseColorFactor;
-
+    vec4 baseColor;
+    if (mat.baseColorTex == 0xFFFFFFFFu)
+    {
+        baseColor = mat.baseColorFactor;
+    }
+    else
+    {
+        baseColor = texture(uAlbedo[nonuniformEXT(mat.baseColorTex)], uv) * mat.baseColorFactor;
+    }
     vec3 normal = normalize(vNrmW);
 
     // Ambient split, so only direct light gets shadowed

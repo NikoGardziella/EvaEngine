@@ -444,10 +444,17 @@ bool projectileHitByType(const ProjectileGPU proj, ivec2 localPx)
     else if (isVehicle(proj.Type))
     {
         // rotated AABB vs point
-        float cs = cos(proj.Rotation), sn = sin(proj.Rotation);
+         const float kIsoAngle = radians(90.0); // match your directionToAngle values
+        float adjustedRotation = proj.Rotation + kIsoAngle;
+    
+        float cs = cos(adjustedRotation), sn = sin(adjustedRotation);
         vec2  d  = P - proj.Position;
         vec2  q2 = vec2(cs*d.x + sn*d.y, -sn*d.x + cs*d.y);
-        vec2  h  = proj.Size * 0.5;
+    
+        // Compress Y for isometric 2:1 ratio
+        q2.y *= 2.0;
+    
+        vec2 h = proj.Size * 0.5;
         return (abs(q2.x) <= h.x) && (abs(q2.y) <= h.y);
     }
     return false;
@@ -572,12 +579,78 @@ void main()
     for (uint i = 0u; i < pc.NumProjectiles; ++i)
     {
         ProjectileGPU proj = data[i];
+        float L  = max(proj.RayLen, 1e-6);
+
+        if (isVehicle(proj.Type))
+        {
+
+
+
+            if (!projectileHitByType(proj, localPx)) continue;
+
+            uvec4 ht  = loadHT(pc.TextureIndex, localPx);
+            vec4  col = imageLoad(uColor[nonuniformEXT(pc.TextureIndex)], localPx);
+            bool  hasHP  = hasHealth(ht);
+            bool  hasTex = (col.a > 0.0);
+
+            if (!hasHP && !hasTex) continue;
+
+            // Height band — only destroy pixels in the middle zone
+            // ht.g = height of this pixel in tile-local units (0 = ground, higher = top)
+            const uint kMinDestroyHeight = 40u;  // don't destroy ground/foot pixels
+            const uint kMaxDestroyHeight = 170u;  // don't destroy roof/top pixels
+            bool inDestroyBand = (ht.g >= kMinDestroyHeight && ht.g <= kMaxDestroyHeight);
+
+            uint key = makeKey(0.5, false, L);
+            CollisionResult result;
+            result.hitProjectileID_Low  = proj.ID_Low;
+            result.hitProjectileID_High = proj.ID_High;
+            result.DestructionRadius    = 0.0;
+            result.CollisionPosition    = worldPos;
+            result.Damage               = proj.Damage;
+
+            if (!hasHP && !hasTex) continue;
+
+            // Skip empty/background pixels (ht.g == 0 means no height data written)
+            if (ht.g == 0u) continue;
+
+
+            // If outside destroy band, only block — never destroy
+            if (!inDestroyBand)
+            {
+                
+                continue; // don't destroy pixels outside band
+            }
+
+            // Inside band — proceed with destruction
+            if (hasHP)
+            {
+                if (proj.Damage >= ht.r)
+                {
+                    destroyPixel_fx(true, pc.TextureIndex, localPx, ht);
+                    result.HealthAfter = 0u;
+                }
+                else
+                {
+                    result.HealthAfter = ht.r - proj.Damage;
+                    applyDamage_fx(false, pc.TextureIndex, localPx, ht, proj.Damage);
+                    tryClaimMin(i, key, result);
+                }
+            }
+            else if (hasTex)
+            {
+                destroyPixel_fx(true, pc.TextureIndex, localPx, ht);
+                result.HealthAfter = 0u;
+            }
+        }
+
+
 
         // Parametric ray A..A+dir*L
         vec2  dir  = proj.Dir;
         float len2 = dot(dir, dir);
         if (len2 > 1e-12) dir *= inversesqrt(len2); else dir = vec2(1.0, 0.0);
-        float L  = max(proj.RayLen, 1e-6);
+        
         vec2  A  = proj.EndPos - dir * L;
 
         // Is EndPos in THIS tile?
@@ -695,4 +768,7 @@ void main()
 
         tryClaimMin(i, key, result);
     }
+
+
+
 }

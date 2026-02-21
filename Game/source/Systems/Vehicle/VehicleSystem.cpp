@@ -12,8 +12,9 @@ void VehicleSystem::UpdateVehicleSystem(float deltaTime, Engine::Scene* scene)
     constexpr float kLinearFriction = 0.90f;
     constexpr float kAngularFriction = 0.90f;
     constexpr float kSteerFactor = 2.0f;
-    constexpr float kSteerSpeedGate = 0.9f;   // only steer when |speed| > gate
+    constexpr float kSteerSpeedGate = 0.5f;   // only steer when |speed| > gate
     constexpr float kPushDecayRate = 5.0f;   // larger = faster decay
+    constexpr float kBrakeForce = 5.0f;
 
     scene->ForEach<VehicleComponent, Engine::TransformComponent, Engine::IDComponent>(
         [&](Engine::Entity /*entity*/, VehicleComponent& vehicleComp,
@@ -22,29 +23,35 @@ void VehicleSystem::UpdateVehicleSystem(float deltaTime, Engine::Scene* scene)
             // --- Speed / engine ---
             if (glm::length(vehicleComp.Velocity) > 0.0f)
             {
-                const float signY = glm::sign(vehicleComp.Velocity.y);            // forward/back input
-                const float engineForce = vehicleComp.Power * signY;
+                const float signY = glm::sign(vehicleComp.Velocity.y);
                 const float invMass = (vehicleComp.Mass > 0.0f) ? (1.0f / vehicleComp.Mass) : 0.0f;
-                vehicleComp.CurrentSpeed += (engineForce * invMass) * deltaTime;
-            }
-            else
-            {
-                // Passive deceleration when no throttle
-                const float invMass = (vehicleComp.Mass > 0.0f) ? (1.0f / vehicleComp.Mass) : 0.0f;
-                const float decel = vehicleComp.Deceleration * invMass * 100.0f;
-                if (vehicleComp.CurrentSpeed > 0.0f)
+
+                // Check if input is opposite to current movement = braking
+                const bool isBraking = (signY < 0.0f && vehicleComp.CurrentSpeed > 0.0f) ||
+                    (signY > 0.0f && vehicleComp.CurrentSpeed < 0.0f);
+
+                if (isBraking)
                 {
-                    vehicleComp.CurrentSpeed = std::max(0.0f, vehicleComp.CurrentSpeed - decel * deltaTime);
+                    // Apply strong braking force
+                    const float brakeSign = (vehicleComp.CurrentSpeed > 0.0f) ? -1.0f : 1.0f;
+                    vehicleComp.CurrentSpeed += brakeSign * vehicleComp.Power * kBrakeForce * invMass * deltaTime;
+
+                    // Clamp to zero so we don't overshoot into reverse
+                    if ((brakeSign < 0.0f && vehicleComp.CurrentSpeed < 0.0f) ||
+                        (brakeSign > 0.0f && vehicleComp.CurrentSpeed > 0.0f))
+                        vehicleComp.CurrentSpeed = 0.0f;
                 }
-                else if (vehicleComp.CurrentSpeed < 0.0f)
+                else
                 {
-                    vehicleComp.CurrentSpeed = std::min(0.0f, vehicleComp.CurrentSpeed + decel * deltaTime);
+                    // Normal acceleration
+                    const float engineForce = vehicleComp.Power * signY;
+                    vehicleComp.CurrentSpeed += (engineForce * invMass) * deltaTime;
                 }
             }
 
             // Clamp max speed
             vehicleComp.CurrentSpeed = glm::clamp(vehicleComp.CurrentSpeed,
-                -vehicleComp.MaxSpeed,
+                -vehicleComp.MaxSpeed * 0.5f,  // reverse is slower
                 vehicleComp.MaxSpeed);
 
             // --- External pushback (e.g., from collisions) ---
@@ -62,7 +69,9 @@ void VehicleSystem::UpdateVehicleSystem(float deltaTime, Engine::Scene* scene)
             }
 
             // --- Integrate movement in facing direction ---
-            const float rot = transformComp.Rotation.z;
+            constexpr float kModelForwardOffset = glm::radians(270.f); // 90 degrees offset
+
+            const float rot = transformComp.Rotation.z + kModelForwardOffset;
             const glm::vec2 forwardDir(std::cos(rot), std::sin(rot));
             const glm::vec2 deltaPos = forwardDir * vehicleComp.CurrentSpeed * deltaTime;
             transformComp.Translation += glm::vec3(deltaPos, 0.0f);
@@ -70,8 +79,11 @@ void VehicleSystem::UpdateVehicleSystem(float deltaTime, Engine::Scene* scene)
             // --- Steering (X is left/right input); only when moving enough ---
             if (std::abs(vehicleComp.CurrentSpeed) > kSteerSpeedGate)
             {
-                const float steerInput = -vehicleComp.Velocity.x; // left/right
+                const float steerDir = (vehicleComp.CurrentSpeed >= 0.0f) ? 1.0f : -1.0f;
+                const float steerInput = -vehicleComp.Velocity.x * steerDir;
                 transformComp.Rotation.z += (steerInput * kSteerFactor) * deltaTime;
+
+
             }
 
             // --- Input damping (friction-like) ---

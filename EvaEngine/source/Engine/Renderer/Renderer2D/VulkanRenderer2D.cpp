@@ -544,8 +544,8 @@ namespace Engine {
 		
 		m_vulkanGraphicsPipelines->UpdateGameDrawAndVisualImagesDescriptorSets(currentFrame, s_VulkanData.TextureSlots, s_VulkanData.VisualEffectsTextureSlots);
 
-		RecordFogOfWarComputeCommandBuffer(cmd, currentFrame);
 		Draw();
+		//RecordFogOfWarComputeCommandBuffer(cmd, currentFrame);
 
 		m_uiRenderer->EndFrame(cmd);
 

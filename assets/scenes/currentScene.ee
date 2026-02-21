@@ -1,6 +1,75 @@
 Scene: My Scene
 Entities:
-  - ID: 13836304141360262038
+  - ID: 13768703579272043467
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [5, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.65478516, 0.25405148, 0.7788086, 0.49714014]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 7341273575649479015
+          TileDirection: North
+        - Position: [-0.5, -0.25]
+          UV: [0.65478516, 0.25405148, 0.7788086, 0.49714014]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 10869729243746436966
+          TileDirection: North
+        - Position: [-1, -0.5]
+          UV: [0.65478516, 0.25405148, 0.7788086, 0.49714014]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 17113138320488020629
+          TileDirection: North
+  - ID: 10117005798591918809
+    TagComponent:
+      Tag: editor light
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - ID: 2635776672
+    TagComponent:
+      Tag: editor light
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - ID: 3836681365
+    TagComponent:
+      Tag: editor light
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - ID: 275100603
+    TagComponent:
+      Tag: editor light
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - ID: 101411734
     TagComponent:
       Tag: Entity
     TransformComponent:
@@ -12,29 +81,3018 @@ Entities:
       Texture: ""
       Tiles:
         - Position: [0, 0]
-          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
           Name: Ground A4_E
           IsDestructible: false
           IsRoof: false
           Category: Terrain
-          Material: Default
+          Material: None
           Health: 1
           UID: 16260660891194074203
           TileDirection: East
         - Position: [0.5, -0.25]
-          UV: [0.25341797, 0.5009718, 0.3774414, 0.7487852]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
           Name: Ground A4_E
           IsDestructible: false
           IsRoof: false
           Category: Terrain
-          Material: Default
+          Material: None
           Health: 1
           UID: 837094877207861876
           TileDirection: East
-  - ID: 9917087277809775547
+  - ID: 3632374435
     TagComponent:
       Tag: editor light
     TransformComponent:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+  - ID: 1689845253
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [2.5, 3.25, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0.5, 0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6021590525658896248
+          TileDirection: East
+        - Position: [-0.5, 0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3102553356224407056
+          TileDirection: East
+        - Position: [-1.5, 0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11273520948290165566
+          TileDirection: East
+        - Position: [1, 0.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 4715245654307273919
+          TileDirection: East
+        - Position: [-2, 0.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1233403164022301979
+          TileDirection: East
+        - Position: [-0.5, 0.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5048931278115906255
+          TileDirection: East
+        - Position: [1.5, 0.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 657105067968922858
+          TileDirection: East
+        - Position: [-2.5, 0.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3384819650266516608
+          TileDirection: East
+        - Position: [0, 0]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 4970850192667199532
+          TileDirection: East
+        - Position: [1, 0]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15217382318571010615
+          TileDirection: East
+        - Position: [-2, 0]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12839122257989036491
+          TileDirection: East
+        - Position: [-0.5, -0.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11774533263066502743
+          TileDirection: East
+        - Position: [0.5, -0.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8026515081742787220
+          TileDirection: East
+        - Position: [1.5, -0.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12573972214992804696
+          TileDirection: East
+        - Position: [-1.5, -0.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1436961375373439263
+          TileDirection: East
+        - Position: [-2.5, -0.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10465424438236669760
+          TileDirection: East
+        - Position: [-3.5, -0.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14472435532438675185
+          TileDirection: East
+        - Position: [2.5, -0.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5873649996039562424
+          TileDirection: East
+        - Position: [-1, -0.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17520116103354315792
+          TileDirection: East
+        - Position: [0, -0.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 560488385272311959
+          TileDirection: East
+        - Position: [1, -0.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12720981302791355826
+          TileDirection: East
+        - Position: [-2, -0.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1494437402984571515
+          TileDirection: East
+        - Position: [-3, -0.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11973702597510653471
+          TileDirection: East
+        - Position: [-4, -0.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8536605465323330509
+          TileDirection: East
+        - Position: [2, -0.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17535423484725631170
+          TileDirection: East
+        - Position: [3, -0.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7584371653121837539
+          TileDirection: East
+        - Position: [-1.5, -0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2074549090095906155
+          TileDirection: East
+        - Position: [-0.5, -0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1715977031246144340
+          TileDirection: East
+        - Position: [0.5, -0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 452567421208557082
+          TileDirection: East
+        - Position: [-2.5, -0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3550861692212154963
+          TileDirection: East
+        - Position: [-3.5, -0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16642709079451504547
+          TileDirection: East
+        - Position: [-4.5, -0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 305360005429009537
+          TileDirection: East
+        - Position: [1.5, -0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13825489589222937983
+          TileDirection: East
+        - Position: [2.5, -0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15075342511011518826
+          TileDirection: East
+        - Position: [3.5, -0.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13322698118853092711
+          TileDirection: East
+        - Position: [-1, -1]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5709084977035725648
+          TileDirection: East
+        - Position: [-2, -1]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1970286031662632443
+          TileDirection: East
+        - Position: [-3, -1]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 29135012741146151
+          TileDirection: East
+        - Position: [-5, -1]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12010650585637467399
+          TileDirection: East
+        - Position: [2, -1]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2275054566918173262
+          TileDirection: East
+        - Position: [0, -1]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5375031828962314924
+          TileDirection: East
+        - Position: [1, -1]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8847044268534496488
+          TileDirection: East
+        - Position: [-4, -1]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15006929682513318482
+          TileDirection: East
+        - Position: [-1.5, -1.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7205957618813047526
+          TileDirection: East
+        - Position: [-4.5, -1.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10881447518167608370
+          TileDirection: East
+        - Position: [-3.5, -1.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15661180308402138860
+          TileDirection: East
+        - Position: [-2.5, -1.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9913053723224349174
+          TileDirection: East
+        - Position: [-5.5, -1.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8047533943629787670
+          TileDirection: East
+        - Position: [3.5, -1.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5240068359677594902
+          TileDirection: East
+        - Position: [1.5, -1.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2067195093052600478
+          TileDirection: East
+        - Position: [0.5, -1.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 4910202297898892971
+          TileDirection: East
+        - Position: [-0.5, -1.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11164446021374657451
+          TileDirection: East
+        - Position: [2.5, -1.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16519714542314893034
+          TileDirection: East
+        - Position: [-2, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 4120395268043990435
+          TileDirection: East
+        - Position: [0, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15389551596160449864
+          TileDirection: East
+        - Position: [-5, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 644828814243324274
+          TileDirection: East
+        - Position: [-3, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1609189565298695598
+          TileDirection: East
+        - Position: [-4, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17450522824400577150
+          TileDirection: East
+        - Position: [-1, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 534222896590791138
+          TileDirection: East
+        - Position: [-6, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2146036979946554341
+          TileDirection: East
+        - Position: [4, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16093009483124541868
+          TileDirection: East
+        - Position: [3, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6692430124502190069
+          TileDirection: East
+        - Position: [1, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 482392475879304825
+          TileDirection: East
+        - Position: [2, -1.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11313757186848207693
+          TileDirection: East
+        - Position: [-2.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2313390555464676249
+          TileDirection: East
+        - Position: [-1.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3075010685742481208
+          TileDirection: East
+        - Position: [-5.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5142791947773633303
+          TileDirection: East
+        - Position: [-3.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14791365526248167547
+          TileDirection: East
+        - Position: [-4.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17337263347857275819
+          TileDirection: East
+        - Position: [-0.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10025018513124275516
+          TileDirection: East
+        - Position: [3.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3228343252162834236
+          TileDirection: East
+        - Position: [2.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3771786457009378984
+          TileDirection: East
+        - Position: [0.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12438817891776372795
+          TileDirection: East
+        - Position: [1.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11020499191825359806
+          TileDirection: East
+        - Position: [-6.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6596188208571437183
+          TileDirection: East
+        - Position: [4.5, -1.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 602410128762043163
+          TileDirection: East
+        - Position: [-3, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1621191269885175074
+          TileDirection: East
+        - Position: [-5, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2547034397057890685
+          TileDirection: East
+        - Position: [-2, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15339325088097037557
+          TileDirection: East
+        - Position: [-1, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9088925203338474784
+          TileDirection: East
+        - Position: [-4, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11591806593269701530
+          TileDirection: East
+        - Position: [3, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11108557465227098218
+          TileDirection: East
+        - Position: [0, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17418966188398414743
+          TileDirection: East
+        - Position: [1, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16780727667357151277
+          TileDirection: East
+        - Position: [2, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 126274181432200511
+          TileDirection: East
+        - Position: [-6, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10142638645394994372
+          TileDirection: East
+        - Position: [-7, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9333710687636082407
+          TileDirection: East
+        - Position: [4, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10115976386966317654
+          TileDirection: East
+        - Position: [5, -2]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5624284619436753478
+          TileDirection: East
+        - Position: [-2.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14037180158778452921
+          TileDirection: East
+        - Position: [-0.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 18103131348649529076
+          TileDirection: East
+        - Position: [-5.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11457714744146343861
+          TileDirection: East
+        - Position: [-4.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12991986517958944945
+          TileDirection: East
+        - Position: [1.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8458771522400965099
+          TileDirection: East
+        - Position: [0.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 474782553645353369
+          TileDirection: East
+        - Position: [-1.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13661981307789983668
+          TileDirection: East
+        - Position: [-3.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7557370395158677966
+          TileDirection: East
+        - Position: [2.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 924844741588331442
+          TileDirection: East
+        - Position: [-6.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7152340255963118559
+          TileDirection: East
+        - Position: [-7.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2671669600525302416
+          TileDirection: East
+        - Position: [3.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7504444201880196135
+          TileDirection: East
+        - Position: [4.5, -2.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9397846681794609997
+          TileDirection: East
+        - Position: [-3, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6463356673231012059
+          TileDirection: East
+        - Position: [-2, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13997148152765657284
+          TileDirection: East
+        - Position: [-6, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9260946022818988147
+          TileDirection: East
+        - Position: [-5, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2105473737546656096
+          TileDirection: East
+        - Position: [-1, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13071738124318218055
+          TileDirection: East
+        - Position: [-4, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15063053077260284606
+          TileDirection: East
+        - Position: [3, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1108884204631184243
+          TileDirection: East
+        - Position: [1, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11807668378500135410
+          TileDirection: East
+        - Position: [0, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15716879223081497546
+          TileDirection: East
+        - Position: [2, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17570546131437725483
+          TileDirection: East
+        - Position: [-7, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 4094226564429343190
+          TileDirection: East
+        - Position: [4, -2.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 493141556158938355
+          TileDirection: East
+        - Position: [-2.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16565280647166335127
+          TileDirection: East
+        - Position: [-5.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11798423369585215049
+          TileDirection: East
+        - Position: [-4.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11077066341817072026
+          TileDirection: East
+        - Position: [-1.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2050881777068524872
+          TileDirection: East
+        - Position: [0.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13335340845628711551
+          TileDirection: East
+        - Position: [1.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2060003749257183543
+          TileDirection: East
+        - Position: [2.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12244116965768915166
+          TileDirection: East
+        - Position: [-0.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8714804068780684085
+          TileDirection: East
+        - Position: [-6.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15321898059943617704
+          TileDirection: East
+        - Position: [-7.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2966492173870372866
+          TileDirection: East
+        - Position: [3.5, -2.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10694791826375965092
+          TileDirection: East
+        - Position: [-4, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1027733989632984857
+          TileDirection: East
+        - Position: [-6, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7968762457752279929
+          TileDirection: East
+        - Position: [-2, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3496502774172015818
+          TileDirection: East
+        - Position: [-5, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2978338618740557192
+          TileDirection: East
+        - Position: [1, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 348700772876772130
+          TileDirection: East
+        - Position: [2, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5099981045216012390
+          TileDirection: East
+        - Position: [0, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12386886111280064203
+          TileDirection: East
+        - Position: [-1, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13205380812720180836
+          TileDirection: East
+        - Position: [3, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2856700654830995831
+          TileDirection: East
+        - Position: [-7, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 18031018521193486171
+          TileDirection: East
+        - Position: [-8, -3]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13613777016474707498
+          TileDirection: East
+        - Position: [-3.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8960284227481968553
+          TileDirection: East
+        - Position: [-2.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6349079624461890925
+          TileDirection: East
+        - Position: [-1.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13498307215447380496
+          TileDirection: East
+        - Position: [-6.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6576418304064663231
+          TileDirection: East
+        - Position: [-5.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11986030907998260038
+          TileDirection: East
+        - Position: [-4.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2356014258970415261
+          TileDirection: East
+        - Position: [-0.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17044387877000254247
+          TileDirection: East
+        - Position: [1.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13260775193213634486
+          TileDirection: East
+        - Position: [0.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15110298479315964263
+          TileDirection: East
+        - Position: [-7.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6314900597930071291
+          TileDirection: East
+        - Position: [-8.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17771301742792104433
+          TileDirection: East
+        - Position: [2.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 85531838888590646
+          TileDirection: East
+        - Position: [3.5, -3.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7786350559226702980
+          TileDirection: East
+        - Position: [-4, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17757542889541754605
+          TileDirection: East
+        - Position: [-7, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12474856679649285089
+          TileDirection: East
+        - Position: [-6, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16967452559722120677
+          TileDirection: East
+        - Position: [-5, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7737587504816909075
+          TileDirection: East
+        - Position: [0, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15522148113272685712
+          TileDirection: East
+        - Position: [-1, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10287201563863331594
+          TileDirection: East
+        - Position: [-2, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10561693999047442192
+          TileDirection: East
+        - Position: [3, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5250873462067166222
+          TileDirection: East
+        - Position: [-3, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3198085899995198736
+          TileDirection: East
+        - Position: [1, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7962437446384142320
+          TileDirection: East
+        - Position: [2, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7220810798627774062
+          TileDirection: East
+        - Position: [-8, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16638756295502017583
+          TileDirection: East
+        - Position: [-9, -3.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6345302585387689735
+          TileDirection: East
+        - Position: [-4.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10270228804876532960
+          TileDirection: East
+        - Position: [-3.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1335116091792984441
+          TileDirection: East
+        - Position: [-2.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17186834198465985917
+          TileDirection: East
+        - Position: [-6.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2354554141004316638
+          TileDirection: East
+        - Position: [-7.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2177476215433166095
+          TileDirection: East
+        - Position: [-5.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14642890647021981391
+          TileDirection: East
+        - Position: [-0.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10544090790917856990
+          TileDirection: East
+        - Position: [-1.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9440387526740927261
+          TileDirection: East
+        - Position: [2.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1457291807085745725
+          TileDirection: East
+        - Position: [0.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7635886123424929577
+          TileDirection: East
+        - Position: [1.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10129102604007786076
+          TileDirection: East
+        - Position: [-8.5, -3.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3426574755263473786
+          TileDirection: East
+        - Position: [-5, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12170290401953292187
+          TileDirection: East
+        - Position: [-7, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10759091791646643506
+          TileDirection: East
+        - Position: [-6, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 4906126839158132101
+          TileDirection: East
+        - Position: [-8, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14485006710097156385
+          TileDirection: East
+        - Position: [-2, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12187355669864858435
+          TileDirection: East
+        - Position: [-3, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3036158469969569593
+          TileDirection: East
+        - Position: [-1, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8289099161438673069
+          TileDirection: East
+        - Position: [1, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5685420668770055872
+          TileDirection: East
+        - Position: [-4, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1267479317199783833
+          TileDirection: East
+        - Position: [0, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17790304616100306862
+          TileDirection: East
+        - Position: [-9, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1857614646701020492
+          TileDirection: East
+        - Position: [2, -4]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6748818202202448610
+          TileDirection: East
+        - Position: [-5.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10384558934702863646
+          TileDirection: East
+        - Position: [-4.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17292417347920175693
+          TileDirection: East
+        - Position: [-7.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17282268428956367058
+          TileDirection: East
+        - Position: [-8.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7612772943721605847
+          TileDirection: East
+        - Position: [-2.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9172312532090980116
+          TileDirection: East
+        - Position: [-3.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6813241263425927738
+          TileDirection: East
+        - Position: [-1.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8354640418806187499
+          TileDirection: East
+        - Position: [0.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10025446207583164760
+          TileDirection: East
+        - Position: [1.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1103406305069393326
+          TileDirection: East
+        - Position: [-6.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14812274464963260154
+          TileDirection: East
+        - Position: [-9.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5926772675753833672
+          TileDirection: East
+        - Position: [-0.5, -4.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15559100442160941836
+          TileDirection: East
+        - Position: [-5, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2307322740198434844
+          TileDirection: East
+        - Position: [-4, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13208210558085498046
+          TileDirection: East
+        - Position: [-7, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6198135017669422827
+          TileDirection: East
+        - Position: [-8, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17893968762266170065
+          TileDirection: East
+        - Position: [-6, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16050565654102362398
+          TileDirection: East
+        - Position: [-2, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8666224530482843977
+          TileDirection: East
+        - Position: [0, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5251633946772012481
+          TileDirection: East
+        - Position: [-1, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14743770033741543372
+          TileDirection: East
+        - Position: [-3, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17948599681173054133
+          TileDirection: East
+        - Position: [-9, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17901948412929818541
+          TileDirection: East
+        - Position: [2, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13572789642169723405
+          TileDirection: East
+        - Position: [1, -4.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15261458344280073300
+          TileDirection: East
+        - Position: [-5.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 308345532807359683
+          TileDirection: East
+        - Position: [-4.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16897998235951459285
+          TileDirection: East
+        - Position: [-7.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17844887211560904180
+          TileDirection: East
+        - Position: [-8.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17876885795428346482
+          TileDirection: East
+        - Position: [-6.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15704211999863977533
+          TileDirection: East
+        - Position: [-2.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 18333242595160532912
+          TileDirection: East
+        - Position: [-0.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6876049809274218411
+          TileDirection: East
+        - Position: [-3.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17020669537887529090
+          TileDirection: East
+        - Position: [-1.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11101709160775955240
+          TileDirection: East
+        - Position: [-9.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10413899870291645646
+          TileDirection: East
+        - Position: [1.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2937021979697480750
+          TileDirection: East
+        - Position: [0.5, -4.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16136011618401149209
+          TileDirection: East
+        - Position: [-6, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3779068931823265608
+          TileDirection: East
+        - Position: [-5, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15433410795736178650
+          TileDirection: East
+        - Position: [-7, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5626829473365223723
+          TileDirection: East
+        - Position: [-8, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5506556096488649091
+          TileDirection: East
+        - Position: [-9, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13856803361929317457
+          TileDirection: East
+        - Position: [-4, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11063978875283632251
+          TileDirection: East
+        - Position: [-3, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9773703798078992404
+          TileDirection: East
+        - Position: [-2, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 696376030076717886
+          TileDirection: East
+        - Position: [-1, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 258027600842329479
+          TileDirection: East
+        - Position: [2, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17604779393733398797
+          TileDirection: East
+        - Position: [1, -5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11706388215995029726
+          TileDirection: East
+        - Position: [-5.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14177606881716643727
+          TileDirection: East
+        - Position: [-6.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5377250880167132219
+          TileDirection: East
+        - Position: [-7.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15498750125166052502
+          TileDirection: East
+        - Position: [-9.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 368290925176799614
+          TileDirection: East
+        - Position: [-1.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8065829571570621092
+          TileDirection: East
+        - Position: [-4.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 11811466899538345514
+          TileDirection: East
+        - Position: [-3.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5100389256352684185
+          TileDirection: East
+        - Position: [-2.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 4615413569099906013
+          TileDirection: East
+        - Position: [1.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6490128941988243993
+          TileDirection: East
+        - Position: [0.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 15192337158129572946
+          TileDirection: East
+        - Position: [-0.5, -5.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 13659928693886843377
+          TileDirection: East
+        - Position: [-6, -5.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14892677281619917477
+          TileDirection: East
+        - Position: [-5, -5.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2447647969156937210
+          TileDirection: East
+        - Position: [-3, -5.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2720617004946392856
+          TileDirection: East
+        - Position: [-9, -5.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 944779718484480641
+          TileDirection: East
+        - Position: [-7, -5.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16752183995421728574
+          TileDirection: East
+        - Position: [-2, -5.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7440783676401680606
+          TileDirection: East
+        - Position: [-1, -5.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 6200941334134335903
+          TileDirection: East
+        - Position: [0, -5.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 413754294194560514
+          TileDirection: East
+        - Position: [1, -5.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5018706700683369413
+          TileDirection: East
+        - Position: [-4, -5.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9526701295034078472
+          TileDirection: East
+        - Position: [-4.5, -5.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5300906921764319406
+          TileDirection: East
+        - Position: [-3.5, -5.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 18425093504142017919
+          TileDirection: East
+        - Position: [-8.5, -5.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14681676526930520556
+          TileDirection: East
+        - Position: [-7.5, -5.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 3785347279287933082
+          TileDirection: East
+        - Position: [-6.5, -5.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9815114351712680659
+          TileDirection: East
+        - Position: [-2.5, -5.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8918170167062423934
+          TileDirection: East
+        - Position: [-1.5, -5.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12621886703528360948
+          TileDirection: East
+        - Position: [-0.5, -5.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1165177343536761754
+          TileDirection: East
+        - Position: [-5.5, -5.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8547611625945797946
+          TileDirection: East
+        - Position: [-2, -6]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14731074255195960512
+          TileDirection: East
+        - Position: [-5, -6]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 16732975069442649333
+          TileDirection: East
+        - Position: [-8, -6]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 336379518889710690
+          TileDirection: East
+        - Position: [-7, -6]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10496407210699278790
+          TileDirection: East
+        - Position: [-6, -6]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17203926172047790842
+          TileDirection: East
+        - Position: [-3, -6]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 4607981488516560295
+          TileDirection: East
+        - Position: [-4, -6]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 4562867817698094110
+          TileDirection: East
+        - Position: [0, -6]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12362359118802453482
+          TileDirection: East
+        - Position: [-3.5, -6.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 12547073722592730921
+          TileDirection: East
+        - Position: [-6.5, -6.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5237935180791184021
+          TileDirection: East
+        - Position: [-5.5, -6.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 14299303886746753992
+          TileDirection: East
+        - Position: [-4.5, -6.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 4286155530034832828
+          TileDirection: East
+        - Position: [-2.5, -6.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 2237631138895507864
+          TileDirection: East
+        - Position: [-3, -6.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7160067829371495296
+          TileDirection: East
+        - Position: [-5, -6.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17221076460586983486
+          TileDirection: East
+        - Position: [-4, -6.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 18094635010548544775
+          TileDirection: East
+        - Position: [-6, -6.5]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9634728793033493388
+          TileDirection: East
+        - Position: [-3.5, -6.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10749524666033599082
+          TileDirection: East
+        - Position: [-4.5, -6.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 505069920534644627
+          TileDirection: East
+        - Position: [-5.5, -6.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 1337709925615634612
+          TileDirection: East
+        - Position: [-1.5, -6.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 10517355211779437747
+          TileDirection: East
+        - Position: [-0.5, -6.75]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 9049852409733124630
+          TileDirection: East
+        - Position: [-4, -7]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8297478437603242051
+          TileDirection: East
+        - Position: [-5, -7]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 17141887851230732668
+          TileDirection: East
+        - Position: [-4.5, -7.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 7911419133921682957
+          TileDirection: East
+        - Position: [-3.5, -7.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 5466553242996688284
+          TileDirection: East
+        - Position: [-2.5, -7.25]
+          UV: [0.26513672, 0.5028599, 0.38916016, 0.74594855]
+          Name: Ground A4_E
+          IsDestructible: false
+          IsRoof: false
+          Category: Terrain
+          Material: None
+          Health: 1
+          UID: 8441563248081238945
+          TileDirection: East
+  - ID: 3395404615
+    TagComponent:
+      Tag: editor light
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - ID: 1952167965
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-1, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.78466797, 0.25405148, 0.9086914, 0.49714014]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 3048797124552488500
+          TileDirection: South
+        - Position: [-0.5, -0.25]
+          UV: [0.78466797, 0.25405148, 0.9086914, 0.49714014]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 2156328311211996597
+          TileDirection: South
+        - Position: [-1, -0.5]
+          UV: [0.78466797, 0.25405148, 0.9086914, 0.49714014]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 2345164092860908350
+          TileDirection: South
+        - Position: [-1.5, -0.75]
+          UV: [0.78466797, 0.25405148, 0.9086914, 0.49714014]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 10686376211783997105
+          TileDirection: South
+        - Position: [-2, -1]
+          UV: [0.78466797, 0.25405148, 0.9086914, 0.49714014]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 6303473554143852194
+          TileDirection: South
+        - Position: [-3, -1]
+          UV: [0.78466797, 0.25405148, 0.9086914, 0.49714014]
+          Name: Wall B1_S
+          IsDestructible: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 1722013990069964470
+          TileDirection: South

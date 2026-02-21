@@ -278,6 +278,8 @@ ebuild completed at 13.53 and took 02:26,381 minutes
     6.shotgun fix, done
     7. day night cycle system, done
     8. particles
-    
+    9. zombie collisions. box2d?
+    10. deterministic tile pixel collisions?
+    11. tiles look different after collisin,. vehicle= crack, explosion= black spot...
 
 }

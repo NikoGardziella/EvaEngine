@@ -245,13 +245,7 @@ namespace Engine {
         uint32_t texHeight = texture->GetHeight();
 
 
-        static bool atlasDumped = false;
-        if (!atlasDumped)
-        {
-            TextureStreamingSystem::DumpRGBA("atlas.tga", texWidth, texHeight, pixelData);
-            atlasDumped = true;
-        }
-
+  
        
      
         constexpr uint32_t channels = 4; // Assuming RGBA8 format
@@ -272,7 +266,6 @@ namespace Engine {
             EE_CORE_ERROR("Invalid UV bounds for extraction: ({}, {}, {}, {})", uv.x, uv.y, uv.z, uv.w);
             return false;
         }
-        EE_CORE_INFO("UV region: {}x{} at ({},{})", x1 - x0, y1 - y0, x0, y0);
    
 
        
@@ -292,7 +285,6 @@ namespace Engine {
             }
         }
         
-            TextureStreamingSystem::DumpRGBA("outPixelData.tga", outWidth, outHeight, outPixelData);
         
 
 
@@ -364,7 +356,47 @@ namespace Engine {
         // e.g. uint8_t objId = static_cast<uint8_t>(tile.InstanceId & 0xFF);
         const uint8_t objId = 0;
 
+
         const uint8_t catNibble = AssetManager::PackCategoryNibble(tile.Category);
+
+        auto getIsoUpAxis = [](TileDirection dir) -> glm::vec2 {
+            float angle = 0.0f;
+            switch (dir)
+            {
+                case TileDirection::North: angle = glm::radians(105.0f);  break;
+                case TileDirection::South: angle = glm::radians(105.0f);  break;
+                case TileDirection::East:  angle = glm::radians(80.0f); break;
+                case TileDirection::West:  angle = glm::radians(80.0f); break;
+                default:                   angle = glm::radians(0.0f);   break;
+            }
+            return glm::vec2(std::cos(angle), std::sin(angle));
+            };
+        glm::vec2 isoUp = getIsoUpAxis(tile.TileDirection);
+
+
+        float minH = FLT_MAX, maxH = -FLT_MAX;
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                const int sx = x0 + x;
+                const int sy = kFlipV ? (y0 + (h - 1 - y)) : (y0 + y);
+                const size_t si = size_t(sy) * size_t(atlasW) * 4 + size_t(sx) * 4;
+                if (src[si + 3] == 0) continue;
+
+                glm::vec2 pixelPos = glm::vec2(
+                    (float(x) / float(w)) - 0.5f,
+                    (float(y) / float(h)) - 0.5f
+                );
+                float wh = glm::dot(pixelPos, isoUp);
+                minH = std::min(minH, wh);
+                maxH = std::max(maxH, wh);
+            }
+        }
+        float range = (maxH - minH) > 1e-6f ? (maxH - minH) : 1.0f;
+
+
+
 
         for (int y = 0; y < h; ++y)
         {
@@ -404,12 +436,20 @@ namespace Engine {
                     outOpaqueMax = glm::max(outOpaqueMax, glm::ivec2(x, y));
                 }
 
+
+
+
                 // --- G: rows above pivot (1..255), 0 at/under pivot or if invisible ---
                 uint8_t heightG = 0u;
-                if (visible && y > pivotY) 
+                if (Aa > 5)
                 {
-                    const int dy = y - pivotY; // rows above pivot
-                    heightG = static_cast<uint8_t>(glm::clamp(dy, 1, 255));
+                    glm::vec2 pixelPos = glm::vec2(
+                        (float(x) / float(w)) - 0.5f,
+                        (float(y) / float(h)) - 0.5f
+                    );
+                    float worldHeight = glm::dot(pixelPos, isoUp);
+                    float normalized = (worldHeight - minH) / range;
+                    heightG = static_cast<uint8_t>(glm::clamp(int(normalized * 254.0f) + 1, 1, 255));
                 }
 
                 // --- B: per-instance id only for dynamic objects (alive time); else 0 ---
@@ -891,6 +931,10 @@ namespace Engine {
         m.minL = outMinL;
         m.maxL = outMaxL;
 
+
+        EE_CORE_INFO("Asset AABB min: {:.2f},{:.2f},{:.2f} max: {:.2f},{:.2f},{:.2f}",
+            m.minL.x, m.minL.y, m.minL.z,
+            m.maxL.x, m.maxL.y, m.maxL.z);
         // (optional) keep ownership so you can destroy later
         // m_ownedMeshBuffers[res.meshId] = { std::unique_ptr<VulkanVertexBuffer>(vb),
         //                                    std::unique_ptr<VulkanIndexBuffer>(ib) };

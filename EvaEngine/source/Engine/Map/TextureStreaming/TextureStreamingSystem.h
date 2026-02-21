@@ -92,9 +92,9 @@ namespace Engine{
         void DebugDrawChunkOutlines(Scene* scene);
         
         
-        static bool DebugWriteTGA32(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
-        static bool DebugWritePPM(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
-        static void DumpRGBA(const std::string& filename, int w, int h, const std::vector<uint8_t>& rgba);
+        bool DebugWriteTGA32(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
+        bool DebugWritePPM(const char* path, int w, int h, const std::vector<uint8_t>& rgba);
+        void DumpRGBA(const std::string& filename, int w, int h, const std::vector<uint8_t>& rgba);
     private:
         void SortChunksRowMajor(Scene* scene);
         uint64_t HashCoords(const glm::ivec2& coords);
