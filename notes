@@ -272,14 +272,14 @@ ebuild completed at 13.53 and took 02:26,381 minutes
     TODO.
     1. sounds system
     2. roof.
-    3. vehicle
+    3. vehicle, done
     4.map editor.
     5. physics pushback from explosions etc,
     6.shotgun fix, done
     7. day night cycle system, done
     8. particles
     9. zombie collisions. box2d?
-    10. deterministic tile pixel collisions?
+    10. deterministic tile pixel collisions? or optimize it.  build affected. 0
     11. tiles look different after collisin,. vehicle= crack, explosion= black spot...
 
 }

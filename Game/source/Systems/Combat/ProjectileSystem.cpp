@@ -14,222 +14,201 @@
 #include <Engine/Scene/Components/Animation/NpcAnimationControllerComponent.h>
 
 #include "Engine/Renderer/Renderer2D/VulkanRenderer2D.h"
-
 void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
 
-    // Cache GPU collision results for this tick
-    const auto gpuCollisions = Engine::CollisionResultsCPU::LatestProjectiles;
+    std::unordered_set<Engine::UUID> gpuHitIDs;
+    for (const auto& col : Engine::CollisionResultsCPU::LatestProjectiles)
+        gpuHitIDs.insert(col.GetEntityID());
 
-    // Collect projectiles to destroy after iteration (safer with ECS wrappers)
-    std::vector<Engine::Entity> toDestroy;
-    toDestroy.reserve(64);
-    // Update & collide all projectiles
+    std::vector<Engine::Entity> projectilesToDestroy;
+
+
     scene->ForEach<Engine::TransformComponent, ProjectileComponent, Engine::IDComponent>(
-        [&](Engine::Entity projectileEntity, Engine::TransformComponent& projectileTransformComp,
-            ProjectileComponent& projectileComp, Engine::IDComponent& projectileIdComp)
+        [&](Engine::Entity projectileEntity, Engine::TransformComponent& transformComp,
+            ProjectileComponent& projectileComp, Engine::IDComponent& idComp)
         {
-            // 1) Check if this projectile had a GPU collision
-            bool gpuHit = false;
+            IntegrateMovement(projectileComp, transformComp, deltaTime);
 
-            for (const auto& col : gpuCollisions)
-            {
-                if (projectileIdComp.ID == col.GetEntityID())
-                {
-                    gpuHit = true;
-                    break;
-                }
-            }
+            const glm::vec2 projectilePos = { transformComp.Translation.x, transformComp.Translation.y };
+            const bool gpuHit = gpuHitIDs.count(idComp.ID);
+            const bool outOfRange = projectileComp.DistanceTravelled >= projectileComp.ProjectileMaxRange;
+            const bool hitTarget = projectileComp.DistanceTravelled >= projectileComp.DistanceToTargetatFireTime;
 
-            // 2) Integrate projectile movement
-            const glm::vec2 dir = projectileComp.Direction;
-            const float speed = projectileComp.ProjectileSped;
+            if (outOfRange || hitTarget)
+                Engine::VulkanRenderer2D::SubmitCPUExplosion(projectilePos, projectileComp.DestructionRadius, projectileComp.Damage);
 
-            const float stepDist = speed * deltaTime;
-            projectileTransformComp.Translation.x += dir.x * stepDist;
-            projectileTransformComp.Translation.y += dir.y * stepDist;
-
-            // accumulate travelled distance
-            projectileComp.DistanceTravelled += stepDist;
-
-            const glm::vec2 projectilePos = {
-                projectileTransformComp.Translation.x,
-                projectileTransformComp.Translation.y
-            };
-
-
-
-           
-
-            // 3) Apply blast radius ONLY if we had a GPU hit
-            const float blastRadius = projectileComp.DestructionRadius; // e.g. 0.1f
-
-            bool hitSomething = false;
+            bool destroyProjectile = outOfRange || gpuHit || hitTarget;
 
             scene->ForEach<Engine::TransformComponent>(
-                [&](Engine::Entity targetEntity, Engine::TransformComponent& targetTransformComp)
+                [&](Engine::Entity targetEntity, Engine::TransformComponent& targetTransform)
                 {
-                    if (hitSomething) return;                          // already processed a main hit
-                    if (targetEntity == projectileEntity) return;      // skip self
-                    if (targetEntity == projectileComp.Owner) return;  // skip owner
+                    if (targetEntity == projectileEntity)       return;
+                    if (targetEntity == projectileComp.Owner)  return;
 
-                    bool hit = false;
-
-                    if (!hit && targetEntity.HasComponent<Engine::EnemyDestructibleComponent>())
+                    if (IsInBlastRadius(projectilePos, projectileComp, targetEntity, targetTransform))
                     {
-                        auto& destr = targetEntity.GetComponent<Engine::EnemyDestructibleComponent>();
-
-                        float bestDist2 = std::numeric_limits<float>::max();
-                        Engine::EnemyPieceType bestPiece = Engine::EnemyPieceType::Torso;
-                        bool anyHit = false;
-
-                        glm::mat4 enemyWorld = targetTransformComp.GetTransform();
-
-                        for (const auto& piece : destr.pieces)
-                        {
-                            if (!piece.hitEnabled)
-                                continue;
-
-                            if (piece.hitShape != Engine::HitVolumeShape::Sphere)
-                                continue;
-
-                            if (piece.detached)
-                                continue;
-
-                            // World-space center of piece
-                            glm::vec4 centerW4 = enemyWorld * glm::vec4(piece.hitLocalCenter, 1.0f);
-                            glm::vec2 centerW2(centerW4.x, centerW4.y);
-
-                            glm::vec2 diff = projectilePos - centerW2;
-                            float dist2 = glm::dot(diff, diff);
-
-                            // Explosion sphere vs piece sphere
-
-                            float totalRadius;
-                            if (gpuHit)
-                            {
-                                totalRadius = piece.hitRadius + blastRadius;
-                            }
-                            else
-                            {
-                                totalRadius = piece.hitRadius;
-                            }
-
-                             
-                            float r2 = totalRadius * totalRadius;
-
-                            if (dist2 <= r2 && dist2 < bestDist2)
-                            {
-                                bestDist2 = dist2;
-                                bestPiece = piece.type;
-                                anyHit = true;
-                            }
-                        }
-
-                        if (anyHit)
-                        {
-
-
-                            hit = true;
-                            hitSomething = true;
-
-                            glm::vec3 impulseDir = glm::vec3(projectileComp.Direction, 0.0f);
-                            float impulseStrength = 10.0f;
-
-                            DetachPiece(scene, targetEntity, bestPiece, impulseDir, impulseStrength);
-                            toDestroy.push_back(projectileEntity);
-                            
-                        }
+                        ApplyBlastToEntity(scene, projectilePos, projectileComp, targetEntity, targetTransform);
+                        destroyProjectile = true;
                     }
-
-                    const glm::vec2 targetPos = { targetTransformComp.Translation.x, targetTransformComp.Translation.y };
-
-
-
-                    // Box collider
-                    if (!hit && targetEntity.HasComponent<Engine::BoxCollider2DComponent>())
-                    {
-                        const auto& box = targetEntity.GetComponent<Engine::BoxCollider2DComponent>();
-                        const glm::vec2 half = 0.5f * box.Size;
-                        const glm::vec2 minB = targetPos - half;
-                        const glm::vec2 maxB = targetPos + half;
-
-                        if (projectilePos.x >= minB.x && projectilePos.x <= maxB.x &&
-                            projectilePos.y >= minB.y && projectilePos.y <= maxB.y)
-                        {
-                            hit = true;
-                          
-                        }
-                    }
-
-                    // Circle collider
-                    if (!hit && targetEntity.HasComponent<Engine::CircleCollider2DComponent>())
-                    {
-                        const auto& circle = targetEntity.GetComponent<Engine::CircleCollider2DComponent>();
-                        const float r2 = circle.Radius * circle.Radius;
-                        if (glm::distance2(projectilePos, targetPos) <= r2)
-                        {
-                            
-                            hit = true;
-                        }
-                    }
-
-                
-
-                    // 4) Apply damage if available
-                    if (hit && targetEntity.HasComponent<HealthComponent>())
-                    {
-
-                        Engine::VulkanRenderer2D::SubmitCPUExplosion(projectilePos, projectileComp.DestructionRadius, projectileComp.Damage);
-
-                        HealthComponent& healthComp = targetEntity.GetComponent<HealthComponent>();
-                        healthComp.Current -= projectileComp.Damage;
-                        NpcAnimationControllerComponent& animControllderComp = targetEntity.GetComponent<NpcAnimationControllerComponent>();
-                       
-                        if (healthComp.Current > 0)
-                        {
-                            animControllderComp.request = NpcAnimRequest::Hit;
-                        }
-                        else
-                        {
-                            animControllderComp.request = NpcAnimRequest::Death;
-                        }
-
-                    }
-
-                   
                 });
 
-           
-                const bool outOfRange = projectileComp.DistanceTravelled >= projectileComp.ProjectileMaxRange;
-                const bool hitTargetPos = projectileComp.DistanceTravelled >= projectileComp.DistanceToTargetatFireTime;
-
-                if (outOfRange || hitTargetPos)
-                {
-                    Engine::VulkanRenderer2D::SubmitCPUExplosion(projectilePos, projectileComp.DestructionRadius, projectileComp.Damage);
-                }
-
-                if (outOfRange || gpuHit || hitTargetPos)
-                {
-
-                    toDestroy.push_back(projectileEntity);
-                    return;
-                }
+            if (destroyProjectile)
+                projectilesToDestroy.push_back(projectileEntity);
         });
 
-    // Destroy all marked projectiles after iteration
-    for (auto& e : toDestroy)
-    {
+    for (auto& e : projectilesToDestroy)
         scene->DestroyEntity(e);
+}
+
+void ProjectileSystem::IntegrateMovement(ProjectileComponent& projectileComp, Engine::TransformComponent& transformComp, float deltaTime)
+{
+    const float stepDist = projectileComp.ProjectileSped * deltaTime;
+    transformComp.Translation.x += projectileComp.Direction.x * stepDist;
+    transformComp.Translation.y += projectileComp.Direction.y * stepDist;
+    projectileComp.DistanceTravelled += stepDist;
+}
+
+bool ProjectileSystem::IsInBlastRadius(const glm::vec2& projectilePos, const ProjectileComponent& projectileComp,
+    Engine::Entity targetEntity, Engine::TransformComponent& targetTransform)
+{
+    const glm::vec2 targetPos = { targetTransform.Translation.x, targetTransform.Translation.y };
+    const float blastRadius = projectileComp.DestructionRadius;
+
+    if (targetEntity.HasComponent<Engine::EnemyDestructibleComponent>())
+    {
+        const glm::mat4 enemyWorld = targetTransform.GetTransform();
+        const auto& destr = targetEntity.GetComponent<Engine::EnemyDestructibleComponent>();
+
+        for (const auto& piece : destr.pieces)
+        {
+            if (!piece.hitEnabled || piece.detached || piece.hitShape != Engine::HitVolumeShape::Sphere)
+            {
+
+                continue;
+            }
+
+            glm::vec2 centerW = glm::vec2(enemyWorld * glm::vec4(piece.hitLocalCenter, 1.0f));
+            float totalRadius = piece.hitRadius + blastRadius;
+
+            if (glm::distance2(projectilePos, centerW) <= totalRadius * totalRadius)
+            {
+
+                return true;
+            }
+        }
     }
+
+    if (targetEntity.HasComponent<Engine::BoxCollider2DComponent>())
+    {
+        const auto& box = targetEntity.GetComponent<Engine::BoxCollider2DComponent>();
+        const glm::vec2 half = 0.5f * box.Size;
+        const glm::vec2 minB = targetPos - half;
+        const glm::vec2 maxB = targetPos + half;
+
+        if (projectilePos.x >= minB.x && projectilePos.x <= maxB.x &&
+            projectilePos.y >= minB.y && projectilePos.y <= maxB.y)
+            {
+                return true;
+            }
+    }
+
+    if (targetEntity.HasComponent<Engine::CircleCollider2DComponent>())
+    {
+        const auto& circle = targetEntity.GetComponent<Engine::CircleCollider2DComponent>();
+        if (glm::distance2(projectilePos, targetPos) <= circle.Radius * circle.Radius)
+        {
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void ProjectileSystem::ApplyBlastToEntity(Engine::Scene* scene, const glm::vec2& projectilePos, const ProjectileComponent& projectileComp, 
+    Engine::Entity targetEntity, Engine::TransformComponent& targetTransform)
+{
+    const float blastRadius = projectileComp.DestructionRadius;
+    const glm::vec3 impulseDir = glm::vec3(projectileComp.Direction, 0.0f);
+    const float impulseStrength = blastRadius * 2.0f;
+
+    if (targetEntity.HasComponent<Engine::EnemyDestructibleComponent>())
+    {
+        Engine::EnemyPieceType bestPiece = FindClosestPiece(projectilePos, projectileComp, targetEntity, targetTransform);
+        DetachPiece(scene, targetEntity, bestPiece, impulseDir, impulseStrength);
+    }
+
+    ApplyImpulse(targetEntity, impulseDir, impulseStrength);
+
+    if (targetEntity.HasComponent<HealthComponent>())
+    {
+        Engine::VulkanRenderer2D::SubmitCPUExplosion(projectilePos, blastRadius, projectileComp.Damage);
+
+        HealthComponent& health = targetEntity.GetComponent<HealthComponent>();
+        health.Current -= projectileComp.Damage;
+
+        NpcAnimationControllerComponent& anim = targetEntity.GetComponent<NpcAnimationControllerComponent>();
+        anim.request = (health.Current > 0) ? NpcAnimRequest::Hit : NpcAnimRequest::Death;
+    }
+}
+
+Engine::EnemyPieceType ProjectileSystem::FindClosestPiece(const glm::vec2& projectilePos, const ProjectileComponent& projectileComp,
+    Engine::Entity targetEntity, Engine::TransformComponent& targetTransform)
+{
+    const auto& destr = targetEntity.GetComponent<Engine::EnemyDestructibleComponent>();
+    const glm::mat4 world = targetTransform.GetTransform();
+    const float blastRadius = projectileComp.DestructionRadius;
+
+    float bestDist2 = std::numeric_limits<float>::max();
+    Engine::EnemyPieceType bestPiece = Engine::EnemyPieceType::Torso;
+
+    for (const auto& piece : destr.pieces)
+    {
+        if (!piece.hitEnabled || piece.detached || piece.hitShape != Engine::HitVolumeShape::Sphere)
+        {
+
+            continue;
+        }
+
+        glm::vec2 centerW = glm::vec2(world * glm::vec4(piece.hitLocalCenter, 1.0f));
+        float dist2 = glm::distance2(projectilePos, centerW);
+        float totalRadius = piece.hitRadius + blastRadius;
+
+        if (dist2 <= totalRadius * totalRadius && dist2 < bestDist2)
+        {
+            bestDist2 = dist2;
+            bestPiece = piece.type;
+        }
+    }
+
+    return bestPiece;
+}
+
+void ProjectileSystem::ApplyImpulse(Engine::Entity targetEntity, const glm::vec3& impulseDir, float impulseStrength)
+{
+    if (targetEntity.HasComponent<PhysicsComponent>())
+        return;
+
+    PhysicsComponent& phys = targetEntity.AddComponent<PhysicsComponent>();
+    phys.velocity = glm::normalize(impulseDir) * impulseStrength;
+    phys.gravity = glm::vec3(0.0f, -9.8f, 0.0f);
+    phys.active = true;
+    phys.removeOnFinish = true;
+    phys.duration = 0.5f;
+    phys.timeLeft = 0.5f;
 }
 
 inline Engine::EnemyPiece* ProjectileSystem::FindPiece(Engine::EnemyDestructibleComponent& destr, Engine::EnemyPieceType type)
 {
     for (auto& p : destr.pieces)
+    {
         if (p.type == type)
+        {
             return &p;
+        }
+    }
     return nullptr;
 }
 

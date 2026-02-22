@@ -10,12 +10,20 @@
 void PhysicsSystem::UpdatePhysicsSystem(float dt, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
+
     scene->ForEach<Engine::TransformComponent, PhysicsComponent>(
         [dt](Engine::Entity e, Engine::TransformComponent& xf, PhysicsComponent& phys)
         {
-            if (!phys.active || phys.timeLeft <= 0.0f) {
-                if (phys.destroyOnFinish) {
-                    // scene->DestroyEntity(e);
+            if (!phys.active || phys.timeLeft <= 0.0f) 
+            {
+                if (phys.destroyOnFinish)
+                {
+                     
+                }
+                if (phys.removeOnFinish)
+                {
+                    e.RemoveComponent<PhysicsComponent>();
+                    return;
                 }
                 phys.active = false;
                 return;

@@ -107,7 +107,7 @@ namespace Engine {
 				{
 					continue;
 				}
-				EE_CORE_INFO("collision at world {} | {}", r.CollisionPosition.x, r.CollisionPosition.y);
+				//EE_CORE_INFO("collision at world {} | {}", r.CollisionPosition.x, r.CollisionPosition.y);
 
 				// for effects pass
 				m_hitsW.push_back(r.CollisionPosition);

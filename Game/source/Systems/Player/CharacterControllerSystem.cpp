@@ -135,6 +135,7 @@ void CharacterControllerSystem::UpdateCharacterControllerSystem(float deltaTime,
                         auto& v = driver.Vehicle.GetComponent<VehicleComponent>();
                         v.Driver = Engine::Entity{};
                         v.ExitEnterCooldown = 1.0f;
+                        v.Velocity = glm::vec2(0);
                     }
                     playerEntity.RemoveComponent<DriverComponent>();
                     playerEntity.AddComponent<Engine::CircleCollider2DComponent>();

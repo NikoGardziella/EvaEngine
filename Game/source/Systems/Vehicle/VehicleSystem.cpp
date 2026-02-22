@@ -48,6 +48,17 @@ void VehicleSystem::UpdateVehicleSystem(float deltaTime, Engine::Scene* scene)
                     vehicleComp.CurrentSpeed += (engineForce * invMass) * deltaTime;
                 }
             }
+            else
+            {
+                // Passive deceleration when no throttle
+                const float invMass = (vehicleComp.Mass > 0.0f) ? (1.0f / vehicleComp.Mass) : 0.0f;
+                const float decel = vehicleComp.Deceleration * invMass * 50.0f;
+                if (vehicleComp.CurrentSpeed > 0.0f)
+                    vehicleComp.CurrentSpeed = std::max(0.0f, vehicleComp.CurrentSpeed - decel * deltaTime);
+                else if (vehicleComp.CurrentSpeed < 0.0f)
+                    vehicleComp.CurrentSpeed = std::min(0.0f, vehicleComp.CurrentSpeed + decel * deltaTime);
+            }
+
 
             // Clamp max speed
             vehicleComp.CurrentSpeed = glm::clamp(vehicleComp.CurrentSpeed,
