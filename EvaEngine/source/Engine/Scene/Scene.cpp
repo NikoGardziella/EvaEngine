@@ -148,7 +148,7 @@ namespace Engine {
         const MeshAsset* meshAssetCar = meshReg.GetMeshByKey("PickUp");
         TransformComponent& carTransformComp = carEntity.AddComponent<TransformComponent>();
         carTransformComp.Rotation.x += glm::radians(90.0f);
-
+        carTransformComp.Translation.x = 10.0f;
         carTransformComp.Scale = glm::vec3(0.3f, 0.3f, 0.3f);
 
 

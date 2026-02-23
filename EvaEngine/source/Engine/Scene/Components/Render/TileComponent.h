@@ -24,12 +24,12 @@ namespace Engine {
     enum class eTileCategory
     {
 		Undefined = 0,
-        Default = 1,
-        Buildings,
         Terrain,
-        Roofs,
+        Default,
+        Buildings,
         Vehicles,
-        dynamicObjects
+        dynamicObjects,
+        Roofs,
     };
 
     enum class TileDirection : uint32_t

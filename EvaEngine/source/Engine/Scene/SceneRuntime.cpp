@@ -371,13 +371,21 @@ namespace Engine {
                                         continue;
                                     }
 
+                                    float zBias = 0.01f;
+                                    if (tile.Category == eTileCategory::Roofs)
+                                    {
+
+                                        zBias = 1.0f;
+                                    }
+
+
                                     // Trivial submit: NO residency work here, just append an instance
                                     VulkanRenderer2D::SubmitDestructibleTile(
                                         transformComp.Translation,   // entity world origin
                                         tile.position,       // tile local offset
                                         tile.UV,
                                         tile.UID,            // precomputed UID  slot resolved elsewhere
-                                        0.01f,             // zBias
+                                        zBias,             // zBias
                                         tile.TileDirection,
                                         tile.opaqueMin,
                                         tile.opaqueMax

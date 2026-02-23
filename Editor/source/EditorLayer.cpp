@@ -625,19 +625,33 @@ namespace Engine {
     {
         auto& registry = m_editor->GetGameLayer()->GetActiveGameScene()->GetRegistry();
 
-        // A) Entities: higher Y first (draw earlier)
-        registry.sort<TransformComponent>(
-            [&registry](entt::entity a, entt::entity b)
+        auto getLayer = [&](entt::entity e) -> int {
+            if (!registry.all_of<TileComponent>(e)) return 0;
+            // Use the highest layer found in this entity's tiles
+            int maxLayer = 0;
+            for (const auto& t : registry.get<TileComponent>(e).tiles)
             {
+                if (t.Category == eTileCategory::Roofs)   maxLayer = std::max(maxLayer, 2);
+                else if (t.Category == eTileCategory::Buildings) maxLayer = std::max(maxLayer, 1);
+            }
+            return maxLayer;
+            };
+
+        // A) Entities: sort by layer first, then Y descending within layer
+        registry.sort<TransformComponent>(
+            [&](entt::entity a, entt::entity b)
+            {
+                int layerA = getLayer(a);
+                int layerB = getLayer(b);
+                if (layerA != layerB) return layerA < layerB; // lower layer drawn first
                 const auto& ta = registry.get<TransformComponent>(a).Translation;
                 const auto& tb = registry.get<TransformComponent>(b).Translation;
-
-                if (ta.y != tb.y) return ta.y > tb.y;        // DESC by Y
-                return (uint32_t)a < (uint32_t)b;            // stable tie-break
+                if (ta.y != tb.y) return ta.y > tb.y;
+                return (uint32_t)a < (uint32_t)b;
             }
         );
 
-        // B) Tiles within each entity: higher ground Y first (draw earlier)
+        // B) Tiles within each entity: category first, then Y descending
         auto view = registry.view<TileComponent, TransformComponent>();
         for (auto e : view)
         {
@@ -647,14 +661,20 @@ namespace Engine {
             std::stable_sort(tc.tiles.begin(), tc.tiles.end(),
                 [&](const TileInfo& A, const TileInfo& B)
                 {
-                    const float yA = tr.Translation.y + A.position.y; // A/B.position = WORLD delta to GROUND
+                    int layerA = (A.Category == eTileCategory::Roofs) ? 2 :
+                        (A.Category == eTileCategory::Buildings) ? 1 : 0;
+                    int layerB = (B.Category == eTileCategory::Roofs) ? 2 :
+                        (B.Category == eTileCategory::Buildings) ? 1 : 0;
+
+                    if (layerA != layerB) return layerA < layerB; // lower layer drawn first
+
+                    const float yA = tr.Translation.y + A.position.y;
                     const float yB = tr.Translation.y + B.position.y;
-                    return yA > yB;                                    // DESC by Y
+                    return yA > yB; // DESC by Y within same layer
                 }
             );
         }
     }
-
 
     TileDirection EditorLayer::GetDirectionFromTileName(const std::string& tileName)
     {
@@ -1009,7 +1029,7 @@ namespace Engine {
            OnOverlayRender();
            
            
-           
+           // move to own function
            if (m_mouseIsInViewPort && m_sceneState == eSceneState::Edit)
            {
                std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();

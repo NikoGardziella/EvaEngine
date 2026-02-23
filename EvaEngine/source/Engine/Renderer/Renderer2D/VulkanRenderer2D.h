@@ -296,11 +296,10 @@ namespace Engine {
 		static void DrawQuadRaw(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec2& uv2, const glm::vec2& uv3, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor, const glm::vec4& tintColor);
 		static uint32_t AcquireTextureSlot(const std::shared_ptr<VulkanTexture>& texture);
 		static void DrawVisualEffectTexture(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture);
-		void RecordShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID = -1);
-		static void DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color = glm::vec4(1));
+		static void VulkanRenderer2D::DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color, float zOverride = 0.0f);
 		static void DrawTile(const glm::vec3& transform, const glm::vec4& uv, const glm::vec4& color);
 		static void RemoveTilePixels(const uint32_t slot, const uint32_t newSlot, const std::vector<uint32_t>& words, const int cutY);
 		static void BeginScene(const SceneCamera& camera, const glm::mat4& transform);

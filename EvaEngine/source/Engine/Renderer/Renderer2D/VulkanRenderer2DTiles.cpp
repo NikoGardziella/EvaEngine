@@ -6,7 +6,7 @@
 
 namespace Engine {
 
-	void VulkanRenderer2D::DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color)
+	void VulkanRenderer2D::DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color, float zOverride)
 	{
 		const float aspect = 2.0f;                 // 128x256
 		const float widthWorld = float(TILE_SIZE);
@@ -14,7 +14,7 @@ namespace Engine {
 
 		// bottom-center pivot: translate up by half height
 		glm::mat4 transform =
-			glm::translate(glm::mat4(1.0f), glm::vec3(worldPos + glm::vec2(0.0f, heightWorld * 0.5f), 0.0f)) *
+			glm::translate(glm::mat4(1.0f), glm::vec3(worldPos + glm::vec2(0.0f, heightWorld * 0.5f), zOverride)) *
 			glm::scale(glm::mat4(1.0f), glm::vec3(widthWorld, heightWorld, 1.0f));
 
 		// Find or bind the atlas texture slot
@@ -262,8 +262,8 @@ namespace Engine {
 			const float groundY = center.y * tileWorldH;
 			const uint32_t h32 = (uint32_t)((uid ^ (uid >> 32)) * 0x9E3779B1u);
 			const float tie = float(h32 & 0x3FF) * 1e-4f;
-			const float zKey = groundY * 1024.0f + submitTile.zBias + tie;
-
+			const float layerBias = (submitTile.zBias >= 1.0f) ? -100000.0f : 0.0f;
+			const float zKey = layerBias + groundY * 1024.0f + tie;
 			// Pass the real world size so the quad matches exactly
 			glm::vec2 size = glm::vec2(TILE_SIZE, TILE_SIZE * 2);
 
