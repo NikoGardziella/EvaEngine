@@ -335,7 +335,6 @@ float getOcclusionAlpha(vec2 localPos, uint direction)
     float holeStrength = localPos.y - (1.0 - closeness) > 0.0 ? 1.0 : 0.0;
 
 
-    // 3. Inverse the result: 0.0 means "hide", 1.0 means "show"
     // We cap it at 0.2 so the wall never becomes completely invisible
     return mix(1.0, 0.2, holeStrength);
 }

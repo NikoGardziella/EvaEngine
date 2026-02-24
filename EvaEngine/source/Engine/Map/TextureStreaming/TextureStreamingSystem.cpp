@@ -697,7 +697,7 @@ namespace Engine {
                     if (tile.Category != eTileCategory::Terrain)
                         continue;
 
-                    const float yoffset = 1.0f;
+                    const float yoffset = 2.0f;
 
                     glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
                     worldTilePos.y += yoffset;

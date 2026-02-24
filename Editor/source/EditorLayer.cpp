@@ -629,11 +629,11 @@ namespace Engine {
             if (!registry.all_of<TileComponent>(e)) return 0;
             // Use the highest layer found in this entity's tiles
             int maxLayer = 0;
-            for (const auto& t : registry.get<TileComponent>(e).tiles)
-            {
-                if (t.Category == eTileCategory::Roofs)   maxLayer = std::max(maxLayer, 2);
-                else if (t.Category == eTileCategory::Buildings) maxLayer = std::max(maxLayer, 1);
-            }
+                for (const auto& t : registry.get<TileComponent>(e).tiles)
+                {
+                    if (t.Category == eTileCategory::Roofs)   maxLayer = std::max(maxLayer, 2);
+                    else if (t.Category == eTileCategory::Buildings) maxLayer = std::max(maxLayer, 1);
+                }
             return maxLayer;
             };
 
@@ -784,6 +784,15 @@ namespace Engine {
 
             newTile.TileDirection = GetDirectionFromTileName(selectedTileName);
 
+            if (tileCategory == eTileCategory::Buildings || tileCategory == eTileCategory::Pillars)
+            {
+                newTile.IsSupportingRoof = true;
+            }
+            else
+            {
+                newTile.IsSupportingRoof = false;
+            }
+
 
             tc.tiles.push_back(newTile);
             
@@ -811,6 +820,15 @@ namespace Engine {
             newTile.Material = tileProps.material;
             newTile.TileHealth = tileProps.health;
             newTile.UID = tileID;
+            
+            if (tileCategory == eTileCategory::Buildings || tileCategory == eTileCategory::Pillars)
+            {
+                newTile.IsSupportingRoof = true;
+            }
+            else
+            {
+                newTile.IsSupportingRoof = false;
+            }
 
             // 2. Set the direction using the helper function we made
             newTile.TileDirection = GetDirectionFromTileName(selectedTileName);

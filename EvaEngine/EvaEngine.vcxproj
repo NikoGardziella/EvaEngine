@@ -164,7 +164,6 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="DayNightComponent.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h" />
@@ -228,9 +227,12 @@
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.h" />
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h" />
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
+    <ClInclude Include="source\Engine\Map\Tile\RoofSystem.h" />
+    <ClInclude Include="source\Engine\Map\Tile\SceneRoofTileAccess.h" />
     <ClInclude Include="source\Engine\Map\Tile\TileManager.h" />
     <ClInclude Include="source\Engine\Map\Tile\TileStreaming.h" />
     <ClInclude Include="source\Engine\Map\Tile\Utils\CompressUtils.h" />
+    <ClInclude Include="source\Engine\Map\Tile\Utils\RoofUtils.h" />
     <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h" />
     <ClInclude Include="source\Engine\Map\Utils\IVec2Hasher.h" />
     <ClInclude Include="source\Engine\Map\Utils\IsoTileUtils.h" />
@@ -315,6 +317,7 @@
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIStateComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicUtils.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\PlayerVisionComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
@@ -824,6 +827,8 @@
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingSystem.cpp" />
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\RoofSystem.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\SceneRoofTileAccess.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\TileStreaming.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp" />

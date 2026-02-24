@@ -7,23 +7,46 @@
 #include <random>
 #include <Engine/Scene/Component.h>
 
+#include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
+
+
 void PhysicsSystem::UpdatePhysicsSystem(float dt, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
+    std::vector<Engine::Entity> entitiesToDestroy;
+
 
     scene->ForEach<Engine::TransformComponent, PhysicsComponent>(
-        [dt](Engine::Entity e, Engine::TransformComponent& xf, PhysicsComponent& phys)
+        [&](Engine::Entity e, Engine::TransformComponent& xf, PhysicsComponent& phys)
         {
             if (!phys.active || phys.timeLeft <= 0.0f) 
             {
                 if (phys.destroyOnFinish)
                 {
-                     
+
+                    if (e.HasComponent<Engine::TileComponent>())
+                    {   
+
+                        
+                        Engine::TileComponent& tileComp = e.GetComponent<Engine::TileComponent>();
+                        if (tileComp.tiles.empty())
+                        {
+                            return;
+                        }
+                        auto bindless = Engine::VulkanRenderer2D::GetBindlessDescriptorSetRenderer();
+
+                        bindless->EvictTileBySlot(tileComp.tiles[0].Slot);
+
+                        entitiesToDestroy.push_back(e);
+                        return;
+                        
+                    }
+
                 }
                 if (phys.removeOnFinish)
                 {
                     e.RemoveComponent<PhysicsComponent>();
-                    return;
+                    
                 }
                 phys.active = false;
                 return;
@@ -57,7 +80,11 @@ void PhysicsSystem::UpdatePhysicsSystem(float dt, Engine::Scene* scene)
                 phys.angularVelocity = 0.f;
             }
         });
+    for (auto& e : entitiesToDestroy)
+    {
 
+        scene->DestroyEntity(e);
+    }
 }
 
 inline float PhysicsSystem::RandomFloat(float minVal, float maxVal)

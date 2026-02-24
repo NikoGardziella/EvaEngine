@@ -27,6 +27,7 @@ namespace Engine {
         Terrain,
         Default,
         Buildings,
+        Pillars,
         Vehicles,
         dynamicObjects,
         Roofs,
@@ -50,6 +51,7 @@ namespace Engine {
         uint64_t        UID;
         bool            IsDestructible;
         bool            IsRoof;
+        bool            IsSupportingRoof;
         eTileCategory   Category;
         eTileMaterial   Material;
         uint32_t        TileHealth;

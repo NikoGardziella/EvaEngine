@@ -406,7 +406,7 @@ namespace Engine {
                 }
                 //m_gridMap->HasLineOfSight(playerPos, glm::vec2(0.0f, 0.0f), true);
                 m_gridMap->UpdateTiles();
-                m_destructibleTileSystem.OnTilesUpdated(this);
+                m_destructibleTileSystem.OnTilesUpdated(this, timestep);
 
 
                 {

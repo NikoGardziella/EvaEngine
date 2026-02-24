@@ -11,6 +11,7 @@
 #include <cmath>
 
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include "Engine/Scene/Components/Physics/PhysicUtils.h"
 
 namespace Engine {
 
@@ -325,18 +326,6 @@ namespace Engine {
     // -------------------------
     // Simple physics helper
     // -------------------------
-    void DestructibleTileSystem::AttachSimplePhysics(Engine::Entity e, glm::vec2 initialVelocity,
-        float initialSpinRadPerSec, float simulateSeconds, bool destroyOnFinish, glm::vec2 gravity)
-    {
-        auto& pc = e.AddComponent<PhysicsComponent>();
-        pc.velocity = initialVelocity;
-        pc.angularVelocity = initialSpinRadPerSec;
-        pc.duration = simulateSeconds;
-        pc.timeLeft = simulateSeconds;
-        pc.gravity = gravity;
-        pc.active = true;
-        pc.destroyOnFinish = destroyOnFinish;
-    }
 
     float DestructibleTileSystem::DurationFromCutY(int cutY, int tileH_px,
         float pixelWorld, float gravityMag, bool isTopPiece)
@@ -355,12 +344,25 @@ namespace Engine {
         return glm::clamp(t, tMin, tMax);
     }
 
+    void DestructibleTileSystem::InitDestructableSystem(Scene* scene)
+    {
+
+        m_roofAccess.Init(scene);
+
+        Engine::RoofSystemConfig cfg;
+        cfg.minSupportsPerComponent = 2;
+
+        m_roofSystem.Init(scene, &m_roofAccess, cfg);
+    }
+
     // =========================
     // Public: OnTilesUpdated
     // =========================
-    void DestructibleTileSystem::OnTilesUpdated(Scene* scene)
+    void DestructibleTileSystem::OnTilesUpdated(Scene* scene, float deltaTime)
     {
         EE_PROFILE_FUNCTION();
+
+        m_roofSystem.Update(deltaTime);
 
         const auto& tiles = Engine::TileBlockedMaskCPU::DirtyTileRuntime;
         if (tiles.empty()) return;
@@ -439,17 +441,26 @@ namespace Engine {
                     size_t srcTileIndex = SIZE_MAX;
                     bool found = false;
 
-                    scene->ForEachConst<Engine::TransformComponent, Engine::TileComponent, Engine::IDComponent>(
+                    scene->ForEach<Engine::TransformComponent, Engine::TileComponent, Engine::IDComponent>(
                         [&](Engine::Entity e,
-                            const Engine::TransformComponent& xform,
-                            const Engine::TileComponent& tc,
-                            const Engine::IDComponent& idc)
+                            Engine::TransformComponent& xform,
+                            Engine::TileComponent& tc,
+                            Engine::IDComponent& idc)
                         {
-                            for (size_t i = 0; i < tc.tiles.size(); ++i) {
-                                if (tc.tiles[i].Slot == slot) {
+                            for (size_t i = 0; i < tc.tiles.size(); ++i) 
+                            {
+                                if (tc.tiles[i].Slot == slot)
+                                {
                                     srcEntity = e;
                                     srcTileIndex = i;
                                     found = true;
+
+                                    glm::vec2 tilePos = glm::vec2(xform.Translation.x, xform.Translation.y) + tc.tiles[i].position;
+                                    tc.tiles[i].IsSupportingRoof = false;
+
+                                    EE_CORE_INFO("xform.Translation.x {}, xform.Translation.y {}, tile local pos {}", xform.Translation.x, xform.Translation.y, tc.tiles[i].position);
+                                    m_roofSystem.NotifySupportLostAtWorld(tilePos);
+
                                     return;
                                 }
                             }
@@ -514,7 +525,7 @@ namespace Engine {
                         glm::vec2 v0 = glm::vec2(+20.0f * pxW, +40.0f * pxW); // tweak
                         float     w0 = glm::radians(120.0f);
 
-                        AttachSimplePhysics(newEntity, v0, w0, simulateSeconds,
+                        PhysicsUtils::AttachSimplePhysics(newEntity, v0, w0, simulateSeconds,
                             /*destroyOnFinish*/false, { 0.f, -gravityMag });
 
                     }

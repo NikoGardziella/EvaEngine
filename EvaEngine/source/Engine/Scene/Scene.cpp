@@ -236,6 +236,10 @@ namespace Engine {
         dn.dayLengthSeconds = 600.0f;
         dn.timeNormalized = 0.35f; // ~8:24 AM
 
+
+
+        m_destructibleTileSystem.InitDestructableSystem(this);
+
     }
 
 

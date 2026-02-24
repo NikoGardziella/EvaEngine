@@ -8,6 +8,9 @@
 #include <Engine/Renderer/Utils/DeltaBitReader.h>
 #include <glm/glm.hpp>
 
+
+#include "Engine/Map/Tile/RoofSystem.h"
+#include "Engine/Map/Tile/SceneRoofTileAccess.h"
 namespace Engine
 {
 
@@ -39,8 +42,10 @@ namespace Engine
 
 
     public:
+
+        void InitDestructableSystem(Scene* scene);
         void SpawnDetachedChunk(uint32_t slot, int cutY, const DirtyTileRuntime& tr, const ConnCfg& cfg);
-        void OnTilesUpdated(Scene* scene);
+        void OnTilesUpdated(Scene* scene, float deltaTime);
         void Reset()
         {
             m_initialized.clear();
@@ -61,6 +66,10 @@ namespace Engine
         std::vector<uint32_t> m_maskCrc;             // CRC of aliveWords
         std::vector<ConnCfg>  m_connCfg;             // packing config per slot
 
+        // roofs
+        RoofSystem m_roofSystem;
+        SceneRoofTileAccess m_roofAccess;
+       
     private:
         
 

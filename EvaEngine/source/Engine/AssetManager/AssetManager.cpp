@@ -450,6 +450,8 @@ namespace Engine {
                     float worldHeight = glm::dot(pixelPos, isoUp);
                     float normalized = (worldHeight - minH) / range;
                     heightG = static_cast<uint8_t>(glm::clamp(int(normalized * 254.0f) + 1, 1, 255));
+                    
+
                 }
 
                 // --- B: per-instance id only for dynamic objects (alive time); else 0 ---
@@ -576,6 +578,7 @@ namespace Engine {
 
         static const std::unordered_map<eTileCategory, std::string> CategoryNames = {
             { eTileCategory::Buildings, "buildings" },
+            { eTileCategory::Pillars, "pillars" },
             { eTileCategory::Terrain,   "terrain" },
             { eTileCategory::Roofs,     "roofs" },
             { eTileCategory::Vehicles,  "vehicles" },

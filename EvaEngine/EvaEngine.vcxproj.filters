@@ -148,6 +148,9 @@
     <Filter Include="source\Engine\Scene\Components\Combat">
       <UniqueIdentifier>{B224FACC-1EE9-F8BC-E74E-298753D294F2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Components\Environment">
+      <UniqueIdentifier>{31CFFA3F-1D37-C10D-86A2-D5237229D8F9}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene\Components\Light">
       <UniqueIdentifier>{140EA74C-00F5-6844-A945-CF61950BE2AA}</UniqueIdentifier>
     </Filter>
@@ -249,9 +252,6 @@
     </Filter>
     <Filter Include="vendor\tiny_gltf">
       <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\Engine\Scene\Components\Environment">
-      <UniqueIdentifier>{5a537caa-99f8-410a-a426-10188712441b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -444,11 +444,20 @@
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\RoofSystem.h">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\SceneRoofTileAccess.h">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\TileManager.h">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\TileStreaming.h">
       <Filter>source\Engine\Map\Tile</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\Utils\CompressUtils.h">
+      <Filter>source\Engine\Map\Tile\Utils</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h">
       <Filter>source\Engine\Map\Tile\Utils</Filter>
@@ -671,6 +680,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Combat\WeaponDef.h">
       <Filter>source\Engine\Scene\Components\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Environment\DayNightComponent.h">
+      <Filter>source\Engine\Scene\Components\Environment</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Light\DirectionalLightComponent.h">
       <Filter>source\Engine\Scene\Components\Light</Filter>
@@ -2103,13 +2115,12 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Map\Tile\Utils\CompressUtils.h">
+    <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicUtils.h">
+      <Filter>source\Engine\Scene\Components\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\Utils\RoofUtils.h">
       <Filter>source\Engine\Map\Tile\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="DayNightComponent.h">
-      <Filter>source\Engine\Scene\Components\Environment</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Components\Environment\DayNightComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2227,6 +2238,12 @@
       <Filter>source\Engine\Map\TextureStreaming</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\RoofSystem.cpp">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\SceneRoofTileAccess.cpp">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp">

@@ -30,7 +30,7 @@ void ProjectileSystem::UpdateProjectileSystem(float deltaTime, Engine::Scene* sc
             ProjectileComponent& projectileComp, Engine::IDComponent& idComp)
         {
             IntegrateMovement(projectileComp, transformComp, deltaTime);
-
+            
             const glm::vec2 projectilePos = { transformComp.Translation.x, transformComp.Translation.y };
             const bool gpuHit = gpuHitIDs.count(idComp.ID);
             const bool outOfRange = projectileComp.DistanceTravelled >= projectileComp.ProjectileMaxRange;

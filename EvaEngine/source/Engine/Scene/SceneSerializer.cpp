@@ -300,6 +300,7 @@ namespace Engine {
 
                 out << YAML::Key << "Name" << YAML::Value << tile.name;
                 out << YAML::Key << "IsDestructible" << YAML::Value << tile.IsDestructible;
+                out << YAML::Key << "IsSupportingRoof" << YAML::Value << tile.IsSupportingRoof;
                 out << YAML::Key << "IsRoof" << YAML::Value << tile.IsRoof;
                 out << YAML::Key << "Category" << YAML::Value << ToString(tile.Category);
                 out << YAML::Key << "Material" << YAML::Value << ToString(tile.Material);
@@ -435,6 +436,7 @@ namespace Engine {
                     tile.name = tileNode["Name"] ? tileNode["Name"].as<std::string>() : "";
                     tile.UV = AssetManager::GetTileProperties(tile.name).uv;
                     tile.IsDestructible = tileNode["IsDestructible"] ? tileNode["IsDestructible"].as<bool>() : false;
+                    tile.IsSupportingRoof = tileNode["IsSupportingRoof"] ? tileNode["IsSupportingRoof"].as<bool>() : false;
                     tile.IsRoof = tileNode["IsRoof"] ? tileNode["IsRoof"].as<bool>() : false;
                     tile.Category = CategoryFromString(tileNode["Category"].as<std::string>());
                     tile.Material = MaterialFromString(tileNode["Material"].as<std::string>());

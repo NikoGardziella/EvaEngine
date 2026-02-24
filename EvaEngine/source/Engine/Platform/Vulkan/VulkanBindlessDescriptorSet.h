@@ -116,6 +116,7 @@ namespace Engine {
         void SetCurrentFrameIndex(uint32_t fi) { m_currentFrame = fi; }
         void EvictAllTiles();
         void EvictTile(uint64_t uid);
+        void EvictTileBySlot(uint32_t slot);
         void ReadbackArrayLayer(uint32_t slot, std::vector<uint8_t>& outColor, std::vector<uint8_t>& outProps);
         // Build visible instances and stream into SSBO; updates binding 2 for this frame
         void RecordTiles(VkCommandBuffer cmd, uint32_t frameIndex, const glm::mat4& VP, VkExtent2D fbExtent, const glm::mat4& lightMat);

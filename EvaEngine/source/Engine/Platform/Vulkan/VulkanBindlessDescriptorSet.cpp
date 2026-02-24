@@ -221,6 +221,14 @@ namespace Engine {
         m_tileToSlot.erase(it);
     }
 
+    void VulkanBindlessDescriptorSetRenderer::EvictTileBySlot(uint32_t slot)
+    {
+       
+        m_colorLayerPool.Release(slot);
+        m_propsLayerPool.Release(slot);
+        m_tileToSlot.erase(slot);
+    }
+
     void VulkanBindlessDescriptorSetRenderer::ReadbackArrayLayer(uint32_t slot, std::vector<uint8_t>& outColor, std::vector<uint8_t>& outProps)
     {
         VulkanContext* ctx = VulkanContext::Get();

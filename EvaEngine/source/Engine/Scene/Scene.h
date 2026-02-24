@@ -17,6 +17,7 @@
 #include <Engine/Animation/3D/BonePaletteBuffer.h>    
 #include "Light/LightGatherSystem.h"
 
+
 namespace Engine {
 
 	class EditorCamera;
@@ -153,7 +154,7 @@ namespace Engine {
 		//template<typename T>
 		//void OnComponentAdded(Entity entity, T& component);
 
-
+		
 
 
 	private:
@@ -183,7 +184,10 @@ namespace Engine {
 		LightGatherSystem m_lightGatherSystem;
 		bool m_debugDrawLOS = false;
 
+
 		
+
+
 
 		friend class Entity;
 		friend class SceneSerializer;

@@ -202,6 +202,7 @@ namespace Engine {
 		reader.Unmap();
 		return true;
 	}
+
 	bool VulkanRenderer2D::ClearAliveBitsHost()
 	{
 		EE_PROFILE_FUNCTION();
