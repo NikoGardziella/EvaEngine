@@ -24,7 +24,6 @@ namespace Engine {
         bool HasRoof(const glm::ivec2& p) const;
         bool HasSupport(const glm::ivec2& p) const;
         void RemoveRoof(const glm::ivec2& p);
-        bool ApplyRoofDamage(const glm::ivec2& p, int damage);
 
     private:
 

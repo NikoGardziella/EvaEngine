@@ -15,6 +15,7 @@ namespace Engine {
     public:
         VulkanTexture(const std::string& path, VkFormat textureFormat = VK_FORMAT_R8G8B8A8_UNORM, const std::string& name = "",bool imGuiTexture = false, uint32_t textureID = 0);
         VulkanTexture(uint32_t width, uint32_t height, VkFormat textureFormat = VK_FORMAT_R8G8B8A8_UNORM, bool imGuiTexture = false, uint32_t textureID = 0);
+        VulkanTexture(uint32_t width, uint32_t height, VkImageUsageFlags usage, VkFormat textureFormat = VK_FORMAT_R8G8B8A8_UNORM);
         VulkanTexture(const TextureSource& src);
         
         virtual ~VulkanTexture();

@@ -10,5 +10,7 @@ namespace Engine {
 		glm::vec2	CameraPos;
 		float		visionRadiusW;
 		float		SceneRadius;
+		glm::vec2	screenMin;
+		glm::vec2	screenMax;
 	};
 }

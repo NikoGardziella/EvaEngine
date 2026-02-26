@@ -108,6 +108,9 @@ layout(std140, set=0, binding=7) uniform PlayerData {
     float playerFootY;
     float fadeRadius;
 } player;
+layout(set = 0, binding = 8) uniform sampler2D uVisibilityMap;
+
+
 
 // ============================================================================
 // LIGHTING
@@ -348,17 +351,20 @@ void main()
 
 
     bool isSprite = (vFlags & 1u) != 0u;
-    vec4 base = isSprite
-        ? texture(uSprites[nonuniformEXT(vSlot)], vUV)
-        : texture(uTiles[nonuniformEXT(vSlot)], vUV);
+   // vec4 base = isSprite
+   //     ? texture(uSprites[nonuniformEXT(vSlot)], vUV)
+   //     : texture(uTiles[nonuniformEXT(vSlot)], vUV);
+   vec4 base = texture(uTiles[nonuniformEXT(vSlot)], vUV);
 
     // Keep the discard for the actual texture transparency (holes in the sprite)
     if (base.a <= 0.001) discard;
 
     // --- Occlusion Fade Logic ---
     float occlusionAlpha = 1.0;
-    if (!isSprite) {
+    
         occlusionAlpha = getOcclusionAlpha(vLocalPos, vDirection);
+    if (!isSprite)
+    {
     }
 
     // --- Lighting Logic ---

@@ -402,7 +402,7 @@ namespace Engine {
 
 
 
-
+	// rename this to drwaFrame or something
 	void VulkanRenderer2D::EndFrame(uint32_t currentFrame, VkCommandBuffer cmd)
 	{
 		EE_PROFILE_FUNCTION();
@@ -474,6 +474,8 @@ namespace Engine {
 
 
 		Renderer::DrawShadowFrame();
+
+		RenderVisibilityMap(cmd, currentFrame);
 
 
 		//move somewhere
@@ -554,7 +556,7 @@ namespace Engine {
 		vkCmdEndRenderPass(cmd);
 
 		RecordPresentDrawCommands(cmd, m_imageIndex, currentFrame);
-		RecordEditorDrawCommands(cmd, m_imageIndex, currentFrame);
+		RecordEditorDrawCommands (cmd, m_imageIndex, currentFrame);
 
 
 		vkEndCommandBuffer(cmd);
@@ -687,8 +689,6 @@ namespace Engine {
 
 	void VulkanRenderer2D::DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd, Ref<VulkanShadowMap> shadowMap)
 	{
-
-
 
 		s_bindlessDescitproRenderer->RecordTiles(cmd, currentFrame,
 			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent(), shadowMap->GetLightSpaceMatrix());

@@ -74,7 +74,9 @@ namespace Engine {
         VkRenderPass& GetPresentRenderPass() { return m_presentRenderPass; }
 		VkRenderPass& GetImGuiRenderPass() { return m_imGuiRenderPass; }
         VkRenderPass& GetGameRenderPass() { return m_gameRenderPass;  }
+        VkRenderPass& GetVisibilityRenderPass() { return m_visibilityRenderPass;  }
         VkRenderPass& GetOffscreenRenderPass() { return m_offscreenRenderPass;  }
+
         VulkanSwapchain& GetVulkanSwapchain() { return *m_swapchain; }
 
         //std::vector<VkFramebuffer>& GetSwapchainFramebuffers() { return m_swapchainFramebuffers; }
@@ -101,6 +103,8 @@ namespace Engine {
         void CreateImGuiRenderPass();
 
         void CreateGameRenderPass();
+
+        void CreateVisibilityRenderPass();
 
         void CreateShadowRenderPass(VkFormat shadowDepthFormat);
 
@@ -140,6 +144,7 @@ namespace Engine {
         VkRenderPass m_presentRenderPass;
         VkRenderPass m_imGuiRenderPass;
         VkRenderPass m_gameRenderPass;
+        VkRenderPass m_visibilityRenderPass;
         VkRenderPass m_offscreenRenderPass;
         
         static VulkanContext* s_instance;

@@ -269,9 +269,12 @@ ebuild completed at 13.53 and took 02:26,381 minutes
 }
 
 {
+
+use fog of war for tile and roof opacity
+
     TODO.
     1. sounds system
-    2. roof.
+    2. roof. done
     3. vehicle, done
     4.map editor.
     5. physics pushback from explosions etc, done

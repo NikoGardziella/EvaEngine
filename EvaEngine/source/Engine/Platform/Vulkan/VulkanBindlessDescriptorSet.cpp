@@ -394,7 +394,7 @@ namespace Engine {
     void VulkanBindlessDescriptorSetRenderer::CreateBindlessSetLayout(VkDevice device, bool updateAfterBindSupported)
     {
 
-        const uint32_t totalBingingCount = 8;
+        const uint32_t totalBingingCount = 9;
         // binding 0: tiles sampled array (you already have this)
         VkDescriptorSetLayoutBinding bColor{};
         bColor.binding = 0;
@@ -449,8 +449,15 @@ namespace Engine {
         tileParamsBinding.descriptorCount = 1;
         tileParamsBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
+
+        VkDescriptorSetLayoutBinding playerVisionmask{};
+        playerVisionmask.binding = 8;
+        playerVisionmask.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        playerVisionmask.descriptorCount = 1;
+        playerVisionmask.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
         VkDescriptorSetLayoutBinding bindings[totalBingingCount] =
-        { bColor, bStorage, bInstances, bSprites, bLights, shadowMap3DBinding, tileShadowBinding, tileParamsBinding };
+        { bColor, bStorage, bInstances, bSprites, bLights, shadowMap3DBinding, tileShadowBinding, tileParamsBinding ,playerVisionmask };
 
         VkDescriptorBindingFlags flags[totalBingingCount]{};
         flags[0] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
@@ -464,6 +471,7 @@ namespace Engine {
         flags[5] = 0;  // 
         flags[6] = 0;  // 
         flags[7] = 0;  // 
+        flags[8] = 0;  // 
 
         VkDescriptorSetLayoutBindingFlagsCreateInfo bindFlags{
             VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO

@@ -287,14 +287,12 @@ namespace Engine {
         {
             PendingCollapse& pc = st.pending[i];
             pc.timeLeft -= dt;
-            /// EE_CORE_INFO("pending unntil roof remove: {}", pc.timeLeft);
 
             if (pc.timeLeft > 0.0f)
             {
                 ++i;
                 continue;
             }
-            // Remove roof tiles (if still present)
             for (const glm::ivec2& p : pc.tiles)
             {
                 if (!access->HasRoof(p)) continue;

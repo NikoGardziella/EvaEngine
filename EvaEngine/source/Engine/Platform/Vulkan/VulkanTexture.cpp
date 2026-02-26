@@ -41,8 +41,9 @@ namespace Engine {
         stats.AddTexture(m_memorySize);
     }
 
+
     VulkanTexture::VulkanTexture(uint32_t width, uint32_t height, VkFormat textureFormat, bool imGuiTexture, uint32_t textureID)
-		: m_width(width), m_height(height), m_TextureID(textureID), m_textureFormat(textureFormat)
+        : m_width(width), m_height(height), m_TextureID(textureID), m_textureFormat(textureFormat)
     {
 
         VkImageUsageFlags usage = VK_IMAGE_USAGE_STORAGE_BIT // for compute writes
@@ -62,6 +63,23 @@ namespace Engine {
             // set imGuiTexture to True when adding Imgui texture
             m_textureDescriptor = ImGui_ImplVulkan_AddTexture(m_sampler, m_imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
+        GPUStats& stats = GPUStats::Get();
+        stats.AddTexture(m_memorySize);
+
+    }
+
+
+    VulkanTexture::VulkanTexture(uint32_t width, uint32_t height, VkImageUsageFlags usage, VkFormat textureFormat)
+		: m_width(width), m_height(height), m_textureFormat(textureFormat)
+    {
+
+       
+        CreateTextureImage(usage);
+        CreateTextureImageView();
+
+
+        CreateTextureSampler();
+        
         GPUStats& stats = GPUStats::Get();
         stats.AddTexture(m_memorySize);
         //EE_CORE_INFO("is imGuiTexture: {}, memory used {} / {} ", imGuiTexture, m_memorySize, AssetManager::s_totalTextureMemory);

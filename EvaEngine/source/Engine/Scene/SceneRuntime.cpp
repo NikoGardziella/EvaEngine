@@ -160,6 +160,16 @@ namespace Engine {
             uint32_t playerOffset = 50;
             playerStateData.PlayerScreenPos = glm::vec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - playerOffset);
 
+
+            const std::array<glm::vec2, 2>& camBounds = mainCameraComp->Camera.GetViewportBounds();
+
+            glm::vec2 b0 = SceneCamera::ArrayAt(camBounds, SceneCamera::CameraBounds::min);
+            glm::vec2 b1 = SceneCamera::ArrayAt(camBounds, SceneCamera::CameraBounds::max);
+
+            playerStateData.screenMin = glm::vec2(std::min(b0.x, b1.x), std::min(b0.y, b1.y));
+            playerStateData.screenMax = glm::vec2(std::max(b0.x, b1.x), std::max(b0.y, b1.y));
+
+
             VulkanRenderer2D::SubmitPlayerData(playerStateData);
 
             Engine::IDComponent& playerIDComp = playerEntity.GetComponent<Engine::IDComponent>();

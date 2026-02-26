@@ -77,7 +77,7 @@ namespace Engine {
         CreatePresentRenderPass();
         CreateImGuiRenderPass();
         CreateGameRenderPass();
-
+        CreateVisibilityRenderPass();
 
         CreateOffscreenRenderPass();
 
@@ -461,7 +461,47 @@ namespace Engine {
     }
 
 
+    void VulkanContext::CreateVisibilityRenderPass()
+    {
+        VkAttachmentDescription attachment{};
+        attachment.format = VK_FORMAT_R8_UNORM;
+        attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
+        // Vulkan will transition UNDEFINED -> COLOR_ATTACHMENT at the start
+        attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        // Vulkan will transition COLOR_ATTACHMENT -> SHADER_READ_ONLY at the end
+        attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+        VkAttachmentReference ref{};
+        ref.attachment = 0;
+        ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &ref;
+
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        VkRenderPassCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        ci.attachmentCount = 1;
+        ci.pAttachments = &attachment;
+        ci.subpassCount = 1;
+        ci.pSubpasses = &subpass;
+        ci.dependencyCount = 1;
+        ci.pDependencies = &dependency;
+
+        vkCreateRenderPass(m_deviceManager->GetDevice(), &ci, nullptr, &m_visibilityRenderPass);
+    }
 
 
 

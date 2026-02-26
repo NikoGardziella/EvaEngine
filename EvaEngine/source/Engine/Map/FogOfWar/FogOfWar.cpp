@@ -56,16 +56,10 @@ namespace Engine {
         BuildFogFan(playerStateData.PlayerPos, smoothed, fanTris);
 
         m_currentVisibilityPolygon = smoothed;
-        const std::array<glm::vec2, 2>& camBounds = cam.GetViewportBounds();
+       
 
-        glm::vec2 b0 = SceneCamera::ArrayAt(camBounds, SceneCamera::CameraBounds::min);
-        glm::vec2 b1 = SceneCamera::ArrayAt(camBounds, SceneCamera::CameraBounds::max);
-
-        glm::vec2 mn(std::min(b0.x, b1.x), std::min(b0.y, b1.y));
-        glm::vec2 mx(std::max(b0.x, b1.x), std::max(b0.y, b1.y));
-
-
-        BuildFogQuadNDC(quadTris);
+        //BuildFogQuadNDC(quadTris);
+        BuildFogQuad(playerStateData.screenMin, playerStateData.screenMax, quadTris);
         VulkanRenderer2D::SubmitFogGeometry(fanTris, quadTris);
     }
 
@@ -125,7 +119,7 @@ namespace Engine {
         const float twoPi = 6.28318530718f;
 
         // Determine the isometric stretch factor
-
+        // move shader 
         glm::vec4 originClip = viewProjection * glm::vec4(originW, 0.0f, 1.0f);
         glm::vec2 originNDC = glm::vec2(originClip.x, originClip.y) / originClip.w;
 
@@ -157,6 +151,7 @@ namespace Engine {
 
             bool hit = false;
             glm::vec2 p = RaycastFirstBlock(originW, ellipseDir, maxDist, &hit);
+           
 
             outPtsW.push_back(p);
         }

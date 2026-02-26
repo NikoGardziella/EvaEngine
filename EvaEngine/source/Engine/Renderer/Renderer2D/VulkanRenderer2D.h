@@ -313,6 +313,8 @@ namespace Engine {
 
 		static void SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
 
+		void RenderVisibilityMap(VkCommandBuffer cmd, uint32_t frameIndex);
+
 		static void SubmitFogGeometry(const std::vector<VulkanFogOfWarPipelines::FogVertex>& fanTris, const std::vector<VulkanFogOfWarPipelines::FogVertex>& quadTris);
 
 
@@ -325,7 +327,9 @@ namespace Engine {
 		static Ref<VulkanBindlessDescriptorSetRenderer>& GetBindlessDescriptorSetRenderer() { return s_bindlessDescitproRenderer;  }
 
 		static void ResetStats();
-		void RecordFogOfWarComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
+		void RecordFogOfWarCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
+
+		void DrawFogOverlay(VkCommandBuffer cmd);
 
 		void RecordGameShadowPass(VkCommandBuffer cmd, uint32_t currentFrame, VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix);
 	private:

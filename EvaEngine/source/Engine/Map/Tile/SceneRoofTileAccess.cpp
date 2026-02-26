@@ -58,16 +58,7 @@ namespace Engine {
 
     }
 
-    bool SceneRoofTileAccess::ApplyRoofDamage(const glm::ivec2& p, int damage)
-    {
-        if (damage <= 0) return false;
-        if (!HasRoof(p)) return false;
-
-        // Simple: remove roof immediately
-        RemoveRoof(p);
-        return true;
-    }
-
+  
 
    
 
