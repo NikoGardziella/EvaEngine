@@ -639,20 +639,22 @@ namespace Engine {
 
     void VulkanBindlessDescriptorSetRenderer::CreateBindlessPoolAndSet(VkDevice device, bool updateAfterBindSupported)
     {
+        uint32_t totalSamplersPerSet = MAX_RESIDENT + MAX_SPRITESHEETS + 1 + 1 + 1;
+
+
         VkDescriptorPoolSize poolSizes[] = {
-            // Binding 0 (tiles) + Binding 3 (spritesheets) = combined samplers
-            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_RESIDENT + MAX_SPRITESHEETS },
+            // Samplers (0, 3, 5, 6, 8)
+            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, totalSamplersPerSet * FRAMES_IN_FLIGHT },
 
-            // Binding 1: storage images
-            { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, MAX_RESIDENT },
+            // Storage Images (Binding 1)
+            { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, MAX_RESIDENT * FRAMES_IN_FLIGHT },
 
-            // Binding 2: instances SSBO (1 buffer)
-            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1 },
+            // Storage Buffers (Binding 2, 4)
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2 * FRAMES_IN_FLIGHT },
 
-            // Binding 4: light buffer (1 uniform buffer)
-            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1 }
+            // THE MISSING PIECE: Uniform Buffers (Binding 7)
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 * FRAMES_IN_FLIGHT }
         };
-
 
         VkDescriptorPoolCreateInfo dpci{ VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
         dpci.flags = updateAfterBindSupported ? VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT : 0;

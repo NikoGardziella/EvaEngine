@@ -26,20 +26,20 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -316,8 +316,8 @@
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIStateComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicUtils.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\CharacterControllerComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Player\PlayerVisionComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Projectiles\ProjectileComponent.h" />
@@ -928,7 +928,6 @@
     <None Include="..\assets\shaders\ComputeUtils.glsl" />
     <None Include="..\assets\shaders\Effect_shader.comp" />
     <None Include="..\assets\shaders\FlatColor.glsl" />
-    <None Include="..\assets\shaders\fog_writer_shader.glsl" />
     <None Include="..\assets\shaders\Line_shader.glsl" />
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
@@ -941,6 +940,7 @@
     <None Include="..\assets\shaders\compute.comp" />
     <None Include="..\assets\shaders\dda_compute.comp" />
     <None Include="..\assets\shaders\fogOFWar_Shader.glsl" />
+    <None Include="..\assets\shaders\fog_writer_shader.glsl" />
     <None Include="..\assets\shaders\fullscreen_shader.glsl" />
     <None Include="..\assets\shaders\imgui_shader.glsl" />
     <None Include="..\assets\shaders\lighting_common.glsl" />

@@ -123,8 +123,8 @@ namespace Engine {
 			pc.glowStrength = s_effectPushConstants.glowStrength;
 			pc.maxTimer = s_effectPushConstants.maxTimer;
 			pc.flags = s_effectPushConstants.flags;
-			pc.impactTint = s_effectPushConstants.impactTint;
-			pc.destroyedTint = s_effectPushConstants.destroyedTint;
+			//pc.impactTint = s_effectPushConstants.impactTint;
+			//pc.destroyedTint = s_effectPushConstants.destroyedTint;
 			pc.flashTint = s_effectPushConstants.flashTint;
 			pc.effectParams0 = s_effectPushConstants.effectParams0;
 
@@ -172,8 +172,8 @@ namespace Engine {
 			pc.glowStrength = s_effectPushConstants.glowStrength;
 			pc.maxTimer = s_effectPushConstants.maxTimer;
 			pc.flags = s_effectPushConstants.flags;
-			pc.impactTint = s_effectPushConstants.impactTint;
-			pc.destroyedTint = s_effectPushConstants.destroyedTint;
+			//pc.impactTint = s_effectPushConstants.impactTint;
+			//pc.destroyedTint = s_effectPushConstants.destroyedTint;
 			pc.flashTint = s_effectPushConstants.flashTint;
 			pc.effectParams0 = s_effectPushConstants.effectParams0;
 

@@ -1091,10 +1091,14 @@ namespace Engine {
     void VulkanGraphicsPipeline::CreatePresentDescriptorSet()
     {
 
-        m_presentDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
         VulkanContext* context = VulkanContext::Get();
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+
+        uint32_t swapchainImageCount = context->GetVulkanSwapchain().GetSwapchainImages().size();
+
+        m_presentDescriptorSets.resize(swapchainImageCount);
+
+        for (size_t i = 0; i < swapchainImageCount; i++)
         {
             VkDescriptorSetAllocateInfo allocInfo{};
             allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;

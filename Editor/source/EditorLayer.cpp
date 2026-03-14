@@ -356,8 +356,11 @@ namespace Engine {
             if (m_editor)
             {
                 // Ensure that GetColorAttachmentRendererID() is valid
-                ImTextureID textureID = (ImTextureID)Renderer::GetCurrentGameDescriptorSet();
-                if (textureID != 0)
+                VkDescriptorSet currentSet = Renderer::GetCurrentGameDescriptorSet();
+
+                // 2. Cast it for ImGui
+                ImTextureID textureID = (ImTextureID)currentSet;
+                if (textureID != 0 && currentSet != VK_NULL_HANDLE)
                 { 
                     ImGui::Image(textureID, ImVec2{ m_viewportSize.x, m_viewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1, 0 });
                 }

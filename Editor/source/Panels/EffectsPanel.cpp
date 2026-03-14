@@ -128,13 +128,13 @@ namespace Engine {
     {
         if (ImGui::CollapsingHeader("Colors", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            float impact[3] = { m_state->impactTint.x,    m_state->impactTint.y,    m_state->impactTint.z };
-            float destroyed[4] = { m_state->destroyedTint.x, m_state->destroyedTint.y, m_state->destroyedTint.z,m_state->destroyedTint.w };
+          //  float impact[3] = { m_state->impactTint.x,    m_state->impactTint.y,    m_state->impactTint.z };
+           // float destroyed[4] = { m_state->destroyedTint.x, m_state->destroyedTint.y, m_state->destroyedTint.z,m_state->destroyedTint.w };
             float flash[3] = { m_state->flashTint.x,     m_state->flashTint.y,     m_state->flashTint.z };
 
             // HDR + float to avoid sRGB clamping perception
             ImGuiColorEditFlags flags = ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR;
-
+            /*
             if (ImGui::ColorEdit3("Impact Tint", impact, flags))
             {
                 m_state->impactTint.x = impact[0];
@@ -148,6 +148,7 @@ namespace Engine {
                 m_state->destroyedTint.z = destroyed[2];
                 m_state->destroyedTint.w = destroyed[3];
             }
+            */
             if (ImGui::ColorEdit3("Flash Tint (reserved)", flash, flags))
             {
                 m_state->flashTint.x = flash[0];
@@ -203,8 +204,8 @@ namespace Engine {
         m_state->maxTimer = 64;
         m_state->flags = (1u << 0) | (1u << 1); // glow on terrain + alpha-lift on empty
 
-        m_state->impactTint = { 1.00f, 0.90f, 0.35f, 0.0f }; // yellow
-        m_state->destroyedTint = { 1.00f, 0.58f, 0.18f, 0.0f }; // orange
+        //m_state->impactTint = { 1.00f, 0.90f, 0.35f, 0.0f }; // yellow
+       // m_state->destroyedTint = { 1.00f, 0.58f, 0.18f, 0.0f }; // orange
         m_state->flashTint = { 1.00f, 0.98f, 0.90f, 0.0f }; // near white
 
         m_state->effectParams0 = { 0.30f, 0.07f, 0.85f, 0.80f };

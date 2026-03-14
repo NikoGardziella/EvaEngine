@@ -198,8 +198,7 @@ namespace Engine {
 		uint32_t   maxTimer;        // 24..27
 		uint32_t   flags;           // 28..31
 
-		glm::vec4  impactTint;      // 32..47
-		glm::vec4  destroyedTint;   // 48..63
+
 		glm::vec4  flashTint;       // 64..79
 		glm::vec4  effectParams0;   // 80..95
 
@@ -284,6 +283,15 @@ namespace Engine {
 
 		// for rendering game in Editor
 		VkDescriptorSet GetGameDescriptorSet(uint32_t index) const { return m_gameViewportDescriptorSets[index]; }
+		VkDescriptorSet GetCurrentGameDescriptorSet() const 
+		{
+			if (m_imageIndex >= m_gameViewportDescriptorSets.size())
+			{
+				return VK_NULL_HANDLE;
+			}
+
+			return m_gameViewportDescriptorSets[m_imageIndex];
+		}
 		Ref<VulkanGraphicsPipeline> GetGraphicsPipelines() { return m_vulkanGraphicsPipelines; };
 
 		static void CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size, float rotation, uint64_t entityID, eCollisionType collisionType, uint32_t damage);

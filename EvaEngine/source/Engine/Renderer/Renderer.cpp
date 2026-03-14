@@ -173,7 +173,7 @@ namespace Engine {
 
 	VkDescriptorSet Renderer::GetCurrentGameDescriptorSet()
 	{
-		return s_VulkanRenderer2D->GetGameDescriptorSet(s_currentFrame);
+		return s_VulkanRenderer2D->GetCurrentGameDescriptorSet();
 	}
 
 

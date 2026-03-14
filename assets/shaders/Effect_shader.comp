@@ -75,8 +75,6 @@ layout(push_constant) uniform EffectPC {
     float glowStrength;    // 20..23
     uint  maxTimer;        // 24..27
     uint  flags;           // 28..31
-    vec4  impactTint;      // 32..47
-    vec4  destroyedTint;   // 48..63
     vec4  flashTint;       // 64..79
     vec4  effectParams0;   // 80..95
     float hitRadiusWS;     // 96..99
@@ -814,8 +812,12 @@ void main()
         bool  liftAlpha = ((pc.flags & 0x2u) != 0u);
         float targetA   = liftAlpha ? 0.9 : 0.0;
 
+
+        vec4 destroyedTintDebug = vec4(1.0, 0.0, 0.0, 1.0);
+        vec4 impactTintDebug = vec4(0.0, 1.0, 0.0, 1.0);
+
         vec3 stampRGB = clamp(
-            mix(pc.impactTint.rgb, pc.destroyedTint.rgb, 0.0) * max(pc.glowStrength, 0.1),
+            mix(impactTintDebug.rgb, destroyedTintDebug.rgb, 0.0) * max(pc.glowStrength, 0.1),
             0.0, 1.0
         );
 

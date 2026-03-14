@@ -1,8 +1,14 @@
 #type vertex
 #version 450
 layout(location = 0) in vec2 inPos;
-layout(push_constant) uniform PC { 
-    mat4 uVP; mat4 uInvVP; vec2 mapMin; vec2 mapSize; float time; uint flags; 
+
+layout(push_constant) uniform PC 
+{ 
+    mat4 uVP;
+    vec2 mapMin;
+    vec2 mapSize; 
+    float time; 
+    uint flags; 
 } pc;
 void main()
 {

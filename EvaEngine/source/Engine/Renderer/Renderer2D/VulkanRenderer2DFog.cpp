@@ -89,7 +89,7 @@ namespace Engine {
 		VulkanFogOfWarPipelines::FogPC pc{};
 		pc.uVP = s_VulkanData.CameraBuffer.ViewProjection;
 		pc.time = m_timer;
-		pc.uInvVP = glm::inverse(s_VulkanData.CameraBuffer.ViewProjection);
+		//pc.uInvVP = glm::inverse(s_VulkanData.CameraBuffer.ViewProjection);
 		// Example: We want the visibility texture to cover 64x64 units of world space
 		float radius = s_PlayerData.visionRadiusW;
 		pc.mapMin = s_PlayerData.PlayerPos - glm::vec2(radius);
@@ -151,7 +151,7 @@ namespace Engine {
 		// 7. Push Constants
 		VulkanFogOfWarPipelines::FogPC fogPC{};
 		fogPC.uVP = s_VulkanData.CameraBuffer.ViewProjection;
-		fogPC.uInvVP = glm::inverse(s_VulkanData.CameraBuffer.ViewProjection);
+		//fogPC.uInvVP = glm::inverse(s_VulkanData.CameraBuffer.ViewProjection);
 		fogPC.time = m_timer;
 		fogPC.flags = 0u;
 		// C++ side - Force the map to be huge to see if anything appears

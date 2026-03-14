@@ -811,7 +811,7 @@ namespace Engine {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetPresentPipeline());
 
 
-		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetPresentDescriptorSet(currentFrame);
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetPresentDescriptorSet(imageIndex); // use imageIndex not currentFrame
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetPresentPipelineLayout(), 0, 1, &descriptorSet, 0, nullptr);
 

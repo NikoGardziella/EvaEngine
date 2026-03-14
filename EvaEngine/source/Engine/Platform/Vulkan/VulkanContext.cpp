@@ -187,29 +187,31 @@ namespace Engine {
     
 
         VkDescriptorPoolCreateFlags falgs3d = 0;
-        VkDescriptorPoolSize gfx3DSizes[5];
+        // We only need 4 entries if we combine the Storage Buffers
+       // Use 3 sizes (we can group types)
+        VkDescriptorPoolSize gfx3DSizes[3];
 
-        // 0) Camera UBO  (binding 0: VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        // 1) UNIFORM_BUFFER: Binding 0
         gfx3DSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        gfx3DSizes[0].descriptorCount = framesInFlight;              // 1 per frame
+        gfx3DSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT * 1;
 
-        // 1) Instance + Material SSBOs (bindings 1 and 3: VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+        // 2) STORAGE_BUFFER: Bindings 1, 3, 4, 5
+        // You have 4 storage buffers per set
         gfx3DSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        gfx3DSizes[1].descriptorCount = framesInFlight * 2;          // instance + material per frame
+        gfx3DSizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT * 4;
 
-        // 2) Albedo texture array (binding 2: VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+        // 3) COMBINED_IMAGE_SAMPLER: Bindings 2 and 6
+        // Binding 2 is an array of MAX_ALBEDO_TEXTURES, Binding 6 is 1 shadow map
         gfx3DSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        gfx3DSizes[2].descriptorCount = framesInFlight * MAX_ALBEDO_TEXTURES;
+        gfx3DSizes[2].descriptorCount = MAX_FRAMES_IN_FLIGHT * (MAX_ALBEDO_TEXTURES + 1);
 
-        uint32_t numberOfLightsbuffers = 1;
-        gfx3DSizes[3].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        gfx3DSizes[3].descriptorCount = numberOfLightsbuffers;
-
-        gfx3DSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        gfx3DSizes[4].descriptorCount = framesInFlight;
-
-        m_descriptorPool3D = std::make_shared<VulkanDescriptorPool>(dev, framesInFlight, gfx3DSizes, 3, falgs3d);
-
+        m_descriptorPool3D = std::make_shared<VulkanDescriptorPool>(
+            dev,
+            MAX_FRAMES_IN_FLIGHT, // maxSets
+            gfx3DSizes,
+            3,                    // poolSizeCount
+            falgs3d
+        );
     }
 
 

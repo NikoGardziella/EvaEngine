@@ -336,11 +336,13 @@ namespace Engine {
         // copy into mapped memory
         std::memcpy(static_cast<char*>(base) + static_cast<size_t>(dstOffset), src, static_cast<size_t>(bytes));
 
+        /*
         VkMappedMemoryRange rng{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
         rng.memory = buf.GetMemory();
         rng.offset = dstOffset;
         rng.size = bytes;
         vkFlushMappedMemoryRanges(m_device, 1, &rng);
+        */
     }
 
 

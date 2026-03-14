@@ -1,0 +1,16 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeCInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeCommonLanguageInclude.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/CMakeLanguageInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Compiler/MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Compiler/MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Internal/CMakeCLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Internal/CMakeCommonLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Linker/Windows-MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Linker/Windows-MSVC.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Windows-MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.31/Modules/Platform/Windows-MSVC.cmake
+C:/Users/TOIMISTO/source/repos/EvaEngine/CMakeFiles/3.31.0-rc2/CMakeCCompiler.cmake
+C:/Users/TOIMISTO/source/repos/EvaEngine/CMakeFiles/cmake.verify_globs
+C:/Users/TOIMISTO/source/repos/EvaEngine/EvaEngine/vendor/GLAD/CMakeLists.txt

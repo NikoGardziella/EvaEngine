@@ -32,7 +32,6 @@ namespace Engine {
 
         struct alignas(16) FogPC {
             glm::mat4 uVP;
-            glm::mat4 uInvVP;
             glm::vec2 mapMin;
             glm::vec2 mapSize;
             float time;
