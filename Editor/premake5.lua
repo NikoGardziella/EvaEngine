@@ -10,6 +10,11 @@ project "Editor"
     objdir    ("build/bin-int/" .. outputdir .. "/%{prj.name}")
     targetname "Editor"
 
+	postbuildcommands 
+	{
+ 	   "{COPY} \"../../EvaEngine/vendor/vcpkg_installed/x64-windows/bin/*.dll\" \"%{cfg.targetdir}\""
+	}
+
     files
     {
         "source/**.h",
@@ -66,3 +71,4 @@ project "Editor"
         runtime "Release"
 
     filter {}
+

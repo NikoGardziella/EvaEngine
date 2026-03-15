@@ -59,6 +59,13 @@ project "EvaEngine"
     cppdialect "C++17"
     staticruntime "off"
 
+filter "system:windows"
+    -- Use the VENDOR_DIR constant you already defined!
+    includedirs { VENDOR_DIR .. "/vcpkg_installed/x64-windows/include" }
+    libdirs     { VENDOR_DIR .. "/vcpkg_installed/x64-windows/lib" }
+    links       { "libcurl", "zlib" }
+filter {}
+
     filter "files:**/vendor/ImGuizmo/ImGuizmo.cpp or files:**/vendor/enkiTS/src/TaskScheduler.cpp"
         pchsource ""
     filter {}

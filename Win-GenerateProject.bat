@@ -1,75 +1,42 @@
 @echo off
 setlocal
 
-REM Repo root = folder where this .bat is located
+REM 1. Set ROOT immediately
 set "ROOT=%~dp0"
 if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
-
 pushd "%ROOT%"
 
-REM ---- vcpkg DLL copy ----
-set "SOURCE_PATH=%ROOT%\EvaEngine\vendor\vcpkg\installed\x64-windows\bin"
-set "TARGET_PATH=%ROOT%\Editor\bin\Debug-windows-x86_64\Editor"
-
-echo Copying DLLs from:
-echo   %SOURCE_PATH%
-echo To:
-echo   %TARGET_PATH%
-echo.
-
-if not exist "%SOURCE_PATH%" (
-    echo ERROR: Source path missing:
-    echo   %SOURCE_PATH%
-    popd
-    pause
-    exit /b 1
+REM 2. Check if vcpkg submodule is initialized (look for the bootstrap file)
+if not exist "%ROOT%\EvaEngine\vendor\vcpkg\bootstrap-vcpkg.bat" (
+    echo [EvaEngine] vcpkg submodule missing. Initializing...
+    git submodule update --init --recursive
 )
 
-if not exist "%TARGET_PATH%" (
-    echo Creating target directory...
-    mkdir "%TARGET_PATH%" 2>nul
+REM 3. Bootstrap vcpkg.exe if it doesn't exist
+if not exist "%ROOT%\EvaEngine\vendor\vcpkg\vcpkg.exe" (
+    echo [EvaEngine] Bootstrapping vcpkg...
+    call "%ROOT%\EvaEngine\vendor\vcpkg\bootstrap-vcpkg.bat"
 )
 
-for %%F in (libcurl.dll zlib1.dll) do (
-    if exist "%SOURCE_PATH%\%%F" (
-        copy /y "%SOURCE_PATH%\%%F" "%TARGET_PATH%\%%F" >nul
-        echo Copied %%F
-    ) else (
-        echo WARNING: Missing %SOURCE_PATH%\%%F
-    )
-)
+REM 4. Install Dependencies via Manifest (vcpkg.json)
+echo [EvaEngine] Installing dependencies...
+"%ROOT%\EvaEngine\vendor\vcpkg\vcpkg.exe" install --triplet x64-windows --x-install-root="%ROOT%\EvaEngine\vendor\vcpkg_installed"
 
-echo.
-echo Done copying.
-echo.
-
-REM ---- premake ----
+REM 5. Run Premake
 set "PREMAKE=%ROOT%\EvaEngine\vendor\premake\premake5.exe"
 if not exist "%PREMAKE%" (
-    echo ERROR: premake5.exe not found:
-    echo   %PREMAKE%
-    popd
+    echo ERROR: premake5.exe not found at %PREMAKE%
     pause
     exit /b 1
 )
 
-if not exist "%ROOT%\premake5.lua" (
-    echo ERROR: premake5.lua not found in repo root:
-    echo   %ROOT%
-    popd
-    pause
-    exit /b 1
-)
-
-echo Deleting generated .sln/.vcxproj in repo root...
+echo [EvaEngine] Cleaning old project files...
 del /f /q "%ROOT%\*.sln" >nul 2>nul
-del /f /q "%ROOT%\*.vcxproj" >nul 2>nul
-del /f /q "%ROOT%\*.vcxproj.filters" >nul 2>nul
 
-echo Running premake in:
-echo   %ROOT%
+echo [EvaEngine] Generating Visual Studio 2022 solution...
 "%PREMAKE%" vs2022
 
 popd
+echo [EvaEngine] Done!
 pause
 endlocal
