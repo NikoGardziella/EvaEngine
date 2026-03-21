@@ -45,21 +45,21 @@ namespace Engine {
         const glm::mat4 vp = cam.GetProjection() * glm::inverse(transform);
 
         BuildVisibilityPolygon(playerStateData.PlayerPos, radiusW, numRays, outPtsW, vp);
-        //DebugDrawVisibilityPoly(playerPos, outPtsW);
+        //DebugDrawVisibilityPoly(playerStateData.PlayerPos, outPtsW);
 
         std::vector<Engine::VulkanFogOfWarPipelines::FogVertex> fanTris, quadTris;
 
 
         std::vector<glm::vec2> smoothed = outPtsW;
-        SmoothVisibilityPoly(outPtsW, smoothed, 0.50f);// smaller = smoother
+       // SmoothVisibilityPoly(outPtsW, smoothed, 0.50f);// smaller = smoother
 
-        BuildFogFan(playerStateData.PlayerPos, smoothed, fanTris);
+        BuildFogFan(playerStateData.PlayerPos, outPtsW, fanTris);
 
         m_currentVisibilityPolygon = smoothed;
        
 
         //BuildFogQuadNDC(quadTris);
-        BuildFogQuad(playerStateData.screenMin, playerStateData.screenMax, quadTris);
+        //BuildFogQuad(playerStateData.screenMin, playerStateData.screenMax, quadTris);
         VulkanRenderer2D::SubmitFogGeometry(fanTris, quadTris);
     }
 

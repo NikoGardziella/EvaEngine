@@ -16,6 +16,7 @@
 #include "Engine/Renderer/Lights/VulkanLighting.h"
 #include <Engine/Renderer/Lights/GPULightBuffer.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include <Engine/Renderer/Utils/PlayerData.h>
 
 namespace Engine {
 
@@ -171,7 +172,7 @@ namespace Engine {
         I.size = size;
         I.zSortKey = zSortKey;
         I.slot = slot;
-        I.flags = flags;              // ensure isSprite = 0 for tiles
+        I.flags = flags;             
         I._pad0 = 0;
         I.uvMin16 = { 0u, 0u };                 // full texture UVs
         I.uvMax16 = { 65535u, 65535u };
@@ -362,13 +363,17 @@ namespace Engine {
     }
 
     // Call once per frame before drawing
-    void VulkanBindlessDescriptorSetRenderer::UpdateTileParams(uint32_t frameIndex, glm::vec2 playerPos, glm::vec2 playerSCreenPos, float playerFootY) const
+    void VulkanBindlessDescriptorSetRenderer::UpdateTileParams(uint32_t frameIndex, PlayerData playerData) const
     {
 
         TilePassParams params{};
-        params.playerFootY = playerFootY;
-        params.fadeRadius = 200.0f;
-        params.playerSCreenPos = playerSCreenPos;
+        params.playerFootY = playerData.PlayerPos.y;
+        params.fadeRadius = 20.0f;
+        params.playerPos = playerData.PlayerPos;
+        params.visRadius = playerData.visionRadiusW;
+        params.screenSize = playerData.screenSize;
+
+    
         memcpy(m_tileParamsMapped[frameIndex], &params, sizeof(TilePassParams));
     }
 
@@ -394,7 +399,7 @@ namespace Engine {
     void VulkanBindlessDescriptorSetRenderer::CreateBindlessSetLayout(VkDevice device, bool updateAfterBindSupported)
     {
 
-        const uint32_t totalBingingCount = 9;
+        const uint32_t totalBingingCount = 8;
         // binding 0: tiles sampled array (you already have this)
         VkDescriptorSetLayoutBinding bColor{};
         bColor.binding = 0;
@@ -450,14 +455,9 @@ namespace Engine {
         tileParamsBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 
-        VkDescriptorSetLayoutBinding playerVisionmask{};
-        playerVisionmask.binding = 8;
-        playerVisionmask.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        playerVisionmask.descriptorCount = 1;
-        playerVisionmask.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
+        
         VkDescriptorSetLayoutBinding bindings[totalBingingCount] =
-        { bColor, bStorage, bInstances, bSprites, bLights, shadowMap3DBinding, tileShadowBinding, tileParamsBinding ,playerVisionmask };
+        { bColor, bStorage, bInstances, bSprites, bLights, shadowMap3DBinding, tileShadowBinding, tileParamsBinding  };
 
         VkDescriptorBindingFlags flags[totalBingingCount]{};
         flags[0] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
@@ -471,7 +471,7 @@ namespace Engine {
         flags[5] = 0;  // 
         flags[6] = 0;  // 
         flags[7] = 0;  // 
-        flags[8] = 0;  // 
+        
 
         VkDescriptorSetLayoutBindingFlagsCreateInfo bindFlags{
             VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO
@@ -931,6 +931,30 @@ namespace Engine {
 
         vkUpdateDescriptorSets(device, 1, &w, 0, nullptr);
     }
+
+    void VulkanBindlessDescriptorSetRenderer::UpdateVisibilityDescriptorSet(Ref<VulkanTexture> visibilityTexture)
+    {
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            VkDescriptorImageInfo visInfo{};
+            visInfo.sampler = visibilityTexture->GetSampler();
+            visInfo.imageView = visibilityTexture->GetImageView();
+            visInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            VkWriteDescriptorSet visWrite{};
+            visWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            visWrite.dstSet = m_bindlessSet[i];
+            visWrite.dstBinding = 8;
+            visWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            visWrite.descriptorCount = 1;
+            visWrite.pImageInfo = &visInfo;
+
+            vkUpdateDescriptorSets(m_device, 1, &visWrite, 0, nullptr);
+        }
+        
+    }
+
     void VulkanBindlessDescriptorSetRenderer::WriteStorageImage( VkDevice device, VkDescriptorSet set,
         uint32_t binding,  uint32_t arrayIndex, VkImageView view, VkImageLayout layout)
     {

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "VulkanRenderer2D.h"
 #include "Engine/Renderer/Renderer2D/Utils/Renderer2DUtils.h"
+#include <Engine/Core/Log.h>
 
 namespace Engine {
 
@@ -76,8 +77,8 @@ namespace Engine {
 			m_vulkanFogOfWarPipelines->GetFogOverlayPipelineLayout(),
 			0, 1, &set, 0, nullptr);
 
-		uint32_t width = m_vulkanFogOfWarPipelines->GetFogOfWarTexture()->GetWidth();
-		uint32_t height = m_vulkanFogOfWarPipelines->GetFogOfWarTexture()->GetHeight();
+		uint32_t width = m_swapchainExtent.width;
+		uint32_t height = m_swapchainExtent.height;
 
 		VkViewport vp{ 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
 		vkCmdSetViewport(cmd, 0, 1, &vp);
@@ -91,10 +92,10 @@ namespace Engine {
 		pc.time = m_timer;
 		pc.uInvVP = glm::inverse(s_VulkanData.CameraBuffer.ViewProjection);
 		// Example: We want the visibility texture to cover 64x64 units of world space
-		float radius = s_PlayerData.visionRadiusW;
+		float radius = s_PlayerData.visionRadiusW * 2.0f;
 		pc.mapMin = s_PlayerData.PlayerPos - glm::vec2(radius);
 		pc.mapSize = glm::vec2(radius * 2.0f);
-
+		
 
 		vkCmdPushConstants(cmd, m_vulkanFogOfWarPipelines->GetFogOverlayPipelineLayout(),
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -136,10 +137,6 @@ namespace Engine {
 		// 4. Bind Pipeline
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanFogOfWarPipelines->GetVisibilityPipeline());
 
-		// 5. CRITICAL FIX: Bind the Descriptor Set
-		// Because your shader code declares Set 0 (the texture), Vulkan insists it be bound here
-		// even though the Visibility Writer doesn't sample it.
-		
 
 		// 6. Viewport & Scissor
 		VkViewport viewport{ 0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f };
@@ -154,11 +151,11 @@ namespace Engine {
 		fogPC.uInvVP = glm::inverse(s_VulkanData.CameraBuffer.ViewProjection);
 		fogPC.time = m_timer;
 		fogPC.flags = 0u;
-		// C++ side - Force the map to be huge to see if anything appears
 
-		float radius = s_PlayerData.visionRadiusW;
+		float radius = s_PlayerData.visionRadiusW * 2.0f;
 		fogPC.mapMin = s_PlayerData.PlayerPos - glm::vec2(radius);
 		fogPC.mapSize = glm::vec2(radius * 2.0f);
+		
 
 		vkCmdPushConstants(cmd,
 			m_vulkanFogOfWarPipelines->GetVisibilityPipelineLayout(),
@@ -177,8 +174,8 @@ namespace Engine {
 				fogData.submitResult.fan.firstVertex,
 				0);
 		}
+		/* 
 		
-		/*
 		if (s_VulkanData.Fog.submitResult.quad.vertexCount > 0)
 			vkCmdDraw(cmd,
 				s_VulkanData.Fog.submitResult.quad.vertexCount, 1,

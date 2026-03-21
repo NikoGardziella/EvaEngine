@@ -3,7 +3,7 @@
 #include <cstring>
 #include "Engine/AssetManager/AssetManager.h"
 #include "Engine/Platform/Vulkan/VulkanUtils.h"
-
+#include "Engine/Renderer/Renderer2D/VulkanRenderer2D.h"
 
 namespace Engine {
 
@@ -39,6 +39,7 @@ namespace Engine {
         // 4. Finalize Descriptors
         CreateDescriptorPool();
         UpdateDescriptorSet();
+
 
         return true;
     }

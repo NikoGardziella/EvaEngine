@@ -328,6 +328,9 @@ namespace Engine {
 			VulkanLighting::GetLightSubmitFrameData() = std::make_shared<LightSubmitFrame>();
 
 			s_bindlessDescitproRenderer->UpdateShadowMapDescriptorSets(shadowMap);
+
+			//s_bindlessDescitproRenderer->UpdateVisibilityDescriptorSet(m_vulkanFogOfWarPipelines->GetFogOfWarTexture());
+
 	}
 
 
@@ -466,10 +469,9 @@ namespace Engine {
 		VulkanLighting::FlushAndUpload(cmd, currentFrame);
 		s_bindlessDescitproRenderer->UpdateLightBufferDescriptor(currentFrame);
 
-		glm::vec2 playerPOs = Engine::VulkanRenderer2D::s_PlayerData.PlayerPos;
-		glm::vec2 playerscreenPOs = Engine::VulkanRenderer2D::s_PlayerData.PlayerScreenPos;
+		
 
-		s_bindlessDescitproRenderer->UpdateTileParams(currentFrame, playerPOs, playerscreenPOs, playerPOs.y);
+		s_bindlessDescitproRenderer->UpdateTileParams(currentFrame, Engine::VulkanRenderer2D::s_PlayerData);
 
 
 
@@ -1076,7 +1078,7 @@ namespace Engine {
 		
 	}
 
-	void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias, TileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax)
+	void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias, TileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, uint32_t flags)
 	{
 
 		const size_t fi = static_cast<size_t>(s_VulkanData.CurrentFrame) % MAX_FRAMES_IN_FLIGHT;
@@ -1085,7 +1087,7 @@ namespace Engine {
 		std::vector<DestructibleSubmit>& submitQueue = s_VulkanBindlessData.submitQueues[fi];
 
 		// Push one item
-		submitQueue.emplace_back(DestructibleSubmit{worldPos, localPos, atlasUV, nameHash, zBias, tileDirection, outOpaqueMin ,outOpaqueMax });
+		submitQueue.emplace_back(DestructibleSubmit{worldPos, localPos, atlasUV, nameHash, zBias, tileDirection, outOpaqueMin ,outOpaqueMax,flags });
 	
 		
 	}
@@ -1116,6 +1118,7 @@ namespace Engine {
 		s_PlayerData.visionRadiusW = playerStateData.visionRadiusW;
 		s_PlayerData.SceneRadius = playerStateData.SceneRadius;
 		s_PlayerData.PlayerScreenPos = playerStateData.PlayerScreenPos;
+		s_PlayerData.screenSize = playerStateData.screenSize;
 
 	}
 	

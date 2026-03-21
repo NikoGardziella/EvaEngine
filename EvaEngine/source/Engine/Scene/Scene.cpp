@@ -183,7 +183,7 @@ namespace Engine {
         EE_CORE_INFO("Starting runtime!");
 
 
-
+       
         m_lightGatherSystem.Update(this);
 
 

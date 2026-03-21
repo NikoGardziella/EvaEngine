@@ -17,7 +17,8 @@
 #include <string>
 #include "Components/Vehicles/VehicleComponent.h"
 #include <Engine/Core/Assert.h>
-
+#include "Engine/Scene/Components/Map/AreaComponent.h"
+#include "Components/Light/DirectionalLightComponent.h"
 
 namespace Engine {
 
@@ -332,11 +333,47 @@ namespace Engine {
             out << YAML::EndMap;
         }
 
+        inline void SerializeAreaComponent(Entity entity, YAML::Emitter& out)
+        {
+            if (!entity.HasComponent<AreaComponent>())
+                return;
+
+            const auto& comp = entity.GetComponent<AreaComponent>();
+
+            out << YAML::Key << "AreaComponent" << YAML::Value;
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "Min" << YAML::Value << YAML::Flow << YAML::BeginSeq << comp.Min.x << comp.Min.y << YAML::EndSeq;
+            out << YAML::Key << "Max" << YAML::Value << YAML::Flow << YAML::BeginSeq << comp.Max.x << comp.Max.y << YAML::EndSeq;
+            out << YAML::Key << "Id" << YAML::Value << comp.Id;
+            out << YAML::Key << "Type" << YAML::Value << (uint32_t)comp.Type;
+
+
+            out << YAML::EndMap;
+        }
+
+        static bool IgnoreThisEntity(Entity entity)
+        {
+            // dont serialize if entity has any of these components
+
+            if (entity.HasComponent<DirectionalLightComponent>())
+            {
+                return true;
+            }
+
+            return false;
+        }
 
         // Serializes an individual entity by checking for each component.
         void SerializeEntity(Entity entity, YAML::Emitter& out)
         {
             EE_CORE_ASSERT(entity.HasComponent<IDComponent>());
+
+            if (IgnoreThisEntity(entity))
+            {
+                return;
+
+            }
 
 
             out << YAML::BeginMap;
@@ -375,13 +412,15 @@ namespace Engine {
                 SerializeTileComponent(entity, out);
             if (entity.HasComponent<VehicleComponent>())
                 SerializeVehicleComponent(entity, out);
-
+            if (entity.HasComponent<AreaComponent>())
+                SerializeAreaComponent(entity, out);
 
 
 
             out << YAML::EndMap;
         }
 
+        
 
         //************************* Deserialize ****************************************
 
@@ -770,7 +809,37 @@ namespace Engine {
 
             }
         }
+        inline void DeserializeAreaComponent(Entity entity, const YAML::Node& entityNode)
+        {
+            if (entityNode["AreaComponent"])
+            {
+                AreaComponent& component = entity.AddComponent<AreaComponent>();
+                const auto& node = entityNode["AreaComponent"];
 
+                if (node["Min"])
+                {
+                    auto velocityNode = node["Min"];
+                    component.Min.x = velocityNode[0].as<float>();
+                    component.Min.y = velocityNode[1].as<float>();
+                }
+                if (node["Max"])
+                {
+                    auto velocityNode = node["Max"];
+                    component.Max.x = velocityNode[0].as<float>();
+                    component.Max.y = velocityNode[1].as<float>();
+                }
+                if (node["Id"])
+                {
+
+                    component.Id = node["Id"].as<uint32_t>();
+                }
+                if (node["Type"])
+                {
+
+                    component.Type = (AreaType)node["Type"].as<uint32_t>();
+                }
+            }
+        }
 
         inline void DeserializeEntity(Entity entity, const YAML::Node& entityNode, Ref<Scene> scene)
         {
@@ -789,6 +858,7 @@ namespace Engine {
 			DeserializeWeaponComponent(entity, entityNode);
 			DeserializeTileComponent(entity, entityNode);
             DeserializeVehicleComponent(entity, entityNode);
+            DeserializeAreaComponent(entity, entityNode);
 
             DeserializeSpriteRendererComponent(entity, entityNode, scene);
         }

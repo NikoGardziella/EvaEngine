@@ -123,7 +123,7 @@ namespace Engine {
                     if (!uid)
                     {
                         // deltaGround == t.position in layout
-                        uid = HashUtils::MakeTileUID((uint64_t)idComp.ID, tile.position, float(TILE_SIZE));
+                        uid = HashUtils::MakeTileUID((uint64_t)idComp.ID, tile.position, float(TILE_SIZE), (uint32_t)tile.Category);
                     }
                     EE_CORE_INFO("tile build template {}", uid);
 

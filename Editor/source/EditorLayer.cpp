@@ -37,6 +37,8 @@
 //#include "Commands/PlaceTileCommand.h"
 #include <utility>
 #include "Commands/PlaceTileCommand.h"
+#include <Engine/Scene/Components/Map/AreaComponent.h>
+#include <Engine/Scene/Components/Light/DirectionalLightComponent.h>
 
 namespace Engine {
 
@@ -314,6 +316,7 @@ namespace Engine {
 
             ImGui::Begin("Settings");
             ImGui::Checkbox("Show colliders", &m_showColliders);
+            ImGui::Checkbox("Show areas", &m_showAreas);
 			ImGui::End();
             //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 
@@ -396,8 +399,11 @@ namespace Engine {
             Entity selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
            // auto cameraEntity = m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetPrimaryCameraEntity();
 
+            // check if placing tiles. if yes, dont show imGuizmo to avoid misclicks
+            bool isPLacingTiles = m_ActiveStroke != nullptr;
+
             if (selectedEntity && selectedEntity.HasComponent<TransformComponent>() &&
-                  m_sceneHierarchyPanel.GetGuizmoType() != -1)
+                  m_sceneHierarchyPanel.GetGuizmoType() != -1 && !isPLacingTiles)
             {
                 EE_PROFILE_SCOPE("Guizmo");
 
@@ -561,6 +567,15 @@ namespace Engine {
 
     void EditorLayer::OnScenePlay()
     {
+
+        // remove all lights( editor light)
+        m_sceneHierarchyPanel.GetEditorScene()->ForEach<DirectionalLightComponent, TransformComponent>(
+            [&](Entity e, DirectionalLightComponent& dl, TransformComponent& transformcomp)
+            {
+                e.RemoveComponent<TransformComponent>();
+                m_sceneHierarchyPanel.GetEditorScene()->DestroyEntity(e);
+            });
+
 
 		m_editorScene = Scene::Copy(m_sceneHierarchyPanel.GetEditorScene());
 
@@ -757,18 +772,30 @@ namespace Engine {
         TileProperties& tileProps = m_tileEditorPanel.GetSelectedTileProperties();
 
        
+        if (!m_selectedEntity)
+        {
+            // try to get it from scenehierachy 
+            m_selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
+        }
 
         // Place
         if (m_selectedEntity)
         {
-            auto& tr = m_selectedEntity.GetComponent<TransformComponent>();
-            auto& idComp = m_selectedEntity.GetComponent<IDComponent>();
+            if (!m_selectedEntity.HasComponent<TransformComponent>())
+            {
+                //the enttiy was removed, if selected entity does not have transformcomponent, 
+                // this made crash. there is probably better fix somewhere out there
+                return newTile;
+            }
+
+            TransformComponent& tr = m_selectedEntity.GetComponent<TransformComponent>();
+            IDComponent& idComp = m_selectedEntity.GetComponent<IDComponent>();
             glm::ivec2 baseIso = IsoTileUtils::WorldToIsoCellInt(glm::vec2(tr.Translation));
             glm::ivec2 localIso = isoCell - baseIso;
 
             // Store WORLD delta to the target cell's **ground**
             const glm::vec2 deltaGround = IsoTileUtils::IsoDeltaToWorldDeltaGround(localIso);
-            uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, deltaGround, float(TILE_SIZE));
+            uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, deltaGround, float(TILE_SIZE), (uint32_t)tileCategory);
 
             auto& tc = m_selectedEntity.GetComponent<TileComponent>();
             newTile;
@@ -795,22 +822,22 @@ namespace Engine {
 
 
             tc.tiles.push_back(newTile);
-            
+            UpdateOrCreateArea(m_selectedEntity, groundPos, tileCategory);
             EE_CORE_INFO("adding tile: {}", tc.tiles.size());
         }
         else
         {
             // New entity anchored at **ground**
-            Entity e = m_editor->GetGameLayer()->GetActiveGameScene()->CreateEntity();
-            TransformComponent& tr = e.AddComponent<TransformComponent>();
-            IDComponent& idComp = e.GetComponent<IDComponent>();
+            Entity newEntity = m_editor->GetGameLayer()->GetActiveGameScene()->CreateEntity();
+            TransformComponent& transformCmp = newEntity.AddComponent<TransformComponent>();
+            IDComponent& idComp = newEntity.GetComponent<IDComponent>();
 
-            tr.Translation.x = groundPos.x;
-            tr.Translation.y = groundPos.y;
-            uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, glm::vec2(0.0f), float(TILE_SIZE));
+            transformCmp.Translation.x = groundPos.x;
+            transformCmp.Translation.y = groundPos.y;
+            uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, glm::vec2(0.0f), float(TILE_SIZE), (uint32_t)tileCategory);
 
-            auto& tc = e.AddComponent<TileComponent>();
-            newTile;
+            TileComponent& tileComp = newEntity.AddComponent<TileComponent>();
+            
             newTile.position = glm::vec3(0);
             newTile.UV = UV;
             newTile.name = selectedTileName;
@@ -836,11 +863,13 @@ namespace Engine {
 
 
             // 4. Push it to the component
-            tc.tiles.push_back(newTile);
+            tileComp.tiles.push_back(newTile);
 
 
-            m_selectedEntity = e;
-            m_sceneHierarchyPanel.SetSelectedEntity(e);
+            m_selectedEntity = newEntity;
+            m_sceneHierarchyPanel.SetSelectedEntity(newEntity);
+
+            UpdateOrCreateArea(newEntity, groundPos, tileCategory);
         }
 
         SortIsometricTilesByY();
@@ -848,8 +877,52 @@ namespace Engine {
         return newTile;
     }
 
+    void EditorLayer::UpdateOrCreateArea(Entity tileEntity, glm::vec2 worldPos, eTileCategory category)
+    {
+        if (category != eTileCategory::Buildings &&
+            category != eTileCategory::Roofs &&
+            category != eTileCategory::Pillars)
+            return;
 
+        float searchRadius = 1.0f;
+        Entity foundAreaEntity; // This will hold our result
+        worldPos.y += 0.5;// lift from groudn to venter
 
+        // Use the ForEach pattern with AreaComponent and TransformComponent
+        m_editor->GetGameLayer()->GetActiveGameScene()->ForEach<AreaComponent, TransformComponent>(
+            [&](Engine::Entity e, AreaComponent& area, TransformComponent& tr)
+            {
+                // If we already found one, we can't 'break' a ForEach easily, 
+                // so we just skip further logic.
+                if (foundAreaEntity) return;
+
+                // Check if worldPos is near the current bounds of this area
+                if (worldPos.x >= area.Min.x - searchRadius && worldPos.x <= area.Max.x + searchRadius &&
+                    worldPos.y >= area.Min.y - searchRadius && worldPos.y <= area.Max.y + searchRadius)
+                {
+                    foundAreaEntity = e;
+                }
+            });
+
+        // Handle creation if no area was found nearby
+        if (!foundAreaEntity)
+        {
+            if (!tileEntity.HasComponent<AreaComponent>())
+            {
+
+                AreaComponent& areacomp = tileEntity.AddComponent<AreaComponent>();
+                areacomp.Min = worldPos;
+                areacomp.Max = worldPos;
+
+            }
+
+            foundAreaEntity = tileEntity;
+        }
+
+        // Expand the found/created area
+        AreaComponent& area = foundAreaEntity.GetComponent<AreaComponent>();
+        area.Expand(worldPos);
+    }
 
 
 
@@ -923,7 +996,10 @@ namespace Engine {
             Engine::VulkanRenderer2D::DrawTile(ground, previewUV, previewColor);
         }
 
-
+        if (m_showAreas)
+        {
+            EditorDebugUtils::DrawAreaDebugBounds(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+        }
 
 
 
@@ -1059,7 +1135,16 @@ namespace Engine {
                    {
                        m_ActiveStroke = std::make_unique<CommandGroup>();
                        // If no entity is selected, the first tile will create one
-                       m_StrokeCreatedNewEntity = !m_selectedEntity;
+
+                       Entity selectedEntity = m_selectedEntity; // i guess this is from screen
+
+                       if (!selectedEntity)
+                       {
+                           // and this from hierarchy?!
+                           selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
+                       }
+
+                       m_StrokeCreatedNewEntity = !selectedEntity;
                    }
 
                    // 2. Perform your existing snap/debounce check
@@ -1141,7 +1226,7 @@ namespace Engine {
             std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
             
 
-            if (!ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt) && selectedTile == "")
+            if (!ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt) && selectedTile == "" && m_mouseIsInViewPort)
             {
 
                 // quick way to get clicked entity
@@ -1216,6 +1301,8 @@ namespace Engine {
         }
         else if (e.GetMouseButton() == Mouse::Button1)
         {
+       
+
             DeselectEntity();
 		}
 		else if (e.GetMouseButton() == Mouse::Button2)
@@ -1228,6 +1315,8 @@ namespace Engine {
 
     void EditorLayer::DeselectEntity()
     {
+
+       
         // Deselect
         m_tileEditorPanel.SetSelectedTile(UINT_MAX, "");
         m_sceneHierarchyPanel.SetSelectedEntity({}); // Deselect entity
@@ -1379,9 +1468,14 @@ namespace Engine {
 
     void EditorLayer::OpenScene(const std::filesystem::path& path)
     {
+        m_sceneState = eSceneState::Edit;
+
+
+
+        
+
         if (m_sceneState != eSceneState::Edit)
         {
-            OnSceneStop();
         }
 
         if (path.extension().string() != ".ee")
@@ -1390,10 +1484,26 @@ namespace Engine {
             return;
         }
 
+        m_sceneHierarchyPanel.GetEditorScene() = nullptr;
+        m_sceneHierarchyPanel.GetEditorScene() = std::make_shared<Scene>();
+
         SceneSerializer serializer(m_sceneHierarchyPanel.GetEditorScene());
         serializer.Deserialize(path.string());
 
+
+        //m_sceneHierarchyPanel.GetEditorScene() = Scene::Copy(m_editorScene);
+
+
         m_currentScenePath = path;
+        
+        m_editor.get()->GetGameLayer()->SetIsPlaying(false);
+        m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnRunTimeStop();
+         m_debugPanel.SetGameContext(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+
+        m_sceneHierarchyPanel.SetSceneHierarchyPanelScene(m_sceneHierarchyPanel.GetEditorScene());
+
+        m_editor.get()->GetGameLayer()->SetActiveScene(m_sceneHierarchyPanel.GetEditorScene());
+        m_editor.get()->GetGameLayer()->OnGameStop();
     }
 
     void EditorLayer::SaveSceneAs()

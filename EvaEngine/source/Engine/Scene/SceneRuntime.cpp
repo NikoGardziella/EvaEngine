@@ -33,6 +33,8 @@
 #include "Engine/Map/Tile/TileManager.h"
 
 #include "Engine/Renderer/Renderer2D/VulkanRenderer2D.h"
+#include "Components/Map/AreaComponent.h"
+#include <Engine/Platform/Vulkan/VulkanBindlessDescriptorSet.h>
 
 namespace Engine {
 
@@ -169,7 +171,7 @@ namespace Engine {
             playerStateData.screenMin = glm::vec2(std::min(b0.x, b1.x), std::min(b0.y, b1.y));
             playerStateData.screenMax = glm::vec2(std::max(b0.x, b1.x), std::max(b0.y, b1.y));
 
-
+            playerStateData.screenSize = mainCameraComp->Camera.GetViewportSize();
             VulkanRenderer2D::SubmitPlayerData(playerStateData);
 
             Engine::IDComponent& playerIDComp = playerEntity.GetComponent<Engine::IDComponent>();
@@ -371,6 +373,20 @@ namespace Engine {
                         ForEachConst<TransformComponent, TileComponent>(
                             [&](Entity e, const TransformComponent& transformComp, const TileComponent& tileComp)
                             {
+
+                                bool playerIsInsideEntityArea = false;
+                                if (e.HasComponent<AreaComponent>())
+                                {
+                                    AreaComponent& areaComp = e.GetComponent<AreaComponent>();
+                                    // is player inside area
+                                    if (playerPos.x > areaComp.Min.x && playerPos.x < areaComp.Max.x 
+                                        && playerPos.y > areaComp.Min.y && playerPos.y < areaComp.Max.y)
+                                    {
+                                        playerIsInsideEntityArea = true;
+
+                                    }
+                                }
+
                                 for (const TileInfo& tile : tileComp.tiles)
                                 {
                                     if (tile.Category == eTileCategory::Terrain)
@@ -381,11 +397,18 @@ namespace Engine {
                                         continue;
                                     }
 
-                                    float zBias = 0.01f;
+                                    float zBias = 0.0f;
+                                    uint32_t flags = 0;
                                     if (tile.Category == eTileCategory::Roofs)
                                     {
 
-                                        zBias = 1.0f;
+                                        zBias = 2.0f;
+                                        flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::IsRoof;
+                                    }
+
+                                    if (playerIsInsideEntityArea)
+                                    {
+                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::PlayerInsideEntityArea;
                                     }
 
 
@@ -398,7 +421,8 @@ namespace Engine {
                                         zBias,             // zBias
                                         tile.TileDirection,
                                         tile.opaqueMin,
-                                        tile.opaqueMax
+                                        tile.opaqueMax,
+                                        flags
                                     );
                                     minWorld.x = std::min(minWorld.x, transformComp.Translation.x);
                                     minWorld.y = std::min(minWorld.y, transformComp.Translation.y);

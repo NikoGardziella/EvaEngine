@@ -253,6 +253,9 @@
     <Filter Include="vendor\tiny_gltf">
       <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Components\Map">
+      <UniqueIdentifier>{e0e7c3a0-9af5-4f42-915b-5e947b32ece2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Engine.h">
@@ -2120,6 +2123,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\Utils\RoofUtils.h">
       <Filter>source\Engine\Map\Tile\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Map\AreaComponent.h">
+      <Filter>source\Engine\Scene\Components\Map</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

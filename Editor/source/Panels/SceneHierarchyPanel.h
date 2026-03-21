@@ -58,6 +58,7 @@ namespace Engine {
 		int m_guizmoType = -1;
 
 		bool m_itemIsClicked = false;
+		bool m_destroySelectedEntity = false;
 		std::unordered_set<size_t> m_openTileIndices;
 		std::optional<size_t> m_selectedTileIndex = std::nullopt;
 		bool m_scrollToSelectedTileNextFrame = false;

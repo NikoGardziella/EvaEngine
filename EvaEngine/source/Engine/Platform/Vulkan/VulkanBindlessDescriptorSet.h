@@ -13,6 +13,7 @@
 #include <cstddef>
 #include <Engine/Renderer/Lights/Shadow/VulkanShadowMap.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include <Engine/Renderer/Utils/PlayerData.h>
 
 
 
@@ -24,6 +25,13 @@ namespace Engine {
     class VulkanBindlessDescriptorSetRenderer {
 
     public:
+
+        enum eTileFlags {
+            IsSprite = 1 << 0, //   (binary 0001)
+            IsRoof = 1 << 1 , //  (binary 0010)
+            PlayerInsideEntityArea = 1 << 2  //  (binary 0100)
+        };
+
         struct TilePC
         {
             glm::mat4 VP;
@@ -38,9 +46,12 @@ namespace Engine {
         };
 
         struct TilePassParams {
-            glm::vec2 playerSCreenPos; 
+            glm::vec2 playerPos; 
             float playerFootY;
             float fadeRadius;
+            float visRadius;
+            glm::vec2  screenSize;
+            glm::vec2  _pad;
         };
 
     private:
@@ -98,7 +109,7 @@ namespace Engine {
         void AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation, TileDirection  tileDirection);
         void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, TileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, glm::vec2 size,uint32_t flags = 0);
         void EndFrameAndUpload(uint32_t frameIndex);
-        void UpdateTileParams(uint32_t frameIndex, glm::vec2 playerPos, glm::vec2 playerSCreenPos, float playerFootY) const;
+        void UpdateTileParams(uint32_t frameIndex, PlayerData playerData) const;
 
 
         // Call once after swapchain/device init
@@ -158,6 +169,8 @@ namespace Engine {
         VkImageView         GetCPropsImageView(uint32_t slot) const  { return m_propsLayerPool.View(slot); }
 
         std::unordered_map<uint64_t, uint32_t>& GetTileToSlotMap() { return  m_tileToSlot; }
+
+        void UpdateVisibilityDescriptorSet(Ref<VulkanTexture> visibilityTexture);
 
     private:
         // ----- internal helpers
