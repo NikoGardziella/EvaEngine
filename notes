@@ -288,3 +288,17 @@ use fog of war for tile and roof opacity
     13. destruction and effect to iso world. effect needs optimizations
     14. doors / windows
 }
+
+21.03.2026
+{
+
+    
+    -fog of war does not appear on buidlings. done
+    -zombie collisions. box2d?
+    - prefabs
+    -doors/ windows
+    - tiles damage effect
+    - particles
+    - improvements on map editor.
+    - clean EndFrame() 
+}
