@@ -153,6 +153,8 @@ namespace Engine {
     void SceneHierarchyPanel::DestrtoySelectedEntity(Entity entity)
     {
        
+
+
         m_sceneHierarchyPanelScene->DestroyEntity(entity);
 
         if (m_selectedEntity == entity)
@@ -163,7 +165,7 @@ namespace Engine {
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
-        auto& tagComp = entity.GetComponent<TagComponent>();
+        TagComponent& tagComp = entity.GetComponent<TagComponent>();
 
         ImGuiTreeNodeFlags flags = (m_selectedEntity == entity ? ImGuiTreeNodeFlags_Selected : 0)
             | ImGuiTreeNodeFlags_SpanAvailWidth;
@@ -175,7 +177,6 @@ namespace Engine {
             flags |= ImGuiTreeNodeFlags_OpenOnArrow;
 
         bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tagComp.Tag.c_str());
-        m_itemIsClicked = false;
 
         if (ImGui::IsItemClicked())
         {
@@ -183,17 +184,27 @@ namespace Engine {
             m_itemIsClicked = true;
         }
 
+        if (ImGui::IsItemClicked(1))
+        {
+            m_selectedEntity = entity;
+            m_itemIsClicked = true;
+        }
+
         bool entityDeleted = false;
 
-        if (ImGui::BeginPopupContextItem())
+        if (m_selectedEntity && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
         {
-            m_itemIsClicked = true;
+           /// m_itemIsClicked = true;
             if (ImGui::MenuItem("Delete entity"))
+            {
+                m_destroySelectedEntity = true;
                 entityDeleted = true;
+                
+            }
             ImGui::EndPopup();
         }
 
-        if (opened)
+        if (opened && !entityDeleted)
         {
             // Draw TileComponent tiles if present
             if (entity.HasComponent<TileComponent>())
@@ -244,7 +255,7 @@ namespace Engine {
 
         if (entityDeleted)
         {
-            DestrtoySelectedEntity(entity); // typo: should be DestroySelectedEntity
+            //DestrtoySelectedEntity(entity);
         }
     }
 
@@ -256,6 +267,7 @@ namespace Engine {
         ImGui::Begin("Scene Hierarchy");
 
         bool clickedOnEmptySpace = true;  // Track if no entity was clicked
+
 
  
         ImGui::PushID((void*)m_sceneHierarchyPanelScene.get()); // Push scene ID to make entity IDs unique
@@ -272,6 +284,8 @@ namespace Engine {
         m_entityCount = (int)entityList.size();
         m_projectileCount = 0;
 		m_tileCount = 0;
+        m_itemIsClicked = false;
+        m_destroySelectedEntity = false;
         while (clipper.Step())
         {
             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
@@ -279,7 +293,7 @@ namespace Engine {
                 entt::entity entityID = entityList[i];
                 Entity entity{ entityID, m_sceneHierarchyPanelScene.get() };
 
-                ImGui::PushID((uint32_t)entityID);
+                ImGui::PushID((uint64_t)entityID);
                 DrawEntityNode(entity);
                 ImGui::PopID();
 
@@ -301,7 +315,7 @@ namespace Engine {
         ImGui::PopID();
         
        
-        
+       
 
         
         // Open "Create Empty Entity" popup **only** if no entity was clicked
@@ -310,6 +324,7 @@ namespace Engine {
         {
             if (ImGui::MenuItem("Create Empty Entity"))
             {
+                // old comment?
                 // add new component to both of the registries. m_gameContext for normal rendering and interaciton
                 // m_newComponentsContext is used to save the scene and avoid any of the entities created in game scene 
                 // through code to be inclued in the saved scene file
@@ -321,10 +336,16 @@ namespace Engine {
         }
         
 
-        // Reset selection if clicking on empty space
+        // Reset selection if clicking on empty space // this it not set
         if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && clickedOnEmptySpace)
         {
             m_selectedEntity = {};
+        }
+
+        if (m_destroySelectedEntity)
+        {
+            DestrtoySelectedEntity(m_selectedEntity);
+            ImGui::TreePop();
         }
 
         ImGui::End();
@@ -336,6 +357,8 @@ namespace Engine {
             DrawComponents(m_selectedEntity);
         }
         ImGui::End();
+
+      
     }
 
     template<typename T, typename UIFunction>
@@ -1618,7 +1641,7 @@ namespace Engine {
         DrawComponent<PlayerVisionComp>("Player Vision", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
 
-                ImGui::DragFloat("Vision distance", &component.visionDistanceW, 0.01, 0.0f, 20.0f);
+                ImGui::DragFloat("Vision distance", &component.visionDistanceW, 0.01, 0.0f, 30.0f);
                 
                 Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (newEntity)

@@ -105,18 +105,34 @@ OpaqueBox computeOpaqueBox(vec2 oMin, vec2 oMax, float tileW, float tileH)
 }
 
 
-vec3 boxToWorld(vec3 v, OpaqueBox box, mat2 R, vec2 worldAnchor, vec2 offset)
+vec3 boxToWorld(vec3 v, OpaqueBox box, mat2 R, vec2 worldAnchor, vec2 offset, bool isRoof)
 {
-    vec3 localPos = vec3(
-        v.x * box.w,
-        v.z * box.depth,
-        box.bottomY + v.y * box.h
-    );
+    vec3 localPos;
+
+    if (isRoof)
+    {
+        // FLAT ROOF LOGIC
+        // We take the vertical height of the tile (box.h) and lay it down 
+        // along the depth axis (Y in localPos calculation).
+        localPos = vec3(
+            v.x * box.w,           // Width stays Width
+            v.y * box.h,           // Tile Height becomes Depth (flat on ground)
+            box.bottomY + 1.5      // The "Z" (Height) is now a fixed altitude
+        );
+    }
+    else
+    {
+        // NORMAL WALL LOGIC
+        localPos = vec3(
+            v.x * box.w,
+            v.z * box.depth,
+            box.bottomY + v.y * box.h
+        );
+    }
 
     vec2 rotatedXY = R * localPos.xy;
     return vec3(worldAnchor + rotatedXY + offset, localPos.z);
 }
-
 
 void computeFaceUVs(int faceIdx, vec3 v, uint flags, vec2 opaqueUVMin, vec2 opaqueUVMax,  out vec2 uv, out vec2 edgeUV)
 {
@@ -161,19 +177,25 @@ void main()
     int vIdx = int(gl_VertexIndex % 36);
     int faceIdx = vIdx / 6;
     vec3 v = boxVerts[vIdx];
+    bool isRoof = (inst[i].flags & 2u) != 0u;
 
     // Opaque region
     vec2 oMin = vec2(inst[i].opaqueMin16) / 65535.0;
     vec2 oMax = vec2(inst[i].opaqueMax16) / 65535.0;
     OpaqueBox box = computeOpaqueBox(oMin, oMax, inst[i].size.x, inst[i].size.y);
 
+    if (isRoof)
+    {
+        // This prevents the shadow from looking like a thick solid block
+        box.depth = 0.05; // Very thin
+    }
     // Rotation from direction
     float ang = directionToAngle(inst[i].direction);
     mat2 R = buildRotation(ang);
 
     // World position
     vec2 offset = directionToOffset(inst[i].direction);
-    vec3 worldPos = boxToWorld(v, box, R, inst[i].worldPos, offset);
+    vec3 worldPos = boxToWorld(v, box, R, inst[i].worldPos, offset, isRoof);
 
     gl_Position = pc.lightSpaceMatrix * vec4(worldPos, 1.0);
 

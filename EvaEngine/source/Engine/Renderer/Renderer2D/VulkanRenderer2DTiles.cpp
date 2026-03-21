@@ -268,7 +268,7 @@ namespace Engine {
 			// Pass the real world size so the quad matches exactly
 			glm::vec2 size = glm::vec2(TILE_SIZE, TILE_SIZE * 2);
 
-			s_bindlessDescitproRenderer->AddInstance(center, zKey, slot, 0.0f,submitQueu[i].tileDirection, submitTile.outOpaqueMin, submitTile.outOpaqueMax, size, 0u);
+			s_bindlessDescitproRenderer->AddInstance(center, zKey, slot, 0.0f,submitQueu[i].tileDirection, submitTile.outOpaqueMin, submitTile.outOpaqueMax, size, submitTile.flags);
 
 			// Compute wants bottom-left in world units
 			const float tileWorldW = float(TILE_SIZE);

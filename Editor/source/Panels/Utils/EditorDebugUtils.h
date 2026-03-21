@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine/Scene/Entity.h>
+#include <Engine/Core/Core.h>
 
 
 namespace Engine {
@@ -10,6 +11,8 @@ namespace Engine {
 	{
 	public:
 		static void PrintAllEntities(Scene* scene);
+		static void EditorDebugUtils::DrawAreaDebugBounds(Ref<Scene> scene);
+
 	};
 
 }

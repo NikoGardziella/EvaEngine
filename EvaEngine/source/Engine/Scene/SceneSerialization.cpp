@@ -12,6 +12,7 @@
 #include "Engine/AssetManager/AssetManager.h"
 
 #include "Engine/Map/TextureStreaming/TextureStreamingSystem.h"
+#include "Components/Map/AreaComponent.h"
 
 namespace Engine {
 
@@ -183,6 +184,7 @@ namespace Engine {
         CopyComponent<RoofRenderComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<VehicleComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<DriverComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<AreaComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
     }
 
     Entity Scene::CreateEntity(const std::string& name)

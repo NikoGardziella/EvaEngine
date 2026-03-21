@@ -58,6 +58,8 @@ namespace Engine {
 
 		TileInfo OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory);
 
+		void UpdateOrCreateArea(Entity tileEntity, glm::vec2 worldPos, eTileCategory category);
+
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
@@ -141,6 +143,7 @@ namespace Engine {
 		Ref<VulkanTexture> m_iconLoading;
 
 		bool m_showColliders = false;
+		bool m_showAreas = false;
 
 		Ref<Editor> m_editor;
 

@@ -25,6 +25,7 @@ layout(location=4) out vec4       vPosLightSpace;
 layout(location=5) out flat float vFootY;
 layout(location=6) out vec2       vLocalPos;
 layout(location=7) out flat uint  vDirection;
+layout(location=8) out flat float vZkey;
 
 layout(push_constant) uniform PC {
     mat4 VP;
@@ -78,8 +79,12 @@ void main()
     vec2 uvMin = vec2(inst[i].uvMin16) / 65535.0;
     vec2 uvMax = vec2(inst[i].uvMax16) / 65535.0;
     vec2 t = q;
-    if ((inst[i].flags & 1u) != 0u) t.y = 1.0 - t.y;
+
+    //if ((inst[i].flags & 1u) != 0u) t.y = 1.0 - t.y;
+
     vUV = mix(uvMin, uvMax, t);
+
+    vZkey = inst[i].zSortKey;
 }
 
 #type fragment
@@ -95,6 +100,7 @@ layout(location=4) in vec4       vPosLightSpace;
 layout(location=5) in flat float vFootY;
 layout(location=6) in vec2       vLocalPos;
 layout(location=7) in flat uint  vDirection;
+layout(location=8) in flat float vZkey;
 
 layout(location=0) out vec4 outColor;
 
@@ -104,10 +110,15 @@ layout(set=0, binding=5) uniform sampler2D uShadowMap3D;
 layout(set=0, binding=6) uniform sampler2D uShadowMapTiles;
 
 layout(std140, set=0, binding=7) uniform PlayerData {
-    vec2  playerScreenPos;
+    vec2  playerPos;
     float playerFootY;
     float fadeRadius;
+    float visRadius;
+    vec2  screenSize;
+    vec2  _pad;
 } player;
+
+
 layout(set = 0, binding = 8) uniform sampler2D uVisibilityMap;
 
 
@@ -292,7 +303,7 @@ float directionToAngle(uint direction)
 bool shouldFadeOcclusion(vec2 localPos, uint direction)
 {
 
-    float dist = distance(gl_FragCoord.xy, player.playerScreenPos);
+    float dist = distance(gl_FragCoord.xy, vec2(0, 0));
     bool inFront = vFootY < player.playerFootY;
 
     if (!inFront || dist >= player.fadeRadius)
@@ -308,38 +319,119 @@ bool shouldFadeOcclusion(vec2 localPos, uint direction)
 }
 
 
-float getOcclusionAlpha(vec2 localPos, uint direction)
+float getOcclusionAlpha(vec2 worldPos, uint direction)
 {
-    float dist = distance(gl_FragCoord.xy, player.playerScreenPos);
+    float fadeRadius = player.fadeRadius;
     
-    // Check if tile is in front of the player
-    bool inFront = vFootY < player.playerFootY;
+    // Check if Bit 1 (Value 2) is set in vFlags for Roof
+    bool isRoof = (vFlags & 2u) == 1u;
 
-    // If tile is behind player or far away, it's fully opaque
-    if (!inFront || dist >= player.fadeRadius)
+    bool playerIsInsideEntityArea = (vFlags & 3u) == 1u;
+
+    if(playerIsInsideEntityArea)
     {
         return 1.0;
     }
-    // 1. Calculate closeness (0.0 at edge of circle, 1.0 at center)
-    float closeness = 1.0 - (dist / player.fadeRadius);
+
+    return 0.1;
+
+    if (isRoof) 
+    {
+        fadeRadius *= 50.0; 
+        // Offset the sampling down to match player feet level
+        worldPos.y -= 100.5; 
+    }
+
+    float dist = distance(worldPos, player.playerPos);
     
-    // 2. Determine the "Fade Zone"
-    // Tilt helps align the fade with the perspective of the tile
-    float tilt = sin(directionToAngle(direction)) * localPos.x * 0.3;
+    // ROOF LOGIC: Simple radial fade
+    if (isRoof)
+    {
+        // Use vFootY (the ground) for distance, NOT the pixel worldPos
+        float distToGround = distance(vec2(vWorldPos.x, vFootY), player.playerPos);
     
-    // This creates a soft gradient based on the height (localPos.y)
-    // As the player gets closer, the "hole" grows taller
+        // If player is within 2 tiles of the building base, fade the WHOLE roof
+        return smoothstep(player.fadeRadius, player.fadeRadius + 1.0, distToGround) * 0.8 + 0.2;
+    }
 
-    // Soft 
-    //float holeStrength = smoothstep(0.0, 0.5, localPos.y + tilt - (1.0 - closeness));
-    // Hard
-    //float holeStrength = smoothstep(0.0, 0.05, localPos.y - (1.0 - closeness));
-    // Hardest (binary cut)
-    float holeStrength = localPos.y - (1.0 - closeness) > 0.0 ? 1.0 : 0.0;
+    // WALL/NORMAL TILE LOGIC
+   // bool inFront = vFootY < player.playerFootY;
+   // if (!inFront || dist >= fadeRadius) return 1.0;
 
+    float closeness = 1.0 - (dist / fadeRadius);
+    float tilt = sin(directionToAngle(direction)) * vLocalPos.x * 0.3;
+    float holeStrength = (vLocalPos.y + tilt) - (1.0 - closeness) > 0.0 ? 1.0 : 0.0;
 
-    // We cap it at 0.2 so the wall never becomes completely invisible
     return mix(1.0, 0.2, holeStrength);
+}
+
+
+float sampleVisibility(vec2 worldPos)
+{
+    vec2 mapMin  = player.playerPos - vec2(player.visRadius);
+    vec2 mapSize = vec2(player.visRadius * 2.0);
+
+    vec2 uv = (worldPos - mapMin) / mapSize;
+    uv.y = 1.0 - uv.y;
+    // Check bounds
+    if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0))))
+        return 0.0;
+
+    return texture(uVisibilityMap, uv).r;
+}
+
+vec2 getFogUV(vec2 worldPos, vec2 playerPos, float visRadius)
+{
+    vec2 mapMin  = playerPos - vec2(visRadius);
+    vec2 mapSize = vec2(visRadius * 2.0);
+    return (worldPos - mapMin) / mapSize;
+}
+
+
+float getDilatedVisibility(vec2 worldPos) 
+{
+    // How far out to look for a "visible" neighbor (in world units)
+    // Increase this if your roofs are still partially popping
+    float searchRadius = 1.5; 
+    
+    float maxVis = 0.0;
+    
+    // Check center + 4 diagonal points
+    // This is cheap and usually enough to cover a tile's footprint
+    vec2 offsets[5] = vec2[](
+        vec2(0.0, 0.0),
+        vec2(-searchRadius, -searchRadius),
+        vec2(searchRadius, -searchRadius),
+        vec2(-searchRadius, searchRadius),
+        vec2(searchRadius, searchRadius)
+    );
+
+    for(int i = 0; i < 5; i++)
+    {
+        vec2 uv = getFogUV(worldPos + offsets[i], player.playerPos, player.visRadius);
+
+        if (all(greaterThanEqual(uv, vec2(0.0))) && all(lessThanEqual(uv, vec2(1.0))))
+        {
+            maxVis = max(maxVis, texture(uVisibilityMap, uv).r);
+        }
+    }
+    
+    return maxVis;
+}
+
+float getTileVisibility(vec2 worldPos) 
+{
+    float sum = 0.0;
+    float samples = 0.0;
+    // Check a 3x3 grid around the tile center
+    for(float y = -1.0; y <= 1.0; y += 1.0) {
+        for(float x = -1.0; x <= 1.0; x += 1.0) {
+            vec2 uv = getFogUV(worldPos + vec2(x, y) * 0.5, player.playerPos, player.visRadius);
+            sum += texture(uVisibilityMap, uv).r;
+            samples += 1.0;
+        }
+    }
+    return sum / samples; // Returns a smooth 0.0 to 1.0
 }
 
 // ============================================================================
@@ -348,39 +440,72 @@ float getOcclusionAlpha(vec2 localPos, uint direction)
 
 void main()
 {
-
-
+    // 1. Texture Sampling
     bool isSprite = (vFlags & 1u) != 0u;
-   // vec4 base = isSprite
-   //     ? texture(uSprites[nonuniformEXT(vSlot)], vUV)
-   //     : texture(uTiles[nonuniformEXT(vSlot)], vUV);
-   vec4 base = texture(uTiles[nonuniformEXT(vSlot)], vUV);
+    vec4 base = isSprite
+        ? texture(uSprites[nonuniformEXT(vSlot)], vUV)
+        : texture(uTiles[nonuniformEXT(vSlot)], vUV);
 
-    // Keep the discard for the actual texture transparency (holes in the sprite)
     if (base.a <= 0.001) discard;
 
-    // --- Occlusion Fade Logic ---
-    float occlusionAlpha = 1.0;
-    
-        occlusionAlpha = getOcclusionAlpha(vLocalPos, vDirection);
-    if (!isSprite)
+    // 2. Flags and Visibility Setup
+    bool isRoof = (vFlags & 2u) != 0u;
+
+
+    bool playerInsideEntityArea = (vFlags & 4u) != 0u;
+   
+
+    vec2 tilePos = vWorldPos;
+    float visibility = 0.0;
+
+    if(playerInsideEntityArea)
     {
+        visibility = 0.1;
     }
 
-    // --- Lighting Logic ---
+    if (isRoof)
+    {
+        // Sample slightly lower so roof visibility matches the ground it covers
+        tilePos.y -= 0.5; 
+        // Use dilated check to keep the whole roof rendered together
+        //visibility = getDilatedVisibility(tilePos);
+    }
+    else
+    {
+        // Standard check for floor/walls
+        vec2 fogUV = getFogUV(tilePos, player.playerPos, player.visRadius);
+        // Check bounds before sampling
+        if (all(greaterThanEqual(fogUV, vec2(0.0))) && all(lessThanEqual(fogUV, vec2(1.0))))
+        {
+           // visibility = texture(uVisibilityMap, fogUV).r;
+        }
+    }
+
+    // 3. Lighting Calculation
     vec3 normal = vec3(0.0, 0.0, 1.0);
     vec3 worldPos3D = vec3(vWorldPos, 0.0);
     vec3 litColor = applyLighting(worldPos3D, normal, base.rgb, 0.2);
 
-
+    // 4. Shadow Calculation
     float shadow3D   = ShadowFactor_3D(vPosLightSpace, vFootY);
     float shadowTile = ShadowFactor_Tile(vPosLightSpace, vFootY);
     float shadow     = min(shadow3D, shadowTile);
 
-    vec3 ambient = base.rgb * 0.2;
+    vec3 ambient    = base.rgb * 0.2;
     vec3 finalColor = ambient + (litColor - ambient) * shadow;
 
-    // --- Final Output ---
-    // Multiply the texture's original alpha by our occlusion fade
-    outColor = vec4(finalColor, base.a * occlusionAlpha);
+    // 5. Occlusion Calculation
+    // Note: Use vWorldPos here to ensure distance math matches playerPos scale
+    float occ = getOcclusionAlpha(vWorldPos, vDirection);
+    
+    // Only apply the "hole" where the player actually has vision
+    float finalOcclusionAlpha = mix(1.0, occ, visibility);
+
+    float occulsonAlpha = 1.0;
+    if(playerInsideEntityArea)
+    {
+        occulsonAlpha  = 0.1;
+    }
+
+    outColor = vec4(finalColor, base.a * occulsonAlpha);
 }

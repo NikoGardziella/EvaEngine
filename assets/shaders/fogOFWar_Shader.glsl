@@ -3,11 +3,7 @@
 
 
 layout(push_constant) uniform PC { 
-    mat4 uVP;
-    vec2 mapMin;
-    vec2 mapSize; 
-    float time;
-    uint flags; 
+    mat4 uVP; mat4 uInvVP; vec2 mapMin; vec2 mapSize; float time; uint flags; 
 } pc;
 
 layout(location = 0) out vec2 vUV;
@@ -26,13 +22,16 @@ void main()
 
 #type fragment
 #version 450
+
 layout(location = 0) in vec2 vUV;
 layout(location = 0) out vec4 outColor;
+
 layout(set = 0, binding = 0) uniform sampler2D uVisibilityMap;
-layout(push_constant) uniform PC
-{
+
+layout(push_constant) uniform PC {
     mat4 uVP;
-    vec2 mapMin; 
+    mat4 uInvVP; 
+    vec2 mapMin;
     vec2 mapSize;
     float time;
     uint flags;
@@ -41,5 +40,9 @@ layout(push_constant) uniform PC
 void main()
 {
     float vis = texture(uVisibilityMap, vUV).r;
-    outColor = vec4(vis, vis, vis, 1.0);
+
+    if (vis > 0.5)
+        discard;
+    else
+        outColor = vec4(0.0, 0.0, 0.0, 0.3);
 }

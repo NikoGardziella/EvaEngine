@@ -244,7 +244,8 @@ namespace Engine {
         y0 = std::max(0, y0);
 
         int maxW = TILE_PIXEL_WIDTH - x0;
-        w = std::clamp(w, 0, maxW);
+        w = 
+            (w, 0, maxW);
         int maxH = TILE_PIXEL_HEIGHT - y0;
         h = std::clamp(h, 0, maxH);
 

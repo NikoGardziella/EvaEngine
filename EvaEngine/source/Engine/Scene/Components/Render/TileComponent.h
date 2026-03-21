@@ -57,8 +57,8 @@ namespace Engine {
         uint32_t        TileHealth;
         uint32_t        Slot = UINT32_MAX;
         TileDirection   TileDirection;
-        glm::ivec2      opaqueMin;
-        glm::ivec2      opaqueMax;
+        glm::ivec2      opaqueMin = { 999, 999 };
+        glm::ivec2      opaqueMax = { 999, 999 };
 
 
         TileInfo(const glm::vec2& pos = glm::vec2(0.0f), const glm::vec4& uvCoords = glm::vec4(0.0f),
