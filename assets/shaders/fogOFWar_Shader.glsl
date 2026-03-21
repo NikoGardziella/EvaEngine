@@ -3,7 +3,11 @@
 
 
 layout(push_constant) uniform PC { 
-    mat4 uVP; mat4 uInvVP; vec2 mapMin; vec2 mapSize; float time; uint flags; 
+    mat4 uVP;
+    vec2 mapMin;
+    vec2 mapSize;
+    float time;
+    uint flags; 
 } pc;
 
 layout(location = 0) out vec2 vUV;
@@ -30,7 +34,6 @@ layout(set = 0, binding = 0) uniform sampler2D uVisibilityMap;
 
 layout(push_constant) uniform PC {
     mat4 uVP;
-    mat4 uInvVP; 
     vec2 mapMin;
     vec2 mapSize;
     float time;

@@ -213,7 +213,7 @@ namespace Engine {
 
         Entity spwanController = CreateEntity("spawn controller");
         NpcSpawnControllerComponent& npcSpawnControllerComponent  = spwanController.AddComponent<NpcSpawnControllerComponent>();
-        npcSpawnControllerComponent.maxAlive = 100;
+        npcSpawnControllerComponent.maxAlive = 0;
         //npcSpawnControllerComponent.spawnInterval = 0.001f;
 
         Entity Light = CreateEntity("Light");

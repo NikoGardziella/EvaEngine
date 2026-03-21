@@ -494,13 +494,7 @@ void main()
     vec3 ambient    = base.rgb * 0.2;
     vec3 finalColor = ambient + (litColor - ambient) * shadow;
 
-    // 5. Occlusion Calculation
-    // Note: Use vWorldPos here to ensure distance math matches playerPos scale
-    float occ = getOcclusionAlpha(vWorldPos, vDirection);
-    
-    // Only apply the "hole" where the player actually has vision
-    float finalOcclusionAlpha = mix(1.0, occ, visibility);
-
+  
     float occulsonAlpha = 1.0;
     if(playerInsideEntityArea)
     {

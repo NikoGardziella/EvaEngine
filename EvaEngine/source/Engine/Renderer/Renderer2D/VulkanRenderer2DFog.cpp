@@ -65,7 +65,6 @@ namespace Engine {
 
 		VulkanFogOfWarPipelines::FogPC fogPC{};
 		fogPC.uVP = s_VulkanData.CameraBuffer.ViewProjection;
-		fogPC.uInvVP = glm::inverse(s_VulkanData.CameraBuffer.ViewProjection);
 		fogPC.time = m_timer;
 		fogPC.flags = 0u;
 
@@ -120,7 +119,6 @@ namespace Engine {
 		VulkanFogOfWarPipelines::FogPC pc{};
 		pc.uVP = s_VulkanData.CameraBuffer.ViewProjection;
 		pc.time = m_timer;
-		pc.uInvVP = glm::inverse(s_VulkanData.CameraBuffer.ViewProjection);
 
 		// same as RenderVisibilityMap()
 		float fogSize = 2.0f;

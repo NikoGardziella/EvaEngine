@@ -154,6 +154,9 @@
     <Filter Include="source\Engine\Scene\Components\Light">
       <UniqueIdentifier>{140EA74C-00F5-6844-A945-CF61950BE2AA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Components\Map">
+      <UniqueIdentifier>{7A95F967-66D1-FCD1-CFE3-14C9BB3EA5EC}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene\Components\NPC">
       <UniqueIdentifier>{5D97F967-49D3-FCD1-B2E5-14C99E40A5EC}</UniqueIdentifier>
     </Filter>
@@ -252,9 +255,6 @@
     </Filter>
     <Filter Include="vendor\tiny_gltf">
       <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\Engine\Scene\Components\Map">
-      <UniqueIdentifier>{e0e7c3a0-9af5-4f42-915b-5e947b32ece2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -460,6 +460,9 @@
       <Filter>source\Engine\Map\Tile</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\Utils\CompressUtils.h">
+      <Filter>source\Engine\Map\Tile\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\Utils\RoofUtils.h">
       <Filter>source\Engine\Map\Tile\Utils</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\Utils\TileManagerUtils.h">
@@ -696,6 +699,9 @@
     <ClInclude Include="source\Engine\Scene\Components\Light\SpotLightComponent.h">
       <Filter>source\Engine\Scene\Components\Light</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Map\AreaComponent.h">
+      <Filter>source\Engine\Scene\Components\Map</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h">
       <Filter>source\Engine\Scene\Components\NPC\Destruction</Filter>
     </ClInclude>
@@ -710,6 +716,9 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcBodyStateComponent.h">
       <Filter>source\Engine\Scene\Components\NPC</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicUtils.h">
+      <Filter>source\Engine\Scene\Components\Physics</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicsComponent.h">
       <Filter>source\Engine\Scene\Components\Physics</Filter>
@@ -2118,15 +2127,6 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Components\Physics\PhysicUtils.h">
-      <Filter>source\Engine\Scene\Components\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Engine\Map\Tile\Utils\RoofUtils.h">
-      <Filter>source\Engine\Map\Tile\Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Components\Map\AreaComponent.h">
-      <Filter>source\Engine\Scene\Components\Map</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2563,6 +2563,9 @@
     <None Include="..\assets\shaders\fogOFWar_Shader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\fog_writer_shader.glsl">
+      <Filter>assets\shaders</Filter>
+    </None>
     <None Include="..\assets\shaders\fullscreen_shader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
@@ -2585,9 +2588,6 @@
       <Filter>assets\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\testShader.glsl">
-      <Filter>assets\shaders</Filter>
-    </None>
-    <None Include="..\assets\shaders\fog_writer_shader.glsl">
       <Filter>assets\shaders</Filter>
     </None>
   </ItemGroup>

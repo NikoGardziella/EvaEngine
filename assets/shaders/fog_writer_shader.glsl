@@ -4,7 +4,6 @@ layout(location = 0) in vec2 inPos; // World XZ
 
 layout(push_constant) uniform PC { 
     mat4 uVP;
-    mat4 uInvVP;
     vec2 mapMin; 
     vec2 mapSize;
     float time;

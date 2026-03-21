@@ -21,8 +21,9 @@ namespace Engine {
 
     class Camera;
     class VulkanTexture;
-    class VulkanShader; // fwd
-    class VulkanBindlessDescriptorSetRenderer {
+    class VulkanShader;
+    class VulkanBindlessDescriptorSetRenderer
+    {
 
     public:
 
