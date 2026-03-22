@@ -107,6 +107,9 @@ OpaqueBox computeOpaqueBox(vec2 oMin, vec2 oMax, float tileW, float tileH)
 
 vec3 boxToWorld(vec3 v, OpaqueBox box, mat2 R, vec2 worldAnchor, vec2 offset, bool isRoof)
 {
+
+    
+
     vec3 localPos;
 
     if (isRoof)
@@ -115,9 +118,9 @@ vec3 boxToWorld(vec3 v, OpaqueBox box, mat2 R, vec2 worldAnchor, vec2 offset, bo
         // We take the vertical height of the tile (box.h) and lay it down 
         // along the depth axis (Y in localPos calculation).
         localPos = vec3(
-            v.x * box.w,           // Width stays Width
-            v.y * box.h,           // Tile Height becomes Depth (flat on ground)
-            box.bottomY + 1.5      // The "Z" (Height) is now a fixed altitude
+            v.x * box.w - 0.5,           // Width stays Width
+            v.y * box.h + 0.5,           // Tile Height becomes Depth (flat on ground)
+            box.bottomY + box.h      // The "Z" (Height) is now a fixed altitude
         );
     }
     else
@@ -156,17 +159,13 @@ void computeFaceUVs(int faceIdx, vec3 v, uint flags, vec2 opaqueUVMin, vec2 opaq
         uv = vec2(0.0);
         edgeUV = mix(opaqueUVMin, opaqueUVMax, vec2(1.0, v.y));
     }
-    else if (faceIdx == 4)
+    else if (faceIdx == 4)   // TOP face of the box
     {
-        // Top: top row
-        uv = vec2(0.0);
-        edgeUV = mix(opaqueUVMin, opaqueUVMax, vec2(v.x + 0.5, 1.0));
+        edgeUV = mix(opaqueUVMin, opaqueUVMax, vec2(v.x + 0.5, 0.5));
     }
-    else
+    else                     // BOTTOM face of the box
     {
-        // Bottom: bottom row
-        uv = vec2(0.0);
-        edgeUV = mix(opaqueUVMin, opaqueUVMax, vec2(v.x + 0.5, 0.0));
+        edgeUV = mix(opaqueUVMin, opaqueUVMax, vec2(v.x + 0.5, 0.5));
     }
 }
 
@@ -196,6 +195,8 @@ void main()
     // World position
     vec2 offset = directionToOffset(inst[i].direction);
     vec3 worldPos = boxToWorld(v, box, R, inst[i].worldPos, offset, isRoof);
+
+
 
     gl_Position = pc.lightSpaceMatrix * vec4(worldPos, 1.0);
 

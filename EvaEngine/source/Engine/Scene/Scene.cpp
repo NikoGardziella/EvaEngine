@@ -235,7 +235,7 @@ namespace Engine {
         auto& dn = sun.AddComponent<DayNightComponent>();
         dn.dayLengthSeconds = 600.0f;
         dn.timeNormalized = 0.35f; // ~8:24 AM
-
+        dn.paused = true;
 
 
         m_destructibleTileSystem.InitDestructableSystem(this);
