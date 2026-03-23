@@ -16,6 +16,7 @@
 #include <Engine/Animation/3D/System/AnimationSystem3D.h> 
 #include <Engine/Animation/3D/BonePaletteBuffer.h>    
 #include "Light/LightGatherSystem.h"
+#include "Physics/Box2DPhysicsSystem.h"
 
 
 namespace Engine {
@@ -129,6 +130,7 @@ namespace Engine {
 		}
 
 		Ref<GridMap>& GetGrid() { return m_gridMap; }
+		Box2DPhysicsSystem& GetBox2DPhysicsSystem() { return m_box2DPhysicsSystem; }
 
 		void ClearRegistry() { m_registry.clear(); };
 		entt::registry& GetRegistry() { return m_registry;  }
@@ -182,6 +184,8 @@ namespace Engine {
 		Ref<AnimationBank2D> m_animationBank;
 		DestructibleTileSystem m_destructibleTileSystem;
 		LightGatherSystem m_lightGatherSystem;
+		Box2DPhysicsSystem m_box2DPhysicsSystem;
+
 		bool m_debugDrawLOS = false;
 
 

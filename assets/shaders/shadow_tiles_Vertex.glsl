@@ -108,7 +108,6 @@ OpaqueBox computeOpaqueBox(vec2 oMin, vec2 oMax, float tileW, float tileH)
 vec3 boxToWorld(vec3 v, OpaqueBox box, mat2 R, vec2 worldAnchor, vec2 offset, bool isRoof)
 {
 
-    
 
     vec3 localPos;
 
@@ -118,9 +117,9 @@ vec3 boxToWorld(vec3 v, OpaqueBox box, mat2 R, vec2 worldAnchor, vec2 offset, bo
         // We take the vertical height of the tile (box.h) and lay it down 
         // along the depth axis (Y in localPos calculation).
         localPos = vec3(
-            v.x * box.w - 0.5,           // Width stays Width
-            v.y * box.h + 0.5,           // Tile Height becomes Depth (flat on ground)
-            box.bottomY + box.h      // The "Z" (Height) is now a fixed altitude
+            v.x * box.w - 0.5,
+            v.y * box.h + 0.5,
+            box.bottomY + box.h
         );
     }
     else

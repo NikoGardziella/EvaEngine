@@ -256,6 +256,9 @@
     <Filter Include="vendor\tiny_gltf">
       <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Physics">
+      <UniqueIdentifier>{e76732e3-4936-4a8c-a98c-c8ce58752126}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Engine.h">
@@ -2127,6 +2130,9 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Physics\Box2DPhysicsSystem.h">
+      <Filter>source\Engine\Scene\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2509,6 +2515,9 @@
     </ClCompile>
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp">
       <Filter>vendor\tiny_gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\Physics\Box2DPhysicsSystem.cpp">
+      <Filter>source\Engine\Scene\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

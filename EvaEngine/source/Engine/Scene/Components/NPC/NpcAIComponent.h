@@ -29,6 +29,7 @@ struct NPCAIMovementComponent
 
     float moveSpeed = 3.0f;
     float movementSpeedMultiplier = 1.0f;
+    float turnSpeed = glm::radians(720.0f);
 
     uint8_t  wantsMove = 0;              // 0/1
     uint8_t  usePath = 0;              // 0: direct seek, 1: pathfind/follow

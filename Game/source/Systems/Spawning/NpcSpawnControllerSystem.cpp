@@ -139,7 +139,7 @@ void NpcSpawnControllerSystem::UpdateNpcSpawnControllerSystem(float dt, Engine::
 // You implement this in your game code:
 Engine::Entity NpcSpawnControllerSystem::SpawnZombie(Engine::Scene* scene, uint32_t prefabID, const glm::vec2& pos)
 {
-   
+    EE_PROFILE_FUNCTION();
 
 
     Engine::NpcPrefab zombie{};
@@ -160,7 +160,26 @@ Engine::Entity NpcSpawnControllerSystem::SpawnZombie(Engine::Scene* scene, uint3
     zombie.radius = 0.30f;
 
     
-    Engine::Entity spawnedEntity = Engine::SpawnUtils::SpawnNPCFromPrefab(scene,zombie, glm::vec3(pos.x, pos.y, 0.0f));
+    Engine::Entity spawnedEntity = Engine::SpawnUtils::SpawnNPCFromPrefab(scene, zombie, glm::vec3(pos.x, pos.y, 0.0f));
+
+    Engine::CircleCollider2DComponent& circleColliderComp = spawnedEntity.AddComponent<Engine::CircleCollider2DComponent>();
+    circleColliderComp.Offset = { 0.0f, 0.0f };
+    circleColliderComp.Radius = 0.25f;
+    circleColliderComp.Density = 1.0f;
+    circleColliderComp.Friction = 0.1f;
+    circleColliderComp.Restitution = 0.0f;
+    circleColliderComp.IsSensor = false;
+    circleColliderComp.ShapeId = b2_nullShapeId;
+
+    Engine::RigidBody2DComponent& rigidBodyComp = spawnedEntity.AddComponent<Engine::RigidBody2DComponent>();
+    rigidBodyComp.Type = Engine::RigidBody2DComponent::BodyType::Dynamic;
+    rigidBodyComp.FixedRotation = true;
+    rigidBodyComp.IsBullet = false;
+    rigidBodyComp.BodyId = b2_nullBodyId;
+
+    scene->GetBox2DPhysicsSystem().CreatePhysicsBody(spawnedEntity);
+
+  
     return spawnedEntity;
 }
 

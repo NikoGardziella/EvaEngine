@@ -339,6 +339,7 @@
     <ClInclude Include="source\Engine\Scene\Components\Vehicles\VehicleComponent.h" />
     <ClInclude Include="source\Engine\Scene\Entity.h" />
     <ClInclude Include="source\Engine\Scene\Light\LightGatherSystem.h" />
+    <ClInclude Include="source\Engine\Scene\Physics\Box2DPhysicsSystem.h" />
     <ClInclude Include="source\Engine\Scene\Scene.h" />
     <ClInclude Include="source\Engine\Scene\SceneCamera.h" />
     <ClInclude Include="source\Engine\Scene\SceneSerializer.h" />
@@ -896,6 +897,7 @@
     <ClCompile Include="source\Engine\Renderer\VulkanSharedResources.cpp" />
     <ClCompile Include="source\Engine\Scene\Entity.cpp" />
     <ClCompile Include="source\Engine\Scene\Light\LightGatherSystem.cpp" />
+    <ClCompile Include="source\Engine\Scene\Physics\Box2DPhysicsSystem.cpp" />
     <ClCompile Include="source\Engine\Scene\Scene.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneCamera.cpp" />
     <ClCompile Include="source\Engine\Scene\SceneEditor.cpp" />

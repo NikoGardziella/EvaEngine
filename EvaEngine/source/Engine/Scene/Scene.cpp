@@ -53,6 +53,7 @@ namespace Engine {
 
         m_textureStreamingSystem->SetGridMap(m_gridMap);
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
+        m_box2DPhysicsSystem.Init();
 
     }
 
@@ -240,6 +241,9 @@ namespace Engine {
 
         m_destructibleTileSystem.InitDestructableSystem(this);
 
+
+
+        m_box2DPhysicsSystem.OnRuntimeStart(this);
     }
 
 
@@ -272,6 +276,9 @@ namespace Engine {
 
         m_textureStreamingSystem->UnloadAllChunks(this);
         m_tileMananger->Shutdown();
+
+        m_box2DPhysicsSystem.OnRuntimeStop(this);
+
     }
 
     void Scene::PauseRuntime()

@@ -85,6 +85,7 @@ namespace Engine {
         }
 
 
+
         CameraComponent* mainCameraComp = nullptr;
         glm::mat4 cameraTransform = glm::mat4(1.0f);
         glm::mat4 cameraView = glm::mat4(1.0f);
@@ -783,6 +784,7 @@ namespace Engine {
 
             // VulkanUIRenderer::DrawUIText(AssetManager::GetFont(), "HELLO \n WORLD", {20, 20}, {0.5f, 0.76f, 0.43f, 1}, 1.0f);
 
+            m_box2DPhysicsSystem.Step(this, timestep);
 
              //Engine::Renderer::DrawFrame();
             Engine::VulkanRenderer2D::EndScene();

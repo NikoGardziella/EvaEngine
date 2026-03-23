@@ -135,7 +135,8 @@ namespace Engine {
         enum class BodyType { Static = 0, Dynamic = 1, Kinematic = 2 };
         BodyType Type = BodyType::Static;
         bool FixedRotation = false;
-        b2BodyId RuntimeBody;
+        bool IsBullet = false;
+        b2BodyId BodyId;
 
         RigidBody2DComponent() = default;
         RigidBody2DComponent(const RigidBody2DComponent&) = default;
@@ -165,7 +166,8 @@ namespace Engine {
         float Restitution = 0.0f;
         float RestitutionThershold = 0.5f;
         void* RuntimeFixture = nullptr;
-        b2ShapeId shapeID;
+        b2ShapeId ShapeId;
+        bool IsSensor = false;
 
         CircleCollider2DComponent() = default;
         CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
