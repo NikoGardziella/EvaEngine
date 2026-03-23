@@ -182,15 +182,10 @@ void NpcAIMovementSystem::UpdateNPCAIMovementSystem(float deltatime, Engine::Sce
             }
         });
 
-    // Manual transform-based NPC separation removed.
-    // Box2D should handle overlap/blocking between NPC bodies now.
 }
 
-void NpcAIMovementSystem::RotateTowardsDirXY(
-    Engine::TransformComponent& tr,
-    NPCAIMovementComponent& movementComp,
-    const glm::vec3& dir,
-    float dt)
+void NpcAIMovementSystem::RotateTowardsDirXY(Engine::TransformComponent& tr, NPCAIMovementComponent& movementComp,
+    const glm::vec3& dir, float dt)
 {
     glm::vec2 d(dir.x, dir.y);
     float len2 = glm::dot(d, d);

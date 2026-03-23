@@ -184,11 +184,9 @@ namespace Engine
                     return;
 
                 b2Vec2 pos = b2Body_GetPosition(rb.BodyId);
-                //b2Rot rot = b2Body_GetRotation(rb.BodyId);
 
                 transform.Translation.x = pos.x;
                 transform.Translation.y = pos.y;
-              //  transform.Rotation.z = b2Rot_GetAngle(rot);
             });
     }
 
