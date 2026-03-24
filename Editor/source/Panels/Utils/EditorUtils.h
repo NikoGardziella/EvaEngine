@@ -21,6 +21,9 @@ namespace Engine {
 		static void DetachPiece(Engine::Scene* scene, Engine::Entity enemy, Engine::EnemyPieceType type, const glm::vec3& impulseDir, float impulseStrength);
 		static Engine::EnemyPiece* EditorUtils::FindPiece(Engine::EnemyDestructibleComponent& destr, Engine::EnemyPieceType type);
 
+		static TileDirection EditorUtils::GetDirectionFromTileName(const std::string& tileName);
+
+
 	};
 
 

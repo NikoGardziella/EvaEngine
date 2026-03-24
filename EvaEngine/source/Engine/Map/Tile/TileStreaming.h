@@ -75,6 +75,10 @@ namespace Engine {
         void RegisterTile(uint64_t uid, glm::vec2 worldCenter, const std::vector<uint8_t>& colorData, const std::vector<uint8_t>& propsData,
             const glm::ivec2& opaqueMin, const glm::ivec2& opaqueMax, const std::string& tileName, uint32_t gpuSlot);
 
+        void RegisterTileInitial(uint64_t uid, glm::vec2 worldCenter, const std::vector<uint8_t>& colorData, const std::vector<uint8_t>& propsData, const glm::ivec2& opaqueMin, const glm::ivec2& opaqueMax, const std::string& tileName, uint32_t gpuSlot, TileResidency initialResidency);
+
+        void PrimeInitialGPUResidency(Scene* scene, glm::vec2 focusPos);
+
         void UpdateStreaming(Scene* scene, glm::vec2 playerPos);
 
         TileResidency GetResidency(uint64_t uid) const;

@@ -582,7 +582,9 @@ namespace Engine {
             { eTileCategory::Terrain,   "terrain" },
             { eTileCategory::Roofs,     "roofs" },
             { eTileCategory::Vehicles,  "vehicles" },
-            { eTileCategory::dynamicObjects,  "dynamicObjects" }
+            { eTileCategory::dynamicObjects,  "dynamicObjects" },
+            { eTileCategory::Doors,  "door" },
+            { eTileCategory::Windows,  "window" }
         };
 
         const fs::path baseTilePath = AssetManager::GetAssetPath("textures/tiles");
@@ -610,7 +612,14 @@ namespace Engine {
 
             bool hasSubfolders = false;
             for (const auto& entry : fs::directory_iterator(categoryPath))
-                if (entry.is_directory()) { hasSubfolders = true; break; }
+            {
+                if (entry.is_directory()) 
+                { 
+                    hasSubfolders = true;
+                    break;
+                }
+
+            }
 
             auto loadPng = [&](const fs::path& p, eTileCategory cat, eTileMaterial mat)
                 {
@@ -644,7 +653,10 @@ namespace Engine {
             else
             {
                 for (const auto& file : fs::directory_iterator(categoryPath))
+                {
+
                     loadPng(file.path(), category, eTileMaterial::Default);
+                }
             }
         }
 

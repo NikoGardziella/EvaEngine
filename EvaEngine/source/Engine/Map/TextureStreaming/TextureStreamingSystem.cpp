@@ -731,6 +731,8 @@ namespace Engine {
 
     void TextureStreamingSystem::SortIsoTilesByY(Scene* scene)
     {
+        EE_PROFILE_FUNCTION();
+
         auto& reg = scene->GetRegistry();
 
         // A) Sort entities: higher Y first (draw earlier)

@@ -17,6 +17,7 @@
 #include <Engine/Animation/3D/BonePaletteBuffer.h>    
 #include "Light/LightGatherSystem.h"
 #include "Physics/Box2DPhysicsSystem.h"
+#include "Components/Render/TileComponent.h"
 
 
 namespace Engine {
@@ -59,6 +60,8 @@ namespace Engine {
 		static entt::entity GetEntityByUUID(entt::registry& registry, UUID uuid);
 
 		void SpawnPlayer();
+
+		void CreateLotsOfTilesOnStartup(const std::string& tileName, const glm::vec4& uv, eTileCategory tileCategory, int width, int height, const glm::ivec2& startIsoCell);
 
 		void OnRunTimeStart();
 		void OnRunTimeStop();

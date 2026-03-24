@@ -284,6 +284,8 @@ namespace Engine {
         const std::vector<int>& rowPop,
         int& outCutY)
     {
+        EE_PROFILE_FUNCTION();
+
         const int bboxW = bx1 - bx0 + 1;
         const int minRowPop = std::max(1, (int)std::ceil(bboxW * 0.02f)); // ~2%
 

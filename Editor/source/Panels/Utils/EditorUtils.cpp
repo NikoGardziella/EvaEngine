@@ -22,6 +22,12 @@ namespace Engine {
 
             for (size_t i = 0; i < tileComp.tiles.size(); i++)
             {
+                if (tileComp.tiles[i].Category == eTileCategory::Terrain)
+                {
+                    // prefer other tiles than terrain
+                    continue;
+                }
+
                 glm::vec2 worldTilePosition = (glm::vec2)transform.Translation + tileComp.tiles[i].position;
                 if (worldTilePosition == worldPosition)
                 {
@@ -29,6 +35,27 @@ namespace Engine {
                 }
             }
         }
+        for (auto entity : tileView)
+        {
+            const auto& transform = tileView.get<TransformComponent>(entity);
+            const auto& tileComp = tileView.get<TileComponent>(entity);
+
+            for (size_t i = 0; i < tileComp.tiles.size(); i++)
+            {
+                if (tileComp.tiles[i].Category != eTileCategory::Terrain)
+                {
+                    // now look for terrain
+                    continue;
+                }
+
+                glm::vec2 worldTilePosition = (glm::vec2)transform.Translation + tileComp.tiles[i].position;
+                if (worldTilePosition == worldPosition)
+                {
+                    return Entity{ entity, scene.get() };
+                }
+            }
+        }
+
 
         return Entity{};
     }
@@ -237,6 +264,24 @@ namespace Engine {
         newSkeleton.boneCount = Engine::AssetManager::GetSkeletonRegistry().Get(skeletonId).parent.size();
         newSkeleton.boneBase = 0xFFFFFFFFu;
     }
+
+    TileDirection EditorUtils::GetDirectionFromTileName(const std::string& tileName)
+    {
+        if (tileName.empty()) return TileDirection::Unknown;
+
+        // Get the last character
+        char lastChar = tileName.back();
+
+        switch (lastChar)
+        {
+        case 'N': return TileDirection::North;
+        case 'S': return TileDirection::South;
+        case 'E': return TileDirection::East;
+        case 'W': return TileDirection::West;
+        default:  return TileDirection::Unknown;
+        }
+    }
+
 
 }
 

@@ -31,6 +31,8 @@ namespace Engine {
         Vehicles,
         dynamicObjects,
         Roofs,
+        Doors,
+        Windows,
     };
 
     enum class TileDirection : uint32_t

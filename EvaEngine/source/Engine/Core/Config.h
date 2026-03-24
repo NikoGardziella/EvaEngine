@@ -28,7 +28,7 @@ constexpr size_t MAX_COLLISION_ENTITIES = 64;
 constexpr size_t MAX_COLLISION_RESULTS = 32;
 constexpr size_t MAX_3D_INSTANCES = 1024;
 
-constexpr size_t MAX_RESIDENT_LAYERS = 1024;
+constexpr size_t MAX_RESIDENT_LAYERS = 2048;
 constexpr size_t MAX_SPRITESHEETS = 128;
 constexpr size_t MAX_TILES_IN_CLEAR_BUFFER = 16;
 constexpr float DIRTY_CELLS_PER_TILE = 16.0f;

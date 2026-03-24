@@ -32,6 +32,12 @@
 #include "Components/Player/CharacterControllerComponent.h"
 #include "Components/Environment/DayNightComponent.h"
 #include "Components/Vehicles/VehicleComponent.h"
+#include "Engine/Map/Utils/IsoTileUtils.h"
+
+#include "../../../../Editor/source/EditorLayer.h"
+#include "../../../../Editor/source/Panels/Utils/EditorUtils.h"
+#include <Engine/Math/HashUtils.h>
+
 
 namespace Engine {
 
@@ -177,10 +183,82 @@ namespace Engine {
         
     }
 
+    void Scene::CreateLotsOfTilesOnStartup(
+        const std::string& tileName,
+        const glm::vec4& uv,
+        eTileCategory tileCategory,
+        int width,
+        int height,
+        const glm::ivec2& startIsoCell)
+    {
+   
+        EE_PROFILE_FUNCTION();
+
+        
+       const TileProperties& tileProps = AssetManager::GetTileProperties(tileName);
+
+        const bool destructible = (tileCategory == eTileCategory::Buildings);
+        const bool isRoof = (tileCategory == eTileCategory::Roofs);
+        const bool isSupportingRoof = (tileCategory == eTileCategory::Buildings || tileCategory == eTileCategory::Pillars);
+
+        // Create one entity anchored at the first tile ground position
+        Entity newEntity = CreateEntity();
+        TransformComponent& transformCmp = newEntity.AddComponent<TransformComponent>();
+        IDComponent& idComp = newEntity.GetComponent<IDComponent>();
+        TileComponent& tileComp = newEntity.AddComponent<TileComponent>();
+
+        glm::vec2 startGroundPos = IsoTileUtils::IsoToWorldGround(startIsoCell);
+        transformCmp.Translation.x = startGroundPos.x;
+        transformCmp.Translation.y = startGroundPos.y;
+
+        tileComp.tiles.reserve(static_cast<size_t>(width) * static_cast<size_t>(height));
+
+        for (int y = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width; ++x)
+            {
+                uint32_t gap = 2;
+
+                glm::ivec2 isoCell = startIsoCell + glm::ivec2(x, y);
+
+                // local offset from entity anchor in iso space
+                glm::ivec2 localIso = isoCell - startIsoCell;
+
+                // convert local iso offset to ground-world delta
+                glm::vec2 deltaGround = IsoTileUtils::IsoDeltaToWorldDeltaGround(localIso);
+                deltaGround.x += x;
+                deltaGround.y += y * gap;
+
+                TileInfo newTile{};
+                newTile.position = deltaGround;
+                newTile.UV = uv;
+                newTile.name = tileName;
+                newTile.IsDestructible = destructible;
+                newTile.IsRoof = isRoof;
+                newTile.Category = tileCategory;
+                newTile.Material = tileProps.material;
+                newTile.TileHealth = tileProps.health;
+                newTile.IsSupportingRoof = isSupportingRoof;
+                newTile.TileDirection = EditorUtils::GetDirectionFromTileName(tileName);
+                newTile.UID = HashUtils::MakeTileUID(
+                    (uint64_t)idComp.ID,
+                    deltaGround,
+                    float(TILE_SIZE),
+                    (uint32_t)tileCategory
+                );
+
+                tileComp.tiles.push_back(newTile);
+            }
+        }
+
+      
+
+    }
+
 
     void Scene::OnRunTimeStart()
     {
-
+        EE_PROFILE_FUNCTION();
         EE_CORE_INFO("Starting runtime!");
 
 
@@ -188,7 +266,9 @@ namespace Engine {
         m_lightGatherSystem.Update(this);
 
 
+        glm::vec4 uv = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
 
+        CreateLotsOfTilesOnStartup("Wall B1_S", uv, eTileCategory::Buildings, 100, 100, glm::ivec2(50, 50));
 
 
 

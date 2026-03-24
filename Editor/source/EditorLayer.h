@@ -83,7 +83,6 @@ namespace Engine {
 
 		void OnDuplicateEntity();
 		void SortIsometricTilesByY();
-		TileDirection GetDirectionFromTileName(const std::string& tileName);
 
 		glm::vec2 GetSnappedIsoPosition();
 		bool CanPlaceTile(std::string selectedTileName, glm::ivec2 groundPos);

@@ -49,6 +49,72 @@ namespace Engine {
 
     }
 
+    void TileStreamingSystem::RegisterTileInitial(
+        uint64_t uid,
+        glm::vec2 worldCenter,
+        const std::vector<uint8_t>& colorData,
+        const std::vector<uint8_t>& propsData,
+        const glm::ivec2& opaqueMin,
+        const glm::ivec2& opaqueMax,
+        const std::string& tileName,
+        uint32_t gpuSlot,
+        TileResidency initialResidency)
+    {
+        if (gpuSlot != UINT32_MAX)
+        {
+            m_slotToUID[gpuSlot] = uid;
+        }
+
+        TileStreamEntry entry{};
+        entry.uid = uid;
+        entry.worldCenter = worldCenter;
+        entry.colorData = colorData;
+        entry.propsData = propsData;
+        entry.opaqueMin = opaqueMin;
+        entry.opaqueMax = opaqueMax;
+        entry.tileName = tileName;
+        entry.slot = gpuSlot;
+        entry.residency = initialResidency;
+
+        if (initialResidency != TileResidency::GPU)
+            entry.slot = UINT32_MAX;
+
+        m_entries[uid] = std::move(entry);
+    }
+
+    void TileStreamingSystem::PrimeInitialGPUResidency(Scene* scene, glm::vec2 focusPos)
+    {
+        EE_PROFILE_FUNCTION();
+
+        std::vector<std::pair<uint64_t, float>> candidates;
+        candidates.reserve(m_entries.size());
+
+        for (auto& [uid, entry] : m_entries)
+        {
+            float dist = glm::distance(entry.worldCenter, focusPos);
+            if (dist <= m_config.gpuRadius)
+                candidates.push_back({ uid, dist });
+        }
+
+        std::sort(candidates.begin(), candidates.end(),
+            [](const auto& a, const auto& b) { return a.second < b.second; });
+
+        for (const auto& [uid, dist] : candidates)
+        {
+            auto it = m_entries.find(uid);
+            if (it == m_entries.end())
+                continue;
+
+            TileStreamEntry& entry = it->second;
+
+            if (entry.residency == TileResidency::Disk)
+                LoadFromDisk(entry);
+
+            if (entry.residency == TileResidency::CPU)
+                UploadToGPU(entry, scene);
+        }
+    }
+
     void TileStreamingSystem::UpdateStreaming(Scene* scene, glm::vec2 playerPos)
     {
         EE_PROFILE_FUNCTION();
@@ -451,6 +517,12 @@ namespace Engine {
             {
                 if (t.UID == uid)
                 {
+
+                    if (newSlot == UINT32_MAX)
+                    {
+                        EE_CORE_ERROR("Invalid tile slot for uid {}", newSlot);
+                        return;
+                    }
                     t.Slot = newSlot;
                 }
             }

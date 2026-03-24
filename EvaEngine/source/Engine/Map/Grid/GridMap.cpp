@@ -23,6 +23,8 @@ namespace Engine
      
     void GridMap::BuildFromRegistry(Scene* scene)
     {
+        EE_PROFILE_FUNCTION();
+
         m_blockedSubCells.clear();
         m_cellToSubcells.clear();
 

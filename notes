@@ -294,11 +294,19 @@ use fog of war for tile and roof opacity
 
     
     -fog of war does not appear on buidlings. done
-    -zombie collisions. box2d?
-    - prefabs
-    -doors/ windows
+    -zombie collisions. box2d? done. could be added everywhere
+
+    - make it not look like shit please
+    - prefabs       
+    - doors
+    - windows
     - tiles damage effect
     - particles
     - improvements on map editor.
     - clean EndFrame() 
+
+
+    - dynamic object. like barrel or something
+
+    - add height?
 }

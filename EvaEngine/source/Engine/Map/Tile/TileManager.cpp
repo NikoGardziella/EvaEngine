@@ -16,39 +16,38 @@ namespace Engine {
     // layers & write descriptors -> cache per - slot origin / content rect -> submit & wait.
     //After this, per frame  only submit instances;
     // does not scale for very large maps. need to rebuild this 
-    
     void TileManager::BuildInitialResidency(Scene* scene)
     {
-        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EvictAllTiles();
-        EE_PROFILE_FUNCTION();
 
-        // Initialize streaming system
+        EE_PROFILE_FUNCTION();
+        glm::vec2 initialFocusPos = { 0,0 };
+        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EvictAllTiles();
+
         StreamingConfig config;
         config.gpuRadius = 30.0f;
         config.cpuRadius = 60.0f;
         config.hysteresis = 2.0f;
-        config.maxTransitionsPerFrame = 4;
+        config.maxTransitionsPerFrame = 64; // startup can be bigger than runtime
         config.cachePath = "tile_cache";
         m_streaming.InitTileStreaming(this, config);
 
-        {
-            EE_PROFILE_SCOPE("get tile center");
-            m_centerByUID.clear();
-            scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
-                [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& id) {
-                    for (size_t i = 0; i < tc.tiles.size(); ++i)
-                    {
-                        const TileInfo& t = tc.tiles[i];
-                        if (t.Category == eTileCategory::Terrain) continue;
-                        glm::vec2 center = glm::vec2(tr.Translation) + t.position;
-                        m_centerByUID[t.UID] = center;
-                    }
-                });
-        }
+        m_centerByUID.clear();
+        m_slotByUID.clear();
 
-        VulkanContext* ctx = VulkanContext::Get();
-        VkCommandBuffer cb = ctx->BeginSingleTimeCommands();
+        scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
+            [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& id)
+            {
+                for (const TileInfo& t : tc.tiles)
+                {
+                    if (t.Category == eTileCategory::Terrain)
+                        continue;
 
+                    glm::vec2 center = glm::vec2(tr.Translation) + glm::vec2(t.position);
+                    m_centerByUID[t.UID] = center;
+                }
+            });
+
+        // Register everything WITHOUT uploading
         for (const auto& [uid, col] : m_colorByUID)
         {
             auto pit = m_propsByUID.find(uid);
@@ -57,55 +56,108 @@ namespace Engine {
                 EE_CORE_WARN("No props template for uid {:016x}", uid);
                 continue;
             }
+
             const PropsTemplate& pr = pit->second;
 
-            uint32_t slot = VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EnsureTileResidentFromRaw(uid,
-                col.rgba.data(), col.rgba.size(), pr.rgba.data(), pr.rgba.size(), cb);
-            m_slotByUID[uid] = slot;
-
-            // *** NEW: Register with streaming system ***
             glm::vec2 center = { 0.0f, 0.0f };
             auto cit = m_centerByUID.find(uid);
-            if (cit != m_centerByUID.end()) center = cit->second;
+            if (cit != m_centerByUID.end())
+                center = cit->second;
 
-            // Get opaque bounds if available, otherwise default to full tile
             glm::ivec2 opaqueMin = { 0, 0 };
             glm::ivec2 opaqueMax = { TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT };
-            // opaqueMin = tileInfo.opaqueMin;
-            // opaqueMax = tileInfo.opaqueMax;
 
-            m_streaming.RegisterTile(uid, center,
+            float dist = glm::distance(center, initialFocusPos);
+
+            uint32_t slot = UINT32_MAX;
+
+            // Near tiles start in CPU and will be uploaded immediately below.
+            // Far tiles can start directly on Disk if clean.
+            TileResidency initialResidency = (dist <= config.cpuRadius)
+                ? TileResidency::CPU
+                : TileResidency::Disk;
+
+            m_streaming.RegisterTileInitial(uid, center,
                 col.rgba, pr.rgba,
                 opaqueMin, opaqueMax,
-                "", // tileName — fill in if you have it
-                slot);
+                "",
+                slot,
+                initialResidency);
+
+            
         }
 
-        ctx->EndSingleTimeCommands(cb);
+        // Upload only tiles near startup focus/player/camera
+        m_streaming.PrimeInitialGPUResidency(scene, initialFocusPos);
 
         scene->ForEach<TileComponent>([&](Entity e, TileComponent& tc)
             {
                 for (auto& t : tc.tiles)
                 {
-                    auto it = m_slotByUID.find(t.UID);
-                    if (it != m_slotByUID.end()) t.Slot = it->second;
+                    t.Slot = m_streaming.GetSlot(t.UID);
                 }
             });
-        
+
         uint64_t bulletUID = HashUtils::MakeTileUID_String("bullet_sprite");
-        uint32_t bulletSlot = GetSlotForUID(bulletUID);
+        uint32_t bulletSlot = EnsureVisualResident(bulletUID);
+        if (bulletSlot == UINT32_MAX)
+        {
+            EE_CORE_ERROR("invalid bulletSlot");
+            
+        }
+        
         ProjectileVisual::RegisterVisual(ProjectileVisualType::Bullet, bulletUID, bulletSlot);
 
         uint64_t grenadeUID = HashUtils::MakeTileUID_String("grenade");
-        uint32_t grenadeSlot = GetSlotForUID(grenadeUID);
+        uint32_t grenadeSlot = EnsureVisualResident(grenadeUID);
+        if (grenadeSlot == UINT32_MAX)
+        {
+            EE_CORE_ERROR("invalid bulletSlot");
+        }
+
         ProjectileVisual::RegisterVisual(ProjectileVisualType::Grenade, grenadeUID, grenadeSlot);
-        
+
     }
 
+    uint32_t TileManager::EnsureVisualResident(uint64_t uid)
+    {
+        auto slotIt = m_slotByUID.find(uid);
+        if (slotIt != m_slotByUID.end() && slotIt->second != UINT32_MAX)
+            return slotIt->second;
 
+        auto colIt = m_colorByUID.find(uid);
+        if (colIt == m_colorByUID.end())
+        {
+            EE_CORE_ERROR("EnsureVisualResident: missing color data for uid {:016x}", uid);
+            return UINT32_MAX;
+        }
+
+        auto propIt = m_propsByUID.find(uid);
+        if (propIt == m_propsByUID.end())
+        {
+            EE_CORE_ERROR("EnsureVisualResident: missing props data for uid {:016x}", uid);
+            return UINT32_MAX;
+        }
+
+        VulkanContext* ctx = VulkanContext::Get();
+        VkCommandBuffer cb = ctx->BeginSingleTimeCommands();
+
+        uint32_t slot = VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EnsureTileResidentFromRaw(
+            uid,
+            colIt->second.rgba.data(), colIt->second.rgba.size(),
+            propIt->second.rgba.data(), propIt->second.rgba.size(),
+            cb);
+
+        ctx->EndSingleTimeCommands(cb);
+
+        m_slotByUID[uid] = slot;
+        return slot;
+    }
 
     void TileManager::BuildTemplatesForScene(Scene* scene)
     {
+        EE_PROFILE_FUNCTION();
+
         ClearTemplates();
 
         scene->ForEach<TransformComponent, TileComponent, IDComponent>(
@@ -125,7 +177,7 @@ namespace Engine {
                         // deltaGround == t.position in layout
                         uid = HashUtils::MakeTileUID((uint64_t)idComp.ID, tile.position, float(TILE_SIZE), (uint32_t)tile.Category);
                     }
-                    EE_CORE_INFO("tile build template {}", uid);
+                   // EE_CORE_INFO("tile build template {}", uid);
 
                     // Skip if already cached
                     if (m_colorByUID.count(uid) && m_propsByUID.count(uid))

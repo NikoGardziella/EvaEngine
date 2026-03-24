@@ -16,6 +16,8 @@ namespace Engine {
 
 		void BuildInitialResidency(Scene* scene);
 
+		uint32_t EnsureVisualResident(uint64_t uid);
+
 		void BuildTemplatesForScene(Scene* scene);
 		void ClearTemplates();
 		void Update(Scene* scene, glm::vec2 playerPos);

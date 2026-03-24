@@ -694,22 +694,7 @@ namespace Engine {
         }
     }
 
-    TileDirection EditorLayer::GetDirectionFromTileName(const std::string& tileName)
-    {
-        if (tileName.empty()) return TileDirection::Unknown;
-
-        // Get the last character
-        char lastChar = tileName.back();
-
-        switch (lastChar)
-        {
-            case 'N': return TileDirection::North;
-            case 'S': return TileDirection::South;
-            case 'E': return TileDirection::East;
-            case 'W': return TileDirection::West;
-            default:  return TileDirection::Unknown;
-        }
-    }
+   
 
     glm::vec2 EditorLayer::GetSnappedIsoPosition()
     {
@@ -812,7 +797,7 @@ namespace Engine {
             newTile.TileHealth = tileProps.health;
             newTile.UID = tileID;
 
-            newTile.TileDirection = GetDirectionFromTileName(selectedTileName);
+            newTile.TileDirection = EditorUtils::GetDirectionFromTileName(selectedTileName);
 
             if (tileCategory == eTileCategory::Buildings || tileCategory == eTileCategory::Pillars)
             {
@@ -861,7 +846,7 @@ namespace Engine {
             }
 
             // 2. Set the direction using the helper function we made
-            newTile.TileDirection = GetDirectionFromTileName(selectedTileName);
+            newTile.TileDirection = EditorUtils::GetDirectionFromTileName(selectedTileName);
 
 
 

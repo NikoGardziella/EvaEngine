@@ -413,6 +413,8 @@ namespace Engine {
                                     }
 
 
+
+
                                     // Trivial submit: NO residency work here, just append an instance
                                     VulkanRenderer2D::SubmitDestructibleTile(
                                         transformComp.Translation,   // entity world origin
@@ -654,6 +656,12 @@ namespace Engine {
                         const glm::ivec2 outOpaqueMax = glm::ivec2(0);
 
                         glm::vec2 size = glm::vec2(0.4f, 0.4f);
+                        if (projectile.renderSlot == UINT32_MAX)
+                        {
+                            EE_CORE_ERROR("invalid render slot for projectile");
+                            continue;
+                        }
+
                         VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation, TileDirection::Center, outOpaqueMin, outOpaqueMax, size);
 
                     }
