@@ -18,8 +18,8 @@ namespace Engine {
     // does not scale for very large maps. need to rebuild this 
     void TileManager::BuildInitialResidency(Scene* scene)
     {
-
         EE_PROFILE_FUNCTION();
+
         glm::vec2 initialFocusPos = { 0,0 };
         VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EvictAllTiles();
 
@@ -27,12 +27,11 @@ namespace Engine {
         config.gpuRadius = 30.0f;
         config.cpuRadius = 60.0f;
         config.hysteresis = 2.0f;
-        config.maxTransitionsPerFrame = 64; // startup can be bigger than runtime
+        config.maxTransitionsPerFrame = 64;
         config.cachePath = "tile_cache";
         m_streaming.InitTileStreaming(this, config);
 
-        m_centerByUID.clear();
-        m_slotByUID.clear();
+        
 
         scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
             [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& id)
@@ -42,68 +41,37 @@ namespace Engine {
                     if (t.Category == eTileCategory::Terrain)
                         continue;
 
+                    const std::vector<uint8_t>* color = nullptr;
+                    const std::vector<uint8_t>* props = nullptr;
+
+                    if (!GetOriginalTileData(t.UID, color, props))
+                    {
+                        EE_CORE_WARN("BuildInitialResidency: missing original data for uid {:016x} '{}'",
+                            t.UID, t.name);
+                        continue;
+                    }
+
                     glm::vec2 center = glm::vec2(tr.Translation) + glm::vec2(t.position);
                     m_centerByUID[t.UID] = center;
+
+                    float dist = glm::distance(center, initialFocusPos);
+                    TileResidency initialResidency =
+                        (dist <= config.cpuRadius) ? TileResidency::CPU : TileResidency::Disk;
+
+                    m_streaming.RegisterTileInitial(
+                        t.UID,
+                        center,
+                        *color,
+                        *props,
+                        t.opaqueMin,
+                        t.opaqueMax,
+                        t.name,
+                        UINT32_MAX,
+                        initialResidency
+                    );
                 }
             });
 
-
-        scene->ForEachConst<TransformComponent, TileComponent>(
-            [&](Entity e, const TransformComponent& tr, const TileComponent& tc)
-            {
-                for (const TileInfo& t : tc.tiles)
-                {
-                    if (t.Category == eTileCategory::Terrain)
-                        continue;
-
-                    bool hasColor = (m_colorByUID.find(t.UID) != m_colorByUID.end());
-                    bool hasProps = (m_propsByUID.find(t.UID) != m_propsByUID.end());
-
-                    
-                }
-            });
-
-        // Register everything WITHOUT uploading
-        for (const auto& [uid, col] : m_colorByUID)
-        {
-            auto pit = m_propsByUID.find(uid);
-            if (pit == m_propsByUID.end())
-            {
-                EE_CORE_WARN("No props template for uid {:016x}", uid);
-                continue;
-            }
-
-            const PropsTemplate& pr = pit->second;
-
-            glm::vec2 center = { 0.0f, 0.0f };
-            auto cit = m_centerByUID.find(uid);
-            if (cit != m_centerByUID.end())
-                center = cit->second;
-
-            glm::ivec2 opaqueMin = { 0, 0 };
-            glm::ivec2 opaqueMax = { TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT };
-
-            float dist = glm::distance(center, initialFocusPos);
-
-            uint32_t slot = UINT32_MAX;
-
-            // Near tiles start in CPU and will be uploaded immediately below.
-            // Far tiles can start directly on Disk if clean.
-            TileResidency initialResidency = (dist <= config.cpuRadius)
-                ? TileResidency::CPU
-                : TileResidency::Disk;
-
-            m_streaming.RegisterTileInitial(uid, center,
-                col.rgba, pr.rgba,
-                opaqueMin, opaqueMax,
-                "",
-                slot,
-                initialResidency);
-
-            
-        }
-
-        // Upload only tiles near startup focus/player/camera
         m_streaming.PrimeInitialGPUResidency(scene, initialFocusPos);
 
         scene->ForEach<TileComponent>([&](Entity e, TileComponent& tc)
@@ -116,28 +84,11 @@ namespace Engine {
 
         uint64_t bulletUID = HashUtils::MakeTileUID_String("bullet_sprite");
         uint32_t bulletSlot = EnsureVisualResident(bulletUID);
-        if (bulletSlot == UINT32_MAX)
-        {
-            EE_CORE_ERROR("invalid bulletSlot");
-            
-        }
-        
         ProjectileVisual::RegisterVisual(ProjectileVisualType::Bullet, bulletUID, bulletSlot);
 
         uint64_t grenadeUID = HashUtils::MakeTileUID_String("grenade");
         uint32_t grenadeSlot = EnsureVisualResident(grenadeUID);
-        if (grenadeSlot == UINT32_MAX)
-        {
-            EE_CORE_ERROR("invalid bulletSlot");
-        }
-
         ProjectileVisual::RegisterVisual(ProjectileVisualType::Grenade, grenadeUID, grenadeSlot);
-
-
-        
-        EE_CORE_INFO("type templates: {}", m_colorByType.size());
-        EE_CORE_INFO("uid templates: {}", m_colorByUID.size());
-
     }
 
     uint32_t TileManager::EnsureVisualResident(uint64_t uid)
@@ -146,17 +97,18 @@ namespace Engine {
         if (slotIt != m_slotByUID.end() && slotIt->second != UINT32_MAX)
             return slotIt->second;
 
-        auto colIt = m_colorByUID.find(uid);
-        if (colIt == m_colorByUID.end())
+        const std::vector<uint8_t>* color = nullptr;
+        const std::vector<uint8_t>* props = nullptr;
+
+        if (!GetOriginalTileData(uid, color, props))
         {
-            EE_CORE_ERROR("EnsureVisualResident: missing color data for uid {:016x}", uid);
+            EE_CORE_ERROR("EnsureVisualResident: missing source data for uid {:016x}", uid);
             return UINT32_MAX;
         }
 
-        auto propIt = m_propsByUID.find(uid);
-        if (propIt == m_propsByUID.end())
+        if (!color || !props || color->empty() || props->empty())
         {
-            EE_CORE_ERROR("EnsureVisualResident: missing props data for uid {:016x}", uid);
+            EE_CORE_ERROR("EnsureVisualResident: empty source data for uid {:016x}", uid);
             return UINT32_MAX;
         }
 
@@ -165,8 +117,8 @@ namespace Engine {
 
         uint32_t slot = VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EnsureTileResidentFromRaw(
             uid,
-            colIt->second.rgba.data(), colIt->second.rgba.size(),
-            propIt->second.rgba.data(), propIt->second.rgba.size(),
+            color->data(), color->size(),
+            props->data(), props->size(),
             cb);
 
         ctx->EndSingleTimeCommands(cb);
@@ -237,8 +189,7 @@ namespace Engine {
                     const auto& sharedColor = m_colorByType.at(key);
                     const auto& sharedProps = m_propsByType.at(key);
 
-                    m_colorByUID[uid] = ColorTemplate{ sharedColor.w, sharedColor.h, sharedColor.rgba };
-                    m_propsByUID[uid] = PropsTemplate{ sharedProps.w, sharedProps.h, sharedProps.rgba };
+                   
                 }
             });
         
@@ -272,8 +223,21 @@ namespace Engine {
                 // Make a unique UID for the bullet
                 uint64_t bulletUID = HashUtils::MakeTileUID_String("bullet_sprite");
 
-                m_colorByUID.emplace(bulletUID, ColorTemplate{ w, h, std::move(colorRGBA) });
-                m_propsByUID.emplace(bulletUID, PropsTemplate{ w, h, std::move(propsRGBA) });
+                TileTypeKey bulletKey{};
+                bulletKey.name = "bullet_sprite";
+                bulletKey.uv = glm::vec4(0.0f);
+                bulletKey.category = eTileCategory::Undefined; 
+                bulletKey.direction = eTileDirection::Center; 
+
+                m_typeByUID[bulletUID] = bulletKey;
+                m_colorByType[bulletKey] = ColorTemplate{ w, h, std::move(colorRGBA) };
+                m_propsByType[bulletKey] = PropsTemplate{ w, h, std::move(propsRGBA) };
+                m_opaqueByType[bulletKey] = {
+                    glm::ivec2(0, 0),
+                    glm::ivec2(w, h)
+                };
+
+               
             }
         }
         {
@@ -305,9 +269,20 @@ namespace Engine {
 
                 // Make a unique UID for the bullet
                 uint64_t grenadeUID = HashUtils::MakeTileUID_String("grenade");
+                TileTypeKey grenadeKey{};
+                grenadeKey.name = "grenade";
+                grenadeKey.uv = glm::vec4(0.0f);
+                grenadeKey.category = eTileCategory::Undefined;
+                grenadeKey.direction = eTileDirection::Center;
 
-                m_colorByUID.emplace(grenadeUID, ColorTemplate{ w, h, std::move(colorRGBA) });
-                m_propsByUID.emplace(grenadeUID, PropsTemplate{ w, h, std::move(propsRGBA) });
+                m_typeByUID[grenadeUID] = grenadeKey;
+                m_colorByType[grenadeKey] = ColorTemplate{ w, h, std::move(colorRGBA) };
+                m_propsByType[grenadeKey] = PropsTemplate{ w, h, std::move(propsRGBA) };
+                m_opaqueByType[grenadeKey] = {
+                    glm::ivec2(0, 0),
+                    glm::ivec2(w, h)
+                };
+               
             }
         }
     }
@@ -322,6 +297,7 @@ namespace Engine {
         key.direction = tile.TileDirection;
         return key;
     }
+
 
     bool TileManager::GetOriginalTileData(uint64_t uid, const std::vector<uint8_t>*& color, const std::vector<uint8_t>*& props) const
     {
@@ -347,8 +323,7 @@ namespace Engine {
 
     void TileManager::ClearTemplates()
     {
-        m_colorByUID.clear();
-        m_propsByUID.clear();
+  
 
         m_colorByType.clear();
         m_propsByType.clear();

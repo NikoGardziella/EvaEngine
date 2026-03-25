@@ -31,31 +31,7 @@ namespace Engine {
 		}
 
 
-		// per-slot origin (bottom-left of the tile in world space)
-		void SetSlotOriginWorld(uint32_t slot, const glm::vec2& origin)
-		{
-			if (slot < m_slotOriginWorld.size())
-			{
-				
-				m_slotOriginWorld[slot] = origin;
-			}
-		}
-		glm::vec2 GetSlotOriginWorld(uint32_t slot) const
-		{
-			if (slot < m_slotOriginWorld.size()) return m_slotOriginWorld[slot];
-			return glm::vec2(0.0f);
-		}
-
-		uint32_t TileManager::GetSlotForUID(uint64_t uid) const
-		{
-			auto it = m_slotByUID.find(uid);
-			if (it == m_slotByUID.end())
-			{
-				EE_CORE_WARN("TileManager::GetSlotForUID: UID {:016x} has no slot", uid);
-				return 0xFFFFFFFFu; // sentinel for "not found"
-			}
-			return it->second;
-		}
+		
 		
 		
 
@@ -78,8 +54,8 @@ namespace Engine {
 		// old ones. maybe remove at some point
 		std::unordered_map<uint64_t, glm::vec2> m_centerByUID; 
 		std::unordered_map<uint64_t, uint32_t> m_slotByUID;
-		std::unordered_map<uint64_t, ColorTemplate> m_colorByUID;
-		std::unordered_map<uint64_t, PropsTemplate> m_propsByUID;
+		//std::unordered_map<uint64_t, ColorTemplate> m_colorByUID;
+		//std::unordered_map<uint64_t, PropsTemplate> m_propsByUID;
 		// ***************************************************************************
 
 		

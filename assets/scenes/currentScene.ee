@@ -1,2 +1,56 @@
 Scene: My Scene
 Entities:
+  - ID: 3634210113444331985
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [-4.5, 0.25, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.65478516, 0.619486, 0.7788086, 0.66596794]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsSupportingRoof: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 6687558247392971784
+          TileDirection: North
+    AreaComponent:
+      Min: [-4.5, 0.75]
+      Max: [-4.5, 0.75]
+      Id: 0
+      Type: 0
+  - ID: 8599652056399062526
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation: [2.5, 1.75, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TileComponent:
+      TileID: 0
+      Texture: ""
+      Tiles:
+        - Position: [0, 0]
+          UV: [0.65478516, 0.619486, 0.7788086, 0.66596794]
+          Name: Wall B1_N
+          IsDestructible: true
+          IsSupportingRoof: true
+          IsRoof: false
+          Category: Buildings
+          Material: Concrete
+          Health: 1
+          UID: 430254335852438355
+          TileDirection: North
+    AreaComponent:
+      Min: [2.5, 2.25]
+      Max: [2.5, 2.25]
+      Id: 0
+      Type: 0
