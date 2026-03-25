@@ -386,7 +386,6 @@ namespace Engine {
 
             if (tr.aliveWords.size() < expectedWords)
             {
-                EE_CORE_INFO("tr.aliveWords.size() {} | expectedWords ", tr.aliveWords.size(), expectedWords);
                 continue;
             }
             // Change detection
@@ -395,7 +394,6 @@ namespace Engine {
             m_maskCrc[slot] = curCrc;
             if (!changed)
             {
-                EE_CORE_INFO("not changed");
                 continue;
             }
             // Calibrate bit sense once
@@ -431,8 +429,6 @@ namespace Engine {
             const bool gap = HasDeadRowGapInBBoxThresholded(rowPop, topY, botY);
             const bool disconnected = (!connected_any) || gap;
             
-            EE_CORE_INFO("connected_any {} || gap {}", connected_any, gap);
-
             // total alive within bbox
             int totalAlive = 0;
             for (int y = by0; y <= by1; ++y) totalAlive += rowPop[y];
