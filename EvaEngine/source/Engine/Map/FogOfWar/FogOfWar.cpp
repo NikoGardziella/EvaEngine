@@ -113,6 +113,7 @@ namespace Engine {
     void FogOfWar::BuildVisibilityPolygon(const glm::vec2& originW, float radiusW,
         int numRays, std::vector<glm::vec2>& outPtsW, const glm::mat4& viewProjection) const
     {
+        EE_PROFILE_FUNCTION();
         outPtsW.clear();
         outPtsW.reserve((size_t)numRays);
 
@@ -157,22 +158,20 @@ namespace Engine {
         }
     }
 
-
     glm::vec2 FogOfWar::RaycastFirstBlock(const glm::vec2& fromWorld,
         const glm::vec2& dirNorm, float maxDistW, bool* outHit) const
     {
         constexpr float subtileSize = float(TILE_SIZE) / float(GRID_SUBDIVISIONS);
-        const float stepLen = subtileSize * 0.8f;
-        const int   maxSteps = (int)glm::ceil(maxDistW / stepLen);
+        const float stepLen = subtileSize;
+        const int maxSteps = (int)glm::ceil(maxDistW / stepLen);
 
         constexpr float kPadding = 0.2f;
-
         glm::vec2 prevP = fromWorld;
 
         for (int i = 1; i <= maxSteps; ++i)
         {
-            float t = (float)i / (float)maxSteps;
-            glm::vec2 P = fromWorld + dirNorm * (t * maxDistW);
+            float dist = std::min(i * stepLen, maxDistW);
+            glm::vec2 P = fromWorld + dirNorm * dist;
 
             if (m_gridRef->IsPointBlocked_Bucketed(P, kPadding))
             {
@@ -181,25 +180,16 @@ namespace Engine {
                 glm::vec2 a = prevP;
                 glm::vec2 b = P;
 
-                for (int it = 0; it < 8; ++it)
+                for (int it = 0; it < 5; ++it)
                 {
                     glm::vec2 m = 0.5f * (a + b);
                     if (m_gridRef->IsPointBlocked_Bucketed(m, kPadding))
-                    {
-                        b = m; // still blocked, move closer to free side
-
-                    }
+                        b = m;
                     else
-                    {
-
-                        a = m; // free, move toward blocker
-                    }
+                        a = m;
                 }
 
-                // higher value moves teh fog away
-                // low value fog might come too soon front of the tiles
                 float whereFogStartsOffset = 0.30f;
-
                 return a + dirNorm * whereFogStartsOffset;
             }
 
@@ -209,7 +199,6 @@ namespace Engine {
         if (outHit) *outHit = false;
         return fromWorld + dirNorm * maxDistW;
     }
-
 
     void FogOfWar::DebugDrawVisibility(glm::vec2 playerPos)
     {
@@ -254,6 +243,7 @@ namespace Engine {
     void FogOfWar::BuildFogFan(const glm::vec2& originW, const std::vector<glm::vec2>& polyPtsW,
         std::vector<Engine::VulkanFogOfWarPipelines::FogVertex>& outFanTris)
     {
+        EE_PROFILE_FUNCTION();
         outFanTris.clear();
         if (polyPtsW.size() < 3) return;
 

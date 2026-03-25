@@ -31,8 +31,7 @@ void PlayerCollisionSystem::UpdatePlayerCollision(float dt, Engine::Scene* scene
 
 // Sweep a circle vs OBB (expanded by radius). Also handles initial overlap.
 PlayerCollisionSystem::SweepHit PlayerCollisionSystem::SweepCircleVsOBB(const Engine::SubCellOBB& obb,
-    const glm::vec2& p0, const glm::vec2& delta,
-    float radius, float skin = 1e-4f)
+    const glm::vec2& p0, const glm::vec2& delta,  float radius, float skin = 1e-4f)
 {
     SweepHit out;
 
@@ -105,12 +104,14 @@ PlayerCollisionSystem::SweepHit PlayerCollisionSystem::SweepCircleVsOBB(const En
     out.point = obb.center + t * hitLocal.x + n * hitLocal.y;
     return out;
 }
-glm::vec2 PlayerCollisionSystem::CollideAndSlideOBBs(
-    const std::vector<Engine::SubCellOBB>& walls,
-    glm::vec2 pos,
-    glm::vec2 delta,
-    float radius)
+
+glm::vec2 PlayerCollisionSystem::CollideAndSlideOBBs( const std::vector<Engine::SubCellOBB>& walls,
+    glm::vec2 pos, glm::vec2 delta, float radius)
 {
+
+    if (glm::length2(delta) < 1e-12f)
+        return pos;
+
     glm::vec2 rem = delta;
     const float skin = 1e-3f * (radius + 1.f);
     const int maxIters = 4;
