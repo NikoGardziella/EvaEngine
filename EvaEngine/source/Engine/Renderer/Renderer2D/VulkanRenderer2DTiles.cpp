@@ -273,7 +273,7 @@ namespace Engine {
 			// Compute wants bottom-left in world units
 			const float tileWorldW = float(TILE_SIZE);
 
-			glm::vec2 randomOffset = glm::vec2(0.5f, -0.5f);  // to bottom left tile 128 x 256
+			glm::vec2 randomOffset = glm::vec2(0.5f, 0.0f);  // to bottom left tile 128 x 256
 
 			s_VulkanBindlessData.m_slotOriginWorld[slot] = center - randomOffset;
 		}

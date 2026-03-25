@@ -20,7 +20,10 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
-        glm::vec2 initialFocusPos = { 0,0 };
+        glm::vec2 initialFocusPos = { 0, 0 };
+        const float registerRadius = 80.0f;
+        const float registerRadiusSq = registerRadius * registerRadius;
+
         VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->EvictAllTiles();
 
         StreamingConfig config;
@@ -31,7 +34,8 @@ namespace Engine {
         config.cachePath = "tile_cache";
         m_streaming.InitTileStreaming(this, config);
 
-        
+        m_centerByUID.clear();
+        m_slotByUID.clear();
 
         scene->ForEachConst<TransformComponent, TileComponent, IDComponent>(
             [&](Entity e, const TransformComponent& tr, const TileComponent& tc, const IDComponent& id)
@@ -39,6 +43,11 @@ namespace Engine {
                 for (const TileInfo& t : tc.tiles)
                 {
                     if (t.Category == eTileCategory::Terrain)
+                        continue;
+
+                    glm::vec2 center = glm::vec2(tr.Translation) + glm::vec2(t.position);
+
+                    if (glm::distance2(center, initialFocusPos) > registerRadiusSq)
                         continue;
 
                     const std::vector<uint8_t>* color = nullptr;
@@ -51,7 +60,6 @@ namespace Engine {
                         continue;
                     }
 
-                    glm::vec2 center = glm::vec2(tr.Translation) + glm::vec2(t.position);
                     m_centerByUID[t.UID] = center;
 
                     float dist = glm::distance(center, initialFocusPos);

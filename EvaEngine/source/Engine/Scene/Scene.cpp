@@ -268,7 +268,7 @@ namespace Engine {
 
         glm::vec4 uv = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
 
-        CreateLotsOfTilesOnStartup("Wall B1_S", uv, eTileCategory::Buildings, 100, 100, glm::ivec2(0, 0));
+        //CreateLotsOfTilesOnStartup("Wall B1_S", uv, eTileCategory::Buildings, 100, 100, glm::ivec2(0, 0));
 
 
 

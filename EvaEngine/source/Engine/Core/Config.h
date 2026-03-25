@@ -18,6 +18,9 @@ constexpr uint32_t TILE_FILE_VERSION = 2;
 constexpr size_t CHUNK_SIZE = 16;
 constexpr size_t GRID_SUBDIVISIONS = 3;
 
+// tile streeaming
+static constexpr float STREAM_CHUNK_SIZE = 16.0f;
+
 // Engine constants
 constexpr int MAX_FRAMES_IN_FLIGHT = 3;
 constexpr size_t MAX_TEXTURES = 32;

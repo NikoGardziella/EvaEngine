@@ -7,6 +7,7 @@
 #include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
 #include <Engine/Map/Grid/TileCollisionMask.h>
 #include <Engine/Renderer/Utils/DeltaBitReader.h>
+#include <Engine/Map/Utils/IVec2Hasher.h>
 
 
 namespace Engine {
@@ -127,6 +128,18 @@ namespace Engine {
         TileManager* m_tilemanager;
         std::vector<PriorityEntry> m_priorityList;
         std::vector<PendingEviction> m_pendingEvictions;
+
+
+
+        std::unordered_map<glm::ivec2, std::vector<uint64_t>, IVec2Hasher> m_entriesByChunk;
+
+        // Active resident sets only
+        std::unordered_set<uint64_t> m_gpuResidentUIDs;
+        std::unordered_set<uint64_t> m_cpuResidentUIDs;
+
+        // Optional: avoid updating every tiny movement
+        glm::vec2 m_lastUpdatePlayerPos = glm::vec2(std::numeric_limits<float>::max());
+
     };
 
 }

@@ -41,7 +41,6 @@ namespace Engine {
 
     void Scene::OnUpdateRuntime(Timestep timestep, bool isPlaying)
     {
-
         EE_PROFILE_FUNCTION();
         /*
 

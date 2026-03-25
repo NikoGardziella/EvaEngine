@@ -108,7 +108,6 @@ PlayerCollisionSystem::SweepHit PlayerCollisionSystem::SweepCircleVsOBB(const En
 glm::vec2 PlayerCollisionSystem::CollideAndSlideOBBs( const std::vector<Engine::SubCellOBB>& walls,
     glm::vec2 pos, glm::vec2 delta, float radius)
 {
-
     if (glm::length2(delta) < 1e-12f)
         return pos;
 

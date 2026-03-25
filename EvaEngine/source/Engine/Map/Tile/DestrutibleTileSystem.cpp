@@ -384,14 +384,20 @@ namespace Engine {
             if (slot >= m_aliveCount.size())         m_aliveCount.resize(slot + 1, -1);
             if (slot >= m_maskCrc.size())            m_maskCrc.resize(slot + 1, 0);
 
-            if (tr.aliveWords.size() < expectedWords) continue;
-
+            if (tr.aliveWords.size() < expectedWords)
+            {
+                EE_CORE_INFO("tr.aliveWords.size() {} | expectedWords ", tr.aliveWords.size(), expectedWords);
+                continue;
+            }
             // Change detection
             const uint32_t curCrc = Crc32Words(tr.aliveWords);
             const bool changed = (curCrc != m_maskCrc[slot]);
             m_maskCrc[slot] = curCrc;
-            if (!changed) continue;
-
+            if (!changed)
+            {
+                EE_CORE_INFO("not changed");
+                continue;
+            }
             // Calibrate bit sense once
             ConnCfg& cfg = m_connCfg[slot];
             if (!cfg.set)
@@ -424,6 +430,8 @@ namespace Engine {
                 bx0, by0, bx1, by1, topY, botY, tY, bY);
             const bool gap = HasDeadRowGapInBBoxThresholded(rowPop, topY, botY);
             const bool disconnected = (!connected_any) || gap;
+            
+            EE_CORE_INFO("connected_any {} || gap {}", connected_any, gap);
 
             // total alive within bbox
             int totalAlive = 0;

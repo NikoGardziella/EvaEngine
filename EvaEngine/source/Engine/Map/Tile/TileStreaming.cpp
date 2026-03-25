@@ -48,6 +48,18 @@ namespace Engine {
         m_entries[uid] = std::move(entry);
 
     }
+    static inline int FloorDivToInt(float v, float denom)
+    {
+        return (int)std::floor(v / denom);
+    }
+
+
+    static inline glm::ivec2 WorldToStreamChunk(const glm::vec2& p)
+    {
+        return glm::ivec2(
+            FloorDivToInt(p.x, STREAM_CHUNK_SIZE),
+            FloorDivToInt(p.y, STREAM_CHUNK_SIZE));
+    }
 
     void TileStreamingSystem::RegisterTileInitial(
         uint64_t uid,
@@ -80,6 +92,21 @@ namespace Engine {
             entry.slot = UINT32_MAX;
 
         m_entries[uid] = std::move(entry);
+
+        glm::ivec2 chunk = WorldToStreamChunk(worldCenter);
+        m_entriesByChunk[chunk].push_back(uid);
+
+        switch (initialResidency)
+        {
+        case TileResidency::GPU:
+            m_gpuResidentUIDs.insert(uid);
+            break;
+        case TileResidency::CPU:
+            m_cpuResidentUIDs.insert(uid);
+            break;
+        case TileResidency::Disk:
+            break;
+        }
     }
 
     void TileStreamingSystem::PrimeInitialGPUResidency(Scene* scene, glm::vec2 focusPos)
@@ -114,87 +141,120 @@ namespace Engine {
                 UploadToGPU(entry, scene);
         }
     }
-
     void TileStreamingSystem::UpdateStreaming(Scene* scene, glm::vec2 playerPos)
     {
         EE_PROFILE_FUNCTION();
-        if (!m_initialized || m_entries.empty()) return;
+        if (!m_initialized || m_entries.empty())
+            return;
 
-        // Process pending evictions from last frame
-        auto bindless = VulkanRenderer2D::GetBindlessDescriptorSetRenderer();
-        for (const auto& ev : m_pendingEvictions)
+        // Optional: skip if player moved only a tiny amount
+        if (m_lastUpdatePlayerPos.x != std::numeric_limits<float>::max())
         {
-            bindless->EvictTile(ev.uid);
-
+            glm::vec2 dp = playerPos - m_lastUpdatePlayerPos;
+            if (glm::length2(dp) < 0.25f) // tune threshold
+                return;
         }
+        m_lastUpdatePlayerPos = playerPos;
+
+        auto bindless = VulkanRenderer2D::GetBindlessDescriptorSetRenderer();
+
+        for (const auto& ev : m_pendingEvictions)
+            bindless->EvictTile(ev.uid);
         m_pendingEvictions.clear();
 
-        // Build priority list — closest tiles first
-        m_priorityList.clear();
-        for (auto& [uid, entry] : m_entries)
+        const float gpuLoadRadius = m_config.gpuRadius;
+        const float gpuUnloadRadius = m_config.gpuRadius + m_config.hysteresis;
+        const float cpuLoadRadius = m_config.cpuRadius;
+        const float cpuUnloadRadius = m_config.cpuRadius + m_config.hysteresis;
+
+        const float gpuLoadRadiusSq = gpuLoadRadius * gpuLoadRadius;
+        const float gpuUnloadRadiusSq = gpuUnloadRadius * gpuUnloadRadius;
+        const float cpuLoadRadiusSq = cpuLoadRadius * cpuLoadRadius;
+        const float cpuUnloadRadiusSq = cpuUnloadRadius * cpuUnloadRadius;
+
+        const glm::ivec2 playerChunk = WorldToStreamChunk(playerPos);
+
+        auto chunkRadiusFor = [](float radius)
+            {
+                return (int)std::ceil(radius / STREAM_CHUNK_SIZE);
+            };
+
+        const int nearbyChunkRadius = chunkRadiusFor(cpuLoadRadius);
+
+        struct Candidate
         {
-            float dist = glm::distance(entry.worldCenter, playerPos);
-            m_priorityList.push_back({ uid, dist });
+            uint64_t uid;
+            float dist2;
+        };
+
+        std::vector<Candidate> loadCandidates;
+        loadCandidates.reserve(512);
+
+        // 1) Gather load candidates only from nearby chunks
+        for (int cy = playerChunk.y - nearbyChunkRadius; cy <= playerChunk.y + nearbyChunkRadius; ++cy)
+        {
+            for (int cx = playerChunk.x - nearbyChunkRadius; cx <= playerChunk.x + nearbyChunkRadius; ++cx)
+            {
+                glm::ivec2 chunkCoord(cx, cy);
+                auto itChunk = m_entriesByChunk.find(chunkCoord);
+                if (itChunk == m_entriesByChunk.end())
+                    continue;
+
+                for (uint64_t uid : itChunk->second)
+                {
+                    auto itEntry = m_entries.find(uid);
+                    if (itEntry == m_entries.end())
+                        continue;
+
+                    auto& entry = itEntry->second;
+
+                    // Only disk/cpu entries need loading work here
+                    if (entry.residency == TileResidency::GPU)
+                        continue;
+
+                    float dist2 = glm::length2(entry.worldCenter - playerPos);
+                    if (dist2 <= cpuLoadRadiusSq)
+                        loadCandidates.push_back({ uid, dist2 });
+                }
+            }
         }
 
-        // Partial sort — only need the closest N
-        int budget = m_config.maxTransitionsPerFrame;
-        int sortCount = std::min(budget * 4, (int)m_priorityList.size());
-        std::partial_sort(m_priorityList.begin(),
-            m_priorityList.begin() + sortCount,
-            m_priorityList.end(),
-            [](const auto& a, const auto& b) { return a.dist < b.dist; });
-
-        // Hysteresis thresholds
-        float gpuLoadRadius = m_config.gpuRadius;
-        float gpuUnloadRadius = m_config.gpuRadius + m_config.hysteresis;
-        float cpuLoadRadius = m_config.cpuRadius;
-        float cpuUnloadRadius = m_config.cpuRadius + m_config.hysteresis;
+        // Closest load candidates first
+        const int budget = m_config.maxTransitionsPerFrame;
+        const int sortCount = std::min((int)loadCandidates.size(), budget * 4);
+        if (sortCount > 0)
+        {
+            std::partial_sort(
+                loadCandidates.begin(),
+                loadCandidates.begin() + sortCount,
+                loadCandidates.end(),
+                [](const Candidate& a, const Candidate& b) { return a.dist2 < b.dist2; });
+        }
 
         int transitions = 0;
-        for (const auto& p : m_priorityList)
+
+        // 2) Process loads from nearby candidates
+        for (int i = 0; i < sortCount && transitions < budget; ++i)
         {
-            if (transitions >= budget)
-            {
-                break;
+            auto itEntry = m_entries.find(loadCandidates[i].uid);
+            if (itEntry == m_entries.end())
+                continue;
 
-            }
-
-            auto& entry = m_entries[p.uid];
-            float dist = p.dist;
+            auto& entry = itEntry->second;
+            const float dist2 = loadCandidates[i].dist2;
 
             switch (entry.residency)
             {
-            case TileResidency::GPU:
-                if (dist > gpuUnloadRadius)
-                {
-                    EvictFromGPU(entry);
-                    InvalidateTileSlot(scene, entry.uid);
-                    transitions++;
-
-                    if (dist > cpuUnloadRadius)
-                    {
-                        FlushToDisk(entry);
-                        transitions++;
-                    }
-                }
-                break;
-
             case TileResidency::CPU:
-                if (dist <= gpuLoadRadius)
+                if (dist2 <= gpuLoadRadiusSq)
                 {
                     UploadToGPU(entry, scene);
-                    transitions++;
-                }
-                else if (dist > cpuUnloadRadius)
-                {
-                    FlushToDisk(entry);
                     transitions++;
                 }
                 break;
 
             case TileResidency::Disk:
-                if (dist <= gpuLoadRadius)
+                if (dist2 <= gpuLoadRadiusSq)
                 {
                     LoadFromDisk(entry);
                     transitions++;
@@ -204,12 +264,71 @@ namespace Engine {
                         transitions++;
                     }
                 }
-                else if (dist <= cpuLoadRadius)
+                else if (dist2 <= cpuLoadRadiusSq)
                 {
                     LoadFromDisk(entry);
                     transitions++;
                 }
                 break;
+
+            case TileResidency::GPU:
+                break;
+            }
+        }
+
+        // 3) Evict only currently resident entries, not the whole world
+        if (transitions < budget)
+        {
+            std::vector<uint64_t> gpuToCheck(m_gpuResidentUIDs.begin(), m_gpuResidentUIDs.end());
+            for (uint64_t uid : gpuToCheck)
+            {
+                if (transitions >= budget)
+                    break;
+
+                auto itEntry = m_entries.find(uid);
+                if (itEntry == m_entries.end())
+                    continue;
+
+                auto& entry = itEntry->second;
+                float dist2 = glm::length2(entry.worldCenter - playerPos);
+
+                if (dist2 > gpuUnloadRadiusSq)
+                {
+                    EvictFromGPU(entry);
+                    InvalidateTileSlot(scene, entry.uid);
+                    transitions++;
+
+                    if (transitions < budget && dist2 > cpuUnloadRadiusSq)
+                    {
+                        FlushToDisk(entry);
+                        transitions++;
+                    }
+                }
+            }
+        }
+
+        if (transitions < budget)
+        {
+            std::vector<uint64_t> cpuToCheck(m_cpuResidentUIDs.begin(), m_cpuResidentUIDs.end());
+            for (uint64_t uid : cpuToCheck)
+            {
+                if (transitions >= budget)
+                    break;
+
+                auto itEntry = m_entries.find(uid);
+                if (itEntry == m_entries.end())
+                    continue;
+
+                auto& entry = itEntry->second;
+                if (entry.residency != TileResidency::CPU)
+                    continue;
+
+                float dist2 = glm::length2(entry.worldCenter - playerPos);
+                if (dist2 > cpuUnloadRadiusSq)
+                {
+                    FlushToDisk(entry);
+                    transitions++;
+                }
             }
         }
     }
@@ -217,28 +336,32 @@ namespace Engine {
     // GPU -> CPU
     void TileStreamingSystem::EvictFromGPU(TileStreamEntry& entry)
     {
-        if (entry.residency != TileResidency::GPU) return;
+        if (entry.residency != TileResidency::GPU)
+            return;
 
         ReadbackFromGPU(entry);
 
-        m_pendingEvictions.push_back({ entry.uid, entry.slot });
+        const uint32_t oldSlot = entry.slot;
+        m_pendingEvictions.push_back({ entry.uid, oldSlot });
+
+        if (oldSlot != UINT32_MAX)
+            m_slotToUID.erase(oldSlot);
 
         entry.slot = UINT32_MAX;
         entry.residency = TileResidency::CPU;
+
+        m_gpuResidentUIDs.erase(entry.uid);
+        m_cpuResidentUIDs.insert(entry.uid);
     }
 
 
     // CPU -> GPU
-
     void TileStreamingSystem::UploadToGPU(TileStreamEntry& entry, Scene* scene)
     {
         EE_PROFILE_FUNCTION();
 
         if (entry.residency != TileResidency::CPU)
-        {
             return;
-
-        }
 
         if (entry.colorData.empty() || entry.propsData.empty())
         {
@@ -250,13 +373,20 @@ namespace Engine {
         VkCommandBuffer cb = ctx->BeginSingleTimeCommands();
 
         auto bindless = VulkanRenderer2D::GetBindlessDescriptorSetRenderer();
-        entry.slot = bindless->EnsureTileResidentFromRaw(entry.uid, entry.colorData.data(), entry.colorData.size(),
-            entry.propsData.data(), entry.propsData.size(), cb);
+        entry.slot = bindless->EnsureTileResidentFromRaw(
+            entry.uid,
+            entry.colorData.data(), entry.colorData.size(),
+            entry.propsData.data(), entry.propsData.size(),
+            cb);
 
         ctx->EndSingleTimeCommands(cb);
 
+        m_slotToUID[entry.slot] = entry.uid;
+
         UpdateTileSlot(scene, entry.uid, entry.slot);
 
+        m_cpuResidentUIDs.erase(entry.uid);
+        m_gpuResidentUIDs.insert(entry.uid);
 
         entry.residency = TileResidency::GPU;
     }
@@ -470,7 +600,8 @@ namespace Engine {
         }
 
         in.close();
-
+        m_cpuResidentUIDs.insert(entry.uid);
+        entry.residency = TileResidency::CPU;
         // Reconstruct full-size buffers from sub-rect
         CompressUtils::InsertSubRect(entry.colorData, colorSub, TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT, x0, y0, w, h);
         CompressUtils::InsertSubRect(entry.propsData, propsSub, TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT, x0, y0, w, h);
@@ -630,6 +761,10 @@ namespace Engine {
                 EvictFromGPU(entry);
             if (entry.residency == TileResidency::CPU)
                 FlushToDisk(entry);
+
+            m_cpuResidentUIDs.erase(entry.uid);
+            m_gpuResidentUIDs.erase(entry.uid);
+            entry.residency = TileResidency::Disk;
         }
     }
 
