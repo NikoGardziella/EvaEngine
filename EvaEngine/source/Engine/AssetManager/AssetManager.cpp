@@ -359,14 +359,14 @@ namespace Engine {
 
         const uint8_t catNibble = AssetManager::PackCategoryNibble(tile.Category);
 
-        auto getIsoUpAxis = [](TileDirection dir) -> glm::vec2 {
+        auto getIsoUpAxis = [](eTileDirection dir) -> glm::vec2 {
             float angle = 0.0f;
             switch (dir)
             {
-                case TileDirection::North: angle = glm::radians(105.0f);  break;
-                case TileDirection::South: angle = glm::radians(105.0f);  break;
-                case TileDirection::East:  angle = glm::radians(80.0f); break;
-                case TileDirection::West:  angle = glm::radians(80.0f); break;
+                case eTileDirection::North: angle = glm::radians(105.0f);  break;
+                case eTileDirection::South: angle = glm::radians(105.0f);  break;
+                case eTileDirection::East:  angle = glm::radians(80.0f); break;
+                case eTileDirection::West:  angle = glm::radians(80.0f); break;
                 default:                   angle = glm::radians(0.0f);   break;
             }
             return glm::vec2(std::cos(angle), std::sin(angle));

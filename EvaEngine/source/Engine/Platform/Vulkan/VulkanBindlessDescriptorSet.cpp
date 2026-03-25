@@ -147,7 +147,7 @@ namespace Engine {
 
 
     void VulkanBindlessDescriptorSetRenderer::AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot,
-        glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation, TileDirection  tileDirection)
+        glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation, eTileDirection  tileDirection)
     {
         RenderInstance I{};
         I.worldPos = worldCenter;          // using the “center” convention you fixed
@@ -164,7 +164,7 @@ namespace Engine {
     }
 
 
-    void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, TileDirection  tileDirection, const glm::ivec2 opaqueMin, const glm::ivec2 opaqueMax, glm::vec2 size, uint32_t flags)
+    void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, eTileDirection  tileDirection, const glm::ivec2 opaqueMin, const glm::ivec2 opaqueMax, glm::vec2 size, uint32_t flags)
     {
 
         RenderInstance I{};

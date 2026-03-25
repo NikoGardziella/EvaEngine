@@ -374,7 +374,6 @@ namespace Engine {
                         ForEachConst<TransformComponent, TileComponent>(
                             [&](Entity e, const TransformComponent& transformComp, const TileComponent& tileComp)
                             {
-
                                 bool playerIsInsideEntityArea = false;
                                 if (e.HasComponent<AreaComponent>())
                                 {
@@ -392,6 +391,9 @@ namespace Engine {
                                 {
                                     if (tile.Category == eTileCategory::Terrain)
                                         continue; // skip terrain
+
+                                    
+                                    
 
                                     if (tile.Slot == UINT32_MAX)
                                     {
@@ -413,7 +415,7 @@ namespace Engine {
                                     }
 
 
-
+                                    
 
                                     // Trivial submit: NO residency work here, just append an instance
                                     VulkanRenderer2D::SubmitDestructibleTile(
@@ -662,7 +664,7 @@ namespace Engine {
                             continue;
                         }
 
-                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation, TileDirection::Center, outOpaqueMin, outOpaqueMax, size);
+                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation, eTileDirection::Center, outOpaqueMin, outOpaqueMax, size);
 
                     }
 

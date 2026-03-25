@@ -265,20 +265,20 @@ namespace Engine {
         newSkeleton.boneBase = 0xFFFFFFFFu;
     }
 
-    TileDirection EditorUtils::GetDirectionFromTileName(const std::string& tileName)
+    eTileDirection EditorUtils::GetDirectionFromTileName(const std::string& tileName)
     {
-        if (tileName.empty()) return TileDirection::Unknown;
+        if (tileName.empty()) return eTileDirection::Unknown;
 
         // Get the last character
         char lastChar = tileName.back();
 
         switch (lastChar)
         {
-        case 'N': return TileDirection::North;
-        case 'S': return TileDirection::South;
-        case 'E': return TileDirection::East;
-        case 'W': return TileDirection::West;
-        default:  return TileDirection::Unknown;
+        case 'N': return eTileDirection::North;
+        case 'S': return eTileDirection::South;
+        case 'E': return eTileDirection::East;
+        case 'W': return eTileDirection::West;
+        default:  return eTileDirection::Unknown;
         }
     }
 

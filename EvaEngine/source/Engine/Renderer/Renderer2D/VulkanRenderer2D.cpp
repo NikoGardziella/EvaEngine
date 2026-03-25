@@ -968,7 +968,7 @@ namespace Engine {
 				continue;
 			}
 
-			s_bindlessDescitproRenderer->AddSpriteInstance(s.center, s.zKey, s.slot, s.uvMin16, s.uvMax16, s.sizeWorld, s.rotation, TileDirection::Unknown);
+			s_bindlessDescitproRenderer->AddSpriteInstance(s.center, s.zKey, s.slot, s.uvMin16, s.uvMax16, s.sizeWorld, s.rotation, eTileDirection::Unknown);
 		}
 
 		animationQueu.clear();
@@ -1078,7 +1078,7 @@ namespace Engine {
 		
 	}
 
-	void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias, TileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, uint32_t flags)
+	void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash, float zBias, eTileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, uint32_t flags)
 	{
 
 		const size_t fi = static_cast<size_t>(s_VulkanData.CurrentFrame) % MAX_FRAMES_IN_FLIGHT;

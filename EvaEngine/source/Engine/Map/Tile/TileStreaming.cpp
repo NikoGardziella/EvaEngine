@@ -409,7 +409,8 @@ namespace Engine {
         }
 
         // Read and verify header
-        uint32_t magic, version;
+        uint32_t magic;
+        uint32_t version;
         in.read((char*)&magic, 4);
         in.read((char*)&version, 4);
 

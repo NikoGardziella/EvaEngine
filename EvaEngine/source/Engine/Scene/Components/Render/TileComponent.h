@@ -35,7 +35,7 @@ namespace Engine {
         Windows,
     };
 
-    enum class TileDirection : uint32_t
+    enum class eTileDirection : uint32_t
     {
         North = 0,
         South,
@@ -44,6 +44,45 @@ namespace Engine {
         Center, // BUllet light=
 
         Unknown
+    };
+
+    struct TileTypeKey
+    {
+        std::string name;
+        glm::vec4 uv{};
+        eTileCategory category{};
+        eTileDirection direction{}; 
+
+        bool operator==(const TileTypeKey& other) const
+        {
+            return name == other.name &&
+                uv == other.uv &&
+                category == other.category &&
+                direction == other.direction;
+        }
+    };
+
+
+    struct TileTypeKeyHash
+    {
+        size_t operator()(const TileTypeKey& k) const
+        {
+            size_t h = std::hash<std::string>{}(k.name);
+
+            auto hashCombine = [](size_t& seed, size_t value)
+                {
+                    seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+                };
+
+            hashCombine(h, std::hash<float>{}(k.uv.x));
+            hashCombine(h, std::hash<float>{}(k.uv.y));
+            hashCombine(h, std::hash<float>{}(k.uv.z));
+            hashCombine(h, std::hash<float>{}(k.uv.w));
+            hashCombine(h, std::hash<int>{}(static_cast<int>(k.category)));
+            hashCombine(h, std::hash<int>{}(static_cast<int>(k.direction)));
+
+            return h;
+        }
     };
 
     struct TileInfo {
@@ -58,7 +97,7 @@ namespace Engine {
         eTileMaterial   Material;
         uint32_t        TileHealth;
         uint32_t        Slot = UINT32_MAX;
-        TileDirection   TileDirection;
+        eTileDirection   TileDirection;
         glm::ivec2      opaqueMin = { 999, 999 };
         glm::ivec2      opaqueMax = { 999, 999 };
 
@@ -100,16 +139,16 @@ namespace Engine {
         }
     }
 
-    inline const char* TileDirectionToString(TileDirection direction)
+    inline const char* TileDirectionToString(eTileDirection direction)
     {
         switch (direction)
         {
-        case TileDirection::North:      return "North";
-        case TileDirection::South:      return "South";
-        case TileDirection::East:       return "East";
-        case TileDirection::West:       return "West";
-        case TileDirection::Center:     return "Center";
-        case TileDirection::Unknown:    return "Unknown";
+        case eTileDirection::North:      return "North";
+        case eTileDirection::South:      return "South";
+        case eTileDirection::East:       return "East";
+        case eTileDirection::West:       return "West";
+        case eTileDirection::Center:     return "Center";
+        case eTileDirection::Unknown:    return "Unknown";
 
         default: return "Invalid";
         }
@@ -145,16 +184,16 @@ namespace Engine {
         return eTileMaterial::None;
     }
 
-    inline TileDirection TileDirectionFromString(const std::string& str)
+    inline eTileDirection TileDirectionFromString(const std::string& str)
     {
-        if (str == "North" || str == "N") return TileDirection::North;
-        if (str == "South" || str == "S") return TileDirection::South;
-        if (str == "East" || str == "E") return TileDirection::East;
-        if (str == "West" || str == "W") return TileDirection::West;
-        if (str == "Center") return TileDirection::Center;
-        if (str == "Unkown") return TileDirection::Unknown;
+        if (str == "North" || str == "N") return eTileDirection::North;
+        if (str == "South" || str == "S") return eTileDirection::South;
+        if (str == "East" || str == "E") return eTileDirection::East;
+        if (str == "West" || str == "W") return eTileDirection::West;
+        if (str == "Center") return eTileDirection::Center;
+        if (str == "Unkown") return eTileDirection::Unknown;
 
-        return TileDirection::Unknown;
+        return eTileDirection::Unknown;
     }
 
 

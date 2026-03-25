@@ -47,6 +47,22 @@ namespace Engine {
                 }
             });
 
+
+        scene->ForEachConst<TransformComponent, TileComponent>(
+            [&](Entity e, const TransformComponent& tr, const TileComponent& tc)
+            {
+                for (const TileInfo& t : tc.tiles)
+                {
+                    if (t.Category == eTileCategory::Terrain)
+                        continue;
+
+                    bool hasColor = (m_colorByUID.find(t.UID) != m_colorByUID.end());
+                    bool hasProps = (m_propsByUID.find(t.UID) != m_propsByUID.end());
+
+                    
+                }
+            });
+
         // Register everything WITHOUT uploading
         for (const auto& [uid, col] : m_colorByUID)
         {
@@ -117,6 +133,11 @@ namespace Engine {
 
         ProjectileVisual::RegisterVisual(ProjectileVisualType::Grenade, grenadeUID, grenadeSlot);
 
+
+        
+        EE_CORE_INFO("type templates: {}", m_colorByType.size());
+        EE_CORE_INFO("uid templates: {}", m_colorByUID.size());
+
     }
 
     uint32_t TileManager::EnsureVisualResident(uint64_t uid)
@@ -166,39 +187,58 @@ namespace Engine {
                 for (TileInfo& tile : tc.tiles)
                 {
                     if (tile.Category == eTileCategory::Terrain)
-                    {
                         continue;
-                    }
-       
-                    // If not set, compute it here the same when placing tiles.
+
                     uint64_t uid = tile.UID;
                     if (!uid)
                     {
-                        // deltaGround == t.position in layout
-                        uid = HashUtils::MakeTileUID((uint64_t)idComp.ID, tile.position, float(TILE_SIZE), (uint32_t)tile.Category);
+                        uid = HashUtils::MakeTileUID(
+                            (uint64_t)idComp.ID,
+                            tile.position,
+                            float(TILE_SIZE),
+                            (uint32_t)tile.Category);
+
+                        tile.UID = uid;
                     }
-                   // EE_CORE_INFO("tile build template {}", uid);
 
-                    // Skip if already cached
-                    if (m_colorByUID.count(uid) && m_propsByUID.count(uid))
-                        continue;
+                    TileTypeKey key = MakeTileTypeKey(tile);
+                    m_typeByUID[uid] = key;
 
-                    glm::ivec2 outOpaqueMin = glm::ivec2(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
-                    glm::ivec2 outOpaqueMax = glm::ivec2(-1);
-
-                    std::vector<uint8_t> colorRGBA, propsRGBA;
-                    int w = 0, h = 0;
-                    if (!AssetManager::ExtractPixelsAndPropertiesFromTilePallette(tile, colorRGBA, propsRGBA, w, h, outOpaqueMin, outOpaqueMax))
+                    // Extract shared data once per type
+                    if (!m_colorByType.count(key) || !m_propsByType.count(key))
                     {
-                        EE_CORE_WARN("ExtractPixelsFromTilePallette failed for tile '{}'", tile.name);
-                        continue;
+                        glm::ivec2 outOpaqueMin = glm::ivec2(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
+                        glm::ivec2 outOpaqueMax = glm::ivec2(-1);
+
+                        std::vector<uint8_t> colorRGBA, propsRGBA;
+                        int w = 0, h = 0;
+
+                        if (!AssetManager::ExtractPixelsAndPropertiesFromTilePallette(
+                            tile, colorRGBA, propsRGBA, w, h, outOpaqueMin, outOpaqueMax))
+                        {
+                            EE_CORE_WARN("ExtractPixelsFromTilePallette failed for tile '{}'", tile.name);
+                            continue;
+                        }
+
+                        m_colorByType.emplace(key, ColorTemplate{ w, h, std::move(colorRGBA) });
+                        m_propsByType.emplace(key, PropsTemplate{ w, h, std::move(propsRGBA) });
+                        m_opaqueByType.emplace(key, std::make_pair(outOpaqueMin, outOpaqueMax));
                     }
-                    tile.opaqueMax = outOpaqueMax;
-                    tile.opaqueMin = outOpaqueMin;
 
+                    // Apply shared opaque bounds to every instance
+                    auto opIt = m_opaqueByType.find(key);
+                    if (opIt != m_opaqueByType.end())
+                    {
+                        tile.opaqueMin = opIt->second.first;
+                        tile.opaqueMax = opIt->second.second;
+                    }
 
-                    m_colorByUID.emplace(uid, ColorTemplate{ w, h, std::move(colorRGBA) });
-                    m_propsByUID.emplace(uid, PropsTemplate{ w, h, std::move(propsRGBA) });
+                    // Fill per-UID maps for every tile, not just first of type
+                    const auto& sharedColor = m_colorByType.at(key);
+                    const auto& sharedProps = m_propsByType.at(key);
+
+                    m_colorByUID[uid] = ColorTemplate{ sharedColor.w, sharedColor.h, sharedColor.rgba };
+                    m_propsByUID[uid] = PropsTemplate{ sharedProps.w, sharedProps.h, sharedProps.rgba };
                 }
             });
         
@@ -273,14 +313,47 @@ namespace Engine {
     }
 
 
+    TileTypeKey TileManager::MakeTileTypeKey(const TileInfo& tile) const
+    {
+        TileTypeKey key{};
+        key.name = tile.name;
+        key.uv = tile.UV;
+        key.category = tile.Category;
+        key.direction = tile.TileDirection;
+        return key;
+    }
+
+    bool TileManager::GetOriginalTileData(uint64_t uid, const std::vector<uint8_t>*& color, const std::vector<uint8_t>*& props) const
+    {
+        color = nullptr;
+        props = nullptr;
+
+        auto itType = m_typeByUID.find(uid);
+        if (itType == m_typeByUID.end())
+            return false;
+
+        const TileTypeKey& key = itType->second;
+
+        auto itColor = m_colorByType.find(key);
+        auto itProps = m_propsByType.find(key);
+
+        if (itColor == m_colorByType.end() || itProps == m_propsByType.end())
+            return false;
+
+        color = &itColor->second.rgba;
+        props = &itProps->second.rgba;
+        return true;
+    }
+
     void TileManager::ClearTemplates()
     {
         m_colorByUID.clear();
         m_propsByUID.clear();
 
-        
-        m_colorByUID.rehash(0);
-        m_propsByUID.rehash(0);
+        m_colorByType.clear();
+        m_propsByType.clear();
+        m_typeByUID.clear();
+        m_opaqueByType.clear();
     }
 
     void TileManager::Update(Scene* scene, glm::vec2 playerPos)
