@@ -35,7 +35,7 @@ namespace Engine {
 		std::vector<glm::vec2> FindPathWorld(const glm::vec2& startWorld, const glm::vec2& goalWorld) const;
 
 
-		std::vector<SubCellOBB>& GetGridSubcells() { return  m_blockedSubCells; }
+		const std::vector<SubCellOBB>& GetGridSubcells() { return  m_blockedSubCells; }
 		void DrawDebugBlockedTiles() const;
 		void DebugDrawPath(const std::vector<glm::vec3>& path) const;
 		

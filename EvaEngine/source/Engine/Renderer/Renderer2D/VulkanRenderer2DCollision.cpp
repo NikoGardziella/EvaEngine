@@ -67,6 +67,7 @@ namespace Engine {
 		s_CollisionData.playerEntities[playerIndex].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
 		s_CollisionData.playerEntities[playerIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
 	}
+
 	void VulkanRenderer2D::ReadAndResetCollisionBuffer(uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
@@ -101,7 +102,7 @@ namespace Engine {
 		VkResult fenceStatus = vkGetFenceStatus(m_device, m_inFlightFences[readIdx]);
 		if (fenceStatus == VK_NOT_READY)
 		{
-			// Do not stall. Keep previous CPU-side collision results this frame.
+			// Do not stall. Collision results remain empty this frame.
 			return;
 		}
 

@@ -13,15 +13,16 @@ void PlayerCollisionSystem::UpdatePlayerCollision(float dt, Engine::Scene* scene
     EE_PROFILE_FUNCTION();
 
     
-    scene->ForEach<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent >(
+    const auto& walls = scene->GetGrid()->GetGridSubcells();
+
+    scene->ForEach<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent>(
         [&](Engine::Entity e, Engine::TransformComponent& trsformComp, CharacterControllerComponent& ctrlComp, Engine::CircleCollider2DComponent& cir)
         {
             glm::vec2 p0 = glm::vec2(trsformComp.Translation);
-            glm::vec2 delta = ctrlComp.velocity * (ctrlComp.speed * dt); // your move
-            float     R = cir.Radius;
+            glm::vec2 delta = ctrlComp.velocity * (ctrlComp.speed * dt);
+            float R = cir.Radius;
 
-            glm::vec2 p1 = CollideAndSlideOBBs(scene->GetGrid()->GetGridSubcells(), p0, delta, R);
-
+            glm::vec2 p1 = CollideAndSlideOBBs(walls, p0, delta, R);
 
             trsformComp.Translation.x = p1.x;
             trsformComp.Translation.y = p1.y;
@@ -36,7 +37,7 @@ PlayerCollisionSystem::SweepHit PlayerCollisionSystem::SweepCircleVsOBB(const En
     SweepHit out;
 
     // Ensure unit frame
-    glm::vec2 t = glm::normalize(obb.tangent);
+    glm::vec2 t = obb.tangent; // already normalized
     glm::vec2 n = perpCCW(t);
 
     // Transform into OBB local
@@ -104,57 +105,100 @@ PlayerCollisionSystem::SweepHit PlayerCollisionSystem::SweepCircleVsOBB(const En
     out.point = obb.center + t * hitLocal.x + n * hitLocal.y;
     return out;
 }
-
-glm::vec2 PlayerCollisionSystem::CollideAndSlideOBBs(const std::vector<Engine::SubCellOBB>& walls,
-    glm::vec2 pos, glm::vec2 delta, float radius)
+glm::vec2 PlayerCollisionSystem::CollideAndSlideOBBs(
+    const std::vector<Engine::SubCellOBB>& walls,
+    glm::vec2 pos,
+    glm::vec2 delta,
+    float radius)
 {
     glm::vec2 rem = delta;
-    const float skin = 1e-3f * (radius + 1.f);   // tiny constant
-    const int   maxIters = 4;
+    const float skin = 1e-3f * (radius + 1.f);
+    const int maxIters = 4;
 
     for (int iter = 0; iter < maxIters; ++iter)
     {
-        // Find earliest collision on this segment
-        SweepHit best;
+        const AABB2 sweptAABB = MakeSweptAABB(pos, rem, radius);
+
+        SweepHit bestDynamic{};
+        bool hasStaticPush = false;
+        glm::vec2 staticPushPos = pos;
+        glm::vec2 staticPushNormal(0.0f);
+        float staticPushDist2 = 0.0f;
+
         for (const auto& obb : walls)
         {
-            SweepHit h = SweepCircleVsOBB(obb, pos, rem, radius, skin);
-            if (!h.hit) continue;
+            // Cheap broadphase first
+            const AABB2 obbAABB = MakeOBBAABB(obb);
+            if (!Overlaps(sweptAABB, obbAABB))
+                continue;
 
-            // Static overlap path (toi==0): apply separation and keep going
-            if (h.toi == 0.f && glm::length2(h.normal) > 0.f) {
-                pos = h.point;
-                // remove only inward component
-                float vn = glm::dot(rem, h.normal);
-                if (vn < 0.f) rem -= h.normal * vn;
+            SweepHit h = SweepCircleVsOBB(obb, pos, rem, radius, skin);
+            if (!h.hit)
+                continue;
+
+            // Static overlap candidate: keep only the strongest push
+            if (h.toi == 0.0f && glm::length2(h.normal) > 0.0f)
+            {
+                glm::vec2 pushVec = h.point - pos;
+                float d2 = glm::length2(pushVec);
+
+                if (!hasStaticPush || d2 > staticPushDist2)
+                {
+                    hasStaticPush = true;
+                    staticPushPos = h.point;
+                    staticPushNormal = h.normal;
+                    staticPushDist2 = d2;
+                }
                 continue;
             }
 
-            if (!best.hit || h.toi < best.toi) best = h;
+            // Earliest dynamic hit wins
+            if (!bestDynamic.hit || h.toi < bestDynamic.toi)
+                bestDynamic = h;
         }
 
-        if (!best.hit) { pos += rem; break; }
+        // Prefer dynamic collision if found
+        if (bestDynamic.hit)
+        {
+            float tMove = std::max(0.0f, bestDynamic.toi - 1e-4f);
+            pos += rem * tMove;
 
-        // Advance to just before contact
-        float tMove = std::max(0.f, best.toi - 1e-4f);
-        pos += rem * tMove;
+            glm::vec2 leftover = rem * (1.0f - tMove);
 
-        // Leftover motion this iteration
-        glm::vec2 leftover = rem * (1.f - tMove);
+            float vn = glm::dot(leftover, bestDynamic.normal);
+            if (vn < 0.0f)
+                leftover -= bestDynamic.normal * vn;
 
-        // Remove ONLY the inward normal component (keep tangent + outward)
-        float vn = glm::dot(leftover, best.normal);
-        if (vn < 0.f) leftover -= best.normal * vn;
+            pos += bestDynamic.normal * skin;
 
-        // Small, constant nudge off the surface
-        pos += best.normal * skin;
+            if (glm::length2(leftover) < 1e-10f)
+                break;
 
-        if (glm::length2(leftover) < 1e-10f) break;
-        rem = leftover;
+            rem = leftover;
+            continue;
+        }
+
+        // No dynamic hit, but overlapping: resolve once
+        if (hasStaticPush)
+        {
+            pos = staticPushPos;
+
+            float vn = glm::dot(rem, staticPushNormal);
+            if (vn < 0.0f)
+                rem -= staticPushNormal * vn;
+
+            if (glm::length2(rem) < 1e-10f)
+                break;
+
+            continue;
+        }
+
+        // No collision at all
+        pos += rem;
+        break;
     }
 
     return pos;
 }
-
 
 
