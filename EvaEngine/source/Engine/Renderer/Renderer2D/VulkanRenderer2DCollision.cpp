@@ -68,7 +68,6 @@ namespace Engine {
 		s_CollisionData.playerEntities[playerIndex].ID_High = static_cast<uint32_t>(entityID >> 32);
 	}
 
-
 	void VulkanRenderer2D::ReadAndResetCollisionBuffer(uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();
@@ -76,10 +75,15 @@ namespace Engine {
 		const uint32_t readIdx = (currentFrame + MAX_FRAMES_IN_FLIGHT - 1) % MAX_FRAMES_IN_FLIGHT;
 		const uint32_t writeIdx = currentFrame;
 
-		vkWaitForFences(m_device, 1, &m_inFlightFences[readIdx], VK_TRUE, UINT64_MAX);
+		{
+			EE_PROFILE_SCOPE("WaitForCollisionFence");
+			vkWaitForFences(m_device, 1, &m_inFlightFences[readIdx], VK_TRUE, UINT64_MAX);
+		}
 
 		CollisionResultBuffer collisionResult{};
 		{
+			EE_PROFILE_SCOPE("CollisionInvalidateMemcpy");
+
 			VkMappedMemoryRange inv{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
 			inv.memory = m_vulkanGraphicsPipelines->GetGPUCollisionMemory(readIdx);
 			inv.offset = 0;
@@ -89,8 +93,6 @@ namespace Engine {
 			std::memcpy(&collisionResult, m_collisionMapped[readIdx], sizeof(CollisionResultBuffer));
 		}
 
-
-		// 2) Convert to CPU vectors
 		CollisionResultsCPU::LatestProjectiles.clear();
 		m_hitsW.clear();
 		m_radiiW.clear();
@@ -98,23 +100,26 @@ namespace Engine {
 		s_CPUExplosionsData.CPUExplosions.clear();
 
 		{
+			EE_PROFILE_SCOPE("CollisionConvertCPU");
+
 			const uint32_t count = std::min(collisionResult.collisionCount, (uint32_t)MAX_COLLISION_RESULTS);
+
+			if (collisionResult.collisionCount > MAX_COLLISION_RESULTS)
+			{
+				EE_CORE_WARN("Collision buffer overflow: {} > {}", collisionResult.collisionCount, MAX_COLLISION_RESULTS);
+			}
+
 			for (uint32_t i = 0; i < count; ++i)
 			{
 				const auto& r = collisionResult.results[i];
 
 				if (r.collisionDetected == 0xFFFFFFFFu)
-				{
 					continue;
-				}
-				//EE_CORE_INFO("collision at world {} | {}", r.CollisionPosition.x, r.CollisionPosition.y);
 
-				// for effects pass
 				m_hitsW.push_back(r.CollisionPosition);
 				m_radiiW.push_back(r.DestructionRadius);
 				m_damages.push_back(r.Damage);
 
-				// for projectilSystem, grid, etc.
 				Collision coll{};
 				coll.EntityID = (uint64_t(r.hitProjectileID_High) << 32) | uint64_t(r.hitProjectileID_Low);
 				coll.HitPosition = r.CollisionPosition;
@@ -124,13 +129,13 @@ namespace Engine {
 			}
 		}
 
-		// 3) Reset writeIdx buffer for this frame’s compute
 		{
+			EE_PROFILE_SCOPE("CollisionResetWriteBuffer");
+
 			CollisionResultBuffer* buf = m_collisionMapped[writeIdx];
 
-			// Clear the whole struct once (like before), but using the mapped pointer.
 			std::memset(buf, 0xFF, sizeof(CollisionResultBuffer));
-			buf->collisionCount = 0; // override if you don't want 0xFFFFFFFF here
+			buf->collisionCount = 0;
 
 			VkMappedMemoryRange fl{ VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
 			fl.memory = m_vulkanGraphicsPipelines->GetGPUCollisionMemory(writeIdx);
@@ -139,7 +144,6 @@ namespace Engine {
 			vkFlushMappedMemoryRanges(m_device, 1, &fl);
 		}
 	}
-
 
 
 	void VulkanRenderer2D::CalculateCollisionFrame(uint32_t currentFrame, VkCommandBuffer cmd)
