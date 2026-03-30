@@ -8,7 +8,7 @@
 
 namespace Engine {
 
-
+    
 	class Entity
 	{
 	public:
@@ -98,7 +98,7 @@ namespace Engine {
         operator entt::entity() const { return m_entityHandle; }
         operator bool() const { return m_entityHandle != entt::null; }
         operator uint32_t() const { return (uint32_t)m_entityHandle; }
-
+        
         UUID GetUUID() { return GetComponent<IDComponent>().ID; }
         const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
 
@@ -116,6 +116,7 @@ namespace Engine {
         entt::entity Handle() const noexcept { return m_entityHandle; }
         Scene* ScenePtr() const noexcept { return m_scene; }
 
+        
 	private:
         entt::entity m_entityHandle{ entt::null };
 		Scene* m_scene = nullptr;

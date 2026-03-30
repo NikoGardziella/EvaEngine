@@ -23,6 +23,7 @@ namespace Engine {
 		bool PromoteSingleTileIntoExistingGroup(Scene* scene, uint64_t groupId, const glm::ivec2& worldCell, Ref<TileManager> tileManager);
 		void RegisterPromotedTile(Entity entity, TileInfo& tile);
 
+		void RemoveSingleTileFromExistingGroup(Scene* scene, uint64_t groupId, const glm::ivec2& worldCell, Ref<TileManager> tileManager);
 		
 		bool IsGroupPromoted(uint64_t groupId);
 	private:
@@ -31,6 +32,7 @@ namespace Engine {
 
 		void UnregisterPromotedEntity(uint64_t groupId);
 		Entity GetPromotedEntity(uint64_t groupId);
+
 
 
 	private:

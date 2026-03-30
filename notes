@@ -297,7 +297,7 @@ use fog of war for tile and roof opacity
     -zombie collisions. box2d? done. could be added everywhere
 
     - make it not look like shit please
-    - prefabs       
+    - prefabs       - done
     - doors
     - windows
     - tiles damage effect
@@ -306,7 +306,7 @@ use fog of war for tile and roof opacity
     - clean EndFrame() 
 
 
-    - dynamic object. like barrel or something
+    - dynamic object. like barrels an stuff
 
     - add height?
 }

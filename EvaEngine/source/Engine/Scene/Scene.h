@@ -122,7 +122,12 @@ namespace Engine {
 			
 		}
 
-
+		
+		bool Scene::IsEntityValid(entt::entity entityHandle) const
+		{
+			
+			return m_registry.valid(entityHandle);
+		}
 		Entity GetPrimaryCameraEntity();
 		TextureStreamingSystem& GetTextureStreamingSystem() { return *m_textureStreamingSystem; }
 

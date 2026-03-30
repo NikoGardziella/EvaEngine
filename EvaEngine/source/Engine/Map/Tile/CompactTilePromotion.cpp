@@ -271,6 +271,46 @@ namespace Engine
 
         return it->second;
     }
+    void CompactTilePromotion::RemoveSingleTileFromExistingGroup(
+        Scene* scene,
+        uint64_t groupId,
+        const glm::ivec2& worldCell,
+        Ref<TileManager> tileManager)
+    {
+        if (!scene || groupId == 0)
+            return;
+
+        Entity e = GetPromotedEntity(groupId);
+        if (!e || !e.HasComponent<TransformComponent>() || !e.HasComponent<TileComponent>())
+            return;
+
+        TransformComponent& tr = e.GetComponent<TransformComponent>();
+        TileComponent& tc = e.GetComponent<TileComponent>();
+
+        const glm::vec2 tileWorldPos = IsoTileUtils::IsoToWorldGround(worldCell);
+        const glm::vec2 localTarget = tileWorldPos - glm::vec2(tr.Translation);
+
+        auto it = std::find_if(tc.tiles.begin(), tc.tiles.end(),
+            [&](const TileInfo& t)
+            {
+                return std::abs(t.position.x - localTarget.x) < 0.001f &&
+                    std::abs(t.position.y - localTarget.y) < 0.001f;
+            });
+
+        if (it != tc.tiles.end())
+        {
+            // Optional if your TileManager has unregister functions
+            //tileManager->UnregisterPromotedTile(e, *it);
+            // tileManager->UnregisterPromotedTileResidency(scene, e, *it, glm::vec2(tr.Translation));
+
+            tc.tiles.erase(it);
+        }
+
+        if (tc.tiles.empty())
+        {
+            scene->DestroyEntity(e);
+        }
+    }
 
  
 

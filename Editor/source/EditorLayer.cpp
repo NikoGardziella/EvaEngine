@@ -878,6 +878,7 @@ namespace Engine {
         return newTile;
     }
 
+
     CompactTile EditorLayer::PaintCompactTileAtSelection(Entity selectedEntity)
     {
         Ref<Scene> scene = m_editor->GetGameLayer()->GetActiveGameScene();
@@ -898,7 +899,7 @@ namespace Engine {
         }
        
 
-        if (!selectedEntity)
+        if (!selectedEntity || !scene->IsEntityValid(selectedEntity))
         {
             // no entity selected. create new one- this probably should be destroyed at Runtimestart?
 
