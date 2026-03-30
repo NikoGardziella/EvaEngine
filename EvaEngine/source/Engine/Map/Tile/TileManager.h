@@ -9,17 +9,24 @@ namespace Engine {
 	class Scene;
 	class TileManager {
 
+	public:
 
 	public:
 
+		static TileTypeKey MakeTileTypeKey(const TileInfo& tile);
+
+		void RegisterPromotedEntityResidency(Scene* scene, Entity entity, const glm::vec2& focusPos);
+
+		void RegisterPromotedEntity(Entity entity);
 
 
 		void BuildInitialResidency(Scene* scene);
 
+		void RegisterPromotedTileResidency(Scene* scene, Entity entity, TileInfo& tile, const glm::vec2& focusPos);
+
 		uint32_t EnsureVisualResident(uint64_t uid);
 
 		void BuildTemplatesForScene(Scene* scene);
-		TileTypeKey MakeTileTypeKey(const TileInfo& tile) const;
 		bool GetOriginalTileData(uint64_t uid, const std::vector<uint8_t>*& color, const std::vector<uint8_t>*& props) const;
 		void ClearTemplates();
 		void Update(Scene* scene, glm::vec2 playerPos);
@@ -30,6 +37,8 @@ namespace Engine {
 			m_tileWorldH = h;
 		}
 
+		void RegisterPromotedTile(Entity entity, TileInfo& tile);
+	private:
 
 		
 		
@@ -65,6 +74,7 @@ namespace Engine {
 		float m_tileWorldH = TILE_PIXEL_HEIGHT;
 
 		TileStreamingSystem m_streaming;
+		
 	};
 }
 

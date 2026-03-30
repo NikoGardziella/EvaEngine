@@ -56,6 +56,15 @@ namespace Engine {
         }
 
         template<typename T>
+        const T& GetComponent() const
+        {
+            EE_CORE_ASSERT(m_scene, "Entity has no valid scene!");
+            EE_CORE_ASSERT(m_entityHandle != entt::null, "Invalid entity handle!");
+            EE_CORE_ASSERT(HasComponent<T>(), "Entity does not have component");
+            return m_scene->m_registry.get<T>(m_entityHandle);
+        }
+
+        template<typename T>
         T* TryGetComponent()
         {
             EE_CORE_ASSERT(m_scene, "Entity has no valid scene!");

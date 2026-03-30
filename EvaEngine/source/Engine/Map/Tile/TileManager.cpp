@@ -10,8 +10,8 @@
 #include <Engine/Map/Grid/TileCollisionMask.h>
 
 namespace Engine {
-
    
+
     // Build / UID map -> open one - shot CB -> upload color / props to array
     // layers & write descriptors -> cache per - slot origin / content rect -> submit & wait.
     //After this, per frame  only submit instances;
@@ -97,6 +97,84 @@ namespace Engine {
         uint64_t grenadeUID = HashUtils::MakeTileUID_String("grenade");
         uint32_t grenadeSlot = EnsureVisualResident(grenadeUID);
         ProjectileVisual::RegisterVisual(ProjectileVisualType::Grenade, grenadeUID, grenadeSlot);
+    }
+
+
+
+    void TileManager::RegisterPromotedTileResidency(Scene* scene, Entity entity, TileInfo& tile, const glm::vec2& focusPos)
+    {
+        if (!scene || !entity)
+            return;
+
+        if (!entity.HasComponent<TransformComponent>())
+            return;
+
+        if (tile.Category == eTileCategory::Terrain)
+            return;
+
+        TransformComponent& tr = entity.GetComponent<TransformComponent>();
+
+        // Make sure type/template data exists first
+       // RegisterPromotedTile(entity, tile);
+
+        const std::vector<uint8_t>* color = nullptr;
+        const std::vector<uint8_t>* props = nullptr;
+
+        if (!GetOriginalTileData(tile.UID, color, props))
+        {
+            EE_CORE_WARN("RegisterPromotedTileResidency: missing original data for uid {:016x} '{}'",
+                tile.UID, tile.name);
+            return;
+        }
+
+        const glm::vec2 center = glm::vec2(tr.Translation) + glm::vec2(tile.position);
+        m_centerByUID[tile.UID] = center;
+
+        // If already registered in streaming, just refresh slot from there
+        uint32_t existingSlot = m_streaming.GetSlot(tile.UID);
+        if (existingSlot != UINT32_MAX)
+        {
+            tile.Slot = existingSlot;
+            m_slotByUID[tile.UID] = existingSlot;
+            return;
+        }
+
+        // Decide initial residency based on distance to focus/player
+        const float dist = glm::distance(center, focusPos);
+        TileResidency initialResidency =
+            (dist <= 30.0f) ? TileResidency::CPU : TileResidency::Disk;
+
+        m_streaming.RegisterTileInitial(
+            tile.UID,
+            center,
+            *color,
+            *props,
+            tile.opaqueMin,
+            tile.opaqueMax,
+            tile.name,
+            UINT32_MAX,
+            initialResidency
+        );
+
+        // If near enough, upload immediately so it gets a valid runtime slot now
+        if (dist <= 30.0f)
+        {
+            auto it = m_streaming.GetEntires().find(tile.UID); // if private, wrap this in a method instead
+            if (it != m_streaming.GetEntires().end())
+            {
+                if (it->second.residency == TileResidency::Disk)
+                    m_streaming.LoadFromDisk(it->second);
+
+                if (it->second.residency == TileResidency::CPU)
+                    m_streaming.UploadToGPU(it->second, scene);
+            }
+        }
+
+        tile.Slot = m_streaming.GetSlot(tile.UID);
+        if (tile.Slot != UINT32_MAX)
+        {
+            m_slotByUID[tile.UID] = tile.Slot;
+        }
     }
 
     uint32_t TileManager::EnsureVisualResident(uint64_t uid)
@@ -296,7 +374,7 @@ namespace Engine {
     }
 
 
-    TileTypeKey TileManager::MakeTileTypeKey(const TileInfo& tile) const
+    TileTypeKey TileManager::MakeTileTypeKey(const TileInfo& tile)
     {
         TileTypeKey key{};
         key.name = tile.name;
@@ -306,7 +384,101 @@ namespace Engine {
         return key;
     }
 
+    void TileManager::RegisterPromotedEntityResidency(Scene* scene, Entity entity, const glm::vec2& focusPos)
+    {
+        if (!entity || !entity.HasComponent<TileComponent>())
+            return;
 
+        TileComponent& tc = entity.GetComponent<TileComponent>();
+
+        for (TileInfo& tile : tc.tiles)
+        {
+            RegisterPromotedTileResidency(scene, entity, tile, focusPos);
+        }
+    }
+
+    void TileManager::RegisterPromotedEntity(Entity entity)
+    {
+        if (!entity || !entity.HasComponent<TileComponent>())
+            return;
+
+        TileComponent& tc = entity.GetComponent<TileComponent>();
+
+        for (TileInfo& tile : tc.tiles)
+        {
+            RegisterPromotedTile(entity, tile);
+        }
+    }
+
+ 
+
+ 
+
+    void TileManager::RegisterPromotedTile(Entity entity, TileInfo& tile)
+    {
+        if (!entity)
+            return;
+
+        if (!entity.HasComponent<TransformComponent>() ||
+            !entity.HasComponent<IDComponent>())
+        {
+            return;
+        }
+
+        TransformComponent& tr = entity.GetComponent<TransformComponent>();
+        IDComponent& idComp = entity.GetComponent<IDComponent>();
+
+        if (tile.Category == eTileCategory::Terrain)
+            return;
+
+        uint64_t uid = tile.UID;
+        if (!uid)
+        {
+            uid = HashUtils::MakeTileUID(
+                (uint64_t)idComp.ID,
+                tile.position,
+                float(TILE_SIZE),
+                (uint32_t)tile.Category);
+
+            tile.UID = uid;
+        }
+
+        TileTypeKey key = MakeTileTypeKey(tile);
+        m_typeByUID[uid] = key;
+
+        // Extract shared source data only once per type
+        if (!m_colorByType.count(key) || !m_propsByType.count(key))
+        {
+            glm::ivec2 outOpaqueMin = glm::ivec2(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
+            glm::ivec2 outOpaqueMax = glm::ivec2(-1);
+
+            std::vector<uint8_t> colorRGBA, propsRGBA;
+            int w = 0, h = 0;
+
+            if (!AssetManager::ExtractPixelsAndPropertiesFromTilePallette(
+                tile, colorRGBA, propsRGBA, w, h, outOpaqueMin, outOpaqueMax))
+            {
+                EE_CORE_WARN("RegisterPromotedTile: ExtractPixelsFromTilePallette failed for tile '{}'", tile.name);
+                return;
+            }
+
+            m_colorByType.emplace(key, ColorTemplate{ w, h, std::move(colorRGBA) });
+            m_propsByType.emplace(key, PropsTemplate{ w, h, std::move(propsRGBA) });
+            m_opaqueByType.emplace(key, std::make_pair(outOpaqueMin, outOpaqueMax));
+        }
+
+        // Apply shared opaque bounds
+        auto opIt = m_opaqueByType.find(key);
+        if (opIt != m_opaqueByType.end())
+        {
+            tile.opaqueMin = opIt->second.first;
+            tile.opaqueMax = opIt->second.second;
+        }
+
+        // Optional: center cache if you still use it
+        glm::vec2 center = glm::vec2(tr.Translation) + glm::vec2(tile.position);
+        m_centerByUID[uid] = center;
+    }
     bool TileManager::GetOriginalTileData(uint64_t uid, const std::vector<uint8_t>*& color, const std::vector<uint8_t>*& props) const
     {
         color = nullptr;

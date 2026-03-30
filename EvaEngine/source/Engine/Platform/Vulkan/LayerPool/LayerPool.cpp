@@ -37,7 +37,12 @@ namespace Engine {
     }
     uint32_t LayerPool::Acquire()
     {
-        EE_CORE_ASSERT(!m_free.empty(), "LayerPool: out of layers");
+        if (m_free.empty())
+        {
+            EE_CORE_WARN("LayerPool: out of layers");
+
+        }
+        //EE_CORE_ASSERT(!m_free.empty(), "LayerPool: out of layers");
         uint32_t idx = m_free.front(); m_free.pop();
         return idx;
     }

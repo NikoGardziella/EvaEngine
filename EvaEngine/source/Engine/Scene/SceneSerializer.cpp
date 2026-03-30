@@ -19,6 +19,7 @@
 #include <Engine/Core/Assert.h>
 #include "Engine/Scene/Components/Map/AreaComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"
+#include <Engine/Map/Tile/TileDefinitionRegistry.h>
 
 namespace Engine {
 
@@ -360,6 +361,16 @@ namespace Engine {
             {
                 return true;
             }
+            if (entity.HasComponent<TileComponent>())
+            {
+                // use compact tiles for saving
+                return true;
+            }
+            if (!entity.HasComponent<TransformComponent>())
+            {
+                // ignore all withou ttransform
+                return true;
+            }
 
             return false;
         }
@@ -414,6 +425,7 @@ namespace Engine {
                 SerializeVehicleComponent(entity, out);
             if (entity.HasComponent<AreaComponent>())
                 SerializeAreaComponent(entity, out);
+
 
 
 
@@ -866,9 +878,74 @@ namespace Engine {
 
     }
 
+
+    inline void SerializeTileDefinitions(Ref<Scene> scene, YAML::Emitter& out)
+    {
+        const TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+
+        for (const auto& [typeId, def] : defs.GetDefinitions())
+        {
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "TypeId" << YAML::Value << def.TypeId;
+            out << YAML::Key << "Name" << YAML::Value << def.Name;
+            out << YAML::Key << "UV" << YAML::Value << YAML::Flow
+                << std::vector<float>{ def.UV.x, def.UV.y, def.UV.z, def.UV.w };
+
+            out << YAML::Key << "Category" << YAML::Value << ToString(def.Category);
+            out << YAML::Key << "Direction" << YAML::Value << TileDirectionToString(def.Direction);
+            out << YAML::Key << "Material" << YAML::Value << ToString(def.Material);
+            out << YAML::Key << "BaseHealth" << YAML::Value << def.BaseHealth;
+            out << YAML::Key << "IsDestructible" << YAML::Value << def.IsDestructible;
+            out << YAML::Key << "IsSupportingRoof" << YAML::Value << def.IsSupportingRoof;
+            out << YAML::Key << "IsRoof" << YAML::Value << def.IsRoof;
+
+            out << YAML::EndMap;
+        }
+
+    }
+
+
+    inline void SerializeCompactTiles(Ref<Scene> scene, YAML::Emitter& out)
+    {
+        const CompactTileMap& compactMap = scene->GetCompactTileMap();
+
+        for (const auto& [chunkCoord, chunk] : compactMap.GetChunks())
+        {
+            const glm::ivec2 chunkOriginCell = ChunkCoordToWorldOrigin(chunkCoord);
+
+            for (int y = 0; y < TILE_CHUNK_H; ++y)
+            {
+                for (int x = 0; x < TILE_CHUNK_W; ++x)
+                {
+                    const CompactTile& tile = chunk.At(x, y);
+
+                    if (tile.IsEmpty())
+                        continue;
+
+                    const glm::ivec2 worldCell = chunkOriginCell + glm::ivec2(x, y);
+
+                    out << YAML::BeginMap;
+
+                    out << YAML::Key << "Cell" << YAML::Value << YAML::Flow
+                        << std::vector<int>{ worldCell.x, worldCell.y };
+
+                    out << YAML::Key << "TypeId" << YAML::Value << tile.TypeId;
+                    out << YAML::Key << "Flags" << YAML::Value << (int)tile.Flags;
+                    out << YAML::Key << "Aux" << YAML::Value << (int)tile.Aux;
+                    out << YAML::Key << "GroupId" << YAML::Value << tile.GroupId;
+
+                    out << YAML::EndMap;
+                }
+            }
+        }
+    }
+
+
+
+
     void SceneSerializer::Serialize(const std::string& filepath)
     {
-        
         std::filesystem::path filePath(filepath);
         if (!std::filesystem::exists(filePath.parent_path()))
         {
@@ -876,25 +953,34 @@ namespace Engine {
         }
 
         YAML::Emitter out;
-        out << YAML::BeginMap;
-        out << YAML::Key << "Scene" << YAML::Value << "My Scene"; // Customize scene metadata as needed.
-        out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
+        out << YAML::BeginMap; // Start Scene Map
+        out << YAML::Key << "Scene" << YAML::Value << "My Scene";
 
-        // Iterate over all entities that have a TagComponent.
+        // --- 1. ENTITIES SECTION ---
+        out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         auto view = m_scene->m_registry.view<TagComponent>();
         for (auto entityID : view)
         {
             Entity entity{ entityID, m_scene.get() };
             SerializeUtils::SerializeEntity(entity, out);
         }
+        out << YAML::EndSeq; // Close Entities Sequence
 
-        out << YAML::EndSeq;
-        out << YAML::EndMap;
+        // --- 2. TILE DEFINITIONS SECTION ---
+        out << YAML::Key << "TileDefinitions" << YAML::Value << YAML::BeginSeq;
+        SerializeTileDefinitions(m_scene, out);
+        out << YAML::EndSeq; // Close TileDefinitions Sequence
+
+        // --- 3. COMPACT TILES SECTION ---
+        out << YAML::Key << "CompactTiles" << YAML::Value << YAML::BeginSeq;
+        SerializeCompactTiles(m_scene, out);
+        out << YAML::EndSeq; // Close CompactTiles Sequence
+
+        out << YAML::EndMap; // Close Scene Map
 
         std::ofstream fout(filepath);
         fout << out.c_str();
     }
-
 
 
 	void SceneSerializer::SerializeRuntime(const std::string& filepath)
@@ -905,7 +991,74 @@ namespace Engine {
 	}
 
 
+    inline void DeserializeTileDefinitions(Scene& scene, const YAML::Node& defsNode)
+    {
+        TileDefinitionRegistry& defs = scene.GetTileDefinitions();
 
+        for (const auto& defNode : defsNode)
+        {
+            TileDefinition def{};
+            TileTypeKey key{};
+
+            def.TypeId = defNode["TypeId"].as<uint16_t>();
+            def.Name = defNode["Name"].as<std::string>();
+
+            if (auto uvNode = defNode["UV"])
+            {
+                def.UV.x = uvNode[0].as<float>();
+                def.UV.y = uvNode[1].as<float>();
+                def.UV.z = uvNode[2].as<float>();
+                def.UV.w = uvNode[3].as<float>();
+            }
+
+            def.Category = CategoryFromString(defNode["Category"].as<std::string>());
+            def.Direction = TileDirectionFromString(defNode["Direction"].as<std::string>());
+            def.Material = MaterialFromString(defNode["Material"].as<std::string>());
+            def.BaseHealth = defNode["BaseHealth"].as<uint16_t>();
+            def.IsDestructible = defNode["IsDestructible"].as<bool>();
+            def.IsSupportingRoof = defNode["IsSupportingRoof"].as<bool>();
+            def.IsRoof = defNode["IsRoof"].as<bool>();
+
+            key.name = def.Name;
+            key.uv = def.UV;
+            key.category = def.Category;
+            key.direction = def.Direction;
+
+            defs.Register(def, key);
+        }
+    }
+
+    inline void DeserializeCompactTiles(Scene& scene, const YAML::Node& compactTilesNode)
+    {
+        CompactTileMap& compactMap = scene.GetCompactTileMap();
+
+        for (const auto& tileNode : compactTilesNode)
+        {
+            glm::ivec2 cell{};
+
+            if (auto cellNode = tileNode["Cell"])
+            {
+                cell.x = cellNode[0].as<int>();
+                cell.y = cellNode[1].as<int>();
+            }
+            else
+            {
+                continue;
+            }
+
+            CompactTile& tile = compactMap.GetOrCreateTile(cell);
+
+            tile.TypeId = tileNode["TypeId"].as<uint16_t>();
+            //tile.Flags = static_cast<uint8_t>(tileNode["Flags"].as<int>());
+            tile.Flags = CompactTileFlags::None;
+            tile.Aux = static_cast<uint8_t>(tileNode["Aux"].as<int>());
+            tile.GroupId = tileNode["GroupId"].as<uint64_t>();
+
+            compactMap.RegisterCellForGroup(tile.GroupId, cell);
+            TileChunk& chunk = compactMap.GetOrCreateChunk(WorldCellToChunkCoord(cell));
+            chunk.DrawCacheDirty = true;
+        }
+    }
 
     bool SceneSerializer::Deserialize(const std::string& filepath)
     {
@@ -922,6 +1075,7 @@ namespace Engine {
             EE_CORE_ASSERT(false, "Failed to open file");
             return false;
         }
+
         std::stringstream strStream;
         strStream << stream.rdbuf();
 
@@ -930,21 +1084,38 @@ namespace Engine {
             return false;
 
         std::string sceneName = data["Scene"].as<std::string>();
-       // EE_CORE_TRACE("deserializing scene: '{0}' ", sceneName);
+
+        // -----------------------------
+        // 1) Entities
+        // -----------------------------
         auto entities = data["Entities"];
         if (entities)
         {
             for (const auto& entityNode : entities)
             {
-                uint32_t entityID = entityNode["ID"].as<uint64_t>();
+                uint64_t entityID = entityNode["ID"].as<uint64_t>();
                 Entity entity = m_scene->CreateEntityWithUUID(entityID);
 
                 SerializeUtils::DeserializeEntity(entity, entityNode, m_scene);
-
-
-                // For Texture Streaming. Move somewhere
-               
             }
+        }
+
+        // -----------------------------
+        // 2) TileDefinitions
+        // -----------------------------
+        auto defsNode = data["TileDefinitions"];
+        if (defsNode)
+        {
+            DeserializeTileDefinitions(*m_scene, defsNode);
+        }
+
+        // -----------------------------
+        // 3) CompactTiles
+        // -----------------------------
+        auto compactTilesNode = data["CompactTiles"];
+        if (compactTilesNode)
+        {
+            DeserializeCompactTiles(*m_scene, compactTilesNode);
         }
 
         return true;

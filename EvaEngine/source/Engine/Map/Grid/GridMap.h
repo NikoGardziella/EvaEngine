@@ -18,6 +18,9 @@ namespace Engine {
 	{
 	public:
 		void BuildFromRegistry(Scene* scene);
+		void BuildFromTilesNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld);
+		void BuildFromCompactChunksNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld);
+		void UpdateCollisionAroundPlayer(Scene* scene, const glm::vec2& playerWorldPos);
 		void GridMap::MarkBlockedSubtilesFromTexture(const glm::vec2& worldPosition,
 			const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
 
@@ -102,6 +105,8 @@ namespace Engine {
 		std::vector<glm::vec2> m_subMin, m_subMax;
 
 		std::vector<uint32_t> m_subcellHitCount;
+
+		glm::vec2 m_LastGridBuildPos = glm::vec2(FLT_MAX);
 		struct DebugAABB {
 			glm::vec2 minW;
 			glm::vec2 maxW;

@@ -36,6 +36,11 @@ namespace Engine {
 
         void SetViewportSize(float width, float height);
 
+
+        glm::vec2 ScreenToWorld2D(const glm::vec2& screenPos, float worldZ) const;
+
+        void GetViewportWorldBounds2D(glm::vec2& outMin, glm::vec2& outMax, float worldZ) const;
+
         // Getters
         //glm::mat4 GetViewMatrix() const { return m_viewMatrix; }
         glm::mat4 GetProjectionMatrix() const { return m_projection; }
@@ -58,6 +63,7 @@ namespace Engine {
 
     private:
        
+        glm::vec3 ScreenToWorld(const glm::vec2& screenPos, float depthNdc) const;
 
         //void OnMouseScroll(const ImVec2& delta);
         void OnMousePan(const glm::vec2& delta);

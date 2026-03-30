@@ -18,6 +18,9 @@
 #include "Light/LightGatherSystem.h"
 #include "Physics/Box2DPhysicsSystem.h"
 #include "Components/Render/TileComponent.h"
+#include <Engine/Map/Tile/CompactTileMap.h>
+#include <Engine/Map/Tile/TileDefinitionRegistry.h>
+#include <Engine/Map/Tile/CompactTilePromotion.h>
 
 
 namespace Engine {
@@ -61,7 +64,8 @@ namespace Engine {
 
 		void SpawnPlayer();
 
-		void CreateLotsOfTilesOnStartup(const std::string& tileName, const glm::vec4& uv, eTileCategory tileCategory, int width, int height, const glm::ivec2& startIsoCell);
+		void CreateLotsOfCompactTilesOnStartup(uint16_t typeId, int width, int height, const glm::ivec2& startIsoCell, uint64_t groupId);
+
 
 		void OnRunTimeStart();
 		void OnRunTimeStop();
@@ -138,8 +142,11 @@ namespace Engine {
 		void ClearRegistry() { m_registry.clear(); };
 		entt::registry& GetRegistry() { return m_registry;  }
 		
+		CompactTileMap& GetCompactTileMap() { return m_compactTileMap; }
+		TileDefinitionRegistry& GetTileDefinitions() { return m_tileDefinitions; }
+		CompactTilePromotion& GetCompactTilePromotion() { return m_compactTilePromotion; }
+		const Ref<TileManager> GetTileManager() const { return  m_tileMananger; }
 
-	
 		std::array<glm::vec2, 2>& GetViewportBounds() { return m_viewportBounds; }
 		uint32_t GetViewortHeight() { return m_viewportHeight; }
 		uint32_t GetViewportWidth() { return m_viewportWidth; }
@@ -192,8 +199,9 @@ namespace Engine {
 		bool m_debugDrawLOS = false;
 
 
-		
-
+		CompactTileMap m_compactTileMap;
+		TileDefinitionRegistry m_tileDefinitions;
+		CompactTilePromotion m_compactTilePromotion;
 
 
 		friend class Entity;

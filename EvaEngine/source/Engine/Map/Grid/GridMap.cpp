@@ -11,6 +11,7 @@
 #include "Engine/Map/Utils/IsoTileUtils.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Map/Grid/TileCollisionMask.h"
+#include <Engine/Core/Config.h>
 
 
 namespace Engine
@@ -232,8 +233,214 @@ namespace Engine
         RebuildSubcellBuckets();
     }
 
+    void GridMap::BuildFromTilesNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld)
+    {
+        EE_PROFILE_FUNCTION();
+
+        if (!scene)
+            return;
+
+        m_blockedSubCells.clear();
+        m_cellToSubcells.clear();
+
+        // --- measure iso diamond in world units ---
+        const glm::vec2 g00 = IsoTileUtils::IsoToWorldGround({ 0,0 });
+        const glm::vec2 gE = IsoTileUtils::IsoToWorldGround({ 1,-1 });
+        const glm::vec2 gS = IsoTileUtils::IsoToWorldGround({ 1, 1 });
+
+        const float CELL_W = std::abs(gE.x - g00.x);
+        const float CELL_H = std::abs(gS.y - g00.y);
+        if (CELL_W <= 0.0f || CELL_H <= 0.0f)
+            return;
+
+        constexpr int   SUBS = SUBDIVS;
+        constexpr float SHRINK_ALONG = 0.96f;
+        const float HALF_THICK_W = 0.5f * (0.22f * std::min(CELL_W, CELL_H));
+
+        enum class FootSide : uint8_t { North, East, South, West };
+
+        auto parseSide = [](const std::string& name) -> FootSide
+            {
+                auto pos = name.find_last_of('_');
+                if (pos != std::string::npos && pos + 1 < name.size())
+                {
+                    char c = (char)std::toupper(name[pos + 1]);
+                    if (c == 'N') return FootSide::North;
+                    if (c == 'E') return FootSide::East;
+                    if (c == 'S') return FootSide::South;
+                    if (c == 'W') return FootSide::West;
+                }
+                return FootSide::South;
+            };
+
+        auto edgeForSide = [&](FootSide side, const glm::vec2& S, glm::vec2& A, glm::vec2& B)
+            {
+                const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
+
+                switch (side)
+                {
+                case FootSide::North: A = N; B = E; break;
+                case FootSide::East:  A = E; B = S; break;
+                case FootSide::South: A = S; B = W; break;
+                case FootSide::West:  A = W; B = N; break;
+                }
+            };
+
+        auto emitEdgeSubcellsOnSide = [&](const glm::ivec2& cell, FootSide side, uint32_t slot)
+            {
+                const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
+
+                const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
+                const glm::vec2 C = (E + W + N + S);
+
+                glm::vec2 A{}, B{};
+                edgeForSide(side, S, A, B);
+
+                const glm::vec2 e = B - A;
+                const float L = glm::length(e);
+                if (L <= 1e-6f)
+                    return;
+
+                const glm::vec2 T = e / L;
+                glm::vec2 Nin = glm::vec2(-T.y, T.x);
+
+                if (glm::dot(Nin, C - 0.5f * (A + B)) < 0.0f)
+                    Nin = -Nin;
+
+                const float segLen = L / float(SUBS);
+                const float halfAlong = 0.5f * segLen * SHRINK_ALONG;
+
+                for (int s = 0; s < SUBS; ++s)
+                {
+                    const float t0 = float(s) * segLen;
+                    const float t1 = float(s + 1) * segLen;
+                    const float tm = 0.5f * (t0 + t1);
+                    const glm::vec2 P = A + T * tm;
+
+                    SubCellOBB obb;
+                    obb.center = P + Nin * HALF_THICK_W;
+                    obb.halfExtents = { halfAlong, HALF_THICK_W };
+                    obb.tangent = T;
+                    obb.TileSlot = slot;
+                    m_blockedSubCells.push_back(obb);
+                }
+            };
+
+        auto emitCenteredStrip = [&](const glm::ivec2& cell, float widthFrac, float thickFrac, float yNudgePx, uint32_t slot)
+            {
+                const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
+                const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
+                const glm::vec2 C = (E + W + N + S) * 0.25f;
+
+                const glm::vec2 T = glm::normalize(E - W);
+                const float halfAlong = 0.5f * widthFrac * 0.5f * CELL_W;
+                const float halfThick = 0.5f * thickFrac * std::min(CELL_W, CELL_H);
+
+                SubCellOBB obb;
+                obb.center = C + glm::vec2(0.0f, PxToWorld(yNudgePx));
+                obb.halfExtents = { halfAlong, halfThick };
+                obb.tangent = T;
+                obb.TileSlot = slot;
+                m_blockedSubCells.push_back(obb);
+            };
+
+        auto emitCenteredDiscApprox = [&](const glm::ivec2& cell, float radiusFrac, uint32_t slot)
+            {
+                const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
+                const glm::vec2 E = S + glm::vec2(+CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 W = S + glm::vec2(-CELL_W * 0.5f, -CELL_H * 0.5f);
+                const glm::vec2 N = S + glm::vec2(0.0f, -CELL_H);
+                const glm::vec2 C = (E + W + N + S) * 0.25f;
+
+                const float R = radiusFrac * 0.5f * std::min(CELL_W, CELL_H);
+
+                auto pushStrip = [&](const glm::vec2& T, uint32_t slotInner)
+                    {
+                        SubCellOBB obb;
+                        obb.center = C;
+                        obb.tangent = glm::normalize(T);
+                        obb.halfExtents = { R, 0.5f * R };
+                        obb.TileSlot = slotInner;
+                        m_blockedSubCells.push_back(obb);
+                    };
+
+                pushStrip(E - W, slot);
+                pushStrip(N - S, slot);
+            };
+
+        auto sideIsoOffset = [](FootSide s) -> glm::ivec2
+            {
+                switch (s)
+                {
+                case FootSide::North: return { +1, +1 };
+                case FootSide::South: return { +1, +1 };
+                case FootSide::East:  return { 0, +1 };
+                case FootSide::West:  return { +2, +1 };
+                }
+                return { 0, 0 };
+            };
+
+        const float radiusSq = radiusWorld * radiusWorld;
+
+        auto view = scene->GetRegistry().view<TileComponent, TransformComponent>();
+        for (auto e : view)
+        {
+            const auto& tc = view.get<TileComponent>(e);
+            const auto& tr = view.get<TransformComponent>(e);
+
+            for (const auto& t : tc.tiles)
+            {
+                if (t.Category == eTileCategory::Terrain)
+                    continue;
+
+                const glm::vec2 ground = glm::vec2(tr.Translation) + glm::vec2(t.position);
+
+                if (glm::length2(ground - playerWorldPos) > radiusSq)
+                    continue;
+
+                glm::ivec2 cell = IsoTileUtils::WorldToIsoCell(ground);
+
+                if (t.Category == eTileCategory::Buildings)
+                {
+                    FootSide side = parseSide(t.name);
+                    cell += sideIsoOffset(side);
+                    emitEdgeSubcellsOnSide(cell, side, t.Slot);
+                }
+                else if (t.Category == eTileCategory::dynamicObjects)
+                {
+                    constexpr float kDefaultWidthFrac = 0.35f;
+                    constexpr float kDefaultThickFrac = 0.12f;
+                    constexpr float yNudgePx = 90.f;
+                    constexpr bool  kUseDiscForPosts = false;
+
+                    if (kUseDiscForPosts)
+                        emitCenteredDiscApprox(cell, 0.18f, t.Slot);
+                    else
+                        emitCenteredStrip(cell, kDefaultWidthFrac, kDefaultThickFrac, yNudgePx, t.Slot);
+                }
+            }
+        }
+
+        RebuildSubcellBuckets();
+    }
 
 
+    void GridMap::UpdateCollisionAroundPlayer(Scene* scene, const glm::vec2& playerWorldPos)
+    {
+
+        if (glm::length2(playerWorldPos - m_LastGridBuildPos) < 4.0f)
+            return;
+
+        m_LastGridBuildPos = playerWorldPos;
+
+        BuildFromTilesNearPlayer(scene, playerWorldPos, 25.0f);
+    }
 
     void GridMap::MarkBlockedSubtilesFromTexture( const glm::vec2& worldPosition,
         const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight)

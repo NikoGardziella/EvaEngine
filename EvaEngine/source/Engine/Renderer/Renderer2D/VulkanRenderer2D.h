@@ -27,6 +27,7 @@
 #include <glm/glm.hpp>
 #include <Engine/Renderer/Renderer2D.h>
 #include <Engine/Scene/Components/Render/TileComponent.h>
+#include <Engine/Renderer/VertexArray.h>
 
 namespace Engine {
 

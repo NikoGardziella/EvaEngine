@@ -176,6 +176,11 @@ namespace Engine {
 
             }
 
+
+            {
+                //GetCompactTileMap().Render(m_tileDefinitions);
+            }
+
         }
         //Engine::Renderer::DrawFrame();
         Engine::VulkanRenderer2D::EndScene();

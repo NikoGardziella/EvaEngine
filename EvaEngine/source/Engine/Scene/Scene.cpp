@@ -37,6 +37,8 @@
 #include "../../../../Editor/source/EditorLayer.h"
 #include "../../../../Editor/source/Panels/Utils/EditorUtils.h"
 #include <Engine/Math/HashUtils.h>
+#include <Engine/Map/Tile/CompactTileMap.h>
+#include <Engine/Map/Tile/TileDefinitionRegistry.h>
 
 
 namespace Engine {
@@ -183,78 +185,68 @@ namespace Engine {
         
     }
 
-    void Scene::CreateLotsOfTilesOnStartup(
-        const std::string& tileName,
-        const glm::vec4& uv,
-        eTileCategory tileCategory,
+    void Scene::CreateLotsOfCompactTilesOnStartup(
+        uint16_t typeId,
         int width,
         int height,
-        const glm::ivec2& startIsoCell)
+        const glm::ivec2& startIsoCell,
+        uint64_t baseGroupId)
     {
-   
         EE_PROFILE_FUNCTION();
 
-        
-       const TileProperties& tileProps = AssetManager::GetTileProperties(tileName);
+        if (typeId == 0)
+        {
+            EE_CORE_WARN("CreateLotsOfCompactTilesOnStartup: invalid typeId 0");
+            return;
+        }
 
-        const bool destructible = (tileCategory == eTileCategory::Buildings);
-        const bool isRoof = (tileCategory == eTileCategory::Roofs);
-        const bool isSupportingRoof = (tileCategory == eTileCategory::Buildings || tileCategory == eTileCategory::Pillars);
+        if (width <= 0 || height <= 0)
+        {
+            EE_CORE_WARN("CreateLotsOfCompactTilesOnStartup: invalid size {} x {}", width, height);
+            return;
+        }
 
-        // Create one entity anchored at the first tile ground position
-        Entity newEntity = CreateEntity();
-        TransformComponent& transformCmp = newEntity.AddComponent<TransformComponent>();
-        IDComponent& idComp = newEntity.GetComponent<IDComponent>();
-        TileComponent& tileComp = newEntity.AddComponent<TileComponent>();
+        CompactTileMap& compactMap = GetCompactTileMap();
 
-        glm::vec2 startGroundPos = IsoTileUtils::IsoToWorldGround(startIsoCell);
-        transformCmp.Translation.x = startGroundPos.x;
-        transformCmp.Translation.y = startGroundPos.y;
+        // One compact group per block
+        constexpr int GROUP_BLOCK_W = 4;
+        constexpr int GROUP_BLOCK_H = 4;
 
-        tileComp.tiles.reserve(static_cast<size_t>(width) * static_cast<size_t>(height));
+        int placedCount = 0;
 
         for (int y = 0; y < height; ++y)
         {
             for (int x = 0; x < width; ++x)
             {
-                uint32_t gap = 2;
+                int stepX = 2; // 1 = no gap, 2 = 1 tile gap, 3 = 2 tile gap
+                int stepY = 2;
 
-                glm::ivec2 isoCell = startIsoCell + glm::ivec2(x, y);
+                const glm::ivec2 isoCell = startIsoCell + glm::ivec2((x + 1) * stepX, (y + 1) * stepY);
 
-                // local offset from entity anchor in iso space
-                glm::ivec2 localIso = isoCell - startIsoCell;
+                const int blockX = x / GROUP_BLOCK_W;
+                const int blockY = y / GROUP_BLOCK_H;
 
-                // convert local iso offset to ground-world delta
-                glm::vec2 deltaGround = IsoTileUtils::IsoDeltaToWorldDeltaGround(localIso);
-                deltaGround.x += x;
-                deltaGround.y += y * gap;
+                // Derive a unique group id per block
+                const uint64_t groupId =
+                    baseGroupId +
+                    uint64_t(blockY) * 100000ull +
+                    uint64_t(blockX);
 
-                TileInfo newTile{};
-                newTile.position = deltaGround;
-                newTile.UV = uv;
-                newTile.name = tileName;
-                newTile.IsDestructible = destructible;
-                newTile.IsRoof = isRoof;
-                newTile.Category = tileCategory;
-                newTile.Material = tileProps.material;
-                newTile.TileHealth = tileProps.health;
-                newTile.IsSupportingRoof = isSupportingRoof;
-                newTile.TileDirection = EditorUtils::GetDirectionFromTileName(tileName);
-                newTile.UID = HashUtils::MakeTileUID(
-                    (uint64_t)idComp.ID,
-                    deltaGround,
-                    float(TILE_SIZE),
-                    (uint32_t)tileCategory
-                );
-
-                tileComp.tiles.push_back(newTile);
+                CompactTile& tile = compactMap.GetOrCreateTile(isoCell);
+                tile.TypeId = typeId;
+                tile.Flags = CompactTileFlags::None;
+                tile.Aux = 0;
+                tile.GroupId = groupId;
+                compactMap.RegisterCellForGroup(groupId, isoCell);
+                placedCount++;
             }
         }
 
-      
-
+        EE_CORE_INFO(
+            "CreateLotsOfCompactTilesOnStartup: placed {} compact tiles, typeId={}, start=({}, {}), size={}x{}, baseGroupId={}, block={}x{}",
+            placedCount, typeId, startIsoCell.x, startIsoCell.y, width, height,
+            (uint64_t)baseGroupId, GROUP_BLOCK_W, GROUP_BLOCK_H);
     }
-
 
     void Scene::OnRunTimeStart()
     {
@@ -265,12 +257,46 @@ namespace Engine {
        
         m_lightGatherSystem.Update(this);
 
+        glm::vec4 uv = glm::vec4(0.1352539f, 0.619486f, 0.25927734f, 0.66596794f);
 
-        glm::vec4 uv = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+        //m_compactTilePromotion.PromoteAllTiles(this);
+        {
+            TileDefinitionRegistry& defs = GetTileDefinitions();
 
-        //CreateLotsOfTilesOnStartup("Wall B1_S", uv, eTileCategory::Buildings, 100, 100, glm::ivec2(0, 0));
+            TileTypeKey key{};
+            key.name = "Wall B1_S";
+            key.uv = glm::vec4(0.1352539f, 0.619486f, 0.25927734f, 0.66596794f);
+            key.category = eTileCategory::Buildings;
+            key.direction = eTileDirection::South;
 
+            uint16_t typeId = 0;
 
+            if (!defs.FindTypeId(key, typeId))
+            {
+                TileDefinition def{};
+                def.TypeId = defs.GetNextTypeId();
+                def.Name = "Wall B1_S";
+                def.UV = glm::vec4(0.1352539f, 0.619486f, 0.25927734f, 0.66596794f);
+                def.Category = eTileCategory::Buildings;
+                def.Direction = eTileDirection::South;
+                def.Material = eTileMaterial::None;
+                def.BaseHealth = 10;
+                def.IsDestructible = true;
+                def.IsSupportingRoof = true;
+                def.IsRoof = false;
+
+                if (!defs.Register(def, key))
+                {
+                    EE_CORE_WARN("Failed to register debug compact tile type");
+                    
+                }
+
+                typeId = def.TypeId;
+            }
+
+            //CreateLotsOfCompactTilesOnStartup(typeId, 1000, 1000, glm::ivec2(10, 10), 1);
+        }
+       
 
         DebugInterface::SetTextureStreamingSystem(m_textureStreamingSystem.get());
 

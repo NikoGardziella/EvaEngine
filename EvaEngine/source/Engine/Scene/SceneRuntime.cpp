@@ -36,7 +36,15 @@
 #include "Components/Map/AreaComponent.h"
 #include <Engine/Platform/Vulkan/VulkanBindlessDescriptorSet.h>
 
+
+// testing
+#include "Engine/Map/Tile/CompactTileMap.h"
+#include "Engine/Map/Tile/TileDefinitionRegistry.h"
+#include "Engine/Map/Utils/IsoTileUtils.h"
+
 namespace Engine {
+
+
 
 
     void Scene::OnUpdateRuntime(Timestep timestep, bool isPlaying)
@@ -65,23 +73,16 @@ namespace Engine {
         // get player info
 
 
-
-        //************ update scripts *************** // Remove?
         {
-            m_registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
-                {
 
-                    if (!nsc.Instance)
-                    {
-                        nsc.Instance = nsc.InstantiateScript();
-                        nsc.Instance->m_entity = Entity{ entity, this };
-                        nsc.Instance->OnCreate();
-                    }
 
-                    nsc.Instance->OnUpdate(timestep);
+           // RenderCompactTileMap(m_compactTileMap, m_tileDefinitions);
+           // GetCompactTileMap().Render(m_tileDefinitions);
 
-                });
         }
+
+
+
 
 
 
@@ -200,6 +201,12 @@ namespace Engine {
 
 
         }
+        m_gridMap->UpdateCollisionAroundPlayer(this, playerPos);
+        float promoteRadius = 10.0f;
+        float compactRadius = 15.0f;
+        m_compactTilePromotion.EnsurePromotedAndCompactedAroundPlayer(this, playerPos, promoteRadius, compactRadius, m_tileMananger);
+
+
         m_tileMananger->Update(this, playerPos);
 
         m_lightGatherSystem.Update(this);

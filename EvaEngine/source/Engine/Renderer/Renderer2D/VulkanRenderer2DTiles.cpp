@@ -6,18 +6,23 @@
 
 namespace Engine {
 
+
 	void VulkanRenderer2D::DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color, float zOverride)
 	{
-		const float aspect = 2.0f;                 // 128x256
+		// Make sure there is room in the current batch
+		if (s_VulkanData.QuadIndexCount + 6 > VulkanRenderer2DData::MaxIndices)
+		{
+			NextBatch();
+		}
+
+		const float aspect = 2.0f;
 		const float widthWorld = float(TILE_SIZE);
 		const float heightWorld = widthWorld * aspect;
 
-		// bottom-center pivot: translate up by half height
 		glm::mat4 transform =
 			glm::translate(glm::mat4(1.0f), glm::vec3(worldPos + glm::vec2(0.0f, heightWorld * 0.5f), zOverride)) *
 			glm::scale(glm::mat4(1.0f), glm::vec3(widthWorld, heightWorld, 1.0f));
 
-		// Find or bind the atlas texture slot
 		float textureIndex = -1.0f;
 		for (uint32_t i = 0; i < s_VulkanData.TextureSlotIndex; i++)
 		{
@@ -27,14 +32,19 @@ namespace Engine {
 				break;
 			}
 		}
+
 		if (textureIndex < 0.0f)
 		{
+			if (s_VulkanData.TextureSlotIndex >= VulkanRenderer2DData::MaxTextureSlots)
+			{
+				NextBatch();
+			}
+
 			textureIndex = float(s_VulkanData.TextureSlotIndex);
 			s_VulkanData.TextureSlots[s_VulkanData.TextureSlotIndex] = AssetManager::GetTileTextureIconAtlas();
 			s_VulkanData.TextureSlotIndex++;
 		}
 
-		// Unit quad centered at origin
 		const glm::vec3 quadPositions[4] = {
 			{-0.5f, -0.5f, 0.0f},
 			{ 0.5f, -0.5f, 0.0f},
@@ -43,10 +53,10 @@ namespace Engine {
 		};
 
 		const glm::vec2 texCoords[4] = {
-			{uv.x, uv.y},   // top-left
-			{uv.z, uv.y},   // top-right
-			{uv.z, uv.w},   // bottom-right
-			{uv.x, uv.w}    // bottom-left
+			{uv.x, uv.w},
+			{uv.z, uv.w},
+			{uv.z, uv.y},
+			{uv.x, uv.y}
 		};
 
 		for (int i = 0; i < 4; ++i)

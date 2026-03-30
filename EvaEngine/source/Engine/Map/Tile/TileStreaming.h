@@ -96,17 +96,21 @@ namespace Engine {
         uint32_t GetCPUResidentCount() const;
         uint32_t GetDiskResidentCount() const;
 
+        std::unordered_map<uint64_t, TileStreamEntry>& GetEntires() {
+            return    m_entries;
+        };
+
         void ReadbackFromGPU(TileStreamEntry& entry);
         void SyncDirtyFlags(const std::vector<DirtyTileRuntime>& dirtyTiles);
         void Shutdown();
 
-    private:
-        // State transitions
-        void EvictFromGPU(TileStreamEntry& entry);
         void UploadToGPU(TileStreamEntry& entry, Scene* scene);
         void FlushToDisk(TileStreamEntry& entry);
         void LoadFromDisk(TileStreamEntry& entry);
 
+    private:
+        // State transitions
+        void EvictFromGPU(TileStreamEntry& entry);
         void ReconstructFromAtlas(TileStreamEntry& entry);
 
         void UpdateTileSlot(Scene* scene, uint64_t uid, uint32_t newSlot);
@@ -118,8 +122,8 @@ namespace Engine {
         void EnsureCacheDirectory() const;
 
     private:
-        StreamingConfig                                 m_config;
         std::unordered_map<uint64_t, TileStreamEntry>   m_entries;
+        StreamingConfig                                 m_config;
         std::unordered_map<uint32_t, uint64_t> m_slotToUID;
         bool                                            m_initialized = false;
 

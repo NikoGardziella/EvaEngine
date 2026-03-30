@@ -34,11 +34,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <Engine/Events/MouseCodes.h>
+
 //#include "Commands/PlaceTileCommand.h"
 #include <utility>
 #include "Commands/PlaceTileCommand.h"
+#include "Commands/PlaceCompactTileCommand.h"
 #include <Engine/Scene/Components/Map/AreaComponent.h>
 #include <Engine/Scene/Components/Light/DirectionalLightComponent.h>
+#include <Engine/Map/Tile/TileManager.h>
+#include <Engine/Map/Tile/CompactTileMap.h>
 
 namespace Engine {
 
@@ -582,11 +586,7 @@ namespace Engine {
 
 		m_editorScene = Scene::Copy(m_sceneHierarchyPanel.GetEditorScene());
 
-		//m_editor.get()->GetGameLayer()->GetActiveGameScene()->ClearRegistry();
 
-        // Should this combine be removed?
-        //m_editor.get()->GetGameLayer()->CopyToActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
-        
         if (m_sceneState != eSceneState::Pause)
         {
             m_editor.get()->GetGameLayer()->OnGameStart();
@@ -865,6 +865,130 @@ namespace Engine {
         return newTile;
     }
 
+    CompactTile EditorLayer::PaintCompactTileAtSelection(Entity selectedEntity)
+    {
+        Ref<Scene> scene = m_editor->GetGameLayer()->GetActiveGameScene();
+        if (!scene)
+        {
+            EE_CORE_WARN("PaintCompactTileAtSelection scene = null ");
+            return Engine::CompactTile{};
+        }
+            
+
+        glm::ivec2 isoCell = GetSnappedIsoPosition();
+        uint16_t typeId = GetOrCreateDefinitionForSelectedTile();
+        if (typeId == 0)
+        {
+            EE_CORE_WARN("PaintCompactTileAtSelection typeId ==0 ");
+
+            return Engine::CompactTile{};
+        }
+       
+
+        if (!selectedEntity)
+        {
+            // no entity selected. create new one- this probably should be destroyed at Runtimestart?
+
+            Entity newEntity = scene->CreateEntity("PromotedGroup_");
+            selectedEntity = newEntity;
+            m_selectedEntity = newEntity;
+            m_sceneHierarchyPanel.SetSelectedEntity(newEntity);
+            uint64_t groupID = static_cast<uint64_t>(newEntity.GetUUID());
+            newEntity.GetComponent<TagComponent>().Tag = "PromotedGroup_" + std::to_string(groupID);
+            //scene->GetCompactTilePromotion().RegisterPromotedEntity(groupID, newEntity);
+
+           // scene->GetCompactTilePromotion().RegisterPromotedEntity(groupID, newEntity);
+
+        }
+
+        uint64_t groupID = static_cast<uint64_t>(selectedEntity.GetUUID());
+
+        Engine::CompactTile& tile = scene->GetCompactTileMap().GetOrCreateTile(isoCell);
+        tile.TypeId = typeId;
+        tile.Flags = Engine::CompactTileFlags::None;
+        tile.Aux = 0;
+        tile.GroupId = groupID;
+
+        scene->GetCompactTileMap().RegisterCellForGroup(groupID, isoCell);
+
+        TileChunk& chunk = scene->GetCompactTileMap().GetOrCreateChunk(WorldCellToChunkCoord(isoCell));
+        chunk.DrawCacheDirty = true;
+        //scene->GetTileManager()->RegisterPromotedTileResidency();
+       // scene->GetTileManager()->RegisterPromotedTile(selectedEntity,tile);
+
+
+
+        if (scene->GetCompactTilePromotion().IsGroupPromoted(groupID))
+        {
+            scene->GetCompactTilePromotion().PromoteSingleTileIntoExistingGroup(
+                scene.get(),
+                groupID,
+                isoCell,
+                scene->GetTileManager());
+        }
+
+
+
+        return tile;
+    }
+
+    uint16_t EditorLayer::GetOrCreateDefinitionForSelectedTile()
+    {
+        Ref<Scene> scene = m_editor->GetGameLayer()->GetActiveGameScene();
+        if (!scene)
+            return 0;
+
+        Engine::TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+
+        const std::string selectedTileName = m_tileEditorPanel.GetSelectedTileName();
+
+
+
+
+        const glm::vec4 selectedUV = m_tileEditorPanel.GetTileUV(selectedTileName);
+        const eTileCategory selectedCategory = m_tileEditorPanel.GetSelectedTileCategory();
+        const TileProperties& tileProps = m_tileEditorPanel.GetSelectedTileProperties();
+
+        if (selectedTileName.empty())
+        {
+            EE_CORE_WARN("GetOrCreateDefinitionForSelectedTile: no tile selected");
+            return 0;
+        }
+
+        TileInfo temp{};
+        temp.name = selectedTileName;
+        temp.UV = selectedUV;
+        temp.Category = selectedCategory;
+        temp.TileDirection = EditorUtils::GetDirectionFromTileName(selectedTileName);;
+
+        Engine::TileTypeKey key = TileManager::MakeTileTypeKey(temp);
+        // If MakeTileTypeKey is non-static member, move that helper out somewhere shared.
+        // Or build key manually here.
+
+        uint16_t existingTypeId = 0;
+        if (defs.FindTypeId(key, existingTypeId))
+            return existingTypeId;
+
+        Engine::TileDefinition def{};
+        def.TypeId = defs.GetNextTypeId();
+        def.Name = selectedTileName;
+        def.UV = selectedUV;
+        def.Category = selectedCategory;
+        def.Direction = temp.TileDirection;
+        def.Material = tileProps.material;
+        def.BaseHealth = static_cast<uint16_t>(tileProps.health);
+        def.IsDestructible = (selectedCategory == eTileCategory::Buildings);
+        def.IsSupportingRoof = (selectedCategory == eTileCategory::Buildings || selectedCategory == eTileCategory::Pillars);
+        def.IsRoof = (selectedCategory == eTileCategory::Roofs);
+
+        if (!defs.Register(def, key))
+        {
+            EE_CORE_WARN("GetOrCreateDefinitionForSelectedTile: failed to register '{}'", selectedTileName);
+            return 0;
+        }
+
+        return def.TypeId;
+    }
     void EditorLayer::UpdateOrCreateArea(Entity tileEntity, glm::vec2 worldPos, eTileCategory category)
     {
         if (category != eTileCategory::Buildings &&
@@ -977,11 +1101,11 @@ namespace Engine {
             glm::vec2  ground = IsoToWorldGround(isoCell);
 
             glm::vec4 uv = m_tileEditorPanel.GetTileUV(selectedTile);
-            glm::vec4 previewUV(uv.x, uv.w, uv.z, uv.y); // flip V
+           // glm::vec4 previewUV(uv.x, uv.w, uv.z, uv.y); // flip V
             glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.55f);
 
             // IMPORTANT: pass the ground point; DrawTile must be bottom-center pivot
-            Engine::VulkanRenderer2D::DrawTile(ground, previewUV, previewColor);
+            Engine::VulkanRenderer2D::DrawTile(ground, uv, previewColor);
         }
 
         if (m_showAreas)
@@ -1063,7 +1187,21 @@ namespace Engine {
             {
                 case Engine::EditorLayer::eSceneState::Edit:
                 {
+                    glm::vec2 viewMinWorld, viewMaxWorld;
+                    m_editorCamera.GetViewportWorldBounds2D(viewMinWorld, viewMaxWorld, 0.0f);
 
+                    float compactMarginWorld = 10.0f;
+
+                    /*
+                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetCompactTilePromotion().EnsurePromotedInEditorViewport(
+                        m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                        viewMinWorld,
+                        viewMaxWorld,
+                        compactMarginWorld,
+                        m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTileManager());
+
+                    */
+                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetCompactTileMap().Render(m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTileDefinitions());
                     m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateEditor(timestep, m_editorCamera);
                     break;
 
@@ -1118,13 +1256,14 @@ namespace Engine {
 
                if (Input::IsMouseButtonPressed(Mouse::Button0) && !selectedTile.empty())
                {
+                   Entity selectedEntity = m_selectedEntity;
                    // 1. Start a new stroke if we haven't yet
                    if (!m_ActiveStroke) 
                    {
                        m_ActiveStroke = std::make_unique<CommandGroup>();
                        // If no entity is selected, the first tile will create one
 
-                       Entity selectedEntity = m_selectedEntity; // i guess this is from screen
+                       // i guess this is from screen
 
                        if (!selectedEntity)
                        {
@@ -1135,7 +1274,6 @@ namespace Engine {
                        m_StrokeCreatedNewEntity = !selectedEntity;
                    }
 
-                   // 2. Perform your existing snap/debounce check
                    glm::ivec2 isoCell = GetSnappedIsoPosition();
                    glm::vec2  snapped = IsoTileUtils::IsoToWorldGround(isoCell);
                    if (snapped != m_LastPlacedTilePos)
@@ -1144,15 +1282,27 @@ namespace Engine {
 
                        if(CanPlaceTile(selectedTile, isoCell))
                        {
-                           TileInfo placedTile = OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
+
+                           if (m_tileEditorPanel.GetSelectedTileCategory() == eTileCategory::Terrain)
+                           {
+                               TileInfo placedTile = OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
+                               Scope<PlaceTileCommand> tilecmd = std::make_unique<PlaceTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                                   m_selectedEntity, placedTile, m_StrokeCreatedNewEntity);
+
+                               m_ActiveStroke->AddCommand(std::move(tilecmd));
+                           }
+                           else
+                           {
+                               CompactTile& compactTile = PaintCompactTileAtSelection(selectedEntity);
+                               Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                                   isoCell, compactTile);
+
+                               m_ActiveStroke->AddCommand(std::move(cmd));
+                           }
                            EE_CORE_INFO(" placeed {}", isoCell);
 
-                           // 4. Record the action
-                           // Note: Only the FIRST tile in a stroke counts as 'CreatedNewEntity'
-                           Scope<PlaceTileCommand> cmd = std::make_unique<PlaceTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
-                               m_selectedEntity, placedTile, m_StrokeCreatedNewEntity);
+                           
 
-                           m_ActiveStroke->AddCommand(std::move(cmd));
 
                            m_LastPlacedTilePos = snapped;
                            m_StrokeCreatedNewEntity = false; // Reset for subsequent tiles in this stroke

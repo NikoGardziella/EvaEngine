@@ -1,56 +1,115 @@
 Scene: My Scene
 Entities:
-  - ID: 3634210113444331985
-    TagComponent:
-      Tag: Entity
-    TransformComponent:
-      Translation: [-4.5, 0.25, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TileComponent:
-      TileID: 0
-      Texture: ""
-      Tiles:
-        - Position: [0, 0]
-          UV: [0.65478516, 0.619486, 0.7788086, 0.66596794]
-          Name: Wall B1_N
-          IsDestructible: true
-          IsSupportingRoof: true
-          IsRoof: false
-          Category: Buildings
-          Material: Concrete
-          Health: 1
-          UID: 6687558247392971784
-          TileDirection: North
-    AreaComponent:
-      Min: [-4.5, 0.75]
-      Max: [-4.5, 0.75]
-      Id: 0
-      Type: 0
-  - ID: 8599652056399062526
-    TagComponent:
-      Tag: Entity
-    TransformComponent:
-      Translation: [2.5, 1.75, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TileComponent:
-      TileID: 0
-      Texture: ""
-      Tiles:
-        - Position: [0, 0]
-          UV: [0.65478516, 0.619486, 0.7788086, 0.66596794]
-          Name: Wall B1_N
-          IsDestructible: true
-          IsSupportingRoof: true
-          IsRoof: false
-          Category: Buildings
-          Material: Concrete
-          Health: 1
-          UID: 430254335852438355
-          TileDirection: North
-    AreaComponent:
-      Min: [2.5, 2.25]
-      Max: [2.5, 2.25]
-      Id: 0
-      Type: 0
+  []
+TileDefinitions:
+  - TypeId: 1
+    Name: Wall B1_N
+    UV: [0.65478516, 0.619486, 0.7788086, 0.66596794]
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 2
+    Name: Wall B1_S
+    UV: [0.78466797, 0.619486, 0.9086914, 0.66596794]
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 3
+    Name: Wall B1_W
+    UV: [0.0053710938, 0.6670616, 0.12939453, 0.7135436]
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 40
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 4
+    Name: Wall D1_N
+    UV: [0.52490234, 0.52433467, 0.6489258, 0.57081664]
+    Category: Buildings
+    Direction: North
+    Material: Undefined
+    BaseHealth: 100
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 5
+    Name: Wall D1_E
+    UV: [0.39501953, 0.52433467, 0.51904297, 0.57081664]
+    Category: Buildings
+    Direction: East
+    Material: Undefined
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+CompactTiles:
+  - Cell: [-5, 1]
+    TypeId: 1
+    Flags: 0
+    Aux: 0
+    GroupId: 4807053434964431546
+  - Cell: [-4, 1]
+    TypeId: 2
+    Flags: 0
+    Aux: 0
+    GroupId: 4807053434964431546
+  - Cell: [-3, 2]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17226403631387815408
+  - Cell: [2, -4]
+    TypeId: 4
+    Flags: 0
+    Aux: 0
+    GroupId: 10547862618859326960
+  - Cell: [3, -4]
+    TypeId: 5
+    Flags: 0
+    Aux: 0
+    GroupId: 10547862618859326960
+  - Cell: [2, -3]
+    TypeId: 4
+    Flags: 0
+    Aux: 0
+    GroupId: 10547862618859326960
+  - Cell: [11, -3]
+    TypeId: 4
+    Flags: 0
+    Aux: 0
+    GroupId: 3601012183486715912
+  - Cell: [8, 1]
+    TypeId: 4
+    Flags: 0
+    Aux: 0
+    GroupId: 3601012183486715912
+  - Cell: [7, 2]
+    TypeId: 4
+    Flags: 0
+    Aux: 0
+    GroupId: 3601012183486715912
+  - Cell: [8, 2]
+    TypeId: 4
+    Flags: 0
+    Aux: 0
+    GroupId: 3601012183486715912
+  - Cell: [7, 3]
+    TypeId: 4
+    Flags: 0
+    Aux: 0
+    GroupId: 3601012183486715912
+  - Cell: [6, 4]
+    TypeId: 4
+    Flags: 0
+    Aux: 0
+    GroupId: 3601012183486715912

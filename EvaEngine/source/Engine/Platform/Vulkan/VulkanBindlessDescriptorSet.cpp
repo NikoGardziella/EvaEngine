@@ -727,28 +727,21 @@ namespace Engine {
         VkPhysicalDeviceProperties props{};
         vkGetPhysicalDeviceProperties(phys, &props);
 
-        VkImageFormatProperties ifp{};
-        VkResult fr = vkGetPhysicalDeviceImageFormatProperties(
-            phys,
-            VK_FORMAT_R8G8B8A8_UNORM,
-            VK_IMAGE_TYPE_2D,
-            VK_IMAGE_TILING_OPTIMAL,
-            usage,
-            0,
-            &ifp
-        );
+        // Check UNORM
+        VkImageFormatProperties unormIfp{};
+        vkGetPhysicalDeviceImageFormatProperties(phys, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TYPE_2D,
+            VK_IMAGE_TILING_OPTIMAL, usage, 0, &unormIfp);
 
-        uint32_t byFormat = (fr == VK_SUCCESS) ? ifp.maxArrayLayers : props.limits.maxImageArrayLayers;
-        m_arrayLayerCount = MAX_RESIDENT;
-        if (m_arrayLayerCount > props.limits.maxImageArrayLayers)
-        {
-            m_arrayLayerCount = props.limits.maxImageArrayLayers;
-        }
-        if (m_arrayLayerCount > byFormat)
-        {
+        // Check UINT (Use the usage flags specific to PropsArray)
+        VkImageFormatProperties uintIfp{};
+        vkGetPhysicalDeviceImageFormatProperties(phys, VK_FORMAT_R8G8B8A8_UINT, VK_IMAGE_TYPE_2D,
+            VK_IMAGE_TILING_OPTIMAL, usage, 0, &uintIfp);
 
-            m_arrayLayerCount = byFormat;
-        }
+        // The "Safe" Max is the lowest of everything
+        uint32_t absoluteMax = props.limits.maxImageArrayLayers;
+        uint32_t safeMax = std::min({ absoluteMax, unormIfp.maxArrayLayers, uintIfp.maxArrayLayers });
+
+        m_arrayLayerCount = std::min((uint32_t)MAX_RESIDENT, safeMax);
 
         // --- Create the 2D array image ---
         VkImageCreateInfo ci{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };

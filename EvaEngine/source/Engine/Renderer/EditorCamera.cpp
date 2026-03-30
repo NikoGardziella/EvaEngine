@@ -218,4 +218,55 @@ namespace Engine {
         m_aspectRatio = width / height;
         UpdateProjection();
     }
+
+    glm::vec3 EditorCamera::ScreenToWorld(const glm::vec2& screenPos, float depthNdc) const
+    {
+        // screenPos is in viewport-local pixels: (0,0) top-left, (width,height) bottom-right
+
+        const float x = (2.0f * screenPos.x) / m_viewportWidth - 1.0f;
+        const float y = 1.0f - (2.0f * screenPos.y) / m_viewportHeight;
+
+        glm::vec4 clipPos(x, y, depthNdc, 1.0f);
+
+        glm::mat4 invVP = glm::inverse(GetViewProjection());
+        glm::vec4 world = invVP * clipPos;
+
+        if (world.w != 0.0f)
+            world /= world.w;
+
+        return glm::vec3(world);
+    }
+
+    glm::vec2 EditorCamera::ScreenToWorld2D(const glm::vec2& screenPos, float worldZ) const
+    {
+        // Unproject near and far points, then intersect ray with z = worldZ plane
+        glm::vec3 nearWorld = ScreenToWorld(screenPos, -1.0f);
+        glm::vec3 farWorld = ScreenToWorld(screenPos, 1.0f);
+
+        glm::vec3 dir = farWorld - nearWorld;
+
+        if (glm::abs(dir.z) < 1e-6f)
+            return glm::vec2(nearWorld.x, nearWorld.y);
+
+        float t = (worldZ - nearWorld.z) / dir.z;
+        glm::vec3 hit = nearWorld + dir * t;
+
+        return glm::vec2(hit.x, hit.y);
+    }
+
+    void EditorCamera::GetViewportWorldBounds2D(glm::vec2& outMin, glm::vec2& outMax, float worldZ) const
+    {
+        const glm::vec2 topLeft = ScreenToWorld2D({ 0.0f, 0.0f }, worldZ);
+        const glm::vec2 topRight = ScreenToWorld2D({ m_viewportWidth, 0.0f }, worldZ);
+        const glm::vec2 bottomLeft = ScreenToWorld2D({ 0.0f, m_viewportHeight }, worldZ);
+        const glm::vec2 bottomRight = ScreenToWorld2D({ m_viewportWidth, m_viewportHeight }, worldZ);
+
+        outMin.x = std::min(std::min(topLeft.x, topRight.x), std::min(bottomLeft.x, bottomRight.x));
+        outMin.y = std::min(std::min(topLeft.y, topRight.y), std::min(bottomLeft.y, bottomRight.y));
+
+        outMax.x = std::max(std::max(topLeft.x, topRight.x), std::max(bottomLeft.x, bottomRight.x));
+        outMax.y = std::max(std::max(topLeft.y, topRight.y), std::max(bottomLeft.y, bottomRight.y));
+    }
+
+
 }

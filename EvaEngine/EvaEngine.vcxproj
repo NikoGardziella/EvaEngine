@@ -164,6 +164,8 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Map\Tile\CompactTilePromotion.h" />
+    <ClInclude Include="source\Engine\Map\Tile\CompactTileMap.h" />
     <ClInclude Include="source\Engine.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationBank2D.h" />
     <ClInclude Include="source\Engine\Animation\2D\AnimationEnums.h" />
@@ -229,6 +231,7 @@
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h" />
     <ClInclude Include="source\Engine\Map\Tile\RoofSystem.h" />
     <ClInclude Include="source\Engine\Map\Tile\SceneRoofTileAccess.h" />
+    <ClInclude Include="source\Engine\Map\Tile\TileDefinition.h" />
     <ClInclude Include="source\Engine\Map\Tile\TileManager.h" />
     <ClInclude Include="source\Engine\Map\Tile\TileStreaming.h" />
     <ClInclude Include="source\Engine\Map\Tile\Utils\CompressUtils.h" />
@@ -359,6 +362,7 @@
     <ClInclude Include="source\Engine\UI\WeaponHUD.h" />
     <ClInclude Include="source\Engine\Utils\PlatformUtils.h" />
     <ClInclude Include="source\pch.h" />
+    <ClInclude Include="source\Engine\Map\Tile\TileDefinitionRegistry.h" />
     <ClInclude Include="vendor\Box2D\include\box2d\base.h" />
     <ClInclude Include="vendor\Box2D\include\box2d\box2d.h" />
     <ClInclude Include="vendor\Box2D\include\box2d\collision.h" />
@@ -790,6 +794,8 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Map\Tile\CompactTilePromotion.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\CompactTileMap.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationLoader2D.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationSystem2D.cpp" />
@@ -914,6 +920,7 @@
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\TileDefinitionRegistry.cpp" />
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp">
       <AdditionalOptions>/Y- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

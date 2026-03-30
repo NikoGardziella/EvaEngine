@@ -2133,6 +2133,10 @@
     <ClInclude Include="source\Engine\Scene\Physics\Box2DPhysicsSystem.h">
       <Filter>source\Engine\Scene\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\CompactTileMap.h" />
+    <ClInclude Include="source\Engine\Map\Tile\TileDefinitionRegistry.h" />
+    <ClInclude Include="source\Engine\Map\Tile\TileDefinition.h" />
+    <ClInclude Include="source\Engine\Map\Tile\CompactTilePromotion.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2519,6 +2523,9 @@
     <ClCompile Include="source\Engine\Scene\Physics\Box2DPhysicsSystem.cpp">
       <Filter>source\Engine\Scene\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\CompactTileMap.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\TileDefinitionRegistry.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\CompactTilePromotion.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">
