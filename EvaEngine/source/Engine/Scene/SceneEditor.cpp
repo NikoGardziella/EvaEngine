@@ -133,9 +133,9 @@ namespace Engine {
 
                     // Flip V like before
                     glm::vec4 uv = t.UV;
-                    glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
+                  //  glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
 
-                    Engine::VulkanRenderer2D::DrawTile(worldPosCenter, flippedUV, glm::vec4(1.0f));
+                    Engine::VulkanRenderer2D::DrawTile(worldPosCenter, uv, glm::vec4(1.0f));
                 }
             }
 
@@ -167,11 +167,11 @@ namespace Engine {
 
                     // Flip V as before
                     glm::vec4 uv = tileComponent.tiles[i].UV;
-                    glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
+                   // glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
 
                     glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
                     // Use flippedUV for rendering, don't overwrite original UV
-                    Engine::VulkanRenderer2D::DrawTile(ground, flippedUV, color);
+                    Engine::VulkanRenderer2D::DrawTile(ground, uv, color);
                 }
 
             }

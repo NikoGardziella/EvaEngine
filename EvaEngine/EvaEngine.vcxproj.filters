@@ -2137,6 +2137,7 @@
     <ClInclude Include="source\Engine\Map\Tile\TileDefinitionRegistry.h" />
     <ClInclude Include="source\Engine\Map\Tile\TileDefinition.h" />
     <ClInclude Include="source\Engine\Map\Tile\CompactTilePromotion.h" />
+    <ClInclude Include="source\Engine\Scene\Prefabs\PrefabSerializer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2526,6 +2527,7 @@
     <ClCompile Include="source\Engine\Map\Tile\CompactTileMap.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\TileDefinitionRegistry.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\CompactTilePromotion.cpp" />
+    <ClCompile Include="source\Engine\Scene\Prefabs\PrefabSerializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">

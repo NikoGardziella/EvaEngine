@@ -43,6 +43,7 @@
 #include <Engine/Scene/Components/Light/DirectionalLightComponent.h>
 #include <Engine/Map/Tile/TileManager.h>
 #include <Engine/Map/Tile/CompactTileMap.h>
+#include <Engine/Scene/Prefabs/PrefabSerializer.h>
 
 namespace Engine {
 
@@ -248,6 +249,7 @@ namespace Engine {
                 {
                     SaveScene();
                 }
+                
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Exit"))
@@ -261,7 +263,18 @@ namespace Engine {
 
                 ImGui::EndMenu();
             }
-
+            if (ImGui::BeginMenu("Prefabs"))
+            {
+                if (ImGui::MenuItem("Save As Prefab"))
+                {
+                    SaveAsPrefab();
+                }
+                if (ImGui::MenuItem("Load Prefab"))
+                {
+                    LoadPrefab();
+                }
+                ImGui::EndMenu();
+            }
 			m_debugPanel.OnImGuiRender();
             m_effectsPanel.OnImGuiRender();
 
@@ -889,14 +902,13 @@ namespace Engine {
         {
             // no entity selected. create new one- this probably should be destroyed at Runtimestart?
 
-            Entity newEntity = scene->CreateEntity("PromotedGroup_");
+            Entity newEntity = scene->CreateEntity("Entity");
             selectedEntity = newEntity;
             m_selectedEntity = newEntity;
             m_sceneHierarchyPanel.SetSelectedEntity(newEntity);
             uint64_t groupID = static_cast<uint64_t>(newEntity.GetUUID());
-            newEntity.GetComponent<TagComponent>().Tag = "PromotedGroup_" + std::to_string(groupID);
+            newEntity.GetComponent<TagComponent>().Tag = "Entity" + std::to_string(groupID);
             //scene->GetCompactTilePromotion().RegisterPromotedEntity(groupID, newEntity);
-
            // scene->GetCompactTilePromotion().RegisterPromotedEntity(groupID, newEntity);
 
         }
@@ -1192,7 +1204,7 @@ namespace Engine {
 
                     float compactMarginWorld = 10.0f;
 
-                    /*
+                    
                     m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetCompactTilePromotion().EnsurePromotedInEditorViewport(
                         m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
                         viewMinWorld,
@@ -1200,8 +1212,8 @@ namespace Engine {
                         compactMarginWorld,
                         m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTileManager());
 
-                    */
-                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetCompactTileMap().Render(m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTileDefinitions());
+                    
+                   // m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetCompactTileMap().Render(m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTileDefinitions());
                     m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateEditor(timestep, m_editorCamera);
                     break;
 
@@ -1604,6 +1616,31 @@ namespace Engine {
         }
     }
 
+    void EditorLayer::LoadPrefab()
+    {
+        std::string filepath = FileDialogs::OpenFile("Prefab (*.prefab)\0*.prefab\0");
+        if (filepath.empty())
+            return;
+
+        Ref<Scene> scene = m_sceneHierarchyPanel.GetEditorScene();
+        if (!scene)
+        {
+            EE_CORE_WARN("LoadPrefab failed, editor scene is null");
+            return;
+        }
+
+        glm::ivec2 spawnCell = GetSnappedIsoPosition();
+
+        PrefabSerializer serializer(scene);
+        Entity newEntity = serializer.Deserialize(filepath, spawnCell);
+
+        if (newEntity)
+        {
+            m_selectedEntity = newEntity;
+            m_sceneHierarchyPanel.SetSelectedEntity(newEntity);
+        }
+    }
+
     void EditorLayer::OpenScene(const std::filesystem::path& path)
     {
         m_sceneState = eSceneState::Edit;
@@ -1661,7 +1698,7 @@ namespace Engine {
     {
         if (!m_currentScenePath.empty())
         {
-            EditorDebugUtils::PrintAllEntities(m_sceneHierarchyPanel.GetEditorScene().get());
+            //EditorDebugUtils::PrintAllEntities(m_sceneHierarchyPanel.GetEditorScene().get());
 
             SceneSerializer serializer(m_sceneHierarchyPanel.GetEditorScene());
 
@@ -1679,7 +1716,30 @@ namespace Engine {
 		
     }
 
+    void EditorLayer::SaveAsPrefab()
+    {
+        Entity selection = m_sceneHierarchyPanel.GetSelectedEntity();
 
+        if (!selection )
+        {
+            EE_CORE_WARN("No entity selected for prefab!");
+            return;
+        }
+
+        std::string filepath = FileDialogs::SaveFile("Prefab (*.prefab)\0*.prefab\0");
+
+        if (filepath.empty())
+            return;
+
+        // Ensure extension
+        if (filepath.find(".prefab") == std::string::npos)
+            filepath += ".prefab";
+
+        PrefabSerializer serializer(m_sceneHierarchyPanel.GetEditorScene());
+        serializer.Serialize(filepath, selection);
+
+        EE_CORE_INFO("Prefab saved: {}", filepath);
+    }
     
 
 

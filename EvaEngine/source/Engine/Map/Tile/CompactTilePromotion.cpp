@@ -98,7 +98,21 @@ namespace Engine
         }
 
         // Create one runtime entity for the whole group
-        e = scene->CreateEntity("PromotedGroup");
+        
+        scene->ForEach<IDComponent>(
+            [&](Engine::Entity entity, IDComponent& entityID)
+            {
+                if(groupId == static_cast<uint64_t>(entityID.ID))
+                {
+                    e = entity;
+
+                }
+            });
+
+        if (!e)
+        {
+            e = scene->CreateEntity("PromotedGroup");
+        }
 
         TransformComponent& tr = e.AddComponent<TransformComponent>();
         TileComponent& tc = e.AddComponent<TileComponent>();

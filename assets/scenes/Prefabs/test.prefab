@@ -1,0 +1,103 @@
+Prefab: MyPrefab
+Version: 1
+RootName: Entity17385899046303186255
+Origin: [2, 0, 0]
+Tiles:
+  - Position: [0, 0]
+    UV: [0.65478516, 0.52433467, 0.7788086, 0.57081664]
+    Name: Wall D1_S
+    UID: 8246441953841712142
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 0
+    TileHealth: 1
+    Slot: 5
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 208]
+  - Position: [-0.5, -0.25]
+    UV: [0.65478516, 0.52433467, 0.7788086, 0.57081664]
+    Name: Wall D1_S
+    UID: 9730832045474488803
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 0
+    TileHealth: 1
+    Slot: 6
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 208]
+  - Position: [-1, -0.5]
+    UV: [0.65478516, 0.52433467, 0.7788086, 0.57081664]
+    Name: Wall D1_S
+    UID: 8319268119123824577
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 0
+    TileHealth: 1
+    Slot: 7
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 208]
+  - Position: [-1.5, -0.75]
+    UV: [0.65478516, 0.52433467, 0.7788086, 0.57081664]
+    Name: Wall D1_S
+    UID: 12897965088899508581
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 0
+    TileHealth: 1
+    Slot: 8
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 208]
+  - Position: [-2, -1]
+    UV: [0.65478516, 0.52433467, 0.7788086, 0.57081664]
+    Name: Wall D1_S
+    UID: 13641376804478070782
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 0
+    TileHealth: 1
+    Slot: 9
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 208]
+  - Position: [-3, -1]
+    UV: [0.65478516, 0.52433467, 0.7788086, 0.57081664]
+    Name: Wall D1_S
+    UID: 2687111534389293152
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 0
+    TileHealth: 1
+    Slot: 10
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 208]
+  - Position: [-3.5, -1.25]
+    UV: [0.65478516, 0.52433467, 0.7788086, 0.57081664]
+    Name: Wall D1_S
+    UID: 1117268843323765251
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 0
+    TileHealth: 1
+    Slot: 11
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 208]

@@ -906,6 +906,7 @@ namespace Engine {
     }
 
 
+
     inline void SerializeCompactTiles(Ref<Scene> scene, YAML::Emitter& out)
     {
         const CompactTileMap& compactMap = scene->GetCompactTileMap();

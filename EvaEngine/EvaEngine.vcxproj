@@ -164,6 +164,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="source\Engine\Scene\Prefabs\PrefabSerializer.h" />
     <ClInclude Include="source\Engine\Map\Tile\CompactTilePromotion.h" />
     <ClInclude Include="source\Engine\Map\Tile\CompactTileMap.h" />
     <ClInclude Include="source\Engine.h" />
@@ -794,6 +795,7 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Engine\Scene\Prefabs\PrefabSerializer.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\CompactTilePromotion.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\CompactTileMap.cpp" />
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp" />

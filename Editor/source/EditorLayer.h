@@ -72,9 +72,12 @@ namespace Engine {
 
 		void NewScene();
 		void OpenScene();
+		void LoadPrefab();
 		void OpenScene(const std::filesystem::path& path);
 		void SaveSceneAs();
 		void SaveScene();
+
+		void SaveAsPrefab();
 
 
 		// UI panel
