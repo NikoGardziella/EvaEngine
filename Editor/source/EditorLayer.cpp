@@ -898,9 +898,15 @@ namespace Engine {
             return Engine::CompactTile{};
         }
        
+        if (m_sceneHierarchyPanel.IsSelectionLocked())
+        {
+            selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
+        }
 
         if (!selectedEntity || !scene->IsEntityValid(selectedEntity))
         {
+           
+
             // no entity selected. create new one- this probably should be destroyed at Runtimestart?
 
             Entity newEntity = scene->CreateEntity("Entity");
@@ -1278,7 +1284,9 @@ namespace Engine {
 
                        // i guess this is from screen
 
-                       if (!selectedEntity)
+                       
+
+                       if (!selectedEntity || m_sceneHierarchyPanel.IsSelectionLocked())
                        {
                            // and this from hierarchy?!
                            selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
