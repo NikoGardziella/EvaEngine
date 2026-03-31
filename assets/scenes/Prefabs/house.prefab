@@ -1,0 +1,481 @@
+Prefab: MyPrefab
+Version: 1
+RootName: Entity10862753869517512154
+Origin: [-1.5, 2.75, 0]
+Tiles:
+  - Position: [0.5, 0.25]
+    UV: [0.1352539, 0.619486, 0.25927734, 0.66596794]
+    Name: Wall A1_E
+    UID: 1525596498543898695
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 8
+    TileDirection: 2
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [0, 0]
+    UV: [0.39501953, 0.619486, 0.51904297, 0.66596794]
+    Name: Wall A1_S
+    UID: 15589126926707920810
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 0
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [1, 0]
+    UV: [0.1352539, 0.619486, 0.25927734, 0.66596794]
+    Name: Wall A1_E
+    UID: 10038272168661293883
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 9
+    TileDirection: 2
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-0.5, -0.25]
+    UV: [0.39501953, 0.619486, 0.51904297, 0.66596794]
+    Name: Wall A1_S
+    UID: 18317144273817788234
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 1
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [1.5, -0.25]
+    UV: [0.1352539, 0.619486, 0.25927734, 0.66596794]
+    Name: Wall A1_E
+    UID: 13181515602020326095
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 10
+    TileDirection: 2
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-1, -0.5]
+    UV: [0.39501953, 0.619486, 0.51904297, 0.66596794]
+    Name: Wall A1_S
+    UID: 17772310833682017910
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 2
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [2, -0.5]
+    UV: [0.1352539, 0.619486, 0.25927734, 0.66596794]
+    Name: Wall A1_E
+    UID: 17481577003223260088
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 11
+    TileDirection: 2
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-1.5, -0.75]
+    UV: [0.39501953, 0.619486, 0.51904297, 0.66596794]
+    Name: Wall A1_S
+    UID: 10019804438037343190
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 3
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [2.5, -0.75]
+    UV: [0.1352539, 0.619486, 0.25927734, 0.66596794]
+    Name: Wall A1_E
+    UID: 2044325542463651927
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 12
+    TileDirection: 2
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-2, -1]
+    UV: [0.39501953, 0.619486, 0.51904297, 0.66596794]
+    Name: Wall A1_S
+    UID: 15954347473273439315
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 4
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [3, -1]
+    UV: [0.1352539, 0.619486, 0.25927734, 0.66596794]
+    Name: Wall A1_E
+    UID: 13184396376009025437
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 13
+    TileDirection: 2
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-2.5, -1.25]
+    UV: [0.39501953, 0.619486, 0.51904297, 0.66596794]
+    Name: Wall A1_S
+    UID: 13426565777231151333
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 5
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [3.5, -1.25]
+    UV: [0.1352539, 0.619486, 0.25927734, 0.66596794]
+    Name: Wall A1_E
+    UID: 11932160919646010652
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 14
+    TileDirection: 2
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-3, -1.5]
+    UV: [0.39501953, 0.619486, 0.51904297, 0.66596794]
+    Name: Wall A1_S
+    UID: 2369722950147277503
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 6
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [4, -1.5]
+    UV: [0.1352539, 0.619486, 0.25927734, 0.66596794]
+    Name: Wall A1_E
+    UID: 18097345188474731098
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 15
+    TileDirection: 2
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-3.5, -1.75]
+    UV: [0.39501953, 0.619486, 0.51904297, 0.66596794]
+    Name: Wall A1_S
+    UID: 1224802613165791165
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 7
+    TileDirection: 1
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [4.5, -1.75]
+    UV: [0.1352539, 0.619486, 0.25927734, 0.66596794]
+    Name: Wall A1_E
+    UID: 9186314681538424410
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 32
+    TileDirection: 2
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-4, -2]
+    UV: [0.52490234, 0.619486, 0.6489258, 0.66596794]
+    Name: Wall A1_W
+    UID: 8882087092524290457
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 16
+    TileDirection: 3
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [4, -2]
+    UV: [0.26513672, 0.619486, 0.38916016, 0.66596794]
+    Name: Wall A1_N
+    UID: 1816564779073585530
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 31
+    TileDirection: 0
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-3.5, -2.25]
+    UV: [0.52490234, 0.619486, 0.6489258, 0.66596794]
+    Name: Wall A1_W
+    UID: 2731011477727639438
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 17
+    TileDirection: 3
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [3.5, -2.25]
+    UV: [0.26513672, 0.619486, 0.38916016, 0.66596794]
+    Name: Wall A1_N
+    UID: 10362860601953643907
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 30
+    TileDirection: 0
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-3, -2.5]
+    UV: [0.52490234, 0.619486, 0.6489258, 0.66596794]
+    Name: Wall A1_W
+    UID: 1419481907895716773
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 18
+    TileDirection: 3
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [3, -2.5]
+    UV: [0.26513672, 0.619486, 0.38916016, 0.66596794]
+    Name: Wall A1_N
+    UID: 3764490688018606027
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 29
+    TileDirection: 0
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-2.5, -2.75]
+    UV: [0.52490234, 0.619486, 0.6489258, 0.66596794]
+    Name: Wall A1_W
+    UID: 6647748678275231871
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 19
+    TileDirection: 3
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [2.5, -2.75]
+    UV: [0.65478516, 0.5719103, 0.7788086, 0.6183923]
+    Name: Wall A11_N
+    UID: 16529311189371986764
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 33
+    TileDirection: 0
+    OpaqueMin: [43, 12]
+    OpaqueMax: [127, 184]
+  - Position: [-2, -3]
+    UV: [0.52490234, 0.619486, 0.6489258, 0.66596794]
+    Name: Wall A1_W
+    UID: 2926396873637872388
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 20
+    TileDirection: 3
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [2, -3]
+    UV: [0.26513672, 0.619486, 0.38916016, 0.66596794]
+    Name: Wall A1_N
+    UID: 17580674204221298345
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 28
+    TileDirection: 0
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-1.5, -3.25]
+    UV: [0.52490234, 0.619486, 0.6489258, 0.66596794]
+    Name: Wall A1_W
+    UID: 2287246433459524489
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 21
+    TileDirection: 3
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [1.5, -3.25]
+    UV: [0.26513672, 0.619486, 0.38916016, 0.66596794]
+    Name: Wall A1_N
+    UID: 4247569226754064765
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 27
+    TileDirection: 0
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-1, -3.5]
+    UV: [0.52490234, 0.619486, 0.6489258, 0.66596794]
+    Name: Wall A1_W
+    UID: 13070582388393838048
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 22
+    TileDirection: 3
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [1, -3.5]
+    UV: [0.26513672, 0.619486, 0.38916016, 0.66596794]
+    Name: Wall A1_N
+    UID: 9430435546492976833
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 26
+    TileDirection: 0
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-0.5, -3.75]
+    UV: [0.52490234, 0.619486, 0.6489258, 0.66596794]
+    Name: Wall A1_W
+    UID: 12948782375806523492
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 23
+    TileDirection: 3
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [0.5, -3.75]
+    UV: [0.26513672, 0.619486, 0.38916016, 0.66596794]
+    Name: Wall A1_N
+    UID: 3198985119854036283
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 25
+    TileDirection: 0
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [0, -4]
+    UV: [0.52490234, 0.619486, 0.6489258, 0.66596794]
+    Name: Wall A1_W
+    UID: 11613725667045931167
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 24
+    TileDirection: 3
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]

@@ -174,6 +174,11 @@ namespace Engine {
         bool isSelected = (m_selectedEntity == entity);
         bool isLockedEntity = (m_selectionLocked && m_lockedEntity == entity);
 
+        if (!m_sceneHierarchyPanelScene->IsEntityValid(m_lockedEntity))
+        {
+            // release locked entity if its not valid(Maybe deleteted)
+            m_selectionLocked = false;
+        }
         // 2. Prepare unique ID strings to prevent collisions
         std::string entityIDStr = "EntityNode_" + std::to_string((uint32_t)entity);
 
@@ -220,7 +225,8 @@ namespace Engine {
                     m_selectionLocked = false;
                     m_lockedEntity = {};
                 }
-                else {
+                else 
+                {
                     m_selectionLocked = true;
                     m_lockedEntity = entity;
                     m_selectedEntity = entity;
@@ -247,15 +253,43 @@ namespace Engine {
                 auto& tileComp = entity.GetComponent<TileComponent>();
                 if (ImGui::TreeNodeEx("Tiles", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    for (size_t i = 0; i < tileComp.tiles.size(); i++)
+                    for (size_t i = 0; i < tileComp.tiles.size(); ++i)
                     {
                         auto& tile = tileComp.tiles[i];
-                        std::string label = tile.name + "##" + std::to_string(i);
+                        ImGui::PushID((int)i);
 
-                        if (ImGui::Selectable(label.c_str(), m_selectedTileIndex == (int)i))
+                        bool removeTile = false;
+
+                        // Draw tile name as selectable, but not consuming all width
+                        ImGui::Selectable(tile.name.c_str(), m_selectedTileIndex && *m_selectedTileIndex == i, 0, ImVec2(200.0f, 0.0f));
+
+                        if (ImGui::IsItemClicked())
+                            m_selectedTileIndex = i;
+
+                        ImGui::SameLine();
+
+                        if (ImGui::SmallButton("X"))
                         {
-                            m_selectedTileIndex = (int)i;
+                            removeTile = true;
                         }
+
+                        if (removeTile)
+                        {
+                            tileComp.tiles.erase(tileComp.tiles.begin() + i);
+
+                            if (m_selectedTileIndex)
+                            {
+                                if (*m_selectedTileIndex == i)
+                                    m_selectedTileIndex.reset();
+                                else if (*m_selectedTileIndex > i)
+                                    --(*m_selectedTileIndex);
+                            }
+
+                            ImGui::PopID();
+                            break;
+                        }
+
+                        ImGui::PopID();
                     }
                     ImGui::TreePop();
                 }
