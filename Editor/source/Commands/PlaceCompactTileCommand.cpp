@@ -41,9 +41,7 @@ namespace Engine
         // If this tile was promoted into a runtime entity, remove it there too
         if (currentGroupId != 0 && m_Scene->GetCompactTilePromotion().IsGroupPromoted(currentGroupId))
         {
-            EE_CORE_WARN("Trying to remove compact promoted tile at worldCell ({}, {}) from group {}",
-                m_WorldCell.x, m_WorldCell.y, currentGroupId);
-
+      
             
             m_Scene->GetCompactTilePromotion().RemoveSingleTileFromExistingGroup(
                 m_Scene,

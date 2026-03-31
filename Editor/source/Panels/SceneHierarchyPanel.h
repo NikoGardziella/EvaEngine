@@ -27,7 +27,7 @@ namespace Engine {
 		int GetGuizmoType() const { return m_guizmoType; }
 
 		Entity GetSelectedEntity() const { return m_selectedEntity;  }
-		void SetSelectedEntity(Entity entity);
+		void SetSelectedEntity(Entity entity, bool force = false);
 
 		int GetEntityCount() const { return m_entityCount; }
 		int GetProjectileCount() const { return m_projectileCount; }
@@ -44,6 +44,9 @@ namespace Engine {
 		{
 			m_selectedTileIndex.reset();
 		}
+		void SetSelectionLocked(bool locked) { m_selectionLocked = locked; }
+		bool IsSelectionLocked() const { return m_selectionLocked; }
+		void ToggleSelectionLocked() { m_selectionLocked = !m_selectionLocked; }
 	private:
 
 		void DrawEntityNode(Entity entity);
@@ -55,6 +58,8 @@ namespace Engine {
 		Ref<Scene> m_sceneHierarchyPanelScene;
 
 		Entity m_selectedEntity;
+		Entity m_lockedEntity{};
+		bool m_selectionLocked = false;
 		int m_guizmoType = -1;
 
 		bool m_itemIsClicked = false;

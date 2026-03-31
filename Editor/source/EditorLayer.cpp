@@ -1404,12 +1404,16 @@ namespace Engine {
                 snapped.x = std::round(finalWorldPos.x);
                 snapped.y = std::round(finalWorldPos.y);
 
-                m_selectedEntity = EditorUtils::FindEntityAtPosition(m_sceneHierarchyPanel.GetEditorScene(), snapped);
-                if(m_selectedEntity)
+                Entity foundEntity = EditorUtils::FindEntityAtPosition(m_sceneHierarchyPanel.GetEditorScene(), snapped);
+                
+                if (!m_sceneHierarchyPanel.IsSelectionLocked())
                 {
-                    m_sceneHierarchyPanel.SetSelectedEntity(m_selectedEntity);
-                    EE_CORE_INFO("viewport Clicked ID:  {}", (uint64_t)m_selectedEntity.GetComponent<IDComponent>().ID);
-
+                    m_selectedEntity = foundEntity;
+                    if (m_selectedEntity)
+                    {
+                        m_sceneHierarchyPanel.SetSelectedEntity(m_selectedEntity);
+                        EE_CORE_INFO("viewport Clicked ID:  {}", (uint64_t)m_selectedEntity.GetComponent<IDComponent>().ID);
+                    }
                 }
                
                
@@ -1452,9 +1456,9 @@ namespace Engine {
         }
         else if (e.GetMouseButton() == Mouse::Button1)
         {
-       
-
+      
             DeselectEntity();
+            
 		}
 		else if (e.GetMouseButton() == Mouse::Button2)
 		{
@@ -1466,13 +1470,15 @@ namespace Engine {
 
     void EditorLayer::DeselectEntity()
     {
-
+        m_tileEditorPanel.SetSelectedTile(UINT_MAX, "");
+        m_hoveredEntity = Entity(); // Reset hovered entity
+       
+        if (m_sceneHierarchyPanel.IsSelectionLocked())
+            return; // Don't allow deselection if locked
        
         // Deselect
-        m_tileEditorPanel.SetSelectedTile(UINT_MAX, "");
         m_sceneHierarchyPanel.SetSelectedEntity({}); // Deselect entity
         m_selectedEntity = Entity(); // Reset selected entity
-        m_hoveredEntity = Entity(); // Reset hovered entity
     }
 
 

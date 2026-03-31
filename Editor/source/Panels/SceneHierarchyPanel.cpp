@@ -144,10 +144,12 @@ namespace Engine {
     }
 
 
-    void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
+    void SceneHierarchyPanel::SetSelectedEntity(Entity entity, bool force)
     {
-        m_selectedEntity = entity;
+        if (m_selectionLocked && !force)
+            return;
 
+        m_selectedEntity = entity;
     }
 
     void SceneHierarchyPanel::DestrtoySelectedEntity(Entity entity)
@@ -165,100 +167,105 @@ namespace Engine {
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
-        TagComponent& tagComp = entity.GetComponent<TagComponent>();
+        if (!entity) return;
 
-        ImGuiTreeNodeFlags flags = (m_selectedEntity == entity ? ImGuiTreeNodeFlags_Selected : 0)
-            | ImGuiTreeNodeFlags_SpanAvailWidth;
+        // 1. Get references
+        auto& tag = entity.GetComponent<TagComponent>().Tag;
+        bool isSelected = (m_selectedEntity == entity);
+        bool isLockedEntity = (m_selectionLocked && m_lockedEntity == entity);
 
-        bool hasExpandableContent = entity.HasComponent<TileComponent>(); // add other checks if needed
-        if (!hasExpandableContent)
+        // 2. Prepare unique ID strings to prevent collisions
+        std::string entityIDStr = "EntityNode_" + std::to_string((uint32_t)entity);
+
+        ImGui::PushID(entityIDStr.c_str());
+
+        // 3. TREE NODE FLAGS
+        ImGuiTreeNodeFlags flags = (isSelected ? ImGuiTreeNodeFlags_Selected : 0);
+        flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap;
+
+        if (!entity.HasComponent<TileComponent>())
             flags |= ImGuiTreeNodeFlags_Leaf;
         else
             flags |= ImGuiTreeNodeFlags_OpenOnArrow;
 
-        bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tagComp.Tag.c_str());
+        // 4. DRAW THE NODE
+        // We use the string ID here to ensure it's unique from the button ID
+        bool opened = ImGui::TreeNodeEx("##node", flags, tag.c_str());
 
+        // 5. SELECTION LOGIC (Immediately after the node)
         if (ImGui::IsItemClicked())
         {
-            m_selectedEntity = entity;
-            m_itemIsClicked = true;
-        }
-
-        if (ImGui::IsItemClicked(1))
-        {
-            m_selectedEntity = entity;
-            m_itemIsClicked = true;
-        }
-
-        bool entityDeleted = false;
-
-        if (m_selectedEntity && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
-        {
-           /// m_itemIsClicked = true;
-            if (ImGui::MenuItem("Delete entity"))
+            // If not locked, or we are clicking the one that IS locked, allow select
+            if (!m_selectionLocked || isLockedEntity)
             {
-                m_destroySelectedEntity = true;
-                entityDeleted = true;
-                
+                m_selectedEntity = entity;
+                m_itemIsClicked = true;
             }
+        }
+
+        // 6. DRAW THE BUTTON
+        if (isSelected || isLockedEntity)
+        {
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - 5.0f); // Move to far right
+
+            // Push a DIFFERENT ID for the button to separate it from the Node
+            ImGui::PushID("LockButton");
+
+            // Small visual polish: change color if locked
+            if (isLockedEntity) ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f, 0.4f, 0.4f, 1.0f });
+
+            if (ImGui::SmallButton(isLockedEntity ? "L" : "U"))
+            {
+                if (isLockedEntity) {
+                    m_selectionLocked = false;
+                    m_lockedEntity = {};
+                }
+                else {
+                    m_selectionLocked = true;
+                    m_lockedEntity = entity;
+                    m_selectedEntity = entity;
+                }
+                m_itemIsClicked = true; // Tell DrawContext we clicked something
+            }
+
+            if (isLockedEntity) ImGui::PopStyleColor();
+            ImGui::PopID(); // Pop "LockButton"
+        }
+
+        // 7. CONTEXT MENU
+        if (ImGui::BeginPopupContextItem("EntityContextMenu"))
+        {
+            if (ImGui::MenuItem("Delete Entity"))
+                m_destroySelectedEntity = true;
             ImGui::EndPopup();
         }
-
-        if (opened && !entityDeleted)
+        // 7. Render Internal Content (Tiles, etc.)
+        if (opened)
         {
-            // Draw TileComponent tiles if present
             if (entity.HasComponent<TileComponent>())
             {
                 auto& tileComp = entity.GetComponent<TileComponent>();
-
-                if (ImGui::TreeNodeEx("TileComponent", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth))
+                if (ImGui::TreeNodeEx("Tiles", ImGuiTreeNodeFlags_DefaultOpen))
                 {
                     for (size_t i = 0; i < tileComp.tiles.size(); i++)
                     {
-                        const auto& tile = tileComp.tiles[i];
-                        std::string label = tile.name + " (" + std::to_string(tile.position.x) + ", " + std::to_string(tile.position.y) + ")";
+                        auto& tile = tileComp.tiles[i];
+                        std::string label = tile.name + "##" + std::to_string(i);
 
-                        ImGui::PushID((int)i);
-
-                        if (ImGui::SmallButton("X"))
+                        if (ImGui::Selectable(label.c_str(), m_selectedTileIndex == (int)i))
                         {
-                            // Erase the selected tile
-                            tileComp.tiles.erase(tileComp.tiles.begin() + i);
-
-                            // Adjust selection index if needed
-                            if (m_selectedTileIndex >= tileComp.tiles.size())
-                                m_selectedTileIndex = tileComp.tiles.empty() ? -1 : tileComp.tiles.size() - 1;
-
-                            ImGui::PopID();
-                            break; // Break to avoid using invalidated iterator after erase
+                            m_selectedTileIndex = (int)i;
                         }
-
-                        ImGui::SameLine();
-
-                        if (ImGui::Selectable(label.c_str(), m_selectedTileIndex == i))
-                        {
-                            SetSelectedTileIndex(i);
-                        }
-
-                       
-
-                        ImGui::PopID();
                     }
-
                     ImGui::TreePop();
                 }
             }
 
+            // Crucial: Only TreePop if TreeNodeEx returned true
             ImGui::TreePop();
         }
-
-
-        if (entityDeleted)
-        {
-            //DestrtoySelectedEntity(entity);
-        }
+        ImGui::PopID();
     }
-
 
     void SceneHierarchyPanel::DrawContext()
     {
