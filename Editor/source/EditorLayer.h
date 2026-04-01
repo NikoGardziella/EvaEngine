@@ -150,6 +150,7 @@ namespace Engine {
 
 		bool m_showColliders = false;
 		bool m_showAreas = false;
+		bool m_showGrid = false;
 
 		Ref<Editor> m_editor;
 

@@ -13,6 +13,11 @@ namespace Engine {
 		static void PrintAllEntities(Scene* scene);
 		static void EditorDebugUtils::DrawAreaDebugBounds(Ref<Scene> scene);
 
+		static void DrawWorldAxes(const glm::vec2& cameraWorldPos, float extent);
+
+		static void DrawIsometricGrid(const glm::vec2& cameraWorldPos, float extent);
+
+
 	};
 
 }

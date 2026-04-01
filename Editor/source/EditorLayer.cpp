@@ -334,6 +334,7 @@ namespace Engine {
             ImGui::Begin("Settings");
             ImGui::Checkbox("Show colliders", &m_showColliders);
             ImGui::Checkbox("Show areas", &m_showAreas);
+            ImGui::Checkbox("Show grid", &m_showGrid);
 			ImGui::End();
             //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 
@@ -1130,6 +1131,26 @@ namespace Engine {
         if (m_showAreas)
         {
             EditorDebugUtils::DrawAreaDebugBounds(m_editor.get()->GetGameLayer()->GetActiveGameScene());
+             
+             
+            
+       
+
+
+        }
+        if(m_showGrid)
+        {
+           
+            glm::vec2 minW, maxW;
+            m_editorCamera.GetViewportWorldBounds2D(minW, maxW, 0.0f);
+
+            glm::vec2 cameraPos2D = glm::vec2{ m_editorCamera.GetPosition().x, m_editorCamera.GetPosition().y };
+            float extent = 0.5f * std::max(maxW.x - minW.x, maxW.y - minW.y);
+            
+            float isometricScale = 1.5f;
+            EditorDebugUtils::DrawIsometricGrid(cameraPos2D, extent * isometricScale);
+            EditorDebugUtils::DrawWorldAxes(cameraPos2D, extent);
+
         }
 
 

@@ -70,12 +70,17 @@ namespace Engine {
 		static const uint32_t MaxLines = 10000;
 		static const uint32_t MaxLineVertices = MaxLines * 2;
 
-		Ref<VulkanBuffer> LineStagingBuffer;
+		//Ref<VulkanBuffer> LineStagingBuffer;
 		VulkanLineVertex* LineVertexBufferBase = nullptr;
 		VulkanLineVertex* LineVertexBufferPtr = nullptr;
 		uint32_t LineVertexCount = 0;
 		Ref<VulkanBuffer> LineVertexBuffer;
-		Ref<VertexArray> LineVertexArray;
+
+
+		VulkanLineVertex* LineVertexBufferBaseUnderlay = nullptr;
+		VulkanLineVertex* LineVertexBufferPtrUnderlay = nullptr;
+		uint32_t LineVertexCountUnderlay = 0;
+		Ref<VulkanBuffer> LineVertexBufferUnderlay;
 
 		Ref<VertexArray> QuadVertexArray;
 		Ref<VulkanVertexBuffer> QuadVertexBuffer;
@@ -309,6 +314,7 @@ namespace Engine {
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLineRect(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID = -1);
+		static void DrawLineUnderlay(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID = -1);
 		static void VulkanRenderer2D::DrawTile(const glm::vec2& worldPos, const glm::vec4& uv, const glm::vec4& color, float zOverride = 0.0f);
 		static void DrawTile(const glm::vec3& transform, const glm::vec4& uv, const glm::vec4& color);
 		static void RemoveTilePixels(const uint32_t slot, const uint32_t newSlot, const std::vector<uint32_t>& words, const int cutY);
@@ -341,7 +347,7 @@ namespace Engine {
 
 		void DrawFogOverlay(VkCommandBuffer cmd);
 
-		void RecordGameShadowPass(VkCommandBuffer cmd, uint32_t currentFrame, VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix);
+		void RecordUnderlayLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t currentFrame);
 	private:
 
 		void CreateImGuiTextureDescriptors();
@@ -350,10 +356,8 @@ namespace Engine {
 		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		//void RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
-		void RecordPlayerCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex, uint32_t currentFrame);
 		void BuildAffectedTilesCPU(const std::vector<glm::vec2>& hitPositionsW, const std::vector<float>& radiiW, const std::vector<uint32_t>& damagesW, const std::unordered_set<uint32_t>& candidateSlots, float pixelSizeWorld, int tileW, int tileH, std::vector<AffectedTile>& outTiles);
 		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
-		void RecordClearTextureComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex);
 		void ConsumeAnimationQueue(uint32_t frameIndex);

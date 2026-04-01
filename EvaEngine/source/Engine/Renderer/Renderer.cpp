@@ -93,6 +93,8 @@ namespace Engine {
 			s_VulkanRenderer2D->DrawFrame(s_currentFrame, m_commandBuffers[s_currentFrame]);
 			s_VulkanRenderer2D->DrawFogOverlay(m_commandBuffers[s_currentFrame]);
 			//s_VulkanRenderer2D->RecordFogOfWarCommandBuffer(m_commandBuffers[s_currentFrame], s_currentFrame);
+			s_VulkanRenderer2D->RecordUnderlayLineCommanedBuffer(m_commandBuffers[s_currentFrame], s_currentFrame);
+			
 			s_VulkanRenderer2D->DrawTiles(s_currentFrame, m_commandBuffers[s_currentFrame], s_vulkanSharedResources->GetShadowMap());
 			s_VulkanRenderer3D->Draw(s_currentFrame, m_commandBuffers[s_currentFrame]);
 

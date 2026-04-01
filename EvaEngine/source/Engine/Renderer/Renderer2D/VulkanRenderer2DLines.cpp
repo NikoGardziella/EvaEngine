@@ -36,6 +36,58 @@ namespace Engine {
 
 	}
 
+	void VulkanRenderer2D::DrawLineUnderlay(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int entityID)
+	{
+		if (s_VulkanData.LineVertexCountUnderlay >= VulkanRenderer2DData::MaxLineVertices)
+		{
+			NextBatch(); 
+		}
+
+		s_VulkanData.LineVertexBufferPtrUnderlay->Position = p0;
+		s_VulkanData.LineVertexBufferPtrUnderlay->Color = color;
+		s_VulkanData.LineVertexBufferPtrUnderlay++;
+
+		s_VulkanData.LineVertexBufferPtrUnderlay->Position = p1;
+		s_VulkanData.LineVertexBufferPtrUnderlay->Color = color;
+		s_VulkanData.LineVertexBufferPtrUnderlay++;
+
+		s_VulkanData.LineVertexCountUnderlay += 2;
+		s_VulkanData.Stats.LineCount++;
+	}
+
+
+	void VulkanRenderer2D::RecordUnderlayLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t currentFrame)
+	{
+		EE_PROFILE_FUNCTION();
+
+		if (s_VulkanData.LineVertexCountUnderlay <= 0)
+			return;
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanGraphicsPipelines->GetLinePipeline());
+
+		VkDescriptorSet descriptorSet = m_vulkanGraphicsPipelines->GetLineDescriptorSet(currentFrame);
+		vkCmdBindDescriptorSets(
+			commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_vulkanGraphicsPipelines->GetLinePipelineLayout(),
+			0, 1,
+			&descriptorSet,
+			0, nullptr
+		);
+
+		VkBuffer vertexBuffers[] = { s_VulkanData.LineVertexBufferUnderlay->GetBuffer() };
+		VkDeviceSize offsets[] = { 0 };
+
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+		vkCmdSetLineWidth(commandBuffer, 3.0f);
+
+		vkCmdDraw(commandBuffer, s_VulkanData.LineVertexCountUnderlay, 1, 0, 0);
+
+		s_VulkanData.Stats.DrawCalls++;
+	}
+
+
 	void VulkanRenderer2D::RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame)
 	{
 		EE_PROFILE_FUNCTION();

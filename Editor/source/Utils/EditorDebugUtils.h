@@ -38,7 +38,8 @@ namespace Engine {
                     Engine::VulkanRenderer2D::DrawLineRect(transform, glm::vec4(0.0f, 1.0f, 1.0f, 1.0f), -1);
                 });
         }
-    };
+
+
 
    
 }

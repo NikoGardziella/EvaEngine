@@ -108,6 +108,7 @@ namespace Engine {
 
 		s_VulkanData.LineVertexBufferBase = new VulkanLineVertex[VulkanRenderer2DData::MaxLineVertices];
 
+		/*
 		s_VulkanData.LineStagingBuffer = std::make_shared<VulkanBuffer>(
 			m_device,
 			m_vulkanContext->GetDeviceManager().GetPhysicalDevice(),
@@ -116,19 +117,38 @@ namespace Engine {
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		);
 
-		s_VulkanData.LineStagingBuffer->SetData(s_VulkanData.LineVertexBufferBase, sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices);
+		*/
 
-		s_VulkanData.LineVertexBuffer = std::make_shared<VulkanBuffer>(
-			m_device,
-			m_vulkanContext->GetDeviceManager().GetPhysicalDevice(),
-			sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices,
-			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-		);
-		s_VulkanData.LineVertexBuffer->SetData(s_VulkanData.LineVertexBufferBase, sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices);
+		//s_VulkanData.LineStagingBuffer->SetData(s_VulkanData.LineVertexBufferBase, sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices);
 
-		s_VulkanData.LineVertexBufferPtr = s_VulkanData.LineVertexBufferBase;
+		{
+
+			s_VulkanData.LineVertexBuffer = std::make_shared<VulkanBuffer>(
+				m_device,
+				m_vulkanContext->GetDeviceManager().GetPhysicalDevice(),
+				sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices,
+				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+			);
+			s_VulkanData.LineVertexBuffer->SetData(s_VulkanData.LineVertexBufferBase, sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices);
+
+			s_VulkanData.LineVertexBufferPtr = s_VulkanData.LineVertexBufferBase;
 		
+		}
+
+		{
+			s_VulkanData.LineVertexBufferBaseUnderlay = new VulkanLineVertex[VulkanRenderer2DData::MaxLineVertices];
+			s_VulkanData.LineVertexBufferPtrUnderlay = s_VulkanData.LineVertexBufferBaseUnderlay;
+			s_VulkanData.LineVertexCountUnderlay = 0;
+
+			s_VulkanData.LineVertexBufferUnderlay = std::make_shared<VulkanBuffer>(
+				m_device,
+				m_vulkanContext->GetDeviceManager().GetPhysicalDevice(),
+				sizeof(VulkanLineVertex) * VulkanRenderer2DData::MaxLineVertices,
+				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+			);
+		}
 
 
 		s_VulkanData.QuadVertexBufferBase = new VulkanQuadVertex[VulkanRenderer2DData::MaxVertices];
@@ -544,6 +564,12 @@ namespace Engine {
 
 			s_VulkanData.LineVertexBuffer->SetData(s_VulkanData.LineVertexBufferBase, s_VulkanData.LineVertexCount * sizeof(VulkanLineVertex));
 		}
+		if (s_VulkanData.LineVertexCountUnderlay > 0)
+		{
+			EE_PROFILE_SCOPE("Flush overlay line");
+
+			s_VulkanData.LineVertexBufferUnderlay->SetData(s_VulkanData.LineVertexBufferBaseUnderlay, s_VulkanData.LineVertexCountUnderlay * sizeof(VulkanLineVertex));
+		}
 
 		
 		m_vulkanGraphicsPipelines->UpdateGameDrawAndVisualImagesDescriptorSets(currentFrame, s_VulkanData.TextureSlots, s_VulkanData.VisualEffectsTextureSlots);
@@ -634,7 +660,8 @@ namespace Engine {
 		s_VulkanData.LineVertexBufferPtr = s_VulkanData.LineVertexBufferBase;
 		s_VulkanData.LineVertexCount = 0;
 
-	
+		s_VulkanData.LineVertexBufferPtrUnderlay = s_VulkanData.LineVertexBufferBaseUnderlay;
+		s_VulkanData.LineVertexCountUnderlay = 0;
 
 
 		// collisions
