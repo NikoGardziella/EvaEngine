@@ -1140,12 +1140,8 @@ namespace Engine {
 
 	void VulkanRenderer2D::SubmitPlayerData(PlayerData playerStateData)
 	{
-		s_PlayerData.PlayerPos = playerStateData.PlayerPos;
-		s_PlayerData.CameraPos = playerStateData.CameraPos;
-		s_PlayerData.visionRadiusW = playerStateData.visionRadiusW;
-		s_PlayerData.SceneRadius = playerStateData.SceneRadius;
-		s_PlayerData.PlayerScreenPos = playerStateData.PlayerScreenPos;
-		s_PlayerData.screenSize = playerStateData.screenSize;
+		
+		s_PlayerData = playerStateData;
 
 	}
 	

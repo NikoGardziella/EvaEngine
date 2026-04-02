@@ -295,6 +295,8 @@ namespace Engine {
             }
 
             //CreateLotsOfCompactTilesOnStartup(typeId, 1000, 1000, glm::ivec2(10, 10), 1);
+
+            
         }
        
 
@@ -385,6 +387,10 @@ namespace Engine {
 
         m_box2DPhysicsSystem.OnRuntimeStop(this);
 
+        PlayerData playerStateData;
+
+        playerStateData.InGame = false;
+        VulkanRenderer2D::SubmitPlayerData(playerStateData);
     }
 
     void Scene::PauseRuntime()

@@ -121,7 +121,7 @@ namespace Engine {
         auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent>();
         uint64_t playerID = 0;
         PlayerData playerStateData{};
-
+        playerStateData.InGame = true;
         Entity playerEntity = Entity{};
         for (auto entity : playerView)
         {
@@ -235,7 +235,7 @@ namespace Engine {
 
             Engine::VulkanRenderer3D::Begin3DScene(mainCameraComp->Camera.GetProjection(), cameraView);
 
-
+            
             m_fogOfWar->DrawFogOfWar(playerStateData, mainCameraComp->Camera, cameraTransform);
 
             glm::ivec2 minOrigin = { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };

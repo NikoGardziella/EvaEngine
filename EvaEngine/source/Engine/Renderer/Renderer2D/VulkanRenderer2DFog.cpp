@@ -5,38 +5,13 @@
 
 namespace Engine {
 
-	void VulkanRenderer2D::RecordFogOfWarCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
-	{
-		VkViewport v{};
-		v.x = 0.0f; v.y = 0.0f;
-		v.width = float(m_swapchainExtent.width);
-		v.height = float(m_swapchainExtent.height);
-		v.minDepth = 0.0f; v.maxDepth = 1.0f;
-		vkCmdSetViewport(cmd, 0, 1, &v);
-
-		VkRect2D s{};
-		s.offset = { 0,0 };
-		s.extent = m_swapchainExtent;
-		vkCmdSetScissor(cmd, 0, 1, &s);
-
-		VkBuffer vb = s_VulkanData.Fog.buffer;
-		VkDeviceSize off = 0;
-		vkCmdBindVertexBuffers(cmd, 0, 1, &vb, &off);
-
-
-		if (s_VulkanData.Fog.submitResult.quad.vertexCount > 0)
-			vkCmdDraw(cmd,
-				s_VulkanData.Fog.submitResult.quad.vertexCount, 1,
-				s_VulkanData.Fog.submitResult.quad.firstVertex, 0);
-
-		
-	}
+	
 
 	// ********** write pass **********
 	void VulkanRenderer2D::RenderVisibilityMap(VkCommandBuffer cmd, uint32_t frameIndex)
 	{
 		EE_PROFILE_FUNCTION();
-
+		
 		Engine::VulkanRenderer2DData::FogData& fogData = s_VulkanData.Fog;
 		VulkanFogOfWarPipelines::FogSubmitResult& r = fogData.submitResult;
 
@@ -100,6 +75,8 @@ namespace Engine {
 	// **********  Reader pass **********
 	void VulkanRenderer2D::DrawFogOverlay(VkCommandBuffer cmd)
 	{
+		if (!s_PlayerData.InGame)
+			return;
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_vulkanFogOfWarPipelines->GetFogOverlayPipeline());
 
 		VkDescriptorSet set = m_vulkanFogOfWarPipelines->GetVisibilityDescriptorSet();

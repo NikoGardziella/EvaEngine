@@ -11,6 +11,7 @@ namespace Engine {
 		float		visionRadiusW;
 		float		SceneRadius;
 		glm::vec2	screenSize;
+		bool		InGame;
 
 		// dont submit
 		glm::vec2	screenMin;

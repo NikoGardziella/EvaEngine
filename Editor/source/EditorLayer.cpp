@@ -342,7 +342,7 @@ namespace Engine {
             ImGui::Begin("Viewport");
 
 
-            ImVec2 imagePos = ImGui::GetCursorScreenPos(); // Where the actual scene is drawn
+            ImVec2 imagePos = ImGui::GetItemRectMin(); // Where the actual scene is drawn
             ImVec2 mousePos = ImGui::GetMousePos();
             m_localMousePosInViewport = ImVec2(mousePos.x - imagePos.x, mousePos.y - imagePos.y);
 			

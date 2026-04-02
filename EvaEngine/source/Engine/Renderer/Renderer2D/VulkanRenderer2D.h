@@ -332,6 +332,7 @@ namespace Engine {
 		void RenderVisibilityMap(VkCommandBuffer cmd, uint32_t frameIndex);
 
 		static void SubmitFogGeometry(const std::vector<VulkanFogOfWarPipelines::FogVertex>& fanTris, const std::vector<VulkanFogOfWarPipelines::FogVertex>& quadTris);
+		static void ClearFogSubmission();
 
 
 		static void SubmitCPUExplosion(glm::vec2 HitWorldPos, float radiWorld, uint32_t damage);
@@ -343,9 +344,9 @@ namespace Engine {
 		static Ref<VulkanBindlessDescriptorSetRenderer>& GetBindlessDescriptorSetRenderer() { return s_bindlessDescitproRenderer;  }
 
 		static void ResetStats();
-		void RecordFogOfWarCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
 
 		void DrawFogOverlay(VkCommandBuffer cmd);
+
 
 		void RecordUnderlayLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t currentFrame);
 	private:
