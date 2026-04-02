@@ -573,7 +573,7 @@ namespace Engine {
         //**********************
 
 
-        LoadTileProperties();
+       // LoadTileProperties();
         namespace fs = std::filesystem;
 
         static const std::unordered_map<eTileCategory, std::string> CategoryNames = {
@@ -849,7 +849,7 @@ namespace Engine {
 
         return 0;
     }
-
+    
     const TileProperties& AssetManager::GetTileProperties(const std::string& tileName)
     {
        
@@ -861,6 +861,10 @@ namespace Engine {
         return s_default;
     }
 
+    
+
+
+    /*
     void AssetManager::LoadTileProperties()
     {
         std::unordered_map<std::string, TileProperties> loadedTiles;
@@ -875,6 +879,7 @@ namespace Engine {
             s_tileProperties = std::move(loadedTiles);
         }
     }
+    */
 
     inline uint8_t AssetManager::PackCategoryNibble(eTileCategory c)
     {

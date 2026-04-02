@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "PrefabSerializer.h"
 #include <yaml-cpp/yaml.h>
+#include "Engine/AssetManager/AssetManager.h"
 
 namespace Engine {
 
@@ -151,9 +152,10 @@ namespace Engine {
 
             out << YAML::Key << "Position" << YAML::Value << YAML::Flow
                 << std::vector<float>{ tile.position.x, tile.position.y };
-
+            /*
             out << YAML::Key << "UV" << YAML::Value << YAML::Flow
                 << std::vector<float>{ tile.UV.x, tile.UV.y, tile.UV.z, tile.UV.w };
+            */
 
             out << YAML::Key << "Name" << YAML::Value << tile.name;
             out << YAML::Key << "UID" << YAML::Value << tile.UID;
@@ -245,17 +247,16 @@ namespace Engine {
                 tile.position.x = posNode[0].as<float>();
                 tile.position.y = posNode[1].as<float>();
             }
-
-            if (auto uvNode = tileNode["UV"])
-            {
-                tile.UV.x = uvNode[0].as<float>();
-                tile.UV.y = uvNode[1].as<float>();
-                tile.UV.z = uvNode[2].as<float>();
-                tile.UV.w = uvNode[3].as<float>();
-            }
+          
+            
 
             if (tileNode["Name"])
                 tile.name = tileNode["Name"].as<std::string>();
+
+
+            auto& props = AssetManager::GetTileProperties(tile.name);
+            tile.UV = props.uv;
+
 
             if (tileNode["UID"])
                 tile.UID = tileNode["UID"].as<uint64_t>();
