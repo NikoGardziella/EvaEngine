@@ -415,6 +415,12 @@ namespace Engine {
                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::IsRoof;
                                     }
 
+                                    if (tile.IsRoof && tile.Category == eTileCategory::dynamicObjects)
+                                    {
+                                        zBias = 10.0f;
+                                        flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::IsRoof;
+                                    }
+
                                     if (playerIsInsideEntityArea)
                                     {
                                          flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::PlayerInsideEntityArea;

@@ -92,7 +92,7 @@ namespace Engine {
         std::string     name;
         uint64_t        UID;
         bool            IsDestructible;
-        bool            IsRoof;
+        bool            IsRoof; // mayeb this should be " IsPlacedOnRood" 
         bool            IsSupportingRoof;
         eTileCategory   Category;
         eTileMaterial   Material;

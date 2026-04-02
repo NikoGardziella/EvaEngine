@@ -97,7 +97,10 @@ namespace Engine {
                    
                     if (wantRoof)
                     {
-                        if (tile.Category != eTileCategory::Roofs)
+                        const bool isRoofTile = tile.Category == eTileCategory::Roofs ||
+                                                (tile.IsRoof && tile.Category == eTileCategory::dynamicObjects);
+
+                        if (!isRoofTile)
                         {
                             continue;
                         }

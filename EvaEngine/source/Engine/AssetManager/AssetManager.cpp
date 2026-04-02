@@ -864,22 +864,7 @@ namespace Engine {
     
 
 
-    /*
-    void AssetManager::LoadTileProperties()
-    {
-        std::unordered_map<std::string, TileProperties> loadedTiles;
-        TileSerializer::Load(loadedTiles);  
 
-        if (loadedTiles.empty())
-        {
-            EE_CORE_WARN("Tile properties file is empty or failed to load.");
-        }
-        else
-        {
-            s_tileProperties = std::move(loadedTiles);
-        }
-    }
-    */
 
     inline uint8_t AssetManager::PackCategoryNibble(eTileCategory c)
     {
