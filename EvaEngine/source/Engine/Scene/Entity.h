@@ -37,6 +37,15 @@ namespace Engine {
             return component;
         }
 
+
+        template<typename T>
+        T& GetOrAddComponent()
+        {
+            if (HasComponent<T>())
+                return GetComponent<T>();
+            return AddComponent<T>();
+        }
+
         template<typename T, typename... Args>
         T& AddOrReplaceComponent(Args&&... args)
         {

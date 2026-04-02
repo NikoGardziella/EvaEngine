@@ -114,13 +114,24 @@ namespace Engine
             e = scene->CreateEntity("PromotedGroup");
         }
 
-        TransformComponent& tr = e.AddComponent<TransformComponent>();
-        TileComponent& tc = e.AddComponent<TileComponent>();
-        IDComponent& id = e.GetComponent<IDComponent>();
+        TransformComponent* tr = nullptr;
+        if (e.HasComponent<TransformComponent>())
+        {
+            tr = e.TryGetComponent<TransformComponent>();
+        }
+        else
+        {
+            tr = &e.AddComponent<TransformComponent>();
+            const glm::vec2 rootWorldPos = IsoTileUtils::IsoToWorldGround(tilesToPromote[0].worldCell);
+
+            tr->Translation = glm::vec3(rootWorldPos, 0.0f);
+        }
+
+        TileComponent& tc = e.GetOrAddComponent<TileComponent>();
+        IDComponent& id = e.GetOrAddComponent<IDComponent>();
 
         // Use first tile as root
-        const glm::vec2 rootWorldPos = IsoTileUtils::IsoToWorldGround(tilesToPromote[0].worldCell);
-        tr.Translation = glm::vec3(rootWorldPos, 0.0f);
+        ///
 
         // Build runtime tiles relative to root
         tc.tiles.reserve(tilesToPromote.size());
@@ -128,7 +139,7 @@ namespace Engine
         for (const PendingTile& p : tilesToPromote)
         {
             const glm::vec2 tileWorldPos = IsoTileUtils::IsoToWorldGround(p.worldCell);
-            const glm::vec2 localPos = tileWorldPos - glm::vec2(tr.Translation);
+            const glm::vec2 localPos = tileWorldPos - glm::vec2(tr->Translation);
 
             TileInfo runtimeTile = BuildRuntimeTileFromDefinition(*p.def, localPos);
 
@@ -611,7 +622,7 @@ namespace Engine
             if (!IsGroupPromoted(groupId))
             {
                 Entity e = PromoteGroup(scene, groupId);
-                if (e)
+                if (e && scene->IsEntityValid(e))
                 {
                     RegisterPromotedEntity(groupId, e);
                     tileManager->RegisterPromotedEntity(e);

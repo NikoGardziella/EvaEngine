@@ -419,10 +419,7 @@ namespace Engine {
                                     {
                                          flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::PlayerInsideEntityArea;
                                     }
-                                    if (tile.TileDirection == eTileDirection::South || tile.TileDirection == eTileDirection::West)
-                                    {
-                                       // zBias += 10.1f;
-                                    }
+                                   
 
 
                                     

@@ -710,6 +710,11 @@ namespace Engine {
 
         for (const auto& t : loadedTiles)
         {
+
+            if (t.name == "Wall D1_E")
+            {
+                EE_CORE_INFO("category {}", (uint32_t)t.category);
+            }
             if (currentX + t.width + GUTTER > atlasWidth)
             {
                 currentY += rowHeight + GUTTER;

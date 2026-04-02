@@ -272,9 +272,23 @@ namespace Engine {
 			// Painter’s order: sort by “ground” (bottom edge) Y
 			const float groundY = center.y * tileWorldH;
 			const uint32_t h32 = (uint32_t)((uid ^ (uid >> 32)) * 0x9E3779B1u);
-			const float tie = float(h32 & 0x3FF) * 1e-4f;
+			const float tie = float(h32 & 0x3FF) * 1e-6f; // tiny final fallback only
+
+			
+
+			float dirTie = 0.0f;
+			switch (submitQueu[i].tileDirection)
+			{
+			case eTileDirection::North: dirTie = 4.0000f; break;
+			case eTileDirection::East:  dirTie = 3.0000f; break;
+			case eTileDirection::South: dirTie = 2.0000f; break;
+			case eTileDirection::West:  dirTie = 1.0000f; break;
+			default:                    dirTie = 0.0000f; break;
+			}
+			
+
 			const float layerBias = (submitTile.zBias >= 1.0f) ? -100000.0f : 0.0f;
-			const float zKey = layerBias + groundY * 1024.0f + tie;
+			const float zKey = layerBias + groundY * 1024.0f + dirTie + tie;
 			// Pass the real world size so the quad matches exactly
 			glm::vec2 size = glm::vec2(TILE_SIZE, TILE_SIZE * 2);
 

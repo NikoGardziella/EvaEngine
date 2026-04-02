@@ -44,7 +44,7 @@ namespace Engine {
         for (const auto& entry : categories)
         {
             std::string id = std::string(entry.name) + std::to_string((int)entry.category);
-            bool open = ImGui::TreeNodeEx(id.c_str(), ImGuiTreeNodeFlags_DefaultOpen, "%s", entry.name);
+            bool open = ImGui::TreeNodeEx(id.c_str(), 0, "%s", entry.name);
 
             if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
                 m_selectedTileCategory = entry.category;
