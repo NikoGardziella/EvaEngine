@@ -18,9 +18,11 @@ namespace Engine {
 		Entity PromoteGroup(Scene* scene, uint64_t groupId);
 		bool CompactEntityToTiles(Scene* scene, Entity entity, bool destroyOriginalEntity = true);
 		void EnsurePromotedAndCompactedAroundPlayer(Scene* scene, const glm::vec2& playerWorldPos, float promoteRadiusWorld, float compactRadiusWorld, Ref<TileManager> tileMananger);
+		void SortEntitiesByY(Scene* scene);
+		void SortEntityTilesByY(Scene* scene, Entity entity);
 		void EnsurePromotedInEditorViewport(Scene* scene, const glm::vec2& viewMinWorld, const glm::vec2& viewMaxWorld, float compactMarginWorld, Ref<TileManager> tileManager);
 		void RegisterPromotedEntity(uint64_t groupId, Entity entity);
-		bool PromoteSingleTileIntoExistingGroup(Scene* scene, uint64_t groupId, const glm::ivec2& worldCell, Ref<TileManager> tileManager);
+		bool PromoteSingleTileIntoExistingGroup(Scene* scene, uint64_t groupId, const glm::ivec2& worldCell, Ref<TileManager> tileManager, eTileDirection tileDir);
 		void RegisterPromotedTile(Entity entity, TileInfo& tile);
 
 		void RemoveSingleTileFromExistingGroup(Scene* scene, uint64_t groupId, const glm::ivec2& worldCell, Ref<TileManager> tileManager);

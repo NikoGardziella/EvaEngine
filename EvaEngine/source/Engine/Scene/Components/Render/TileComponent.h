@@ -2,6 +2,7 @@
 #include <Engine/Platform/Vulkan/VulkanTexture.h>
 
 #include "glm/glm.hpp"
+#include <cstdint>
 
 namespace Engine {
 

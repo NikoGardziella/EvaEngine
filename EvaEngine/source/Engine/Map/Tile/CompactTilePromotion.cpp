@@ -136,7 +136,8 @@ namespace Engine
                 (uint64_t)id.ID,
                 runtimeTile.position,
                 float(TILE_SIZE),
-                (uint32_t)runtimeTile.Category);
+                (uint32_t)runtimeTile.Category),
+                p.def->Direction;
 
             tc.tiles.push_back(runtimeTile);
         }
@@ -397,6 +398,9 @@ namespace Engine
                 Entity e = PromoteGroup(scene, groupId);
                 if (e)
                 {
+                    SortEntitiesByY(scene);
+                    SortEntityTilesByY(scene, e);
+
                     tileManager->RegisterPromotedEntity(e);
                     tileManager->RegisterPromotedEntityResidency(scene, e, playerWorldPos);
                     groupsPromotedThisUpdate.insert(groupId);
@@ -451,12 +455,74 @@ namespace Engine
     }
 
     
-    void CompactTilePromotion::EnsurePromotedInEditorViewport(
-        Scene* scene,
-        const glm::vec2& viewMinWorld,
-        const glm::vec2& viewMaxWorld,
-        float compactMarginWorld,
-        Ref<TileManager> tileManager)
+    void CompactTilePromotion::SortEntitiesByY(Scene* scene)
+    {
+        auto& reg = scene->GetRegistry();
+
+        reg.sort<TransformComponent>(
+            [&reg](entt::entity a, entt::entity b)
+            {
+                const auto& ta = reg.get<TransformComponent>(a).Translation;
+                const auto& tb = reg.get<TransformComponent>(b).Translation;
+
+                if (ta.y != tb.y)
+                    return ta.y > tb.y;
+
+                using underlying = std::underlying_type_t<entt::entity>;
+                return static_cast<underlying>(a) < static_cast<underlying>(b);
+            }
+        );
+    }
+
+
+    void CompactTilePromotion::SortEntityTilesByY(Scene* scene, Entity entity)
+    {
+        if (!entity || !entity.HasComponent<TileComponent>() || !entity.HasComponent<TransformComponent>())
+            return;
+
+        auto& tileComp = entity.GetComponent<TileComponent>();
+        const auto& tr = entity.GetComponent<TransformComponent>();
+
+        auto DirectionSortKey = [](eTileDirection dir) -> int
+            {
+                switch (dir)
+                {
+                case eTileDirection::North: return 0;
+                case eTileDirection::East:  return 1;
+                case eTileDirection::West:  return 0;
+                case eTileDirection::South: return 0;
+                default: return 100;
+                }
+            };
+
+        std::stable_sort(tileComp.tiles.begin(), tileComp.tiles.end(),
+            [&](const TileInfo& A, const TileInfo& B)
+            {
+                const float yA = tr.Translation.y + A.position.y;
+                const float yB = tr.Translation.y + B.position.y;
+
+                if (yA > yB) return true;
+                if (yA < yB) return false;
+
+                const float xA = tr.Translation.x + A.position.x;
+                const float xB = tr.Translation.x + B.position.x;
+
+                if (xA < xB) return true;
+                if (xA > xB) return false;
+
+                const int dirA = DirectionSortKey(A.TileDirection);
+                const int dirB = DirectionSortKey(B.TileDirection);
+
+                if (dirA != dirB)
+                    return dirA < dirB;
+
+                return false;
+            }
+        );
+    }
+
+    void CompactTilePromotion::EnsurePromotedInEditorViewport(Scene* scene, const glm::vec2& viewMinWorld,
+        const glm::vec2& viewMaxWorld, float compactMarginWorld, Ref<TileManager> tileManager)
     {
         EE_PROFILE_FUNCTION();
 
@@ -614,11 +680,8 @@ namespace Engine
         EE_CORE_INFO("Registered promoted entity {} for group {}", (uint64_t)entity.GetUUID(), groupId);
     }
 
-    bool CompactTilePromotion::PromoteSingleTileIntoExistingGroup(
-        Scene* scene,
-        uint64_t groupId,
-        const glm::ivec2& worldCell,
-        Ref<TileManager> tileManager)
+    bool CompactTilePromotion::PromoteSingleTileIntoExistingGroup(Scene* scene, uint64_t groupId,
+        const glm::ivec2& worldCell,  Ref<TileManager> tileManager, eTileDirection tileDir)
     {
         if (!scene || groupId == 0)
             return false;
@@ -656,7 +719,9 @@ namespace Engine
             (uint64_t)id.ID,
             runtimeTile.position,
             float(TILE_SIZE),
-            (uint32_t)runtimeTile.Category);
+            (uint32_t)runtimeTile.Category,
+            tileDir);
+        EE_CORE_INFO("PromoteSingleTileIntoExistingGroup UID {}", runtimeTile.UID);
 
         tc.tiles.push_back(runtimeTile);
 

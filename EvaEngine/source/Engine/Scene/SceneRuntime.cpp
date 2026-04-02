@@ -222,9 +222,9 @@ namespace Engine {
         {
 
 
-            VisibleSet& visibleSet = m_cullingSystem3D->BuildVisible(this, mainCameraComp->Camera, *m_transformSystem3D, cameraTransform, m_fogOfWar);
+            VisibleSet& visibleEntities = m_cullingSystem3D->BuildVisible(this, mainCameraComp->Camera, *m_transformSystem3D, cameraTransform, m_fogOfWar);
 
-            m_renderSystem3D.Render(visibleSet, this, *m_transformSystem3D,
+            m_renderSystem3D.Render(visibleEntities, this, *m_transformSystem3D,
                 AssetManager::GetMeshRegistry(), AssetManager::GetMaterialRegistry());
 
 
@@ -418,6 +418,10 @@ namespace Engine {
                                     if (playerIsInsideEntityArea)
                                     {
                                          flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::PlayerInsideEntityArea;
+                                    }
+                                    if (tile.TileDirection == eTileDirection::South || tile.TileDirection == eTileDirection::West)
+                                    {
+                                       // zBias += 10.1f;
                                     }
 
 

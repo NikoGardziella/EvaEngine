@@ -69,11 +69,9 @@ namespace Engine
                 // If old tile belonged to an already-promoted group, put it back there too
                 if (m_Scene->GetCompactTilePromotion().IsGroupPromoted(tile.GroupId))
                 {
-                    m_Scene->GetCompactTilePromotion().PromoteSingleTileIntoExistingGroup(
-                        m_Scene,
-                        tile.GroupId,
-                        m_WorldCell,
-                        m_Scene->GetTileManager());
+                    /*
+                    _:-    m_Scene->GetTileManager());
+                    */
                 }
             }
         }

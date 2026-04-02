@@ -611,6 +611,7 @@ namespace Engine {
  
         m_sceneState = eSceneState::Play;
         DeselectEntity();
+        m_sceneHierarchyPanel.SetSelectionLocked(false);
     }
 
     void EditorLayer::OnSceneStop()
@@ -797,7 +798,24 @@ namespace Engine {
 
             // Store WORLD delta to the target cell's **ground**
             const glm::vec2 deltaGround = IsoTileUtils::IsoDeltaToWorldDeltaGround(localIso);
-            uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, deltaGround, float(TILE_SIZE), (uint32_t)tileCategory);
+            eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTileName);
+
+            uint64_t tileID = HashUtils::MakeTileUID(
+                (uint64_t)idComp.ID,
+                groundPos,
+                float(TILE_SIZE),
+                static_cast<uint32_t>(tileCategory),
+                tileDir
+            );
+
+            EE_CORE_WARN(
+                "TileUID inputs -> entID: {}, pos: ({:.3f}, {:.3f}), tileSize: {:.3f}, category: {}, direction: {}",
+                (uint64_t)idComp.ID,
+                groundPos.x, groundPos.y,
+                float(TILE_SIZE),
+                static_cast<uint32_t>(tileCategory),
+                static_cast<uint32_t>(tileDir)
+            );
 
             auto& tc = m_selectedEntity.GetComponent<TileComponent>();
             newTile;
@@ -836,8 +854,16 @@ namespace Engine {
 
             transformCmp.Translation.x = groundPos.x;
             transformCmp.Translation.y = groundPos.y;
-            uint64_t tileID = HashUtils::MakeTileUID((uint64_t)idComp.ID, glm::vec2(0.0f), float(TILE_SIZE), (uint32_t)tileCategory);
+            eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTileName);
 
+            uint64_t tileID  = HashUtils::MakeTileUID(
+                (uint64_t)idComp.ID,
+                groundPos,
+                float(TILE_SIZE),
+                static_cast<uint32_t>(tileCategory),
+                tileDir
+            );
+            
             TileComponent& tileComp = newEntity.AddComponent<TileComponent>();
             
             newTile.position = glm::vec3(0);
@@ -940,11 +966,18 @@ namespace Engine {
 
         if (scene->GetCompactTilePromotion().IsGroupPromoted(groupID))
         {
+
+            std::string selectedTileName = m_tileEditorPanel.GetSelectedTileName();
+            eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTileName);
+
+         
+
             scene->GetCompactTilePromotion().PromoteSingleTileIntoExistingGroup(
                 scene.get(),
                 groupID,
                 isoCell,
-                scene->GetTileManager());
+                scene->GetTileManager(),
+                tileDir);
         }
 
 

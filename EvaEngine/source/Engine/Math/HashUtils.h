@@ -4,6 +4,7 @@
 #include <cmath>
 #include <entt.hpp>
 #include <glm/vec2.hpp>
+#include <Engine/Scene/Components/Render/TileComponent.h>
 
 namespace HashUtils
 {
@@ -46,29 +47,34 @@ namespace HashUtils
     }
 
     // Main: entity + local tile coords -> 64-bit UID
-    inline static uint64_t MakeTileUID(uint64_t entID,
+    inline static uint64_t MakeTileUID(
+        uint64_t entID,
         const glm::vec2& localPos,
         float tileSizeWorld,
         uint32_t layerOrVariant = 0,
+        Engine::eTileDirection direction = Engine::eTileDirection::North,
         uint64_t nameHash = 0)
     {
         auto normBits = [](float f) -> uint32_t {
-            // collapse -0.0 to +0.0 and sanitize non-finite
             if (!std::isfinite(f)) f = 0.0f;
             if (f == 0.0f) f = 0.0f;
             return glm::floatBitsToUint(f);
             };
 
-        uint64_t h = 0xcbf29ce484222325ull; // seed
+        uint64_t h = 0xcbf29ce484222325ull;
 
         HashCombine(h, entID);
         HashCombine(h, (uint64_t)normBits(localPos.x));
         HashCombine(h, (uint64_t)normBits(localPos.y));
-        HashCombine(h, (uint64_t)normBits(tileSizeWorld)); // include if different tile sizes possible
+        HashCombine(h, (uint64_t)normBits(tileSizeWorld));
         HashCombine(h, (uint64_t)layerOrVariant);
+
+        
+        HashCombine(h, (uint64_t)direction);
+
         HashCombine(h, nameHash);
 
-        return h ? h : 1ull; // avoid 0 as "invalid"
+        return h ? h : 1ull;
     }
 
 

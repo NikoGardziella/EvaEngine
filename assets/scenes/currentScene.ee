@@ -1,3 +1,7 @@
 Scene: My Scene
 Entities:
- 
+  []
+TileDefinitions:
+  []
+CompactTiles:
+  []

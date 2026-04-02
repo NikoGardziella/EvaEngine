@@ -378,10 +378,10 @@ namespace Engine
             {
                 switch (s)
                 {
-                case FootSide::North: return { +1, +1 };
-                case FootSide::South: return { +1, +1 };
-                case FootSide::East:  return { 0, +1 };
-                case FootSide::West:  return { +2, +1 };
+                case FootSide::North: return { +1, +2 };
+                case FootSide::South: return { +1, +0 };
+                case FootSide::West:  return { +1, +1 };
+                case FootSide::East:  return { +1, +1 };
                 }
                 return { 0, 0 };
             };
