@@ -179,12 +179,10 @@ namespace Engine {
             // release locked entity if its not valid(Maybe deleteted)
             m_selectionLocked = false;
         }
-        // 2. Prepare unique ID strings to prevent collisions
         std::string entityIDStr = "EntityNode_" + std::to_string((uint32_t)entity);
 
         ImGui::PushID(entityIDStr.c_str());
 
-        // 3. TREE NODE FLAGS
         ImGuiTreeNodeFlags flags = (isSelected ? ImGuiTreeNodeFlags_Selected : 0);
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap;
 
@@ -193,11 +191,19 @@ namespace Engine {
         else
             flags |= ImGuiTreeNodeFlags_OpenOnArrow;
 
-        // 4. DRAW THE NODE
-        // We use the string ID here to ensure it's unique from the button ID
         bool opened = ImGui::TreeNodeEx("##node", flags, tag.c_str());
 
-        // 5. SELECTION LOGIC (Immediately after the node)
+        if (ImGui::BeginPopupContextItem())
+        {
+            m_selectedEntity = entity;
+            m_itemIsClicked = true;
+
+            if (ImGui::MenuItem("Delete Entity"))
+                m_destroySelectedEntity = true;
+
+            ImGui::EndPopup();
+        }
+
         if (ImGui::IsItemClicked())
         {
             // If not locked, or we are clicking the one that IS locked, allow select
@@ -208,12 +214,10 @@ namespace Engine {
             }
         }
 
-        // 6. DRAW THE BUTTON
         if (isSelected || isLockedEntity)
         {
             ImGui::SameLine(ImGui::GetContentRegionAvail().x - 5.0f); // Move to far right
 
-            // Push a DIFFERENT ID for the button to separate it from the Node
             ImGui::PushID("LockButton");
 
             // Small visual polish: change color if locked
@@ -235,17 +239,11 @@ namespace Engine {
             }
 
             if (isLockedEntity) ImGui::PopStyleColor();
-            ImGui::PopID(); // Pop "LockButton"
+            ImGui::PopID();
         }
 
-        // 7. CONTEXT MENU
-        if (ImGui::BeginPopupContextItem("EntityContextMenu"))
-        {
-            if (ImGui::MenuItem("Delete Entity"))
-                m_destroySelectedEntity = true;
-            ImGui::EndPopup();
-        }
-        // 7. Render Internal Content (Tiles, etc.)
+       
+
         if (opened)
         {
             if (entity.HasComponent<TileComponent>())
@@ -295,7 +293,6 @@ namespace Engine {
                 }
             }
 
-            // Crucial: Only TreePop if TreeNodeEx returned true
             ImGui::TreePop();
         }
         ImGui::PopID();
@@ -317,7 +314,7 @@ namespace Engine {
         std::vector<entt::entity> entityList(view.begin(), view.end());
         std::reverse(entityList.begin(), entityList.end());
 
-        ImGui::PushID((void*)m_sceneHierarchyPanelScene.get());
+       // ImGui::PushID((void*)m_sceneHierarchyPanelScene.get());
 
         ImGuiListClipper clipper;
         clipper.Begin(static_cast<int>(entityList.size()));
@@ -352,7 +349,7 @@ namespace Engine {
             }
         }
 
-        ImGui::PopID();
+       // ImGui::PopID();
         ImGui::PopID();
         
        
@@ -361,7 +358,8 @@ namespace Engine {
         
         // Open "Create Empty Entity" popup **only** if no entity was clicked
         
-        if (!m_itemIsClicked && !m_selectedEntity && ImGui::BeginPopupContextWindow("CreateEntityPopup", ImGuiPopupFlags_MouseButtonRight))
+        if (!m_itemIsClicked && !m_selectedEntity && ImGui::BeginPopupContextWindow("CreateEntityPopup",
+            ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
         {
             if (ImGui::MenuItem("Create Empty Entity"))
             {
@@ -386,7 +384,7 @@ namespace Engine {
         if (m_destroySelectedEntity)
         {
             DestrtoySelectedEntity(m_selectedEntity);
-            ImGui::TreePop();
+           // ImGui::TreePop();
         }
 
         ImGui::End();
