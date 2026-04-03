@@ -452,8 +452,8 @@ namespace Engine
                 Entity e = PromoteGroup(scene, groupId);
                 if (e)
                 {
-                    SortEntitiesByY(scene);
-                    SortEntityTilesByY(scene, e);
+                   // SortEntitiesByY(scene);
+                   // SortEntityTilesByY(scene, e);
 
                     tileManager->RegisterPromotedEntity(e);
                     tileManager->RegisterPromotedEntityResidency(scene, e, playerWorldPos);
@@ -528,51 +528,58 @@ namespace Engine
         );
     }
 
-
     void CompactTilePromotion::SortEntityTilesByY(Scene* scene, Entity entity)
     {
-        if (!entity || !entity.HasComponent<TileComponent>() || !entity.HasComponent<TransformComponent>())
+        if (!scene || !entity)
             return;
 
-        auto& tileComp = entity.GetComponent<TileComponent>();
-        const auto& tr = entity.GetComponent<TransformComponent>();
+        if (!entity.HasComponent<TransformComponent>() || !entity.HasComponent<TileComponent>())
+            return;
 
-        auto DirectionSortKey = [](eTileDirection dir) -> int
+        TransformComponent& tr = entity.GetComponent<TransformComponent>();
+        TileComponent& tc = entity.GetComponent<TileComponent>();
+
+        if (tc.tiles.empty())
+            return;
+
+        std::stable_sort(tc.tiles.begin(), tc.tiles.end(),
+            [&](const TileInfo& a, const TileInfo& b)
             {
-                switch (dir)
-                {
-                case eTileDirection::North: return 0;
-                case eTileDirection::East:  return 1;
-                case eTileDirection::West:  return 0;
-                case eTileDirection::South: return 0;
-                default: return 100;
-                }
-            };
+                // ---- 1. Category / layer priority ----
+                auto getLayer = [](const TileInfo& t)
+                    {
+                        switch (t.Category)
+                        {
+                        case eTileCategory::Terrain:    return 0;
+                        case eTileCategory::Buildings: return 1;
+                        case eTileCategory::Roofs:     return 2;
+                        default:                       return 0;
+                        }
+                    };
 
-        std::stable_sort(tileComp.tiles.begin(), tileComp.tiles.end(),
-            [&](const TileInfo& A, const TileInfo& B)
-            {
-                const float yA = tr.Translation.y + A.position.y;
-                const float yB = tr.Translation.y + B.position.y;
+                int layerA = getLayer(a);
+                int layerB = getLayer(b);
 
-                if (yA > yB) return true;
-                if (yA < yB) return false;
+                if (layerA != layerB)
+                    return layerA < layerB;
 
-                const float xA = tr.Translation.x + A.position.x;
-                const float xB = tr.Translation.x + B.position.x;
+                // ---- 2. World Y (painter's sorting) ----
+                float worldYA = tr.Translation.y + a.position.y;
+                float worldYB = tr.Translation.y + b.position.y;
 
-                if (xA < xB) return true;
-                if (xA > xB) return false;
+                if (worldYA != worldYB)
+                    return worldYA > worldYB; // higher Y drawn first
 
-                const int dirA = DirectionSortKey(A.TileDirection);
-                const int dirB = DirectionSortKey(B.TileDirection);
+                // ---- 3. X tie-breaker ----
+                float worldXA = tr.Translation.x + a.position.x;
+                float worldXB = tr.Translation.x + b.position.x;
 
-                if (dirA != dirB)
-                    return dirA < dirB;
+                if (worldXA != worldXB)
+                    return worldXA < worldXB;
 
-                return false;
-            }
-        );
+                // ---- 4. Stable fallback (UID) ----
+                return a.UID < b.UID;
+            });
     }
 
     void CompactTilePromotion::EnsurePromotedInEditorViewport(Scene* scene, const glm::vec2& viewMinWorld,
@@ -672,6 +679,9 @@ namespace Engine
                 Entity e = PromoteGroup(scene, groupId);
                 if (e && scene->IsEntityValid(e))
                 {
+                    SortEntitiesByY(scene);
+                    SortEntityTilesByY(scene, e);
+
                     RegisterPromotedEntity(groupId, e);
                     tileManager->RegisterPromotedEntity(e);
                     tileManager->RegisterPromotedEntityResidency(scene, e, 0.5f * (promoteMin + promoteMax));
