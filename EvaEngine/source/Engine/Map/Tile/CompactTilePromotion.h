@@ -22,10 +22,10 @@ namespace Engine {
 		void SortEntityTilesByY(Scene* scene, Entity entity);
 		void EnsurePromotedInEditorViewport(Scene* scene, const glm::vec2& viewMinWorld, const glm::vec2& viewMaxWorld, float compactMarginWorld, Ref<TileManager> tileManager);
 		void RegisterPromotedEntity(uint64_t groupId, Entity entity);
-		bool PromoteSingleTileIntoExistingGroup(Scene* scene, uint64_t groupId, const glm::ivec2& worldCell, Ref<TileManager> tileManager, eTileDirection tileDir);
+		bool PromoteSingleTileIntoExistingGroup(Scene* scene, uint64_t groupId, glm::ivec2& worldCell, Ref<TileManager> tileManager, eTileDirection tileDir, uint16_t typeId);
 		void RegisterPromotedTile(Entity entity, TileInfo& tile);
 
-		void RemoveSingleTileFromExistingGroup(Scene* scene, uint64_t groupId, const glm::ivec2& worldCell, Ref<TileManager> tileManager);
+		void RemoveSingleTileFromExistingGroup(Scene* scene, uint64_t groupId, const glm::ivec2& worldCell, Ref<TileManager> tileManager, bool destroyIfEmpty);
 		
 		bool IsGroupPromoted(uint64_t groupId);
 	private:

@@ -5,23 +5,61 @@
 
 namespace Engine
 {
-    PlaceCompactTileCommand::PlaceCompactTileCommand(Scene* scene, const glm::ivec2& worldCell, const CompactTile& newTile)
-        : m_Scene(scene), m_WorldCell(worldCell), m_NewTile(newTile)
+
+
+    PlaceCompactTileCommand::PlaceCompactTileCommand(Scene* scene, const glm::ivec2& worldCell, const CompactTile& newTile,
+        const eTileDirection& tileDir)
+        : m_Scene(scene), m_WorldCell(worldCell), m_NewTile(newTile), m_tileDir(tileDir)
     {
         if (!m_Scene)
             return;
 
-        CompactTile* existing = m_Scene->GetCompactTileMap().GetTile(m_WorldCell);
-        if (existing)
+        CompactTile* existing = m_Scene->GetCompactTileMap().FindTile(m_WorldCell, m_NewTile.TypeId);
+        if (existing && !existing->IsEmpty())
         {
             m_OldTile = *existing;
             m_HadOldTile = true;
+        }
+        else
+        {
+            m_OldTile = CompactTile{};
+            m_HadOldTile = false;
         }
     }
 
     void PlaceCompactTileCommand::Execute()
     {
+        if (!m_Scene)
+            return;
+
+        if (m_NewTile.IsEmpty())
+            return;
+
+        CompactTileMap& compactMap = m_Scene->GetCompactTileMap();
+
+        // Do not allow duplicate TypeId in the same cell
+        if (compactMap.HasTileType(m_WorldCell, m_NewTile.TypeId))
+            return;
+
+        compactMap.AddTile(m_WorldCell, m_NewTile);
+
+        if (m_NewTile.GroupId != 0)
+            compactMap.RegisterCellForGroup(m_NewTile.GroupId, m_WorldCell);
+
+        compactMap.MarkChunkDirtyForCell(m_WorldCell);
         
+        if (m_NewTile.GroupId != 0 &&
+            m_Scene->GetCompactTilePromotion().IsGroupPromoted(m_NewTile.GroupId))
+        {
+            m_Scene->GetCompactTilePromotion().PromoteSingleTileIntoExistingGroup(
+                m_Scene,
+                m_NewTile.GroupId,
+                m_WorldCell,
+                m_Scene->GetTileManager(),
+                m_tileDir,
+                m_NewTile.TypeId);
+        }
+
     }
 
     void PlaceCompactTileCommand::Undo()
@@ -31,56 +69,51 @@ namespace Engine
 
         CompactTileMap& compactMap = m_Scene->GetCompactTileMap();
 
-        // Current tile at the cell (the one placed by Execute)
-        CompactTile* currentTile = compactMap.GetTile(m_WorldCell);
-        uint64_t currentGroupId = 0;
+        CompactTile* existing = compactMap.FindTile(m_WorldCell, m_NewTile.TypeId);
+        if (!existing)
+            return;
 
-        if (currentTile && !currentTile->IsEmpty())
-            currentGroupId = currentTile->GroupId;
+        const uint64_t groupId = existing->GroupId;
 
-        // If this tile was promoted into a runtime entity, remove it there too
-        if (currentGroupId != 0 && m_Scene->GetCompactTilePromotion().IsGroupPromoted(currentGroupId))
+        // If this tile is currently promoted, remove its runtime representation too
+        if (groupId != 0 &&
+            m_Scene->GetCompactTilePromotion().IsGroupPromoted(groupId))
         {
-      
-            
+            bool destroyIfLastTile = true;
             m_Scene->GetCompactTilePromotion().RemoveSingleTileFromExistingGroup(
                 m_Scene,
-                currentGroupId,
+                groupId,
                 m_WorldCell,
-                m_Scene->GetTileManager());
+                m_Scene->GetTileManager(),
+                destroyIfLastTile);
         }
 
-        // Remove current group registration if needed
-        if (currentGroupId != 0)
+        compactMap.RemoveTile(m_WorldCell, m_NewTile.TypeId);
+
+        // If no more tiles from this group remain in this cell, unregister the cell from the group
+        if (groupId != 0)
         {
-            compactMap.RemoveCellFromGroup(currentGroupId, m_WorldCell);
-        }
+            const std::vector<CompactTile>* tiles = compactMap.GetTiles(m_WorldCell);
+            bool stillHasGroupInCell = false;
 
-        CompactTile& tile = compactMap.GetOrCreateTile(m_WorldCell);
-
-        if (m_HadOldTile)
-        {
-            tile = m_OldTile;
-
-            if (!tile.IsEmpty() && tile.GroupId != 0)
+            if (tiles)
             {
-                compactMap.RegisterCellForGroup(tile.GroupId, m_WorldCell);
-
-                // If old tile belonged to an already-promoted group, put it back there too
-                if (m_Scene->GetCompactTilePromotion().IsGroupPromoted(tile.GroupId))
+                for (const CompactTile& t : *tiles)
                 {
-                    /*
-                    _:-    m_Scene->GetTileManager());
-                    */
+                    if (!t.IsEmpty() && t.GroupId == groupId)
+                    {
+                        stillHasGroupInCell = true;
+                        break;
+                    }
                 }
             }
-        }
-        else
-        {
-            tile = CompactTile{};
+
+            if (!stillHasGroupInCell)
+            {
+                compactMap.RemoveCellFromGroup(groupId, m_WorldCell);
+            }
         }
 
-        TileChunk& chunk = compactMap.GetOrCreateChunk(WorldCellToChunkCoord(m_WorldCell));
-        chunk.DrawCacheDirty = true;
+        compactMap.MarkChunkDirtyForCell(m_WorldCell);
     }
 }

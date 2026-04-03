@@ -1,14 +1,14 @@
 #pragma once
 
-#include <array>
 #include <unordered_map>
+#include <vector>
 #include <glm/glm.hpp>
 #include "TileDefinition.h"
 
 namespace Engine
 {
-    static constexpr int TILE_CHUNK_W = 64;
-    static constexpr int TILE_CHUNK_H = 64;
+    inline constexpr int TILE_CHUNK_W = 64;
+    inline constexpr int TILE_CHUNK_H = 64;
 
     struct CompactTile
     {
@@ -22,10 +22,15 @@ namespace Engine
 
     namespace CompactTileFlags
     {
-        static constexpr uint8_t None = 0;
-        static constexpr uint8_t Hidden = 1 << 0;
-        static constexpr uint8_t Promoted = 1 << 1;
+        inline constexpr uint8_t None = 0;
+        inline constexpr uint8_t Hidden = 1 << 0;
+        inline constexpr uint8_t Promoted = 1 << 1;
     }
+
+    struct CompactTileCell
+    {
+        std::vector<CompactTile> Tiles;
+    };
 
     struct CompactDrawItem
     {
@@ -35,17 +40,13 @@ namespace Engine
         float WorldY = 0.0f;
     };
 
-
     struct TileChunk
     {
         glm::ivec2 ChunkCoord{};
-        std::array<CompactTile, TILE_CHUNK_W* TILE_CHUNK_H> Tiles{};
 
+        // Cached render data for compact tiles that fall inside this chunk
         std::vector<CompactDrawItem> CachedDrawItems;
         bool DrawCacheDirty = true;
-
-        CompactTile& At(int x, int y);
-        const CompactTile& At(int x, int y) const;
     };
 
     struct IVec2Hash
@@ -63,27 +64,34 @@ namespace Engine
 
         TileChunk* GetChunk(const glm::ivec2& chunkCoord);
         const TileChunk* GetChunk(const glm::ivec2& chunkCoord) const;
-
         TileChunk& GetOrCreateChunk(const glm::ivec2& chunkCoord);
 
-        CompactTile* GetTile(const glm::ivec2& worldCell);
-        const CompactTile* GetTile(const glm::ivec2& worldCell) const;
+        std::vector<CompactTile>* GetTiles(const glm::ivec2& worldCell);
+        const std::vector<CompactTile>* GetTiles(const glm::ivec2& worldCell) const;
+        std::vector<CompactTile>& GetOrCreateTiles(const glm::ivec2& worldCell);
 
-        CompactTile& GetOrCreateTile(const glm::ivec2& worldCell);
+        CompactTile* FindTile(const glm::ivec2& worldCell, uint16_t typeId);
+        const CompactTile* FindTile(const glm::ivec2& worldCell, uint16_t typeId) const;
 
-        void Render(const TileDefinitionRegistry& defs);
+        bool HasTileType(const glm::ivec2& worldCell, uint16_t typeId) const;
+        CompactTile& AddTile(const glm::ivec2& worldCell, const CompactTile& tile);
+        bool RemoveTile(const glm::ivec2& worldCell, uint16_t typeId);
 
         void Render(const TileDefinitionRegistry& defs) const;
+
         const std::vector<glm::ivec2>* GetCellsForGroup(uint64_t groupId) const;
         void RegisterCellForGroup(uint64_t groupId, const glm::ivec2& cell);
         void RemoveCellFromGroup(uint64_t groupId, const glm::ivec2& cell);
+
         void RebuildChunkDrawCache(TileChunk& chunk, const TileDefinitionRegistry& defs);
         void MarkChunkDirtyForCell(const glm::ivec2& worldCell);
-        const std::unordered_map<uint64_t, std::vector<glm::ivec2>>& GetGroupCells() const;
-    private:
-        std::unordered_map<glm::ivec2, TileChunk, IVec2Hash> m_chunks;
-        std::unordered_map<uint64_t, std::vector<glm::ivec2>> m_CellsByGroupId;
 
+        const std::unordered_map<uint64_t, std::vector<glm::ivec2>>& GetGroupCells() const;
+
+    private:
+        std::unordered_map<glm::ivec2, TileChunk, IVec2Hash> m_Chunks;
+        std::unordered_map<glm::ivec2, CompactTileCell, IVec2Hash> m_Cells;
+        std::unordered_map<uint64_t, std::vector<glm::ivec2>> m_CellsByGroupId;
     };
 
     int FloorDiv(int a, int b);

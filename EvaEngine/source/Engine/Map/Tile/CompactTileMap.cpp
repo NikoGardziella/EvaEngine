@@ -1,9 +1,11 @@
 #include "pch.h"
 #include "CompactTileMap.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <functional>
+
 #include "Engine/Map/Utils/IsoTileUtils.h"
 
 namespace Engine
@@ -11,16 +13,6 @@ namespace Engine
     bool CompactTile::IsEmpty() const
     {
         return TypeId == 0;
-    }
-
-    CompactTile& TileChunk::At(int x, int y)
-    {
-        return Tiles[y * TILE_CHUNK_W + x];
-    }
-
-    const CompactTile& TileChunk::At(int x, int y) const
-    {
-        return Tiles[y * TILE_CHUNK_W + x];
     }
 
     size_t IVec2Hash::operator()(const glm::ivec2& v) const
@@ -32,18 +24,18 @@ namespace Engine
 
     const std::unordered_map<glm::ivec2, TileChunk, IVec2Hash>& CompactTileMap::GetChunks() const
     {
-        return m_chunks;
+        return m_Chunks;
     }
 
     std::unordered_map<glm::ivec2, TileChunk, IVec2Hash>& CompactTileMap::GetChunksMutable()
     {
-        return m_chunks;
+        return m_Chunks;
     }
 
     TileChunk* CompactTileMap::GetChunk(const glm::ivec2& chunkCoord)
     {
-        auto it = m_chunks.find(chunkCoord);
-        if (it == m_chunks.end())
+        auto it = m_Chunks.find(chunkCoord);
+        if (it == m_Chunks.end())
             return nullptr;
 
         return &it->second;
@@ -51,8 +43,8 @@ namespace Engine
 
     const TileChunk* CompactTileMap::GetChunk(const glm::ivec2& chunkCoord) const
     {
-        auto it = m_chunks.find(chunkCoord);
-        if (it == m_chunks.end())
+        auto it = m_Chunks.find(chunkCoord);
+        if (it == m_Chunks.end())
             return nullptr;
 
         return &it->second;
@@ -60,53 +52,121 @@ namespace Engine
 
     TileChunk& CompactTileMap::GetOrCreateChunk(const glm::ivec2& chunkCoord)
     {
-        auto [it, inserted] = m_chunks.emplace(chunkCoord, TileChunk{});
+        auto [it, inserted] = m_Chunks.emplace(chunkCoord, TileChunk{});
         it->second.ChunkCoord = chunkCoord;
         return it->second;
     }
 
-    CompactTile* CompactTileMap::GetTile(const glm::ivec2& worldCell)
+    std::vector<CompactTile>* CompactTileMap::GetTiles(const glm::ivec2& worldCell)
     {
-        const glm::ivec2 chunk = WorldCellToChunkCoord(worldCell);
-        const glm::ivec2 local = WorldCellToLocalCell(worldCell);
-
-        TileChunk* c = GetChunk(chunk);
-        if (!c)
+        auto it = m_Cells.find(worldCell);
+        if (it == m_Cells.end())
             return nullptr;
 
-        return &c->At(local.x, local.y);
+        return &it->second.Tiles;
     }
 
-    const CompactTile* CompactTileMap::GetTile(const glm::ivec2& worldCell) const
+    const std::vector<CompactTile>* CompactTileMap::GetTiles(const glm::ivec2& worldCell) const
     {
-        const glm::ivec2 chunk = WorldCellToChunkCoord(worldCell);
-        const glm::ivec2 local = WorldCellToLocalCell(worldCell);
-
-        const TileChunk* c = GetChunk(chunk);
-        if (!c)
+        auto it = m_Cells.find(worldCell);
+        if (it == m_Cells.end())
             return nullptr;
 
-        return &c->At(local.x, local.y);
+        return &it->second.Tiles;
     }
 
-    CompactTile& CompactTileMap::GetOrCreateTile(const glm::ivec2& worldCell)
+    std::vector<CompactTile>& CompactTileMap::GetOrCreateTiles(const glm::ivec2& worldCell)
     {
-        const glm::ivec2 chunk = WorldCellToChunkCoord(worldCell);
-        const glm::ivec2 local = WorldCellToLocalCell(worldCell);
-
-        TileChunk& c = GetOrCreateChunk(chunk);
-        return c.At(local.x, local.y);
+        return m_Cells[worldCell].Tiles;
     }
 
-    void CompactTileMap::Render(const TileDefinitionRegistry& defs)
+    CompactTile* CompactTileMap::FindTile(const glm::ivec2& worldCell, uint16_t typeId)
     {
-        for (auto& [chunkCoord, chunk] : m_chunks)
-        {
-            if (chunk.DrawCacheDirty)
+        auto it = m_Cells.find(worldCell);
+        if (it == m_Cells.end())
+            return nullptr;
+
+        auto& tiles = it->second.Tiles;
+        auto found = std::find_if(tiles.begin(), tiles.end(),
+            [&](CompactTile& t)
             {
-                RebuildChunkDrawCache(chunk, defs);
-            }
+                return t.TypeId == typeId;
+            });
 
+        return (found != tiles.end()) ? &(*found) : nullptr;
+    }
+
+    const CompactTile* CompactTileMap::FindTile(const glm::ivec2& worldCell, uint16_t typeId) const
+    {
+        auto it = m_Cells.find(worldCell);
+        if (it == m_Cells.end())
+            return nullptr;
+
+        const auto& tiles = it->second.Tiles;
+        auto found = std::find_if(tiles.begin(), tiles.end(),
+            [&](const CompactTile& t)
+            {
+                return t.TypeId == typeId;
+            });
+
+        return (found != tiles.end()) ? &(*found) : nullptr;
+    }
+
+    bool CompactTileMap::HasTileType(const glm::ivec2& worldCell, uint16_t typeId) const
+    {
+        return FindTile(worldCell, typeId) != nullptr;
+    }
+
+    CompactTile& CompactTileMap::AddTile(const glm::ivec2& worldCell, const CompactTile& tile)
+    {
+        CompactTileCell& cell = m_Cells[worldCell];
+
+        auto it = std::find_if(cell.Tiles.begin(), cell.Tiles.end(),
+            [&](const CompactTile& t)
+            {
+                return t.TypeId == tile.TypeId;
+            });
+
+        if (it != cell.Tiles.end())
+        {
+            return *it;
+        }
+
+        cell.Tiles.push_back(tile);
+        MarkChunkDirtyForCell(worldCell);
+        return cell.Tiles.back();
+    }
+
+    bool CompactTileMap::RemoveTile(const glm::ivec2& worldCell, uint16_t typeId)
+    {
+        auto it = m_Cells.find(worldCell);
+        if (it == m_Cells.end())
+            return false;
+
+        auto& tiles = it->second.Tiles;
+
+        auto found = std::find_if(tiles.begin(), tiles.end(),
+            [&](const CompactTile& t)
+            {
+                return t.TypeId == typeId;
+            });
+
+        if (found == tiles.end())
+            return false;
+
+        tiles.erase(found);
+
+        if (tiles.empty())
+            m_Cells.erase(it);
+
+        MarkChunkDirtyForCell(worldCell);
+        return true;
+    }
+
+    void CompactTileMap::Render(const TileDefinitionRegistry& defs) const
+    {
+        for (const auto& [chunkCoord, chunk] : m_Chunks)
+        {
             for (const CompactDrawItem& item : chunk.CachedDrawItems)
             {
                 const TileDefinition* def = defs.Get(item.TypeId);
@@ -114,17 +174,8 @@ namespace Engine
                     continue;
 
                 const glm::vec2 worldPos = IsoTileUtils::IsoToWorldGround(item.WorldCell);
+                const glm::vec4 color = glm::vec4(1.0f);
 
-                float zBias = 0.0f;
-                uint32_t flags = 0;
-
-                if (def->Category == eTileCategory::Roofs)
-                {
-                    zBias = 2.0f;
-                    flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::IsRoof;
-                }
-
-                glm::vec4 color = glm::vec4(1.0f);
                 VulkanRenderer2D::DrawTile(worldPos, def->UV, color);
             }
         }
@@ -144,16 +195,11 @@ namespace Engine
         if (groupId == 0)
             return;
 
-        auto& vec = m_CellsByGroupId[groupId];
+        auto& cells = m_CellsByGroupId[groupId];
 
-        // Avoid duplicates
-        for (const glm::ivec2& c : vec)
-        {
-            if (c == cell)
-                return;
-        }
-
-        vec.push_back(cell);
+        auto it = std::find(cells.begin(), cells.end(), cell);
+        if (it == cells.end())
+            cells.push_back(cell);
     }
 
     void CompactTileMap::RemoveCellFromGroup(uint64_t groupId, const glm::ivec2& cell)
@@ -162,25 +208,14 @@ namespace Engine
         if (it == m_CellsByGroupId.end())
             return;
 
-        auto& vec = it->second;
+        auto& cells = it->second;
+        auto found = std::find(cells.begin(), cells.end(), cell);
+        if (found != cells.end())
+            cells.erase(found);
 
-        for (size_t i = 0; i < vec.size(); ++i)
-        {
-            if (vec[i] == cell)
-            {
-                vec[i] = vec.back();
-                vec.pop_back();
-                break;
-            }
-        }
-
-        // Optional: clean empty groups
-        if (vec.empty())
-        {
+        if (cells.empty())
             m_CellsByGroupId.erase(it);
-        }
     }
-   
 
     void CompactTileMap::RebuildChunkDrawCache(TileChunk& chunk, const TileDefinitionRegistry& defs)
     {
@@ -192,35 +227,40 @@ namespace Engine
         {
             for (int x = 0; x < TILE_CHUNK_W; ++x)
             {
-                const CompactTile& ct = chunk.At(x, y);
-
-                if (ct.IsEmpty())
-                    continue;
-
-                if (ct.Flags & CompactTileFlags::Hidden)
-                    continue;
-
-                if (ct.Flags & CompactTileFlags::Promoted)
-                    continue;
-
-                const TileDefinition* def = defs.Get(ct.TypeId);
-                if (!def)
-                    continue;
-
                 const glm::ivec2 worldCell = chunkOriginCell + glm::ivec2(x, y);
+                const std::vector<CompactTile>* tiles = GetTiles(worldCell);
+                if (!tiles || tiles->empty())
+                    continue;
+
                 const glm::vec2 worldPos = IsoTileUtils::IsoToWorldGround(worldCell);
 
-                int layer = 0;
-                if (def->Category == eTileCategory::Roofs) layer = 2;
-                else if (def->Category == eTileCategory::Buildings) layer = 1;
+                for (const CompactTile& ct : *tiles)
+                {
+                    if (ct.IsEmpty())
+                        continue;
 
-                CompactDrawItem item{};
-                item.WorldCell = worldCell;
-                item.TypeId = ct.TypeId;
-                item.Layer = layer;
-                item.WorldY = worldPos.y;
+                    if (ct.Flags & CompactTileFlags::Hidden)
+                        continue;
 
-                chunk.CachedDrawItems.push_back(item);
+                    if (ct.Flags & CompactTileFlags::Promoted)
+                        continue;
+
+                    const TileDefinition* def = defs.Get(ct.TypeId);
+                    if (!def)
+                        continue;
+
+                    int layer = 0;
+                    if (def->Category == eTileCategory::Roofs) layer = 2;
+                    else if (def->Category == eTileCategory::Buildings) layer = 1;
+
+                    CompactDrawItem item{};
+                    item.WorldCell = worldCell;
+                    item.TypeId = ct.TypeId;
+                    item.Layer = layer;
+                    item.WorldY = worldPos.y;
+
+                    chunk.CachedDrawItems.push_back(item);
+                }
             }
         }
 
@@ -236,7 +276,10 @@ namespace Engine
                 if (a.WorldCell.x != b.WorldCell.x)
                     return a.WorldCell.x < b.WorldCell.x;
 
-                return a.WorldCell.y < b.WorldCell.y;
+                if (a.WorldCell.y != b.WorldCell.y)
+                    return a.WorldCell.y < b.WorldCell.y;
+
+                return a.TypeId < b.TypeId;
             });
 
         chunk.DrawCacheDirty = false;
@@ -248,7 +291,6 @@ namespace Engine
         TileChunk& chunk = GetOrCreateChunk(chunkCoord);
         chunk.DrawCacheDirty = true;
     }
-
 
     const std::unordered_map<uint64_t, std::vector<glm::ivec2>>& CompactTileMap::GetGroupCells() const
     {

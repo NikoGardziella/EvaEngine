@@ -58,7 +58,9 @@ namespace Engine {
 
 		TileInfo OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory);
 
-		CompactTile PaintCompactTileAtSelection(Entity selectedEntity);
+		CompactTile BuildCompactTileForSelection(Entity selectedEntity, glm::ivec2 isoCell);
+
+		//CompactTile PaintCompactTileAtSelection(Entity selectedEntity);
 
 		uint16_t GetOrCreateDefinitionForSelectedTile();
 

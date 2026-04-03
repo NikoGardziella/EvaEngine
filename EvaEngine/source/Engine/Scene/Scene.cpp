@@ -232,13 +232,7 @@ namespace Engine {
                     uint64_t(blockY) * 100000ull +
                     uint64_t(blockX);
 
-                CompactTile& tile = compactMap.GetOrCreateTile(isoCell);
-                tile.TypeId = typeId;
-                tile.Flags = CompactTileFlags::None;
-                tile.Aux = 0;
-                tile.GroupId = groupId;
-                compactMap.RegisterCellForGroup(groupId, isoCell);
-                placedCount++;
+                
             }
         }
 

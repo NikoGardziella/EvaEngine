@@ -904,83 +904,56 @@ namespace Engine {
 
         return newTile;
     }
-
-
-    CompactTile EditorLayer::PaintCompactTileAtSelection(Entity selectedEntity)
+    CompactTile EditorLayer::BuildCompactTileForSelection(Entity selectedEntity, glm::ivec2 isoCell)
     {
         Ref<Scene> scene = m_editor->GetGameLayer()->GetActiveGameScene();
         if (!scene)
         {
-            EE_CORE_WARN("PaintCompactTileAtSelection scene = null ");
-            return Engine::CompactTile{};
+            EE_CORE_WARN("BuildCompactTileForSelection scene = null");
+            return {};
         }
-            
 
-        glm::ivec2 isoCell = GetSnappedIsoPosition();
-        uint16_t typeId = GetOrCreateDefinitionForSelectedTile();
+        const uint16_t typeId = GetOrCreateDefinitionForSelectedTile();
         if (typeId == 0)
         {
-            EE_CORE_WARN("PaintCompactTileAtSelection typeId ==0 ");
+            EE_CORE_WARN("BuildCompactTileForSelection typeId == 0");
+            return {};
+        }
 
-            return Engine::CompactTile{};
-        }
-       
         if (m_sceneHierarchyPanel.IsSelectionLocked())
-        {
             selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
-        }
+
+        uint64_t groupID = 0;
 
         if (!selectedEntity || !scene->IsEntityValid(selectedEntity))
         {
-           
-
-            // no entity selected. create new one- this probably should be destroyed at Runtimestart?
-
             Entity newEntity = scene->CreateEntity("Entity");
             selectedEntity = newEntity;
             m_selectedEntity = newEntity;
             m_sceneHierarchyPanel.SetSelectedEntity(newEntity);
-            uint64_t groupID = static_cast<uint64_t>(newEntity.GetUUID());
-            newEntity.GetComponent<TagComponent>().Tag = "Entity" + std::to_string(groupID);
-            //scene->GetCompactTilePromotion().RegisterPromotedEntity(groupID, newEntity);
-           // scene->GetCompactTilePromotion().RegisterPromotedEntity(groupID, newEntity);
 
+            groupID = static_cast<uint64_t>(newEntity.GetUUID());
+            newEntity.GetComponent<TagComponent>().Tag = "Entity" + std::to_string(groupID);
+        }
+        else
+        {
+            groupID = static_cast<uint64_t>(selectedEntity.GetUUID());
         }
 
-        uint64_t groupID = static_cast<uint64_t>(selectedEntity.GetUUID());
-
-        Engine::CompactTile& tile = scene->GetCompactTileMap().GetOrCreateTile(isoCell);
+        CompactTile tile{};
         tile.TypeId = typeId;
         tile.Flags = Engine::CompactTileFlags::None;
         tile.Aux = 0;
         tile.GroupId = groupID;
 
-        scene->GetCompactTileMap().RegisterCellForGroup(groupID, isoCell);
+        CompactTileMap& compactMap = scene->GetCompactTileMap();
 
-        TileChunk& chunk = scene->GetCompactTileMap().GetOrCreateChunk(WorldCellToChunkCoord(isoCell));
-        chunk.DrawCacheDirty = true;
-        //scene->GetTileManager()->RegisterPromotedTileResidency();
-       // scene->GetTileManager()->RegisterPromotedTile(selectedEntity,tile);
-
-
-
-        if (scene->GetCompactTilePromotion().IsGroupPromoted(groupID))
+        if (compactMap.HasTileType(isoCell, tile.TypeId))
         {
-
-            std::string selectedTileName = m_tileEditorPanel.GetSelectedTileName();
-            eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTileName);
-
-         
-
-            scene->GetCompactTilePromotion().PromoteSingleTileIntoExistingGroup(
-                scene.get(),
-                groupID,
-                isoCell,
-                scene->GetTileManager(),
-                tileDir);
+            EE_CORE_INFO("Compact tile type {} already exists at cell ({}, {})",
+                tile.TypeId, isoCell.x, isoCell.y);
+            return {};
         }
-
-
 
         return tile;
     }
@@ -1351,7 +1324,7 @@ namespace Engine {
 
                    glm::ivec2 isoCell = GetSnappedIsoPosition();
                    glm::vec2  snapped = IsoTileUtils::IsoToWorldGround(isoCell);
-                   if (snapped != m_LastPlacedTilePos)
+                  // if (snapped != m_LastPlacedTilePos)
                    {
                        // 3. Place the tile and get the data back
 
@@ -1368,10 +1341,15 @@ namespace Engine {
                            }
                            else
                            {
-                               CompactTile& compactTile = PaintCompactTileAtSelection(selectedEntity);
-                               Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
-                                   isoCell, compactTile);
+                               CompactTile compactTile = BuildCompactTileForSelection(selectedEntity, isoCell);
+                               if (compactTile.IsEmpty())
+                                   return;
 
+                               eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTile);
+
+                               Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                                   isoCell, compactTile, tileDir);
+                               cmd->Execute();
                                m_ActiveStroke->AddCommand(std::move(cmd));
                            }
                            EE_CORE_INFO(" placeed {}", isoCell);

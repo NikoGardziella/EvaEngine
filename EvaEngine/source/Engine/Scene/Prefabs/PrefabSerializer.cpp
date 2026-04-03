@@ -93,7 +93,12 @@ namespace Engine {
         EE_CORE_INFO("Prefab loaded: {} at ({}, {})", filepath, spawnCell.x, spawnCell.y);
         return newEntity;
     }
-    inline void PrefabSerializer::DeserializeCompactTilesPrefab(Scene& scene, const YAML::Node& compactTilesNode, const glm::ivec2& spawnCell, uint64_t newGroupId)
+
+    inline void PrefabSerializer::DeserializeCompactTilesPrefab(
+        Scene& scene,
+        const YAML::Node& compactTilesNode,
+        const glm::ivec2& spawnCell,
+        uint64_t newGroupId)
     {
         CompactTileMap& compactMap = scene.GetCompactTileMap();
 
@@ -111,19 +116,29 @@ namespace Engine {
                 continue;
             }
 
-            glm::ivec2 worldCell = spawnCell + localCell;
+            const glm::ivec2 worldCell = spawnCell + localCell;
 
-            CompactTile& tile = compactMap.GetOrCreateTile(worldCell);
-
+            CompactTile tile{};
             tile.TypeId = tileNode["TypeId"].as<uint16_t>();
             tile.Flags = CompactTileFlags::None;
             tile.Aux = static_cast<uint8_t>(tileNode["Aux"].as<int>());
             tile.GroupId = newGroupId;
 
-            compactMap.RegisterCellForGroup(tile.GroupId, worldCell);
+            if (tile.IsEmpty())
+                continue;
 
-            TileChunk& chunk = compactMap.GetOrCreateChunk(WorldCellToChunkCoord(worldCell));
-            chunk.DrawCacheDirty = true;
+            // Do not duplicate same TypeId in the same cell
+            if (compactMap.HasTileType(worldCell, tile.TypeId))
+            {
+                EE_CORE_WARN(
+                    "DeserializeCompactTilesPrefab: tile type {} already exists at cell ({}, {})",
+                    tile.TypeId, worldCell.x, worldCell.y);
+                continue;
+            }
+
+            compactMap.AddTile(worldCell, tile);
+            compactMap.RegisterCellForGroup(tile.GroupId, worldCell);
+            compactMap.MarkChunkDirtyForCell(worldCell);
         }
     }
 
@@ -207,26 +222,30 @@ namespace Engine {
             {
                 for (int x = 0; x < TILE_CHUNK_W; ++x)
                 {
-                    const CompactTile& tile = chunk.At(x, y);
-
-                    if (tile.IsEmpty() || tile.GroupId != targetGroupId)
+                    const glm::ivec2 worldCell = chunkOriginCell + glm::ivec2(x, y);
+                    const std::vector<CompactTile>* tiles = compactMap.GetTiles(worldCell);
+                    if (!tiles || tiles->empty())
                         continue;
 
-                    const glm::ivec2 worldCell = chunkOriginCell + glm::ivec2(x, y);
                     const glm::ivec2 localCell = worldCell - originCell;
 
-                    out << YAML::BeginMap;
-                    out << YAML::Key << "Cell" << YAML::Value << YAML::Flow
-                        << std::vector<int>{ localCell.x, localCell.y };
-                    out << YAML::Key << "TypeId" << YAML::Value << tile.TypeId;
-                    out << YAML::Key << "Flags" << YAML::Value << (int)tile.Flags;
-                    out << YAML::Key << "Aux" << YAML::Value << (int)tile.Aux;
-                    out << YAML::EndMap;
+                    for (const CompactTile& tile : *tiles)
+                    {
+                        if (tile.IsEmpty() || tile.GroupId != targetGroupId)
+                            continue;
+
+                        out << YAML::BeginMap;
+                        out << YAML::Key << "Cell" << YAML::Value << YAML::Flow
+                            << std::vector<int>{ localCell.x, localCell.y };
+                        out << YAML::Key << "TypeId" << YAML::Value << tile.TypeId;
+                        out << YAML::Key << "Flags" << YAML::Value << (int)tile.Flags;
+                        out << YAML::Key << "Aux" << YAML::Value << (int)tile.Aux;
+                        out << YAML::EndMap;
+                    }
                 }
             }
         }
     }
-
     inline void PrefabSerializer::DeserializeTilesToTileComponent(
         Entity rootEntity,
         const YAML::Node& tilesNode,

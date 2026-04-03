@@ -906,7 +906,6 @@ namespace Engine {
     }
 
 
-
     inline void SerializeCompactTiles(Ref<Scene> scene, YAML::Emitter& out)
     {
         const CompactTileMap& compactMap = scene->GetCompactTileMap();
@@ -919,31 +918,33 @@ namespace Engine {
             {
                 for (int x = 0; x < TILE_CHUNK_W; ++x)
                 {
-                    const CompactTile& tile = chunk.At(x, y);
-
-                    if (tile.IsEmpty())
-                        continue;
-
                     const glm::ivec2 worldCell = chunkOriginCell + glm::ivec2(x, y);
 
-                    out << YAML::BeginMap;
+                    const std::vector<CompactTile>* tiles = compactMap.GetTiles(worldCell);
+                    if (!tiles || tiles->empty())
+                        continue;
 
-                    out << YAML::Key << "Cell" << YAML::Value << YAML::Flow
-                        << std::vector<int>{ worldCell.x, worldCell.y };
+                    for (const CompactTile& tile : *tiles)
+                    {
+                        if (tile.IsEmpty())
+                            continue;
 
-                    out << YAML::Key << "TypeId" << YAML::Value << tile.TypeId;
-                    out << YAML::Key << "Flags" << YAML::Value << (int)tile.Flags;
-                    out << YAML::Key << "Aux" << YAML::Value << (int)tile.Aux;
-                    out << YAML::Key << "GroupId" << YAML::Value << tile.GroupId;
+                        out << YAML::BeginMap;
 
-                    out << YAML::EndMap;
+                        out << YAML::Key << "Cell" << YAML::Value << YAML::Flow
+                            << std::vector<int>{ worldCell.x, worldCell.y };
+
+                        out << YAML::Key << "TypeId" << YAML::Value << tile.TypeId;
+                        out << YAML::Key << "Flags" << YAML::Value << (int)tile.Flags;
+                        out << YAML::Key << "Aux" << YAML::Value << (int)tile.Aux;
+                        out << YAML::Key << "GroupId" << YAML::Value << tile.GroupId;
+
+                        out << YAML::EndMap;
+                    }
                 }
             }
         }
     }
-
-
-
 
     void SceneSerializer::Serialize(const std::string& filepath)
     {
@@ -1047,17 +1048,28 @@ namespace Engine {
                 continue;
             }
 
-            CompactTile& tile = compactMap.GetOrCreateTile(cell);
-
+            CompactTile tile{};
             tile.TypeId = tileNode["TypeId"].as<uint16_t>();
-            //tile.Flags = static_cast<uint8_t>(tileNode["Flags"].as<int>());
+            // tile.Flags = static_cast<uint8_t>(tileNode["Flags"].as<int>());
             tile.Flags = CompactTileFlags::None;
             tile.Aux = static_cast<uint8_t>(tileNode["Aux"].as<int>());
             tile.GroupId = tileNode["GroupId"].as<uint64_t>();
 
+            if (tile.IsEmpty())
+                continue;
+
+            // Avoid duplicate same TypeId in same cell
+            if (compactMap.HasTileType(cell, tile.TypeId))
+            {
+                EE_CORE_WARN(
+                    "DeserializeCompactTiles: tile type {} already exists at cell ({}, {})",
+                    tile.TypeId, cell.x, cell.y);
+                continue;
+            }
+
+            compactMap.AddTile(cell, tile);
             compactMap.RegisterCellForGroup(tile.GroupId, cell);
-            TileChunk& chunk = compactMap.GetOrCreateChunk(WorldCellToChunkCoord(cell));
-            chunk.DrawCacheDirty = true;
+            compactMap.MarkChunkDirtyForCell(cell);
         }
     }
 

@@ -57,6 +57,7 @@ namespace Engine
         struct PendingTile
         {
             glm::ivec2 worldCell{};
+            uint16_t typeId = 0;
             const TileDefinition* def = nullptr;
         };
 
@@ -66,30 +67,34 @@ namespace Engine
         // Gather only the compact tiles that belong to this group
         for (const glm::ivec2& worldCell : *cells)
         {
-            CompactTile* compact = compactMap.GetTile(worldCell);
-            if (!compact)
+            const std::vector<CompactTile>* compactTiles = compactMap.GetTiles(worldCell);
+            if (!compactTiles)
                 continue;
 
-            if (compact->IsEmpty())
-                continue;
-
-            if (compact->Flags & CompactTileFlags::Promoted)
-                continue;
-
-            if (compact->GroupId != groupId)
-                continue;
-
-            const TileDefinition* def = defs.Get(compact->TypeId);
-            if (!def)
+            for (const CompactTile& compact : *compactTiles)
             {
-                EE_CORE_WARN("PromoteGroup: missing TileDefinition for typeId {}", compact->TypeId);
-                continue;
-            }
+                if (compact.IsEmpty())
+                    continue;
 
-            PendingTile p{};
-            p.worldCell = worldCell;
-            p.def = def;
-            tilesToPromote.push_back(p);
+                if (compact.Flags & CompactTileFlags::Promoted)
+                    continue;
+
+                if (compact.GroupId != groupId)
+                    continue;
+
+                const TileDefinition* def = defs.Get(compact.TypeId);
+                if (!def)
+                {
+                    EE_CORE_WARN("PromoteGroup: missing TileDefinition for typeId {}", compact.TypeId);
+                    continue;
+                }
+
+                PendingTile p{};
+                p.worldCell = worldCell;
+                p.typeId = compact.TypeId;
+                p.def = def;
+                tilesToPromote.push_back(p);
+            }
         }
 
         if (tilesToPromote.empty())
@@ -114,6 +119,9 @@ namespace Engine
             e = scene->CreateEntity("PromotedGroup");
         }
 
+
+
+
         TransformComponent* tr = nullptr;
         if (e.HasComponent<TransformComponent>())
         {
@@ -136,6 +144,9 @@ namespace Engine
         // Build runtime tiles relative to root
         tc.tiles.reserve(tilesToPromote.size());
 
+
+
+
         for (const PendingTile& p : tilesToPromote)
         {
             const glm::vec2 tileWorldPos = IsoTileUtils::IsoToWorldGround(p.worldCell);
@@ -147,27 +158,23 @@ namespace Engine
                 (uint64_t)id.ID,
                 runtimeTile.position,
                 float(TILE_SIZE),
-                (uint32_t)runtimeTile.Category),
-                p.def->Direction;
+                (uint32_t)runtimeTile.Category,
+                p.def->Direction);
 
+            EE_CORE_INFO("runtimeTile.UID {}", runtimeTile.UID);
             tc.tiles.push_back(runtimeTile);
         }
 
         // Mark only this group's cells as hidden/promoted
-        for (const glm::ivec2& worldCell : *cells)
+        for (PendingTile& p : tilesToPromote)
         {
-            CompactTile* compact = compactMap.GetTile(worldCell);
+            CompactTile* compact = compactMap.FindTile(p.worldCell, p.typeId);
             if (!compact)
-                continue;
-
-            if (compact->IsEmpty())
-                continue;
-
-            if (compact->GroupId != groupId)
                 continue;
 
             compact->Flags |= CompactTileFlags::Promoted;
             compact->Flags |= CompactTileFlags::Hidden;
+            compactMap.MarkChunkDirtyForCell(p.worldCell);
         }
 
         
@@ -231,14 +238,13 @@ namespace Engine
             return false;
 
         const uint64_t groupId = static_cast<uint64_t>(entity.GetUUID());
-
         CompactTileMap& compactMap = scene->GetCompactTileMap();
+
+        bool wroteAnyTile = false;
 
         for (const TileInfo& tile : tc.tiles)
         {
             const glm::vec2 worldPos = glm::vec2(tr.Translation) + glm::vec2(tile.position);
-
-            // Convert runtime world position back to iso/world cell
             const glm::ivec2 worldCell = IsoTileUtils::WorldToIsoCellInt(worldPos);
 
             const uint16_t typeId = GetOrCreateDefinitionForRuntimeTile(scene, tile);
@@ -248,11 +254,31 @@ namespace Engine
                 continue;
             }
 
-            CompactTile& compact = compactMap.GetOrCreateTile(worldCell);
-            compact.TypeId = typeId;
-            compact.Flags = CompactTileFlags::None;
-            compact.Aux = 0;
-            compact.GroupId = groupId;
+            // Do not duplicate same TypeId in the same cell
+            if (compactMap.HasTileType(worldCell, typeId))
+            {
+                CompactTile* existing = compactMap.FindTile(worldCell, typeId);
+                if (existing)
+                {
+                    existing->Flags = CompactTileFlags::None;
+                    existing->Aux = 0;
+                    existing->GroupId = groupId;
+                }
+            }
+            else
+            {
+                CompactTile compact{};
+                compact.TypeId = typeId;
+                compact.Flags = CompactTileFlags::None;
+                compact.Aux = 0;
+                compact.GroupId = groupId;
+
+                compactMap.AddTile(worldCell, compact);
+            }
+
+            compactMap.RegisterCellForGroup(groupId, worldCell);
+            compactMap.MarkChunkDirtyForCell(worldCell);
+            wroteAnyTile = true;
         }
 
         if (destroyOriginalEntity)
@@ -260,7 +286,7 @@ namespace Engine
             scene->DestroyEntity(entity);
         }
 
-        return true;
+        return wroteAnyTile;
     }
 
     bool CompactTilePromotion::IsGroupPromoted(uint64_t groupId)
@@ -283,11 +309,10 @@ namespace Engine
 
         return it->second;
     }
-    void CompactTilePromotion::RemoveSingleTileFromExistingGroup(
-        Scene* scene,
-        uint64_t groupId,
-        const glm::ivec2& worldCell,
-        Ref<TileManager> tileManager)
+
+
+    void CompactTilePromotion::RemoveSingleTileFromExistingGroup(Scene* scene, uint64_t groupId,  const glm::ivec2& worldCell,
+        Ref<TileManager> tileManager, bool destroyIfEmpty)
     {
         if (!scene || groupId == 0)
             return;
@@ -298,6 +323,19 @@ namespace Engine
 
         TransformComponent& tr = e.GetComponent<TransformComponent>();
         TileComponent& tc = e.GetComponent<TileComponent>();
+
+
+        /*
+        CompactTileMap& compactMap = scene->GetCompactTileMap();
+
+        CompactTile* compact = compactMap.GetTile(worldCell);
+        if (compact)
+        {
+            compact->Flags &= ~CompactTileFlags::Promoted;
+            compact->Flags &= ~CompactTileFlags::Hidden;
+            compactMap.MarkChunkDirtyForCell(worldCell);
+        }
+        */
 
         const glm::vec2 tileWorldPos = IsoTileUtils::IsoToWorldGround(worldCell);
         const glm::vec2 localTarget = tileWorldPos - glm::vec2(tr.Translation);
@@ -318,7 +356,7 @@ namespace Engine
             tc.tiles.erase(it);
         }
 
-        if (tc.tiles.empty())
+        if (tc.tiles.empty() && destroyIfEmpty)
         {
             scene->DestroyEntity(e);
         }
@@ -376,20 +414,25 @@ namespace Engine
                 {
                     for (int x = 0; x < TILE_CHUNK_W; ++x)
                     {
-                        const CompactTile& compact = chunk->At(x, y);
-
-                        if (compact.IsEmpty())
-                            continue;
-
-                        if (compact.GroupId == 0)
-                            continue;
-
                         const glm::ivec2 worldCell = chunkOriginCell + glm::ivec2(x, y);
+                        const std::vector<CompactTile>* tiles = compactMap.GetTiles(worldCell);
+                        if (!tiles || tiles->empty())
+                            continue;
+
                         const glm::vec2 tileWorldPos = IsoTileUtils::IsoToWorldGround(worldCell);
                         const float distSq = glm::length2(tileWorldPos - playerWorldPos);
 
-                        if (distSq <= promoteRadiusSq)
+                        if (distSq > promoteRadiusSq)
+                            continue;
+
+                        for (const CompactTile& compact : *tiles)
                         {
+                            if (compact.IsEmpty())
+                                continue;
+
+                            if (compact.GroupId == 0)
+                                continue;
+
                             groupsToPromote.insert(compact.GroupId);
                         }
                     }
@@ -574,12 +617,13 @@ namespace Engine
         // -------------------------------------------------
         // Pass 1: collect groups from compact tiles inside viewport
         // -------------------------------------------------
+        // -------------------------------------------------
+// Pass 1: collect groups from compact tiles inside viewport
+// -------------------------------------------------
         for (int cy = minChunk.y; cy <= maxChunk.y; ++cy)
         {
             for (int cx = minChunk.x; cx <= maxChunk.x; ++cx)
             {
-
-
                 const glm::ivec2 chunkCoord(cx, cy);
                 const TileChunk* chunk = compactMap.GetChunk(chunkCoord);
                 if (!chunk)
@@ -591,24 +635,28 @@ namespace Engine
                 {
                     for (int x = 0; x < TILE_CHUNK_W; ++x)
                     {
-                        const CompactTile& ct = chunk->At(x, y);
-
-                        if (ct.IsEmpty())
-                            continue;
-
-                        if (ct.GroupId == 0)
-                            continue;
-
-                        if (ct.Flags & CompactTileFlags::Promoted)
-                            continue;
-
                         const glm::ivec2 worldCell = chunkOriginCell + glm::ivec2(x, y);
-                        const glm::vec2 worldPos = IsoTileUtils::IsoToWorldGround(worldCell);
+                        const std::vector<CompactTile>* tiles = compactMap.GetTiles(worldCell);
+                        if (!tiles || tiles->empty())
+                            continue;
 
+                        const glm::vec2 worldPos = IsoTileUtils::IsoToWorldGround(worldCell);
                         if (!pointInRect(worldPos, promoteMin, promoteMax))
                             continue;
 
-                        groupsToPromote.insert(ct.GroupId);
+                        for (const CompactTile& ct : *tiles)
+                        {
+                            if (ct.IsEmpty())
+                                continue;
+
+                            if (ct.GroupId == 0)
+                                continue;
+
+                            if (ct.Flags & CompactTileFlags::Promoted)
+                                continue;
+
+                            groupsToPromote.insert(ct.GroupId);
+                        }
                     }
                 }
             }
@@ -639,7 +687,7 @@ namespace Engine
         std::vector<uint64_t> groupsToCompact;
         groupsToCompact.reserve(m_PromotedEntitiesByGroup.size());
 
-        for (const auto& [groupId, entity] : m_PromotedEntitiesByGroup)
+        for (auto& [groupId, entity] : m_PromotedEntitiesByGroup)
         {
             if (groupsPromotedThisUpdate.count(groupId))
                 continue;
@@ -654,6 +702,7 @@ namespace Engine
             {
                 groupsToCompact.push_back(groupId);
                 continue;
+                
             }
 
             const glm::vec2 entityWorldPos = glm::vec2(entity.GetComponent<TransformComponent>().Translation);
@@ -691,8 +740,9 @@ namespace Engine
         EE_CORE_INFO("Registered promoted entity {} for group {}", (uint64_t)entity.GetUUID(), groupId);
     }
 
+
     bool CompactTilePromotion::PromoteSingleTileIntoExistingGroup(Scene* scene, uint64_t groupId,
-        const glm::ivec2& worldCell,  Ref<TileManager> tileManager, eTileDirection tileDir)
+        glm::ivec2& worldCell,  Ref<TileManager> tileManager, eTileDirection tileDir, uint16_t typeId)
     {
         if (!scene || groupId == 0)
             return false;
@@ -704,7 +754,7 @@ namespace Engine
         CompactTileMap& compactMap = scene->GetCompactTileMap();
         TileDefinitionRegistry& defs = scene->GetTileDefinitions();
 
-        CompactTile* compact = compactMap.GetTile(worldCell);
+        CompactTile* compact = compactMap.FindTile(worldCell, typeId);
         if (!compact || compact->IsEmpty())
             return false;
 
@@ -745,6 +795,5 @@ namespace Engine
 
         return true;
     }
-
 
 }
