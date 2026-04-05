@@ -40,6 +40,11 @@ namespace Engine {
 			m_selectedTileIndex = index;
 			m_openTileIndices.insert(index);
 		}
+		const std::optional<size_t>& SceneHierarchyPanel::GetSelectedTileIndex() const
+		{
+			return m_selectedTileIndex;
+		}
+
 		void ClearSelectedTile()
 		{
 			m_selectedTileIndex.reset();

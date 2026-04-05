@@ -52,6 +52,7 @@ namespace Engine {
 
 
 		void OnUpdate(Timestep timestep) override;
+		void DrawSelectedTileOutline();
 		void OnUpdateECS(Timestep timestep) override;
 		void OnEvent(Event& event) override;
 

@@ -165,6 +165,7 @@ namespace Engine {
         }
     }
 
+
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
         if (!entity) return;
