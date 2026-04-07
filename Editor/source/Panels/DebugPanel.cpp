@@ -86,13 +86,13 @@ namespace Engine {
             Entity camera = m_gameContext->GetPrimaryCameraEntity();
             if (camera)
             {
-                Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
+                //Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
 
             }
 
 
             DebugInterface::DebugDrawChunkOutlines(m_gameContext.get());
-            Engine::VulkanRenderer2D::EndScene();
+            //Engine::VulkanRenderer2D::EndScene();
 
 		}
         if (m_showGrid)
@@ -100,7 +100,7 @@ namespace Engine {
             Entity camera = m_gameContext->GetPrimaryCameraEntity();
             if (camera)
             {
-                Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
+                //Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
             }
             m_editor->GetGameLayer()->GetActiveGameScene()->GetGrid()->DrawDebugBlockedTiles();
 
@@ -112,7 +112,7 @@ namespace Engine {
             Entity camera = m_gameContext->GetPrimaryCameraEntity();
             if (camera)
             {
-                Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
+                //Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
             }
             m_editor->GetGameLayer()->GetActiveGameScene()->SetDebugDrawLOS(true);
 

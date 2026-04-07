@@ -1073,7 +1073,7 @@ namespace Engine {
             {
                 return;
             }
-           Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
+          // Engine::VulkanRenderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform(), true);
 
         }
         else
@@ -1236,39 +1236,39 @@ namespace Engine {
             EE_PROFILE_SCOPE("render draw");
             //********* update scene *********
 
-            switch (m_sceneState)   
+            switch (m_sceneState)
             {
-                case Engine::EditorLayer::eSceneState::Edit:
-                {
-                    glm::vec2 viewMinWorld, viewMaxWorld;
-                    m_editorCamera.GetViewportWorldBounds2D(viewMinWorld, viewMaxWorld, 0.0f);
+            case Engine::EditorLayer::eSceneState::Edit:
+            {
+                glm::vec2 viewMinWorld, viewMaxWorld;
+                m_editorCamera.GetViewportWorldBounds2D(viewMinWorld, viewMaxWorld, 0.0f);
 
-                    float compactMarginWorld = 10.0f;
+                float compactMarginWorld = 10.0f;
 
-                    
-                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetCompactTilePromotion().EnsurePromotedInEditorViewport(
-                        m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
-                        viewMinWorld,
-                        viewMaxWorld,
-                        compactMarginWorld,
-                        m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTileManager());
 
-                    
-                   // m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetCompactTileMap().Render(m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTileDefinitions());
-                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateEditor(timestep, m_editorCamera);
-                    break;
+                m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetCompactTilePromotion().EnsurePromotedInEditorViewport(
+                    m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                    viewMinWorld,
+                    viewMaxWorld,
+                    compactMarginWorld,
+                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTileManager());
 
-                }
-                case Engine::EditorLayer::eSceneState::Play:
-                {
-                    //m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateRuntime(timestep);
-                    break;
-                }
-                case Engine::EditorLayer::eSceneState::Pause:
-                {
-                    m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateRuntime(timestep, false);
-                    break;
-                }
+
+                // m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetCompactTileMap().Render(m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTileDefinitions());
+                m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateEditor(timestep, m_editorCamera);
+                break;
+
+            }
+            case Engine::EditorLayer::eSceneState::Play:
+            {
+                //m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateRuntime(timestep);
+                break;
+            }
+            case Engine::EditorLayer::eSceneState::Pause:
+            {
+                m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateRuntime(timestep, false);
+                break;
+            }
             }
 
 
@@ -1281,7 +1281,7 @@ namespace Engine {
             mousePos.y = viewportSize.y - mousePos.y;
             int mouseX = (int)mousePos.x;
             int mouseY = (int)mousePos.y;
-            
+
             m_mouseIsInViewPort = mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y;
             /*
             if (m_mouseIsInViewPort)
@@ -1298,98 +1298,113 @@ namespace Engine {
                 }
             }
             */
-            
-           OnOverlayRender();
-           
-           
-           // move to own function
-           if (m_mouseIsInViewPort && m_sceneState == eSceneState::Edit)
-           {
-               std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
 
-               if (Input::IsMouseButtonPressed(Mouse::Button0) && !selectedTile.empty())
-               {
-                   Entity selectedEntity = m_selectedEntity;
-                   // 1. Start a new stroke if we haven't yet
-                   if (!m_ActiveStroke) 
-                   {
-                       m_ActiveStroke = std::make_unique<CommandGroup>();
-                       // If no entity is selected, the first tile will create one
-
-                       // i guess this is from screen
-
-                       
-
-                       if (!selectedEntity || m_sceneHierarchyPanel.IsSelectionLocked())
-                       {
-                           // and this from hierarchy?!
-                           selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
-                       }
-
-                       m_StrokeCreatedNewEntity = !selectedEntity;
-                   }
-
-                   glm::ivec2 isoCell = GetSnappedIsoPosition();
-                   glm::vec2  snapped = IsoTileUtils::IsoToWorldGround(isoCell);
-                  // if (snapped != m_LastPlacedTilePos)
-                   {
-                       // 3. Place the tile and get the data back
-
-                       if(CanPlaceTile(selectedTile, isoCell))
-                       {
-
-                           if (m_tileEditorPanel.GetSelectedTileCategory() == eTileCategory::Terrain)
-                           {
-                               TileInfo placedTile = OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
-                               Scope<PlaceTileCommand> tilecmd = std::make_unique<PlaceTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
-                                   m_selectedEntity, placedTile, m_StrokeCreatedNewEntity);
-
-                               m_ActiveStroke->AddCommand(std::move(tilecmd));
-                           }
-                           else
-                           {
-                               CompactTile compactTile = BuildCompactTileForSelection(selectedEntity, isoCell);
-                               if (compactTile.IsEmpty())
-                                   return;
-
-                               eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTile);
-
-                               Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
-                                   isoCell, compactTile, tileDir);
-                               cmd->Execute();
-                               m_ActiveStroke->AddCommand(std::move(cmd));
-                           }
-                           EE_CORE_INFO(" placeed {}", isoCell);
-
-                           
+            OnOverlayRender();
 
 
-                           m_LastPlacedTilePos = snapped;
-                           m_StrokeCreatedNewEntity = false; // Reset for subsequent tiles in this stroke
-                       }
-                       else
-                       {
-                            EE_CORE_INFO("cant place {}", isoCell);
+            // move to own function
+            if (m_mouseIsInViewPort && m_sceneState == eSceneState::Edit)
+            {
 
-                       }
+                if (Input::IsMouseButtonPressed(Mouse::Button0))
+                {
+                    PlaceSelectedTile();
+                }
+                
+            }
 
-                       
-                   }
-               }
-               else if (m_ActiveStroke)
-               {
-                   if (!m_ActiveStroke->IsEmpty())
-                   {
-                       m_CommandHistory.Push(std::move(m_ActiveStroke));
-                   }
-                   m_ActiveStroke = nullptr;
-               }
-           }
-            
 
         }
 
     }
+
+
+    void EditorLayer::PlaceSelectedTile()
+    {
+
+        std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
+        if (selectedTile.empty())
+        {
+            return;
+        }
+
+        Entity selectedEntity = m_selectedEntity;
+        // 1. Start a new stroke if we haven't yet
+        if (!m_ActiveStroke)
+        {
+            m_ActiveStroke = std::make_unique<CommandGroup>();
+            // If no entity is selected, the first tile will create one
+
+            // i guess this is from screen
+
+
+
+            if (!selectedEntity || m_sceneHierarchyPanel.IsSelectionLocked())
+            {
+                // and this from hierarchy?!
+                selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
+            }
+
+            m_StrokeCreatedNewEntity = !selectedEntity;
+        }
+        else
+        {
+            if (!m_ActiveStroke->IsEmpty())
+            {
+                m_CommandHistory.Push(std::move(m_ActiveStroke));
+            }
+            m_ActiveStroke = nullptr;
+            return;
+        }
+
+        glm::ivec2 isoCell = GetSnappedIsoPosition();
+        glm::vec2  snapped = IsoTileUtils::IsoToWorldGround(isoCell);
+        // if (snapped != m_LastPlacedTilePos)
+        {
+            // 3. Place the tile and get the data back
+
+            if (CanPlaceTile(selectedTile, isoCell))
+            {
+
+                if (m_tileEditorPanel.GetSelectedTileCategory() == eTileCategory::Terrain)
+                {
+                    TileInfo placedTile = OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
+                    Scope<PlaceTileCommand> tilecmd = std::make_unique<PlaceTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                        m_selectedEntity, placedTile, m_StrokeCreatedNewEntity);
+
+                    m_ActiveStroke->AddCommand(std::move(tilecmd));
+                }
+                else
+                {
+                    CompactTile compactTile = BuildCompactTileForSelection(selectedEntity, isoCell);
+                    if (compactTile.IsEmpty())
+                        return;
+
+                    eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTile);
+
+                    Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                        isoCell, compactTile, tileDir);
+                    cmd->Execute();
+                    m_ActiveStroke->AddCommand(std::move(cmd));
+                }
+                EE_CORE_INFO(" placeed {}", isoCell);
+
+
+
+
+                m_LastPlacedTilePos = snapped;
+                m_StrokeCreatedNewEntity = false; // Reset for subsequent tiles in this stroke
+            }
+            else
+            {
+                EE_CORE_INFO("cant place {}", isoCell);
+
+            }
+
+
+        }
+    }
+
     void EditorLayer::DrawSelectedTileOutline()
     {
         Entity entity = m_sceneHierarchyPanel.GetSelectedEntity();

@@ -1,0 +1,2137 @@
+Prefab: MyPrefab
+Version: 1
+RootName: Entity13396457040685641831
+Origin: [0.5, -1.25, 0]
+Tiles:
+  - Position: [-2.5, 2.75]
+    Name: Ground C1_E
+    UID: 5394834290630849525
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3, 2.5]
+    Name: Ground C1_E
+    UID: 16424077926481865169
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2, 2.5]
+    Name: Ground C1_E
+    UID: 11545589409901566941
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3.5, 2.25]
+    Name: Ground C1_E
+    UID: 4353728120699673736
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2.5, 2.25]
+    Name: Ground C1_E
+    UID: 11703420064131673949
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1.5, 2.25]
+    Name: Ground C1_E
+    UID: 11763143781363670376
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-4, 2]
+    Name: Ground C1_E
+    UID: 10785869115578917605
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3, 2]
+    Name: Ground C1_E
+    UID: 11673196100288474656
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2, 2]
+    Name: Ground C1_E
+    UID: 4464739596325343032
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1, 2]
+    Name: Wall B18_E
+    UID: 1267836044479566276
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 9
+    Material: 1
+    TileHealth: 1
+    Slot: 146
+    TileDirection: 2
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [-1, 2]
+    Name: Ground C1_E
+    UID: 16408406260458083910
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-4.5, 1.75]
+    Name: Ground C1_E
+    UID: 13774085685627365792
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3.5, 1.75]
+    Name: Ground C1_E
+    UID: 13757192678341229111
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2.5, 1.75]
+    Name: Ground C1_E
+    UID: 12585584972857949207
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1.5, 1.75]
+    Name: Ground C1_E
+    UID: 14640670051122724271
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-0.5, 1.75]
+    Name: Wall B18_E
+    UID: 9024424088775284986
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 9
+    Material: 1
+    TileHealth: 1
+    Slot: 137
+    TileDirection: 2
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [-0.5, 1.75]
+    Name: Ground C1_E
+    UID: 17274695321871396772
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-5, 1.5]
+    Name: Ground C1_E
+    UID: 11494520730515684168
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-4, 1.5]
+    Name: Ground C1_E
+    UID: 13503777348492309395
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3, 1.5]
+    Name: Ground C1_E
+    UID: 5649520381402201648
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2, 1.5]
+    Name: Ground C1_E
+    UID: 17309191144637472489
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1, 1.5]
+    Name: Ground C1_E
+    UID: 11469975524005329417
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0, 1.5]
+    Name: Ground C1_E
+    UID: 6298854418922743476
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-5.5, 1.25]
+    Name: Ground C1_E
+    UID: 5267599528481702654
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-4.5, 1.25]
+    Name: Ground C1_E
+    UID: 1253716861259724754
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3.5, 1.25]
+    Name: Ground C1_E
+    UID: 12768987182898638662
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2.5, 1.25]
+    Name: Ground C1_E
+    UID: 12982787970684218121
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1.5, 1.25]
+    Name: Ground C1_E
+    UID: 17558047911989178124
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-0.5, 1.25]
+    Name: Ground C1_E
+    UID: 5138059991096700877
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0.5, 1.25]
+    Name: Ground C1_E
+    UID: 17103355731684295155
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0.5, 1.25]
+    Name: Ground C1_W
+    UID: 1763306836311669552
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 3
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-0.5, 1.25]
+    Name: Ground C1_W
+    UID: 11805203157615990191
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 3
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-5, 1]
+    Name: Ground C1_E
+    UID: 2384045209444886479
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-4, 1]
+    Name: Ground C1_E
+    UID: 4840650561922008490
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3, 1]
+    Name: Ground C1_E
+    UID: 16693828853291427108
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2, 1]
+    Name: Ground C1_E
+    UID: 13608757124604981178
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1, 1]
+    Name: Ground C1_E
+    UID: 2033214054178042480
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0, 1]
+    Name: Ground C1_E
+    UID: 17572608287204824985
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [1, 1]
+    Name: Ground C1_E
+    UID: 13873954665843870461
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1, 1]
+    Name: Ground C1_W
+    UID: 3010201297505784725
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 3
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0, 1]
+    Name: Ground C1_W
+    UID: 12152647201263715740
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 3
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-4.5, 0.75]
+    Name: Ground C1_E
+    UID: 9448816642871760717
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3.5, 0.75]
+    Name: Ground C1_E
+    UID: 16905605332368599810
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2.5, 0.75]
+    Name: Ground C1_E
+    UID: 5059614466830780707
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1.5, 0.75]
+    Name: Ground C1_E
+    UID: 1028994623455211256
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-0.5, 0.75]
+    Name: Ground C1_E
+    UID: 12218800957913621472
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [1.5, 0.75]
+    Name: Ground C1_E
+    UID: 11617499348075692687
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0.5, 0.75]
+    Name: Ground C1_W
+    UID: 18007643784577861000
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 3
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-0.5, 0.75]
+    Name: Ground C1_W
+    UID: 15237079654723116851
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 3
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-4, 0.5]
+    Name: Wall B18_W
+    UID: 8331366779821179445
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 9
+    Material: 1
+    TileHealth: 1
+    Slot: 213
+    TileDirection: 3
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-4, 0.5]
+    Name: Ground C1_E
+    UID: 11579132030852124533
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3, 0.5]
+    Name: Ground C1_E
+    UID: 6205401246515233308
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2, 0.5]
+    Name: Ground C1_E
+    UID: 2909154368736267329
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1, 0.5]
+    Name: Ground C1_E
+    UID: 17881280130694101515
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0, 0.5]
+    Name: Ground C1_E
+    UID: 4578621962754924586
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [1, 0.5]
+    Name: Ground C1_E
+    UID: 3853151839630210136
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [1, 0.5]
+    Name: Wall B18_S
+    UID: 7656691106062171302
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 9
+    Material: 1
+    TileHealth: 1
+    Slot: 171
+    TileDirection: 1
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [0, 0.5]
+    Name: Ground C1_W
+    UID: 15629330316719812331
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 3
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3.5, 0.25]
+    Name: Ground C1_E
+    UID: 605364080461684308
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-3.5, 0.25]
+    Name: Wall B18_W
+    UID: 1147683288277550833
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 9
+    Material: 1
+    TileHealth: 1
+    Slot: 208
+    TileDirection: 3
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-2.5, 0.25]
+    Name: Ground C1_E
+    UID: 18330140295561960426
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1.5, 0.25]
+    Name: Ground C1_E
+    UID: 11908768835194018277
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-0.5, 0.25]
+    Name: Ground C1_E
+    UID: 14802797475501675784
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0.5, 0.25]
+    Name: Ground C1_E
+    UID: 3916515525192762976
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0.5, 0.25]
+    Name: Wall B18_S
+    UID: 9040413577185551038
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 9
+    Material: 1
+    TileHealth: 1
+    Slot: 159
+    TileDirection: 1
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-3, 0]
+    Name: Ground C1_E
+    UID: 7826361865063068366
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2, 0]
+    Name: Ground C1_E
+    UID: 9257701897893783449
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1, 0]
+    Name: Ground C1_E
+    UID: 15949463862112251110
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0, 0]
+    Name: Ground C1_E
+    UID: 2179758176157400604
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [0, 0]
+    Name: Wall B16_S
+    UID: 16738927009575208841
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 8
+    Material: 1
+    TileHealth: 1
+    Slot: 156
+    TileDirection: 1
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-2.5, -0.25]
+    Name: Ground C1_E
+    UID: 14694979058243831201
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1.5, -0.25]
+    Name: Ground C1_E
+    UID: 14218937929582040738
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-0.5, -0.25]
+    Name: Wall B18_S
+    UID: 4001586316091060557
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 9
+    Material: 1
+    TileHealth: 1
+    Slot: 164
+    TileDirection: 1
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-0.5, -0.25]
+    Name: Ground C1_E
+    UID: 4274076176646357656
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2, -0.5]
+    Name: Ground C1_E
+    UID: 12549717691287501223
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1, -0.5]
+    Name: Ground C1_E
+    UID: 5612198576554645517
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-1, -0.5]
+    Name: Wall B18_S
+    UID: 6577372141368514822
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 9
+    Material: 1
+    TileHealth: 1
+    Slot: 175
+    TileDirection: 1
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-1.5, -0.75]
+    Name: Ground C1_E
+    UID: 5129103083127490741
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 1
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [999, 999]
+    OpaqueMax: [999, 999]
+  - Position: [-2.5, 2.75]
+    Name: Wall B1_N
+    UID: 6735633171622112130
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 192
+    TileDirection: 0
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [-2.5, 2.75]
+    Name: Wall B1_E
+    UID: 13110123291301706422
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 194
+    TileDirection: 2
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [-3, 2.5]
+    Name: Wall B1_N
+    UID: 12299012014887345363
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 201
+    TileDirection: 0
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [-2, 2.5]
+    Name: Wall B1_E
+    UID: 9975806137800498452
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 177
+    TileDirection: 2
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [-3.5, 2.25]
+    Name: Wall B1_N
+    UID: 12854090593031391776
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 207
+    TileDirection: 0
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [-1.5, 2.25]
+    Name: Wall B1_E
+    UID: 6646396299235248500
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 160
+    TileDirection: 2
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [-4, 2]
+    Name: Wall B1_N
+    UID: 2389904159959296959
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 215
+    TileDirection: 0
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [-4.5, 1.75]
+    Name: Wall B1_N
+    UID: 7661583118001142843
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 220
+    TileDirection: 0
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [-5, 1.5]
+    Name: Wall B1_N
+    UID: 5651365782890953476
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 224
+    TileDirection: 0
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [0, 1.5]
+    Name: Wall B1_E
+    UID: 636970141499442561
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 141
+    TileDirection: 2
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [-5.5, 1.25]
+    Name: Wall B1_N
+    UID: 4654670590225564936
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 228
+    TileDirection: 0
+    OpaqueMin: [0, 39]
+    OpaqueMax: [81, 207]
+  - Position: [-5.5, 1.25]
+    Name: Wall_B1_W
+    UID: 6987553054757614420
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 227
+    TileDirection: 3
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [0.5, 1.25]
+    Name: Wall B1_E
+    UID: 5975536161002014997
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 151
+    TileDirection: 2
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [-5, 1]
+    Name: Wall_B1_W
+    UID: 1510279994472877284
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 223
+    TileDirection: 3
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [1, 1]
+    Name: Wall B1_E
+    UID: 6578428291879344026
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 167
+    TileDirection: 2
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [-4.5, 0.75]
+    Name: Wall_B1_W
+    UID: 3682447540948906954
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 219
+    TileDirection: 3
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [1.5, 0.75]
+    Name: Wall B1_S
+    UID: 4115080471848994028
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 181
+    TileDirection: 1
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [1.5, 0.75]
+    Name: Wall B1_E
+    UID: 4759244958504835856
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 184
+    TileDirection: 2
+    OpaqueMin: [46, 39]
+    OpaqueMax: [127, 207]
+  - Position: [-3, 0]
+    Name: Wall_B1_W
+    UID: 15905023581376503940
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 200
+    TileDirection: 3
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-2.5, -0.25]
+    Name: Wall_B1_W
+    UID: 187268670422319310
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 191
+    TileDirection: 3
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-2, -0.5]
+    Name: Wall_B1_W
+    UID: 600409355657967710
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 190
+    TileDirection: 3
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-1.5, -0.75]
+    Name: Wall_B1_W
+    UID: 6745272969324673036
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 187
+    TileDirection: 3
+    OpaqueMin: [0, 15]
+    OpaqueMax: [81, 184]
+  - Position: [-1.5, -0.75]
+    Name: Wall B1_S
+    UID: 15160172023327756018
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 186
+    TileDirection: 1
+    OpaqueMin: [46, 15]
+    OpaqueMax: [127, 184]
+  - Position: [-2.5, 3.75]
+    Name: Roof B1_S
+    UID: 6655552919817831897
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 209
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3, 3.5]
+    Name: Roof B1_S
+    UID: 7514139900637505732
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 211
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2, 3.5]
+    Name: Roof B1_S
+    UID: 3528780556408575318
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 198
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3.5, 3.25]
+    Name: Roof B1_S
+    UID: 2117349807971461726
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 216
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2.5, 3.25]
+    Name: Roof B1_S
+    UID: 15966405124881850923
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 202
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1.5, 3.25]
+    Name: Roof B1_S
+    UID: 14756494136640414396
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 185
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-4, 3]
+    Name: Roof B1_S
+    UID: 1224387336418349365
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 218
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3, 3]
+    Name: Roof B1_S
+    UID: 10944962672040014729
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 205
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2, 3]
+    Name: Roof B1_S
+    UID: 5400725273480955088
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 189
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1, 3]
+    Name: Roof B1_S
+    UID: 13438395555287586361
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 176
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-4.5, 2.75]
+    Name: Roof B1_S
+    UID: 6744603650280581607
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 222
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3.5, 2.75]
+    Name: Roof B1_S
+    UID: 7107752422804001247
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 210
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2.5, 2.75]
+    Name: Roof B1_S
+    UID: 8273613868379899437
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 193
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1.5, 2.75]
+    Name: Roof B1_S
+    UID: 1495311716610372818
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 174
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-0.5, 2.75]
+    Name: Roof B1_S
+    UID: 5240265559242070921
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 165
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-5, 2.5]
+    Name: Roof B1_S
+    UID: 2449173977113034147
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 226
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-4, 2.5]
+    Name: Roof B1_S
+    UID: 8371885593246748607
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 217
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3, 2.5]
+    Name: Roof B1_S
+    UID: 2757848055899608627
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 199
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2, 2.5]
+    Name: Roof B1_S
+    UID: 2237648981566136882
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 178
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1, 2.5]
+    Name: Roof B1_S
+    UID: 5530230179924202848
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 158
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [0, 2.5]
+    Name: Roof B1_S
+    UID: 1506070417342961048
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 157
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-5.5, 2.25]
+    Name: Roof B1_S
+    UID: 1344183156282304692
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 229
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-4.5, 2.25]
+    Name: Roof B1_S
+    UID: 14539777908107356473
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 232
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3.5, 2.25]
+    Name: Roof B1_S
+    UID: 11588415605803971474
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 206
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2.5, 2.25]
+    Name: Roof B1_S
+    UID: 16654094240965724543
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 188
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1.5, 2.25]
+    Name: Roof B1_S
+    UID: 3651769448790233792
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 163
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-0.5, 2.25]
+    Name: Roof B1_S
+    UID: 14579268661245949998
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 152
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [0.5, 2.25]
+    Name: Roof B1_S
+    UID: 18389037819640011879
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 162
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-5, 2]
+    Name: Roof B1_S
+    UID: 8475296017373594966
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 225
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-4, 2]
+    Name: Roof B1_S
+    UID: 8206420214095319934
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 214
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3, 2]
+    Name: Roof B1_S
+    UID: 2537887565868674898
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 197
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2, 2]
+    Name: Roof B1_S
+    UID: 10518634900291841706
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 173
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1, 2]
+    Name: Roof B1_S
+    UID: 17131596293892520602
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 148
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [0, 2]
+    Name: Roof B1_S
+    UID: 18410721902496614928
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 147
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [1, 2]
+    Name: Roof B1_S
+    UID: 12766117831321054816
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 170
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-4.5, 1.75]
+    Name: Roof B1_S
+    UID: 14951850523850475274
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 221
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3.5, 1.75]
+    Name: Roof B1_S
+    UID: 1733314816798426338
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 204
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2.5, 1.75]
+    Name: Roof B1_S
+    UID: 15838870019187689155
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 183
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1.5, 1.75]
+    Name: Roof B1_S
+    UID: 7465796976231455636
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 154
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-0.5, 1.75]
+    Name: Roof B1_S
+    UID: 13457686850556019300
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 139
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [0.5, 1.75]
+    Name: Roof B1_S
+    UID: 1331818630225878589
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 155
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [1.5, 1.75]
+    Name: Roof B1_S
+    UID: 10996732876135338397
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 182
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-4, 1.5]
+    Name: Roof B1_S
+    UID: 8873677680665361759
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 212
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3, 1.5]
+    Name: Roof B1_S
+    UID: 13650995947683141861
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 196
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2, 1.5]
+    Name: Roof B1_S
+    UID: 11501995279243974963
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 169
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1, 1.5]
+    Name: Roof B1_S
+    UID: 7482485932887786548
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 143
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [0, 1.5]
+    Name: Roof B1_S
+    UID: 10789202431639473424
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 140
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [1, 1.5]
+    Name: Roof B1_S
+    UID: 16942735464986150459
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 166
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3.5, 1.25]
+    Name: Roof B1_S
+    UID: 16800144984114650583
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 203
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2.5, 1.25]
+    Name: Roof B1_S
+    UID: 4567299628697885274
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 179
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1.5, 1.25]
+    Name: Roof B1_S
+    UID: 9377913916679316201
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 150
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-0.5, 1.25]
+    Name: Roof B1_S
+    UID: 8163324720916723319
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 136
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [0.5, 1.25]
+    Name: Roof B1_S
+    UID: 8604316970995616050
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 149
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-3, 1]
+    Name: Roof B1_S
+    UID: 9775861361350724114
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 195
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2, 1]
+    Name: Roof B1_S
+    UID: 11919591600812638730
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 168
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1, 1]
+    Name: Roof B1_S
+    UID: 2681204558345806558
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 144
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [0, 1]
+    Name: Roof B1_S
+    UID: 6317141633375945717
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 142
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2.5, 0.75]
+    Name: Roof B1_S
+    UID: 7935575242772413301
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 180
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1.5, 0.75]
+    Name: Roof B1_S
+    UID: 18445726735236284391
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 153
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-0.5, 0.75]
+    Name: Roof B1_S
+    UID: 1179368336029406558
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 138
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-2, 0.5]
+    Name: Roof B1_S
+    UID: 26806965503562733
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 172
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1, 0.5]
+    Name: Roof B1_S
+    UID: 4490431233763097620
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 145
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
+  - Position: [-1.5, 0.25]
+    Name: Roof B1_S
+    UID: 6727591347685286751
+    IsDestructible: false
+    IsRoof: true
+    IsSupportingRoof: false
+    Category: 7
+    Material: 1
+    TileHealth: 1
+    Slot: 161
+    TileDirection: 1
+    OpaqueMin: [0, 16]
+    OpaqueMax: [127, 96]
