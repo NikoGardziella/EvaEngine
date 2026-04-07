@@ -66,7 +66,6 @@ namespace Engine {
 
 		uint16_t GetOrCreateDefinitionForSelectedTile();
 
-		void UpdateOrCreateArea(Entity tileEntity, glm::vec2 worldPos, eTileCategory category);
 
 	private:
 		bool OnKeyPressed(KeyPressedEvent& e);

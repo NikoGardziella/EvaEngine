@@ -23,6 +23,8 @@ namespace Engine {
 		void EnsurePromotedInEditorViewport(Scene* scene, const glm::vec2& viewMinWorld, const glm::vec2& viewMaxWorld, float compactMarginWorld, Ref<TileManager> tileManager);
 		void RegisterPromotedEntity(uint64_t groupId, Entity entity);
 		bool PromoteSingleTileIntoExistingGroup(Scene* scene, uint64_t groupId, glm::ivec2& worldCell, Ref<TileManager> tileManager, eTileDirection tileDir, uint16_t typeId);
+		void RebuildAreaForTileEntity(Entity entity);
+		void UpdateOrCreateArea(Scene* scene, Entity tileEntity, glm::vec2 worldPos, eTileCategory category);
 		void RegisterPromotedTile(Entity entity, TileInfo& tile);
 
 		void RemoveSingleTileFromExistingGroup(Scene* scene, uint64_t groupId, const glm::ivec2& worldCell, Ref<TileManager> tileManager, bool destroyIfEmpty);

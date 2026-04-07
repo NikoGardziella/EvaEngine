@@ -9,6 +9,7 @@
 #include "Engine/Map/Utils/IsoTileUtils.h"
 #include "Engine/Math/HashUtils.h"
 #include "Engine/AssetManager/AssetManager.h"
+#include <Engine/Scene/Components/Map/AreaComponent.h>
 
 namespace Engine
 {
@@ -177,7 +178,7 @@ namespace Engine
             compactMap.MarkChunkDirtyForCell(p.worldCell);
         }
 
-        
+        RebuildAreaForTileEntity(e);
 
         return e;
     }
@@ -607,9 +608,7 @@ namespace Engine
         std::unordered_set<uint64_t> groupsToPromote;
         std::unordered_set<uint64_t> groupsPromotedThisUpdate;
 
-        // -------------------------------------------------
         // Convert viewport corners to approximate chunk range
-        // -------------------------------------------------
         const glm::ivec2 cellMin = IsoTileUtils::WorldToIsoCell(promoteMin);
         const glm::ivec2 cellMax = IsoTileUtils::WorldToIsoCell(promoteMax);
 
@@ -621,12 +620,8 @@ namespace Engine
         const glm::ivec2 minChunk = WorldCellToChunkCoord({ minCellX, minCellY });
         const glm::ivec2 maxChunk = WorldCellToChunkCoord({ maxCellX, maxCellY });
       
-        // -------------------------------------------------
         // Pass 1: collect groups from compact tiles inside viewport
-        // -------------------------------------------------
-        // -------------------------------------------------
-// Pass 1: collect groups from compact tiles inside viewport
-// -------------------------------------------------
+
         for (int cy = minChunk.y; cy <= maxChunk.y; ++cy)
         {
             for (int cx = minChunk.x; cx <= maxChunk.x; ++cx)
@@ -669,9 +664,7 @@ namespace Engine
             }
         }
 
-        // -------------------------------------------------
         // Pass 2: promote groups
-        // -------------------------------------------------
         for (uint64_t groupId : groupsToPromote)
         {
             if (!IsGroupPromoted(groupId))
@@ -691,9 +684,7 @@ namespace Engine
             }
         }
 
-        // -------------------------------------------------
         // Pass 3: compact back promoted groups outside expanded rect
-        // -------------------------------------------------
         std::vector<uint64_t> groupsToCompact;
         groupsToCompact.reserve(m_PromotedEntitiesByGroup.size());
 
@@ -803,7 +794,113 @@ namespace Engine
         compact->Flags |= CompactTileFlags::Hidden;
         compactMap.MarkChunkDirtyForCell(worldCell);
 
+
+        UpdateOrCreateArea(scene, e, tileWorldPos, runtimeTile.Category);
         return true;
     }
 
+
+    void CompactTilePromotion::RebuildAreaForTileEntity(Entity entity)
+    {
+        if (!entity)
+            return;
+
+        if (!entity.HasComponent<TransformComponent>() || !entity.HasComponent<TileComponent>())
+            return;
+
+        auto& tr = entity.GetComponent<TransformComponent>();
+        auto& tc = entity.GetComponent<TileComponent>();
+
+        bool hasAnyAreaTile = false;
+        glm::vec2 minP(0.0f);
+        glm::vec2 maxP(0.0f);
+
+        for (const TileInfo& tile : tc.tiles)
+        {
+            if (tile.Category != eTileCategory::Buildings &&
+                tile.Category != eTileCategory::Roofs &&
+                tile.Category != eTileCategory::Pillars)
+            {
+                continue;
+            }
+
+            glm::vec2 worldPos = glm::vec2(tr.Translation) + tile.position;
+            worldPos.y += 0.5f;
+
+            if (!hasAnyAreaTile)
+            {
+                minP = worldPos;
+                maxP = worldPos;
+                hasAnyAreaTile = true;
+            }
+            else
+            {
+                minP.x = std::min(minP.x, worldPos.x);
+                minP.y = std::min(minP.y, worldPos.y);
+                maxP.x = std::max(maxP.x, worldPos.x);
+                maxP.y = std::max(maxP.y, worldPos.y);
+            }
+        }
+
+        if (!hasAnyAreaTile)
+        {
+            if (entity.HasComponent<AreaComponent>())
+                entity.RemoveComponent<AreaComponent>();
+            return;
+        }
+
+        AreaComponent* area = entity.TryGetComponent<AreaComponent>();
+        if (!area)
+            area = &entity.AddComponent<AreaComponent>();
+
+        area->Min = minP;
+        area->Max = maxP;
+    }
+
+    void CompactTilePromotion::UpdateOrCreateArea(Scene* scene, Entity tileEntity, glm::vec2 worldPos, eTileCategory category)
+    {
+        if (category != eTileCategory::Buildings &&
+            category != eTileCategory::Roofs &&
+            category != eTileCategory::Pillars)
+            return;
+
+        float searchRadius = 1.0f;
+        Entity foundAreaEntity; // This will hold our result
+        worldPos.y += 0.5;// lift from groudn to venter
+
+        // Use the ForEach pattern with AreaComponent and TransformComponent
+        scene->ForEach<AreaComponent, TransformComponent>(
+            [&](Engine::Entity e, AreaComponent& area, TransformComponent& tr)
+            {
+                // If we already found one, we can't 'break' a ForEach easily, 
+                // so we just skip further logic.
+                if (foundAreaEntity) return;
+
+                // Check if worldPos is near the current bounds of this area
+                if (worldPos.x >= area.Min.x - searchRadius && worldPos.x <= area.Max.x + searchRadius &&
+                    worldPos.y >= area.Min.y - searchRadius && worldPos.y <= area.Max.y + searchRadius)
+                {
+                    foundAreaEntity = e;
+                }
+            });
+
+        // Handle creation if no area was found nearby
+        if (!foundAreaEntity)
+        {
+            if (!tileEntity.HasComponent<AreaComponent>())
+            {
+
+                AreaComponent& areacomp = tileEntity.AddComponent<AreaComponent>();
+                areacomp.Min = worldPos;
+                areacomp.Max = worldPos;
+
+            }
+
+            foundAreaEntity = tileEntity;
+        }
+
+        // Expand the found/created area
+        AreaComponent& area = foundAreaEntity.GetComponent<AreaComponent>();
+        area.Expand(worldPos);
+    }
 }

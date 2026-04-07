@@ -842,7 +842,6 @@ namespace Engine {
 
 
             tc.tiles.push_back(newTile);
-            UpdateOrCreateArea(m_selectedEntity, groundPos, tileCategory);
             EE_CORE_INFO("adding tile: {}", tc.tiles.size());
         }
         else
@@ -897,7 +896,6 @@ namespace Engine {
             m_selectedEntity = newEntity;
             m_sceneHierarchyPanel.SetSelectedEntity(newEntity);
 
-            UpdateOrCreateArea(newEntity, groundPos, tileCategory);
         }
 
         SortIsometricTilesByY();
@@ -1015,52 +1013,8 @@ namespace Engine {
 
         return def.TypeId;
     }
-    void EditorLayer::UpdateOrCreateArea(Entity tileEntity, glm::vec2 worldPos, eTileCategory category)
-    {
-        if (category != eTileCategory::Buildings &&
-            category != eTileCategory::Roofs &&
-            category != eTileCategory::Pillars)
-            return;
 
-        float searchRadius = 1.0f;
-        Entity foundAreaEntity; // This will hold our result
-        worldPos.y += 0.5;// lift from groudn to venter
 
-        // Use the ForEach pattern with AreaComponent and TransformComponent
-        m_editor->GetGameLayer()->GetActiveGameScene()->ForEach<AreaComponent, TransformComponent>(
-            [&](Engine::Entity e, AreaComponent& area, TransformComponent& tr)
-            {
-                // If we already found one, we can't 'break' a ForEach easily, 
-                // so we just skip further logic.
-                if (foundAreaEntity) return;
-
-                // Check if worldPos is near the current bounds of this area
-                if (worldPos.x >= area.Min.x - searchRadius && worldPos.x <= area.Max.x + searchRadius &&
-                    worldPos.y >= area.Min.y - searchRadius && worldPos.y <= area.Max.y + searchRadius)
-                {
-                    foundAreaEntity = e;
-                }
-            });
-
-        // Handle creation if no area was found nearby
-        if (!foundAreaEntity)
-        {
-            if (!tileEntity.HasComponent<AreaComponent>())
-            {
-
-                AreaComponent& areacomp = tileEntity.AddComponent<AreaComponent>();
-                areacomp.Min = worldPos;
-                areacomp.Max = worldPos;
-
-            }
-
-            foundAreaEntity = tileEntity;
-        }
-
-        // Expand the found/created area
-        AreaComponent& area = foundAreaEntity.GetComponent<AreaComponent>();
-        area.Expand(worldPos);
-    }
 
 
 
@@ -1272,7 +1226,6 @@ namespace Engine {
             }
 
 
-
             ImVec2 mousePos = ImGui::GetMousePos();
             mousePos.x -= m_viewportBounds[0].x;
             mousePos.y -= m_viewportBounds[0].y;
@@ -1283,26 +1236,10 @@ namespace Engine {
             int mouseY = (int)mousePos.y;
 
             m_mouseIsInViewPort = mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y;
-            /*
-            if (m_mouseIsInViewPort)
-            {
-                int pixelData = m_framebuffer->ReadPixel(1, mouseX, mouseY);
-                if (pixelData == -1)
-                {
-                    m_hoveredEntity = {};
-                }
-                else
-                {
-                    m_hoveredEntity = Entity{ (entt::entity)pixelData, m_activeScene.get()};
-
-                }
-            }
-            */
 
             OnOverlayRender();
 
 
-            // move to own function
             if (m_mouseIsInViewPort && m_sceneState == eSceneState::Edit)
             {
 
@@ -1312,12 +1249,8 @@ namespace Engine {
                 }
                 
             }
-
-
         }
-
     }
-
 
     void EditorLayer::PlaceSelectedTile()
     {
@@ -1329,15 +1262,9 @@ namespace Engine {
         }
 
         Entity selectedEntity = m_selectedEntity;
-        // 1. Start a new stroke if we haven't yet
         if (!m_ActiveStroke)
         {
             m_ActiveStroke = std::make_unique<CommandGroup>();
-            // If no entity is selected, the first tile will create one
-
-            // i guess this is from screen
-
-
 
             if (!selectedEntity || m_sceneHierarchyPanel.IsSelectionLocked())
             {
@@ -1359,50 +1286,39 @@ namespace Engine {
 
         glm::ivec2 isoCell = GetSnappedIsoPosition();
         glm::vec2  snapped = IsoTileUtils::IsoToWorldGround(isoCell);
-        // if (snapped != m_LastPlacedTilePos)
+        
+        // check if there us same tile in same position
+        if (CanPlaceTile(selectedTile, isoCell))
         {
-            // 3. Place the tile and get the data back
 
-            if (CanPlaceTile(selectedTile, isoCell))
+            if (m_tileEditorPanel.GetSelectedTileCategory() == eTileCategory::Terrain)
             {
+                TileInfo placedTile = OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
+                Scope<PlaceTileCommand> tilecmd = std::make_unique<PlaceTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                    m_selectedEntity, placedTile, m_StrokeCreatedNewEntity);
 
-                if (m_tileEditorPanel.GetSelectedTileCategory() == eTileCategory::Terrain)
-                {
-                    TileInfo placedTile = OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
-                    Scope<PlaceTileCommand> tilecmd = std::make_unique<PlaceTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
-                        m_selectedEntity, placedTile, m_StrokeCreatedNewEntity);
-
-                    m_ActiveStroke->AddCommand(std::move(tilecmd));
-                }
-                else
-                {
-                    CompactTile compactTile = BuildCompactTileForSelection(selectedEntity, isoCell);
-                    if (compactTile.IsEmpty())
-                        return;
-
-                    eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTile);
-
-                    Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
-                        isoCell, compactTile, tileDir);
-                    cmd->Execute();
-                    m_ActiveStroke->AddCommand(std::move(cmd));
-                }
-                EE_CORE_INFO(" placeed {}", isoCell);
-
-
-
-
-                m_LastPlacedTilePos = snapped;
-                m_StrokeCreatedNewEntity = false; // Reset for subsequent tiles in this stroke
+                m_ActiveStroke->AddCommand(std::move(tilecmd));
             }
             else
             {
-                EE_CORE_INFO("cant place {}", isoCell);
+                CompactTile compactTile = BuildCompactTileForSelection(selectedEntity, isoCell);
+                if (compactTile.IsEmpty())
+                    return;
 
+                eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTile);
+
+                Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                    isoCell, compactTile, tileDir);
+                cmd->Execute();
+                m_ActiveStroke->AddCommand(std::move(cmd));
             }
+            EE_CORE_INFO(" placeed {}", isoCell);
 
-
+            m_LastPlacedTilePos = snapped;
+            m_StrokeCreatedNewEntity = false; 
         }
+            
+
     }
 
     void EditorLayer::DrawSelectedTileOutline()

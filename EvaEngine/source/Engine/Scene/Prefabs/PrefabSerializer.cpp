@@ -84,6 +84,7 @@ namespace Engine {
         if (data["Tiles"])
         {
             DeserializeTilesToTileComponent(newEntity, data["Tiles"], glm::ivec2(0));
+
         }
         else
         {
@@ -91,6 +92,8 @@ namespace Engine {
         }
 
         EE_CORE_INFO("Prefab loaded: {} at ({}, {})", filepath, spawnCell.x, spawnCell.y);
+      
+        m_scene->GetCompactTilePromotion().RebuildAreaForTileEntity(newEntity);
         return newEntity;
     }
 
@@ -321,6 +324,8 @@ namespace Engine {
 
             tileComp.tiles.push_back(tile);
         }
+
+        
     }
 
 
