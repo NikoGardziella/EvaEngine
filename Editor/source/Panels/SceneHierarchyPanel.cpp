@@ -384,6 +384,11 @@ namespace Engine {
 
         if (m_destroySelectedEntity)
         {
+            if (m_selectedEntity.HasComponent<IDComponent>())
+            {
+                uint64_t groupID = static_cast<uint64_t>(m_selectedEntity.GetComponent<IDComponent>().ID);
+                m_sceneHierarchyPanelScene->GetCompactTileMap().RemoveGroup(groupID);
+            }
             DestrtoySelectedEntity(m_selectedEntity);
            // ImGui::TreePop();
         }

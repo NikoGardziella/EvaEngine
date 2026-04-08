@@ -118,6 +118,7 @@ namespace Engine
         if (!e)
         {
             e = scene->CreateEntity("PromotedGroup");
+            e.GetComponent<IDComponent>().ID = static_cast<UUID>(groupId);
         }
 
 

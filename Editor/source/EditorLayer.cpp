@@ -1291,27 +1291,19 @@ namespace Engine {
         if (CanPlaceTile(selectedTile, isoCell))
         {
 
-            if (m_tileEditorPanel.GetSelectedTileCategory() == eTileCategory::Terrain)
-            {
-                TileInfo placedTile = OnCreateTileEntity(selectedTile, m_tileEditorPanel.GetTileUV(selectedTile), m_tileEditorPanel.GetSelectedTileCategory());
-                Scope<PlaceTileCommand> tilecmd = std::make_unique<PlaceTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
-                    m_selectedEntity, placedTile, m_StrokeCreatedNewEntity);
+            
+            
+            CompactTile compactTile = BuildCompactTileForSelection(selectedEntity, isoCell);
+            if (compactTile.IsEmpty())
+                return;
 
-                m_ActiveStroke->AddCommand(std::move(tilecmd));
-            }
-            else
-            {
-                CompactTile compactTile = BuildCompactTileForSelection(selectedEntity, isoCell);
-                if (compactTile.IsEmpty())
-                    return;
+            eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTile);
 
-                eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTile);
-
-                Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
-                    isoCell, compactTile, tileDir);
-                cmd->Execute();
-                m_ActiveStroke->AddCommand(std::move(cmd));
-            }
+            Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(m_editor.get()->GetGameLayer()->GetActiveGameScene().get(),
+                isoCell, compactTile, tileDir);
+            cmd->Execute();
+            m_ActiveStroke->AddCommand(std::move(cmd));
+            
             EE_CORE_INFO(" placeed {}", isoCell);
 
             m_LastPlacedTilePos = snapped;

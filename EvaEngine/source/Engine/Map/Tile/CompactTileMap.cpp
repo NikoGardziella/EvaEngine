@@ -217,6 +217,48 @@ namespace Engine
             m_CellsByGroupId.erase(it);
     }
 
+    void CompactTileMap::RemoveGroup(uint64_t groupId)
+    {
+        auto it = m_CellsByGroupId.find(groupId);
+        if (it == m_CellsByGroupId.end())
+            return;
+
+        const std::vector<glm::ivec2>& cells = it->second;
+
+        for (const glm::ivec2& cell : cells)
+        {
+            auto cellIt = m_Cells.find(cell);
+            if (cellIt == m_Cells.end())
+                continue;
+
+            auto& tiles = cellIt->second.Tiles;
+
+            // Remove all tiles belonging to this group
+            tiles.erase(
+                std::remove_if(tiles.begin(), tiles.end(),
+                    [groupId](const CompactTile& t)
+                    {
+                        return t.GroupId == groupId;
+                    }),
+                tiles.end()
+            );
+
+            // If cell is now empty -> remove it completely
+            if (tiles.empty())
+            {
+                m_Cells.erase(cell);
+            }
+
+            // Mark chunk dirty so renderer updates
+            MarkChunkDirtyForCell(cell);
+        }
+
+        // Finally remove group entry
+        m_CellsByGroupId.erase(it);
+    }
+
+
+
     void CompactTileMap::RebuildChunkDrawCache(TileChunk& chunk, const TileDefinitionRegistry& defs)
     {
         chunk.CachedDrawItems.clear();

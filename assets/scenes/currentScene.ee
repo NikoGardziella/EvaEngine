@@ -2,6 +2,25 @@ Scene: My Scene
 Entities:
   []
 TileDefinitions:
-  []
+  - TypeId: 1
+    Name: Ground A4_N
+    UV: [0.78466797, 0.035186164, 0.9086914, 0.068853974]
+    Category: Terrain
+    Direction: North
+    Material: None
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 2
+    Name: Wall A1_S
+    UV: [0.1352539, 0.3797861, 0.25927734, 0.41345394]
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
 CompactTiles:
   []

@@ -207,11 +207,15 @@ namespace Engine {
 
     bool Scene::DestroyEntity(Entity entity)
     {
+
         if (m_registry.valid(entity))
         {
+
+
             m_registry.destroy(entity);
             return true;
         }
+
 
         EE_CORE_WARN("Tried to destroy an invalid entity!");
         return false;

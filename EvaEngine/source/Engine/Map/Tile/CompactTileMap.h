@@ -83,6 +83,8 @@ namespace Engine
         void RegisterCellForGroup(uint64_t groupId, const glm::ivec2& cell);
         void RemoveCellFromGroup(uint64_t groupId, const glm::ivec2& cell);
 
+        void RemoveGroup(uint64_t groupId);
+
         void RebuildChunkDrawCache(TileChunk& chunk, const TileDefinitionRegistry& defs);
         void MarkChunkDirtyForCell(const glm::ivec2& worldCell);
 
