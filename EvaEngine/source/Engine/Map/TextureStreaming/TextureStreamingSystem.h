@@ -32,6 +32,18 @@ namespace Engine{
             Disk    // flushed to disk
         };
 
+
+        struct TerrainBakeItem
+        {
+            glm::vec2 worldTilePos;
+            UUID id;
+            std::string name;
+            const TileInfo* tile = nullptr;
+            std::vector<uint8_t> pixelData;
+            uint32_t w = 0;
+            uint32_t h = 0;
+        };
+
         struct TextureChunk 
         {
             UUID ID;

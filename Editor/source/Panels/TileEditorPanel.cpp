@@ -173,8 +173,8 @@ namespace Engine {
         const float iconH = iconW * (float)TILE_PIXEL_HEIGHT / (float)TILE_PIXEL_WIDTH;
         const float spacingX = ImGui::GetStyle().ItemSpacing.x;
 
-        const float leftPadding = 6.0f;
-        const float rightPadding = 50.0f;
+        const float leftPadding = 1.0f;
+        const float rightPadding = 30.0f;
 
         const float fullAvailW = ImGui::GetContentRegionAvail().x;
         const float usableW = fullAvailW - leftPadding - rightPadding;

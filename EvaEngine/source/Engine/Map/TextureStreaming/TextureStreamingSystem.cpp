@@ -383,13 +383,18 @@ namespace Engine {
 
                         const uint8_t a = textureData[si + 3];
                         if (a == 0) continue; // skip transparent atlas background
-                        if (a < chunk.TerrainData[di + 3]) continue; // don't overwrite more opaque pixels
+
+                        const uint8_t dstA = chunk.TerrainData[di + 3];
+
+                       
+                        if (a < 100)
+                            continue;
 
 
                         chunk.TerrainData[di + 0] = textureData[si + 0];
                         chunk.TerrainData[di + 1] = textureData[si + 1];
                         chunk.TerrainData[di + 2] = textureData[si + 2];
-                        chunk.TerrainData[di + 3] = a;
+                        chunk.TerrainData[di + 3] = 255;
                     }
                 }
 
@@ -680,20 +685,30 @@ namespace Engine {
 
     }
 
+   
+
      // terrain only
     void TextureStreamingSystem::BakeTilesIntoChunks(Scene* scene)
     {
         EE_PROFILE_FUNCTION();
 
-        // Pass A: bake all TERRAIN tiles first
+        struct TerrainBakeItem
+        {
+            glm::vec2 worldTilePos{};
+            UUID id{};
+            std::string name;
+            std::vector<uint8_t> pixelData;
+            uint32_t w = 0;
+            uint32_t h = 0;
+        };
+
+        std::vector<TerrainBakeItem> items;
+
         scene->ForEach<TransformComponent, TileComponent>(
             [&](Engine::Entity entity, TransformComponent& transformComp, TileComponent& tileComp)
             {
                 for (const TileInfo& tile : tileComp.tiles)
                 {
-                    
-
-
                     if (tile.Category != eTileCategory::Terrain)
                         continue;
 
@@ -703,31 +718,42 @@ namespace Engine {
                     worldTilePos.y += yoffset;
 
                     std::vector<uint8_t> pixelData;
-                 
                     int w = 0, h = 0;
                     if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, w, h))
                         continue;
+                    TerrainBakeItem item{};
+                    item.worldTilePos = worldTilePos;
+                    item.id = tileComp.TileID;
+                    item.name = tile.name;
+                    item.pixelData = std::move(pixelData);
+                    item.w = static_cast<uint32_t>(w);
+                    item.h = static_cast<uint32_t>(h);
 
-
-                    
-                    // If you also mark blocked subtiles, do it here
-                    // m_gridMap->MarkBlockedSubtilesFromTexture(worldTilePos, pixelData, w, h);
-
-                    UploadTerrainToChunkFromTexture(worldTilePos, tileComp.TileID,
-                        tile.name, pixelData, static_cast<uint32_t>(w), static_cast<uint32_t>(h));
-
-
-                    
-
+                    items.push_back(std::move(item));
                 }
-            }
-        );
+            });
 
-        
-       
+        std::stable_sort(items.begin(), items.end(),
+            [](const TerrainBakeItem& a, const TerrainBakeItem& b)
+            {
+                if (a.worldTilePos.y != b.worldTilePos.y)
+                    return a.worldTilePos.y > b.worldTilePos.y;
 
-        // DebugMarkChunks();
+                return a.worldTilePos.x < b.worldTilePos.x;
+            });
+
+        for (auto& item : items)
+        {
+            UploadTerrainToChunkFromTexture(
+                item.worldTilePos,
+                item.id,
+                item.name,
+                item.pixelData,
+                item.w,
+                item.h);
+        }
     }
+
 
     void TextureStreamingSystem::SortIsoTilesByY(Scene* scene)
     {

@@ -252,10 +252,10 @@ namespace Engine {
 
         // Convert normalized UVs to absolute pixel coordinates
         auto& props = AssetManager::GetTileProperties(tile.name);
-        uint32_t x0 = props.pixelRect.x ;  // match the 0.5px 1px inset
-        uint32_t y0 = props.pixelRect.y ;
-        outWidth = props.pixelRect.w - 2;    // 126
-        outHeight = props.pixelRect.h - 2;    // 254
+        uint32_t x0 = props.pixelRect.x + 0;  // match the 0.5px 1px inset
+        uint32_t y0 = props.pixelRect.y + 0;
+        outWidth = props.pixelRect.w - 0;    // 126
+        outHeight = props.pixelRect.h - 0;    // 254
 
         uint32_t x1 = static_cast<uint32_t>(uv.z * texWidth);  // floor truncation
         uint32_t y1 = static_cast<uint32_t>(uv.w * texHeight);  // floor trunc
