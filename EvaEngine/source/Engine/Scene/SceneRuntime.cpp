@@ -396,7 +396,10 @@ namespace Engine {
                                 for (const TileInfo& tile : tileComp.tiles)
                                 {
                                     if (tile.Category == eTileCategory::Terrain)
+                                    {
                                         continue; // skip terrain
+
+                                    }
 
                                     
                                     

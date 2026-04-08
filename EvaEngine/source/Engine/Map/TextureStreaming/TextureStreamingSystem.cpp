@@ -692,6 +692,9 @@ namespace Engine {
     {
         EE_PROFILE_FUNCTION();
 
+        if (!scene)
+            return;
+
         struct TerrainBakeItem
         {
             glm::vec2 worldTilePos{};
@@ -704,34 +707,68 @@ namespace Engine {
 
         std::vector<TerrainBakeItem> items;
 
-        scene->ForEach<TransformComponent, TileComponent>(
-            [&](Engine::Entity entity, TransformComponent& transformComp, TileComponent& tileComp)
+        CompactTileMap& compactMap = scene->GetCompactTileMap();
+        TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+
+        for (const auto& [chunkCoord, chunk] : compactMap.GetChunks())
+        {
+            const glm::ivec2 chunkOriginCell = ChunkCoordToWorldOrigin(chunkCoord);
+
+            for (int y = 0; y < TILE_CHUNK_H; ++y)
             {
-                for (const TileInfo& tile : tileComp.tiles)
+                for (int x = 0; x < TILE_CHUNK_W; ++x)
                 {
-                    if (tile.Category != eTileCategory::Terrain)
+                    const glm::ivec2 worldCell = chunkOriginCell + glm::ivec2(x, y);
+                    const std::vector<CompactTile>* tiles = compactMap.GetTiles(worldCell);
+                    if (!tiles || tiles->empty())
                         continue;
 
-                    const float yoffset = 2.0f;
+                    for (const CompactTile& compact : *tiles)
+                    {
+                        if (compact.IsEmpty())
+                            continue;
 
-                    glm::vec2 worldTilePos = glm::vec2(transformComp.Translation) + tile.position;
-                    worldTilePos.y += yoffset;
+                        const TileDefinition* def = defs.Get(compact.TypeId);
+                        if (!def)
+                            continue;
 
-                    std::vector<uint8_t> pixelData;
-                    int w = 0, h = 0;
-                    if (!AssetManager::ExtractPixelsFromTilePallette(tile, pixelData, w, h))
-                        continue;
-                    TerrainBakeItem item{};
-                    item.worldTilePos = worldTilePos;
-                    item.id = tileComp.TileID;
-                    item.name = tile.name;
-                    item.pixelData = std::move(pixelData);
-                    item.w = static_cast<uint32_t>(w);
-                    item.h = static_cast<uint32_t>(h);
+                        if (def->Category != eTileCategory::Terrain)
+                            continue;
 
-                    items.push_back(std::move(item));
+                        TileInfo temp{};
+                        temp.name = def->Name;
+                        temp.UV = def->UV;
+                        temp.Category = def->Category;
+                        temp.TileDirection = def->Direction;
+                        temp.Material = def->Material;
+                        temp.TileHealth = def->BaseHealth;
+                        temp.IsDestructible = def->IsDestructible;
+                        temp.IsSupportingRoof = def->IsSupportingRoof;
+                        temp.IsRoof = def->IsRoof;
+
+                        std::vector<uint8_t> pixelData;
+                        int w = 0, h = 0;
+                        if (!AssetManager::ExtractPixelsFromTilePallette(temp, pixelData, w, h))
+                            continue;
+
+                        const float yoffset = 2.0f;
+
+                        glm::vec2 worldTilePos = IsoTileUtils::IsoToWorldGround(worldCell);
+                        worldTilePos.y += yoffset;
+
+                        TerrainBakeItem item{};
+                        item.worldTilePos = worldTilePos;
+                        item.id = compact.GroupId; // or other stable id if you prefer
+                        item.name = def->Name;
+                        item.pixelData = std::move(pixelData);
+                        item.w = static_cast<uint32_t>(w);
+                        item.h = static_cast<uint32_t>(h);
+
+                        items.push_back(std::move(item));
+                    }
                 }
-            });
+            }
+        }
 
         std::stable_sort(items.begin(), items.end(),
             [](const TerrainBakeItem& a, const TerrainBakeItem& b)

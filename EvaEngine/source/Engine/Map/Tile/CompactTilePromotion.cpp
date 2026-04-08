@@ -505,8 +505,8 @@ namespace Engine
                 UnregisterPromotedEntity(groupId);
                 continue;
             }
-
             CompactEntityToTiles(scene, e, true);
+            UnregisterPromotedEntity(groupId);
         }
     }
 
@@ -670,6 +670,7 @@ namespace Engine
         {
             if (!IsGroupPromoted(groupId))
             {
+                EE_CORE_INFO("groupId promtoed {}", groupId);
                 Entity e = PromoteGroup(scene, groupId);
                 if (e && scene->IsEntityValid(e))
                 {
@@ -679,10 +680,12 @@ namespace Engine
                     RegisterPromotedEntity(groupId, e);
                     tileManager->RegisterPromotedEntity(e);
                     tileManager->RegisterPromotedEntityResidency(scene, e, 0.5f * (promoteMin + promoteMax));
-                    groupsPromotedThisUpdate.insert(groupId);
                     EE_CORE_INFO("PromoteGroup created entity {} for group {}", (uint64_t)e.GetUUID(), groupId);
                 }
             }
+
+            // Always mark as active if it should stay promoted this frame
+            groupsPromotedThisUpdate.insert(groupId);
         }
 
         // Pass 3: compact back promoted groups outside expanded rect
@@ -725,6 +728,8 @@ namespace Engine
             }
 
             CompactEntityToTiles(scene, e, true);
+            UnregisterPromotedEntity(groupId);
+            EE_CORE_INFO("groupId packed {}", groupId);
         }
     }
    
