@@ -422,9 +422,9 @@ namespace Engine {
 
             // check if placing tiles. if yes, dont show imGuizmo to avoid misclicks
             bool isPLacingTiles = m_ActiveStroke != nullptr;
-
+            bool showImQuizmo = false;
             if (selectedEntity && selectedEntity.HasComponent<TransformComponent>() &&
-                  m_sceneHierarchyPanel.GetGuizmoType() != -1 && !isPLacingTiles)
+                  m_sceneHierarchyPanel.GetGuizmoType() != -1 && !isPLacingTiles && showImQuizmo)
             {
                 EE_PROFILE_SCOPE("Guizmo");
 

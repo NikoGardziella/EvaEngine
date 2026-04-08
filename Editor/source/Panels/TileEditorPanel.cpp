@@ -164,27 +164,39 @@ namespace Engine {
             DrawTiles(allTiles, textureID, category, eTileMaterial::None);
         }
     }
-
     void TileEditorPanel::DrawTiles(const std::vector<std::string>& tileNames,
         ImTextureID textureID,
         eTileCategory category,
         eTileMaterial /*material*/)
     {
-        // Iso thumbnails: keep 128x256 aspect -> H = W * 256/128
         const float iconW = 48.0f;
-        const float iconH = iconW * (float)TILE_PIXEL_HEIGHT / (float)TILE_PIXEL_WIDTH; // 2 * iconW
+        const float iconH = iconW * (float)TILE_PIXEL_HEIGHT / (float)TILE_PIXEL_WIDTH;
         const float spacingX = ImGui::GetStyle().ItemSpacing.x;
 
-        // Compute items per row from available width inside the current region/child
-        const float availW = ImGui::GetContentRegionAvail().x;
-        const int itemsPerRow = std::max(1, (int)std::floor((availW + spacingX) / (iconW + spacingX)));
+        const float leftPadding = 6.0f;
+        const float rightPadding = 50.0f;
+
+        const float fullAvailW = ImGui::GetContentRegionAvail().x;
+        const float usableW = fullAvailW - leftPadding - rightPadding;
+
+        const int itemsPerRow = std::max(1, (int)std::floor((usableW + spacingX) / (iconW + spacingX)));
 
         for (size_t i = 0; i < tileNames.size(); ++i)
         {
+            const int col = (int)(i % itemsPerRow);
+
+            if (col == 0)
+            {
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + leftPadding);
+            }
+            else
+            {
+                ImGui::SameLine();
+            }
+
             const std::string& name = tileNames[i];
             const glm::vec4 uv = GetTileUV(name);
 
-            // Stable unique ID per tile (avoids collisions across multiple material sections)
             ImGui::PushID(name.c_str());
 
             if (ImGui::ImageButton("##tileIcon",
@@ -211,10 +223,6 @@ namespace Engine {
             }
 
             ImGui::PopID();
-
-            // Wrap to next row
-            if (((int)i + 1) % itemsPerRow != 0)
-                ImGui::SameLine();
         }
     }
 
