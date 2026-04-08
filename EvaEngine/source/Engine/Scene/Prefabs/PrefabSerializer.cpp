@@ -2,6 +2,7 @@
 #include "PrefabSerializer.h"
 #include <yaml-cpp/yaml.h>
 #include "Engine/AssetManager/AssetManager.h"
+#include "Engine/Map/Utils/IsoTileUtils.h"
 
 namespace Engine {
 
@@ -249,6 +250,8 @@ namespace Engine {
             }
         }
     }
+
+
     inline void PrefabSerializer::DeserializeTilesToTileComponent(
         Entity rootEntity,
         const YAML::Node& tilesNode,
@@ -260,6 +263,12 @@ namespace Engine {
         TileComponent& tileComp = rootEntity.GetComponent<TileComponent>();
         tileComp.tiles.clear();
 
+        CompactTileMap& compactMap = m_scene->GetCompactTileMap();
+
+        uint64_t groupId = 0;
+        if (rootEntity.HasComponent<IDComponent>())
+            groupId = static_cast<uint64_t>(rootEntity.GetComponent<IDComponent>().ID);
+
         for (const auto& tileNode : tilesNode)
         {
             TileInfo tile{};
@@ -269,16 +278,12 @@ namespace Engine {
                 tile.position.x = posNode[0].as<float>();
                 tile.position.y = posNode[1].as<float>();
             }
-          
-            
 
             if (tileNode["Name"])
                 tile.name = tileNode["Name"].as<std::string>();
 
-
             auto& props = AssetManager::GetTileProperties(tile.name);
             tile.UV = props.uv;
-
 
             if (tileNode["UID"])
                 tile.UID = tileNode["UID"].as<uint64_t>();
@@ -319,14 +324,74 @@ namespace Engine {
                 tile.opaqueMax.y = maxNode[1].as<int>();
             }
 
-            
             tile.position += worldOffset;
-
             tileComp.tiles.push_back(tile);
-        }
 
-        
+            // ---- Add matching compact tile ----
+            const glm::ivec2 worldCell = IsoTileUtils::WorldToIsoCellInt(tile.position);
+
+            
+            const uint16_t typeId = GetOrCreateDefinitionForRuntimeTile(*m_scene, tile);
+            if (typeId == 0)
+            {
+                EE_CORE_WARN("DeserializeTilesToTileComponent: failed to get typeId for '{}'", tile.name);
+                continue;
+            }
+
+            CompactTile compact{};
+            compact.TypeId = typeId;
+            compact.Flags = CompactTileFlags::None;
+            compact.Aux = 0;
+            compact.GroupId = groupId;
+
+            if (!compactMap.HasTileType(worldCell, compact.TypeId))
+            {
+                compactMap.AddTile(worldCell, compact);
+
+                if (compact.GroupId != 0)
+                    compactMap.RegisterCellForGroup(compact.GroupId, worldCell);
+
+                compactMap.MarkChunkDirtyForCell(worldCell);
+            }
+        }
     }
 
+
+    uint16_t PrefabSerializer::GetOrCreateDefinitionForRuntimeTile(Scene& scene, const TileInfo& tile)
+    {
+        TileDefinitionRegistry& defs = scene.GetTileDefinitions();
+
+        if (tile.name.empty())
+        {
+            EE_CORE_WARN("GetOrCreateDefinitionForRuntimeTile: tile name is empty");
+            return 0;
+        }
+
+        Engine::TileTypeKey key = TileManager::MakeTileTypeKey(tile);
+
+        uint16_t existingTypeId = 0;
+        if (defs.FindTypeId(key, existingTypeId))
+            return existingTypeId;
+
+        Engine::TileDefinition def{};
+        def.TypeId = defs.GetNextTypeId();
+        def.Name = tile.name;
+        def.UV = tile.UV;
+        def.Category = tile.Category;
+        def.Direction = tile.TileDirection;
+        def.Material = tile.Material;
+        def.BaseHealth = static_cast<uint16_t>(tile.TileHealth);
+        def.IsDestructible = tile.IsDestructible;
+        def.IsSupportingRoof = tile.IsSupportingRoof;
+        def.IsRoof = tile.IsRoof;
+
+        if (!defs.Register(def, key))
+        {
+            EE_CORE_WARN("GetOrCreateDefinitionForRuntimeTile: failed to register '{}'", tile.name);
+            return 0;
+        }
+
+        return def.TypeId;
+    }
 
 }

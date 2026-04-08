@@ -1482,9 +1482,7 @@ namespace Engine {
                    // EditorDebugUtils::PrintAllEntities(m_sceneHierarchyPanel.GetNewComponentsContext()->GetRegistry());
 
                     m_selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
-                    if (m_selectedEntity)
-                        EE_CORE_INFO("panel Clicked ID:  {}", (uint64_t)m_selectedEntity.GetComponent<IDComponent>().ID);
-
+                    
                    // m_selectedEntity = EditorUtils::FindTileAtPosition(m_editor.get()->GetGameLayer()->GetActiveGameScene(), snapped);
                     m_sceneHierarchyPanel.SetSelectedEntity(m_selectedEntity);
                 }

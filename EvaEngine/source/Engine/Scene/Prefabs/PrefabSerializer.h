@@ -24,6 +24,8 @@ namespace Engine {
 
         void DeserializeTilesToTileComponent(Entity rootEntity, const YAML::Node& tilesNode, const glm::vec2& worldOffset);
 
+        uint16_t GetOrCreateDefinitionForRuntimeTile(Scene& scene, const TileInfo& tile);
+
 
     private:
         Ref<Scene> m_scene;

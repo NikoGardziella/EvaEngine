@@ -151,7 +151,7 @@ namespace Engine {
             glm::vec2 min = bounds[0];
             glm::vec2 max = bounds[1];
 
-           ;
+           
 
             // radius = half-diagonal (or half max extent)
             float rx = (max.x - min.x) * 0.5f;
