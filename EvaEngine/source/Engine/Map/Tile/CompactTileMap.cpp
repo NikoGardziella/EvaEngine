@@ -222,6 +222,15 @@ namespace Engine
         return m_GroupInfo;
     }
 
+
+    void CompactTileMap::Clear()
+    {
+        m_Chunks.clear();
+        m_Cells.clear();
+        m_CellsByGroupId.clear();
+        m_GroupInfo.clear();
+    }
+
     void CompactTileMap::RemoveGroup(uint64_t groupId)
     {
         auto it = m_CellsByGroupId.find(groupId);
@@ -368,6 +377,16 @@ namespace Engine
         CompactGroupInfo& info = m_GroupInfo[groupId];
         info.GroupId = groupId;
         info.OriginCell = originCell;
+    }
+
+    void CompactTileMap::SetGroupName(uint64_t groupId, const std::string& groupName)
+    {
+        if (groupId == 0)
+            return;
+
+        CompactGroupInfo& info = m_GroupInfo[groupId];
+        info.GroupId = groupId;
+        info.Name = groupName;
     }
 
     bool CompactTileMap::HasGroupInfo(uint64_t groupId) const

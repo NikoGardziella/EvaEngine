@@ -33,7 +33,6 @@ namespace Engine
         return t;
     }
 
-
     bool CompactTilePromotion::SyncPromotedEntityToCompactGroup(Scene* scene, Entity entity)
     {
         if (!scene || !entity)
@@ -56,12 +55,21 @@ namespace Engine
 
         CompactTileMap& compactMap = scene->GetCompactTileMap();
 
+        // Preserve old group name before removing old compact representation
+        std::string groupName;
+        if (const CompactGroupInfo* oldInfo = compactMap.GetGroupInfo(groupId))
+            groupName = oldInfo->Name;
+
         // Remove old compact representation first
         compactMap.RemoveGroup(groupId);
 
         // New compact root from current entity transform
         const glm::ivec2 newOriginCell = IsoTileUtils::WorldToIsoCellInt(glm::vec2(tr.Translation));
         compactMap.SetGroupOrigin(groupId, newOriginCell);
+
+        // Restore name
+        if (CompactGroupInfo* newInfo = compactMap.GetGroupInfo(groupId))
+            newInfo->Name = groupName;
 
         bool wroteAnyTile = false;
 
@@ -119,7 +127,6 @@ namespace Engine
         const CompactGroupInfo* groupInfo = compactMap.GetGroupInfo(groupId);
         if (!groupInfo)
         {
-            EE_CORE_WARN("PromoteGroup: missing CompactGroupInfo for group {}", groupId);
             return {};
         }
 
@@ -185,7 +192,8 @@ namespace Engine
 
         if (!e)
         {
-            e = scene->CreateEntity("PromotedGroup");
+            const std::string groupnName = groupInfo->Name;
+            e = scene->CreateEntity(groupnName);
             e.GetComponent<IDComponent>().ID = static_cast<UUID>(groupId);
         }
 

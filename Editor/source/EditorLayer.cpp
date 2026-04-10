@@ -422,7 +422,7 @@ namespace Engine {
 
             // check if placing tiles. if yes, dont show imGuizmo to avoid misclicks
             bool isPLacingTiles = m_ActiveStroke != nullptr;
-            bool showImQuizmo = false;
+            bool showImQuizmo = true;
             if (selectedEntity && selectedEntity.HasComponent<TransformComponent>() &&
                   m_sceneHierarchyPanel.GetGuizmoType() != -1 && !isPLacingTiles && showImQuizmo)
             {
@@ -477,6 +477,12 @@ namespace Engine {
                     transformComp.Translation = translation;
                     transformComp.Rotation = glm::eulerAngles(deltaRotation) + transformComp.Rotation; // Convert back to Euler angles
                     transformComp.Scale = scale;
+
+                    if (selectedEntity.HasComponent<TileComponent>())
+                    {
+                        m_sceneHierarchyPanel.GetEditorScene()->GetCompactTilePromotion().SyncPromotedEntityToCompactGroup(m_sceneHierarchyPanel.GetEditorScene().get(), selectedEntity);
+
+                    }
                 }
             }
 
@@ -1696,6 +1702,8 @@ namespace Engine {
 
         glm::ivec2 spawnCell = GetSnappedIsoPosition();
 
+        
+
         PrefabSerializer serializer(scene);
         Entity newEntity = serializer.Deserialize(filepath, spawnCell);
 
@@ -1726,6 +1734,8 @@ namespace Engine {
 
         m_sceneHierarchyPanel.GetEditorScene() = nullptr;
         m_sceneHierarchyPanel.GetEditorScene() = std::make_shared<Scene>();
+
+        
 
         SceneSerializer serializer(m_sceneHierarchyPanel.GetEditorScene());
         serializer.Deserialize(path.string());

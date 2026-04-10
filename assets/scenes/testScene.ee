@@ -403,295 +403,567 @@ TileDefinitions:
     IsSupportingRoof: false
     IsRoof: false
   - TypeId: 41
-    Name: Wall A1_W
-    UV: [0.26513672, 0.3797861, 0.38916016, 0.41345394]
-    Category: Buildings
-    Direction: West
-    Material: Concrete
+    Name: Wall D18_E
+    UV: [0.0053710938, 0.931146, 0.12939453, 0.9648138]
+    Category: Unknown
+    Direction: East
+    Material: Default
     BaseHealth: 1
-    IsDestructible: true
-    IsSupportingRoof: true
+    IsDestructible: false
+    IsSupportingRoof: false
     IsRoof: false
   - TypeId: 42
-    Name: Wall A1_N
-    UV: [0.0053710938, 0.3797861, 0.12939453, 0.41345394]
-    Category: Buildings
-    Direction: North
-    Material: Concrete
+    Name: Wall D18_W
+    UV: [0.39501953, 0.931146, 0.51904297, 0.9648138]
+    Category: Unknown
+    Direction: West
+    Material: Default
     BaseHealth: 1
-    IsDestructible: true
-    IsSupportingRoof: true
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 43
+    Name: Wall D19_S
+    UV: [0.78466797, 0.79330605, 0.9086914, 0.82697386]
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
     IsRoof: false
 CompactGroups:
-  - GroupId: 9372537700952618146
-    OriginCell: [10, -10]
-  - GroupId: 9582594324552274546
-    OriginCell: [1, 13]
-  - GroupId: 3703745385949360169
-    OriginCell: [15, -32]
+  - GroupId: 17187818870238256560
+    GroupName: BrickHouse
+    OriginCell: [-6, 6]
 CompactTiles:
-  - Cell: [15, -32]
-    TypeId: 41
+  - Cell: [-8, 4]
+    TypeId: 3
     Flags: 0
     Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [15, -31]
-    TypeId: 41
+    GroupId: 17187818870238256560
+  - Cell: [-8, 4]
+    TypeId: 14
     Flags: 0
     Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [15, -29]
-    TypeId: 41
+    GroupId: 17187818870238256560
+  - Cell: [-7, 4]
+    TypeId: 3
     Flags: 0
     Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [15, -27]
-    TypeId: 41
+    GroupId: 17187818870238256560
+  - Cell: [-7, 4]
+    TypeId: 13
     Flags: 0
     Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [18, -26]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [19, -26]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [20, -26]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [21, -26]
-    TypeId: 41
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [14, -25]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [15, -25]
-    TypeId: 41
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [15, -25]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [16, -25]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [17, -25]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [21, -25]
-    TypeId: 41
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [21, -24]
-    TypeId: 41
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [15, -23]
-    TypeId: 41
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [21, -23]
-    TypeId: 41
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [15, -22]
-    TypeId: 41
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [21, -22]
-    TypeId: 41
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [22, -22]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [15, -21]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [16, -21]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [17, -21]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [18, -21]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [20, -21]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [21, -21]
-    TypeId: 2
-    Flags: 0
-    Aux: 0
-    GroupId: 3703745385949360169
-  - Cell: [10, -10]
-    TypeId: 2
-    Flags: 3
-    Aux: 0
-    GroupId: 9372537700952618146
-  - Cell: [0, 9]
-    TypeId: 41
-    Flags: 3
-    Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [0, 10]
-    TypeId: 41
-    Flags: 3
-    Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [0, 11]
-    TypeId: 41
-    Flags: 3
-    Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [0, 12]
-    TypeId: 41
-    Flags: 3
-    Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [0, 13]
-    TypeId: 41
-    Flags: 3
-    Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [1, 13]
-    TypeId: 2
-    Flags: 3
-    Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [0, 14]
-    TypeId: 2
-    Flags: 3
-    Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [-6, 3]
-    TypeId: 41
-    Flags: 3
-    Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
   - Cell: [-6, 4]
-    TypeId: 41
-    Flags: 3
+    TypeId: 43
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
+  - Cell: [-6, 4]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 4]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 4]
+    TypeId: 13
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 4]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 4]
+    TypeId: 13
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 4]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 4]
+    TypeId: 11
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 5]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 5]
+    TypeId: 12
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-7, 5]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-6, 5]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 5]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 5]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 5]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 5]
+    TypeId: 9
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 6]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 6]
+    TypeId: 42
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-7, 6]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
   - Cell: [-6, 6]
-    TypeId: 41
-    Flags: 3
+    TypeId: 3
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
+  - Cell: [-6, 6]
+    TypeId: 23
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 6]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 6]
+    TypeId: 22
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 6]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 6]
+    TypeId: 22
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 6]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 6]
+    TypeId: 9
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 6]
+    TypeId: 22
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-2, 6]
+    TypeId: 22
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-1, 6]
+    TypeId: 21
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 7]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 7]
+    TypeId: 12
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-7, 7]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-6, 7]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-6, 7]
+    TypeId: 20
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 7]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 7]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 7]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 7]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 7]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 7]
+    TypeId: 9
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 7]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-2, 7]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-1, 7]
+    TypeId: 17
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 8]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 8]
+    TypeId: 12
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-7, 8]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
   - Cell: [-6, 8]
-    TypeId: 41
-    Flags: 3
+    TypeId: 3
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
+  - Cell: [-6, 8]
+    TypeId: 20
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 8]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 8]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 8]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 8]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 8]
+    TypeId: 41
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 8]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 8]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-2, 8]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-1, 8]
+    TypeId: 17
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 9]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 9]
+    TypeId: 42
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-7, 9]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-6, 9]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-6, 9]
+    TypeId: 20
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 9]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 9]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 9]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 9]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
   - Cell: [-3, 9]
-    TypeId: 2
-    Flags: 3
+    TypeId: 3
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
+  - Cell: [-3, 9]
+    TypeId: 9
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 9]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
   - Cell: [-2, 9]
-    TypeId: 2
-    Flags: 3
+    TypeId: 18
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
   - Cell: [-1, 9]
-    TypeId: 2
-    Flags: 3
+    TypeId: 17
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
+  - Cell: [-8, 10]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-8, 10]
+    TypeId: 10
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
   - Cell: [-7, 10]
-    TypeId: 2
-    Flags: 3
+    TypeId: 3
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
+  - Cell: [-7, 10]
+    TypeId: 8
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
   - Cell: [-6, 10]
-    TypeId: 41
-    Flags: 3
+    TypeId: 3
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
   - Cell: [-6, 10]
-    TypeId: 2
-    Flags: 3
+    TypeId: 8
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
+  - Cell: [-6, 10]
+    TypeId: 20
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
   - Cell: [-5, 10]
-    TypeId: 2
-    Flags: 3
+    TypeId: 3
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
+  - Cell: [-5, 10]
+    TypeId: 8
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 10]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
   - Cell: [-4, 10]
-    TypeId: 2
-    Flags: 3
+    TypeId: 3
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560
+  - Cell: [-4, 10]
+    TypeId: 8
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 10]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 10]
+    TypeId: 3
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 10]
+    TypeId: 7
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 10]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-2, 10]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-1, 10]
+    TypeId: 17
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-6, 11]
+    TypeId: 20
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-5, 11]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-4, 11]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-3, 11]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-2, 11]
+    TypeId: 18
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
+  - Cell: [-1, 11]
+    TypeId: 17
+    Flags: 0
+    Aux: 0
+    GroupId: 17187818870238256560
   - Cell: [-6, 12]
-    TypeId: 41
-    Flags: 3
+    TypeId: 19
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [-6, 13]
-    TypeId: 41
-    Flags: 3
+    GroupId: 17187818870238256560
+  - Cell: [-5, 12]
+    TypeId: 16
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [-6, 14]
-    TypeId: 2
-    Flags: 3
+    GroupId: 17187818870238256560
+  - Cell: [-4, 12]
+    TypeId: 16
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [-5, 14]
-    TypeId: 2
-    Flags: 3
+    GroupId: 17187818870238256560
+  - Cell: [-3, 12]
+    TypeId: 16
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [-4, 14]
-    TypeId: 2
-    Flags: 3
+    GroupId: 17187818870238256560
+  - Cell: [-2, 12]
+    TypeId: 16
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [-3, 14]
-    TypeId: 2
-    Flags: 3
+    GroupId: 17187818870238256560
+  - Cell: [-1, 12]
+    TypeId: 15
+    Flags: 0
     Aux: 0
-    GroupId: 9582594324552274546
-  - Cell: [-1, 14]
-    TypeId: 2
-    Flags: 3
-    Aux: 0
-    GroupId: 9582594324552274546
+    GroupId: 17187818870238256560

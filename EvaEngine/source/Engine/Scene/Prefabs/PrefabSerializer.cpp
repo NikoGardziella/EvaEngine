@@ -69,6 +69,9 @@ namespace Engine {
             EE_CORE_ERROR("Failed to create prefab root entity");
             return {};
         }
+        
+        
+
 
         // Place the prefab root in the world
         if (newEntity.HasComponent<TransformComponent>())
@@ -347,7 +350,7 @@ namespace Engine {
             if (!compactMap.HasTileType(worldCell, compact.TypeId))
             {
                 compactMap.AddTile(worldCell, compact);
-                compactMap.SetGroupOrigin(compact.GroupId, worldCell);
+                //compactMap.SetGroupOrigin(compact.GroupId, worldCell);
 
                 if (compact.GroupId != 0)
                     compactMap.RegisterCellForGroup(compact.GroupId, worldCell);
@@ -355,6 +358,12 @@ namespace Engine {
                 compactMap.MarkChunkDirtyForCell(worldCell);
             }
         }
+        const std::string groupName = rootEntity.GetComponent<TagComponent>().Tag;
+        compactMap.SetGroupName(groupId, groupName);
+
+        compactMap.SetGroupOrigin(groupId, glm::ivec2(0));
+
+
     }
 
 

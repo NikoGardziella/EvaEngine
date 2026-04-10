@@ -68,7 +68,7 @@ namespace Engine {
 
     Scene::~Scene()
     {
-         
+        m_compactTileMap.Clear();
     }
 
 

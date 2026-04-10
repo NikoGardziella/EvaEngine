@@ -14,6 +14,7 @@ namespace Engine
     {
         uint64_t GroupId = 0;
         glm::ivec2 OriginCell{};
+        std::string Name;
     };
 
     struct CompactTile
@@ -92,7 +93,7 @@ namespace Engine
         const std::unordered_map<uint64_t, CompactGroupInfo>& GetAllGroupInfo() const;
 
         void RemoveGroup(uint64_t groupId);
-
+        void Clear();
         void RebuildChunkDrawCache(TileChunk& chunk, const TileDefinitionRegistry& defs);
         void MarkChunkDirtyForCell(const glm::ivec2& worldCell);
 
@@ -102,6 +103,7 @@ namespace Engine
         const CompactGroupInfo* GetGroupInfo(uint64_t groupId) const;
         CompactGroupInfo* GetGroupInfo(uint64_t groupId);
         void SetGroupOrigin(uint64_t groupId, const glm::ivec2& originCell);
+        void SetGroupName(uint64_t groupId, const std::string& groupName);
         bool HasGroupInfo(uint64_t groupId) const;
         void RemoveGroupInfo(uint64_t groupId);
 

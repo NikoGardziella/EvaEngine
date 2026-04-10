@@ -916,6 +916,7 @@ namespace Engine {
         {
             out << YAML::BeginMap;
             out << YAML::Key << "GroupId" << YAML::Value << groupId;
+            out << YAML::Key << "GroupName" << YAML::Value << info.Name;
             out << YAML::Key << "OriginCell" << YAML::Value << YAML::Flow
                 << std::vector<int>{ info.OriginCell.x, info.OriginCell.y };
             out << YAML::EndMap;
@@ -1069,6 +1070,10 @@ namespace Engine {
             originCell.y = groupNode["OriginCell"][1].as<int>();
 
             compactMap.SetGroupOrigin(groupId, originCell);
+
+
+            const std::string groupName = groupNode["GroupName"].as<std::string>();
+            compactMap.SetGroupName(groupId, groupName);
         }
     }
 

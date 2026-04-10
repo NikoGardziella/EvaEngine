@@ -511,6 +511,9 @@ namespace Engine {
             {
                 tag = std::string(buffer);
                 m_sceneHierarchyPanelScene->GetRegistry().get<TagComponent>(entity).Tag = tag;
+                uint64_t groupid = static_cast<uint64_t>(entity.GetComponent<IDComponent>().ID);
+                m_sceneHierarchyPanelScene->GetCompactTileMap().SetGroupName(groupid, tag);
+
             }
 
            // ImGui::Text("TagComponent: %s", tag.Tag.c_str());
