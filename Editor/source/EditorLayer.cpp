@@ -902,6 +902,8 @@ namespace Engine {
 
         return newTile;
     }
+
+
     CompactTile EditorLayer::BuildCompactTileForSelection(Entity selectedEntity, glm::ivec2 isoCell)
     {
         Ref<Scene> scene = m_editor->GetGameLayer()->GetActiveGameScene();
@@ -922,6 +924,7 @@ namespace Engine {
             selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
 
         uint64_t groupID = 0;
+        CompactTileMap& compactMap = scene->GetCompactTileMap();
 
         if (!selectedEntity || !scene->IsEntityValid(selectedEntity))
         {
@@ -932,6 +935,15 @@ namespace Engine {
 
             groupID = static_cast<uint64_t>(newEntity.GetUUID());
             newEntity.GetComponent<TagComponent>().Tag = "Entity" + std::to_string(groupID);
+
+            TransformComponent& transformComp = newEntity.AddComponent<TransformComponent>();
+            const glm::vec2 rootWorldPos = IsoTileUtils::IsoToWorldGround(isoCell);
+            transformComp.Translation = glm::vec3(rootWorldPos, 0.0f);
+
+            if (!compactMap.HasGroupInfo(groupID))
+                compactMap.SetGroupOrigin(groupID, isoCell);
+
+            EE_CORE_INFO("new entity pos: {}", transformComp.Translation);
         }
         else
         {
@@ -944,7 +956,6 @@ namespace Engine {
         tile.Aux = 0;
         tile.GroupId = groupID;
 
-        CompactTileMap& compactMap = scene->GetCompactTileMap();
 
         if (compactMap.HasTileType(isoCell, tile.TypeId))
         {
@@ -1285,13 +1296,11 @@ namespace Engine {
         }
 
         glm::ivec2 isoCell = GetSnappedIsoPosition();
-        glm::vec2  snapped = IsoTileUtils::IsoToWorldGround(isoCell);
         
         // check if there us same tile in same position
         if (CanPlaceTile(selectedTile, isoCell))
         {
 
-            
             
             CompactTile compactTile = BuildCompactTileForSelection(selectedEntity, isoCell);
             if (compactTile.IsEmpty())
@@ -1306,7 +1315,6 @@ namespace Engine {
             
             EE_CORE_INFO(" placeed {}", isoCell);
 
-            m_LastPlacedTilePos = snapped;
             m_StrokeCreatedNewEntity = false; 
         }
             

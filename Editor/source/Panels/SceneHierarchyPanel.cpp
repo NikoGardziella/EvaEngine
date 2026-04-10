@@ -26,6 +26,7 @@
 #include <Engine/Scene/Components/Light/DirectionalLightComponent.h>
 #include <imgui_internal.h>
 #include <Engine/Scene/Components/Environment/DayNightComponent.h>
+#include "Engine/Map/Utils/IsoTileUtils.h"
 
 
 namespace Engine {
@@ -965,24 +966,24 @@ namespace Engine {
 
         DrawComponent<TransformComponent>("Transform", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
+                glm::vec3 oldTranslation = component.Translation;
+
                 DrawVec3Control("Translation", component.Translation, m_guizmoType, ImGuizmo::OPERATION::TRANSLATE);
-                 
+
                 glm::vec3 rotation = glm::degrees(component.Rotation);
                 DrawVec3Control("Rotation", rotation, m_guizmoType, ImGuizmo::OPERATION::ROTATE);
-
                 component.Rotation = glm::radians(rotation);
+
                 DrawVec3Control("Scale", component.Scale, m_guizmoType, ImGuizmo::OPERATION::SCALE);
 
-                // The saga continues here. When I modify the components, I modify them in the game registy, but also 
-                // I want to save the changes to the scene - newCompnentsContext 
-                // wtf is this?
-                //Entity newEntity = Entity{ Scene::GetEntityByUUID(m_newComponentsContext->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_newComponentsContext.get() };
-                //if (newEntity)
+                if (component.Translation != oldTranslation && entity.HasComponent<IDComponent>())
                 {
-                  //  m_newComponentsContext->GetRegistry().get<TransformComponent>(newEntity) = component;
+                    const uint64_t groupId = static_cast<uint64_t>(entity.GetComponent<IDComponent>().ID);
 
+                    glm::ivec2 newOriginCell = IsoTileUtils::WorldToIsoCellInt(glm::vec2(component.Translation));
+                    m_sceneHierarchyPanelScene->GetCompactTileMap().SetGroupOrigin(groupId, newOriginCell);
+                    m_sceneHierarchyPanelScene->GetCompactTilePromotion().SyncPromotedEntityToCompactGroup(m_sceneHierarchyPanelScene.get(), entity);
                 }
-
             });
 
         DrawComponent<CameraComponent>("Camera", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)

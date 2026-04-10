@@ -10,6 +10,12 @@ namespace Engine
     inline constexpr int TILE_CHUNK_W = 64;
     inline constexpr int TILE_CHUNK_H = 64;
 
+    struct CompactGroupInfo
+    {
+        uint64_t GroupId = 0;
+        glm::ivec2 OriginCell{};
+    };
+
     struct CompactTile
     {
         uint16_t TypeId = 0;
@@ -83,6 +89,8 @@ namespace Engine
         void RegisterCellForGroup(uint64_t groupId, const glm::ivec2& cell);
         void RemoveCellFromGroup(uint64_t groupId, const glm::ivec2& cell);
 
+        const std::unordered_map<uint64_t, CompactGroupInfo>& GetAllGroupInfo() const;
+
         void RemoveGroup(uint64_t groupId);
 
         void RebuildChunkDrawCache(TileChunk& chunk, const TileDefinitionRegistry& defs);
@@ -90,10 +98,19 @@ namespace Engine
 
         const std::unordered_map<uint64_t, std::vector<glm::ivec2>>& GetGroupCells() const;
 
+
+        const CompactGroupInfo* GetGroupInfo(uint64_t groupId) const;
+        CompactGroupInfo* GetGroupInfo(uint64_t groupId);
+        void SetGroupOrigin(uint64_t groupId, const glm::ivec2& originCell);
+        bool HasGroupInfo(uint64_t groupId) const;
+        void RemoveGroupInfo(uint64_t groupId);
+
+
     private:
         std::unordered_map<glm::ivec2, TileChunk, IVec2Hash> m_Chunks;
         std::unordered_map<glm::ivec2, CompactTileCell, IVec2Hash> m_Cells;
         std::unordered_map<uint64_t, std::vector<glm::ivec2>> m_CellsByGroupId;
+        std::unordered_map<uint64_t, CompactGroupInfo> m_GroupInfo;
     };
 
     int FloorDiv(int a, int b);

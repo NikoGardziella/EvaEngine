@@ -347,6 +347,7 @@ namespace Engine {
             if (!compactMap.HasTileType(worldCell, compact.TypeId))
             {
                 compactMap.AddTile(worldCell, compact);
+                compactMap.SetGroupOrigin(compact.GroupId, worldCell);
 
                 if (compact.GroupId != 0)
                     compactMap.RegisterCellForGroup(compact.GroupId, worldCell);

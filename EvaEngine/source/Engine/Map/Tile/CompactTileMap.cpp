@@ -217,6 +217,11 @@ namespace Engine
             m_CellsByGroupId.erase(it);
     }
 
+    const std::unordered_map<uint64_t, CompactGroupInfo>& CompactTileMap::GetAllGroupInfo() const
+    {
+        return m_GroupInfo;
+    }
+
     void CompactTileMap::RemoveGroup(uint64_t groupId)
     {
         auto it = m_CellsByGroupId.find(groupId);
@@ -243,17 +248,16 @@ namespace Engine
                 tiles.end()
             );
 
-            // If cell is now empty -> remove it completely
+            // If cell is now empty  remove it completely
             if (tiles.empty())
             {
                 m_Cells.erase(cell);
             }
 
-            // Mark chunk dirty so renderer updates
+            
             MarkChunkDirtyForCell(cell);
         }
-
-        // Finally remove group entry
+        RemoveGroupInfo(groupId);
         m_CellsByGroupId.erase(it);
     }
 
@@ -337,6 +341,45 @@ namespace Engine
     const std::unordered_map<uint64_t, std::vector<glm::ivec2>>& CompactTileMap::GetGroupCells() const
     {
         return m_CellsByGroupId;
+    }
+    const CompactGroupInfo* CompactTileMap::GetGroupInfo(uint64_t groupId) const
+    {
+        auto it = m_GroupInfo.find(groupId);
+        if (it == m_GroupInfo.end())
+            return nullptr;
+
+        return &it->second;
+    }
+
+    CompactGroupInfo* CompactTileMap::GetGroupInfo(uint64_t groupId)
+    {
+        auto it = m_GroupInfo.find(groupId);
+        if (it == m_GroupInfo.end())
+            return nullptr;
+
+        return &it->second;
+    }
+
+    void CompactTileMap::SetGroupOrigin(uint64_t groupId, const glm::ivec2& originCell)
+    {
+        if (groupId == 0)
+            return;
+
+        CompactGroupInfo& info = m_GroupInfo[groupId];
+        info.GroupId = groupId;
+        info.OriginCell = originCell;
+    }
+
+    bool CompactTileMap::HasGroupInfo(uint64_t groupId) const
+    {
+        return m_GroupInfo.find(groupId) != m_GroupInfo.end();
+    }
+
+    void CompactTileMap::RemoveGroupInfo(uint64_t groupId)
+    {
+        auto it = m_GroupInfo.find(groupId);
+        if (it != m_GroupInfo.end())
+            m_GroupInfo.erase(it);
     }
 
     int FloorDiv(int a, int b)

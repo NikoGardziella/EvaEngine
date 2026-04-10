@@ -166,8 +166,7 @@ namespace Engine {
 
 		
 	private:
-		// commands
-		glm::vec2 m_LastPlacedTilePos;
+		
 
 		CommandHistory m_CommandHistory;
 		std::unique_ptr<CommandGroup> m_ActiveStroke = nullptr;

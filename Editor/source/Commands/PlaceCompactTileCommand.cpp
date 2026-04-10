@@ -48,6 +48,8 @@ namespace Engine
 
         compactMap.MarkChunkDirtyForCell(m_WorldCell);
         
+       
+
         if (m_NewTile.GroupId != 0 &&
             m_Scene->GetCompactTilePromotion().IsGroupPromoted(m_NewTile.GroupId))
         {

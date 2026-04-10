@@ -906,6 +906,24 @@ namespace Engine {
     }
 
 
+    inline void SerializeCompactGroups(Ref<Scene> scene, YAML::Emitter& out)
+    {
+        const CompactTileMap& compactMap = scene->GetCompactTileMap();
+
+        out << YAML::Key << "CompactGroups" << YAML::Value << YAML::BeginSeq;
+
+        for (const auto& [groupId, info] : compactMap.GetAllGroupInfo())
+        {
+            out << YAML::BeginMap;
+            out << YAML::Key << "GroupId" << YAML::Value << groupId;
+            out << YAML::Key << "OriginCell" << YAML::Value << YAML::Flow
+                << std::vector<int>{ info.OriginCell.x, info.OriginCell.y };
+            out << YAML::EndMap;
+        }
+
+        out << YAML::EndSeq;
+    }
+
     inline void SerializeCompactTiles(Ref<Scene> scene, YAML::Emitter& out)
     {
         const CompactTileMap& compactMap = scene->GetCompactTileMap();
@@ -973,7 +991,11 @@ namespace Engine {
         SerializeTileDefinitions(m_scene, out);
         out << YAML::EndSeq; // Close TileDefinitions Sequence
 
-        // --- 3. COMPACT TILES SECTION ---
+        // --- 4. COMPACT GROUP SECTION ---
+        SerializeCompactGroups(m_scene, out);
+
+
+        // --- 5. COMPACT TILES SECTION ---
         out << YAML::Key << "CompactTiles" << YAML::Value << YAML::BeginSeq;
         SerializeCompactTiles(m_scene, out);
         out << YAML::EndSeq; // Close CompactTiles Sequence
@@ -1030,6 +1052,26 @@ namespace Engine {
         }
     }
 
+
+    inline void DeserializeCompactGroups(Scene& scene, const YAML::Node& groupsNode)
+    {
+        CompactTileMap& compactMap = scene.GetCompactTileMap();
+
+        for (const auto& groupNode : groupsNode)
+        {
+            if (!groupNode["GroupId"] || !groupNode["OriginCell"])
+                continue;
+
+            const uint64_t groupId = groupNode["GroupId"].as<uint64_t>();
+
+            glm::ivec2 originCell{};
+            originCell.x = groupNode["OriginCell"][0].as<int>();
+            originCell.y = groupNode["OriginCell"][1].as<int>();
+
+            compactMap.SetGroupOrigin(groupId, originCell);
+        }
+    }
+
     inline void DeserializeCompactTiles(Scene& scene, const YAML::Node& compactTilesNode)
     {
         CompactTileMap& compactMap = scene.GetCompactTileMap();
@@ -1067,6 +1109,8 @@ namespace Engine {
                 continue;
             }
 
+            compactMap.SetGroupOrigin(tile.GroupId, cell);
+
             compactMap.AddTile(cell, tile);
             compactMap.RegisterCellForGroup(tile.GroupId, cell);
             compactMap.MarkChunkDirtyForCell(cell);
@@ -1098,9 +1142,7 @@ namespace Engine {
 
         std::string sceneName = data["Scene"].as<std::string>();
 
-        // -----------------------------
         // 1) Entities
-        // -----------------------------
         auto entities = data["Entities"];
         if (entities)
         {
@@ -1113,18 +1155,21 @@ namespace Engine {
             }
         }
 
-        // -----------------------------
         // 2) TileDefinitions
-        // -----------------------------
         auto defsNode = data["TileDefinitions"];
         if (defsNode)
         {
             DeserializeTileDefinitions(*m_scene, defsNode);
         }
 
-        // -----------------------------
+
+        auto compactGroupInfoNode = data["CompactGroups"];
+
+        DeserializeCompactGroups(*m_scene, compactGroupInfoNode);
+
         // 3) CompactTiles
-        // -----------------------------
+
+
         auto compactTilesNode = data["CompactTiles"];
         if (compactTilesNode)
         {
