@@ -47,6 +47,8 @@ namespace Engine {
 
             ImGui::Checkbox("Show Chunks", &m_showChunks);
             ImGui::Checkbox("Show LOS", &m_showLOS);
+            ImGui::Checkbox("Show Roofs", &m_showWalls);
+            ImGui::Checkbox("Show Walls", &m_showRoofs);
 
             if (boldFont)
                 ImGui::PopFont();
@@ -122,6 +124,28 @@ namespace Engine {
             m_editor->GetGameLayer()->GetActiveGameScene()->SetDebugDrawLOS(false);
         }
         
+        if (m_showRoofs)
+        {
+           
+            m_editor->GetGameLayer()->GetActiveGameScene()->SetDebugShowRoofs(true);
+        }
+        else
+        {
+            m_editor->GetGameLayer()->GetActiveGameScene()->SetDebugShowRoofs(false);
+        }
+
+        if (m_showWalls)
+        {
+            
+            m_editor->GetGameLayer()->GetActiveGameScene()->SetDebugShowWalls(true);
+
+        }
+        else
+        {
+            m_editor->GetGameLayer()->GetActiveGameScene()->SetDebugShowWalls(false);
+        }
+
+
         int flags3D = static_cast<int>(VulkanRenderer3D::GetDebugFlags());
         if (ImGui::SliderInt("3D render flags", &flags3D, 0, 75))
         {

@@ -163,6 +163,18 @@ namespace Engine {
                         // skip terrain and draw everything else 
                         continue;
                     }
+                    if (tileComponent.tiles[i].Category == eTileCategory::Buildings && !m_debugShowWalls)
+                    {
+                        // skip terrain and draw everything else 
+                        continue;
+                    }
+                    if (tileComponent.tiles[i].Category == eTileCategory::Roofs && !m_debugShowRoof)
+                    {
+                        // skip terrain and draw everything else 
+                        continue;
+                    }
+
+
                     glm::vec2 ground = glm::vec2(transformComponent.Translation) + tileComponent.tiles[i].position; // position = WORLD delta to GROUND
 
                     // Flip V as before

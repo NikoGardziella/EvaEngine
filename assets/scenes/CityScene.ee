@@ -217,7 +217,7 @@ TileDefinitions:
     UV: [0.52490234, 0.27640614, 0.6489258, 0.31007394]
     Category: Terrain
     Direction: East
-    Material: Default
+    Material: None
     BaseHealth: 1
     IsDestructible: false
     IsSupportingRoof: false
@@ -225,9 +225,9 @@ TileDefinitions:
   - TypeId: 23
     Name: Wall B17_E
     UV: [0.78466797, 0.75884604, 0.9086914, 0.79251385]
-    Category: Unknown
+    Category: Undefined
     Direction: East
-    Material: Default
+    Material: None
     BaseHealth: 1
     IsDestructible: false
     IsSupportingRoof: false
@@ -235,9 +235,9 @@ TileDefinitions:
   - TypeId: 24
     Name: Wall B18_E
     UV: [0.78466797, 0.86222607, 0.9086914, 0.8958939]
-    Category: Unknown
+    Category: Undefined
     Direction: East
-    Material: Default
+    Material: None
     BaseHealth: 1
     IsDestructible: false
     IsSupportingRoof: false
@@ -245,9 +245,9 @@ TileDefinitions:
   - TypeId: 25
     Name: Wall B18_W
     UV: [0.26513672, 0.896686, 0.38916016, 0.9303539]
-    Category: Unknown
+    Category: Undefined
     Direction: West
-    Material: Default
+    Material: None
     BaseHealth: 1
     IsDestructible: false
     IsSupportingRoof: false
@@ -255,9 +255,9 @@ TileDefinitions:
   - TypeId: 26
     Name: Wall B17_S
     UV: [0.1352539, 0.79330605, 0.25927734, 0.82697386]
-    Category: Unknown
+    Category: Undefined
     Direction: South
-    Material: Default
+    Material: None
     BaseHealth: 1
     IsDestructible: false
     IsSupportingRoof: false
@@ -267,7 +267,7 @@ TileDefinitions:
     UV: [0.0053710938, 0.0007261685, 0.12939453, 0.03439398]
     Category: Terrain
     Direction: East
-    Material: Default
+    Material: None
     BaseHealth: 1
     IsDestructible: false
     IsSupportingRoof: false
@@ -275,9 +275,9 @@ TileDefinitions:
   - TypeId: 28
     Name: Wall B18_S
     UV: [0.1352539, 0.896686, 0.25927734, 0.9303539]
-    Category: Unknown
+    Category: Undefined
     Direction: South
-    Material: Default
+    Material: None
     BaseHealth: 1
     IsDestructible: false
     IsSupportingRoof: false
@@ -352,759 +352,294 @@ TileDefinitions:
     IsDestructible: true
     IsSupportingRoof: true
     IsRoof: false
+CompactGroups:
+  - GroupId: 9497535646471933480
+    GroupName: ""
+    OriginCell: [12, -1]
+  - GroupId: 3600348401535869566
+    GroupName: ""
+    OriginCell: [-1, -1]
+  - GroupId: 2002823748523932088
+    GroupName: Road
+    OriginCell: [4, -8]
 CompactTiles:
-  - Cell: [0, 0]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [0, 0]
-    TypeId: 12
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
   - Cell: [0, 0]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [0, 0]
-    TypeId: 29
+    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, 0]
+  - Cell: [1, 0]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [1, 0]
     TypeId: 30
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, 0]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [1, 0]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [1, 0]
-    TypeId: 11
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
   - Cell: [1, 0]
     TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [2, 0]
-    TypeId: 4
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 0]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
   - Cell: [2, 0]
     TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [3, 0]
-    TypeId: 1
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [7, 0]
+    TypeId: 17
     Flags: 3
     Aux: 0
     GroupId: 9497535646471933480
-  - Cell: [3, 0]
-    TypeId: 11
+  - Cell: [8, 0]
+    TypeId: 14
     Flags: 3
     Aux: 0
     GroupId: 9497535646471933480
-  - Cell: [4, 0]
-    TypeId: 1
+  - Cell: [9, 0]
+    TypeId: 14
     Flags: 3
     Aux: 0
     GroupId: 9497535646471933480
-  - Cell: [4, 0]
-    TypeId: 11
+  - Cell: [10, 0]
+    TypeId: 14
     Flags: 3
     Aux: 0
     GroupId: 9497535646471933480
-  - Cell: [5, 0]
-    TypeId: 1
+  - Cell: [11, 0]
+    TypeId: 14
     Flags: 3
     Aux: 0
     GroupId: 9497535646471933480
-  - Cell: [5, 0]
-    TypeId: 9
+  - Cell: [12, 0]
+    TypeId: 13
     Flags: 3
     Aux: 0
     GroupId: 9497535646471933480
   - Cell: [0, 1]
-    TypeId: 1
+    TypeId: 22
     Flags: 3
     Aux: 0
-    GroupId: 9497535646471933480
+    GroupId: 3600348401535869566
   - Cell: [0, 1]
-    TypeId: 10
+    TypeId: 29
     Flags: 3
     Aux: 0
-    GroupId: 9497535646471933480
+    GroupId: 3600348401535869566
   - Cell: [0, 1]
     TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [1, 1]
-    TypeId: 1
+    TypeId: 22
     Flags: 3
     Aux: 0
-    GroupId: 9497535646471933480
+    GroupId: 3600348401535869566
+  - Cell: [1, 1]
+    TypeId: 29
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [1, 1]
+    TypeId: 30
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
   - Cell: [1, 1]
     TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [2, 1]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
   - Cell: [2, 1]
     TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [3, 1]
-    TypeId: 1
+    TypeId: 16
     Flags: 3
     Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 1]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 1]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 1]
-    TypeId: 7
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [0, 2]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [0, 2]
-    TypeId: 3
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
+    GroupId: 3600348401535869566
   - Cell: [0, 2]
     TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [1, 2]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [1, 2]
     TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [2, 2]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 2]
-    TypeId: 21
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
   - Cell: [2, 2]
     TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [3, 2]
-    TypeId: 1
+    TypeId: 16
     Flags: 3
     Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 2]
-    TypeId: 20
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 2]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 2]
-    TypeId: 20
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 2]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 2]
-    TypeId: 7
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 2]
-    TypeId: 20
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [6, 2]
-    TypeId: 20
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [7, 2]
-    TypeId: 19
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
+    GroupId: 3600348401535869566
   - Cell: [0, 3]
-    TypeId: 1
+    TypeId: 16
     Flags: 3
     Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [0, 3]
-    TypeId: 10
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
+    GroupId: 3600348401535869566
   - Cell: [1, 3]
-    TypeId: 1
+    TypeId: 16
     Flags: 3
     Aux: 0
-    GroupId: 9497535646471933480
+    GroupId: 3600348401535869566
   - Cell: [2, 3]
-    TypeId: 1
+    TypeId: 16
     Flags: 3
     Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 3]
-    TypeId: 18
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 3]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
+    GroupId: 3600348401535869566
   - Cell: [3, 3]
     TypeId: 16
     Flags: 3
     Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 3]
-    TypeId: 1
+    GroupId: 3600348401535869566
+  - Cell: [-10, 0]
+    TypeId: 25
     Flags: 3
     Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 3]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 3]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 3]
-    TypeId: 7
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 3]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [6, 3]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [7, 3]
-    TypeId: 15
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [0, 4]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [0, 4]
-    TypeId: 10
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [1, 4]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 4]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 4]
-    TypeId: 18
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 4]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 4]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 4]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 4]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 4]
-    TypeId: 2
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 4]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 4]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [6, 4]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [7, 4]
-    TypeId: 15
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [0, 5]
-    TypeId: 3
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [0, 5]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [1, 5]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 5]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 5]
-    TypeId: 18
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 5]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 5]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 5]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 5]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 5]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 5]
-    TypeId: 7
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 5]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [6, 5]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [7, 5]
-    TypeId: 15
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [0, 6]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [0, 6]
-    TypeId: 8
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [1, 6]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [1, 6]
-    TypeId: 6
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 6]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 6]
-    TypeId: 6
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 6]
-    TypeId: 18
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 6]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 6]
-    TypeId: 6
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 6]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 6]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 6]
-    TypeId: 6
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 6]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 6]
-    TypeId: 1
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 6]
-    TypeId: 5
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 6]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [6, 6]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [7, 6]
-    TypeId: 15
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 7]
-    TypeId: 18
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 7]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 7]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 7]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [6, 7]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [7, 7]
-    TypeId: 15
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [2, 8]
-    TypeId: 17
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [3, 8]
-    TypeId: 14
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [4, 8]
-    TypeId: 14
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [5, 8]
-    TypeId: 14
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [6, 8]
-    TypeId: 14
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [7, 8]
-    TypeId: 13
-    Flags: 3
-    Aux: 0
-    GroupId: 9497535646471933480
-  - Cell: [-11, 0]
+    GroupId: 3600348401535869566
+  - Cell: [-10, 0]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-11, 0]
+  - Cell: [-9, 0]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-8, 0]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-8, 0]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-7, 0]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-7, 0]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-6, 0]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-6, 0]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-5, 0]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-5, 0]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-4, 0]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-4, 0]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-3, 0]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-3, 0]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, 0]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, 0]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-1, 0]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-1, 0]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-10, 1]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-10, 1]
     TypeId: 33
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-11, 0]
+  - Cell: [-10, 1]
     TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-10, 0]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-10, 0]
-    TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-9, 0]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-9, 0]
-    TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-9, 0]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-8, 0]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-8, 0]
-    TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-8, 0]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-7, 0]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-7, 0]
-    TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-7, 0]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, 0]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, 0]
-    TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, 0]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-5, 0]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-5, 0]
-    TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-5, 0]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-4, 0]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-4, 0]
-    TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-4, 0]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, 0]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, 0]
-    TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, 0]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-2, 0]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-2, 0]
-    TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-2, 0]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-1, 0]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-1, 0]
-    TypeId: 29
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-1, 0]
-    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-9, 1]
-    TypeId: 16
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-9, 1]
+    TypeId: 29
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-8, 1]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-8, 1]
+    TypeId: 29
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1114,7 +649,27 @@ CompactTiles:
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-7, 1]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-7, 1]
+    TypeId: 29
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-7, 1]
     TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-6, 1]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-6, 1]
+    TypeId: 29
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1124,7 +679,27 @@ CompactTiles:
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-5, 1]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-5, 1]
+    TypeId: 29
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-5, 1]
     TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-4, 1]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-4, 1]
+    TypeId: 29
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1134,7 +709,27 @@ CompactTiles:
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-3, 1]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-3, 1]
+    TypeId: 29
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-3, 1]
     TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, 1]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, 1]
+    TypeId: 29
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1144,11 +739,16 @@ CompactTiles:
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-1, 1]
-    TypeId: 16
+    TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-9, 2]
+  - Cell: [-1, 1]
+    TypeId: 29
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-1, 1]
     TypeId: 16
     Flags: 3
     Aux: 0
@@ -1193,68 +793,233 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -9]
+  - Cell: [-8, 3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-7, 3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-6, 3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-5, 3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-4, 3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-3, 3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, 3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-1, 3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [0, -8]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -9]
-    TypeId: 30
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [0, -9]
+  - Cell: [0, -8]
     TypeId: 32
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -8]
+  - Cell: [1, -8]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -8]
+  - Cell: [1, -8]
+    TypeId: 32
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [1, -8]
     TypeId: 30
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -7]
-    TypeId: 24
+  - Cell: [2, -8]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [3, -8]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [4, -8]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [5, -8]
+    TypeId: 1
     Flags: 3
     Aux: 0
-    GroupId: 3600348401535869566
+    GroupId: 9497535646471933480
+  - Cell: [5, -8]
+    TypeId: 12
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [6, -8]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [6, -8]
+    TypeId: 11
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -8]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -8]
+    TypeId: 4
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -8]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -8]
+    TypeId: 11
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -8]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -8]
+    TypeId: 11
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -8]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -8]
+    TypeId: 9
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
   - Cell: [0, -7]
     TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [0, -7]
-    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [1, -7]
-    TypeId: 16
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [1, -7]
+    TypeId: 30
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [2, -7]
-    TypeId: 16
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [3, -7]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [4, -7]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [5, -7]
+    TypeId: 1
     Flags: 3
     Aux: 0
-    GroupId: 3600348401535869566
+    GroupId: 9497535646471933480
+  - Cell: [5, -7]
+    TypeId: 10
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [6, -7]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -7]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -7]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -7]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -7]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -7]
+    TypeId: 7
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
   - Cell: [0, -6]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [0, -6]
-    TypeId: 30
+    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -6]
-    TypeId: 16
+  - Cell: [1, -6]
+    TypeId: 24
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [1, -6]
+    TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1268,18 +1033,113 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [2, -6]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [3, -6]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [3, -6]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [4, -6]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [5, -6]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [5, -6]
+    TypeId: 3
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [6, -6]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -6]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -6]
+    TypeId: 21
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -6]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -6]
+    TypeId: 20
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -6]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -6]
+    TypeId: 20
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -6]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -6]
+    TypeId: 7
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -6]
+    TypeId: 20
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [11, -6]
+    TypeId: 20
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [12, -6]
+    TypeId: 19
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
   - Cell: [0, -5]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [0, -5]
-    TypeId: 30
+    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -5]
-    TypeId: 16
+  - Cell: [1, -5]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [1, -5]
+    TypeId: 30
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1293,18 +1153,108 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [3, -5]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [3, -5]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [4, -5]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [5, -5]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [5, -5]
+    TypeId: 10
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [6, -5]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -5]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -5]
+    TypeId: 18
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -5]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -5]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -5]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -5]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -5]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -5]
+    TypeId: 7
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -5]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [11, -5]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [12, -5]
+    TypeId: 15
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
   - Cell: [0, -4]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [0, -4]
-    TypeId: 30
+    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -4]
-    TypeId: 16
+  - Cell: [1, -4]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [1, -4]
+    TypeId: 30
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1318,18 +1268,108 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [3, -4]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [3, -4]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [4, -4]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [5, -4]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [5, -4]
+    TypeId: 10
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [6, -4]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -4]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -4]
+    TypeId: 18
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -4]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -4]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -4]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -4]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -4]
+    TypeId: 2
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -4]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -4]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [11, -4]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [12, -4]
+    TypeId: 15
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
   - Cell: [0, -3]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [0, -3]
-    TypeId: 30
+    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -3]
-    TypeId: 16
+  - Cell: [1, -3]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [1, -3]
+    TypeId: 30
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1343,18 +1383,108 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [3, -3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [3, -3]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [4, -3]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [5, -3]
+    TypeId: 3
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [5, -3]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [6, -3]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -3]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -3]
+    TypeId: 18
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -3]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -3]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -3]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -3]
+    TypeId: 7
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [11, -3]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [12, -3]
+    TypeId: 15
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
   - Cell: [0, -2]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [0, -2]
-    TypeId: 23
+    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -2]
-    TypeId: 16
+  - Cell: [1, -2]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [1, -2]
+    TypeId: 30
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1368,18 +1498,128 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [3, -2]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [3, -2]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [4, -2]
+    TypeId: 27
+    Flags: 0
+    Aux: 0
+    GroupId: 2002823748523932088
+  - Cell: [5, -2]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [5, -2]
+    TypeId: 8
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [6, -2]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [6, -2]
+    TypeId: 6
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -2]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -2]
+    TypeId: 6
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [7, -2]
+    TypeId: 18
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -2]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -2]
+    TypeId: 6
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -2]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -2]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -2]
+    TypeId: 6
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -2]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -2]
+    TypeId: 1
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -2]
+    TypeId: 5
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -2]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [11, -2]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [12, -2]
+    TypeId: 15
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
   - Cell: [0, -1]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [0, -1]
-    TypeId: 30
+    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [0, -1]
-    TypeId: 16
+  - Cell: [1, -1]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [1, -1]
+    TypeId: 23
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1393,138 +1633,53 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-11, -9]
+  - Cell: [3, -1]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [7, -1]
+    TypeId: 18
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [8, -1]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [9, -1]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [10, -1]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [11, -1]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [12, -1]
+    TypeId: 15
+    Flags: 3
+    Aux: 0
+    GroupId: 9497535646471933480
+  - Cell: [-10, -8]
     TypeId: 27
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-11, -9]
-    TypeId: 35
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -9]
-    TypeId: 34
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-10, -9]
-    TypeId: 27
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-10, -9]
-    TypeId: 35
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-9, -9]
-    TypeId: 27
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-9, -9]
-    TypeId: 35
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-8, -9]
-    TypeId: 27
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-8, -9]
-    TypeId: 35
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-7, -9]
-    TypeId: 27
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-7, -9]
-    TypeId: 35
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, -9]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, -9]
-    TypeId: 33
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, -9]
-    TypeId: 32
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-5, -9]
-    TypeId: 28
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-5, -9]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-4, -9]
-    TypeId: 26
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-4, -9]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, -9]
-    TypeId: 28
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, -9]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-2, -9]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-2, -9]
-    TypeId: 32
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-1, -9]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-1, -9]
-    TypeId: 32
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -8]
-    TypeId: 27
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -8]
+  - Cell: [-10, -8]
     TypeId: 34
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-10, -8]
-    TypeId: 27
+    TypeId: 35
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1533,8 +1688,18 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [-9, -8]
+    TypeId: 35
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
   - Cell: [-8, -8]
     TypeId: 27
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-8, -8]
+    TypeId: 35
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1543,13 +1708,18 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-6, -8]
-    TypeId: 22
+  - Cell: [-7, -8]
+    TypeId: 35
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-6, -8]
-    TypeId: 33
+    TypeId: 27
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-6, -8]
+    TypeId: 35
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1558,8 +1728,28 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [-5, -8]
+    TypeId: 33
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-5, -8]
+    TypeId: 32
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-4, -8]
+    TypeId: 28
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
   - Cell: [-4, -8]
     TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-3, -8]
+    TypeId: 26
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1573,23 +1763,28 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [-2, -8]
+    TypeId: 28
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
   - Cell: [-1, -8]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-11, -7]
-    TypeId: 27
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -7]
-    TypeId: 34
+  - Cell: [-1, -8]
+    TypeId: 32
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-10, -7]
     TypeId: 27
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-10, -7]
+    TypeId: 34
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1609,12 +1804,7 @@ CompactTiles:
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-6, -7]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, -7]
-    TypeId: 33
+    TypeId: 27
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1623,28 +1813,18 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [-5, -7]
+    TypeId: 33
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
   - Cell: [-4, -7]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-4, -7]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
   - Cell: [-3, -7]
     TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, -7]
-    TypeId: 31
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, -7]
-    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1653,33 +1833,18 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-2, -7]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
   - Cell: [-1, -7]
     TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-1, -7]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -6]
-    TypeId: 27
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -6]
-    TypeId: 34
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-10, -6]
     TypeId: 27
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-10, -6]
+    TypeId: 34
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1699,12 +1864,7 @@ CompactTiles:
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-6, -6]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, -6]
-    TypeId: 33
+    TypeId: 27
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1713,13 +1873,13 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-4, -6]
-    TypeId: 22
+  - Cell: [-5, -6]
+    TypeId: 33
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-4, -6]
-    TypeId: 16
+    TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1739,6 +1899,11 @@ CompactTiles:
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-2, -6]
+    TypeId: 31
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, -6]
     TypeId: 16
     Flags: 3
     Aux: 0
@@ -1750,21 +1915,16 @@ CompactTiles:
     GroupId: 3600348401535869566
   - Cell: [-1, -6]
     TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -5]
-    TypeId: 27
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -5]
-    TypeId: 34
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-10, -5]
     TypeId: 27
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-10, -5]
+    TypeId: 34
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1784,12 +1944,7 @@ CompactTiles:
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-6, -5]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, -5]
-    TypeId: 33
+    TypeId: 27
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1798,103 +1953,73 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-4, -5]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-4, -5]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, -5]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, -5]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-2, -5]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-2, -5]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-1, -5]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-1, -5]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -4]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -4]
-    TypeId: 32
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -4]
+  - Cell: [-5, -5]
     TypeId: 33
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-10, -4]
+  - Cell: [-4, -5]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [-3, -5]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-3, -5]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, -5]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, -5]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-1, -5]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-1, -5]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
   - Cell: [-10, -4]
-    TypeId: 32
+    TypeId: 27
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-10, -4]
+    TypeId: 34
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-9, -4]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-9, -4]
-    TypeId: 32
+    TypeId: 27
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-8, -4]
-    TypeId: 26
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-8, -4]
-    TypeId: 22
+    TypeId: 27
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-7, -4]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-7, -4]
-    TypeId: 32
+    TypeId: 27
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-6, -4]
-    TypeId: 22
+    TypeId: 27
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1903,13 +2028,13 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-4, -4]
-    TypeId: 22
+  - Cell: [-5, -4]
+    TypeId: 33
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-4, -4]
-    TypeId: 16
+    TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1940,16 +2065,6 @@ CompactTiles:
     GroupId: 3600348401535869566
   - Cell: [-1, -4]
     TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -3]
-    TypeId: 25
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -3]
-    TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1958,13 +2073,38 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [-10, -3]
+    TypeId: 32
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-10, -3]
+    TypeId: 33
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
   - Cell: [-9, -3]
     TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [-9, -3]
+    TypeId: 32
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
   - Cell: [-8, -3]
     TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-8, -3]
+    TypeId: 32
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-7, -3]
+    TypeId: 26
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -1978,6 +2118,11 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
+  - Cell: [-6, -3]
+    TypeId: 32
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
   - Cell: [-5, -3]
     TypeId: 22
     Flags: 3
@@ -1988,18 +2133,8 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-4, -3]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
   - Cell: [-3, -3]
     TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, -3]
-    TypeId: 31
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -2025,16 +2160,6 @@ CompactTiles:
     GroupId: 3600348401535869566
   - Cell: [-1, -3]
     TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -2]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -2]
-    TypeId: 33
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -2043,103 +2168,73 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-9, -2]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-9, -2]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-8, -2]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-8, -2]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-7, -2]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-7, -2]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, -2]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-6, -2]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-5, -2]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-5, -2]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-4, -2]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-4, -2]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, -2]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-3, -2]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-2, -2]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-2, -2]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-1, -2]
-    TypeId: 22
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-1, -2]
-    TypeId: 16
-    Flags: 3
-    Aux: 0
-    GroupId: 3600348401535869566
-  - Cell: [-11, -1]
+  - Cell: [-10, -2]
     TypeId: 25
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-11, -1]
+  - Cell: [-9, -2]
     TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-8, -2]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-7, -2]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-6, -2]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-5, -2]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-4, -2]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-3, -2]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-3, -2]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, -2]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, -2]
+    TypeId: 31
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-2, -2]
+    TypeId: 16
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-1, -2]
+    TypeId: 22
+    Flags: 3
+    Aux: 0
+    GroupId: 3600348401535869566
+  - Cell: [-1, -2]
+    TypeId: 16
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
@@ -2148,13 +2243,13 @@ CompactTiles:
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
-  - Cell: [-9, -1]
-    TypeId: 22
+  - Cell: [-10, -1]
+    TypeId: 33
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566
   - Cell: [-9, -1]
-    TypeId: 16
+    TypeId: 22
     Flags: 3
     Aux: 0
     GroupId: 3600348401535869566

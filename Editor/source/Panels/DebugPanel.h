@@ -27,6 +27,8 @@ namespace Engine
 		bool m_showChunks = false;
 		bool m_showGrid = false;
 		bool m_showLOS = false;
+		bool m_showWalls = true;
+		bool m_showRoofs= true;
 
 		//EditorCamera& m_editorCamera;
 

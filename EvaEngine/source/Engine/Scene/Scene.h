@@ -159,6 +159,8 @@ namespace Engine {
 
 		void RegisterSystem(const std::function<void(float, Scene*)>& system);
 		void SetDebugDrawLOS(bool drawLOS) { m_debugDrawLOS = drawLOS; }
+		void SetDebugShowRoofs(bool drawRoof) { m_debugShowRoof = drawRoof; }
+		void SetDebugShowWalls(bool drawWalls) { m_debugShowWalls = drawWalls; }
 
 		template<typename... Components>
 		auto GetAllEntitiesWith()
@@ -202,7 +204,8 @@ namespace Engine {
 		Box2DPhysicsSystem m_box2DPhysicsSystem;
 
 		bool m_debugDrawLOS = false;
-
+		bool m_debugShowWalls = true;
+		bool m_debugShowRoof = true;
 
 		CompactTileMap m_compactTileMap;
 		TileDefinitionRegistry m_tileDefinitions;
