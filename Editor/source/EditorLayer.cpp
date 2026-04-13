@@ -1347,16 +1347,50 @@ namespace Engine {
         auto& transform = entity.GetComponent<TransformComponent>();
         const TileInfo& tile = tc.tiles[*selectedIdx];
 
+        const glm::vec2 center = glm::vec2(transform.Translation) + tile.position;
+        const glm::vec4 color(1.0f, 1.0f, 0.0f, 1.0f);
+
+        constexpr float tileWorldW = TILE_SIZE;
+        constexpr float tileWorldH = TILE_SIZE * 2.0f;
+
+        // Terrain -> draw ground diamond
+        if (tile.Category == eTileCategory::Terrain)
+        {
+            const glm::vec4 color(1.0f, 1.0f, 0.0f, 1.0f);
+
+            float widthScale = 0.8f;
+            float heightScale = 0.6f;
+
+            const float halfW = (TILE_SIZE * 0.5f) * widthScale;
+            const float halfH = (TILE_SIZE * 2.0f * 0.5f) * heightScale;
+
+            // Keep the old top exactly where it was
+            const glm::vec2 top = center + glm::vec2(0.0f, halfH);
+
+            // Move bottom upward so top and bottom are closer
+            float bottomUpOffset = TILE_SIZE * 0.5f;
+            const glm::vec2 bottom = center + glm::vec2(0.0f, -halfH + bottomUpOffset);
+
+            // Recompute middle from new top/bottom
+            const glm::vec2 mid = (top + bottom) * 0.5f;
+
+            // Slightly narrower too
+            const glm::vec2 right = mid + glm::vec2(halfW, 0.0f);
+            const glm::vec2 left = mid + glm::vec2(-halfW, 0.0f);
+
+            VulkanRenderer2D::DrawLine(glm::vec3(top, 0.0f), glm::vec3(right, 0.0f), color);
+            VulkanRenderer2D::DrawLine(glm::vec3(right, 0.0f), glm::vec3(bottom, 0.0f), color);
+            VulkanRenderer2D::DrawLine(glm::vec3(bottom, 0.0f), glm::vec3(left, 0.0f), color);
+            VulkanRenderer2D::DrawLine(glm::vec3(left, 0.0f), glm::vec3(top, 0.0f), color);
+            return;
+        }
+
+        // Non-terrain -> use opaque face
         if (tile.opaqueMin.x == 999 || tile.opaqueMin.y == 999 ||
             tile.opaqueMax.x == 999 || tile.opaqueMax.y == 999)
         {
             return;
         }
-
-        const glm::vec2 center = glm::vec2(transform.Translation) + tile.position;
-
-        constexpr float tileWorldW = TILE_SIZE;
-        constexpr float tileWorldH = TILE_SIZE * 2.0f;
 
         constexpr float pixelToWorldX = tileWorldW / float(TILE_PIXEL_WIDTH);
         constexpr float pixelToWorldY = tileWorldH / float(TILE_PIXEL_HEIGHT);
@@ -1364,50 +1398,36 @@ namespace Engine {
         const float opaqueW = float(tile.opaqueMax.x - tile.opaqueMin.x) * pixelToWorldX;
         const float opaqueH = float(tile.opaqueMax.y - tile.opaqueMin.y) * pixelToWorldY;
 
+        if (opaqueW <= 0.0f || opaqueH <= 0.0f)
+            return;
+
         const float halfFaceW = opaqueW * 0.5f;
         const float faceH = opaqueH;
-
-
-        const glm::vec2 bottomCenter = center;
 
         glm::vec2 faceDir(0.0f);
         switch (tile.TileDirection)
         {
-        case eTileDirection::West:
-            faceDir = glm::normalize(glm::vec2(-1.0f, 0.5f));
-            break;
-        case eTileDirection::South:
-            faceDir = glm::normalize(glm::vec2(1.0f, 0.5f));
-            break;
-        case eTileDirection::East:
-            faceDir = glm::normalize(glm::vec2(1.0f, -0.5f));
-            break;
-        case eTileDirection::North:
-            faceDir = glm::normalize(glm::vec2(-1.0f, -0.5f));
-            break;
-        default:
-            faceDir = glm::normalize(glm::vec2(1.0f, 0.5f));
-            break;
+        case eTileDirection::West:  faceDir = glm::normalize(glm::vec2(-1.0f, 0.5f)); break;
+        case eTileDirection::South: faceDir = glm::normalize(glm::vec2(1.0f, 0.5f)); break;
+        case eTileDirection::East:  faceDir = glm::normalize(glm::vec2(1.0f, -0.5f)); break;
+        case eTileDirection::North: faceDir = glm::normalize(glm::vec2(-1.0f, -0.5f)); break;
+        default:                    faceDir = glm::normalize(glm::vec2(1.0f, 0.5f)); break;
         }
 
-
+        const glm::vec2 bottomCenter = center;
         const glm::vec2 up(0.0f, faceH);
         const glm::vec2 side = faceDir * halfFaceW;
 
-        // Diamond/parallelogram face
-        const glm::vec2 p0 = bottomCenter - side;       // bottom left on face
-        const glm::vec2 p1 = bottomCenter + side;       // bottom right on face
-        const glm::vec2 p2 = bottomCenter + side + up;  // top right
-        const glm::vec2 p3 = bottomCenter - side + up;  // top left
-
-        const glm::vec4 color(1.0f, 1.0f, 0.0f, 1.0f);
+        const glm::vec2 p0 = bottomCenter - side;
+        const glm::vec2 p1 = bottomCenter + side;
+        const glm::vec2 p2 = bottomCenter + side + up;
+        const glm::vec2 p3 = bottomCenter - side + up;
 
         VulkanRenderer2D::DrawLine(glm::vec3(p0, 0.0f), glm::vec3(p1, 0.0f), color);
         VulkanRenderer2D::DrawLine(glm::vec3(p1, 0.0f), glm::vec3(p2, 0.0f), color);
         VulkanRenderer2D::DrawLine(glm::vec3(p2, 0.0f), glm::vec3(p3, 0.0f), color);
         VulkanRenderer2D::DrawLine(glm::vec3(p3, 0.0f), glm::vec3(p0, 0.0f), color);
     }
-
 
 
     void EditorLayer::OnUpdateECS(Timestep timestep)
