@@ -406,7 +406,14 @@ namespace Engine
 
                 glm::ivec2 cell = IsoTileUtils::WorldToIsoCell(ground);
 
-                if (t.Category == eTileCategory::Buildings)
+                if (t.Category == eTileCategory::Windows)
+                {
+                    // same as building but needs tweak in future(jump trough window)?
+                    FootSide side = parseSide(t.name);
+                    cell += sideIsoOffset(side);
+                    emitEdgeSubcellsOnSide(cell, side, t.Slot);
+                }
+                else if (t.Category == eTileCategory::Buildings)
                 {
                     FootSide side = parseSide(t.name);
                     cell += sideIsoOffset(side);

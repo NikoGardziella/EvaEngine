@@ -303,7 +303,7 @@ use fog of war for tile and roof opacity
     - tiles damage effect
     - particles
     - improvements on map editor.
-    - clean EndFrame() 
+    - clean EndFrame() - better split for 2d and 3d. move things to Renderer.
 
 
     - dynamic object. like barrels an stuff
@@ -311,4 +311,8 @@ use fog of war for tile and roof opacity
     - add height?
 
     - blast radius
+
+
+    - build collision grid TypeDefs from pixels after creating atlas.
+    - Light source that lights up room. when light comestrough door orsomethng
 }

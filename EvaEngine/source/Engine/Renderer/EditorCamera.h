@@ -48,6 +48,7 @@ namespace Engine {
         glm::vec3 GetPosition() const { return m_position; }
         glm::vec3 GetRotation() const { return glm::vec3(m_pitch, m_yaw, 0.0f); }
         glm::vec3 GetForwardDirection() const;
+        glm::vec2 GetScreenCenterWorld(float worldZ) const;
         glm::vec3 GetRightDirection() const;
         glm::vec3 GetUpDirection() const;
         glm::vec2 PanSpeed() const;

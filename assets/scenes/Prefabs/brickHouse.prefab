@@ -1,11 +1,11 @@
 Prefab: MyPrefab
 Version: 1
 RootName: BrickHouse
-Origin: [0, 1, 0]
+Origin: [0, 0, 0]
 Tiles:
   - Position: [-0.5, 1.75]
     Name: Ground B1_E
-    UID: 1383826659609742277
+    UID: 5810043524437519604
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -18,7 +18,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-1, 1.5]
     Name: Ground B1_E
-    UID: 1690686066485513347
+    UID: 4514807898614354895
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -31,7 +31,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [0, 1.5]
     Name: Ground B1_E
-    UID: 11491823753495194033
+    UID: 6280244763975437316
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -44,7 +44,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-1.5, 1.25]
     Name: Ground B1_E
-    UID: 8379249645590508613
+    UID: 15188688750178005328
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -57,20 +57,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-0.5, 1.25]
     Name: Ground B1_E
-    UID: 17295802136371709593
-    IsDestructible: false
-    IsRoof: false
-    IsSupportingRoof: false
-    Category: 1
-    Material: 2
-    TileHealth: 1
-    Slot: 4294967295
-    TileDirection: 2
-    OpaqueMin: [0, 0]
-    OpaqueMax: [0, 0]
-  - Position: [0.5, 1.25]
-    Name: Ground B1_E
-    UID: 173460515009472114
+    UID: 8255687355460340589
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -83,7 +70,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [0.5, 1.25]
     Name: Wall D18_E
-    UID: 10036619798173755787
+    UID: 786852352617006900
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -94,9 +81,22 @@ Tiles:
     TileDirection: 2
     OpaqueMin: [46, 39]
     OpaqueMax: [127, 208]
+  - Position: [0.5, 1.25]
+    Name: Ground B1_E
+    UID: 11738190247400909382
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 2
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [0, 0]
+    OpaqueMax: [0, 0]
   - Position: [-2, 1]
     Name: Ground B1_E
-    UID: 12094510903670401984
+    UID: 17069301594734651901
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -109,7 +109,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-1, 1]
     Name: Ground B1_E
-    UID: 5975002995533840337
+    UID: 13986425092805541997
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -122,7 +122,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [0, 1]
     Name: Ground B1_E
-    UID: 3750010442052170732
+    UID: 4245397097048738225
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -135,7 +135,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [1, 1]
     Name: Ground B1_E
-    UID: 2959784106060918561
+    UID: 18233758843722772361
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -148,7 +148,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-2.5, 0.75]
     Name: Ground B1_E
-    UID: 5518191281325281133
+    UID: 15735111115945711750
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -161,7 +161,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-1.5, 0.75]
     Name: Ground B1_E
-    UID: 48703787375469716
+    UID: 17482779699619061115
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -174,7 +174,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-0.5, 0.75]
     Name: Ground B1_E
-    UID: 5122386072240992813
+    UID: 2236542079432702091
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -187,7 +187,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [0.5, 0.75]
     Name: Ground B1_E
-    UID: 1107749204853259221
+    UID: 18438956498280400935
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -200,7 +200,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [1.5, 0.75]
     Name: Ground B1_E
-    UID: 8403987625594580736
+    UID: 12370020019652924403
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -213,7 +213,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-3, 0.5]
     Name: Ground B1_E
-    UID: 12476519577412176058
+    UID: 10124929718956309550
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -226,7 +226,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-2, 0.5]
     Name: Ground B1_E
-    UID: 16018359936907404095
+    UID: 5885523969277704701
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -239,7 +239,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-1, 0.5]
     Name: Ground B1_E
-    UID: 14252009235311863537
+    UID: 6527766741975043135
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -252,7 +252,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [0, 0.5]
     Name: Ground B1_E
-    UID: 15478323597519976707
+    UID: 875210062790232452
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -265,7 +265,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [1, 0.5]
     Name: Ground B1_E
-    UID: 354134082941220772
+    UID: 1943135752401993639
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -278,7 +278,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [2, 0.5]
     Name: Ground B1_E
-    UID: 9221541624779891128
+    UID: 2205209388726317929
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -291,7 +291,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-2.5, 0.25]
     Name: Wall D18_W
-    UID: 2984806490994677122
+    UID: 16837491669476327811
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -304,7 +304,7 @@ Tiles:
     OpaqueMax: [81, 184]
   - Position: [-2.5, 0.25]
     Name: Ground B1_E
-    UID: 17135097262841180633
+    UID: 18266570578409271761
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -317,7 +317,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-1.5, 0.25]
     Name: Ground B1_E
-    UID: 13521491492702958617
+    UID: 10628447747178143530
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -330,7 +330,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-0.5, 0.25]
     Name: Ground B1_E
-    UID: 8837703290157690934
+    UID: 4363152831983329102
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -343,7 +343,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [0.5, 0.25]
     Name: Ground B1_E
-    UID: 183323095275169193
+    UID: 9002089946995511402
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -356,7 +356,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [1.5, 0.25]
     Name: Ground B1_E
-    UID: 15315981722077329774
+    UID: 13958552944548528439
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -369,7 +369,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [2.5, 0.25]
     Name: Ground B1_E
-    UID: 8349180137782572770
+    UID: 17418625452110136616
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -382,7 +382,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-2, 0]
     Name: Ground B1_E
-    UID: 931305278144875059
+    UID: 5821683317679705097
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -395,7 +395,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-1, 0]
     Name: Ground B1_E
-    UID: 1911085259525531756
+    UID: 18388649909422681139
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -408,7 +408,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [0, 0]
     Name: Ground B1_E
-    UID: 13650525102673582494
+    UID: 11482240494863196205
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -421,7 +421,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [1, 0]
     Name: Ground B1_E
-    UID: 13422017317604853073
+    UID: 16420926192038310014
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -434,7 +434,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [2, 0]
     Name: Ground B1_E
-    UID: 3342313777707071083
+    UID: 15389367063133305249
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -447,7 +447,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-1.5, -0.25]
     Name: Ground B1_E
-    UID: 4277063579730895659
+    UID: 8493335297788766349
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -460,7 +460,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-0.5, -0.25]
     Name: Ground B1_E
-    UID: 1944287520650594407
+    UID: 4998878311869876298
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -473,7 +473,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [0.5, -0.25]
     Name: Ground B1_E
-    UID: 5616130272465390120
+    UID: 1618556741199999028
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -486,7 +486,20 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [1.5, -0.25]
     Name: Ground B1_E
-    UID: 2974982117527793052
+    UID: 2615875827014805090
+    IsDestructible: false
+    IsRoof: false
+    IsSupportingRoof: false
+    Category: 1
+    Material: 2
+    TileHealth: 1
+    Slot: 4294967295
+    TileDirection: 2
+    OpaqueMin: [0, 0]
+    OpaqueMax: [0, 0]
+  - Position: [-1, -0.5]
+    Name: Ground B1_E
+    UID: 10357646291807082660
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -499,7 +512,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [-1, -0.5]
     Name: Wall D18_W
-    UID: 178082861776843965
+    UID: 13844999237202619675
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -510,9 +523,9 @@ Tiles:
     TileDirection: 3
     OpaqueMin: [0, 15]
     OpaqueMax: [81, 184]
-  - Position: [-1, -0.5]
+  - Position: [0, -0.5]
     Name: Ground B1_E
-    UID: 11686879545358270111
+    UID: 11916110172591302054
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -523,9 +536,9 @@ Tiles:
     TileDirection: 2
     OpaqueMin: [0, 0]
     OpaqueMax: [0, 0]
-  - Position: [0, -0.5]
+  - Position: [1, -0.5]
     Name: Ground B1_E
-    UID: 16341107535205009158
+    UID: 6411194756383580270
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -538,7 +551,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [1, -0.5]
     Name: Wall D19_S
-    UID: 783939233863192575
+    UID: 11039235695062104554
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -549,22 +562,9 @@ Tiles:
     TileDirection: 1
     OpaqueMin: [45, 15]
     OpaqueMax: [127, 184]
-  - Position: [1, -0.5]
-    Name: Ground B1_E
-    UID: 10295212979198068844
-    IsDestructible: false
-    IsRoof: false
-    IsSupportingRoof: false
-    Category: 1
-    Material: 2
-    TileHealth: 1
-    Slot: 4294967295
-    TileDirection: 2
-    OpaqueMin: [0, 0]
-    OpaqueMax: [0, 0]
   - Position: [-0.5, -0.75]
     Name: Ground B1_E
-    UID: 7452653942032748069
+    UID: 16197986393985280335
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -577,7 +577,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [0.5, -0.75]
     Name: Ground B1_E
-    UID: 4102134414034706797
+    UID: 8163913259297471806
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -590,7 +590,7 @@ Tiles:
     OpaqueMax: [0, 0]
   - Position: [0, -1]
     Name: Ground B1_E
-    UID: 2868302909913602611
+    UID: 17874797419107277915
     IsDestructible: false
     IsRoof: false
     IsSupportingRoof: false
@@ -601,22 +601,9 @@ Tiles:
     TileDirection: 2
     OpaqueMin: [0, 0]
     OpaqueMax: [0, 0]
-  - Position: [-0.5, 1.75]
-    Name: Wall D8_E
-    UID: 16011186352793998013
-    IsDestructible: true
-    IsRoof: false
-    IsSupportingRoof: true
-    Category: 3
-    Material: 4
-    TileHealth: 1
-    Slot: 4
-    TileDirection: 2
-    OpaqueMin: [0, 39]
-    OpaqueMax: [127, 194]
   - Position: [-1, 1.5]
     Name: Wall D1_N
-    UID: 15947787321134166835
+    UID: 9528915829379209005
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -629,7 +616,7 @@ Tiles:
     OpaqueMax: [81, 208]
   - Position: [0, 1.5]
     Name: Wall D1_E
-    UID: 13404308784415718571
+    UID: 18264917406665774022
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -642,7 +629,7 @@ Tiles:
     OpaqueMax: [127, 208]
   - Position: [-1.5, 1.25]
     Name: Wall D1_N
-    UID: 1260058251056873321
+    UID: 1226668139637629860
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -653,22 +640,9 @@ Tiles:
     TileDirection: 0
     OpaqueMin: [0, 39]
     OpaqueMax: [81, 208]
-  - Position: [-2, 1]
-    Name: Wall D1_N
-    UID: 3170832380675839518
-    IsDestructible: true
-    IsRoof: false
-    IsSupportingRoof: true
-    Category: 3
-    Material: 4
-    TileHealth: 1
-    Slot: 8
-    TileDirection: 0
-    OpaqueMin: [0, 39]
-    OpaqueMax: [81, 208]
   - Position: [1, 1]
     Name: Wall D1_E
-    UID: 11822589770836086705
+    UID: 4360311478843435264
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -681,7 +655,7 @@ Tiles:
     OpaqueMax: [127, 208]
   - Position: [-2.5, 0.75]
     Name: Wall D1_N
-    UID: 9104641281945402805
+    UID: 3103664343438496946
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -694,7 +668,7 @@ Tiles:
     OpaqueMax: [81, 208]
   - Position: [1.5, 0.75]
     Name: Wall D1_E
-    UID: 5636745080525870796
+    UID: 5512820041141498997
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -705,22 +679,9 @@ Tiles:
     TileDirection: 2
     OpaqueMin: [46, 39]
     OpaqueMax: [127, 208]
-  - Position: [-3, 0.5]
-    Name: Wall D8_N
-    UID: 15085341430615515140
-    IsDestructible: true
-    IsRoof: false
-    IsSupportingRoof: true
-    Category: 3
-    Material: 4
-    TileHealth: 1
-    Slot: 12
-    TileDirection: 0
-    OpaqueMin: [27, 15]
-    OpaqueMax: [81, 208]
   - Position: [2, 0.5]
     Name: Wall D1_E
-    UID: 10990166925592497675
+    UID: 15907565329867198092
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -731,22 +692,9 @@ Tiles:
     TileDirection: 2
     OpaqueMin: [46, 39]
     OpaqueMax: [127, 208]
-  - Position: [2.5, 0.25]
-    Name: Wall D8_S
-    UID: 15272007044544678283
-    IsDestructible: true
-    IsRoof: false
-    IsSupportingRoof: true
-    Category: 3
-    Material: 4
-    TileHealth: 1
-    Slot: 14
-    TileDirection: 1
-    OpaqueMin: [46, 15]
-    OpaqueMax: [100, 208]
   - Position: [-2, 0]
     Name: Wall D1_W
-    UID: 9935423487976299797
+    UID: 8405346377804364541
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -759,7 +707,7 @@ Tiles:
     OpaqueMax: [81, 185]
   - Position: [2, 0]
     Name: Wall D1_S
-    UID: 15579378991367963678
+    UID: 4292549736400041094
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -772,7 +720,7 @@ Tiles:
     OpaqueMax: [127, 184]
   - Position: [-1.5, -0.25]
     Name: Wall D1_W
-    UID: 1574009713798450982
+    UID: 756634781259789336
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -785,7 +733,7 @@ Tiles:
     OpaqueMax: [81, 185]
   - Position: [1.5, -0.25]
     Name: Wall D1_S
-    UID: 13476320159054317970
+    UID: 11682252452439101748
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -798,7 +746,7 @@ Tiles:
     OpaqueMax: [127, 184]
   - Position: [-0.5, -0.75]
     Name: Wall D1_W
-    UID: 13459866418351209589
+    UID: 7667320114491010601
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -811,7 +759,7 @@ Tiles:
     OpaqueMax: [81, 185]
   - Position: [0.5, -0.75]
     Name: Wall D1_S
-    UID: 8022832281137451642
+    UID: 2189624572372260815
     IsDestructible: true
     IsRoof: false
     IsSupportingRoof: true
@@ -822,22 +770,9 @@ Tiles:
     TileDirection: 1
     OpaqueMin: [46, 15]
     OpaqueMax: [127, 184]
-  - Position: [0, -1]
-    Name: Wall D8_W
-    UID: 2811307211465530668
-    IsDestructible: true
-    IsRoof: false
-    IsSupportingRoof: true
-    Category: 3
-    Material: 4
-    TileHealth: 1
-    Slot: 21
-    TileDirection: 3
-    OpaqueMin: [0, 29]
-    OpaqueMax: [127, 184]
   - Position: [-0.5, 2.75]
     Name: Roof A2_W
-    UID: 3959614798486648886
+    UID: 10398992619471286160
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -850,7 +785,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-1, 2.5]
     Name: Roof A1_W
-    UID: 7456871686117748622
+    UID: 3244002867960295957
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -863,7 +798,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [0, 2.5]
     Name: Roof A1_N
-    UID: 54657588346327417
+    UID: 6778569243181104518
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -876,7 +811,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-1.5, 2.25]
     Name: Roof A1_W
-    UID: 15288831071285074691
+    UID: 1577690145698748322
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -889,7 +824,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-0.5, 2.25]
     Name: Roof A3_E
-    UID: 14856513709232695706
+    UID: 9236651457697843051
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -902,7 +837,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [0.5, 2.25]
     Name: Roof A1_N
-    UID: 14866277475310157265
+    UID: 2458761205487084832
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -915,7 +850,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-2, 2]
     Name: Roof A1_W
-    UID: 18266262763512692292
+    UID: 7467051746572421051
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -928,7 +863,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-1, 2]
     Name: Roof A3_E
-    UID: 14635455442365422425
+    UID: 14774052397881295327
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -941,7 +876,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [0, 2]
     Name: Roof A3_E
-    UID: 2421963085620481868
+    UID: 18155116727614494160
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -954,7 +889,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [1, 2]
     Name: Roof A1_N
-    UID: 1256480336086870387
+    UID: 7884925029971377727
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -967,7 +902,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-2.5, 1.75]
     Name: Roof A1_W
-    UID: 17133627309013518144
+    UID: 13309300056215232611
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -980,7 +915,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-1.5, 1.75]
     Name: Roof A3_E
-    UID: 1174160272103543282
+    UID: 3715758920376052820
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -993,7 +928,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [-0.5, 1.75]
     Name: Roof A3_E
-    UID: 15683197803456166740
+    UID: 14147989049271031743
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1006,7 +941,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [0.5, 1.75]
     Name: Roof A3_E
-    UID: 16945615024656791651
+    UID: 6385908563116172276
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1019,7 +954,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [1.5, 1.75]
     Name: Roof A1_N
-    UID: 3779734501111222009
+    UID: 12962368651785864362
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1032,7 +967,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-3, 1.5]
     Name: Roof A2_S
-    UID: 2194506494838080551
+    UID: 15208502305936129571
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1045,7 +980,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-2, 1.5]
     Name: Roof A3_E
-    UID: 8873413764697623568
+    UID: 18100376658793416999
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1058,7 +993,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [-1, 1.5]
     Name: Roof A3_E
-    UID: 3938009917111358533
+    UID: 9326531681377600235
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1071,7 +1006,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [0, 1.5]
     Name: Roof A3_E
-    UID: 9156306971969503071
+    UID: 4019596208296093699
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1084,7 +1019,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [1, 1.5]
     Name: Roof A3_E
-    UID: 3892397662098446225
+    UID: 15745063106896949868
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1097,7 +1032,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [2, 1.5]
     Name: Roof A1_N
-    UID: 16338176325423555790
+    UID: 17914428926938517518
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1110,7 +1045,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-2.5, 1.25]
     Name: Roof A1_S
-    UID: 6489874050051895764
+    UID: 2761016453776681917
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1123,7 +1058,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [-1.5, 1.25]
     Name: Roof A3_E
-    UID: 15236717129845482432
+    UID: 1599718670950395578
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1136,7 +1071,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [-0.5, 1.25]
     Name: Roof A3_E
-    UID: 14182431735925371081
+    UID: 2383641202535249948
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1149,7 +1084,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [0.5, 1.25]
     Name: Roof A3_E
-    UID: 13096268226778365763
+    UID: 1544307830106977601
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1162,7 +1097,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [1.5, 1.25]
     Name: Roof A3_E
-    UID: 17783350112228235694
+    UID: 7080942338949687286
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1175,7 +1110,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [2.5, 1.25]
     Name: Roof A2_N
-    UID: 3324832154542531014
+    UID: 3086496633627775671
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1188,7 +1123,7 @@ Tiles:
     OpaqueMax: [127, 113]
   - Position: [-2, 1]
     Name: Roof A1_S
-    UID: 8652990226484284440
+    UID: 16671383396750147995
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1201,7 +1136,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [-1, 1]
     Name: Roof A3_E
-    UID: 1598419259054030758
+    UID: 9656828074172571850
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1214,7 +1149,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [0, 1]
     Name: Roof A3_E
-    UID: 852778047681668576
+    UID: 12336701442207892320
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1227,7 +1162,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [1, 1]
     Name: Roof A3_E
-    UID: 8740973258290557580
+    UID: 4722263688055500110
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1240,7 +1175,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [2, 1]
     Name: Roof A1_E
-    UID: 13993869316329075250
+    UID: 1945316096225290114
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1253,7 +1188,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [-1.5, 0.75]
     Name: Roof A1_S
-    UID: 8317422710710386261
+    UID: 12401647638776309294
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1266,7 +1201,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [-0.5, 0.75]
     Name: Roof A3_E
-    UID: 6035829139249013705
+    UID: 11096505682734373305
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1279,7 +1214,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [0.5, 0.75]
     Name: Roof A3_E
-    UID: 12242131511398597426
+    UID: 6129562181001961732
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1292,7 +1227,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [1.5, 0.75]
     Name: Roof A1_E
-    UID: 2624588644509007625
+    UID: 16562055163623499964
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1305,7 +1240,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [-1, 0.5]
     Name: Roof A1_S
-    UID: 823417101213113324
+    UID: 12085146812247716396
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1318,7 +1253,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [0, 0.5]
     Name: Roof A3_E
-    UID: 9888358321449368444
+    UID: 3865621810257687871
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1331,7 +1266,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [1, 0.5]
     Name: Roof A1_E
-    UID: 16706159888304399455
+    UID: 18168096439111403135
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1344,7 +1279,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [-0.5, 0.25]
     Name: Roof A1_S
-    UID: 5323825816368871437
+    UID: 10941664433997263525
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1357,7 +1292,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [0.5, 0.25]
     Name: Roof A1_E
-    UID: 3423612870359910457
+    UID: 17391299115597207998
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1370,7 +1305,7 @@ Tiles:
     OpaqueMax: [127, 95]
   - Position: [0, 0]
     Name: Roof A2_E
-    UID: 16857857688071616591
+    UID: 4354875453585394906
     IsDestructible: false
     IsRoof: true
     IsSupportingRoof: false
@@ -1381,3 +1316,55 @@ Tiles:
     TileDirection: 2
     OpaqueMin: [0, 15]
     OpaqueMax: [127, 95]
+  - Position: [0, -1]
+    Name: Wall D8_S
+    UID: 14719439009415100395
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 64
+    TileDirection: 1
+    OpaqueMin: [0, 29]
+    OpaqueMax: [127, 184]
+  - Position: [2.5, 0.25]
+    Name: Wall D8_E
+    UID: 13822885568016751819
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 65
+    TileDirection: 2
+    OpaqueMin: [46, 15]
+    OpaqueMax: [100, 208]
+  - Position: [-3, 0.5]
+    Name: Wall D8_W
+    UID: 4827091941668018362
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 66
+    TileDirection: 3
+    OpaqueMin: [27, 15]
+    OpaqueMax: [81, 208]
+  - Position: [-0.5, 1.75]
+    Name: Wall D8_N
+    UID: 4103205405054571823
+    IsDestructible: true
+    IsRoof: false
+    IsSupportingRoof: true
+    Category: 3
+    Material: 4
+    TileHealth: 1
+    Slot: 67
+    TileDirection: 0
+    OpaqueMin: [0, 39]
+    OpaqueMax: [127, 194]

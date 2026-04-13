@@ -1700,9 +1700,10 @@ namespace Engine {
             return;
         }
 
-        glm::ivec2 spawnCell = GetSnappedIsoPosition();
+        //glm::ivec2 spawnCell = GetSnappedIsoPosition();
 
-        
+        float worldZ = 0.0f;
+        glm::ivec2 spawnCell = m_editorCamera.GetScreenCenterWorld(worldZ);
 
         PrefabSerializer serializer(scene);
         Entity newEntity = serializer.Deserialize(filepath, spawnCell);

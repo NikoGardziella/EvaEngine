@@ -47,8 +47,8 @@ namespace Engine {
 
             ImGui::Checkbox("Show Chunks", &m_showChunks);
             ImGui::Checkbox("Show LOS", &m_showLOS);
-            ImGui::Checkbox("Show Roofs", &m_showWalls);
-            ImGui::Checkbox("Show Walls", &m_showRoofs);
+            ImGui::Checkbox("Show Walls", &m_showWalls);
+            ImGui::Checkbox("Show Roofs", &m_showRoofs);
 
             if (boldFont)
                 ImGui::PopFont();

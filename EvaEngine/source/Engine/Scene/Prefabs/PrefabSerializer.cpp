@@ -87,7 +87,7 @@ namespace Engine {
         // Rebuild the TileComponent from prefab data
         if (data["Tiles"])
         {
-            DeserializeTilesToTileComponent(newEntity, data["Tiles"], glm::ivec2(0));
+            DeserializeTilesToTileComponent(newEntity, data["Tiles"], spawnCell);
 
         }
         else
@@ -361,7 +361,7 @@ namespace Engine {
         const std::string groupName = rootEntity.GetComponent<TagComponent>().Tag;
         compactMap.SetGroupName(groupId, groupName);
 
-        compactMap.SetGroupOrigin(groupId, glm::ivec2(0));
+        compactMap.SetGroupOrigin(groupId, worldOffset);
 
 
     }

@@ -164,6 +164,16 @@ namespace Engine {
         ));
     }
 
+    glm::vec2 EditorCamera::GetScreenCenterWorld(float worldZ) const
+    {
+        const glm::vec2 center = {
+            m_viewportWidth * 0.5f,
+            m_viewportHeight * 0.5f
+        };
+
+        return ScreenToWorld2D(center, worldZ);
+    }
+
     glm::vec3 EditorCamera::GetRightDirection() const
     {
         return glm::normalize(glm::cross(GetForwardDirection(), glm::vec3(0.0f, 1.0f, 0.0f)));
