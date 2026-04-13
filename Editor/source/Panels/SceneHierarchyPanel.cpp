@@ -1146,26 +1146,23 @@ namespace Engine {
                         if (!component.Texture)
                             component.Texture = AssetManager::AddTexture(textureName, texturePath.string());
                         if (!component.Texture)
-                            component.Texture = AssetManager::GetTexture("logo"); // fallback
+                            component.Texture = AssetManager::GetTexture("logo");
                     }
                     ImGui::EndDragDropTarget();
                 }
 
-
                 std::optional<size_t> previousSelected = m_previousSelected;
 
-                // Ensure selected tile is open
                 if (m_selectedTileIndex.has_value())
-                {
                     m_openTileIndices.insert(*m_selectedTileIndex);
-                }
 
-                // Set scroll flag only if selection changed externally
                 if (m_selectedTileIndex && (!previousSelected || *previousSelected != *m_selectedTileIndex))
                 {
                     m_openTileIndices.insert(*m_selectedTileIndex);
                     m_scrollToSelectedTileNextFrame = true;
                 }
+
+                std::optional<size_t> tileToRemove;
 
                 for (size_t i = 0; i < component.tiles.size(); ++i)
                 {
@@ -1174,79 +1171,155 @@ namespace Engine {
 
                     std::string label = tile.name + " (" + std::to_string(tile.position.x) + ", " + std::to_string(tile.position.y) + ")";
 
-                    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_SpanAvailWidth;
                     bool isSelected = m_selectedTileIndex && *m_selectedTileIndex == i;
+
+                    ImGuiTreeNodeFlags nodeFlags = 0;
                     if (isOpen)
                         nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
                     if (isSelected)
                         nodeFlags |= ImGuiTreeNodeFlags_Selected;
+                    nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;
+                    nodeFlags |= ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
-                    if (isSelected)
-                        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.26f, 0.39f, 0.98f, 0.9f));
+                    ImGui::PushID((int)i);
 
-                    bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)i, nodeFlags, "%s", label.c_str());
+                    bool removeTile = false;
 
-                    // Handle UI clicks to select tile
-                    if (ImGui::IsItemClicked())
+                    if (ImGui::BeginTable("TileRow", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoSavedSettings))
                     {
-                        if (!m_selectedTileIndex || *m_selectedTileIndex != i)
+                        ImGui::TableSetupColumn("Tile", ImGuiTableColumnFlags_WidthStretch);
+                        ImGui::TableSetupColumn("Delete", ImGuiTableColumnFlags_WidthFixed, 24.0f);
+
+                        ImGui::TableNextRow();
+
+                        ImGui::TableSetColumnIndex(0);
+
+                        bool nodeOpen = ImGui::TreeNodeEx("##TileNode", nodeFlags, "%s", label.c_str());
+
+                        if (ImGui::IsItemClicked())
                         {
-                            m_selectedTileIndex = i;
-                            m_openTileIndices.insert(i);
-                            m_scrollToSelectedTileNextFrame = true;  // Set scroll flag on UI selection
+                            if (!m_selectedTileIndex || *m_selectedTileIndex != i)
+                            {
+                                m_selectedTileIndex = i;
+                                m_openTileIndices.insert(i);
+                                m_scrollToSelectedTileNextFrame = true;
+                            }
+                        }
+
+                        ImGui::TableSetColumnIndex(1);
+
+                        removeTile = ImGui::SmallButton("X");
+
+                        if (removeTile)
+                        {
+                            ImGui::EndTable();
+
+                            component.tiles.erase(component.tiles.begin() + i);
+
+                            m_openTileIndices.erase(i);
+
+                            std::unordered_set<size_t> newOpenIndices;
+                            for (size_t idx : m_openTileIndices)
+                            {
+                                if (idx < i)
+                                    newOpenIndices.insert(idx);
+                                else if (idx > i)
+                                    newOpenIndices.insert(idx - 1);
+                            }
+                            m_openTileIndices = std::move(newOpenIndices);
+
+                            if (m_selectedTileIndex)
+                            {
+                                if (*m_selectedTileIndex == i)
+                                    m_selectedTileIndex.reset();
+                                else if (*m_selectedTileIndex > i)
+                                    --(*m_selectedTileIndex);
+                            }
+
+                            ImGui::PopID();
+                            break;
+                        }
+
+                        ImGui::EndTable();
+
+                        if (nodeOpen)
+                        {
+                            ImGui::Indent();
+
+                            ImGui::Text("Position: %.2f, %.2f", tile.position.x, tile.position.y);
+                            ImGui::Checkbox("Destructible", &tile.IsDestructible);
+                            ImGui::Checkbox("Roof", &tile.IsRoof);
+
+                            char nameBuffer[256];
+                            strncpy(nameBuffer, tile.name.c_str(), sizeof(nameBuffer));
+                            nameBuffer[sizeof(nameBuffer) - 1] = '\0';
+                            if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
+                                tile.name = std::string(nameBuffer);
+
+                            static const char* materialOptions[] = { "None", "Wood", "Concrete", "Metal", "Glass" };
+                            int currentMaterialIdx = static_cast<int>(tile.Material);
+                            if (ImGui::Combo("Material", &currentMaterialIdx, materialOptions, IM_ARRAYSIZE(materialOptions)))
+                                tile.Material = static_cast<eTileMaterial>(currentMaterialIdx);
+
+                            ImGui::InputScalar("Health", ImGuiDataType_U32, &tile.TileHealth);
+
+                            ImGui::Unindent();
+                            ImGui::TreePop();
+                        }
+                        else
+                        {
+                            m_openTileIndices.erase(i);
                         }
                     }
 
-                    if (isSelected)
+                    ImGui::PopID();
+                }
+
+                if (tileToRemove.has_value() && *tileToRemove < component.tiles.size())
+                {
+                    size_t removedIndex = *tileToRemove;
+
+                    component.tiles.erase(component.tiles.begin() + removedIndex);
+
+                    m_openTileIndices.erase(removedIndex);
+
+                    // Rebuild open indices because erase shifts everything after removedIndex
+                    std::unordered_set<size_t> newOpenIndices;
+                    for (size_t idx : m_openTileIndices)
                     {
-                        if (m_scrollToSelectedTileNextFrame)
+                        if (idx < removedIndex)
+                            newOpenIndices.insert(idx);
+                        else if (idx > removedIndex)
+                            newOpenIndices.insert(idx - 1);
+                    }
+                    m_openTileIndices = std::move(newOpenIndices);
+
+                    // Fix selected index
+                    if (m_selectedTileIndex.has_value())
+                    {
+                        if (*m_selectedTileIndex == removedIndex)
                         {
-                            ImGui::SetScrollHereY(0.25f);
-                            m_scrollToSelectedTileNextFrame = false;  // Reset scroll flag here so it scrolls once
+                            m_selectedTileIndex.reset();
                         }
-                        ImGui::PopStyleColor();
-                    }
-
-                    if (nodeOpen)
-                    {
-                        ImGui::Indent();
-
-                        ImGui::Text("Position: %.2f, %.2f", tile.position.x, tile.position.y);
-                        ImGui::Checkbox("Destructible", &tile.IsDestructible);
-                        ImGui::Checkbox("Roof", &tile.IsRoof);
-
-                        static char nameBuffer[256];
-                        strncpy(nameBuffer, tile.name.c_str(), sizeof(nameBuffer));
-                        nameBuffer[sizeof(nameBuffer) - 1] = '\0';
-                        if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
-                            tile.name = std::string(nameBuffer);
-
-                        static const char* materialOptions[] = { "None", "Wood", "Concrete", "Metal", "Glass" };
-                        int currentMaterialIdx = static_cast<int>(tile.Material);
-                        if (ImGui::Combo("Material", &currentMaterialIdx, materialOptions, IM_ARRAYSIZE(materialOptions)))
-                            tile.Material = static_cast<eTileMaterial>(currentMaterialIdx);
-
-                        ImGui::InputScalar("Health", ImGuiDataType_U32, &tile.TileHealth);
-
-                        ImGui::Unindent();
-                        ImGui::TreePop();
-                    }
-                    else
-                    {
-                        m_openTileIndices.erase(i);
+                        else if (*m_selectedTileIndex > removedIndex)
+                        {
+                            m_selectedTileIndex = *m_selectedTileIndex - 1;
+                        }
                     }
                 }
 
-                // Update previous selected tile for next frame
                 m_previousSelected = m_selectedTileIndex;
 
+                Entity newEntity = Entity{
+                    Scene::GetEntityByUUID(
+                        m_sceneHierarchyPanelScene->GetRegistry(),
+                        entity.GetComponent<IDComponent>().ID),
+                    m_sceneHierarchyPanelScene.get()
+                };
 
-                // Sync the component back (optional depending on ECS design)
-                Entity newEntity = Entity{ Scene::GetEntityByUUID(m_sceneHierarchyPanelScene->GetRegistry(), entity.GetComponent<IDComponent>().ID), m_sceneHierarchyPanelScene.get() };
                 if (newEntity)
                     m_sceneHierarchyPanelScene->GetRegistry().get<TileComponent>(newEntity) = component;
             });
-
 
 
         DrawComponent<CircleRendererComponent>("Circle  renderer", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)

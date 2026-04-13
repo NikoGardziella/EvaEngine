@@ -1967,7 +1967,7 @@ Tiles:
     OpaqueMin: [46, 62]
     OpaqueMax: [81, 207]
   - Position: [-5.5, -2.75]
-    Name: Wall_B1_W
+    Name: Wall B1_W
     UID: 3137884480749151713
     IsDestructible: true
     IsRoof: false
@@ -2006,7 +2006,7 @@ Tiles:
     OpaqueMin: [46, 15]
     OpaqueMax: [127, 184]
   - Position: [-0.5, -2.75]
-    Name: Wall_B1_W
+    Name: Wall B1_W
     UID: 8580328821957253130
     IsDestructible: true
     IsRoof: false
@@ -2032,7 +2032,7 @@ Tiles:
     OpaqueMin: [46, 15]
     OpaqueMax: [127, 184]
   - Position: [0, -3]
-    Name: Wall_B1_W
+    Name: Wall B1_W
     UID: 2940450433726520234
     IsDestructible: true
     IsRoof: false
@@ -2045,7 +2045,7 @@ Tiles:
     OpaqueMin: [0, 15]
     OpaqueMax: [81, 184]
   - Position: [-4.5, -3.25]
-    Name: Wall_B1_W
+    Name: Wall B1_W
     UID: 4777130737994762388
     IsDestructible: true
     IsRoof: false
@@ -2071,7 +2071,7 @@ Tiles:
     OpaqueMin: [46, 15]
     OpaqueMax: [127, 184]
   - Position: [0.5, -3.25]
-    Name: Wall_B1_W
+    Name: Wall B1_W
     UID: 11771849332827952674
     IsDestructible: true
     IsRoof: false
@@ -2097,7 +2097,7 @@ Tiles:
     OpaqueMin: [46, 15]
     OpaqueMax: [127, 184]
   - Position: [1, -3.5]
-    Name: Wall_B1_W
+    Name: Wall B1_W
     UID: 7358117186271652842
     IsDestructible: true
     IsRoof: false
@@ -2123,7 +2123,7 @@ Tiles:
     OpaqueMin: [46, 15]
     OpaqueMax: [127, 184]
   - Position: [-3.5, -3.75]
-    Name: Wall_B1_W
+    Name: Wall B1_W
     UID: 2554128282049232979
     IsDestructible: true
     IsRoof: false
@@ -2136,7 +2136,7 @@ Tiles:
     OpaqueMin: [0, 15]
     OpaqueMax: [81, 184]
   - Position: [1.5, -3.75]
-    Name: Wall_B1_W
+    Name: Wall B1_W
     UID: 5914435485371140352
     IsDestructible: true
     IsRoof: false
