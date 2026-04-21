@@ -1,12 +1,26 @@
 #include "pch.h"
 #include "Engine/Core/Input.h"
 
-#include <GLFW/glfw3.h>
+
 #include "Engine/Core/Application.h"
 
 
 namespace Engine {
 
+	
+	bool Engine::Input::s_CurrentMouseButtons[MouseButtonCount + 1] = {};
+	bool Engine::Input::s_PreviousMouseButtons[MouseButtonCount + 1] = {};
+
+	void Input::Update()
+	{
+		const auto& window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+
+		for (int i = 0; i <= GLFW_MOUSE_BUTTON_LAST; i++)
+		{
+			s_PreviousMouseButtons[i] = s_CurrentMouseButtons[i];
+			s_CurrentMouseButtons[i] = glfwGetMouseButton(window, i) == GLFW_PRESS;
+		}
+	}
 
 	bool Input::IsKeyPressed(const KeyCode keycode)
 	{
@@ -21,13 +35,17 @@ namespace Engine {
 
 	bool Input::IsMouseButtonPressed(MouseCode keycode)
 	{
-		const auto& window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-
-		auto state = glfwGetMouseButton(window, keycode);
-
-		return state == GLFW_PRESS;
+		return s_CurrentMouseButtons[keycode];
 	}
 
+	bool Input::IsMouseButtonDown(MouseCode keycode)
+	{
+		return s_CurrentMouseButtons[keycode] && !s_PreviousMouseButtons[keycode];
+	}
+	bool Input::IsMouseButtonReleased(MouseCode keycode)
+	{
+		return !s_CurrentMouseButtons[keycode] && s_PreviousMouseButtons[keycode];
+	}
 
 	glm::vec2 Input::GetMouseScreenPosition()
 	{

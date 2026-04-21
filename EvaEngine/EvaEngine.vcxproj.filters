@@ -190,6 +190,12 @@
     <Filter Include="source\Engine\Scene\Light">
       <UniqueIdentifier>{3FFCDCB9-ABBE-1044-F46E-9FD06070E921}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Scene\Physics">
+      <UniqueIdentifier>{0A72ECD7-767F-1ABE-FF65-16A96B72E674}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\Engine\Scene\Prefabs">
+      <UniqueIdentifier>{2ADBCEED-96E8-FCD3-1FCF-F8BE8BDBC88A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Scene\SceneUtils">
       <UniqueIdentifier>{A6BA4EE4-92E0-184B-7B26-9E1667EB3D17}</UniqueIdentifier>
     </Filter>
@@ -255,9 +261,6 @@
     </Filter>
     <Filter Include="vendor\tiny_gltf">
       <UniqueIdentifier>{F2D50B7F-DECE-2AD1-0701-1056F3580ADD}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\Engine\Scene\Physics">
-      <UniqueIdentifier>{e76732e3-4936-4a8c-a98c-c8ce58752126}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -447,6 +450,12 @@
     <ClInclude Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.h">
       <Filter>source\Engine\Map\TextureStreaming</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\CompactTileMap.h">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\CompactTilePromotion.h">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\DestrutibleTileSystem.h">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClInclude>
@@ -454,6 +463,12 @@
       <Filter>source\Engine\Map\Tile</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\SceneRoofTileAccess.h">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\TileDefinition.h">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\TileDefinitionRegistry.h">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\TileManager.h">
@@ -785,6 +800,12 @@
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Light\LightGatherSystem.h">
       <Filter>source\Engine\Scene\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Physics\Box2DPhysicsSystem.h">
+      <Filter>source\Engine\Scene\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Prefabs\PrefabSerializer.h">
+      <Filter>source\Engine\Scene\Prefabs</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Scene.h">
       <Filter>source\Engine\Scene</Filter>
@@ -2130,14 +2151,6 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Physics\Box2DPhysicsSystem.h">
-      <Filter>source\Engine\Scene\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Engine\Map\Tile\CompactTileMap.h" />
-    <ClInclude Include="source\Engine\Map\Tile\TileDefinitionRegistry.h" />
-    <ClInclude Include="source\Engine\Map\Tile\TileDefinition.h" />
-    <ClInclude Include="source\Engine\Map\Tile\CompactTilePromotion.h" />
-    <ClInclude Include="source\Engine\Scene\Prefabs\PrefabSerializer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2254,6 +2267,12 @@
     <ClCompile Include="source\Engine\Map\TextureStreaming\TextureStreamingUtils.cpp">
       <Filter>source\Engine\Map\TextureStreaming</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\CompactTileMap.cpp">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\CompactTilePromotion.cpp">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Map\Tile\DestrutibleTileSystem.cpp">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClCompile>
@@ -2261,6 +2280,9 @@
       <Filter>source\Engine\Map\Tile</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Map\Tile\SceneRoofTileAccess.cpp">
+      <Filter>source\Engine\Map\Tile</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\TileDefinitionRegistry.cpp">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp">
@@ -2461,6 +2483,12 @@
     <ClCompile Include="source\Engine\Scene\Light\LightGatherSystem.cpp">
       <Filter>source\Engine\Scene\Light</Filter>
     </ClCompile>
+    <ClCompile Include="source\Engine\Scene\Physics\Box2DPhysicsSystem.cpp">
+      <Filter>source\Engine\Scene\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Scene\Prefabs\PrefabSerializer.cpp">
+      <Filter>source\Engine\Scene\Prefabs</Filter>
+    </ClCompile>
     <ClCompile Include="source\Engine\Scene\Scene.cpp">
       <Filter>source\Engine\Scene</Filter>
     </ClCompile>
@@ -2521,13 +2549,6 @@
     <ClCompile Include="vendor\tiny_gltf\tiny_gltf.cpp">
       <Filter>vendor\tiny_gltf</Filter>
     </ClCompile>
-    <ClCompile Include="source\Engine\Scene\Physics\Box2DPhysicsSystem.cpp">
-      <Filter>source\Engine\Scene\Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Engine\Map\Tile\CompactTileMap.cpp" />
-    <ClCompile Include="source\Engine\Map\Tile\TileDefinitionRegistry.cpp" />
-    <ClCompile Include="source\Engine\Map\Tile\CompactTilePromotion.cpp" />
-    <ClCompile Include="source\Engine\Scene\Prefabs\PrefabSerializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BindlessDesciptorset_shader.glsl">

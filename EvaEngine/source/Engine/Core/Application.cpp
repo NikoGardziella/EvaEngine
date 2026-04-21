@@ -88,8 +88,8 @@ namespace Engine
 			m_timestep = time - m_lastFrameTime;
 			m_lastFrameTime = time;
 			
+			Input::Update();
 			Renderer::StartFrame();
-
 
 			if (!m_minimized)
 			{
