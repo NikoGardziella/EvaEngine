@@ -226,6 +226,19 @@ namespace Engine
         return m_GroupInfo;
     }
 
+    void CompactTileMap::ClearPromotionFlags()
+    {
+        for (auto& [worldCell, cell] : m_Cells)
+        {
+            for (CompactTile& tile : cell.Tiles)
+            {
+                tile.Flags &= ~CompactTileFlags::Promoted;
+                tile.Flags &= ~CompactTileFlags::Hidden;
+            }
+
+            MarkChunkDirtyForCell(worldCell);
+        }
+    }
 
     void CompactTileMap::Clear()
     {

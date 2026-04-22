@@ -183,7 +183,7 @@ namespace Engine {
         CopyComponent<NPCAIMovementComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<NPCAIVisionComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<WeaponComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
-        CopyComponent<TileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        //CopyComponent<TileComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<RoofRenderComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<VehicleComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<DriverComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);

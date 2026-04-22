@@ -452,7 +452,11 @@ namespace Engine
         }
     }
 
- 
+    void CompactTilePromotion::Reset()
+    {
+        m_PromotedEntitiesByGroup.clear();
+        
+    }
 
     void CompactTilePromotion::EnsurePromotedAndCompactedAroundPlayer(
         Scene* scene,

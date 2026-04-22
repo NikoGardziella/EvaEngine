@@ -639,6 +639,7 @@ namespace Engine {
        // m_editor.get()->GetGameLayer()->CopyToActiveScene(Scene::Combine(m_sceneHierarchyPanel.GetEditorScene(), m_editor.get()->GetGameLayer()->GetActiveGameScene()));
    
         SortIsometricTilesByY();
+        m_editor.get()->GetGameLayer()->GetActiveGameScene()->ResetCompactTilePromotionState();
 
     }
 
@@ -1471,6 +1472,9 @@ namespace Engine {
                         ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
 
                         m_WallRectTool.CommitDrag(ctx);
+
+                        m_sceneHierarchyPanel.GetEditorScene()->GetCompactTilePromotion().InvalidateEditorViewportCache();
+                        m_sceneHierarchyPanel.GetEditorScene()->ResetCompactTilePromotionState();
                     }
                 }
                 else if (Input::IsMouseButtonPressed(Mouse::Button0))

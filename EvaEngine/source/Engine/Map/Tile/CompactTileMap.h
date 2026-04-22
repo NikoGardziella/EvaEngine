@@ -86,6 +86,7 @@ namespace Engine
 
         void Render(const TileDefinitionRegistry& defs) const;
 
+
         const std::vector<glm::ivec2>* GetCellsForGroup(uint64_t groupId) const;
         void RegisterCellForGroup(uint64_t groupId, const glm::ivec2& cell);
         void RemoveCellFromGroup(uint64_t groupId, const glm::ivec2& cell);
@@ -93,6 +94,7 @@ namespace Engine
         const std::unordered_map<uint64_t, CompactGroupInfo>& GetAllGroupInfo() const;
 
         void RemoveGroup(uint64_t groupId);
+        void ClearPromotionFlags();
         void Clear();
         void RebuildChunkDrawCache(TileChunk& chunk, const TileDefinitionRegistry& defs);
         void MarkChunkDirtyForCell(const glm::ivec2& worldCell);

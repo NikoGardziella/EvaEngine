@@ -344,7 +344,7 @@ namespace Engine {
         m_destructibleTileSystem.InitDestructableSystem(this);
 
 
-
+        ResetCompactTilePromotionState();
         m_box2DPhysicsSystem.OnRuntimeStart(this);
     }
 
@@ -385,6 +385,8 @@ namespace Engine {
 
         playerStateData.InGame = false;
         VulkanRenderer2D::SubmitPlayerData(playerStateData);
+
+
     }
 
     void Scene::PauseRuntime()
@@ -400,7 +402,13 @@ namespace Engine {
     }
 
 
-   
+    void Scene::ResetCompactTilePromotionState()
+    {
+
+        m_compactTileMap.ClearPromotionFlags();
+
+        m_compactTilePromotion.Reset();
+    }
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height, std::array<glm::vec2, 2> viewportBounds)
     {

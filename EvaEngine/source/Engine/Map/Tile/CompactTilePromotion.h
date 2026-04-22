@@ -24,6 +24,7 @@ namespace Engine {
 		void RegisterPromotedEntity(uint64_t groupId, Entity entity);
 		bool PromoteSingleTileIntoExistingGroup(Scene* scene, uint64_t groupId, glm::ivec2& worldCell, Ref<TileManager> tileManager, eTileDirection tileDir, uint16_t typeId);
 		bool SyncPromotedEntityToCompactGroup(Scene* scene, Entity entity);
+		void Reset();
 
 		
 		void RebuildAreaForTileEntity(Entity entity);

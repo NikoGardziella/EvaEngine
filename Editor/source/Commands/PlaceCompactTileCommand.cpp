@@ -61,6 +61,7 @@ namespace Engine
                 m_tileDir,
                 m_NewTile.TypeId);
         }
+        m_Scene->GetCompactTilePromotion().InvalidateEditorViewportCache();
 
     }
 
