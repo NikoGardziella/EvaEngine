@@ -139,6 +139,6 @@ namespace Engine
                 compactMap.AddTile(cell, tile);
             }
         }
-        //ctx.ActiveScene->GetCompactTilePromotion().PromoteGroup(ctx.ActiveScene, ctx.GroupId);
+        ctx.ActiveScene->GetCompactTilePromotion().InvalidateEditorViewportCache();
     }
 }

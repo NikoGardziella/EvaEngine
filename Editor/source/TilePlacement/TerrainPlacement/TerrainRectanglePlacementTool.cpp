@@ -111,5 +111,8 @@ namespace Engine
                 compactMap.AddTile(cell, tile);
             }
         }
+
+        ctx.ActiveScene->GetCompactTilePromotion().InvalidateEditorViewportCache();
+
     }
 }

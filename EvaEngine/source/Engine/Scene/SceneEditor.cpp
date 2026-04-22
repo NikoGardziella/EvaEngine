@@ -112,7 +112,7 @@ namespace Engine {
         }
 
         {
-
+            EE_PROFILE_SCOPE("editor terrain render");
             auto viewTerrain = m_registry.view<TileComponent, TransformComponent>();
             const float step = float(TILE_SIZE);
             viewTerrain.use<TransformComponent>();
@@ -133,13 +133,17 @@ namespace Engine {
 
                     // Flip V like before
                     glm::vec4 uv = t.UV;
-                  //  glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
+                    //  glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
 
                     Engine::VulkanRenderer2D::DrawTile(worldPosCenter, uv, glm::vec4(1.0f));
                 }
             }
 
+        }
 
+
+        {
+            EE_PROFILE_SCOPE("editor building render");
 
 
 
