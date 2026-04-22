@@ -23,6 +23,7 @@ project "Editor"
 
     includedirs
     {
+        "source",
         "../EvaEngine/source",
         "../EvaEngine/vendor/spdlog/include",
         "%{IncludeDir.ImGuizmo}",

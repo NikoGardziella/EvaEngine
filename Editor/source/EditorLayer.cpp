@@ -46,7 +46,6 @@
 #include <Engine/Scene/Prefabs/PrefabSerializer.h>
 
 #include "TilePlacement/TilePlacementUtils.h"
-#include "TilePlacement/WallDirectionalTypeSet.h"
 
 namespace Engine {
 

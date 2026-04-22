@@ -124,6 +124,8 @@ filter {}
     {
         ENGINE_DIR .. "/source",
         VENDOR_DIR .. "/spdlog/include",
+        
+        "Editor/source",
 
         "%{IncludeDir.vcpkg}",
 

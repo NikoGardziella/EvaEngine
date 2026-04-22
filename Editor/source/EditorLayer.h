@@ -22,8 +22,9 @@
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include "Commands/CommandHistory.h"
 #include "Commands/CommandGroup.h"
-#include "TilePlacement/WallDirectionalTypeSet.h"
-#include "TilePlacement/WallRectanglePlacementTool.h"
+#include "TilePlacement/WallPlacement/WallDirectionalTypeSet.h"
+#include "TilePlacement/WallPlacement/WallRectanglePlacementTool.h"
+
 
 
 
