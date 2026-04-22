@@ -169,6 +169,8 @@ namespace Engine {
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
+        EE_PROFILE_FUNCTION();
+
         if (!entity) return;
 
         // 1. Get references
@@ -499,6 +501,7 @@ namespace Engine {
 
     void SceneHierarchyPanel::DrawComponents(Entity entity)
     {
+        EE_PROFILE_FUNCTION();
 
         if (entity.HasComponent<TagComponent>())
         {

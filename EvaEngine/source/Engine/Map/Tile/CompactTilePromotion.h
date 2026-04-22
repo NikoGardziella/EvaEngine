@@ -33,6 +33,8 @@ namespace Engine {
 		void RemoveSingleTileFromExistingGroup(Scene* scene, uint64_t groupId, const glm::ivec2& worldCell, Ref<TileManager> tileManager, bool destroyIfEmpty);
 		
 		bool IsGroupPromoted(uint64_t groupId);
+
+		void InvalidateEditorViewportCache();
 	private:
 		uint16_t GetOrCreateDefinitionForRuntimeTile(Scene* scene, const TileInfo& tile);
 		TileInfo BuildRuntimeTileFromDefinition(const TileDefinition& def, const glm::vec2& localPos);
@@ -44,6 +46,11 @@ namespace Engine {
 
 	private:
 		std::unordered_map<uint64_t, Entity> m_PromotedEntitiesByGroup;
+
+
+		glm::ivec2 m_LastEditorMinChunk{};
+		glm::ivec2 m_LastEditorMaxChunk{};
+		bool m_HasLastEditorChunkRange = false;
 	};
 }
 

@@ -379,6 +379,11 @@ namespace Engine
         return m_PromotedEntitiesByGroup.find(groupId) != m_PromotedEntitiesByGroup.end();
     }
 
+    void CompactTilePromotion::InvalidateEditorViewportCache()
+    {
+        m_HasLastEditorChunkRange = false;
+    }
+
     
 
     void CompactTilePromotion::UnregisterPromotedEntity(uint64_t groupId)
@@ -703,7 +708,18 @@ namespace Engine
 
         const glm::ivec2 minChunk = WorldCellToChunkCoord({ minCellX, minCellY });
         const glm::ivec2 maxChunk = WorldCellToChunkCoord({ maxCellX, maxCellY });
-      
+
+        // Early out if editor viewport still covers same chunk range
+        if (m_HasLastEditorChunkRange &&
+            minChunk == m_LastEditorMinChunk &&
+            maxChunk == m_LastEditorMaxChunk)
+        {
+            return;
+        }
+
+        m_HasLastEditorChunkRange = true;
+        m_LastEditorMinChunk = minChunk;
+        m_LastEditorMaxChunk = maxChunk;
         // Pass 1: collect groups from compact tiles inside viewport
 
         for (int cy = minChunk.y; cy <= maxChunk.y; ++cy)
