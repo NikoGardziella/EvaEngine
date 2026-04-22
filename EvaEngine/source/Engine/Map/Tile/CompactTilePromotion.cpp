@@ -226,21 +226,21 @@ namespace Engine
 
 
 
-        for (const PendingTile& p : tilesToPromote)
+        for (const PendingTile& pendingTile : tilesToPromote)
         {
 
-            glm::vec2 tileWorldPos = IsoTileUtils::IsoToWorldGround(p.worldCell);
+            glm::vec2 tileWorldPos = IsoTileUtils::IsoToWorldGround(pendingTile.worldCell);
             glm::vec2 rootWorldPos = IsoTileUtils::IsoToWorldGround(groupInfo->OriginCell);
             glm::vec2 localPos = tileWorldPos - rootWorldPos;
 
-            TileInfo runtimeTile = BuildRuntimeTileFromDefinition(*p.def, localPos);
+            TileInfo runtimeTile = BuildRuntimeTileFromDefinition(*pendingTile.def, localPos);
 
             runtimeTile.UID = HashUtils::MakeTileUID(
                 (uint64_t)id.ID,
                 runtimeTile.position,
                 float(TILE_SIZE),
                 (uint32_t)runtimeTile.Category,
-                p.def->Direction);
+                pendingTile.def->Direction);
 
             EE_CORE_INFO("runtimeTile.UID {}", runtimeTile.UID);
             tc.tiles.push_back(runtimeTile);

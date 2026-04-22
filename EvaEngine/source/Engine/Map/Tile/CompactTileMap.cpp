@@ -117,6 +117,7 @@ namespace Engine
         return FindTile(worldCell, typeId) != nullptr;
     }
 
+
     CompactTile& CompactTileMap::AddTile(const glm::ivec2& worldCell, const CompactTile& tile)
     {
         CompactTileCell& cell = m_Cells[worldCell];
@@ -128,13 +129,16 @@ namespace Engine
             });
 
         if (it != cell.Tiles.end())
-        {
             return *it;
-        }
 
         cell.Tiles.push_back(tile);
+        CompactTile& added = cell.Tiles.back();
+
+        if (added.GroupId != 0)
+            RegisterCellForGroup(added.GroupId, worldCell);
+
         MarkChunkDirtyForCell(worldCell);
-        return cell.Tiles.back();
+        return added;
     }
 
     bool CompactTileMap::RemoveTile(const glm::ivec2& worldCell, uint16_t typeId)

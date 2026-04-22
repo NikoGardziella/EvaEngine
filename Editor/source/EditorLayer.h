@@ -22,6 +22,8 @@
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include "Commands/CommandHistory.h"
 #include "Commands/CommandGroup.h"
+#include "TilePlacement/WallDirectionalTypeSet.h"
+#include "TilePlacement/WallRectanglePlacementTool.h"
 
 
 
@@ -38,7 +40,12 @@ namespace Engine {
 			Play = 1,
 			Pause = 2,
 		};
-
+		enum class eEditorPlacementTool
+		{
+			None = 0,
+			PaintSingleTile,
+			WallRectangle
+		};
 
 	public:
 
@@ -51,6 +58,8 @@ namespace Engine {
 		virtual void OnImGuiRender() override;
 
 
+		WallDirectionalTypeSet BuildDirectionalWallTypeSetFromSelectedTile();
+
 		void OnUpdate(Timestep timestep) override;
 		void PlaceSelectedTile();
 		void DrawSelectedTileOutline();
@@ -61,6 +70,8 @@ namespace Engine {
 		TileInfo OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory);
 
 		CompactTile BuildCompactTileForSelection(Entity selectedEntity, glm::ivec2 isoCell);
+
+		uint64_t GetOrCreatePlacementGroupId(glm::ivec2 originCell);
 
 		//CompactTile PaintCompactTileAtSelection(Entity selectedEntity);
 
@@ -98,6 +109,8 @@ namespace Engine {
 		bool CanPlaceTile(std::string selectedTileName, glm::ivec2 groundPos);
 
 		void OnOverlayRender();
+
+		uint16_t GetOrCreateDefinitionForTileByName(const std::string& tileNameRaw);
 
 	private:
 
@@ -163,7 +176,8 @@ namespace Engine {
 		// key shortcuts
 
 		bool m_controlPressed = false;
-
+		eEditorPlacementTool m_CurrentPlacementTool = eEditorPlacementTool::PaintSingleTile;
+		WallRectanglePlacementTool m_WallRectTool;
 		
 	private:
 		

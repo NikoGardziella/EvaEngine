@@ -762,7 +762,7 @@ namespace Engine {
                 props.health = (props.health == 0 ? 1u : props.health);
                 if (props.material == eTileMaterial::None) props.material = t.material;
                 props.uv = uv;
-
+                props.category = t.category;
                 props.pixelRect = { currentX, currentY, t.width, t.height };
                 
 

@@ -45,6 +45,9 @@
 #include <Engine/Map/Tile/CompactTileMap.h>
 #include <Engine/Scene/Prefabs/PrefabSerializer.h>
 
+#include "TilePlacement/TilePlacementUtils.h"
+#include "TilePlacement/WallDirectionalTypeSet.h"
+
 namespace Engine {
 
 
@@ -910,6 +913,7 @@ namespace Engine {
     }
 
 
+
     CompactTile EditorLayer::BuildCompactTileForSelection(Entity selectedEntity, glm::ivec2 isoCell)
     {
         Ref<Scene> scene = m_editor->GetGameLayer()->GetActiveGameScene();
@@ -971,6 +975,53 @@ namespace Engine {
         }
 
         return tile;
+    }
+
+    uint64_t EditorLayer::GetOrCreatePlacementGroupId(glm::ivec2 originCell)
+    {
+        Ref<Scene> scene = m_editor->GetGameLayer()->GetActiveGameScene();
+        if (!scene)
+            return 0;
+
+        Entity selectedEntity = m_selectedEntity;
+
+        if (m_sceneHierarchyPanel.IsSelectionLocked())
+            selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
+
+        CompactTileMap& compactMap = scene->GetCompactTileMap();
+
+        uint64_t groupID = 0;
+
+        if (!selectedEntity || !scene->IsEntityValid(selectedEntity))
+        {
+            Entity newEntity = scene->CreateEntity("Entity");
+            selectedEntity = newEntity;
+            m_selectedEntity = newEntity;
+            m_sceneHierarchyPanel.SetSelectedEntity(newEntity);
+
+            groupID = static_cast<uint64_t>(newEntity.GetUUID());
+            newEntity.GetComponent<TagComponent>().Tag = "Entity" + std::to_string(groupID);
+
+            TransformComponent& transformComp = newEntity.AddComponent<TransformComponent>();
+            const glm::vec2 rootWorldPos = IsoTileUtils::IsoToWorldGround(originCell);
+            transformComp.Translation = glm::vec3(rootWorldPos, 0.0f);
+
+           
+
+        }
+        else
+        {
+            groupID = static_cast<uint64_t>(selectedEntity.GetUUID());
+
+            
+        }
+
+        if (!compactMap.HasGroupInfo(groupID))
+        {
+            compactMap.SetGroupOrigin(groupID, originCell);
+
+        }
+        return groupID;
     }
 
     uint16_t EditorLayer::GetOrCreateDefinitionForSelectedTile()
@@ -1189,7 +1240,91 @@ namespace Engine {
         Engine::VulkanRenderer2D::EndScene();
     }
 
+    uint16_t EditorLayer::GetOrCreateDefinitionForTileByName(const std::string& tileNameRaw)
+    {
+        Ref<Scene> scene = m_editor->GetGameLayer()->GetActiveGameScene();
+        if (!scene)
+            return 0;
 
+        Engine::TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+
+        const std::string tileName = TilePlacementUtils::RemoveExtension(tileNameRaw);
+        if (tileName.empty())
+        {
+            EE_CORE_WARN("GetOrCreateDefinitionForTileByName: empty tile name");
+            return 0;
+        }
+
+        const glm::vec4 uv = m_tileEditorPanel.GetTileUV(tileName);
+        const TileProperties& tileProperties = AssetManager::GetTileProperties(tileName);
+
+        const eTileCategory category = tileProperties.category;
+        const TileProperties tileProps = tileProperties;
+
+        TileInfo temp{};
+        temp.name = tileName;
+        temp.UV = uv;
+        temp.Category = category;
+        temp.TileDirection = EditorUtils::GetDirectionFromTileName(tileName);
+
+        Engine::TileTypeKey key = TileManager::MakeTileTypeKey(temp);
+
+        uint16_t existingTypeId = 0;
+        if (defs.FindTypeId(key, existingTypeId))
+            return existingTypeId;
+
+        Engine::TileDefinition def{};
+        def.TypeId = defs.GetNextTypeId();
+        def.Name = tileName;
+        def.UV = uv;
+        def.Category = category;
+        def.Direction = temp.TileDirection;
+        def.Material = tileProps.material;
+        def.BaseHealth = static_cast<uint16_t>(tileProps.health);
+        def.IsDestructible = (category == eTileCategory::Buildings);
+        def.IsSupportingRoof = (category == eTileCategory::Buildings || category == eTileCategory::Pillars);
+        def.IsRoof = (category == eTileCategory::Roofs);
+
+        if (!defs.Register(def, key))
+        {
+            EE_CORE_WARN("GetOrCreateDefinitionForTileByName: failed to register '{}'", tileName);
+            return 0;
+        }
+
+        return def.TypeId;
+    }
+
+    WallDirectionalTypeSet EditorLayer::BuildDirectionalWallTypeSetFromSelectedTile()
+    {
+        WallDirectionalTypeSet out{};
+
+        const std::string selectedTileNameRaw = m_tileEditorPanel.GetSelectedTileName();
+        if (selectedTileNameRaw.empty())
+        {
+            EE_CORE_WARN("BuildDirectionalWallTypeSetFromSelectedTile: no tile selected");
+            return out;
+        }
+
+        std::string baseName;
+        char selectedDir = 0;
+        if (!TilePlacementUtils::SplitDirectionalTileName(selectedTileNameRaw, baseName, selectedDir))
+        {
+            EE_CORE_WARN("BuildDirectionalWallTypeSetFromSelectedTile: '{}' is not directional", selectedTileNameRaw);
+            return out;
+        }
+
+        out.North = GetOrCreateDefinitionForTileByName(TilePlacementUtils::MakeDirectionalTileName(baseName, 'N'));
+        out.South = GetOrCreateDefinitionForTileByName(TilePlacementUtils::MakeDirectionalTileName(baseName, 'S'));
+        out.East = GetOrCreateDefinitionForTileByName(TilePlacementUtils::MakeDirectionalTileName(baseName, 'E'));
+        out.West = GetOrCreateDefinitionForTileByName(TilePlacementUtils::MakeDirectionalTileName(baseName, 'W'));
+
+        if (!out.IsValid())
+        {
+            EE_CORE_WARN("BuildDirectionalWallTypeSetFromSelectedTile: missing one or more directional variants for '{}'", baseName);
+        }
+
+        return out;
+    }
     void EditorLayer::OnUpdate(Engine::Timestep timestep)
     {
         EE_PROFILE_FUNCTION();
@@ -1260,11 +1395,51 @@ namespace Engine {
             if (m_mouseIsInViewPort && m_sceneState == eSceneState::Edit)
             {
 
-                if (Input::IsMouseButtonPressed(Mouse::Button0))
+                
+
+                //if (m_CurrentPlacementTool == eEditorPlacementTool::WallRectangle)
+                if (m_controlPressed)
+                {
+                    glm::ivec2 hoveredCell = GetSnappedIsoPosition();
+                    if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+                    {
+                        m_WallRectTool.BeginDrag(hoveredCell);
+                    }
+
+                    if (m_WallRectTool.IsDragging() && Input::IsMouseButtonDown(Mouse::ButtonLeft))
+                    {
+                        m_WallRectTool.UpdateDrag(hoveredCell);
+                    }
+
+                    if (m_WallRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
+                    {
+                        // ensure final position is captured
+                        m_WallRectTool.UpdateDrag(hoveredCell);
+
+                        Engine::WallRectanglePlacementContext ctx;
+                        ctx.ActiveScene = m_sceneHierarchyPanel.GetEditorScene().get();
+                        ctx.CompactMap = &m_sceneHierarchyPanel.GetEditorScene()->GetCompactTileMap();
+
+                        ctx.DirectionSet = BuildDirectionalWallTypeSetFromSelectedTile();
+                        if (!ctx.DirectionSet.IsValid())
+                        {
+                            EE_CORE_WARN("Invalid wall set");
+                            m_WallRectTool.CancelDrag();
+                            return;
+                        }
+
+                        const glm::ivec2 originCell = m_WallRectTool.GetMinCell();
+                        ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
+
+                        m_WallRectTool.CommitDrag(ctx);
+                    }
+                }
+                else if (Input::IsMouseButtonPressed(Mouse::Button0))
                 {
                     PlaceSelectedTile();
                 }
-                
+
+
             }
         }
     }
@@ -1319,7 +1494,7 @@ namespace Engine {
             cmd->Execute();
             m_ActiveStroke->AddCommand(std::move(cmd));
             
-            EE_CORE_INFO(" placeed {}", isoCell);
+           // EE_CORE_INFO(" placeed {}", isoCell);
 
             m_StrokeCreatedNewEntity = false; 
         }
