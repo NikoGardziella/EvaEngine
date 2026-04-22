@@ -1393,11 +1393,51 @@ namespace Engine {
 
             if (m_mouseIsInViewPort && m_sceneState == eSceneState::Edit)
             {
+                const std::string selectedTileNameRaw = m_tileEditorPanel.GetSelectedTileName();
+                const TileProperties& tileProperties = AssetManager::GetTileProperties(selectedTileNameRaw);
 
+                const eTileCategory selectedTileCategory = tileProperties.category;
                 
+                if (m_controlPressed && selectedTileCategory == eTileCategory::Terrain)
+                {
+                    glm::ivec2 hoveredCell = GetSnappedIsoPosition();
 
+                    if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+                    {
+                        m_TerrainRectTool.BeginDrag(hoveredCell);
+                    }
+
+                    if (m_TerrainRectTool.IsDragging() && Input::IsMouseButtonDown(Mouse::ButtonLeft))
+                    {
+                        m_TerrainRectTool.UpdateDrag(hoveredCell);
+                    }
+
+                    if (m_TerrainRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
+                    {
+                        m_TerrainRectTool.UpdateDrag(hoveredCell);
+
+                        Engine::TerrainRectanglePlacementContext ctx;
+                        ctx.ActiveScene = m_sceneHierarchyPanel.GetEditorScene().get();
+                        ctx.CompactMap = &m_sceneHierarchyPanel.GetEditorScene()->GetCompactTileMap();
+                        ctx.TypeId = GetOrCreateDefinitionForSelectedTile();
+
+                        if (ctx.TypeId == 0)
+                        {
+                            EE_CORE_WARN("Terrain rectangle placement aborted: invalid TypeId");
+                            m_TerrainRectTool.CancelDrag();
+                            return;
+                        }
+
+                        const glm::ivec2 originCell = m_TerrainRectTool.GetMinCell();
+                        ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
+                        ctx.Flags = Engine::CompactTileFlags::None;
+                        ctx.Aux = 0;
+
+                        m_TerrainRectTool.CommitDrag(ctx);
+                    }
+                }
                 //if (m_CurrentPlacementTool == eEditorPlacementTool::WallRectangle)
-                if (m_controlPressed)
+                else if (m_controlPressed && selectedTileCategory == eTileCategory::Buildings)
                 {
                     glm::ivec2 hoveredCell = GetSnappedIsoPosition();
                     if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))

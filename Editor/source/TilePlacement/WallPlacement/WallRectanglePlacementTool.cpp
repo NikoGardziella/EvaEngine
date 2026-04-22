@@ -2,9 +2,9 @@
 #include "WallRectanglePlacementTool.h"
 
 #include "Engine/Scene/Scene.h"
-#include "../eRectCellKind.h"
-#include "../TilePlacementUtils.h"
 
+#include "TilePlacement/eRectCellKind.h"
+#include "TilePlacement/TilePlacementUtils.h"
 
 namespace Engine
 {

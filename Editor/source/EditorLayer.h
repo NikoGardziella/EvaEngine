@@ -24,6 +24,7 @@
 #include "Commands/CommandGroup.h"
 #include "TilePlacement/WallPlacement/WallDirectionalTypeSet.h"
 #include "TilePlacement/WallPlacement/WallRectanglePlacementTool.h"
+#include <TilePlacement/TerrainPlacement/TerrainRectanglePlacementTool.h>
 
 
 
@@ -177,8 +178,12 @@ namespace Engine {
 		// key shortcuts
 
 		bool m_controlPressed = false;
+
+		// placement tools
 		eEditorPlacementTool m_CurrentPlacementTool = eEditorPlacementTool::PaintSingleTile;
+
 		WallRectanglePlacementTool m_WallRectTool;
+		TerrainRectanglePlacementTool m_TerrainRectTool;
 		
 	private:
 		

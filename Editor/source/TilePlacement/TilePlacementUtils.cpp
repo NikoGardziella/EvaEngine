@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "TilePlacementUtils.h"
-#include "WallRectanglePlacementTool.h"
 
 
 namespace Engine {
