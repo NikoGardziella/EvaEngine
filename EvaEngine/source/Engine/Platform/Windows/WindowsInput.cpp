@@ -37,11 +37,12 @@ namespace Engine {
 	{
 		return s_CurrentMouseButtons[keycode];
 	}
-
+	/*
 	bool Input::IsMouseButtonDown(MouseCode keycode)
 	{
 		return s_CurrentMouseButtons[keycode] && !s_PreviousMouseButtons[keycode];
 	}
+	*/
 	bool Input::IsMouseButtonReleased(MouseCode keycode)
 	{
 		return !s_CurrentMouseButtons[keycode] && s_PreviousMouseButtons[keycode];

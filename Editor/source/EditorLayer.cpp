@@ -1108,6 +1108,8 @@ namespace Engine {
 
         if (m_mouseIsInViewPort && !selectedTile.empty() && m_sceneState == eSceneState::Edit)
         {
+            /*
+            
             // preview tile placement renderiong
             glm::vec2 ndc;
             ndc.x = (m_localMousePosInViewport.x / m_viewportSize.x) * 2.0f - 1.0f;
@@ -1154,6 +1156,23 @@ namespace Engine {
 
             // IMPORTANT: pass the ground point; DrawTile must be bottom-center pivot
             Engine::VulkanRenderer2D::DrawTile(ground, uv, previewColor);
+            */
+            if (m_roofRectTool.IsDragging())
+            {
+                DrawRoofRectanglePreview();
+            }
+            else if (m_terrainRectTool.IsDragging())
+            {
+                DrawTerrainRectanglePreview();
+            }
+            else if (m_wallRectTool.IsDragging())
+            {
+                DrawWallRectanglePreview();
+            }
+            else
+            {
+                DrawSingleTilePreview();
+            }
         
         
         }
@@ -1238,6 +1257,169 @@ namespace Engine {
         }
        
         Engine::VulkanRenderer2D::EndScene();
+    }
+
+    void EditorLayer::DrawSingleTilePreview()
+    {
+        const std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
+        if (selectedTile.empty())
+            return;
+
+        glm::ivec2 isoCell = GetSnappedIsoPosition();
+        glm::vec2 ground = IsoTileUtils::IsoToWorldGround(isoCell);
+
+        glm::vec4 uv = m_tileEditorPanel.GetTileUV(selectedTile);
+        glm::vec4 previewColor(1.0f, 1.0f, 1.0f, 0.1f); // does not work
+
+        Engine::VulkanRenderer2D::DrawTile(ground, uv, previewColor);
+    }
+
+    void EditorLayer::DrawTerrainRectanglePreview()
+    {
+        const std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
+        if (selectedTile.empty())
+            return;
+
+        std::vector<glm::ivec2> previewCells;
+        m_terrainRectTool.BuildPreviewCells(previewCells);
+
+        const glm::vec4 uv = m_tileEditorPanel.GetTileUV(selectedTile);
+        const glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.45f);
+
+        EE_CORE_INFO("previewCells count {}", previewCells.size());
+        for (const glm::ivec2& cell : previewCells)
+        {
+            const glm::vec2 ground = IsoTileUtils::IsoToWorldGround(cell);
+            Engine::VulkanRenderer2D::DrawTile(ground, uv, previewColor);
+        }
+    }
+
+    void EditorLayer::DrawPreviewTileByTypeId(uint16_t typeId, const glm::ivec2& cell, const glm::vec4& color)
+    {
+        if (typeId == 0)
+            return;
+
+        Ref<Scene> scene = m_sceneHierarchyPanel.GetEditorScene();
+        if (!scene)
+            return;
+
+        TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+        const TileDefinition* def = defs.Get(typeId);
+        if (!def)
+            return;
+
+        const glm::vec2 ground = IsoTileUtils::IsoToWorldGround(cell);
+        Engine::VulkanRenderer2D::DrawTile(ground, def->UV, color);
+    }
+
+
+    void EditorLayer::DrawRoofRectanglePreview()
+    {
+        RoofDirectionalTypeSet set = BuildRoofTypeSetFromSelectedTile();
+        if (!set.IsValid())
+            return;
+
+        const glm::ivec2 minCell = m_roofRectTool.GetMinCell();
+        const glm::ivec2 maxCell = m_roofRectTool.GetMaxCell();
+
+        const glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.45f);
+
+        for (int y = minCell.y; y <= maxCell.y; y++)
+        {
+            for (int x = minCell.x; x <= maxCell.x; x++)
+            {
+                const glm::ivec2 cell{ x, y };
+                const eRectCellKind kind = TilePlacementUtils::ClassifyRectangleCell(cell, minCell, maxCell);
+
+                uint16_t typeId = 0;
+
+                switch (kind)
+                {
+                case eRectCellKind::TopLeftCorner:      typeId = set.CornerNorth; break;
+                case eRectCellKind::TopRightCorner:     typeId = set.CornerEast;  break;
+                case eRectCellKind::BottomLeftCorner:   typeId = set.CornerWest;  break;
+                case eRectCellKind::BottomRightCorner:  typeId = set.CornerSouth; break;
+
+                case eRectCellKind::TopEdge:            typeId = set.EdgeSouth;   break;
+                case eRectCellKind::BottomEdge:         typeId = set.EdgeNorth;   break;
+                case eRectCellKind::LeftEdge:           typeId = set.EdgeWest;    break;
+                case eRectCellKind::RightEdge:          typeId = set.EdgeEast;    break;
+
+                case eRectCellKind::Interior:           typeId = set.Fill;        break;
+
+                default:
+                    break;
+                }
+
+                DrawPreviewTileByTypeId(typeId, cell, previewColor);
+            }
+        }
+    }
+
+    void EditorLayer::DrawWallRectanglePreview()
+    {
+        WallDirectionalTypeSet set = BuildDirectionalWallTypeSetFromSelectedTile();
+        if (!set.IsValid())
+            return;
+
+        const glm::ivec2 minCell = m_wallRectTool.GetMinCell();
+        const glm::ivec2 maxCell = m_wallRectTool.GetMaxCell();
+
+        const glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.45f);
+
+        for (int y = minCell.y; y <= maxCell.y; y++)
+        {
+            for (int x = minCell.x; x <= maxCell.x; x++)
+            {
+                const glm::ivec2 cell{ x, y };
+                const eRectCellKind kind = TilePlacementUtils::ClassifyRectangleCell(cell, minCell, maxCell);
+
+                switch (kind)
+                {
+                case eRectCellKind::Interior:
+                    break;
+
+                case eRectCellKind::TopEdge:
+                    DrawPreviewTileByTypeId(set.South, cell, previewColor);
+                    break;
+
+                case eRectCellKind::BottomEdge:
+                    DrawPreviewTileByTypeId(set.North, cell, previewColor);
+                    break;
+
+                case eRectCellKind::LeftEdge:
+                    DrawPreviewTileByTypeId(set.West, cell, previewColor);
+                    break;
+
+                case eRectCellKind::RightEdge:
+                    DrawPreviewTileByTypeId(set.East, cell, previewColor);
+                    break;
+
+                case eRectCellKind::TopLeftCorner:
+                    DrawPreviewTileByTypeId(set.South, cell, previewColor);
+                    DrawPreviewTileByTypeId(set.West, cell, previewColor);
+                    break;
+
+                case eRectCellKind::TopRightCorner:
+                    DrawPreviewTileByTypeId(set.South, cell, previewColor);
+                    DrawPreviewTileByTypeId(set.East, cell, previewColor);
+                    break;
+
+                case eRectCellKind::BottomLeftCorner:
+                    DrawPreviewTileByTypeId(set.North, cell, previewColor);
+                    DrawPreviewTileByTypeId(set.West, cell, previewColor);
+                    break;
+
+                case eRectCellKind::BottomRightCorner:
+                    DrawPreviewTileByTypeId(set.North, cell, previewColor);
+                    DrawPreviewTileByTypeId(set.East, cell, previewColor);
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        }
     }
 
     uint16_t EditorLayer::GetOrCreateDefinitionForTileByName(const std::string& tileNameRaw)
@@ -1478,14 +1660,14 @@ namespace Engine {
                     glm::ivec2 hoveredCell = GetSnappedIsoPosition();
 
                     if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-                        m_RoofRectTool.BeginDrag(hoveredCell);
+                        m_roofRectTool.BeginDrag(hoveredCell);
 
-                    if (m_RoofRectTool.IsDragging() && Input::IsMouseButtonDown(Mouse::ButtonLeft))
-                        m_RoofRectTool.UpdateDrag(hoveredCell);
+                    if (m_roofRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+                        m_roofRectTool.UpdateDrag(hoveredCell);
 
-                    if (m_RoofRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
+                    if (m_roofRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
                     {
-                        m_RoofRectTool.UpdateDrag(hoveredCell);
+                        m_roofRectTool.UpdateDrag(hoveredCell);
 
                         Engine::RoofRectanglePlacementContext ctx;
                         ctx.ActiveScene = m_sceneHierarchyPanel.GetEditorScene().get();
@@ -1495,22 +1677,22 @@ namespace Engine {
                         if (!ctx.TypeSet.IsValid())
                         {
                             EE_CORE_WARN("Invalid roof set");
-                            m_RoofRectTool.CancelDrag();
+                            m_roofRectTool.CancelDrag();
                             return;
                         }
 
-                        const glm::ivec2 originCell = m_RoofRectTool.GetMinCell();
+                        const glm::ivec2 originCell = m_roofRectTool.GetMinCell();
                         ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
                         if (ctx.GroupId == 0)
                         {
-                            m_RoofRectTool.CancelDrag();
+                            m_roofRectTool.CancelDrag();
                             return;
                         }
 
                         ctx.Flags = Engine::CompactTileFlags::None;
                         ctx.Aux = 0;
 
-                        m_RoofRectTool.CommitDrag(ctx);
+                        m_roofRectTool.CommitDrag(ctx);
                     }
                 }
                 else if (m_controlPressed && selectedTileCategory == eTileCategory::Terrain)
@@ -1519,17 +1701,17 @@ namespace Engine {
 
                     if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
                     {
-                        m_TerrainRectTool.BeginDrag(hoveredCell);
+                        m_terrainRectTool.BeginDrag(hoveredCell);
                     }
 
-                    if (m_TerrainRectTool.IsDragging() && Input::IsMouseButtonDown(Mouse::ButtonLeft))
+                    if (m_terrainRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
                     {
-                        m_TerrainRectTool.UpdateDrag(hoveredCell);
+                        m_terrainRectTool.UpdateDrag(hoveredCell);
                     }
 
-                    if (m_TerrainRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
+                    if (m_terrainRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
                     {
-                        m_TerrainRectTool.UpdateDrag(hoveredCell);
+                        m_terrainRectTool.UpdateDrag(hoveredCell);
 
                         Engine::TerrainRectanglePlacementContext ctx;
                         ctx.ActiveScene = m_sceneHierarchyPanel.GetEditorScene().get();
@@ -1539,16 +1721,16 @@ namespace Engine {
                         if (ctx.TypeId == 0)
                         {
                             EE_CORE_WARN("Terrain rectangle placement aborted: invalid TypeId");
-                            m_TerrainRectTool.CancelDrag();
+                            m_terrainRectTool.CancelDrag();
                             return;
                         }
 
-                        const glm::ivec2 originCell = m_TerrainRectTool.GetMinCell();
+                        const glm::ivec2 originCell = m_terrainRectTool.GetMinCell();
                         ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
                         ctx.Flags = Engine::CompactTileFlags::None;
                         ctx.Aux = 0;
 
-                        m_TerrainRectTool.CommitDrag(ctx);
+                        m_terrainRectTool.CommitDrag(ctx);
                     }
                 }
                 //if (m_CurrentPlacementTool == eEditorPlacementTool::WallRectangle)
@@ -1557,18 +1739,18 @@ namespace Engine {
                     glm::ivec2 hoveredCell = GetSnappedIsoPosition();
                     if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
                     {
-                        m_WallRectTool.BeginDrag(hoveredCell);
+                        m_wallRectTool.BeginDrag(hoveredCell);
                     }
 
-                    if (m_WallRectTool.IsDragging() && Input::IsMouseButtonDown(Mouse::ButtonLeft))
+                    if (m_wallRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
                     {
-                        m_WallRectTool.UpdateDrag(hoveredCell);
+                        m_wallRectTool.UpdateDrag(hoveredCell);
                     }
 
-                    if (m_WallRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
+                    if (m_wallRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
                     {
                         // ensure final position is captured
-                        m_WallRectTool.UpdateDrag(hoveredCell);
+                        m_wallRectTool.UpdateDrag(hoveredCell);
 
                         Engine::WallRectanglePlacementContext ctx;
                         ctx.ActiveScene = m_sceneHierarchyPanel.GetEditorScene().get();
@@ -1578,14 +1760,14 @@ namespace Engine {
                         if (!ctx.DirectionSet.IsValid())
                         {
                             EE_CORE_WARN("Invalid wall set");
-                            m_WallRectTool.CancelDrag();
+                            m_wallRectTool.CancelDrag();
                             return;
                         }
 
-                        const glm::ivec2 originCell = m_WallRectTool.GetMinCell();
+                        const glm::ivec2 originCell = m_wallRectTool.GetMinCell();
                         ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
 
-                        m_WallRectTool.CommitDrag(ctx);
+                        m_wallRectTool.CommitDrag(ctx);
 
                         m_sceneHierarchyPanel.GetEditorScene()->GetCompactTilePromotion().InvalidateEditorViewportCache();
                         m_sceneHierarchyPanel.GetEditorScene()->ResetCompactTilePromotionState();

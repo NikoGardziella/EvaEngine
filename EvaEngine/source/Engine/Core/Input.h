@@ -13,7 +13,7 @@ namespace Engine{
 		static bool IsKeyPressed(KeyCode key);
 		static void Update();
 		static bool IsMouseButtonPressed(MouseCode button);
-		static bool IsMouseButtonDown(MouseCode keycode);
+		//static bool IsMouseButtonDown(MouseCode keycode);
 		static bool IsMouseButtonReleased(MouseCode keycode);
 		static glm::vec2 GetMousePosition();
 		static glm::vec2 GetMouseScreenPosition();

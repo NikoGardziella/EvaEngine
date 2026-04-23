@@ -114,6 +114,16 @@ namespace Engine {
 
 		void OnOverlayRender();
 
+		void DrawSingleTilePreview();
+
+		void DrawTerrainRectanglePreview();
+
+		void DrawPreviewTileByTypeId(uint16_t typeId, const glm::ivec2& cell, const glm::vec4& color);
+
+		void DrawRoofRectanglePreview();
+
+		void DrawWallRectanglePreview();
+
 		uint16_t GetOrCreateDefinitionForTileByName(const std::string& tileNameRaw);
 
 		RoofDirectionalTypeSet BuildRoofTypeSetFromSelectedTile();
@@ -186,9 +196,9 @@ namespace Engine {
 		// placement tools
 		eEditorPlacementTool m_CurrentPlacementTool = eEditorPlacementTool::PaintSingleTile;
 
-		WallRectanglePlacementTool m_WallRectTool;
-		TerrainRectanglePlacementTool m_TerrainRectTool;
-		RoofRectanglePlacementTool m_RoofRectTool;
+		WallRectanglePlacementTool m_wallRectTool;
+		TerrainRectanglePlacementTool m_terrainRectTool;
+		RoofRectanglePlacementTool m_roofRectTool;
 	private:
 		
 
