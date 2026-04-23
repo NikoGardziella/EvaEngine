@@ -27,6 +27,7 @@
 #include <TilePlacement/TerrainPlacement/TerrainRectanglePlacementTool.h>
 #include <TilePlacement/RoofPlacement/RoofDirectionalTypeSet.h>
 #include <TilePlacement/RoofPlacement/RoofRectanglePlacementTool.h>
+#include <TilePlacement/TilePlacementController.h>
 
 
 
@@ -37,13 +38,15 @@ namespace Engine {
 
 	class EditorLayer : public Layer
 	{
-	
+	public:
+
 		enum class eSceneState
 		{
 			Edit = 0,
 			Play = 1,
 			Pause = 2,
 		};
+	private:
 		enum class eEditorPlacementTool
 		{
 			None = 0,
@@ -199,6 +202,9 @@ namespace Engine {
 		WallRectanglePlacementTool m_wallRectTool;
 		TerrainRectanglePlacementTool m_terrainRectTool;
 		RoofRectanglePlacementTool m_roofRectTool;
+
+
+		TilePlacementController m_TilePlacementController;
 	private:
 		
 

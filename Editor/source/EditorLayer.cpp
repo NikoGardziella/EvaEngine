@@ -56,7 +56,7 @@ namespace Engine {
 
     EditorLayer::EditorLayer(Editor* editor)
         : Layer("EditorLayer"),
-        m_editor(editor)
+        m_editor(editor) , m_TilePlacementController(m_sceneHierarchyPanel, m_tileEditorPanel, m_selectedEntity)
     {
 
     }
@@ -132,6 +132,8 @@ namespace Engine {
         m_editor.get()->GetGameLayer()->SetActiveScene(m_sceneHierarchyPanel.GetEditorScene());
         m_sceneHierarchyPanel.SetGizmoType(ImGuizmo::OPERATION::TRANSLATE);
         m_effectsPanel.SetState(VulkanRenderer2D::GetEffects());
+
+       // m_TilePlacementController = <TilePlacementController>(m_sceneHierarchyPanel, m_tileEditorPanel, m_selectedEntity);
     }
 
     void EditorLayer::OnDetach()
@@ -1104,78 +1106,6 @@ namespace Engine {
 
         }
 
-        std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
-
-        if (m_mouseIsInViewPort && !selectedTile.empty() && m_sceneState == eSceneState::Edit)
-        {
-            /*
-            
-            // preview tile placement renderiong
-            glm::vec2 ndc;
-            ndc.x = (m_localMousePosInViewport.x / m_viewportSize.x) * 2.0f - 1.0f;
-            ndc.y = 1.0f - (m_localMousePosInViewport.y / m_viewportSize.y) * 2.0f;
-
-            glm::vec4 clipNear(ndc.x, ndc.y, -1.0f, 1.0f);
-            glm::vec4 clipFar(ndc.x, ndc.y, 1.0f, 1.0f);
-
-            glm::mat4 invViewProj = glm::inverse(m_editorCamera.GetViewProjection());
-            glm::vec4 worldNear = invViewProj * clipNear; worldNear /= worldNear.w;
-            glm::vec4 worldFar = invViewProj * clipFar;  worldFar /= worldFar.w;
-
-            glm::vec3 ro = glm::vec3(worldNear);
-            glm::vec3 rd = glm::normalize(glm::vec3(worldFar - worldNear));
-            float t = -ro.z / rd.z;
-            glm::vec3 hit = ro + t * rd;
-            glm::vec2 p(hit.x, hit.y);
-
-            // Grid sizes (diamond), NOT sprite height
-            const float tileW = float(TILE_SIZE);        // 128
-            const float tileH = tileW * 0.5f;            // 64
-
-            auto WorldToIsoCell = [&](const glm::vec2& wp) -> glm::ivec2 {
-                float tX = wp.x / (tileW * 0.5f);
-                float tY = wp.y / (tileH * 0.5f);
-                float u = 0.5f * (tY + tX);
-                float v = 0.5f * (tY - tX);
-                return glm::ivec2(glm::round(glm::vec2(u, v)));
-                };
-
-            auto IsoToWorldGround = [&](glm::ivec2 c) -> glm::vec2 {
-                return {
-                    (c.x - c.y) * (tileW * 0.5f),
-                    (c.x + c.y) * (tileH * 0.5f)
-                };
-                };
-
-            glm::ivec2 isoCell = WorldToIsoCell(p);
-            glm::vec2  ground = IsoToWorldGround(isoCell);
-
-            glm::vec4 uv = m_tileEditorPanel.GetTileUV(selectedTile);
-           // glm::vec4 previewUV(uv.x, uv.w, uv.z, uv.y); // flip V
-            glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.55f);
-
-            // IMPORTANT: pass the ground point; DrawTile must be bottom-center pivot
-            Engine::VulkanRenderer2D::DrawTile(ground, uv, previewColor);
-            */
-            if (m_roofRectTool.IsDragging())
-            {
-                DrawRoofRectanglePreview();
-            }
-            else if (m_terrainRectTool.IsDragging())
-            {
-                DrawTerrainRectanglePreview();
-            }
-            else if (m_wallRectTool.IsDragging())
-            {
-                DrawWallRectanglePreview();
-            }
-            else
-            {
-                DrawSingleTilePreview();
-            }
-        
-        
-        }
 
         if (m_sceneState == eSceneState::Edit)
         {
@@ -1647,139 +1577,13 @@ namespace Engine {
 
             OnOverlayRender();
 
-
-            if (m_mouseIsInViewPort && m_sceneState == eSceneState::Edit)
+            if (m_mouseIsInViewPort)
             {
-                const std::string selectedTileNameRaw = m_tileEditorPanel.GetSelectedTileName();
-                const TileProperties& tileProperties = AssetManager::GetTileProperties(selectedTileNameRaw);
+                const glm::ivec2 hoveredCell = GetSnappedIsoPosition();
+                bool isEditMote = m_sceneState == eSceneState::Edit;
+                m_TilePlacementController.HandleInput(m_mouseIsInViewPort, isEditMote, m_controlPressed, hoveredCell);
 
-                const eTileCategory selectedTileCategory = tileProperties.category;
-                
-                if (m_controlPressed && selectedTileCategory == eTileCategory::Roofs)
-                {
-                    glm::ivec2 hoveredCell = GetSnappedIsoPosition();
-
-                    if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-                        m_roofRectTool.BeginDrag(hoveredCell);
-
-                    if (m_roofRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-                        m_roofRectTool.UpdateDrag(hoveredCell);
-
-                    if (m_roofRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
-                    {
-                        m_roofRectTool.UpdateDrag(hoveredCell);
-
-                        Engine::RoofRectanglePlacementContext ctx;
-                        ctx.ActiveScene = m_sceneHierarchyPanel.GetEditorScene().get();
-                        ctx.CompactMap = &m_sceneHierarchyPanel.GetEditorScene()->GetCompactTileMap();
-
-                        ctx.TypeSet = BuildRoofTypeSetFromSelectedTile();
-                        if (!ctx.TypeSet.IsValid())
-                        {
-                            EE_CORE_WARN("Invalid roof set");
-                            m_roofRectTool.CancelDrag();
-                            return;
-                        }
-
-                        const glm::ivec2 originCell = m_roofRectTool.GetMinCell();
-                        ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
-                        if (ctx.GroupId == 0)
-                        {
-                            m_roofRectTool.CancelDrag();
-                            return;
-                        }
-
-                        ctx.Flags = Engine::CompactTileFlags::None;
-                        ctx.Aux = 0;
-
-                        m_roofRectTool.CommitDrag(ctx);
-                    }
-                }
-                else if (m_controlPressed && selectedTileCategory == eTileCategory::Terrain)
-                {
-                    glm::ivec2 hoveredCell = GetSnappedIsoPosition();
-
-                    if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-                    {
-                        m_terrainRectTool.BeginDrag(hoveredCell);
-                    }
-
-                    if (m_terrainRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-                    {
-                        m_terrainRectTool.UpdateDrag(hoveredCell);
-                    }
-
-                    if (m_terrainRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
-                    {
-                        m_terrainRectTool.UpdateDrag(hoveredCell);
-
-                        Engine::TerrainRectanglePlacementContext ctx;
-                        ctx.ActiveScene = m_sceneHierarchyPanel.GetEditorScene().get();
-                        ctx.CompactMap = &m_sceneHierarchyPanel.GetEditorScene()->GetCompactTileMap();
-                        ctx.TypeId = GetOrCreateDefinitionForSelectedTile();
-
-                        if (ctx.TypeId == 0)
-                        {
-                            EE_CORE_WARN("Terrain rectangle placement aborted: invalid TypeId");
-                            m_terrainRectTool.CancelDrag();
-                            return;
-                        }
-
-                        const glm::ivec2 originCell = m_terrainRectTool.GetMinCell();
-                        ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
-                        ctx.Flags = Engine::CompactTileFlags::None;
-                        ctx.Aux = 0;
-
-                        m_terrainRectTool.CommitDrag(ctx);
-                    }
-                }
-                //if (m_CurrentPlacementTool == eEditorPlacementTool::WallRectangle)
-                else if (m_controlPressed && selectedTileCategory == eTileCategory::Buildings)
-                {
-                    glm::ivec2 hoveredCell = GetSnappedIsoPosition();
-                    if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-                    {
-                        m_wallRectTool.BeginDrag(hoveredCell);
-                    }
-
-                    if (m_wallRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-                    {
-                        m_wallRectTool.UpdateDrag(hoveredCell);
-                    }
-
-                    if (m_wallRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
-                    {
-                        // ensure final position is captured
-                        m_wallRectTool.UpdateDrag(hoveredCell);
-
-                        Engine::WallRectanglePlacementContext ctx;
-                        ctx.ActiveScene = m_sceneHierarchyPanel.GetEditorScene().get();
-                        ctx.CompactMap = &m_sceneHierarchyPanel.GetEditorScene()->GetCompactTileMap();
-
-                        ctx.DirectionSet = BuildDirectionalWallTypeSetFromSelectedTile();
-                        if (!ctx.DirectionSet.IsValid())
-                        {
-                            EE_CORE_WARN("Invalid wall set");
-                            m_wallRectTool.CancelDrag();
-                            return;
-                        }
-
-                        const glm::ivec2 originCell = m_wallRectTool.GetMinCell();
-                        ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
-
-                        m_wallRectTool.CommitDrag(ctx);
-
-                        m_sceneHierarchyPanel.GetEditorScene()->GetCompactTilePromotion().InvalidateEditorViewportCache();
-                        m_sceneHierarchyPanel.GetEditorScene()->ResetCompactTilePromotionState();
-                    }
-                }
-                else if (Input::IsMouseButtonPressed(Mouse::Button0))
-                {
-                    PlaceSelectedTile();
-                }
-                SortIsometricTilesByY();
-
-
+                m_TilePlacementController.DrawPreview(m_mouseIsInViewPort, isEditMote);
             }
         }
     }
