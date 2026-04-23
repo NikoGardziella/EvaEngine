@@ -14,14 +14,16 @@
 #include <Panels/SceneHierarchyPanel.h>
 #include <Panels/TileEditorPanel.h>
 #include <Engine/Scene/Entity.h>
+#include <Commands/CommandHistory.h>
+#include <Commands/PlaceCompactTileCommand.h>
 namespace Engine
 {
-    TilePlacementController::TilePlacementController(SceneHierarchyPanel& sceneHierarchyPanel,
-        TileEditorPanel& tileEditorPanel,
-        Entity& selectedEntity)
-        : m_SceneHierarchyPanel(sceneHierarchyPanel)
-        , m_TileEditorPanel(tileEditorPanel)
-        , m_SelectedEntity(selectedEntity)
+    TilePlacementController::TilePlacementController(SceneHierarchyPanel& sceneHierarchyPanel, TileEditorPanel& tileEditorPanel,
+        Entity& selectedEntity, CommandHistory& commandHistory)
+        : m_sceneHierarchyPanel(sceneHierarchyPanel)
+        , m_tileEditorPanel(tileEditorPanel)
+        , m_selectedEntity(selectedEntity)
+        , m_commandHistory(commandHistory)
     {
     }
 
@@ -76,19 +78,19 @@ namespace Engine
         if (selectedTileName.empty())
             return;
 
-        if (m_RoofRectTool.IsDragging())
+        if (m_roofRectTool.IsDragging())
         {
             DrawRoofRectanglePreview();
             return;
         }
 
-        if (m_TerrainRectTool.IsDragging())
+        if (m_terrainRectTool.IsDragging())
         {
             DrawTerrainRectanglePreview();
             return;
         }
 
-        if (m_WallRectTool.IsDragging())
+        if (m_wallRectTool.IsDragging())
         {
             DrawWallRectanglePreview();
             return;
@@ -100,14 +102,14 @@ namespace Engine
     void TilePlacementController::HandleRoofPlacement(bool, const glm::ivec2& hoveredCell)
     {
         if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-            m_RoofRectTool.BeginDrag(hoveredCell);
+            m_roofRectTool.BeginDrag(hoveredCell);
 
-        if (m_RoofRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-            m_RoofRectTool.UpdateDrag(hoveredCell);
+        if (m_roofRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+            m_roofRectTool.UpdateDrag(hoveredCell);
 
-        if (m_RoofRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
+        if (m_roofRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
         {
-            m_RoofRectTool.UpdateDrag(hoveredCell);
+            m_roofRectTool.UpdateDrag(hoveredCell);
 
             RoofRectanglePlacementContext ctx;
             ctx.ActiveScene = GetEditorScene().get();
@@ -117,22 +119,22 @@ namespace Engine
             if (!ctx.TypeSet.IsValid())
             {
                 EE_CORE_WARN("Invalid roof set");
-                m_RoofRectTool.CancelDrag();
+                m_roofRectTool.CancelDrag();
                 return;
             }
 
-            const glm::ivec2 originCell = m_RoofRectTool.GetMinCell();
+            const glm::ivec2 originCell = m_roofRectTool.GetMinCell();
             ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
             if (ctx.GroupId == 0)
             {
-                m_RoofRectTool.CancelDrag();
+                m_roofRectTool.CancelDrag();
                 return;
             }
 
             ctx.Flags = CompactTileFlags::None;
             ctx.Aux = 0;
 
-            m_RoofRectTool.CommitDrag(ctx);
+            m_roofRectTool.CommitDrag(ctx);
             ctx.ActiveScene->GetCompactTilePromotion().InvalidateEditorViewportCache();
 
         }
@@ -141,14 +143,14 @@ namespace Engine
     void TilePlacementController::HandleTerrainPlacement(bool, const glm::ivec2& hoveredCell)
     {
         if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-            m_TerrainRectTool.BeginDrag(hoveredCell);
+            m_terrainRectTool.BeginDrag(hoveredCell);
 
-        if (m_TerrainRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-            m_TerrainRectTool.UpdateDrag(hoveredCell);
+        if (m_terrainRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+            m_terrainRectTool.UpdateDrag(hoveredCell);
 
-        if (m_TerrainRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
+        if (m_terrainRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
         {
-            m_TerrainRectTool.UpdateDrag(hoveredCell);
+            m_terrainRectTool.UpdateDrag(hoveredCell);
 
             TerrainRectanglePlacementContext ctx;
             ctx.ActiveScene = GetEditorScene().get();
@@ -158,22 +160,22 @@ namespace Engine
             if (ctx.TypeId == 0)
             {
                 EE_CORE_WARN("Terrain rectangle placement aborted: invalid TypeId");
-                m_TerrainRectTool.CancelDrag();
+                m_terrainRectTool.CancelDrag();
                 return;
             }
 
-            const glm::ivec2 originCell = m_TerrainRectTool.GetMinCell();
+            const glm::ivec2 originCell = m_terrainRectTool.GetMinCell();
             ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
             if (ctx.GroupId == 0)
             {
-                m_TerrainRectTool.CancelDrag();
+                m_terrainRectTool.CancelDrag();
                 return;
             }
 
             ctx.Flags = CompactTileFlags::None;
             ctx.Aux = 0;
 
-            m_TerrainRectTool.CommitDrag(ctx);
+            m_terrainRectTool.CommitDrag(ctx);
             ctx.ActiveScene->GetCompactTilePromotion().InvalidateEditorViewportCache();
 
         }
@@ -182,14 +184,14 @@ namespace Engine
     void TilePlacementController::HandleWallPlacement(bool, const glm::ivec2& hoveredCell)
     {
         if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-            m_WallRectTool.BeginDrag(hoveredCell);
+            m_wallRectTool.BeginDrag(hoveredCell);
 
-        if (m_WallRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
-            m_WallRectTool.UpdateDrag(hoveredCell);
+        if (m_wallRectTool.IsDragging() && Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+            m_wallRectTool.UpdateDrag(hoveredCell);
 
-        if (m_WallRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
+        if (m_wallRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
         {
-            m_WallRectTool.UpdateDrag(hoveredCell);
+            m_wallRectTool.UpdateDrag(hoveredCell);
 
             WallRectanglePlacementContext ctx;
             ctx.ActiveScene = GetEditorScene().get();
@@ -199,35 +201,164 @@ namespace Engine
             if (!ctx.DirectionSet.IsValid())
             {
                 EE_CORE_WARN("Invalid wall set");
-                m_WallRectTool.CancelDrag();
+                m_wallRectTool.CancelDrag();
                 return;
             }
 
-            const glm::ivec2 originCell = m_WallRectTool.GetMinCell();
+            const glm::ivec2 originCell = m_wallRectTool.GetMinCell();
             ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
             if (ctx.GroupId == 0)
             {
-                m_WallRectTool.CancelDrag();
+                m_wallRectTool.CancelDrag();
                 return;
             }
 
             ctx.WallFlags = CompactTileFlags::None;
             ctx.WallAux = 0;
 
-            m_WallRectTool.CommitDrag(ctx);
+            m_wallRectTool.CommitDrag(ctx);
             ctx.ActiveScene->GetCompactTilePromotion().InvalidateEditorViewportCache();
         }
     }
 
     void TilePlacementController::HandleSingleTilePlacement()
     {
-        if (Input::IsMouseButtonPressed(Mouse::Button0))
+        if (!Input::IsMouseButtonPressed(Mouse::Button0))
+            return;
+
+        const std::string selectedTile = m_tileEditorPanel.GetSelectedTileName();
+        if (selectedTile.empty())
+            return;
+
+        Entity selectedEntity = m_selectedEntity;
+
+        if (!m_activeStroke)
         {
-            // keep this in EditorLayer only if you want,
-            // but if fully moving out, replace with your single-tile placement implementation
-            // Example placeholder:
-            // PlaceSelectedTile();
+            m_activeStroke = std::make_unique<CommandGroup>();
+
+            if (!selectedEntity || m_sceneHierarchyPanel.IsSelectionLocked())
+                selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
+
+            m_strokeCreatedNewEntity = !selectedEntity;
         }
+        else
+        {
+            if (!m_activeStroke->IsEmpty())
+                m_commandHistory.Push(std::move(m_activeStroke));
+
+            m_activeStroke = nullptr;
+            return;
+        }
+
+        const glm::ivec2 isoCell = m_hoveredCell;
+
+        if (!CanPlaceTile(selectedTile, isoCell))
+            return;
+
+        CompactTile compactTile = BuildCompactTileForSelection(selectedEntity, isoCell);
+        if (compactTile.IsEmpty())
+            return;
+
+        const eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTile);
+
+        Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(
+            GetEditorScene().get(),
+            isoCell,
+            compactTile,
+            tileDir
+        );
+
+        cmd->Execute();
+        m_activeStroke->AddCommand(std::move(cmd));
+
+        m_strokeCreatedNewEntity = false;
+    }
+
+
+    CompactTile TilePlacementController::BuildCompactTileForSelection(Entity selectedEntity, glm::ivec2 isoCell)
+    {
+        Ref<Scene> scene = m_sceneHierarchyPanel.GetEditorScene();
+        if (!scene)
+        {
+            EE_CORE_WARN("BuildCompactTileForSelection scene = null");
+            return {};
+        }
+
+        const uint16_t typeId = GetOrCreateDefinitionForSelectedTile();
+        if (typeId == 0)
+        {
+            EE_CORE_WARN("BuildCompactTileForSelection typeId == 0");
+            return {};
+        }
+
+        if (m_sceneHierarchyPanel.IsSelectionLocked())
+            selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
+
+        uint64_t groupID = 0;
+        CompactTileMap& compactMap = scene->GetCompactTileMap();
+
+        if (!selectedEntity || !scene->IsEntityValid(selectedEntity))
+        {
+            Entity newEntity = scene->CreateEntity("Entity");
+            selectedEntity = newEntity;
+            m_selectedEntity = newEntity;
+            m_sceneHierarchyPanel.SetSelectedEntity(newEntity);
+
+            groupID = static_cast<uint64_t>(newEntity.GetUUID());
+            newEntity.GetComponent<TagComponent>().Tag = "Entity" + std::to_string(groupID);
+
+            TransformComponent& transformComp = newEntity.AddComponent<TransformComponent>();
+            const glm::vec2 rootWorldPos = IsoTileUtils::IsoToWorldGround(isoCell);
+            transformComp.Translation = glm::vec3(rootWorldPos, 0.0f);
+
+            if (!compactMap.HasGroupInfo(groupID))
+                compactMap.SetGroupOrigin(groupID, isoCell);
+
+            EE_CORE_INFO("new entity pos: {}", transformComp.Translation);
+        }
+        else
+        {
+            groupID = static_cast<uint64_t>(selectedEntity.GetUUID());
+        }
+
+        CompactTile tile{};
+        tile.TypeId = typeId;
+        tile.Flags = Engine::CompactTileFlags::None;
+        tile.Aux = 0;
+        tile.GroupId = groupID;
+
+
+        if (compactMap.HasTileType(isoCell, tile.TypeId))
+        {
+            EE_CORE_INFO("Compact tile type {} already exists at cell ({}, {})",
+                tile.TypeId, isoCell.x, isoCell.y);
+            return {};
+        }
+
+        return tile;
+    }
+
+    bool TilePlacementController::CanPlaceTile(std::string selectedTileName, glm::ivec2 isoCell)
+    {
+        auto& registry = m_sceneHierarchyPanel.GetEditorScene()->GetRegistry();
+        {
+            auto view = registry.view<TileComponent, TransformComponent, IDComponent>();
+            for (auto entity : view)
+            {
+                const auto& tc = view.get<TileComponent>(entity);
+                const auto& tr = view.get<TransformComponent>(entity);
+                for (const auto& tinfo : tc.tiles)
+                {
+                    glm::vec2 tileGround = glm::vec2(tr.Translation) + tinfo.position;
+                    if (IsoTileUtils::WorldToIsoCellInt(tileGround) == isoCell &&
+                        tinfo.name == selectedTileName)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     void TilePlacementController::DrawSingleTilePreview()
@@ -236,7 +367,7 @@ namespace Engine
         if (selectedTile.empty())
             return;
 
-        const glm::vec4 uv = m_TileEditorPanel.GetTileUV(selectedTile);
+        const glm::vec4 uv = m_tileEditorPanel.GetTileUV(selectedTile);
         const glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.45f);
 
         const glm::vec2 ground = IsoTileUtils::IsoToWorldGround(m_hoveredCell);
@@ -252,9 +383,9 @@ namespace Engine
             return;
 
         std::vector<glm::ivec2> previewCells;
-        m_TerrainRectTool.BuildPreviewCells(previewCells);
+        m_terrainRectTool.BuildPreviewCells(previewCells);
 
-        const glm::vec4 uv = m_TileEditorPanel.GetTileUV(selectedTile);
+        const glm::vec4 uv = m_tileEditorPanel.GetTileUV(selectedTile);
         const glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.45f);
 
         for (const glm::ivec2& cell : previewCells)
@@ -270,8 +401,8 @@ namespace Engine
         if (!set.IsValid())
             return;
 
-        const glm::ivec2 minCell = m_WallRectTool.GetMinCell();
-        const glm::ivec2 maxCell = m_WallRectTool.GetMaxCell();
+        const glm::ivec2 minCell = m_wallRectTool.GetMinCell();
+        const glm::ivec2 maxCell = m_wallRectTool.GetMaxCell();
         const glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.45f);
 
         for (int y = minCell.y; y <= maxCell.y; y++)
@@ -335,8 +466,8 @@ namespace Engine
         if (!set.IsValid())
             return;
 
-        const glm::ivec2 minCell = m_RoofRectTool.GetMinCell();
-        const glm::ivec2 maxCell = m_RoofRectTool.GetMaxCell();
+        const glm::ivec2 minCell = m_roofRectTool.GetMinCell();
+        const glm::ivec2 maxCell = m_roofRectTool.GetMaxCell();
         const glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.45f);
 
         for (int y = minCell.y; y <= maxCell.y; y++)
@@ -391,12 +522,12 @@ namespace Engine
 
     Ref<Scene> TilePlacementController::GetEditorScene() const
     {
-        return m_SceneHierarchyPanel.GetEditorScene();
+        return m_sceneHierarchyPanel.GetEditorScene();
     }
 
     std::string TilePlacementController::GetSelectedTileName() const
     {
-        return m_TileEditorPanel.GetSelectedTileName();
+        return m_tileEditorPanel.GetSelectedTileName();
     }
 
     eTileCategory TilePlacementController::GetSelectedTileCategory() const
@@ -411,7 +542,7 @@ namespace Engine
 
     glm::vec4 TilePlacementController::GetSelectedTileUV() const
     {
-        return m_TileEditorPanel.GetTileUV(GetSelectedTileName());
+        return m_tileEditorPanel.GetTileUV(GetSelectedTileName());
     }
 
     uint16_t TilePlacementController::GetOrCreateDefinitionForSelectedTile()
@@ -422,14 +553,14 @@ namespace Engine
 
         TileDefinitionRegistry& defs = scene->GetTileDefinitions();
 
-        const std::string selectedTileName = m_TileEditorPanel.GetSelectedTileName();
+        const std::string selectedTileName = m_tileEditorPanel.GetSelectedTileName();
         if (selectedTileName.empty())
         {
             EE_CORE_WARN("GetOrCreateDefinitionForSelectedTile: no tile selected");
             return 0;
         }
 
-        const glm::vec4 selectedUV = m_TileEditorPanel.GetTileUV(selectedTileName);
+        const glm::vec4 selectedUV = m_tileEditorPanel.GetTileUV(selectedTileName);
         const TileProperties& tileProps = AssetManager::GetTileProperties(selectedTileName);
         const eTileCategory selectedCategory = tileProps.category;
 
@@ -481,7 +612,7 @@ namespace Engine
             return 0;
         }
 
-        const glm::vec4 uv = m_TileEditorPanel.GetTileUV(tileName);
+        const glm::vec4 uv = m_tileEditorPanel.GetTileUV(tileName);
         const TileProperties& tileProperties = AssetManager::GetTileProperties(tileName);
 
         const eTileCategory category = tileProperties.category;
@@ -611,10 +742,10 @@ namespace Engine
         if (!scene)
             return 0;
 
-        Entity selectedEntity = m_SelectedEntity;
+        Entity selectedEntity = m_selectedEntity;
 
-        if (m_SceneHierarchyPanel.IsSelectionLocked())
-            selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+        if (m_sceneHierarchyPanel.IsSelectionLocked())
+            selectedEntity = m_sceneHierarchyPanel.GetSelectedEntity();
 
         CompactTileMap& compactMap = scene->GetCompactTileMap();
 
@@ -630,8 +761,8 @@ namespace Engine
 
         Entity newEntity = scene->CreateEntity("Entity");
         selectedEntity = newEntity;
-        m_SelectedEntity = newEntity;
-        m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
+        m_selectedEntity = newEntity;
+        m_sceneHierarchyPanel.SetSelectedEntity(newEntity);
 
         const uint64_t groupID = static_cast<uint64_t>(newEntity.GetUUID());
 

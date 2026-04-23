@@ -8,6 +8,8 @@
 #include "TerrainPlacement/TerrainRectanglePlacementTool.h"
 #include "WallPlacement/WallRectanglePlacementTool.h"
 #include "RoofPlacement/RoofRectanglePlacementTool.h"
+#include <Commands/CommandGroup.h>
+#include <Commands/CommandHistory.h>
 
 
 
@@ -23,9 +25,8 @@ namespace Engine
     public:
 
        
-        TilePlacementController(SceneHierarchyPanel& sceneHierarchyPanel,
-            TileEditorPanel& tileEditorPanel,
-            Entity& selectedEntity);
+        TilePlacementController(SceneHierarchyPanel& sceneHierarchyPanel, TileEditorPanel& tileEditorPanel,
+            Entity& selectedEntity, CommandHistory& commandHistory);
 
         void HandleInput(bool mouseIsInViewport,
             bool isEditMode,
@@ -49,6 +50,10 @@ namespace Engine
         void DrawRoofRectanglePreview();
         void DrawPreviewTileByTypeId(uint16_t typeId, const glm::ivec2& cell, const glm::vec4& color);
 
+        bool CanPlaceTile(std::string selectedTileName, glm::ivec2 isoCell);
+        CompactTile BuildCompactTileForSelection(Entity selectedEntity, glm::ivec2 isoCell);
+
+
         // Helpers
         Ref<Scene> GetEditorScene() const;
         std::string GetSelectedTileName() const;
@@ -66,12 +71,16 @@ namespace Engine
     private:
 
         glm::ivec2 m_hoveredCell;
-        SceneHierarchyPanel& m_SceneHierarchyPanel;
-        TileEditorPanel& m_TileEditorPanel;
-        Entity& m_SelectedEntity;
+        SceneHierarchyPanel& m_sceneHierarchyPanel;
+        TileEditorPanel& m_tileEditorPanel;
+        Entity& m_selectedEntity;
 
-        TerrainRectanglePlacementTool m_TerrainRectTool;
-        WallRectanglePlacementTool m_WallRectTool;
-        RoofRectanglePlacementTool m_RoofRectTool;
+        CommandHistory& m_commandHistory;
+        Scope<CommandGroup> m_activeStroke;
+        bool m_strokeCreatedNewEntity = false;
+
+        TerrainRectanglePlacementTool m_terrainRectTool;
+        WallRectanglePlacementTool m_wallRectTool;
+        RoofRectanglePlacementTool m_roofRectTool;
     };
 }

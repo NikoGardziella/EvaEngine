@@ -68,7 +68,6 @@ namespace Engine {
 		WallDirectionalTypeSet BuildDirectionalWallTypeSetFromSelectedTile();
 
 		void OnUpdate(Timestep timestep) override;
-		void PlaceSelectedTile();
 		void DrawSelectedTileOutline();
 		void OnUpdateECS(Timestep timestep) override;
 		void OnEvent(Event& event) override;
@@ -76,7 +75,6 @@ namespace Engine {
 
 		TileInfo OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory);
 
-		CompactTile BuildCompactTileForSelection(Entity selectedEntity, glm::ivec2 isoCell);
 
 		uint64_t GetOrCreatePlacementGroupId(glm::ivec2 originCell);
 
@@ -113,23 +111,13 @@ namespace Engine {
 		void SortIsometricTilesByY();
 
 		glm::vec2 GetSnappedIsoPosition();
-		bool CanPlaceTile(std::string selectedTileName, glm::ivec2 groundPos);
 
 		void OnOverlayRender();
 
-		void DrawSingleTilePreview();
-
-		void DrawTerrainRectanglePreview();
-
-		void DrawPreviewTileByTypeId(uint16_t typeId, const glm::ivec2& cell, const glm::vec4& color);
-
-		void DrawRoofRectanglePreview();
-
-		void DrawWallRectanglePreview();
+		
 
 		uint16_t GetOrCreateDefinitionForTileByName(const std::string& tileNameRaw);
 
-		RoofDirectionalTypeSet BuildRoofTypeSetFromSelectedTile();
 
 	private:
 
@@ -197,21 +185,17 @@ namespace Engine {
 		bool m_controlPressed = false;
 
 		// placement tools
-		eEditorPlacementTool m_CurrentPlacementTool = eEditorPlacementTool::PaintSingleTile;
-
-		WallRectanglePlacementTool m_wallRectTool;
-		TerrainRectanglePlacementTool m_terrainRectTool;
-		RoofRectanglePlacementTool m_roofRectTool;
+		
 
 
-		TilePlacementController m_TilePlacementController;
+		TilePlacementController m_tilePlacementController;
 	private:
 		
 
-		CommandHistory m_CommandHistory;
-		std::unique_ptr<CommandGroup> m_ActiveStroke = nullptr;
+		CommandHistory m_commandHistory;
+		std::unique_ptr<CommandGroup> m_activeStroke = nullptr;
 
-		bool m_StrokeCreatedNewEntity = false;
+		bool m_strokeCreatedNewEntity = false;
 		
 	};
 
