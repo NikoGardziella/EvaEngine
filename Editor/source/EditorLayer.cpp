@@ -1293,6 +1293,80 @@ namespace Engine {
 
         return def.TypeId;
     }
+    RoofDirectionalTypeSet EditorLayer::BuildRoofTypeSetFromSelectedTile()
+    {
+        RoofDirectionalTypeSet out{};
+
+        const std::string selectedTileNameRaw = m_tileEditorPanel.GetSelectedTileName();
+        if (selectedTileNameRaw.empty())
+        {
+            EE_CORE_WARN("BuildRoofTypeSetFromSelectedTile: no tile selected");
+            return out;
+        }
+
+        std::string baseName;
+        char selectedDir = 0;
+        if (!TilePlacementUtils::SplitDirectionalTileName(selectedTileNameRaw, baseName, selectedDir))
+        {
+            EE_CORE_WARN("BuildRoofTypeSetFromSelectedTile: '{}' is not directional", selectedTileNameRaw);
+            return out;
+        }
+
+        
+        if (baseName.empty())
+        {
+            EE_CORE_WARN("BuildRoofTypeSetFromSelectedTile: empty base name");
+            return out;
+        }
+
+        // Remove trailing digits from baseName
+        size_t suffixStart = baseName.size();
+        while (suffixStart > 0 && std::isdigit(static_cast<unsigned char>(baseName[suffixStart - 1])))
+        {
+            --suffixStart;
+        }
+
+        if (suffixStart == baseName.size())
+        {
+            EE_CORE_WARN("BuildRoofTypeSetFromSelectedTile: could not find numeric suffix in '{}'", baseName);
+            return out;
+        }
+
+        const std::string familyPrefix = baseName.substr(0, suffixStart);
+
+        // A1 = edges
+        out.EdgeNorth = GetOrCreateDefinitionForTileByName(
+            TilePlacementUtils::MakeDirectionalTileName(familyPrefix + "1", 'N'));
+        out.EdgeSouth = GetOrCreateDefinitionForTileByName(
+            TilePlacementUtils::MakeDirectionalTileName(familyPrefix + "1", 'S'));
+        out.EdgeEast = GetOrCreateDefinitionForTileByName(
+            TilePlacementUtils::MakeDirectionalTileName(familyPrefix + "1", 'E'));
+        out.EdgeWest = GetOrCreateDefinitionForTileByName(
+            TilePlacementUtils::MakeDirectionalTileName(familyPrefix + "1", 'W'));
+
+        // A2 = corners
+        out.CornerNorth = GetOrCreateDefinitionForTileByName(
+            TilePlacementUtils::MakeDirectionalTileName(familyPrefix + "2", 'N'));
+        out.CornerSouth = GetOrCreateDefinitionForTileByName(
+            TilePlacementUtils::MakeDirectionalTileName(familyPrefix + "2", 'S'));
+        out.CornerEast = GetOrCreateDefinitionForTileByName(
+            TilePlacementUtils::MakeDirectionalTileName(familyPrefix + "2", 'E'));
+        out.CornerWest = GetOrCreateDefinitionForTileByName(
+            TilePlacementUtils::MakeDirectionalTileName(familyPrefix + "2", 'W'));
+
+        // A3 = fill
+        // you said use Roof A3_E for inside
+        out.Fill = GetOrCreateDefinitionForTileByName(
+            TilePlacementUtils::MakeDirectionalTileName(familyPrefix + "3", 'E'));
+
+        if (!out.IsValid())
+        {
+            EE_CORE_WARN("BuildRoofTypeSetFromSelectedTile: missing one or more roof variants for '{}'", familyPrefix);
+        }
+
+        return out;
+    }
+
 
     WallDirectionalTypeSet EditorLayer::BuildDirectionalWallTypeSetFromSelectedTile()
     {
@@ -1399,7 +1473,47 @@ namespace Engine {
 
                 const eTileCategory selectedTileCategory = tileProperties.category;
                 
-                if (m_controlPressed && selectedTileCategory == eTileCategory::Terrain)
+                if (m_controlPressed && selectedTileCategory == eTileCategory::Roofs)
+                {
+                    glm::ivec2 hoveredCell = GetSnappedIsoPosition();
+
+                    if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+                        m_RoofRectTool.BeginDrag(hoveredCell);
+
+                    if (m_RoofRectTool.IsDragging() && Input::IsMouseButtonDown(Mouse::ButtonLeft))
+                        m_RoofRectTool.UpdateDrag(hoveredCell);
+
+                    if (m_RoofRectTool.IsDragging() && Input::IsMouseButtonReleased(Mouse::ButtonLeft))
+                    {
+                        m_RoofRectTool.UpdateDrag(hoveredCell);
+
+                        Engine::RoofRectanglePlacementContext ctx;
+                        ctx.ActiveScene = m_sceneHierarchyPanel.GetEditorScene().get();
+                        ctx.CompactMap = &m_sceneHierarchyPanel.GetEditorScene()->GetCompactTileMap();
+
+                        ctx.TypeSet = BuildRoofTypeSetFromSelectedTile();
+                        if (!ctx.TypeSet.IsValid())
+                        {
+                            EE_CORE_WARN("Invalid roof set");
+                            m_RoofRectTool.CancelDrag();
+                            return;
+                        }
+
+                        const glm::ivec2 originCell = m_RoofRectTool.GetMinCell();
+                        ctx.GroupId = GetOrCreatePlacementGroupId(originCell);
+                        if (ctx.GroupId == 0)
+                        {
+                            m_RoofRectTool.CancelDrag();
+                            return;
+                        }
+
+                        ctx.Flags = Engine::CompactTileFlags::None;
+                        ctx.Aux = 0;
+
+                        m_RoofRectTool.CommitDrag(ctx);
+                    }
+                }
+                else if (m_controlPressed && selectedTileCategory == eTileCategory::Terrain)
                 {
                     glm::ivec2 hoveredCell = GetSnappedIsoPosition();
 
@@ -1481,6 +1595,7 @@ namespace Engine {
                 {
                     PlaceSelectedTile();
                 }
+                SortIsometricTilesByY();
 
 
             }

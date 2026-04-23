@@ -101,43 +101,74 @@ namespace Engine
             for (int x = minCell.x; x <= maxCell.x; x++)
             {
                 const glm::ivec2 cell{ x, y };
-                const eRectCellKind kind = TilePlacementUtils::ClassifyRectangleCell(cell, minCell, maxCell);
-
-                if (kind == eRectCellKind::Interior)
-                    continue;
-
-                uint16_t typeId = 0;
+                const eRectCellKind kind =
+                    TilePlacementUtils::ClassifyRectangleCell(cell, minCell, maxCell);
 
                 switch (kind)
                 {
-                case eRectCellKind::TopEdge:            typeId = ctx.DirectionSet.North; break;
-                case eRectCellKind::BottomEdge:         typeId = ctx.DirectionSet.South; break;
-                case eRectCellKind::LeftEdge:           typeId = ctx.DirectionSet.West;  break;
-                case eRectCellKind::RightEdge:          typeId = ctx.DirectionSet.East;  break;
+                case eRectCellKind::Interior:
+                    break;
 
-                case eRectCellKind::TopLeftCorner:      typeId = ctx.DirectionSet.North; break;
-                case eRectCellKind::TopRightCorner:     typeId = ctx.DirectionSet.North; break;
-                case eRectCellKind::BottomLeftCorner:   typeId = ctx.DirectionSet.South; break;
-                case eRectCellKind::BottomRightCorner:  typeId = ctx.DirectionSet.South; break;
+                case eRectCellKind::TopEdge:
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.South, ctx);
+                    break;
+
+                case eRectCellKind::BottomEdge:
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.North, ctx);
+                    break;
+
+                case eRectCellKind::LeftEdge:
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.West, ctx);
+                    break;
+
+                case eRectCellKind::RightEdge:
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.East, ctx);
+                    break;
+
+                case eRectCellKind::TopLeftCorner:
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.South, ctx);
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.West, ctx);
+                    break;
+
+                case eRectCellKind::TopRightCorner:
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.South, ctx);
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.East, ctx);
+                    break;
+
+                case eRectCellKind::BottomLeftCorner:
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.North, ctx);
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.West, ctx);
+                    break;
+
+                case eRectCellKind::BottomRightCorner:
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.North, ctx);
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.East, ctx);
+                    break;
 
                 default:
-                    continue;
+                    break;
                 }
-
-                if (typeId == 0)
-                    continue;
-
-                if (compactMap.HasTileType(cell, typeId))
-                    continue;
-
-                CompactTile tile{};
-                tile.TypeId = typeId;
-                tile.GroupId = ctx.GroupId;
-                tile.Flags = ctx.WallFlags;
-                tile.Aux = ctx.WallAux;
-                EE_CORE_INFO("adding to cell {}", cell);
-                compactMap.AddTile(cell, tile);
             }
         }
     }
+
+    void WallRectanglePlacementTool::AddWallTileIfNeeded(CompactTileMap& compactMap, const glm::ivec2& cell,
+        uint16_t typeId, const WallRectanglePlacementContext& ctx)
+    {
+        if (typeId == 0)
+            return;
+
+        if (compactMap.HasTileType(cell, typeId))
+            return;
+
+        CompactTile tile{};
+        tile.TypeId = typeId;
+        tile.GroupId = ctx.GroupId;
+        tile.Flags = ctx.WallFlags;
+        tile.Aux = ctx.WallAux;
+
+        compactMap.AddTile(cell, tile);
+    }
+
+
 }

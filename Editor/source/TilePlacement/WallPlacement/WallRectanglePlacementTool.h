@@ -28,8 +28,10 @@ namespace Engine {
         void BuildPreviewCells(std::vector<glm::ivec2>&outWallCells,
             std::vector<glm::ivec2>&outFloorCells) const;
 
+
     private:
         void GeneratePlacement(const WallRectanglePlacementContext & ctx);
+        void AddWallTileIfNeeded(CompactTileMap& compactMap, const glm::ivec2& cell, uint16_t typeId, const WallRectanglePlacementContext& ctx);
 
     private:
         glm::ivec2 m_StartCell{};

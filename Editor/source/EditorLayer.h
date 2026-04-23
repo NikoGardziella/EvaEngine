@@ -25,6 +25,8 @@
 #include "TilePlacement/WallPlacement/WallDirectionalTypeSet.h"
 #include "TilePlacement/WallPlacement/WallRectanglePlacementTool.h"
 #include <TilePlacement/TerrainPlacement/TerrainRectanglePlacementTool.h>
+#include <TilePlacement/RoofPlacement/RoofDirectionalTypeSet.h>
+#include <TilePlacement/RoofPlacement/RoofRectanglePlacementTool.h>
 
 
 
@@ -114,6 +116,8 @@ namespace Engine {
 
 		uint16_t GetOrCreateDefinitionForTileByName(const std::string& tileNameRaw);
 
+		RoofDirectionalTypeSet BuildRoofTypeSetFromSelectedTile();
+
 	private:
 
 		Ref<Shader> m_flatColorShader;
@@ -184,7 +188,7 @@ namespace Engine {
 
 		WallRectanglePlacementTool m_WallRectTool;
 		TerrainRectanglePlacementTool m_TerrainRectTool;
-		
+		RoofRectanglePlacementTool m_RoofRectTool;
 	private:
 		
 
