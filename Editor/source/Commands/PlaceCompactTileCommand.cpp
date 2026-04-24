@@ -36,10 +36,20 @@ namespace Engine
             return;
 
         CompactTileMap& compactMap = m_Scene->GetCompactTileMap();
+        TileDefinitionRegistry& defs = m_Scene->GetTileDefinitions();
 
-        // Do not allow duplicate TypeId in the same cell
         if (compactMap.HasTileType(m_WorldCell, m_NewTile.TypeId))
             return;
+
+        const TileDefinition* newDef = defs.Get(m_NewTile.TypeId);
+        if (!newDef)
+            return;
+
+        compactMap.RemoveTileByCategoryAndDirection(
+            m_WorldCell,
+            defs,
+            newDef->Category,
+            newDef->Direction);
 
         compactMap.AddTile(m_WorldCell, m_NewTile);
 
@@ -47,22 +57,14 @@ namespace Engine
             compactMap.RegisterCellForGroup(m_NewTile.GroupId, m_WorldCell);
 
         compactMap.MarkChunkDirtyForCell(m_WorldCell);
-        
-       
 
-        if (m_NewTile.GroupId != 0 &&
-            m_Scene->GetCompactTilePromotion().IsGroupPromoted(m_NewTile.GroupId))
+        if (m_NewTile.GroupId != 0)
         {
-            m_Scene->GetCompactTilePromotion().PromoteSingleTileIntoExistingGroup(
-                m_Scene,
-                m_NewTile.GroupId,
-                m_WorldCell,
-                m_Scene->GetTileManager(),
-                m_tileDir,
-                m_NewTile.TypeId);
+            compactMap.ClearPromotionFlagsForGroup(m_NewTile.GroupId);
+            m_Scene->GetCompactTilePromotion().PromoteGroup(m_Scene, m_NewTile.GroupId);
         }
-        m_Scene->GetCompactTilePromotion().InvalidateEditorViewportCache();
 
+        m_Scene->GetCompactTilePromotion().InvalidateEditorViewportCache();
     }
 
     void PlaceCompactTileCommand::Undo()

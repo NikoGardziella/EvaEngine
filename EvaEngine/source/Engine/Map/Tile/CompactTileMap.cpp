@@ -268,6 +268,42 @@ namespace Engine
         m_GroupInfo.clear();
     }
 
+    bool CompactTileMap::RemoveTileByCategoryAndDirection(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs,
+        eTileCategory category, eTileDirection direction)
+    {
+        auto it = m_Cells.find(worldCell);
+        if (it == m_Cells.end())
+            return false;
+
+        CompactTileCell& cell = it->second;
+        bool removed = false;
+
+        for (auto tileIt = cell.Tiles.begin(); tileIt != cell.Tiles.end(); )
+        {
+            const TileDefinition* def = defs.Get(tileIt->TypeId);
+
+            if (def && def->Category == category && def->Direction == direction)
+            {
+                const uint64_t oldGroupId = tileIt->GroupId;
+                tileIt = cell.Tiles.erase(tileIt);
+                removed = true;
+
+                if (oldGroupId != 0)
+                    RemoveCellFromGroup(oldGroupId, worldCell);
+            }
+            else
+            {
+                ++tileIt;
+            }
+        }
+
+        if (removed)
+            MarkChunkDirtyForCell(worldCell);
+
+        return removed;
+    }
+
+
     void CompactTileMap::RemoveGroup(uint64_t groupId)
     {
         auto it = m_CellsByGroupId.find(groupId);
