@@ -100,10 +100,45 @@ namespace Engine
 
         const glm::ivec2 minCell = GetMinCell();
         const glm::ivec2 maxCell = GetMaxCell();
+  
+
+        const int width = maxCell.x - minCell.x + 1;
+        const int height = maxCell.y - minCell.y + 1;
+
+        const bool thinX = width == 1;
+        const bool thinY = height == 1;
 
         if (!compactMap.HasGroupInfo(ctx.GroupId))
             compactMap.SetGroupOrigin(ctx.GroupId, minCell);
+        {
+            // so there is no corners added for wall rectancle with widht of 1 tile
+            if (thinX && thinY)
+            {
+                AddWallTileIfNeeded(compactMap, minCell, ctx.DirectionSet.South, ctx);
+                return;
+            }
 
+            if (thinX)
+            {
+                for (int y = minCell.y; y <= maxCell.y; y++)
+                {
+                    glm::ivec2 cell{ minCell.x, y };
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.West, ctx);
+                }
+                return;
+            }
+
+            if (thinY)
+            {
+                for (int x = minCell.x; x <= maxCell.x; x++)
+                {
+                    glm::ivec2 cell{ x, minCell.y };
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.South, ctx);
+                }
+                return;
+            }
+
+        }
         for (int y = minCell.y; y <= maxCell.y; y++)
         {
             for (int x = minCell.x; x <= maxCell.x; x++)
