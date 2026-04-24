@@ -268,8 +268,18 @@ namespace Engine
         m_GroupInfo.clear();
     }
 
-    bool CompactTileMap::RemoveTileByCategoryAndDirection(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs,
-        eTileCategory category, eTileDirection direction)
+    bool CompactTileMap::IsWallReplaceableCategory(eTileCategory category)
+    {
+        return category == eTileCategory::Buildings
+            || category == eTileCategory::Windows
+            || category == eTileCategory::Doors;
+    }
+
+    bool CompactTileMap::RemoveTileByCategoryAndDirection(
+        const glm::ivec2& worldCell,
+        const TileDefinitionRegistry& defs,
+        eTileCategory category,
+        eTileDirection direction)
     {
         auto it = m_Cells.find(worldCell);
         if (it == m_Cells.end())
@@ -278,18 +288,49 @@ namespace Engine
         CompactTileCell& cell = it->second;
         bool removed = false;
 
+        const bool newTileIsWallReplaceable = IsWallReplaceableCategory(category);
+
         for (auto tileIt = cell.Tiles.begin(); tileIt != cell.Tiles.end(); )
         {
             const TileDefinition* def = defs.Get(tileIt->TypeId);
 
-            if (def && def->Category == category && def->Direction == direction)
+            bool shouldRemove = false;
+
+            if (def && def->Direction == direction)
+            {
+                if (newTileIsWallReplaceable && IsWallReplaceableCategory(def->Category))
+                {
+                    shouldRemove = true;
+                }
+                else if (def->Category == category)
+                {
+                    shouldRemove = true;
+                }
+            }
+
+            if (shouldRemove)
             {
                 const uint64_t oldGroupId = tileIt->GroupId;
                 tileIt = cell.Tiles.erase(tileIt);
                 removed = true;
 
                 if (oldGroupId != 0)
-                    RemoveCellFromGroup(oldGroupId, worldCell);
+                {
+                    // Better: only remove cell from group if no other tile from same group remains.
+                    bool stillHasGroupInCell = false;
+
+                    for (const CompactTile& t : cell.Tiles)
+                    {
+                        if (!t.IsEmpty() && t.GroupId == oldGroupId)
+                        {
+                            stillHasGroupInCell = true;
+                            break;
+                        }
+                    }
+
+                    if (!stillHasGroupInCell)
+                        RemoveCellFromGroup(oldGroupId, worldCell);
+                }
             }
             else
             {
