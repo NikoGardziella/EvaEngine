@@ -36,12 +36,12 @@ namespace Engine {
 		bool IsGroupPromoted(uint64_t groupId);
 
 		void InvalidateEditorViewportCache();
+		Entity GetPromotedEntity(uint64_t groupId);
 	private:
 		uint16_t GetOrCreateDefinitionForRuntimeTile(Scene* scene, const TileInfo& tile);
 		TileInfo BuildRuntimeTileFromDefinition(const TileDefinition& def, const glm::vec2& localPos);
 
 		void UnregisterPromotedEntity(uint64_t groupId);
-		Entity GetPromotedEntity(uint64_t groupId);
 
 
 

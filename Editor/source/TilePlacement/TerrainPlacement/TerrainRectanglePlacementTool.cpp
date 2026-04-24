@@ -56,6 +56,13 @@ namespace Engine
         };
     }
 
+    std::vector<PlaceCompactTilesCommand::Placement> TerrainRectanglePlacementTool::TakePlacements()
+    {
+        return std::move(m_placements);
+    }
+
+
+
     void TerrainRectanglePlacementTool::BuildPreviewCells(std::vector<glm::ivec2>& outCells) const
     {
         outCells.clear();
@@ -108,7 +115,13 @@ namespace Engine
                 tile.Flags = ctx.Flags;
                 tile.Aux = ctx.Aux;
 
-                compactMap.AddTile(cell, tile);
+
+                PlaceCompactTilesCommand::Placement p{};
+                p.WorldCell = cell;
+                p.NewTile = tile;
+
+                m_placements.push_back(p);
+                //compactMap.AddTile(cell, tile);
             }
         }
 

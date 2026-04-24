@@ -2,6 +2,9 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "WallRectanglePlacementContext.h"
+#include "Commands/PlaceCompactTilesCommand.h"
+
+
 namespace Engine {
 
     class WallRectanglePlacementTool
@@ -25,6 +28,8 @@ namespace Engine {
         glm::ivec2 GetMinCell() const;
         glm::ivec2 GetMaxCell() const;
 
+        std::vector<PlaceCompactTilesCommand::Placement> TakePlacements();
+
         void BuildPreviewCells(std::vector<glm::ivec2>&outWallCells,
             std::vector<glm::ivec2>&outFloorCells) const;
 
@@ -37,6 +42,7 @@ namespace Engine {
         glm::ivec2 m_StartCell{};
         glm::ivec2 m_EndCell{};
         bool m_IsDragging = false;
+        std::vector<PlaceCompactTilesCommand::Placement> m_placements;
     };
 
 }

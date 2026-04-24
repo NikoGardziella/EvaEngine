@@ -31,8 +31,11 @@ namespace Engine
         if (!m_IsDragging)
             return;
 
+        m_placements.clear();
         GeneratePlacement(ctx);
         m_IsDragging = false;
+
+        
     }
 
     void WallRectanglePlacementTool::CancelDrag()
@@ -54,6 +57,11 @@ namespace Engine
             std::max(m_StartCell.x, m_EndCell.x),
             std::max(m_StartCell.y, m_EndCell.y)
         };
+    }
+
+    std::vector<PlaceCompactTilesCommand::Placement> WallRectanglePlacementTool::TakePlacements()
+    {
+        return std::move(m_placements);
     }
 
     void WallRectanglePlacementTool::BuildPreviewCells(std::vector<glm::ivec2>& outWallCells,
@@ -167,7 +175,12 @@ namespace Engine
         tile.Flags = ctx.WallFlags;
         tile.Aux = ctx.WallAux;
 
-        compactMap.AddTile(cell, tile);
+     //   compactMap.AddTile(cell, tile);
+
+        PlaceCompactTilesCommand::Placement p{};
+        p.WorldCell = cell;
+        p.NewTile = tile;
+        m_placements.push_back(p);
     }
 
 

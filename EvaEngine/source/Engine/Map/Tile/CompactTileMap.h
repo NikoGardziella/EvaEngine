@@ -95,6 +95,7 @@ namespace Engine
 
         void RemoveGroup(uint64_t groupId);
         void ClearPromotionFlags();
+        void ClearPromotionFlagsForGroup(uint64_t groupId);
         void Clear();
         void RebuildChunkDrawCache(TileChunk& chunk, const TileDefinitionRegistry& defs);
         void MarkChunkDirtyForCell(const glm::ivec2& worldCell);

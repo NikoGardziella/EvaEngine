@@ -25,6 +25,7 @@ namespace Engine
         , m_selectedEntity(selectedEntity)
         , m_commandHistory(commandHistory)
     {
+
     }
 
     void TilePlacementController::HandleInput(bool mouseIsInViewport,
@@ -137,6 +138,21 @@ namespace Engine
             m_roofRectTool.CommitDrag(ctx);
             ctx.ActiveScene->GetCompactTilePromotion().InvalidateEditorViewportCache();
 
+
+            std::vector<PlaceCompactTilesCommand::Placement> placements = m_roofRectTool.TakePlacements();
+            if (placements.empty())
+                return;
+
+            Scope<PlaceCompactTilesCommand> cmd = std::make_unique<PlaceCompactTilesCommand>(
+                ctx.ActiveScene,
+                std::move(placements)
+            );
+
+
+
+
+            m_commandHistory.Push(std::move(cmd));
+
         }
     }
 
@@ -178,6 +194,22 @@ namespace Engine
             m_terrainRectTool.CommitDrag(ctx);
             ctx.ActiveScene->GetCompactTilePromotion().InvalidateEditorViewportCache();
 
+
+            std::vector<PlaceCompactTilesCommand::Placement> placements = m_terrainRectTool.TakePlacements();
+            if (placements.empty())
+                return;
+
+            Scope<PlaceCompactTilesCommand> cmd = std::make_unique<PlaceCompactTilesCommand>(
+                ctx.ActiveScene,
+                std::move(placements)
+            );
+
+
+
+
+            m_commandHistory.Push(std::move(cmd));
+
+
         }
     }
 
@@ -217,7 +249,20 @@ namespace Engine
             ctx.WallAux = 0;
 
             m_wallRectTool.CommitDrag(ctx);
-            ctx.ActiveScene->GetCompactTilePromotion().InvalidateEditorViewportCache();
+
+            std::vector<PlaceCompactTilesCommand::Placement> placements = m_wallRectTool.TakePlacements();
+            if (placements.empty())
+                return;
+
+            Scope<PlaceCompactTilesCommand> cmd = std::make_unique<PlaceCompactTilesCommand>(
+                ctx.ActiveScene,
+                std::move(placements)
+            );
+
+           
+
+            
+            m_commandHistory.Push(std::move(cmd));
         }
     }
 
@@ -272,6 +317,7 @@ namespace Engine
         m_activeStroke->AddCommand(std::move(cmd));
 
         m_strokeCreatedNewEntity = false;
+
     }
 
 

@@ -3,6 +3,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "RoofRectanglePlacementContext.h"
+#include "Commands/PlaceCompactTilesCommand.h"
 
 namespace Engine
 {
@@ -24,6 +25,7 @@ namespace Engine
         glm::ivec2 GetMaxCell() const;
 
         void BuildPreviewCells(std::vector<glm::ivec2>& outCells) const;
+        std::vector<PlaceCompactTilesCommand::Placement> TakePlacements();
 
     private:
         void GeneratePlacement(const RoofRectanglePlacementContext& ctx);
@@ -32,5 +34,7 @@ namespace Engine
         glm::ivec2 m_StartCell{};
         glm::ivec2 m_EndCell{};
         bool m_IsDragging = false;
+        std::vector<PlaceCompactTilesCommand::Placement> m_placements;
+
     };
 }

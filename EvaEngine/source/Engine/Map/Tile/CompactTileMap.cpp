@@ -240,6 +240,26 @@ namespace Engine
         }
     }
 
+    void CompactTileMap::ClearPromotionFlagsForGroup(uint64_t groupId)
+    {
+       
+
+        for (auto& [worldCell, cell] : m_Cells)
+        {
+
+            for (CompactTile& tile : cell.Tiles)
+            {
+                if (tile.GroupId != groupId)
+                    continue;
+
+                tile.Flags &= ~CompactTileFlags::Promoted;
+                tile.Flags &= ~CompactTileFlags::Hidden;
+            }
+
+            MarkChunkDirtyForCell(worldCell);
+        }
+    }
+
     void CompactTileMap::Clear()
     {
         m_Chunks.clear();

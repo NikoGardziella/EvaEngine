@@ -75,6 +75,12 @@ namespace Engine
         }
     }
 
+
+    std::vector<PlaceCompactTilesCommand::Placement> RoofRectanglePlacementTool::TakePlacements()
+    {
+        return std::move(m_placements);
+    }
+
     void RoofRectanglePlacementTool::GeneratePlacement(const RoofRectanglePlacementContext& ctx)
     {
         if (!ctx.ActiveScene || !ctx.CompactMap || ctx.GroupId == 0)
@@ -130,7 +136,12 @@ namespace Engine
                 tile.Flags = ctx.Flags;
                 tile.Aux = ctx.Aux;
 
-                compactMap.AddTile(cell, tile);
+                //compactMap.AddTile(cell, tile);
+                PlaceCompactTilesCommand::Placement p{};
+                p.WorldCell = cell;
+                p.NewTile = tile;
+
+                m_placements.push_back(p);
             }
         }
 

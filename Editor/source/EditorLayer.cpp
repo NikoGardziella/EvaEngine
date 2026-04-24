@@ -747,7 +747,7 @@ namespace Engine {
     }
 
 
-
+    //remove
     TileInfo EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory)
     {
         // Ray  world Z=0 (unchanged)
@@ -894,7 +894,7 @@ namespace Engine {
 
 
 
-
+    // rmove
     uint64_t EditorLayer::GetOrCreatePlacementGroupId(glm::ivec2 originCell)
     {
         Ref<Scene> scene = m_editor->GetGameLayer()->GetActiveGameScene();
@@ -941,7 +941,7 @@ namespace Engine {
         }
         return groupID;
     }
-
+    // rmeove
     uint16_t EditorLayer::GetOrCreateDefinitionForSelectedTile()
     {
         Ref<Scene> scene = m_editor->GetGameLayer()->GetActiveGameScene();
