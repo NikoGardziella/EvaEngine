@@ -16,9 +16,13 @@ namespace Engine {
         uint16_t EdgeWest = 0;
 
         uint16_t Fill = 0;
+        bool FillOnly = false;
 
         bool IsValid() const
         {
+            if (FillOnly)
+                return Fill != 0;
+
             return CornerNorth != 0 && CornerSouth != 0 &&
                 CornerEast != 0 && CornerWest != 0 &&
                 EdgeNorth != 0 && EdgeSouth != 0 &&

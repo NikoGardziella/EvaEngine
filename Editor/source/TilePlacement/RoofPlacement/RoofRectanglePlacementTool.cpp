@@ -94,8 +94,38 @@ namespace Engine
         const glm::ivec2 minCell = GetMinCell();
         const glm::ivec2 maxCell = GetMaxCell();
 
+
+
+
         if (!compactMap.HasGroupInfo(ctx.GroupId))
             compactMap.SetGroupOrigin(ctx.GroupId, minCell);
+
+
+        if (ctx.TypeSet.FillOnly)
+        {
+            for (int y = minCell.y; y <= maxCell.y; y++)
+            {
+                for (int x = minCell.x; x <= maxCell.x; x++)
+                {
+                    const glm::ivec2 cell{ x, y };
+
+                    CompactTile tile{};
+                    tile.TypeId = ctx.TypeSet.Fill;
+                    tile.GroupId = ctx.GroupId;
+                    tile.Flags = ctx.Flags;
+                    tile.Aux = ctx.Aux;
+
+                    //compactMap.AddTile(cell, tile);
+                    PlaceCompactTilesCommand::Placement p{};
+                    p.WorldCell = cell;
+                    p.NewTile = tile;
+
+                    m_placements.push_back(p);
+                }
+            }
+
+            return;
+        }
 
         for (int y = minCell.y; y <= maxCell.y; y++)
         {

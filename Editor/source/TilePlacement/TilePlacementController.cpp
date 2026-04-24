@@ -516,6 +516,19 @@ namespace Engine
         const glm::ivec2 maxCell = m_roofRectTool.GetMaxCell();
         const glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.45f);
 
+        if (set.FillOnly)
+        {
+            for (int y = minCell.y; y <= maxCell.y; y++)
+            {
+                for (int x = minCell.x; x <= maxCell.x; x++)
+                {
+                    DrawPreviewTileByTypeId(set.Fill, { x, y }, previewColor);
+                }
+            }
+
+            return;
+        }
+
         for (int y = minCell.y; y <= maxCell.y; y++)
         {
             for (int x = minCell.x; x <= maxCell.x; x++)
@@ -737,6 +750,16 @@ namespace Engine
         if (selectedTileNameRaw.empty())
         {
             EE_CORE_WARN("BuildRoofTypeSetFromSelectedTile: no tile selected");
+            return out;
+        }
+
+        const std::string selectedTileName = TilePlacementUtils::RemoveExtension(selectedTileNameRaw);
+
+        if (selectedTileName.rfind("Roof A3_", 0) == 0 ||
+            selectedTileName.rfind("Roof B1_", 0) == 0)
+        {
+            out.FillOnly = true;
+            out.Fill = GetOrCreateDefinitionForTileByName(selectedTileName);
             return out;
         }
 
