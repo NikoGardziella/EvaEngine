@@ -75,6 +75,9 @@ namespace Engine {
 		const uint32_t readIdx = (currentFrame + MAX_FRAMES_IN_FLIGHT - 1) % MAX_FRAMES_IN_FLIGHT;
 		const uint32_t writeIdx = currentFrame;
 
+
+		
+
 		{
 			EE_PROFILE_SCOPE("WaitForCollisionFence");
 			vkWaitForFences(m_device, 1, &m_inFlightFences[readIdx], VK_TRUE, UINT64_MAX);
@@ -150,7 +153,12 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-
+		if (s_CollisionData.EntitySlotIndex == 0)
+		{
+			// GPU collision only happen with s_CollisionData
+			// of there is none, early out
+			return;
+		}
 
 
 		vkResetCommandBuffer(cmd, 0);

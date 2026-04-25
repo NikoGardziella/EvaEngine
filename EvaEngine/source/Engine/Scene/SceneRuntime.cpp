@@ -524,7 +524,12 @@ namespace Engine {
                     ForEachConst<TransformComponent,  VehicleComponent, IDComponent>(
                         [&](Entity e, const TransformComponent& vehicleTransformComp, const VehicleComponent& vehicleComp, const IDComponent& carIDComponent)
                         {
+                            if (!IsEntityValid(vehicleComp.Driver))
+                            {
+                                // player is not in vehicle
+                                return;
 
+                            }
 
                             float rot = vehicleTransformComp.Rotation.z + 90;
 
