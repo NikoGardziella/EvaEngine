@@ -1419,6 +1419,8 @@ namespace Engine {
         // Deselect
         m_sceneHierarchyPanel.SetSelectedEntity({}); // Deselect entity
         m_selectedEntity = Entity(); // Reset selected entity
+
+        
     }
 
 

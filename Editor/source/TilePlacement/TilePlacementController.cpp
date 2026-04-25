@@ -579,6 +579,15 @@ namespace Engine
         VulkanRenderer2D::DrawTile(ground, def->UV, color);
     }
 
+    void TilePlacementController::CancelAllDragging()
+    {
+
+        m_roofRectTool.CancelDrag();
+        m_wallRectTool.CancelDrag();
+        m_terrainRectTool.CancelDrag();
+
+    }
+
     Ref<Scene> TilePlacementController::GetEditorScene() const
     {
         return m_sceneHierarchyPanel.GetEditorScene();

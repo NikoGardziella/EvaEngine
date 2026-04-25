@@ -50,6 +50,8 @@ namespace Engine
         void DrawRoofRectanglePreview();
         void DrawPreviewTileByTypeId(uint16_t typeId, const glm::ivec2& cell, const glm::vec4& color);
 
+        void CancelAllDragging();
+        
         bool CanPlaceTile(std::string selectedTileName, glm::ivec2 isoCell);
         CompactTile BuildCompactTileForSelection(Entity selectedEntity, glm::ivec2 isoCell);
 
