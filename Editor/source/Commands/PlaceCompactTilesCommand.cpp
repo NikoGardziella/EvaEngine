@@ -31,16 +31,28 @@ namespace Engine
             if (compactMap.HasTileType(placement.WorldCell, placement.NewTile.TypeId))
                 continue;
 
+            TileDefinitionRegistry& defs = m_Scene->GetTileDefinitions();
+
             const TileDefinition* newDef = defs.Get(placement.NewTile.TypeId);
             if (!newDef)
                 continue;
 
-            compactMap.RemoveTileByCategoryAndDirection(
-                placement.WorldCell,
-                defs,
-                newDef->Category,
-                newDef->Direction
-            );
+            if (newDef->Category == eTileCategory::Terrain ||
+                newDef->Category == eTileCategory::Roofs)
+            {
+                compactMap.RemoveTilesByCategory(
+                    placement.WorldCell,
+                    defs,
+                    newDef->Category);
+            }
+            else
+            {
+                compactMap.RemoveTileByCategoryAndDirection(
+                    placement.WorldCell,
+                    defs,
+                    newDef->Category,
+                    newDef->Direction);
+            }
 
 
             compactMap.AddTile(placement.WorldCell, placement.NewTile);

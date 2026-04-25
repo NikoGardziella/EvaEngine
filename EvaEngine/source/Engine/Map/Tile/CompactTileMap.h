@@ -97,6 +97,7 @@ namespace Engine
         void ClearPromotionFlags();
         void ClearPromotionFlagsForGroup(uint64_t groupId);
         void Clear();
+        bool RemoveTilesByCategory(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category);
         bool IsWallReplaceableCategory(eTileCategory category);
         bool RemoveTileByCategoryAndDirection(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category, eTileDirection direction);
         void RebuildChunkDrawCache(TileChunk& chunk, const TileDefinitionRegistry& defs);

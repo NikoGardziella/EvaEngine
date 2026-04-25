@@ -268,6 +268,60 @@ namespace Engine
         m_GroupInfo.clear();
     }
 
+
+    bool CompactTileMap::RemoveTilesByCategory(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category)
+    {
+        auto it = m_Cells.find(worldCell);
+        if (it == m_Cells.end())
+            return false;
+
+        CompactTileCell& cell = it->second;
+        bool removed = false;
+
+        for (auto tileIt = cell.Tiles.begin(); tileIt != cell.Tiles.end(); )
+        {
+            const TileDefinition* def = defs.Get(tileIt->TypeId);
+
+            if (def && def->Category == category)
+            {
+                const uint64_t oldGroupId = tileIt->GroupId;
+                tileIt = cell.Tiles.erase(tileIt);
+                removed = true;
+
+                if (oldGroupId != 0)
+                {
+                    bool stillHasGroupInCell = false;
+
+                    for (const CompactTile& t : cell.Tiles)
+                    {
+                        if (!t.IsEmpty() && t.GroupId == oldGroupId)
+                        {
+                            stillHasGroupInCell = true;
+                            break;
+                        }
+                    }
+
+                    if (!stillHasGroupInCell)
+                    {
+                        RemoveCellFromGroup(oldGroupId, worldCell);
+                    }
+                }
+            }
+            else
+            {
+                ++tileIt;
+            }
+        }
+
+        if (removed)
+        {
+            MarkChunkDirtyForCell(worldCell);
+        }
+
+
+        return removed;
+    }
+
     bool CompactTileMap::IsWallReplaceableCategory(eTileCategory category)
     {
         return category == eTileCategory::Buildings
@@ -275,11 +329,9 @@ namespace Engine
             || category == eTileCategory::Doors;
     }
 
-    bool CompactTileMap::RemoveTileByCategoryAndDirection(
-        const glm::ivec2& worldCell,
-        const TileDefinitionRegistry& defs,
-        eTileCategory category,
-        eTileDirection direction)
+
+    bool CompactTileMap::RemoveTileByCategoryAndDirection(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs,
+        eTileCategory category, eTileDirection direction)
     {
         auto it = m_Cells.find(worldCell);
         if (it == m_Cells.end())

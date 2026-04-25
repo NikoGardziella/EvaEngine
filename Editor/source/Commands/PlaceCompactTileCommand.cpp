@@ -41,15 +41,27 @@ namespace Engine
         if (compactMap.HasTileType(m_WorldCell, m_NewTile.TypeId))
             return;
 
+
         const TileDefinition* newDef = defs.Get(m_NewTile.TypeId);
         if (!newDef)
             return;
 
-        compactMap.RemoveTileByCategoryAndDirection(
-            m_WorldCell,
-            defs,
-            newDef->Category,
-            newDef->Direction);
+        if (newDef->Category == eTileCategory::Terrain ||
+            newDef->Category == eTileCategory::Roofs)
+        {
+            compactMap.RemoveTilesByCategory(
+                m_WorldCell,
+                defs,
+                newDef->Category);
+        }
+        else
+        {
+            compactMap.RemoveTileByCategoryAndDirection(
+                m_WorldCell,
+                defs,
+                newDef->Category,
+                newDef->Direction);
+        }
 
         compactMap.AddTile(m_WorldCell, m_NewTile);
 
