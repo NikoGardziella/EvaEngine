@@ -1122,7 +1122,6 @@ namespace Engine {
                 }
 
             });
-
         DrawComponent<TileComponent>("Tile", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)
             {
                 ImGui::Text("Grid Pos");
@@ -1146,11 +1145,14 @@ namespace Engine {
                         std::string textureName = texturePath.stem().string();
 
                         component.Texture = AssetManager::GetTexture(textureName);
+
                         if (!component.Texture)
                             component.Texture = AssetManager::AddTexture(textureName, texturePath.string());
+
                         if (!component.Texture)
                             component.Texture = AssetManager::GetTexture("logo");
                     }
+
                     ImGui::EndDragDropTarget();
                 }
 
@@ -1170,23 +1172,30 @@ namespace Engine {
                 for (size_t i = 0; i < component.tiles.size(); ++i)
                 {
                     TileInfo& tile = component.tiles[i];
+
                     bool isOpen = m_openTileIndices.find(i) != m_openTileIndices.end();
-
-                    std::string label = tile.name + " (" + std::to_string(tile.position.x) + ", " + std::to_string(tile.position.y) + ")";
-
                     bool isSelected = m_selectedTileIndex && *m_selectedTileIndex == i;
 
-                    ImGuiTreeNodeFlags nodeFlags = 0;
+                    std::string label =
+                        tile.name +
+                        " (" +
+                        std::to_string(tile.position.x) +
+                        ", " +
+                        std::to_string(tile.position.y) +
+                        ")";
+
+                    ImGuiTreeNodeFlags nodeFlags =
+                        ImGuiTreeNodeFlags_OpenOnArrow |
+                        ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                        ImGuiTreeNodeFlags_SpanAvailWidth;
+
                     if (isOpen)
                         nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+
                     if (isSelected)
                         nodeFlags |= ImGuiTreeNodeFlags_Selected;
-                    nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;
-                    nodeFlags |= ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
-                    ImGui::PushID((int)i);
-
-                    bool removeTile = false;
+                    ImGui::PushID(static_cast<int>(i));
 
                     if (ImGui::BeginTable("TileRow", 2, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoSavedSettings))
                     {
@@ -1211,71 +1220,63 @@ namespace Engine {
 
                         ImGui::TableSetColumnIndex(1);
 
-                        removeTile = ImGui::SmallButton("X");
-
-                        if (removeTile)
+                        if (ImGui::SmallButton("X"))
                         {
-                            ImGui::EndTable();
-
-                            component.tiles.erase(component.tiles.begin() + i);
-
-                            m_openTileIndices.erase(i);
-
-                            std::unordered_set<size_t> newOpenIndices;
-                            for (size_t idx : m_openTileIndices)
-                            {
-                                if (idx < i)
-                                    newOpenIndices.insert(idx);
-                                else if (idx > i)
-                                    newOpenIndices.insert(idx - 1);
-                            }
-                            m_openTileIndices = std::move(newOpenIndices);
-
-                            if (m_selectedTileIndex)
-                            {
-                                if (*m_selectedTileIndex == i)
-                                    m_selectedTileIndex.reset();
-                                else if (*m_selectedTileIndex > i)
-                                    --(*m_selectedTileIndex);
-                            }
-
-                            ImGui::PopID();
-                            break;
+                            tileToRemove = i;
                         }
-
-                        ImGui::EndTable();
 
                         if (nodeOpen)
                         {
+                            ImGui::TableNextRow();
+                            ImGui::TableSetColumnIndex(0);
+
                             ImGui::Indent();
 
                             ImGui::Text("Position: %.2f, %.2f", tile.position.x, tile.position.y);
+
                             ImGui::Checkbox("Destructible", &tile.IsDestructible);
                             ImGui::Checkbox("Roof", &tile.IsRoof);
 
                             char nameBuffer[256];
                             strncpy(nameBuffer, tile.name.c_str(), sizeof(nameBuffer));
                             nameBuffer[sizeof(nameBuffer) - 1] = '\0';
+
                             if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
                                 tile.name = std::string(nameBuffer);
 
-                            static const char* materialOptions[] = { "None", "Wood", "Concrete", "Metal", "Glass" };
+                            static const char* materialOptions[] =
+                            {
+                                "None",
+                                "Wood",
+                                "Concrete",
+                                "Metal",
+                                "Glass"
+                            };
+
                             int currentMaterialIdx = static_cast<int>(tile.Material);
+
                             if (ImGui::Combo("Material", &currentMaterialIdx, materialOptions, IM_ARRAYSIZE(materialOptions)))
                                 tile.Material = static_cast<eTileMaterial>(currentMaterialIdx);
 
                             ImGui::InputScalar("Health", ImGuiDataType_U32, &tile.TileHealth);
 
                             ImGui::Unindent();
+
+                            // Important: TreePop must happen before EndTable.
                             ImGui::TreePop();
                         }
                         else
                         {
                             m_openTileIndices.erase(i);
                         }
+
+                        ImGui::EndTable();
                     }
 
                     ImGui::PopID();
+
+                    if (tileToRemove.has_value())
+                        break;
                 }
 
                 if (tileToRemove.has_value() && *tileToRemove < component.tiles.size())
@@ -1286,8 +1287,8 @@ namespace Engine {
 
                     m_openTileIndices.erase(removedIndex);
 
-                    // Rebuild open indices because erase shifts everything after removedIndex
                     std::unordered_set<size_t> newOpenIndices;
+
                     for (size_t idx : m_openTileIndices)
                     {
                         if (idx < removedIndex)
@@ -1295,19 +1296,15 @@ namespace Engine {
                         else if (idx > removedIndex)
                             newOpenIndices.insert(idx - 1);
                     }
+
                     m_openTileIndices = std::move(newOpenIndices);
 
-                    // Fix selected index
                     if (m_selectedTileIndex.has_value())
                     {
                         if (*m_selectedTileIndex == removedIndex)
-                        {
                             m_selectedTileIndex.reset();
-                        }
                         else if (*m_selectedTileIndex > removedIndex)
-                        {
                             m_selectedTileIndex = *m_selectedTileIndex - 1;
-                        }
                     }
                 }
 
