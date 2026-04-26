@@ -56,6 +56,43 @@ namespace Engine {
 		s_CollisionData.EntitySlotIndex++;
 	}
 
+
+	void VulkanRenderer2D::CalculateCircleCollision(const glm::vec2& colliderPos,float colliderRadius,
+		uint64_t entityID, eCollisionType collisionType,uint32_t damage,float destructionRadius,
+		glm::vec2 projectileDirection,glm::vec2 targetPositionAtFireTime,float distanceToTargetAtFireTime,
+		float targetPositionHeightZ1,const std::vector<uint64_t>& affectedSlots)
+	{
+		uint32_t index = s_CollisionData.EntitySlotIndex;
+
+		if (index >= MAX_COLLISION_ENTITIES)
+		{
+			EE_CORE_WARN("Max collision slots reached!");
+			return;
+		}
+
+		CollisionEntitiesGPU& dst = s_CollisionData.CollisionEntities[index];
+
+		dst.Type = (uint32_t)collisionType;
+		dst.Position = colliderPos;
+		dst.Damage = damage;
+		dst.DestructionRadius = destructionRadius;
+		dst.ColliderRadius = colliderRadius;
+		dst.Dir = projectileDirection;
+		dst.EndPos = targetPositionAtFireTime;
+		dst.RayLen = distanceToTargetAtFireTime;
+		dst.Z1 = targetPositionHeightZ1;
+		dst.ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
+		dst.ID_High = static_cast<uint32_t>(entityID >> 32);
+
+		for (uint64_t slot : affectedSlots)
+		{
+			if (slot != UINT32_MAX)
+				s_CollisionData.AffectedSlots.push_back(slot);
+		}
+
+		s_CollisionData.EntitySlotIndex++;
+	}
+
 	void VulkanRenderer2D::CalculatePlayerCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType)
 	{
 		EE_PROFILE_FUNCTION();
@@ -153,12 +190,7 @@ namespace Engine {
 	{
 		EE_PROFILE_FUNCTION();
 
-		if (s_CollisionData.EntitySlotIndex == 0)
-		{
-			// GPU collision only happen with s_CollisionData
-			// of there is none, early out
-			return;
-		}
+		
 
 
 		vkResetCommandBuffer(cmd, 0);
@@ -190,10 +222,8 @@ namespace Engine {
 			VkBuffer projectileBuffer = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(currentFrame).GetBuffer();
 			VkDeviceSize projectileBufferSize = m_vulkanGraphicsPipelines->GetBulletUniformBuffer(currentFrame).m_size;
 
-			s_bindlessDescitproRenderer->ComputeBindBuffers(currentFrame,
-				collisionResultBuffer, collisionResultBufferSize,
-				projectileBuffer, projectileBufferSize,
-				blockedMaskBuffer, blockedMaskBufferSize);
+			s_bindlessDescitproRenderer->ComputeBindBuffers(currentFrame, collisionResultBuffer, collisionResultBufferSize,
+				projectileBuffer, projectileBufferSize,	blockedMaskBuffer, blockedMaskBufferSize);
 
 
 

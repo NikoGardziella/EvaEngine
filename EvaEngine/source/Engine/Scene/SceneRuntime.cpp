@@ -669,7 +669,8 @@ namespace Engine {
 
                         Engine::VulkanRenderer2D::CalculateCircleCollision(projectilePos, projectile.ProjectileRadius, IDComp.ID,
                             eCollisionType::PROJECTILE, projectile.Damage, projectile.DestructionRadius, projectile.Direction,
-                            projectile.TargetPositionAtFireTime, projectile.DistanceToTargetatFireTime, projectile.TargetPositionHeightZ1);
+                            projectile.TargetPositionAtFireTime, projectile.DistanceToTargetatFireTime, projectile.TargetPositionHeightZ1,
+                            projectile.AffectedTileUIDs);
 
                         float zKey = 0.0f;
                         float rotation = std::atan2(projectile.Direction.y, projectile.Direction.x);

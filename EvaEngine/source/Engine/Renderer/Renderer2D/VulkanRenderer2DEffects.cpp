@@ -5,6 +5,7 @@
 
 namespace Engine {
 
+
 	void VulkanRenderer2D::RecordEffectComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex)
 	{
 		EE_PROFILE_FUNCTION();
@@ -32,13 +33,9 @@ namespace Engine {
 			s_bindlessDescitproRenderer->GetEffectsPipelineLayout(), 0, 1, &set0, 0, nullptr);
 
 		//Gather active slots
-		std::unordered_set<uint32_t> uniqueSlots;
-		uniqueSlots.reserve(s_bindlessDescitproRenderer->GetTileToSlotMap().size());
 
-		for (const auto& kv : s_bindlessDescitproRenderer->GetTileToSlotMap())
-		{
-			uniqueSlots.insert(kv.second);
-		}
+		std::vector<uint32_t> uniqueSlots = m_collisionSlotsLastFrame;
+
 
 		const int   tileW = TILE_PIXEL_WIDTH;
 		const int   tileH = TILE_PIXEL_HEIGHT;
@@ -67,6 +64,7 @@ namespace Engine {
 			pixelSizeWorld, tileW, tileH, affectedTiles);
 		m_activeSlots.resize(affectedTiles.size());
 
+		
 
 		for (size_t i = 0; i < affectedTiles.size(); i++)
 		{
@@ -222,7 +220,7 @@ namespace Engine {
 
 		queue.clear();
 
-
+		/*
 		for (uint32_t slot : uniqueSlots)
 		{
 			Render2DUtils::BarrierLayer(cmd, colorArray, slot,
@@ -230,6 +228,7 @@ namespace Engine {
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 				VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT);
 		}
+		*/
 
 
 		// Second pass to fade visual effect

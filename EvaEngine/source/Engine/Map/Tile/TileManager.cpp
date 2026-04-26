@@ -483,6 +483,8 @@ namespace Engine {
         glm::vec2 center = glm::vec2(tr.Translation) + glm::vec2(tile.position);
         m_centerByUID[uid] = center;
     }
+
+
     bool TileManager::GetOriginalTileData(uint64_t uid, const std::vector<uint8_t>*& color, const std::vector<uint8_t>*& props) const
     {
         color = nullptr;

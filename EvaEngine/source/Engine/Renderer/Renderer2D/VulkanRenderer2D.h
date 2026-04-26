@@ -192,6 +192,7 @@ namespace Engine {
 
 		std::array<CollisionEntitiesGPU, MAX_COLLISION_ENTITIES> CollisionEntities;
 		std::array<CollisionPlayerEntitiesGPU, PLAYER_COUNT> playerEntities;
+		std::vector<uint64_t> AffectedSlots;
 	};
 
 	// Effect push constants for glow-only pass
@@ -305,6 +306,7 @@ namespace Engine {
 		static void CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID,
 			eCollisionType collisionType, uint32_t damage, const float destructionRadius, glm::vec2  projectileDirection,
 			glm::vec2  TargetPositionAtFireTime, float  DistanceToTargetatFireTime, float  TargetPositionHeightZ1);
+		static void CalculateCircleCollision(const glm::vec2& colliderPos, float colliderRadius, uint64_t entityID, eCollisionType collisionType, uint32_t damage, float destructionRadius, glm::vec2 projectileDirection, glm::vec2 targetPositionAtFireTime, float distanceToTargetAtFireTime, float targetPositionHeightZ1, const std::vector<uint64_t>& affectedSlots);
 		static void CalculatePlayerCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID, eCollisionType collisionType);
 		static void DrawTextureQuadWithProperties(const glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, const std::shared_ptr<VulkanTexture>& healthTexture);
 		static void DrawTextureQuad(glm::mat4& transform, const std::shared_ptr<VulkanTexture>& texture, float tilingFactor = 1, const glm::vec4& tintColor = glm::vec4(1));
@@ -357,7 +359,7 @@ namespace Engine {
 		void RecordPresentDrawCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		//void RecordComputeCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void RecordComputeCommandBuffer(VkCommandBuffer cmd, uint32_t frameIndex);
-		void BuildAffectedTilesCPU(const std::vector<glm::vec2>& hitPositionsW, const std::vector<float>& radiiW, const std::vector<uint32_t>& damagesW, const std::unordered_set<uint32_t>& candidateSlots, float pixelSizeWorld, int tileW, int tileH, std::vector<AffectedTile>& outTiles);
+		void BuildAffectedTilesCPU(const std::vector<glm::vec2>& hitPositionsW, const std::vector<float>& radiiW, const std::vector<uint32_t>& damagesW, const std::vector<uint32_t>& candidateSlots, float pixelSizeWorld, int tileW, int tileH, std::vector<AffectedTile>& outTiles);
 		void RecordEffectComputeCommandBuffer(VkCommandBuffer cmdBuf, uint32_t currentFrame);
 		void RecordLineCommanedBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t currentFrame);
 		void ConsumeDestructibleQueue(VkCommandBuffer uploadCB, uint32_t frameIndex);
@@ -408,6 +410,7 @@ namespace Engine {
 		CollisionResultBuffer* m_collisionMapped[MAX_FRAMES_IN_FLIGHT] = { nullptr };
 
 		std::vector<uint32_t> m_activeSlots = {};
+		std::vector<uint32_t> m_collisionSlotsLastFrame;
 
 		static VulkanRenderer2DData s_VulkanData;
 		static VulkanBindlessRenderer2DData s_VulkanBindlessData;

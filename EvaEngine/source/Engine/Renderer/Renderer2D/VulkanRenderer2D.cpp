@@ -362,7 +362,8 @@ namespace Engine {
 		EE_PROFILE_FUNCTION();
 
 		TileBlockedMaskCPU::DirtyTileRuntime.clear();
-		
+
+
 		ReadAndResetCollisionBuffer(currentFrame);
 
 		ReadDirtyOut();
@@ -501,6 +502,8 @@ namespace Engine {
 
 
 		//move somewhere
+		s_CollisionData.AffectedSlots.clear();
+
 		s_CollisionData.EntitySlotIndex = 0;
 		s_VulkanData.TextureSlotIndex = 0;
 		s_VulkanData.GridSlotIndex = 0;
@@ -872,10 +875,33 @@ namespace Engine {
 		VkImage propsArray = s_bindlessDescitproRenderer->GetPropsArrayImage(); // stays GENERAL; no barrier needed here
 
 		// Dedup slots (m_tileToSlot is uid -> slot)
-		std::unordered_set<uint32_t> uniqueSlots;
-		uniqueSlots.reserve(s_bindlessDescitproRenderer->GetTileToSlotMap().size());
-		for (const std::pair<const uint64_t, uint32_t>& kv : s_bindlessDescitproRenderer->GetTileToSlotMap())
-			uniqueSlots.insert(kv.second);
+		if (s_CollisionData.AffectedSlots.empty())
+			return;
+
+		std::vector<uint64_t>& UIDs = s_CollisionData.AffectedSlots;
+
+		std::vector<uint32_t> uniqueSlots;
+		uniqueSlots.reserve(UIDs.size());
+
+		for (size_t i = 0; i < UIDs.size(); i++)
+		{
+			uint32_t slot = s_bindlessDescitproRenderer->GetTileSlotWithUid(UIDs[i]);
+
+			if (slot == UINT32_MAX)
+				continue;
+
+			uniqueSlots.push_back(slot);
+		}
+
+		std::sort(uniqueSlots.begin(), uniqueSlots.end());
+
+
+
+		uniqueSlots.erase(
+			std::unique(uniqueSlots.begin(), uniqueSlots.end()),
+			uniqueSlots.end()
+		);
+		m_collisionSlotsLastFrame = uniqueSlots;
 
 		const int tileW = TILE_PIXEL_WIDTH;
 		const int tileH = TILE_PIXEL_HEIGHT;
@@ -888,6 +914,7 @@ namespace Engine {
 
 		for (uint32_t slot : uniqueSlots)
 		{
+		
 			// ---- Build push constants ----
 			ComputePC pc{};
 			pc.TextureIndex = slot;
@@ -896,11 +923,13 @@ namespace Engine {
 			pc.NumProjectiles = s_CollisionData.EntitySlotIndex;
 			pc.TileSizePixels = static_cast<uint32_t>(tileW);                  // tile width (e.g. 128)		
 			// ---- Transition color layer for compute (props array should already be GENERAL) ----
+			/*
 			Render2DUtils::BarrierLayer(cmd, colorArray, slot,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
 				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 				VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_SHADER_WRITE_BIT);
 
+			*/
 			// ---- Push & dispatch over the CONTENT area (no rectMin; shader uses contentMinPx+lid) ----
 			vkCmdPushConstants(cmd,
 				s_bindlessDescitproRenderer->GetComputePipelineLayout(),
@@ -944,7 +973,7 @@ namespace Engine {
 		const std::vector<glm::vec2>& hitPositionsW,          // world hits this frame
 		const std::vector<float>& radiiW,                     // same length as hits
 		const std::vector<uint32_t>& damagesW,                // same length as hits
-		const std::unordered_set<uint32_t>& candidateSlots,   // visible/active slots
+		const std::vector<uint32_t>& candidateSlots,   // visible/active slots
 		float pixelSizeWorld, int tileW, int tileH,
 		std::vector<AffectedTile>& outTiles)
 	{

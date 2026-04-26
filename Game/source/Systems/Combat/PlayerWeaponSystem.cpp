@@ -18,7 +18,8 @@
 #include <Engine/Scene/Components/Render/3D/MeshRefComponent.h>
 #include <Engine/Scene/Components/UI/HUDStateComponent.h>
 #include <Engine/Scene/Component.h>
-
+#include "Engine/Map/Tile/CompactTileMap.h"
+#include "Engine/Map/Utils/IsoTileUtils.h"
 
 void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene* scene)
 {
@@ -209,6 +210,9 @@ Engine::Entity PlayerWeaponSystem::SpawnProjectileEntity(Engine::Scene* scene, E
     projectileComp.ProjectileSped = weaponComp.ProjectileSpeed;
     projectileComp.renderSlot = Engine::ProjectileVisual::GetSlot(ProjectileVisualType::Bullet);
     projectileComp.DistanceTravelled = 0.0f;
+
+    projectileComp.AffectedTileUIDs = BuildProjectileAffectedUIDs(scene, origin, aimedPosWorld, projectileRadius, weaponComp.DestructionRadius);
+
     return projectileEntity;
 }
 
@@ -453,39 +457,92 @@ void PlayerWeaponSystem::FireThrowableWeapon(Engine::Entity player, Engine::Tran
 
 
 
-void PlayerWeaponSystem::ShootProjectile(Engine::Entity entity, const glm::vec2& playerPosition, const glm::vec2& mouseWorldPosition, Engine::Scene* scene, const WeaponComponent& weaponComp)
+inline glm::ivec2 WorldToCell(const glm::vec2& world)
+{
+    return glm::ivec2(
+        static_cast<int>(std::round(world.x)),
+        static_cast<int>(std::round(world.y))
+    );
+}
+std::vector<uint64_t> PlayerWeaponSystem::BuildProjectileAffectedUIDs(
+    Engine::Scene* scene,
+    const glm::vec2& origin,
+    const glm::vec2& target,
+    float projectileRadius,
+    float destructionRadius)
 {
     EE_PROFILE_FUNCTION();
 
-    // disable shooting from a car now
-    if (entity.HasComponent<DriverComponent>())
-        return;
+    std::vector<uint64_t> resultUIDs;
 
-    glm::vec2 direction = glm::normalize(mouseWorldPosition - playerPosition);
-    Engine::Entity& projectileEntity = scene->CreateEntity("Projectile");
+    if (!scene)
+        return resultUIDs;
 
-    Engine::TransformComponent& transformComp = projectileEntity.AddComponent<Engine::TransformComponent>();
-	float projectileMaxRange = 1.0f; // fix this
-    float projectileRadius = 0.1f;
-    
+    Engine::CompactTileMap& compactMap = scene->GetCompactTileMap();
 
-   
+    std::unordered_set<uint64_t> uniqueUIDs;
+    std::unordered_set<int64_t> visitedCells;
 
-    ProjectileComponent& projectileComp = projectileEntity.AddComponent<ProjectileComponent>(direction, projectileMaxRange);
-    projectileComp.Damage = weaponComp.Damage;
-    projectileComp.ProjectileRadius = projectileRadius;
-    projectileComp.DestructionRadius = weaponComp.DestructionRadius;
-    projectileComp.Owner = entity;
-    projectileComp.TargetPositionHeightZ1 = SampleHeightAt(scene, mouseWorldPosition, 1);
-    projectileComp.DistanceToTargetatFireTime = glm::distance(mouseWorldPosition, playerPosition);
-    projectileComp.TargetPositionAtFireTime = mouseWorldPosition;
-    projectileComp.ProjectileSped = weaponComp.ProjectileSpeed;
-    projectileComp.renderSlot = Engine::ProjectileVisual::GetSlot(ProjectileVisualType::Bullet);
+    glm::vec2 delta = target - origin;
+    float length = glm::length(delta);
 
+    if (length <= 0.0001f)
+        return resultUIDs;
 
-    transformComp.Translation = glm::vec3(playerPosition, 0.0f);
-    transformComp.Rotation.z = std::atan2(direction.y, direction.x);
+    glm::vec2 dir = delta / length;
 
+    // Step less than one tile, so we do not skip cells.
+    const float stepWorld = float(TILE_SIZE) * 0.25f;
+    const int steps = std::max(1, int(std::ceil(length / stepWorld)));
+
+    auto CellKey = [](const glm::ivec2& c) -> int64_t
+        {
+            return (int64_t(c.x) << 32) ^ uint32_t(c.y);
+        };
+
+    auto AddCell = [&](const glm::ivec2& cell)
+        {
+            int64_t key = CellKey(cell);
+
+            if (!visitedCells.insert(key).second)
+                return;
+
+            std::vector<Engine::CompactTile>* compactTiles = compactMap.GetTiles(cell);
+            if (!compactTiles)
+                return;
+
+            for (const Engine::CompactTile& tile : *compactTiles)
+            {
+                const uint64_t uid = tile.UID;
+
+                if (uid == 0)
+                    continue;
+
+                uniqueUIDs.insert(uid);
+            }
+        };
+
+    for (int i = 0; i <= steps; i++)
+    {
+        float t = float(i) / float(steps);
+        glm::vec2 p = origin + delta * t;
+
+        glm::ivec2 cell = Engine::IsoTileUtils::WorldToIsoCellInt(p);
+
+        AddCell(cell);
+
+        // Small safety around the ray.
+        AddCell(cell + glm::ivec2(1, 0));
+        AddCell(cell + glm::ivec2(-1, 0));
+        AddCell(cell + glm::ivec2(0, 1));
+        AddCell(cell + glm::ivec2(0, -1));
+    }
+
+    resultUIDs.reserve(uniqueUIDs.size());
+
+    for (uint64_t uid : uniqueUIDs)
+        resultUIDs.push_back(uid);
+    return resultUIDs;
 }
 
 float SampleHeightAt_FromTileCenterFudged(

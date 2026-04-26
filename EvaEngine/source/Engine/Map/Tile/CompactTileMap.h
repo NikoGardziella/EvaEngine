@@ -23,7 +23,7 @@ namespace Engine
         uint8_t Flags = 0;
         uint8_t Aux = 0;
         uint64_t GroupId = 0;
-
+        uint64_t UID = 0;
         bool IsEmpty() const;
     };
 
@@ -114,11 +114,11 @@ namespace Engine
         void RemoveGroupInfo(uint64_t groupId);
 
 
+        std::unordered_map<glm::ivec2, CompactTileCell, IVec2Hash> m_cells;
     private:
-        std::unordered_map<glm::ivec2, TileChunk, IVec2Hash> m_Chunks;
-        std::unordered_map<glm::ivec2, CompactTileCell, IVec2Hash> m_Cells;
-        std::unordered_map<uint64_t, std::vector<glm::ivec2>> m_CellsByGroupId;
-        std::unordered_map<uint64_t, CompactGroupInfo> m_GroupInfo;
+        std::unordered_map<glm::ivec2, TileChunk, IVec2Hash> m_chunks;
+        std::unordered_map<uint64_t, std::vector<glm::ivec2>> m_cellsByGroupId;
+        std::unordered_map<uint64_t, CompactGroupInfo> m_groupInfo;
     };
 
     int FloorDiv(int a, int b);

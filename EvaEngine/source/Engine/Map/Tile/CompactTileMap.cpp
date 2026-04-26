@@ -24,18 +24,18 @@ namespace Engine
 
     const std::unordered_map<glm::ivec2, TileChunk, IVec2Hash>& CompactTileMap::GetChunks() const
     {
-        return m_Chunks;
+        return m_chunks;
     }
 
     std::unordered_map<glm::ivec2, TileChunk, IVec2Hash>& CompactTileMap::GetChunksMutable()
     {
-        return m_Chunks;
+        return m_chunks;
     }
 
     TileChunk* CompactTileMap::GetChunk(const glm::ivec2& chunkCoord)
     {
-        auto it = m_Chunks.find(chunkCoord);
-        if (it == m_Chunks.end())
+        auto it = m_chunks.find(chunkCoord);
+        if (it == m_chunks.end())
             return nullptr;
 
         return &it->second;
@@ -43,8 +43,8 @@ namespace Engine
 
     const TileChunk* CompactTileMap::GetChunk(const glm::ivec2& chunkCoord) const
     {
-        auto it = m_Chunks.find(chunkCoord);
-        if (it == m_Chunks.end())
+        auto it = m_chunks.find(chunkCoord);
+        if (it == m_chunks.end())
             return nullptr;
 
         return &it->second;
@@ -52,15 +52,15 @@ namespace Engine
 
     TileChunk& CompactTileMap::GetOrCreateChunk(const glm::ivec2& chunkCoord)
     {
-        auto [it, inserted] = m_Chunks.emplace(chunkCoord, TileChunk{});
+        auto [it, inserted] = m_chunks.emplace(chunkCoord, TileChunk{});
         it->second.ChunkCoord = chunkCoord;
         return it->second;
     }
 
     std::vector<CompactTile>* CompactTileMap::GetTiles(const glm::ivec2& worldCell)
     {
-        auto it = m_Cells.find(worldCell);
-        if (it == m_Cells.end())
+        auto it = m_cells.find(worldCell);
+        if (it == m_cells.end())
             return nullptr;
 
         return &it->second.Tiles;
@@ -68,8 +68,8 @@ namespace Engine
 
     const std::vector<CompactTile>* CompactTileMap::GetTiles(const glm::ivec2& worldCell) const
     {
-        auto it = m_Cells.find(worldCell);
-        if (it == m_Cells.end())
+        auto it = m_cells.find(worldCell);
+        if (it == m_cells.end())
             return nullptr;
 
         return &it->second.Tiles;
@@ -77,13 +77,13 @@ namespace Engine
 
     std::vector<CompactTile>& CompactTileMap::GetOrCreateTiles(const glm::ivec2& worldCell)
     {
-        return m_Cells[worldCell].Tiles;
+        return m_cells[worldCell].Tiles;
     }
 
     CompactTile* CompactTileMap::FindTile(const glm::ivec2& worldCell, uint16_t typeId)
     {
-        auto it = m_Cells.find(worldCell);
-        if (it == m_Cells.end())
+        auto it = m_cells.find(worldCell);
+        if (it == m_cells.end())
             return nullptr;
 
         auto& tiles = it->second.Tiles;
@@ -98,8 +98,8 @@ namespace Engine
 
     const CompactTile* CompactTileMap::FindTile(const glm::ivec2& worldCell, uint16_t typeId) const
     {
-        auto it = m_Cells.find(worldCell);
-        if (it == m_Cells.end())
+        auto it = m_cells.find(worldCell);
+        if (it == m_cells.end())
             return nullptr;
 
         const auto& tiles = it->second.Tiles;
@@ -120,7 +120,7 @@ namespace Engine
 
     CompactTile& CompactTileMap::AddTile(const glm::ivec2& worldCell, const CompactTile& tile)
     {
-        CompactTileCell& cell = m_Cells[worldCell];
+        CompactTileCell& cell = m_cells[worldCell];
 
         auto it = std::find_if(cell.Tiles.begin(), cell.Tiles.end(),
             [&](const CompactTile& t)
@@ -143,8 +143,8 @@ namespace Engine
 
     bool CompactTileMap::RemoveTile(const glm::ivec2& worldCell, uint16_t typeId)
     {
-        auto it = m_Cells.find(worldCell);
-        if (it == m_Cells.end())
+        auto it = m_cells.find(worldCell);
+        if (it == m_cells.end())
             return false;
 
         auto& tiles = it->second.Tiles;
@@ -161,7 +161,7 @@ namespace Engine
         tiles.erase(found);
 
         if (tiles.empty())
-            m_Cells.erase(it);
+            m_cells.erase(it);
 
         MarkChunkDirtyForCell(worldCell);
         return true;
@@ -169,7 +169,7 @@ namespace Engine
 
     void CompactTileMap::Render(const TileDefinitionRegistry& defs) const
     {
-        for (const auto& [chunkCoord, chunk] : m_Chunks)
+        for (const auto& [chunkCoord, chunk] : m_chunks)
         {
             for (const CompactDrawItem& item : chunk.CachedDrawItems)
             {
@@ -187,8 +187,8 @@ namespace Engine
 
     const std::vector<glm::ivec2>* CompactTileMap::GetCellsForGroup(uint64_t groupId) const
     {
-        auto it = m_CellsByGroupId.find(groupId);
-        if (it == m_CellsByGroupId.end())
+        auto it = m_cellsByGroupId.find(groupId);
+        if (it == m_cellsByGroupId.end())
             return nullptr;
 
         return &it->second;
@@ -199,7 +199,7 @@ namespace Engine
         if (groupId == 0)
             return;
 
-        auto& cells = m_CellsByGroupId[groupId];
+        auto& cells = m_cellsByGroupId[groupId];
 
         auto it = std::find(cells.begin(), cells.end(), cell);
         if (it == cells.end())
@@ -208,8 +208,8 @@ namespace Engine
 
     void CompactTileMap::RemoveCellFromGroup(uint64_t groupId, const glm::ivec2& cell)
     {
-        auto it = m_CellsByGroupId.find(groupId);
-        if (it == m_CellsByGroupId.end())
+        auto it = m_cellsByGroupId.find(groupId);
+        if (it == m_cellsByGroupId.end())
             return;
 
         auto& cells = it->second;
@@ -218,17 +218,17 @@ namespace Engine
             cells.erase(found);
 
         if (cells.empty())
-            m_CellsByGroupId.erase(it);
+            m_cellsByGroupId.erase(it);
     }
 
     const std::unordered_map<uint64_t, CompactGroupInfo>& CompactTileMap::GetAllGroupInfo() const
     {
-        return m_GroupInfo;
+        return m_groupInfo;
     }
 
     void CompactTileMap::ClearPromotionFlags()
     {
-        for (auto& [worldCell, cell] : m_Cells)
+        for (auto& [worldCell, cell] : m_cells)
         {
             for (CompactTile& tile : cell.Tiles)
             {
@@ -244,7 +244,7 @@ namespace Engine
     {
        
 
-        for (auto& [worldCell, cell] : m_Cells)
+        for (auto& [worldCell, cell] : m_cells)
         {
 
             for (CompactTile& tile : cell.Tiles)
@@ -262,17 +262,17 @@ namespace Engine
 
     void CompactTileMap::Clear()
     {
-        m_Chunks.clear();
-        m_Cells.clear();
-        m_CellsByGroupId.clear();
-        m_GroupInfo.clear();
+        m_chunks.clear();
+        m_cells.clear();
+        m_cellsByGroupId.clear();
+        m_groupInfo.clear();
     }
 
 
     bool CompactTileMap::RemoveTilesByCategory(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category)
     {
-        auto it = m_Cells.find(worldCell);
-        if (it == m_Cells.end())
+        auto it = m_cells.find(worldCell);
+        if (it == m_cells.end())
             return false;
 
         CompactTileCell& cell = it->second;
@@ -333,8 +333,8 @@ namespace Engine
     bool CompactTileMap::RemoveTileByCategoryAndDirection(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs,
         eTileCategory category, eTileDirection direction)
     {
-        auto it = m_Cells.find(worldCell);
-        if (it == m_Cells.end())
+        auto it = m_cells.find(worldCell);
+        if (it == m_cells.end())
             return false;
 
         CompactTileCell& cell = it->second;
@@ -399,16 +399,16 @@ namespace Engine
 
     void CompactTileMap::RemoveGroup(uint64_t groupId)
     {
-        auto it = m_CellsByGroupId.find(groupId);
-        if (it == m_CellsByGroupId.end())
+        auto it = m_cellsByGroupId.find(groupId);
+        if (it == m_cellsByGroupId.end())
             return;
 
         const std::vector<glm::ivec2>& cells = it->second;
 
         for (const glm::ivec2& cell : cells)
         {
-            auto cellIt = m_Cells.find(cell);
-            if (cellIt == m_Cells.end())
+            auto cellIt = m_cells.find(cell);
+            if (cellIt == m_cells.end())
                 continue;
 
             auto& tiles = cellIt->second.Tiles;
@@ -426,14 +426,14 @@ namespace Engine
             // If cell is now empty  remove it completely
             if (tiles.empty())
             {
-                m_Cells.erase(cell);
+                m_cells.erase(cell);
             }
 
             
             MarkChunkDirtyForCell(cell);
         }
         RemoveGroupInfo(groupId);
-        m_CellsByGroupId.erase(it);
+        m_cellsByGroupId.erase(it);
     }
 
 
@@ -515,12 +515,12 @@ namespace Engine
 
     const std::unordered_map<uint64_t, std::vector<glm::ivec2>>& CompactTileMap::GetGroupCells() const
     {
-        return m_CellsByGroupId;
+        return m_cellsByGroupId;
     }
     const CompactGroupInfo* CompactTileMap::GetGroupInfo(uint64_t groupId) const
     {
-        auto it = m_GroupInfo.find(groupId);
-        if (it == m_GroupInfo.end())
+        auto it = m_groupInfo.find(groupId);
+        if (it == m_groupInfo.end())
             return nullptr;
 
         return &it->second;
@@ -528,8 +528,8 @@ namespace Engine
 
     CompactGroupInfo* CompactTileMap::GetGroupInfo(uint64_t groupId)
     {
-        auto it = m_GroupInfo.find(groupId);
-        if (it == m_GroupInfo.end())
+        auto it = m_groupInfo.find(groupId);
+        if (it == m_groupInfo.end())
             return nullptr;
 
         return &it->second;
@@ -540,7 +540,7 @@ namespace Engine
         if (groupId == 0)
             return;
 
-        CompactGroupInfo& info = m_GroupInfo[groupId];
+        CompactGroupInfo& info = m_groupInfo[groupId];
         info.GroupId = groupId;
         info.OriginCell = originCell;
     }
@@ -550,21 +550,21 @@ namespace Engine
         if (groupId == 0)
             return;
 
-        CompactGroupInfo& info = m_GroupInfo[groupId];
+        CompactGroupInfo& info = m_groupInfo[groupId];
         info.GroupId = groupId;
         info.Name = groupName;
     }
 
     bool CompactTileMap::HasGroupInfo(uint64_t groupId) const
     {
-        return m_GroupInfo.find(groupId) != m_GroupInfo.end();
+        return m_groupInfo.find(groupId) != m_groupInfo.end();
     }
 
     void CompactTileMap::RemoveGroupInfo(uint64_t groupId)
     {
-        auto it = m_GroupInfo.find(groupId);
-        if (it != m_GroupInfo.end())
-            m_GroupInfo.erase(it);
+        auto it = m_groupInfo.find(groupId);
+        if (it != m_groupInfo.end())
+            m_groupInfo.erase(it);
     }
 
     int FloorDiv(int a, int b)

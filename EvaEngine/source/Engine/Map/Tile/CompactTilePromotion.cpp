@@ -134,6 +134,7 @@ namespace Engine
         {
             glm::ivec2 worldCell{};
             uint16_t typeId = 0;
+            uint64_t uid = 0;
             const TileDefinition* def = nullptr;
         };
 
@@ -226,7 +227,7 @@ namespace Engine
 
 
 
-        for (const PendingTile& pendingTile : tilesToPromote)
+        for (PendingTile& pendingTile : tilesToPromote)
         {
 
             glm::vec2 tileWorldPos = IsoTileUtils::IsoToWorldGround(pendingTile.worldCell);
@@ -242,6 +243,7 @@ namespace Engine
                 (uint32_t)runtimeTile.Category,
                 pendingTile.def->Direction);
 
+            pendingTile.uid = runtimeTile.UID;
             EE_CORE_INFO("runtimeTile.UID {}", runtimeTile.UID);
             tc.tiles.push_back(runtimeTile);
         }
@@ -252,7 +254,7 @@ namespace Engine
             CompactTile* compact = compactMap.FindTile(p.worldCell, p.typeId);
             if (!compact)
                 continue;
-
+            compact->UID = p.uid;
             compact->Flags |= CompactTileFlags::Promoted;
             compact->Flags |= CompactTileFlags::Hidden;
             compactMap.MarkChunkDirtyForCell(p.worldCell);

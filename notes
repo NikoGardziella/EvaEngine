@@ -316,3 +316,25 @@ use fog of war for tile and roof opacity
     - build collision grid TypeDefs from pixels after creating atlas.
     - Light source that lights up room. when light comestrough door orsomethng
 }
+
+25.04.2026
+{
+
+    pixel collision system:
+    City scene. tile count 1108
+    30 fps
+    WaitForCollisionFence 14.521 ms
+     CalculateCollisionFrame Wall Duration 7.686 ms
+
+
+     after creatiing affected tile list: 
+    WaitForCollisionFence Wall Duration	0.365 ms
+    when there is no collision.
+    fps above 40
+    WaitForCollisionFence  Wall Duration	5.760 ms
+    with constant fire these seem low. spikes from :EvaluateDirtyRegionsAndScheduleCollapses()
+
+
+    
+
+}

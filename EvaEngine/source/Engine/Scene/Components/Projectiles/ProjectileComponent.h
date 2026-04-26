@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/ext/vector_float2.hpp>
 #include <Engine/Scene/Entity.h>
+#include <vector>
 
 enum class ProjectileVisualType : uint8_t
 {
@@ -25,6 +26,7 @@ struct ProjectileComponent
     float      ProjectileSped;
     float      DestructionRadius = 0.1f;
     float      DistanceTravelled;
+    std::vector<uint64_t> AffectedTileUIDs;
     Engine::Entity   Owner;
 
     ProjectileComponent() = default;
