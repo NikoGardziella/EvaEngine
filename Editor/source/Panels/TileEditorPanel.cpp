@@ -10,7 +10,7 @@
 namespace Engine {
 
     
-    TileEditorPanel::TileEditorPanel()
+    TileEditorPanel::TileEditorPanel(Ref<Scene> scene) : m_scene(scene)
     {
        // CreateTileAtlas();
         AssetManager::CreateTileAtlas();
@@ -118,6 +118,18 @@ namespace Engine {
                 m_selectedTileprops.name = m_selectedTileName;
                 m_modifiedTileProperties[m_selectedTileName] = m_selectedTileprops;
                 TileSerializer::Save(m_modifiedTileProperties);
+                /*
+                TileDefinition* def = m_scene->GetTileDefinitions().GetMutable(m_selectedTileTypeId);
+
+                if (def)
+                {
+                    def->Name = m_selectedTileprops.name;
+                    def->BaseHealth = m_selectedTileprops.health;
+                    def->Material = static_cast<eTileMaterial>(currentMaterialIdx);
+
+                    
+                }
+                */
             }
 
             ImGui::End();

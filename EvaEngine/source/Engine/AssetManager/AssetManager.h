@@ -65,7 +65,7 @@ namespace Engine {
 
         static const TileProperties& AssetManager::GetTileProperties(const std::string& tileName);
 
-        //static void LoadTileProperties();
+        static void LoadTileProperties();
 
         static uint8_t PackCategoryNibble(eTileCategory c);
 

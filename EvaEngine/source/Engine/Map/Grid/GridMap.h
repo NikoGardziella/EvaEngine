@@ -17,7 +17,16 @@ namespace Engine {
 	class GridMap
 	{
 	public:
+
+	public:
+		enum class FootSide : uint8_t { North, East, South, West };
+
 		void BuildFromRegistry(Scene* scene);
+		bool DamageSubCell(uint64_t key, float damage);
+		void RemoveDeadSubCells();
+		void EmitEdgeSubcellsOnSide(const glm::ivec2& cell, FootSide side, uint32_t slot, uint64_t uid, float cellW, float cellH, int subs, float shrinkAlong, float halfThickW);
+		void EmitCenteredStrip(const glm::ivec2& cell, float widthFrac, float thickFrac, float yNudgePx, uint32_t slot, uint64_t uid, float cellW, float cellH);
+		void EmitCenteredDiscApprox(const glm::ivec2& cell, float radiusFrac, uint32_t slot, uint64_t uid, float cellW, float cellH);
 		void BuildFromTilesNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld);
 		void BuildFromCompactChunksNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld);
 		void UpdateCollisionAroundPlayer(Scene* scene, const glm::vec2& playerWorldPos);
@@ -102,9 +111,9 @@ namespace Engine {
 		std::vector<Engine::SubCellOBB> m_blockedSubCells; 
 		std::unordered_map<uint64_t, std::vector<int>> m_cellToSubcells;
 
-		std::vector<glm::vec2> m_subMin, m_subMax;
 
-		std::vector<uint32_t> m_subcellHitCount;
+		std::unordered_map<uint64_t, float> m_subCellHealth;
+		std::unordered_set<uint64_t> m_destroyedSubCells;
 
 		glm::vec2 m_LastGridBuildPos = glm::vec2(FLT_MAX);
 		struct DebugAABB {

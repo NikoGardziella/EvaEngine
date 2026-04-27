@@ -243,6 +243,8 @@ namespace Engine
                 (uint32_t)runtimeTile.Category,
                 pendingTile.def->Direction);
 
+             
+
             pendingTile.uid = runtimeTile.UID;
             EE_CORE_INFO("runtimeTile.UID {}", runtimeTile.UID);
             tc.tiles.push_back(runtimeTile);

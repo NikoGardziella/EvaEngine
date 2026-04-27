@@ -56,7 +56,9 @@ namespace Engine {
 
     EditorLayer::EditorLayer(Editor* editor)
         : Layer("EditorLayer"),
-        m_editor(editor) , m_tilePlacementController(m_sceneHierarchyPanel, m_tileEditorPanel, m_selectedEntity, m_commandHistory)
+        m_editor(editor) ,
+        m_tilePlacementController(m_sceneHierarchyPanel, m_tileEditorPanel, m_selectedEntity, m_commandHistory),
+        m_tileEditorPanel(m_sceneHierarchyPanel.GetEditorScene())
     {
 
     }

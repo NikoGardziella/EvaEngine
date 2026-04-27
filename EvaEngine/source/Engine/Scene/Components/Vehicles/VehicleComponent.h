@@ -24,6 +24,7 @@
         float Deceleration = 50.0f;
 
 
+        float CollisionCooldown = 0.5f;
         float ExitEnterCooldown = 0.5f;
         glm::vec2 Pushback = glm::vec2(0.0f);
     };

@@ -573,7 +573,7 @@ namespace Engine {
         //**********************
 
 
-       // LoadTileProperties();
+        LoadTileProperties();
         namespace fs = std::filesystem;
 
         static const std::unordered_map<eTileCategory, std::string> CategoryNames = {
@@ -809,7 +809,12 @@ namespace Engine {
     }
 
 
+    void AssetManager::LoadTileProperties()
+    {
+        EE_PROFILE_FUNCTION();
+        TileSerializer::Load(s_tileProperties);
 
+    }
 
     eTileMaterial AssetManager::ParseMaterialFromPath(const std::filesystem::path& path)
     {

@@ -58,7 +58,24 @@ namespace Engine {
 			m_radiiW.push_back(s_CPUExplosionsData.CPUExplosions[i].radiWorld);
 			m_damages.push_back(s_CPUExplosionsData.CPUExplosions[i].damage);
 		}
+		if (!s_CPUExplosionsData.CPUExplosions.empty())
+		{
+			for (const auto& kv : s_bindlessDescitproRenderer->GetTileToSlotMap())
+			{
+				uint32_t slot = kv.second;
 
+				if (slot == UINT32_MAX)
+					continue;
+
+				uniqueSlots.push_back(slot);
+			}
+
+			std::sort(uniqueSlots.begin(), uniqueSlots.end());
+			uniqueSlots.erase(
+				std::unique(uniqueSlots.begin(), uniqueSlots.end()),
+				uniqueSlots.end()
+			);
+		}
 
 		BuildAffectedTilesCPU(m_hitsW, m_radiiW, m_damages, uniqueSlots,
 			pixelSizeWorld, tileW, tileH, affectedTiles);

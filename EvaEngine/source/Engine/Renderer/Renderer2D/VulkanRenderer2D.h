@@ -303,6 +303,7 @@ namespace Engine {
 		Ref<VulkanGraphicsPipeline> GetGraphicsPipelines() { return m_vulkanGraphicsPipelines; };
 
 		static void CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size, float rotation, uint64_t entityID, eCollisionType collisionType, uint32_t damage);
+		static void CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size, float rotation, uint64_t entityID, eCollisionType collisionType, uint32_t damage, const std::vector<uint64_t>& affectedSlots);
 		static void CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID,
 			eCollisionType collisionType, uint32_t damage, const float destructionRadius, glm::vec2  projectileDirection,
 			glm::vec2  TargetPositionAtFireTime, float  DistanceToTargetatFireTime, float  TargetPositionHeightZ1);

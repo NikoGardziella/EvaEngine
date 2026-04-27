@@ -94,6 +94,7 @@ namespace Engine {
         bool            IsDestructible;
         bool            IsRoof; // mayeb this should be " IsPlacedOnRood" 
         bool            IsSupportingRoof;
+        bool            IsSpawned = false;
         eTileCategory   Category;
         eTileMaterial   Material;
         uint32_t        TileHealth;

@@ -303,7 +303,7 @@ namespace Engine {
 
         m_tileMananger->BuildTemplatesForScene(this);
         m_tileMananger->BuildInitialResidency(this);
-        m_gridMap->BuildFromRegistry(this);
+      //  m_gridMap->BuildFromRegistry(this);
 
 
         m_textureStreamingSystem->BakeTilesIntoChunks(this); // terrain

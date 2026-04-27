@@ -583,65 +583,47 @@ void main()
 
         if (isVehicle(proj.Type))
         {
-
-
-
-            if (!projectileHitByType(proj, localPx)) continue;
+            if (!projectileHitByType(proj, localPx))
+                continue;
 
             uvec4 ht  = loadHT(pc.TextureIndex, localPx);
             vec4  col = imageLoad(uColor[nonuniformEXT(pc.TextureIndex)], localPx);
-            bool  hasHP  = hasHealth(ht);
-            bool  hasTex = (col.a > 0.0);
 
-            if (!hasHP && !hasTex) continue;
+            bool hasHP  = hasHealth(ht);
+            bool hasTex = (col.a > 0.0);
 
-            // Height band — only destroy pixels in the middle zone
-            // ht.g = height of this pixel in tile-local units (0 = ground, higher = top)
-            const uint kMinDestroyHeight = 40u;  // don't destroy ground/foot pixels
-            const uint kMaxDestroyHeight = 170u;  // don't destroy roof/top pixels
+            if (!hasHP && !hasTex)
+                continue;
+
+            if (ht.g == 0u)
+                continue;
+
+            const uint kMinDestroyHeight = 20u;
+            const uint kMaxDestroyHeight = 180u;
             bool inDestroyBand = (ht.g >= kMinDestroyHeight && ht.g <= kMaxDestroyHeight);
 
+            if (!inDestroyBand)
+                continue;
+
             uint key = makeKey(0.5, false, L);
+
             CollisionResult result;
             result.hitProjectileID_Low  = proj.ID_Low;
             result.hitProjectileID_High = proj.ID_High;
-            result.DestructionRadius    = 0.0;
+            result.DestructionRadius    = proj.DestructionRadius;
             result.CollisionPosition    = worldPos;
             result.Damage               = proj.Damage;
 
-            if (!hasHP && !hasTex) continue;
+            uint healthAfterHit = ht.r;
+            if (proj.Damage >= healthAfterHit)
+                healthAfterHit = 0u;
+            else
+                healthAfterHit -= proj.Damage;
 
-            // Skip empty/background pixels (ht.g == 0 means no height data written)
-            if (ht.g == 0u) continue;
+            result.HealthAfter = healthAfterHit;
 
-
-            // If outside destroy band, only block — never destroy
-            if (!inDestroyBand)
-            {
-                
-                continue; // don't destroy pixels outside band
-            }
-
-            // Inside band — proceed with destruction
-            if (hasHP)
-            {
-                if (proj.Damage >= ht.r)
-                {
-                    destroyPixel_fx(true, pc.TextureIndex, localPx, ht);
-                    result.HealthAfter = 0u;
-                }
-                else
-                {
-                    result.HealthAfter = ht.r - proj.Damage;
-                    applyDamage_fx(false, pc.TextureIndex, localPx, ht, proj.Damage);
-                    tryClaimMin(i, key, result);
-                }
-            }
-            else if (hasTex)
-            {
-                destroyPixel_fx(true, pc.TextureIndex, localPx, ht);
-                result.HealthAfter = 0u;
-            }
+            tryClaimMin(i, key, result);
+            continue;
         }
 
 

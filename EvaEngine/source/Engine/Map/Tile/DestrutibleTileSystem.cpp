@@ -518,6 +518,7 @@ namespace Engine {
                         newTIle.UID  = newTileUID;
                         newTIle.opaqueMax = glm::ivec2(0);
                         newTIle.opaqueMin = glm::ivec2(0);
+                        newTIle.IsSpawned = true;
                         tcNew.tiles.push_back(newTIle);
 
                         cfg.lastAlive = totalAlive;

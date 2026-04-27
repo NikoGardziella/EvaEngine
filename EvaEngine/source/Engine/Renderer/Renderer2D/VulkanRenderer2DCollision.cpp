@@ -26,6 +26,37 @@ namespace Engine {
 		s_CollisionData.EntitySlotIndex++;
 	}
 
+	void VulkanRenderer2D::CalculateBoxCollision(const glm::vec2& position, const glm::vec2& size,
+		float rotation, uint64_t entityID, eCollisionType collisionType, uint32_t damage, const std::vector<uint64_t>& affectedSlots)
+	{
+		EE_PROFILE_FUNCTION();
+
+		uint32_t index = s_CollisionData.EntitySlotIndex;
+		if (index >= MAX_COLLISION_ENTITIES)
+		{
+			EE_CORE_WARN("Max vehicle collision slots reached!");
+			return;
+		}
+		s_CollisionData.CollisionEntities[index].Type = (uint32_t)collisionType;
+		s_CollisionData.CollisionEntities[s_CollisionData.EntitySlotIndex].Damage = damage;
+
+		s_CollisionData.CollisionEntities[index].Position = position;
+		s_CollisionData.CollisionEntities[index].Size = size;
+		s_CollisionData.CollisionEntities[index].Rotation = rotation;
+		s_CollisionData.CollisionEntities[index].ID_Low = static_cast<uint32_t>(entityID & 0xFFFFFFFF);
+		s_CollisionData.CollisionEntities[index].ID_High = static_cast<uint32_t>(entityID >> 32);
+
+		for (uint64_t slot : affectedSlots)
+		{
+			if (slot != UINT32_MAX)
+				s_CollisionData.AffectedSlots.push_back(slot);
+		}
+
+
+
+		s_CollisionData.EntitySlotIndex++;
+	}
+
 
 
 	void VulkanRenderer2D::CalculateCircleCollision(const glm::vec2& colliderPos, const float colliderRadius, uint64_t entityID,

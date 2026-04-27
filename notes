@@ -335,6 +335,9 @@ use fog of war for tile and roof opacity
     with constant fire these seem low. spikes from :EvaluateDirtyRegionsAndScheduleCollapses()
 
 
-    
 
+    // 
+
+    collision grid is rebuild even when there are parts destroyed.
+    
 }

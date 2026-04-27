@@ -20,7 +20,7 @@ namespace Engine
 
 	public:
 
-		TileEditorPanel();
+		TileEditorPanel(Ref<Scene> scene);
 		~TileEditorPanel() = default;
 		void OnImGuiRender();
 
@@ -75,7 +75,7 @@ namespace Engine
 		std::unordered_map<std::string, TileProperties> m_tilePropertyDefaults; // key = tile name
 		std::unordered_map<std::string, TileProperties> m_modifiedTileProperties; // optional overrides
 
-
+		Ref<Scene> m_scene;
 	};
 }
 

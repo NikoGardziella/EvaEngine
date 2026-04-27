@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <Engine/Math/HashUtils.h>
 
 namespace Engine
 {
@@ -8,6 +9,9 @@ namespace Engine
 		glm::vec2 halfExtents;  // {half-length along edge, half-thickness}
 		glm::vec2 tangent;      // unit vector along the edge (A->B)
 		uint32_t  TileSlot;
+
+		uint64_t CollisionKey = 0;
+		float Health = 1.0f;
 	};
 
 
@@ -31,7 +35,14 @@ namespace Engine
 
 		static bool OBB_IntersectsCircle(const SubCellOBB& obb, const glm::vec2& C, float R);
 
-
+		static uint64_t MakeSubCellKey(uint64_t tileUID, uint32_t side, uint32_t subIndex)
+		{
+			uint64_t h = 1469598103934665603ull;
+			HashUtils::HashCombine(h, tileUID);
+			HashUtils::HashCombine(h, side);
+			HashUtils::HashCombine(h, subIndex);
+			return h;
+		}
 
 	};
 
