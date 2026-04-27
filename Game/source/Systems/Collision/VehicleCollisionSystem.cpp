@@ -91,17 +91,17 @@ void VehicleCollisionSystem::UpdateVehicleCollision(float deltaTime, Engine::Sce
                      ApplyPush(vehicleTransformComp, vehicleComp,result.HitPoint, kPushbackStrength, kVelocityNudge);
 
                 }
+                std::vector<uint64_t> affectedUIDs = BuildVehicleAffectedUIDs(scene, glm::vec2(vehicleTransformComp.Translation),
+                    vehicleHalfExtents, vehicleTransformComp.Rotation.z);
 
+
+                Engine::VulkanRenderer2D::CalculateBoxCollision(vehicleTransformComp.Translation, glm::vec2(1.0f, 2.0f), vehicleTransformComp.Rotation.z,
+                    carIDComponent.ID, Engine::eCollisionType::VEHICLE, damage, affectedUIDs);
 
                 
             }
 
-            std::vector<uint64_t> affectedUIDs = BuildVehicleAffectedUIDs(scene, glm::vec2(vehicleTransformComp.Translation),
-                vehicleHalfExtents, vehicleTransformComp.Rotation.z);
-
-
-            Engine::VulkanRenderer2D::CalculateBoxCollision(vehicleTransformComp.Translation, glm::vec2(1.0f, 2.0f), vehicleTransformComp.Translation.z,
-                carIDComponent.ID, Engine::eCollisionType::VEHICLE, damage, affectedUIDs);
+          
 
 
          

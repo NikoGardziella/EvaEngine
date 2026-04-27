@@ -206,7 +206,7 @@ namespace Engine
                     emitEdgeSubcellsOnSide(cell, side, t.Slot);
                 }
                 
-                else if (t.Category == eTileCategory::dynamicObjects)
+                else if (t.Category == eTileCategory::DynamicObjects)
                 {
                     // Defaults that work well for lamps/signs; make these data-driven later:
                     // If you already computed a per-tile foot width in ExtractPixelsFromTilePallette,
@@ -509,7 +509,7 @@ namespace Engine
                     cell += sideIsoOffset(side);
                     EmitEdgeSubcellsOnSide(cell, side, t.Slot, t.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W);
                 }
-                else if (t.Category == eTileCategory::dynamicObjects)
+                else if (t.Category == eTileCategory::DynamicObjects)
                 {
                     constexpr float kDefaultWidthFrac = 0.35f;
                     constexpr float kDefaultThickFrac = 0.12f;

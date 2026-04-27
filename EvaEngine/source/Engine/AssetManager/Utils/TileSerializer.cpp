@@ -113,7 +113,7 @@ namespace Engine {
 
             def.TypeId = defNode["TypeId"].as<uint16_t>();
             def.Name = defNode["Name"].as<std::string>();
-
+            /*
             if (auto uvNode = defNode["UV"])
             {
                 def.UV.x = uvNode[0].as<float>();
@@ -121,6 +121,7 @@ namespace Engine {
                 def.UV.z = uvNode[2].as<float>();
                 def.UV.w = uvNode[3].as<float>();
             }
+            */
 
             def.Category = CategoryFromString(defNode["Category"].as<std::string>());
             def.Direction = TileDirectionFromString(defNode["Direction"].as<std::string>());

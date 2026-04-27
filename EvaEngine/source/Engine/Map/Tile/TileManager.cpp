@@ -312,7 +312,7 @@ namespace Engine {
 
                 TileTypeKey bulletKey{};
                 bulletKey.name = "bullet_sprite";
-                bulletKey.uv = glm::vec4(0.0f);
+               // bulletKey.uv = glm::vec4(0.0f);
                 bulletKey.category = eTileCategory::Undefined; 
                 bulletKey.direction = eTileDirection::Center; 
 
@@ -358,7 +358,7 @@ namespace Engine {
                 uint64_t grenadeUID = HashUtils::MakeTileUID_String("grenade");
                 TileTypeKey grenadeKey{};
                 grenadeKey.name = "grenade";
-                grenadeKey.uv = glm::vec4(0.0f);
+               // grenadeKey.uv = glm::vec4(0.0f);
                 grenadeKey.category = eTileCategory::Undefined;
                 grenadeKey.direction = eTileDirection::Center;
 
@@ -379,7 +379,7 @@ namespace Engine {
     {
         TileTypeKey key{};
         key.name = tile.name;
-        key.uv = tile.UV;
+        //key.uv = tile.UV;
         key.category = tile.Category;
         key.direction = tile.TileDirection;
         return key;

@@ -30,7 +30,7 @@ namespace Engine {
             { "Terrain",   eTileCategory::Terrain },
             { "Roofs",     eTileCategory::Roofs },
             { "Vehicles",  eTileCategory::Vehicles },
-            { "dynamicObjects",  eTileCategory::dynamicObjects},
+            { "dynamicObjects",  eTileCategory::DynamicObjects},
             { "doors",  eTileCategory::Doors },
             { "windows",  eTileCategory::Windows }
         };

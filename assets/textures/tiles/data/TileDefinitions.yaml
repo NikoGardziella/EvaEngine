@@ -706,7 +706,7 @@ TileDefinitions:
     Category: Buildings
     Direction: South
     Material: Concrete
-    BaseHealth: 999
+    BaseHealth: 1
     IsDestructible: true
     IsSupportingRoof: true
     IsRoof: false
@@ -1153,7 +1153,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 129
     Name: Object4_E
-    Category: dynamicObjects
+    Category: DynamicObjects
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1162,7 +1162,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 130
     Name: Object4_N
-    Category: dynamicObjects
+    Category: DynamicObjects
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1171,7 +1171,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 131
     Name: Object4_S
-    Category: dynamicObjects
+    Category: DynamicObjects
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1180,7 +1180,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 132
     Name: Object4_W
-    Category: dynamicObjects
+    Category: DynamicObjects
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1189,7 +1189,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 133
     Name: StreetLamp 1_E
-    Category: dynamicObjects
+    Category: DynamicObjects
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1198,7 +1198,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 134
     Name: StreetLamp 1_N
-    Category: dynamicObjects
+    Category: DynamicObjects
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1207,7 +1207,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 135
     Name: StreetLamp 1_S
-    Category: dynamicObjects
+    Category: DynamicObjects
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1216,7 +1216,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 136
     Name: StreetLamp 1_W
-    Category: dynamicObjects
+    Category: DynamicObjects
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1369,7 +1369,7 @@ TileDefinitions:
     IsRoof: true
   - TypeId: 153
     Name: Wall A11_E
-    Category: Unknown
+    Category: Doors
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1378,7 +1378,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 154
     Name: Wall A11_N
-    Category: Unknown
+    Category: Doors
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1387,7 +1387,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 155
     Name: Wall A11_S
-    Category: Unknown
+    Category: Doors
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1396,7 +1396,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 156
     Name: Wall A11_W
-    Category: Unknown
+    Category: Doors
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1405,7 +1405,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 157
     Name: Wall B16_E
-    Category: Unknown
+    Category: Doors
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1414,7 +1414,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 158
     Name: Wall B16_N
-    Category: Unknown
+    Category: Doors
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1423,7 +1423,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 159
     Name: Wall B16_S
-    Category: Unknown
+    Category: Doors
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1432,7 +1432,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 160
     Name: Wall B16_W
-    Category: Unknown
+    Category: Doors
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1441,7 +1441,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 161
     Name: Wall B17_E
-    Category: Unknown
+    Category: Doors
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1450,7 +1450,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 162
     Name: Wall B17_N
-    Category: Unknown
+    Category: Doors
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1459,7 +1459,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 163
     Name: Wall B17_S
-    Category: Unknown
+    Category: Doors
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1468,7 +1468,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 164
     Name: Wall B17_W
-    Category: Unknown
+    Category: Doors
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1477,7 +1477,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 165
     Name: Wall B18_W
-    Category: Unknown
+    Category: Windows
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1486,7 +1486,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 166
     Name: Wall D19_E
-    Category: Unknown
+    Category: Doors
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1495,7 +1495,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 167
     Name: Wall D19_N
-    Category: Unknown
+    Category: Doors
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1504,7 +1504,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 168
     Name: Wall D19_S
-    Category: Unknown
+    Category: Doors
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1513,7 +1513,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 169
     Name: Wall D19_W
-    Category: Unknown
+    Category: Doors
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1522,7 +1522,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 170
     Name: Wall D20_E
-    Category: Unknown
+    Category: Doors
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1531,7 +1531,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 171
     Name: Wall D20_N
-    Category: Unknown
+    Category: Doors
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1540,7 +1540,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 172
     Name: Wall D20_S
-    Category: Unknown
+    Category: Doors
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1549,7 +1549,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 173
     Name: Wall D20_W
-    Category: Unknown
+    Category: Doors
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1558,7 +1558,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 174
     Name: Wall A13_E
-    Category: Unknown
+    Category: Windows
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1567,7 +1567,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 175
     Name: Wall A13_N
-    Category: Unknown
+    Category: Windows
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1576,7 +1576,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 176
     Name: Wall A13_S
-    Category: Unknown
+    Category: Windows
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1585,7 +1585,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 177
     Name: Wall A13_W
-    Category: Unknown
+    Category: Windows
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1594,7 +1594,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 178
     Name: Wall A21_E
-    Category: Unknown
+    Category: Windows
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1603,7 +1603,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 179
     Name: Wall A21_N
-    Category: Unknown
+    Category: Windows
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1612,7 +1612,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 180
     Name: Wall A21_S
-    Category: Unknown
+    Category: Windows
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1621,7 +1621,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 181
     Name: Wall A21_W
-    Category: Unknown
+    Category: Windows
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1630,7 +1630,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 182
     Name: Wall B18_E
-    Category: Unknown
+    Category: Windows
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1639,7 +1639,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 183
     Name: Wall B18_N
-    Category: Unknown
+    Category: Windows
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1648,7 +1648,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 184
     Name: Wall B18_S
-    Category: Unknown
+    Category: Windows
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1657,7 +1657,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 185
     Name: Wall D13_E
-    Category: Unknown
+    Category: Windows
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1666,7 +1666,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 186
     Name: Wall D13_N
-    Category: Unknown
+    Category: Windows
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1675,7 +1675,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 187
     Name: Wall D13_S
-    Category: Unknown
+    Category: Windows
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1684,7 +1684,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 188
     Name: Wall D13_W
-    Category: Unknown
+    Category: Windows
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1693,7 +1693,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 189
     Name: Wall D18_E
-    Category: Unknown
+    Category: Windows
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1702,7 +1702,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 190
     Name: Wall D18_N
-    Category: Unknown
+    Category: Windows
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1711,7 +1711,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 191
     Name: Wall D18_S
-    Category: Unknown
+    Category: Windows
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1720,7 +1720,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 192
     Name: Wall D18_W
-    Category: Unknown
+    Category: Windows
     Direction: West
     Material: Default
     BaseHealth: 1
@@ -1729,7 +1729,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 193
     Name: Wall D21_E
-    Category: Unknown
+    Category: Windows
     Direction: East
     Material: Default
     BaseHealth: 1
@@ -1738,7 +1738,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 194
     Name: Wall D21_N
-    Category: Unknown
+    Category: Windows
     Direction: North
     Material: Default
     BaseHealth: 1
@@ -1747,7 +1747,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 195
     Name: Wall D21_S
-    Category: Unknown
+    Category: Windows
     Direction: South
     Material: Default
     BaseHealth: 1
@@ -1756,7 +1756,7 @@ TileDefinitions:
     IsRoof: false
   - TypeId: 196
     Name: Wall D21_W
-    Category: Unknown
+    Category: Windows
     Direction: West
     Material: Default
     BaseHealth: 1

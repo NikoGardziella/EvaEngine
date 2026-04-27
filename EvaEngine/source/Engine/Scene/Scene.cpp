@@ -255,38 +255,7 @@ namespace Engine {
 
         //m_compactTilePromotion.PromoteAllTiles(this);
         {
-            TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
-
-            TileTypeKey key{};
-            key.name = "Wall B1_S";
-            key.uv = glm::vec4(0.1352539f, 0.619486f, 0.25927734f, 0.66596794f);
-            key.category = eTileCategory::Buildings;
-            key.direction = eTileDirection::South;
-
-            uint16_t typeId = 0;
-
-            if (!defs.FindTypeId(key, typeId))
-            {
-                TileDefinition def{};
-                def.TypeId = defs.GetNextTypeId();
-                def.Name = "Wall B1_S";
-                def.UV = glm::vec4(0.1352539f, 0.619486f, 0.25927734f, 0.66596794f);
-                def.Category = eTileCategory::Buildings;
-                def.Direction = eTileDirection::South;
-                def.Material = eTileMaterial::None;
-                def.BaseHealth = 10;
-                def.IsDestructible = true;
-                def.IsSupportingRoof = true;
-                def.IsRoof = false;
-
-                if (!defs.Register(def, key))
-                {
-                    EE_CORE_WARN("Failed to register debug compact tile type");
-                    
-                }
-
-                typeId = def.TypeId;
-            }
+            
 
             //CreateLotsOfCompactTilesOnStartup(typeId, 1000, 1000, glm::ivec2(10, 10), 1);
 

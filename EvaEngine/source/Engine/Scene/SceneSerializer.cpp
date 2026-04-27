@@ -1047,7 +1047,7 @@ namespace Engine {
             def.IsRoof = defNode["IsRoof"].as<bool>();
 
             key.name = def.Name;
-            key.uv = def.UV;
+            //key.uv = def.UV;
             key.category = def.Category;
             key.direction = def.Direction;
 

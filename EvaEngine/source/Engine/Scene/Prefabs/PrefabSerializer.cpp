@@ -379,8 +379,8 @@ namespace Engine {
 
         Engine::TileTypeKey key = TileManager::MakeTileTypeKey(tile);
 
-        uint16_t existingTypeId = 0;
-        if (defs.FindTypeId(key, existingTypeId))
+        uint16_t existingTypeId = defs.GetTypeIdByName(tile.name);
+        if (existingTypeId != 0)
             return existingTypeId;
 
         Engine::TileDefinition def{};

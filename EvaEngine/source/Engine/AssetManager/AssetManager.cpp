@@ -460,7 +460,7 @@ namespace Engine {
                 }
 
                 // --- B: per-instance id only for dynamic objects (alive time); else 0 ---
-                uint8_t propB = (tile.Category == eTileCategory::dynamicObjects) ? objId : 0u;
+                uint8_t propB = (tile.Category == eTileCategory::DynamicObjects) ? objId : 0u;
 
                 // --- A: flags + category nibble ---
                 uint8_t flagsA = 0;
@@ -595,9 +595,9 @@ namespace Engine {
             { eTileCategory::Terrain,   "terrain" },
             { eTileCategory::Roofs,     "roofs" },
             { eTileCategory::Vehicles,  "vehicles" },
-            { eTileCategory::dynamicObjects,  "dynamicObjects" },
-            { eTileCategory::Doors,  "door" },
-            { eTileCategory::Windows,  "window" }
+            { eTileCategory::DynamicObjects,  "dynamicObjects" },
+            { eTileCategory::Doors,  "doors" },
+            { eTileCategory::Windows,  "windows" }
         };
 
         const fs::path baseTilePath = AssetManager::GetAssetPath("textures/tiles");
@@ -722,14 +722,11 @@ namespace Engine {
         currentY = GUTTER;
         rowHeight = 0;
 
-        for (const auto& t : loadedTiles)
+        for (const auto& tile : loadedTiles)
         {
 
-            if (t.name == "Wall D1_E")
-            {
-                EE_CORE_INFO("category {}", (uint32_t)t.category);
-            }
-            if (currentX + t.width + GUTTER > atlasWidth)
+           
+            if (currentX + tile.width + GUTTER > atlasWidth)
             {
                 currentY += rowHeight + GUTTER;
                 currentX = GUTTER;
@@ -737,11 +734,11 @@ namespace Engine {
             }
 
             
-                for (int y = 0; y < t.height; ++y) {
+                for (int y = 0; y < tile.height; ++y) {
                     const size_t dstY = size_t(currentY + y);
-                    const uint8_t* src = &t.pixels[(size_t(y) * t.width) * 4];
+                    const uint8_t* src = &tile.pixels[(size_t(y) * tile.width) * 4];
                     uint8_t* dst = &atlasData[(dstY * size_t(atlasWidth) + size_t(currentX)) * 4];
-                    memcpy(dst, src, size_t(t.width) * 4);
+                    memcpy(dst, src, size_t(tile.width) * 4);
                 }
 
                 // UV with inset (for UI rendering)
@@ -752,11 +749,11 @@ namespace Engine {
                 glm::vec4 uv{
                     (float(currentX) + inset) * invW,
                     (float(currentY) + inset) * invH,
-                    (float(currentX + t.width) - inset) * invW,
-                    (float(currentY + t.height) - inset) * invH
+                    (float(currentX + tile.width) - inset) * invW,
+                    (float(currentY + tile.height) - inset) * invH
                 };
 
-                const std::string name = t.name;
+                const std::string name = tile.name;
                 int alphaThresh = 8;
                 TileProperties props{};
                 if (auto it = s_tileProperties.find(name); it != s_tileProperties.end())
@@ -765,7 +762,7 @@ namespace Engine {
                 if (props.pivotAuto)
                 {
                     int autoPivotY = 0, autoPivotX = 0;
-                    AssetManagerUtils::ComputePivotFromAlpha(t.pixels, t.width, t.height, alphaThresh, autoPivotY, autoPivotX);
+                    AssetManagerUtils::ComputePivotFromAlpha(tile.pixels, tile.width, tile.height, alphaThresh, autoPivotY, autoPivotX);
 
                     props.pivotYOffsetPx = autoPivotY;
                     props.pivotXCenterOffsetPx = autoPivotX;
@@ -774,21 +771,21 @@ namespace Engine {
 
                 props.name = name;
                 props.health = (props.health == 0 ? 1u : props.health);
-                if (props.material == eTileMaterial::None) props.material = t.material;
+                if (props.material == eTileMaterial::None) props.material = tile.material;
                 props.uv = uv;
-                props.category = t.category;
-                props.pixelRect = { currentX, currentY, t.width, t.height };
+                props.category = tile.category;
+                props.pixelRect = { currentX, currentY, tile.width, tile.height };
 
                 eTileDirection tileDirection = EditorUtils::GetDirectionFromTileName(name);
 
                 createdMissingDefinitions |= CreateMissingTileDefinition(
                     name,
                     uv,
-                    t.category,
-                    props.material == eTileMaterial::None ? t.material : props.material,
+                    tile.category,
+                    props.material == eTileMaterial::None ? tile.material : props.material,
                     tileDirection
                 );
-
+                /*
                 uint16_t typeId = s_TileDefinitions.GetTypeIdByName(name);
                 if (typeId != 0)
                 {
@@ -797,13 +794,14 @@ namespace Engine {
                         CopyDefinitionToProps(*def, props);
                     }
                 }
+                */
 
                 if (props.collisionFootRowsPx == 0)
                 {
-                    switch (t.category)
+                    switch (tile.category)
                     {
                         case eTileCategory::Buildings: props.collisionFootRowsPx = 32; break;
-                        case eTileCategory::dynamicObjects: props.collisionFootRowsPx = 32; break;
+                        case eTileCategory::DynamicObjects: props.collisionFootRowsPx = 32; break;
                         case eTileCategory::Vehicles:  props.collisionFootRowsPx = 20; break;
                         case eTileCategory::Terrain:   props.collisionFootRowsPx = 0;  break;
                         case eTileCategory::Roofs:     props.collisionFootRowsPx = 0;  break;
@@ -815,13 +813,13 @@ namespace Engine {
                 s_tileProperties[name] = props;
 
                 s_tileUVMap[name] = uv;
-                s_tileUVMapsByCategory[t.category][name] = uv;
-                s_tileNamesByCategory[t.category].push_back(name);
-                s_tileNamesByCategoryAndMaterial[t.category][props.material].push_back(name);
+                s_tileUVMapsByCategory[tile.category][name] = uv;
+                s_tileNamesByCategory[tile.category].push_back(name);
+                s_tileNamesByCategoryAndMaterial[tile.category][props.material].push_back(name);
 
-                currentX += t.width + GUTTER;
-                rowHeight = std::max(rowHeight, t.height);
-                stbi_image_free(t.pixels);
+                currentX += tile.width + GUTTER;
+                rowHeight = std::max(rowHeight, tile.height);
+                stbi_image_free(tile.pixels);
             }
 
             s_tileTextureIconAtlas = std::make_shared<VulkanTexture>(
@@ -849,6 +847,10 @@ namespace Engine {
         eTileMaterial material, eTileDirection tileDirection)
     {
         TileDefinitionRegistry& defs = GetTileDefinitions();
+        if (category == eTileCategory::Undefined)
+        {
+            EE_CORE_ERROR("wrong category");
+        }
 
         // Prefer name-based lookup first
         uint16_t existingTypeId = defs.GetTypeIdByName(name);
@@ -885,7 +887,7 @@ namespace Engine {
 
         def.IsDestructible =
             category == eTileCategory::Buildings ||
-            category == eTileCategory::dynamicObjects ||
+            category == eTileCategory::DynamicObjects ||
             category == eTileCategory::Vehicles ||
             category == eTileCategory::Doors ||
             category == eTileCategory::Windows;
@@ -974,7 +976,7 @@ namespace Engine {
         case eTileCategory::Terrain:        t = 3; break;
         case eTileCategory::Roofs:          t = 4; break;
         case eTileCategory::Vehicles:       t = 5; break;
-        case eTileCategory::dynamicObjects: t = 6; break;
+        case eTileCategory::DynamicObjects: t = 6; break;
         default:                            t = 0; break; // Undefined
         }
         return static_cast<uint8_t>(t << 4); // top nibble

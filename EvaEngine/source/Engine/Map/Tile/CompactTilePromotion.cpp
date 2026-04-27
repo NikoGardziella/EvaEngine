@@ -277,7 +277,6 @@ namespace Engine
 
         TileTypeKey key{};
         key.name = tile.name;
-        key.uv = tile.UV;
         key.category = tile.Category;
         key.direction = tile.TileDirection;
 

@@ -418,7 +418,7 @@ namespace Engine {
                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::IsRoof;
                                     }
 
-                                    if (tile.IsRoof && tile.Category == eTileCategory::dynamicObjects)
+                                    if (tile.IsRoof && tile.Category == eTileCategory::DynamicObjects)
                                     {
                                         zBias = 10.0f;
                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::IsRoof;

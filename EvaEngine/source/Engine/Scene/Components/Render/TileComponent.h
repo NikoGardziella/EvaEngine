@@ -30,7 +30,7 @@ namespace Engine {
         Buildings,
         Pillars,
         Vehicles,
-        dynamicObjects,
+        DynamicObjects,
         Roofs,
         Doors,
         Windows,
@@ -50,14 +50,12 @@ namespace Engine {
     struct TileTypeKey
     {
         std::string name;
-        glm::vec4 uv{};
         eTileCategory category{};
         eTileDirection direction{}; 
 
         bool operator==(const TileTypeKey& other) const
         {
             return name == other.name &&
-                uv == other.uv &&
                 category == other.category &&
                 direction == other.direction;
         }
@@ -74,12 +72,13 @@ namespace Engine {
                 {
                     seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
                 };
-
+            /*
             hashCombine(h, std::hash<float>{}(k.uv.x));
             hashCombine(h, std::hash<float>{}(k.uv.y));
             hashCombine(h, std::hash<float>{}(k.uv.z));
             hashCombine(h, std::hash<float>{}(k.uv.w));
             hashCombine(h, std::hash<int>{}(static_cast<int>(k.category)));
+            */
             hashCombine(h, std::hash<int>{}(static_cast<int>(k.direction)));
 
             return h;
@@ -135,7 +134,9 @@ namespace Engine {
         case eTileCategory::Terrain:   return "Terrain";
         case eTileCategory::Roofs:     return "Roofs";
         case eTileCategory::Vehicles:  return "Vehicles";
-        case eTileCategory::dynamicObjects:  return "dynamicObjects";
+        case eTileCategory::Doors:     return "Doors";
+        case eTileCategory::Windows:  return "Windows";
+        case eTileCategory::DynamicObjects:  return "DynamicObjects";
 
         default: return "Unknown";
         }
@@ -205,7 +206,9 @@ namespace Engine {
         if (str == "Terrain") return eTileCategory::Terrain;
         if (str == "Roofs") return eTileCategory::Roofs;
         if (str == "Vehicles") return eTileCategory::Vehicles;
-        if (str == "dynamicObjects") return eTileCategory::dynamicObjects;
+        if (str == "DynamicObjects") return eTileCategory::DynamicObjects;
+        if (str == "Doors") return eTileCategory::Doors;
+        if (str == "Windows") return eTileCategory::Windows;
         return eTileCategory::Undefined;
     }
 

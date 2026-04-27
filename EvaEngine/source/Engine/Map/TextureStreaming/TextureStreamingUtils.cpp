@@ -46,7 +46,7 @@ namespace Engine {
 
         for (const auto& t : tc.tiles)
         {
-            if (t.Category != eTileCategory::dynamicObjects) continue;
+            if (t.Category != eTileCategory::DynamicObjects) continue;
             hasDyn = true;
 
             // IMPORTANT: match your uploader, which floors world?pixels

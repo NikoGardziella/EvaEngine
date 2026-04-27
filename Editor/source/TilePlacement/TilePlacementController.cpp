@@ -690,7 +690,6 @@ namespace Engine
 
         TileInfo temp{};
         temp.name = tileName;
-        temp.UV = uv;
         temp.Category = category;
         temp.TileDirection = EditorUtils::GetDirectionFromTileName(tileName);
 
