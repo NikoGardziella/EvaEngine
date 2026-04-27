@@ -92,7 +92,7 @@ namespace Engine {
         newScene->m_gameplaySystems = other->m_gameplaySystems;
 
        newScene->m_compactTileMap = other->m_compactTileMap;
-       newScene->m_tileDefinitions = other->m_tileDefinitions;
+       
 
         return newScene;
     }

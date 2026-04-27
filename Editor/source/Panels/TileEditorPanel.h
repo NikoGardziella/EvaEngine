@@ -67,7 +67,7 @@ namespace Engine
 		eTileMaterial m_selectedTileMaterial;
 
 		TileProperties& m_selectedTileprops = TileProperties{};
-
+		uint16_t m_selectedTileTypeId;
 		std::unordered_map<eTileCategory, eTileMaterial> m_selectedMaterials;
 
 		

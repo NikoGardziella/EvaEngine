@@ -9,6 +9,9 @@
 #include <Engine/Animation/3D/MeshRegistry.h>
 #include <Engine/UI/Font.h>
 #include <Engine/Map/TextureStreaming/TextureStreamingSystem.h>
+#include "Panels/Utils/EditorUtils.h"
+#include <Engine/Map/Tile/TileDefinitionRegistry.h>
+#include <Engine/Map/Tile/TileDefinition.h>
 
 
 
@@ -32,6 +35,8 @@ namespace Engine {
     MaterialRegistry AssetManager::s_materialRegistry;
     Ref<AnimationRegistry> AssetManager::s_animationRegistry;
     Ref<SkeletonRegistry> AssetManager::s_skeletonRegistry;
+    TileDefinitionRegistry AssetManager::s_TileDefinitions;
+
     Ref<Font>  AssetManager::s_fontAtlas;
 
     void AssetManager::Initialize(int maxDepth)
@@ -561,7 +566,15 @@ namespace Engine {
         EE_CORE_WARN("Requested tile names for unknown category.");
         return empty;
     }
-
+    static void CopyDefinitionToProps(const TileDefinition& def, TileProperties& props)
+    {
+        props.name = def.Name;
+        props.uv = def.UV;
+        props.category = def.Category;
+        props.material = def.Material;
+        props.health = def.BaseHealth;
+        
+    }
 
     void AssetManager::CreateTileAtlas()
     {
@@ -572,8 +585,8 @@ namespace Engine {
         s_fontAtlas = FontLoader::LoadTTF(s_AssetPath.string() + "\\fonts\\sigmar\\Sigmar-Regular.ttf", fontLoadDesc);
         //**********************
 
-
-        LoadTileProperties();
+        TileSerializer::LoadTileDefinitions(s_TileDefinitions);
+        //LoadTileProperties();
         namespace fs = std::filesystem;
 
         static const std::unordered_map<eTileCategory, std::string> CategoryNames = {
@@ -599,6 +612,7 @@ namespace Engine {
         };
 
         std::vector<TileInfo> loadedTiles;
+        bool createdMissingDefinitions = false;
 
         // Load all tiles
         for (const auto& [category, folderName] : CategoryNames)
@@ -764,8 +778,25 @@ namespace Engine {
                 props.uv = uv;
                 props.category = t.category;
                 props.pixelRect = { currentX, currentY, t.width, t.height };
-                
 
+                eTileDirection tileDirection = EditorUtils::GetDirectionFromTileName(name);
+
+                createdMissingDefinitions |= CreateMissingTileDefinition(
+                    name,
+                    uv,
+                    t.category,
+                    props.material == eTileMaterial::None ? t.material : props.material,
+                    tileDirection
+                );
+
+                uint16_t typeId = s_TileDefinitions.GetTypeIdByName(name);
+                if (typeId != 0)
+                {
+                    if (const TileDefinition* def = s_TileDefinitions.Get(typeId))
+                    {
+                        CopyDefinitionToProps(*def, props);
+                    }
+                }
 
                 if (props.collisionFootRowsPx == 0)
                 {
@@ -806,6 +837,67 @@ namespace Engine {
 
             EE_CORE_INFO("Created combined tile atlas with dimensions {}x{}", atlasWidth, atlasHeight);
 
+            if (createdMissingDefinitions)
+            {
+                TileSerializer::SaveTileDefinitions(s_TileDefinitions);
+
+            }
+
+    }
+
+    bool AssetManager::CreateMissingTileDefinition(const std::string& name, const glm::vec4& uv, eTileCategory category,
+        eTileMaterial material, eTileDirection tileDirection)
+    {
+        TileDefinitionRegistry& defs = GetTileDefinitions();
+
+        // Prefer name-based lookup first
+        uint16_t existingTypeId = defs.GetTypeIdByName(name);
+        if (existingTypeId != 0)
+        {
+            TileDefinition* existingDef = defs.GetMutable(existingTypeId);
+            if (existingDef)
+            {
+                // Keep UV fresh if atlas changed
+                existingDef->UV = uv;
+                existingDef->Category = category;
+                existingDef->Direction = tileDirection;
+                existingDef->Material = material;
+            }
+
+            return false;
+        }
+
+        TileTypeKey key{};
+        key.name = name;
+        key.category = category;
+        key.direction = tileDirection;
+        // I would NOT use uv for identity
+
+        TileDefinition def{};
+        def.TypeId = defs.GetNextTypeId();
+        def.Name = name;
+        def.UV = uv;
+        def.Category = category;
+        def.Direction = tileDirection;
+        def.Material = material;
+
+        def.BaseHealth = 1.0f;
+
+        def.IsDestructible =
+            category == eTileCategory::Buildings ||
+            category == eTileCategory::dynamicObjects ||
+            category == eTileCategory::Vehicles ||
+            category == eTileCategory::Doors ||
+            category == eTileCategory::Windows;
+
+        def.IsSupportingRoof = category == eTileCategory::Buildings;
+        def.IsRoof = category == eTileCategory::Roofs;
+
+        defs.Register(def, key);
+
+        EE_CORE_INFO("Created missing TileDefinition: '{}' TypeId={}", name, def.TypeId);
+
+        return true;
     }
 
 

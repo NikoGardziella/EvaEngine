@@ -17,6 +17,17 @@ namespace Engine
         return true;
     }
 
+    uint16_t TileDefinitionRegistry::GetTypeIdByName(const std::string& name) const
+    {
+        for (const auto& [id, def] : m_definitions)
+        {
+            if (def.Name == name)
+                return id;
+        }
+
+        return 0;
+    }
+
     const TileDefinition* TileDefinitionRegistry::Get(uint16_t typeId) const
     {
         auto it = m_definitions.find(typeId);

@@ -149,7 +149,6 @@ namespace Engine {
 		entt::registry& GetRegistry() { return m_registry;  }
 		
 		CompactTileMap& GetCompactTileMap() { return m_compactTileMap; }
-		TileDefinitionRegistry& GetTileDefinitions() { return m_tileDefinitions; }
 		CompactTilePromotion& GetCompactTilePromotion() { return m_compactTilePromotion; }
 		const Ref<TileManager> GetTileManager() const { return  m_tileMananger; }
 
@@ -209,7 +208,6 @@ namespace Engine {
 		bool m_debugShowRoof = true;
 
 		CompactTileMap m_compactTileMap;
-		TileDefinitionRegistry m_tileDefinitions;
 		CompactTilePromotion m_compactTilePromotion;
 
 

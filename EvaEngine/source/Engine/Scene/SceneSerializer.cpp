@@ -881,7 +881,7 @@ namespace Engine {
 
     inline void SerializeTileDefinitions(Ref<Scene> scene, YAML::Emitter& out)
     {
-        const TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+        const TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         for (const auto& [typeId, def] : defs.GetDefinitions())
         {
@@ -987,10 +987,12 @@ namespace Engine {
         }
         out << YAML::EndSeq; // Close Entities Sequence
 
+        /*
         // --- 2. TILE DEFINITIONS SECTION ---
         out << YAML::Key << "TileDefinitions" << YAML::Value << YAML::BeginSeq;
         SerializeTileDefinitions(m_scene, out);
         out << YAML::EndSeq; // Close TileDefinitions Sequence
+        */
 
         // --- 4. COMPACT GROUP SECTION ---
         SerializeCompactGroups(m_scene, out);
@@ -1018,7 +1020,7 @@ namespace Engine {
 
     inline void DeserializeTileDefinitions(Scene& scene, const YAML::Node& defsNode)
     {
-        TileDefinitionRegistry& defs = scene.GetTileDefinitions();
+        TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         for (const auto& defNode : defsNode)
         {
@@ -1160,6 +1162,7 @@ namespace Engine {
             }
         }
 
+        /*
         // 2) TileDefinitions
         auto defsNode = data["TileDefinitions"];
         if (defsNode)
@@ -1167,6 +1170,7 @@ namespace Engine {
             DeserializeTileDefinitions(*m_scene, defsNode);
         }
 
+        */
 
         auto compactGroupInfoNode = data["CompactGroups"];
 

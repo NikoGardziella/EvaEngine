@@ -11,6 +11,7 @@ namespace Engine
     {
     public:
         bool Register(const TileDefinition& def, const TileTypeKey& key);
+        uint16_t GetTypeIdByName(const std::string& name) const;
         const TileDefinition* Get(uint16_t typeId) const;
         TileDefinition* GetMutable(uint16_t typeId);
         bool Has(uint16_t typeId) const;

@@ -46,6 +46,7 @@
 #include <Engine/Scene/Prefabs/PrefabSerializer.h>
 
 #include "TilePlacement/TilePlacementUtils.h"
+#include <Engine/Map/Tile/TileDefinitionRegistry.h>
 
 namespace Engine {
 
@@ -950,7 +951,7 @@ namespace Engine {
         if (!scene)
             return 0;
 
-        Engine::TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+        Engine::TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         const std::string selectedTileName = m_tileEditorPanel.GetSelectedTileName();
 
@@ -971,7 +972,7 @@ namespace Engine {
         temp.name = selectedTileName;
         temp.UV = selectedUV;
         temp.Category = selectedCategory;
-        temp.TileDirection = EditorUtils::GetDirectionFromTileName(selectedTileName);;
+        temp.TileDirection = EditorUtils::GetDirectionFromTileName(selectedTileName);
 
         Engine::TileTypeKey key = TileManager::MakeTileTypeKey(temp);
         // If MakeTileTypeKey is non-static member, move that helper out somewhere shared.

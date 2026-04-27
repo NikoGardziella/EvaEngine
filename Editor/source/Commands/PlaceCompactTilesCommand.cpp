@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "PlaceCompactTilesCommand.h"
 #include "Engine/Scene/Scene.h"
+#include "Engine/AssetManager/AssetManager.h"
+#include <Engine/Map/Tile/TileDefinitionRegistry.h>
 
 
 namespace Engine
@@ -16,7 +18,7 @@ namespace Engine
             return;
 
         CompactTileMap& compactMap = m_Scene->GetCompactTileMap();
-        TileDefinitionRegistry defs = m_Scene->GetTileDefinitions();
+        TileDefinitionRegistry defs = AssetManager::GetTileDefinitions();
         m_executedIndices.clear();
         m_touchedGroups.clear();
 
@@ -31,7 +33,6 @@ namespace Engine
             if (compactMap.HasTileType(placement.WorldCell, placement.NewTile.TypeId))
                 continue;
 
-            TileDefinitionRegistry& defs = m_Scene->GetTileDefinitions();
 
             const TileDefinition* newDef = defs.Get(placement.NewTile.TypeId);
             if (!newDef)

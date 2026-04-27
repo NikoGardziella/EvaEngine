@@ -23,6 +23,7 @@
 
 #include "glm/glm.hpp"
 #include <Engine/Animation/3D/SkeletonRegistry.h>
+#include <Engine/Map/Tile/TileDefinitionRegistry.h>
 
 namespace Engine {
 
@@ -55,7 +56,6 @@ namespace Engine {
         static Ref<VulkanTexture> CloneTexture(const std::string& name);
         static bool ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, int& outWidth, int& outHeight);
         static bool ExtractPixelsAndPropertiesFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, std::vector<uint8_t>& outPropertiesData, int& outWidth, int& outHeight, glm::ivec2& outOpaqueMin, glm::ivec2& outOpaqueMax);
-        static bool ExtractPixelsFromTilePallette(const TileInfo& tile, std::vector<uint8_t>& outPixelData, int& outWidth, int& outHeight, glm::ivec2& outOpaqueMin, glm::ivec2& outOpaqueMax);
         static  std::vector<Ref<VulkanTexture>> AssetManager::GetAllTextures();
 
         static const std::vector<std::string>& AssetManager::GetTileNamesByCategoryAndMaterial(eTileCategory category, eTileMaterial material);
@@ -78,6 +78,9 @@ namespace Engine {
         static MaterialRegistry& GetMaterialRegistry() { return s_materialRegistry; }
         static SkeletonRegistry& GetSkeletonRegistry()  { return *s_skeletonRegistry; }
         static AnimationRegistry& GetAnimationRegistry() { return *s_animationRegistry; }
+        static TileDefinitionRegistry& GetTileDefinitions() { return s_TileDefinitions; }
+        static bool CreateMissingTileDefinition(const std::string& name, const glm::vec4& uv, eTileCategory category, eTileMaterial material, eTileDirection tileDirectio);
+        
 
         static const Ref<Font> GetFont() { return s_fontAtlas;  }
 
@@ -134,7 +137,7 @@ namespace Engine {
 
 
         static Ref<Font> s_fontAtlas;
-
+        static TileDefinitionRegistry s_TileDefinitions;
     };
 
 }

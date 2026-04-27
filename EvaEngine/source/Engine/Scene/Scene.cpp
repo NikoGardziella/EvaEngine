@@ -255,7 +255,7 @@ namespace Engine {
 
         //m_compactTilePromotion.PromoteAllTiles(this);
         {
-            TileDefinitionRegistry& defs = GetTileDefinitions();
+            TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
             TileTypeKey key{};
             key.name = "Wall B1_S";

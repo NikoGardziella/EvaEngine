@@ -369,7 +369,7 @@ namespace Engine {
 
     uint16_t PrefabSerializer::GetOrCreateDefinitionForRuntimeTile(Scene& scene, const TileInfo& tile)
     {
-        TileDefinitionRegistry& defs = scene.GetTileDefinitions();
+        TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         if (tile.name.empty())
         {

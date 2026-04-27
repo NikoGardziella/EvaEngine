@@ -115,11 +115,17 @@ namespace Engine {
 
             if (tilePropertiesChanged)
             {
+                // 1. Keep property name synced with selected tile
                 m_selectedTileprops.name = m_selectedTileName;
+
+                // 2. Store modified props in editor-side map
                 m_modifiedTileProperties[m_selectedTileName] = m_selectedTileprops;
+
+                // 3. Save to disk
                 TileSerializer::Save(m_modifiedTileProperties);
-                /*
-                TileDefinition* def = m_scene->GetTileDefinitions().GetMutable(m_selectedTileTypeId);
+
+                // 4. Update live tile definition immediately
+                TileDefinition* def = AssetManager::GetTileDefinitions().GetMutable(m_selectedTileTypeId);
 
                 if (def)
                 {
@@ -127,9 +133,9 @@ namespace Engine {
                     def->BaseHealth = m_selectedTileprops.health;
                     def->Material = static_cast<eTileMaterial>(currentMaterialIdx);
 
-                    
+                 
                 }
-                */
+                TileSerializer::SaveTileDefinitions(AssetManager::GetTileDefinitions());
             }
 
             ImGui::End();
@@ -222,6 +228,10 @@ namespace Engine {
 
                 if (m_modifiedTileProperties.find(name) == m_modifiedTileProperties.end())
                     m_modifiedTileProperties[name] = AssetManager::GetTileProperties(name);
+
+                TileDefinitionRegistry& registry = AssetManager::GetTileDefinitions();
+
+                m_selectedTileTypeId = registry.GetTypeIdByName(name);
 
                 m_selectedTileprops = m_modifiedTileProperties[name];
                 m_selectedTileMaterial = m_selectedTileprops.material;

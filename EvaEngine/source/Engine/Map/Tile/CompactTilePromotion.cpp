@@ -10,6 +10,7 @@
 #include "Engine/Math/HashUtils.h"
 #include "Engine/AssetManager/AssetManager.h"
 #include <Engine/Scene/Components/Map/AreaComponent.h>
+#include "TileDefinitionRegistry.h"
 
 namespace Engine
 {
@@ -115,7 +116,7 @@ namespace Engine
         }
 
         CompactTileMap& compactMap = scene->GetCompactTileMap();
-        TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+        TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         const std::vector<glm::ivec2>* cells = compactMap.GetCellsForGroup(groupId);
         if (!cells || cells->empty())
@@ -272,7 +273,7 @@ namespace Engine
         if (!scene)
             return 0;
 
-        TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+        TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         TileTypeKey key{};
         key.name = tile.name;
@@ -866,7 +867,7 @@ namespace Engine
             return false;
 
         CompactTileMap& compactMap = scene->GetCompactTileMap();
-        TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+        TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         CompactTile* compact = compactMap.FindTile(worldCell, typeId);
         if (!compact || compact->IsEmpty())

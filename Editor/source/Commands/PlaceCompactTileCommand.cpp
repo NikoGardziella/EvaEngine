@@ -2,6 +2,8 @@
 #include "PlaceCompactTileCommand.h"
 
 #include "Engine/Scene/Scene.h"
+#include "Engine/AssetManager/AssetManager.h"
+#include <Engine/Map/Tile/TileDefinitionRegistry.h>
 
 namespace Engine
 {
@@ -36,7 +38,7 @@ namespace Engine
             return;
 
         CompactTileMap& compactMap = m_Scene->GetCompactTileMap();
-        TileDefinitionRegistry& defs = m_Scene->GetTileDefinitions();
+        TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         if (compactMap.HasTileType(m_WorldCell, m_NewTile.TypeId))
             return;

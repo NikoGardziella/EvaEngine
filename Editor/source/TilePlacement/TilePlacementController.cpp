@@ -16,6 +16,7 @@
 #include <Engine/Scene/Entity.h>
 #include <Commands/CommandHistory.h>
 #include <Commands/PlaceCompactTileCommand.h>
+#include <Engine/Map/Tile/TileDefinitionRegistry.h>
 namespace Engine
 {
     TilePlacementController::TilePlacementController(SceneHierarchyPanel& sceneHierarchyPanel, TileEditorPanel& tileEditorPanel,
@@ -570,7 +571,7 @@ namespace Engine
         if (!scene)
             return;
 
-        TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+        TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
         const TileDefinition* def = defs.Get(typeId);
         if (!def)
             return;
@@ -619,7 +620,7 @@ namespace Engine
         if (!scene)
             return 0;
 
-        TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+        TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         const std::string selectedTileName = m_tileEditorPanel.GetSelectedTileName();
         if (selectedTileName.empty())
@@ -628,33 +629,35 @@ namespace Engine
             return 0;
         }
 
+        uint16_t existingTypeId = defs.GetTypeIdByName(selectedTileName);
+        if (existingTypeId != 0)
+        {
+
+            return existingTypeId;
+        }
+
         const glm::vec4 selectedUV = m_tileEditorPanel.GetTileUV(selectedTileName);
         const TileProperties& tileProps = AssetManager::GetTileProperties(selectedTileName);
-        const eTileCategory selectedCategory = tileProps.category;
 
-        TileInfo temp{};
-        temp.name = selectedTileName;
-        temp.UV = selectedUV;
-        temp.Category = selectedCategory;
-        temp.TileDirection = EditorUtils::GetDirectionFromTileName(selectedTileName);
-
-        TileTypeKey key = TileManager::MakeTileTypeKey(temp);
-
-        uint16_t existingTypeId = 0;
-        if (defs.FindTypeId(key, existingTypeId))
-            return existingTypeId;
+        const eTileDirection direction =
+            EditorUtils::GetDirectionFromTileName(selectedTileName);
 
         TileDefinition def{};
         def.TypeId = defs.GetNextTypeId();
         def.Name = selectedTileName;
         def.UV = selectedUV;
-        def.Category = selectedCategory;
-        def.Direction = temp.TileDirection;
+        def.Category = tileProps.category;
+        def.Direction = direction;
         def.Material = tileProps.material;
         def.BaseHealth = static_cast<uint16_t>(tileProps.health);
-        def.IsDestructible = (selectedCategory == eTileCategory::Buildings);
-        def.IsSupportingRoof = (selectedCategory == eTileCategory::Buildings || selectedCategory == eTileCategory::Pillars);
-        def.IsRoof = (selectedCategory == eTileCategory::Roofs);
+
+  
+
+        TileTypeKey key{};
+        key.name = selectedTileName;
+        key.category = tileProps.category;
+        key.direction = direction;
+        // Do not use UV as identity
 
         if (!defs.Register(def, key))
         {
@@ -664,14 +667,13 @@ namespace Engine
 
         return def.TypeId;
     }
-
     uint16_t TilePlacementController::GetOrCreateDefinitionForTileByName(const std::string& tileNameRaw)
     {
         Ref<Scene> scene = GetEditorScene();
         if (!scene)
             return 0;
 
-        TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+        TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         const std::string tileName = TilePlacementUtils::RemoveExtension(tileNameRaw);
         if (tileName.empty())

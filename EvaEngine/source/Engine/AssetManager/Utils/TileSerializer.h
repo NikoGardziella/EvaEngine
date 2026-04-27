@@ -38,11 +38,16 @@ namespace Engine {
     class TileSerializer {
     public:
         static void LoadAllTiles(std::unordered_map<std::string, TileProperties>& tiles);
+
         static void Save(const std::unordered_map<std::string, TileProperties>& tiles);
 
         static void Load(std::unordered_map<std::string, TileProperties>& tiles);
 
+        static bool LoadTileDefinitions(TileDefinitionRegistry& defs);
+        static void SaveTileDefinitions(const TileDefinitionRegistry& defs);
+
         static std::filesystem::path GetTilePropertiesPath();
+        static std::filesystem::path GetTileDefinitionsPath();
     };
 
 

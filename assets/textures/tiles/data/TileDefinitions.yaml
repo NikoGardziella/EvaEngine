@@ -1,0 +1,1765 @@
+TileDefinitions:
+  - TypeId: 1
+    Name: Ground A1_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 2
+    Name: Ground A1_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 3
+    Name: Ground A1_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 4
+    Name: Ground A1_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 5
+    Name: Ground A2_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 6
+    Name: Ground A2_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 7
+    Name: Ground A2_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 8
+    Name: Ground A2_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 9
+    Name: Ground A3_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 10
+    Name: Ground A3_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 11
+    Name: Ground A3_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 12
+    Name: Ground A3_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 13
+    Name: Ground A4_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 14
+    Name: Ground A4_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 15
+    Name: Ground A4_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 16
+    Name: Ground A4_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 17
+    Name: Ground A5_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 18
+    Name: Ground A5_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 19
+    Name: Ground A5_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 20
+    Name: Ground A5_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 21
+    Name: Ground A6_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 22
+    Name: Ground A6_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 23
+    Name: Ground A6_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 24
+    Name: Ground A6_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 25
+    Name: Ground A7_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 26
+    Name: Ground A7_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 27
+    Name: Ground A7_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 28
+    Name: Ground A7_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 29
+    Name: Ground B1_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 30
+    Name: Ground B1_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 31
+    Name: Ground B1_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 32
+    Name: Ground B1_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 33
+    Name: Ground B2_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 34
+    Name: Ground B2_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 35
+    Name: Ground B2_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 36
+    Name: Ground B2_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 37
+    Name: Ground B3_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 38
+    Name: Ground B3_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 39
+    Name: Ground B3_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 40
+    Name: Ground B3_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 41
+    Name: Ground B4_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 42
+    Name: Ground B4_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 43
+    Name: Ground B4_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 44
+    Name: Ground B4_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 45
+    Name: Ground B5_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 46
+    Name: Ground B5_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 47
+    Name: Ground B5_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 48
+    Name: Ground B5_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 49
+    Name: Ground B6_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 50
+    Name: Ground B6_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 51
+    Name: Ground B6_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 52
+    Name: Ground B6_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 53
+    Name: Ground B7_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 54
+    Name: Ground B7_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 55
+    Name: Ground B7_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 56
+    Name: Ground B7_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 57
+    Name: Ground B8_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 58
+    Name: Ground B8_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 59
+    Name: Ground B8_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 60
+    Name: Ground B8_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 61
+    Name: Ground C1_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 62
+    Name: Ground C1_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 63
+    Name: Ground C1_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 64
+    Name: Ground C1_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 65
+    Name: Ground D1_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 66
+    Name: Ground D1_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 67
+    Name: Ground D1_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 68
+    Name: Ground D1_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 69
+    Name: Ground E1_E
+    Category: Terrain
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 70
+    Name: Ground E1_N
+    Category: Terrain
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 71
+    Name: Ground E1_S
+    Category: Terrain
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 72
+    Name: Ground E1_W
+    Category: Terrain
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 73
+    Name: Pillar A2_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 74
+    Name: Pillar A2_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 75
+    Name: Pillar A2_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 76
+    Name: Pillar A2_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 77
+    Name: Wall A1_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 78
+    Name: Wall A1_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 79
+    Name: Wall A1_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 999
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 80
+    Name: Wall A1_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 81
+    Name: Wall A4_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 82
+    Name: Wall A4_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 83
+    Name: Wall A4_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 84
+    Name: Wall A4_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 85
+    Name: Wall A7_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 86
+    Name: Wall A7_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 87
+    Name: Wall A7_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 88
+    Name: Wall A7_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 89
+    Name: Wall A8_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 90
+    Name: Wall A8_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 91
+    Name: Wall A8_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 92
+    Name: Wall A8_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 93
+    Name: Wall A9_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 94
+    Name: Wall A9_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 95
+    Name: Wall A9_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 96
+    Name: Wall A9_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 97
+    Name: Wall B1_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 98
+    Name: Wall B1_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 99
+    Name: Wall B1_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 100
+    Name: Wall B1_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 101
+    Name: Wall C1_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 102
+    Name: Wall C1_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 103
+    Name: Wall C1_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 104
+    Name: Wall C1_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 105
+    Name: Wall C2_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 106
+    Name: Wall C2_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 107
+    Name: Wall C2_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 108
+    Name: Wall C2_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 109
+    Name: Wall D1_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 110
+    Name: Wall D1_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 111
+    Name: Wall D1_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 112
+    Name: Wall D1_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 113
+    Name: Wall D4_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 114
+    Name: Wall D4_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 115
+    Name: Wall D4_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 116
+    Name: Wall D4_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 117
+    Name: Wall D7_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 118
+    Name: Wall D7_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 119
+    Name: Wall D7_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 120
+    Name: Wall D7_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 121
+    Name: Wall D8_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 122
+    Name: Wall D8_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 123
+    Name: Wall D8_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 124
+    Name: Wall D8_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 125
+    Name: Wall D9_E
+    Category: Buildings
+    Direction: East
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 126
+    Name: Wall D9_N
+    Category: Buildings
+    Direction: North
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 127
+    Name: Wall D9_S
+    Category: Buildings
+    Direction: South
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 128
+    Name: Wall D9_W
+    Category: Buildings
+    Direction: West
+    Material: Concrete
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: true
+    IsRoof: false
+  - TypeId: 129
+    Name: Object4_E
+    Category: dynamicObjects
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 130
+    Name: Object4_N
+    Category: dynamicObjects
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 131
+    Name: Object4_S
+    Category: dynamicObjects
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 132
+    Name: Object4_W
+    Category: dynamicObjects
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 133
+    Name: StreetLamp 1_E
+    Category: dynamicObjects
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 134
+    Name: StreetLamp 1_N
+    Category: dynamicObjects
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 135
+    Name: StreetLamp 1_S
+    Category: dynamicObjects
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 136
+    Name: StreetLamp 1_W
+    Category: dynamicObjects
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 137
+    Name: Roof A1_E
+    Category: Roofs
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 138
+    Name: Roof A1_N
+    Category: Roofs
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 139
+    Name: Roof A1_S
+    Category: Roofs
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 140
+    Name: Roof A1_W
+    Category: Roofs
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 141
+    Name: Roof A2_E
+    Category: Roofs
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 142
+    Name: Roof A2_N
+    Category: Roofs
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 143
+    Name: Roof A2_S
+    Category: Roofs
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 144
+    Name: Roof A2_W
+    Category: Roofs
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 145
+    Name: Roof A3_E
+    Category: Roofs
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 146
+    Name: Roof A3_N
+    Category: Roofs
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 147
+    Name: Roof A3_S
+    Category: Roofs
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 148
+    Name: Roof A3_W
+    Category: Roofs
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 149
+    Name: Roof B1_E
+    Category: Roofs
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 150
+    Name: Roof B1_N
+    Category: Roofs
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 151
+    Name: Roof B1_S
+    Category: Roofs
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 152
+    Name: Roof B1_W
+    Category: Roofs
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 153
+    Name: Wall A11_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 154
+    Name: Wall A11_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 155
+    Name: Wall A11_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 156
+    Name: Wall A11_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 157
+    Name: Wall B16_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 158
+    Name: Wall B16_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 159
+    Name: Wall B16_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 160
+    Name: Wall B16_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 161
+    Name: Wall B17_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 162
+    Name: Wall B17_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 163
+    Name: Wall B17_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 164
+    Name: Wall B17_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 165
+    Name: Wall B18_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 166
+    Name: Wall D19_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 167
+    Name: Wall D19_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 168
+    Name: Wall D19_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 169
+    Name: Wall D19_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 170
+    Name: Wall D20_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 171
+    Name: Wall D20_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 172
+    Name: Wall D20_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 173
+    Name: Wall D20_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 174
+    Name: Wall A13_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 175
+    Name: Wall A13_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 176
+    Name: Wall A13_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 177
+    Name: Wall A13_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 178
+    Name: Wall A21_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 179
+    Name: Wall A21_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 180
+    Name: Wall A21_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 181
+    Name: Wall A21_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 182
+    Name: Wall B18_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 183
+    Name: Wall B18_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 184
+    Name: Wall B18_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 185
+    Name: Wall D13_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 186
+    Name: Wall D13_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 187
+    Name: Wall D13_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 188
+    Name: Wall D13_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 189
+    Name: Wall D18_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 190
+    Name: Wall D18_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 191
+    Name: Wall D18_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 192
+    Name: Wall D18_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 193
+    Name: Wall D21_E
+    Category: Unknown
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 194
+    Name: Wall D21_N
+    Category: Unknown
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 195
+    Name: Wall D21_S
+    Category: Unknown
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 196
+    Name: Wall D21_W
+    Category: Unknown
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: true
+    IsSupportingRoof: false
+    IsRoof: false

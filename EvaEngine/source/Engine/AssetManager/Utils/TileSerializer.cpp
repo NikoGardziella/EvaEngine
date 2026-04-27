@@ -41,6 +41,107 @@ namespace Engine {
         }
     }
 
+    void TileSerializer::SaveTileDefinitions(const TileDefinitionRegistry& defs)
+    {
+        EE_PROFILE_FUNCTION();
+
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "TileDefinitions" << YAML::Value << YAML::BeginSeq;
+
+       
+
+        for (const auto& [typeId, def] : defs.GetDefinitions())
+        {
+            out << YAML::BeginMap;
+
+            out << YAML::Key << "TypeId" << YAML::Value << def.TypeId;
+            out << YAML::Key << "Name" << YAML::Value << def.Name;
+
+     
+
+            out << YAML::Key << "Category" << YAML::Value << ToString(def.Category);
+            out << YAML::Key << "Direction" << YAML::Value << TileDirectionToString(def.Direction);
+            out << YAML::Key << "Material" << YAML::Value << ToString(def.Material);
+
+            out << YAML::Key << "BaseHealth" << YAML::Value << def.BaseHealth;
+            out << YAML::Key << "IsDestructible" << YAML::Value << def.IsDestructible;
+            out << YAML::Key << "IsSupportingRoof" << YAML::Value << def.IsSupportingRoof;
+            out << YAML::Key << "IsRoof" << YAML::Value << def.IsRoof;
+
+            out << YAML::EndMap;
+        }
+
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+
+        std::filesystem::path path = GetTileDefinitionsPath();
+
+        std::ofstream fout(path);
+        fout << out.c_str();
+
+        EE_CORE_INFO("Saved TileDefinitions to {}", path.string());
+    }
+
+    bool TileSerializer::LoadTileDefinitions(TileDefinitionRegistry& defs)
+    {
+        EE_PROFILE_FUNCTION();
+
+        std::filesystem::path path = TileSerializer::GetTileDefinitionsPath();
+
+        if (!std::filesystem::exists(path))
+        {
+            EE_CORE_WARN("TileDefinitions file not found: {}", path.string());
+            return false;
+        }
+
+        YAML::Node data = YAML::LoadFile(path.string());
+
+        if (!data["TileDefinitions"])
+        {
+            EE_CORE_ERROR("Invalid TileDefinitions file!");
+            return false;
+        }
+
+        
+        defs.Clear(); // IMPORTANT: avoid duplicates
+
+        for (const auto& defNode : data["TileDefinitions"])
+        {
+            TileDefinition def{};
+            TileTypeKey key{};
+
+            def.TypeId = defNode["TypeId"].as<uint16_t>();
+            def.Name = defNode["Name"].as<std::string>();
+
+            if (auto uvNode = defNode["UV"])
+            {
+                def.UV.x = uvNode[0].as<float>();
+                def.UV.y = uvNode[1].as<float>();
+                def.UV.z = uvNode[2].as<float>();
+                def.UV.w = uvNode[3].as<float>();
+            }
+
+            def.Category = CategoryFromString(defNode["Category"].as<std::string>());
+            def.Direction = TileDirectionFromString(defNode["Direction"].as<std::string>());
+            def.Material = MaterialFromString(defNode["Material"].as<std::string>());
+
+            def.BaseHealth = defNode["BaseHealth"].as<uint16_t>();
+            def.IsDestructible = defNode["IsDestructible"].as<bool>();
+            def.IsSupportingRoof = defNode["IsSupportingRoof"].as<bool>();
+            def.IsRoof = defNode["IsRoof"].as<bool>();
+
+            key.name = def.Name;
+            key.category = def.Category;
+            key.direction = def.Direction;
+
+            defs.Register(def, key);
+        }
+
+        EE_CORE_INFO("Loaded TileDefinitions from {}", path.string());
+        return true;
+    }
+
     // When saving
     void TileSerializer::Save(const std::unordered_map<std::string, TileProperties>& editedTiles)
     {
@@ -171,4 +272,8 @@ namespace Engine {
         return AssetManager::GetAssetFolderPath() / "textures" / "tiles" / "data" / "TileProperties.yaml";
     }
 
+    std::filesystem::path TileSerializer::GetTileDefinitionsPath()
+    {
+        return AssetManager::GetAssetFolderPath() / "textures" / "tiles" / "data" / "TileDefinitions.yaml";
+    }
 } 

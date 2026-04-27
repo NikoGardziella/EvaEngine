@@ -708,7 +708,7 @@ namespace Engine {
         std::vector<TerrainBakeItem> items;
 
         CompactTileMap& compactMap = scene->GetCompactTileMap();
-        TileDefinitionRegistry& defs = scene->GetTileDefinitions();
+        TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
         for (const auto& [chunkCoord, chunk] : compactMap.GetChunks())
         {
