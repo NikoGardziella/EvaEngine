@@ -126,6 +126,36 @@ void rearmGlow_fx(bool enable, uint slot, ivec2 p, uvec4 ht, uint ticks)
     storeHT(slot, p, ht);
 }
 
+
+void applyDamageMark(uint slot, ivec2 p, uint hpAfter)
+{
+    // Set this from CPU per tile/material.
+    // Example: wall max health = 100.
+    float maxHP = max(pc.effectParams0.x, 1.0);
+
+    float health01 = clamp(float(hpAfter) / maxHP, 0.0, 1.0);
+    float damage01 = 1.0 - health01;
+
+    vec4 c = imageLoad(uColor[nonuniformEXT(slot)], p);
+
+    // Skip empty pixels
+    if (c.a <= 0.0)
+        return;
+
+    // Darker as health gets lower.
+    // At full HP: 1.0
+    // Near destroyed: around 0.35
+    float darken = mix(1.0, 0.35, damage01);
+
+    // Optional slight red/brown damage tint
+    vec3 damageTint = vec3(0.45, 0.28, 0.18);
+
+    vec3 damagedRGB = c.rgb * darken;
+    damagedRGB = mix(damagedRGB, damageTint, damage01 * 0.25);
+
+    imageStore(uColor[nonuniformEXT(slot)], p, vec4(damagedRGB, c.a));
+}
+
 // Damage application (reduce health, clamp >= 0). No visuals here; just data.
 void applyDamage_fx(uint slot, ivec2 p, uvec4 ht, uint dmg)
 {
@@ -135,6 +165,8 @@ void applyDamage_fx(uint slot, ivec2 p, uvec4 ht, uint dmg)
     ht.r -= take;                 // saturated because of min
     ht.a |= FX_ARMED;             // mark for FX
     storeHT(slot, p, ht);
+
+    applyDamageMark(slot, p, ht.r);
 }
 
 // Destroy pixel: zero health and clear the color’s alpha (remove the material pixel).
@@ -390,6 +422,9 @@ void processExplosionDiskFalloff_WorldExact(vec2 W, float radiusW, uint dmgPerHi
                 ht.r  = ht.r - dmgPerHit;
                 ht.a |= FX_ARMED;
                 imageStore(uProps[nonuniformEXT(TILE)], p, ht);
+
+                
+                applyDamageMark(TILE, p, ht.r);
             }
         }
     }
@@ -740,6 +775,7 @@ void StampDiskVisibilityByte(uint fx, ivec2 center, ivec2 fs, int R, uint frameB
         }
     }
 }
+
 
 
 void main()

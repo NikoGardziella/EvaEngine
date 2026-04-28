@@ -111,19 +111,14 @@ namespace Engine
         if (!compactMap.HasGroupInfo(ctx.GroupId))
             compactMap.SetGroupOrigin(ctx.GroupId, minCell);
         {
-            // so there is no corners added for wall rectancle with widht of 1 tile
-            if (thinX && thinY)
-            {
-                AddWallTileIfNeeded(compactMap, minCell, ctx.DirectionSet.South, ctx);
-                return;
-            }
+            
 
             if (thinX)
             {
                 for (int y = minCell.y; y <= maxCell.y; y++)
                 {
                     glm::ivec2 cell{ minCell.x, y };
-                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.West, ctx);
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.Selected, ctx);
                 }
                 return;
             }
@@ -133,12 +128,13 @@ namespace Engine
                 for (int x = minCell.x; x <= maxCell.x; x++)
                 {
                     glm::ivec2 cell{ x, minCell.y };
-                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.South, ctx);
+                    AddWallTileIfNeeded(compactMap, cell, ctx.DirectionSet.Selected, ctx);
                 }
                 return;
             }
 
         }
+
         for (int y = minCell.y; y <= maxCell.y; y++)
         {
             for (int x = minCell.x; x <= maxCell.x; x++)

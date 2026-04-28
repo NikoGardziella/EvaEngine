@@ -639,8 +639,7 @@ namespace Engine
         const glm::vec4 selectedUV = m_tileEditorPanel.GetTileUV(selectedTileName);
         const TileProperties& tileProps = AssetManager::GetTileProperties(selectedTileName);
 
-        const eTileDirection direction =
-            EditorUtils::GetDirectionFromTileName(selectedTileName);
+        const eTileDirection direction = EditorUtils::GetDirectionFromTileName(selectedTileName);
 
         TileDefinition def{};
         def.TypeId = defs.GetNextTypeId();
@@ -743,7 +742,7 @@ namespace Engine
         out.South = GetOrCreateDefinitionForTileByName(TilePlacementUtils::MakeDirectionalTileName(baseName, 'S'));
         out.East = GetOrCreateDefinitionForTileByName(TilePlacementUtils::MakeDirectionalTileName(baseName, 'E'));
         out.West = GetOrCreateDefinitionForTileByName(TilePlacementUtils::MakeDirectionalTileName(baseName, 'W'));
-
+        out.Selected = GetOrCreateDefinitionForTileByName(selectedTileNameRaw);
         if (!out.IsValid())
         {
             EE_CORE_WARN("BuildDirectionalWallTypeSetFromSelectedTile: missing one or more directional variants for '{}'", baseName);

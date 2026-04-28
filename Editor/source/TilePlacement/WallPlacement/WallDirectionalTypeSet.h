@@ -9,6 +9,7 @@ namespace Engine {
         uint16_t South = 0;
         uint16_t East = 0;
         uint16_t West = 0;
+        uint16_t Selected = 0;
 
         bool IsValid() const
         {
