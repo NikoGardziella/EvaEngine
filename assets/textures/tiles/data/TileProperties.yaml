@@ -1,36 +1,36 @@
-Wall A4_N:
-  Name: Wall A4_N
-  Health: 1
-  Material: 4
-  UV: [0.52490234, 0.3797861, 0.6489258, 0.41345394]
 Wall A1_S:
   Name: Wall A1_S
   Health: 10
   Material: 4
   UV: [0.1352539, 0.3797861, 0.25927734, 0.41345394]
-Pillar A2_E:
-  Name: Pillar A2_E
+Wall A4_N:
+  Name: Wall A4_N
   Health: 1
   Material: 4
-  UV: [0.26513672, 0.34532613, 0.38916016, 0.37899393]
+  UV: [0.52490234, 0.3797861, 0.6489258, 0.41345394]
 Wall A4_S:
   Name: Wall A4_S
   Health: 1
   Material: 4
   UV: [0.65478516, 0.3797861, 0.7788086, 0.41345394]
-Wall D8_W:
-  Name: Wall D8_W
+Pillar A2_E:
+  Name: Pillar A2_E
   Health: 1
   Material: 4
-  UV: [0.52490234, 0.58654606, 0.6489258, 0.6202139]
+  UV: [0.26513672, 0.34532613, 0.38916016, 0.37899393]
 Wall A7_S:
   Name: Wall A7_S
   Health: 1
   Material: 4
   UV: [0.26513672, 0.4142461, 0.38916016, 0.44791391]
+Wall D8_W:
+  Name: Wall D8_W
+  Health: 1
+  Material: 4
+  UV: [0.52490234, 0.58654606, 0.6489258, 0.6202139]
 Wall A1_W:
   Name: Wall A1_W
-  Health: 1
+  Health: 11
   Material: 4
   UV: [0.26513672, 0.3797861, 0.38916016, 0.41345394]
 Wall A1_E:

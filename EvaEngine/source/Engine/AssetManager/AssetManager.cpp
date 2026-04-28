@@ -768,7 +768,7 @@ namespace Engine {
                     props.pivotXCenterOffsetPx = autoPivotX;
                 }
                 
-
+                // sett some default values. probably just remove this
                 props.name = name;
                 props.health = (props.health == 0 ? 1u : props.health);
                 if (props.material == eTileMaterial::None) props.material = tile.material;
@@ -785,7 +785,9 @@ namespace Engine {
                     props.material == eTileMaterial::None ? tile.material : props.material,
                     tileDirection
                 );
+
                 /*
+                */
                 uint16_t typeId = s_TileDefinitions.GetTypeIdByName(name);
                 if (typeId != 0)
                 {
@@ -794,7 +796,6 @@ namespace Engine {
                         CopyDefinitionToProps(*def, props);
                     }
                 }
-                */
 
                 if (props.collisionFootRowsPx == 0)
                 {
