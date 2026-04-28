@@ -252,7 +252,7 @@ namespace Engine
                 break;
             }
         }
-        EE_CORE_INFO("remaining hp {}", hp);
+        EE_CORE_INFO("damage: {} | remaining hp {}", damage, hp);
 
         if (hp <= 0.0f)
         {
@@ -337,9 +337,17 @@ namespace Engine
                 continue;
 
             auto it = m_subCellHealth.find(obb.CollisionKey);
-            obb.Health = health;
 
-          
+            if (it == m_subCellHealth.end())
+            {
+                obb.Health = health; // default
+                m_subCellHealth[obb.CollisionKey] = obb.Health;
+            }
+            else
+            {
+                obb.Health = health;
+            }
+
             m_blockedSubCells.push_back(obb);
         }
     }
@@ -373,9 +381,17 @@ namespace Engine
             return;
 
         auto it = m_subCellHealth.find(obb.CollisionKey);
-        obb.Health = health;
 
-       
+        if (it == m_subCellHealth.end())
+        {
+            obb.Health = health; // default
+            m_subCellHealth[obb.CollisionKey] = obb.Health;
+        }
+        else
+        {
+            obb.Health = health;
+        }
+
         m_blockedSubCells.push_back(obb);
     }
 
@@ -408,8 +424,17 @@ namespace Engine
                     return;
 
                 auto it = m_subCellHealth.find(obb.CollisionKey);
-                obb.Health = health;
-             
+
+                if (it == m_subCellHealth.end())
+                {
+                    obb.Health = health;
+                    m_subCellHealth[obb.CollisionKey] = obb.Health;
+                }
+                else
+                {
+                    obb.Health = health;
+                }
+
                 m_blockedSubCells.push_back(obb);
             };
 

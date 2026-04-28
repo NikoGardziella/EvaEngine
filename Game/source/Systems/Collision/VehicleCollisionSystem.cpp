@@ -54,42 +54,67 @@ void VehicleCollisionSystem::UpdateVehicleCollision(float deltaTime, Engine::Sce
 
             float speed = glm::length(vehicleComp.Velocity);
 
-            float impactEnergy = 1.0f * vehicleComp.Mass * speed * speed;
+            // Usually kinetic energy has 0.5f, but you can tune this.
+            float impactEnergy = 0.5f * vehicleComp.Mass * speed * speed;
 
-            uint32_t damage = static_cast<uint32_t>(glm::clamp(impactEnergy * 0.05f, 1.0f, 255.0f));
+            uint32_t damage = static_cast<uint32_t>(
+                glm::clamp(impactEnergy * 0.05f, 1.0f, 255.0f)
+                );
+
             vehicleComp.CollisionCooldown -= deltaTime;
+
             if (result.Hit)
             {
                 bool cellDestroyed = false;
+                bool didDamageThisHit = false;
 
                 if (vehicleComp.CollisionCooldown <= 0.0f)
                 {
-                    for (uint64_t  key : result.HitSubCellKeys)
+                    for (uint64_t key : result.HitSubCellKeys)
                     {
                         cellDestroyed |= scene->GetGrid()->DamageSubCell(key, damage);
-
-                        
                     }
-                     scene->GetGrid()->RemoveDeadSubCells();
+
+                    scene->GetGrid()->RemoveDeadSubCells();
+
+                    glm::vec2 damagePoint = result.HitPoint - result.HitNormal * 0.20f;
+
+                    std::vector<uint64_t> affectedUIDs = BuildVehicleAffectedUIDs(
+                        scene,
+                        damagePoint,
+                        vehicleHalfExtents,
+                        vehicleTransformComp.Rotation.z
+                    );
+
+                    Engine::VulkanRenderer2D::CalculateBoxCollision(
+                        damagePoint,
+                        glm::vec2(1.0f, 2.0f),
+                        vehicleTransformComp.Rotation.z,
+                        carIDComponent.ID,
+                        Engine::eCollisionType::VEHICLE,
+                        damage,
+                        affectedUIDs
+                    );
+
+                    vehicleComp.CollisionCooldown = 0.5f;
+                    didDamageThisHit = true;
                 }
 
                 vehicleComp.CurrentSpeed *= 0.3f;
-                vehicleComp.CollisionCooldown = 0.5f;
+
                 const float kPushbackStrength = 0.8f;
                 const float kVelocityNudge = 0.3f;
+
                 if (!cellDestroyed)
                 {
-                     ApplyPush(vehicleTransformComp, vehicleComp,result.HitPoint, kPushbackStrength, kVelocityNudge);
-
+                    ApplyPush(
+                        vehicleTransformComp,
+                        vehicleComp,
+                        result.HitPoint,
+                        kPushbackStrength,
+                        kVelocityNudge
+                    );
                 }
-                glm::vec2 damagePoint = result.HitPoint + result.HitNormal * 0.10f;
-
-                std::vector<uint64_t> affectedUIDs = BuildVehicleAffectedUIDs(scene, glm::vec2(damagePoint),
-                    vehicleHalfExtents, vehicleTransformComp.Rotation.z);
-                Engine::VulkanRenderer2D::CalculateBoxCollision(damagePoint, glm::vec2(1.0f, 2.0f), vehicleTransformComp.Rotation.z,
-                    carIDComponent.ID, Engine::eCollisionType::VEHICLE, damage, affectedUIDs);
-
-                
             }
 
           

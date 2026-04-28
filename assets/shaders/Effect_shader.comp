@@ -127,33 +127,29 @@ void rearmGlow_fx(bool enable, uint slot, ivec2 p, uvec4 ht, uint ticks)
 }
 
 
-void applyDamageMark(uint slot, ivec2 p, uint hpAfter)
+void applyDamageMark(uint slot, ivec2 p, uint hpAfter, float radialStrength)
 {
-    // Set this from CPU per tile/material.
-    // Example: wall max health = 100.
-    float maxHP = max(pc.effectParams0.x, 1.0);
+    float maxHP = 255.0;
 
     float health01 = clamp(float(hpAfter) / maxHP, 0.0, 1.0);
     float damage01 = 1.0 - health01;
 
-    vec4 c = imageLoad(uColor[nonuniformEXT(slot)], p);
+    // combine health damage + radial falloff
+    float finalDamage = damage01 * radialStrength;
 
-    // Skip empty pixels
+    vec4 c = imageLoad(uColor[nonuniformEXT(slot)], p);
     if (c.a <= 0.0)
         return;
 
-    // Darker as health gets lower.
-    // At full HP: 1.0
-    // Near destroyed: around 0.35
-    float darken = mix(1.0, 0.35, damage01);
+    // stronger darkening in center
+    float darken = mix(1.0, 0.2, finalDamage);
 
-    // Optional slight red/brown damage tint
-    vec3 damageTint = vec3(0.45, 0.28, 0.18);
+    vec3 scorch = vec3(0.18, 0.12, 0.08);
 
-    vec3 damagedRGB = c.rgb * darken;
-    damagedRGB = mix(damagedRGB, damageTint, damage01 * 0.25);
+    // blend in scorch more in center
+    vec3 outRGB = mix(c.rgb * darken, scorch, finalDamage * 0.6);
 
-    imageStore(uColor[nonuniformEXT(slot)], p, vec4(damagedRGB, c.a));
+    imageStore(uColor[nonuniformEXT(slot)], p, vec4(outRGB, c.a));
 }
 
 // Damage application (reduce health, clamp >= 0). No visuals here; just data.
@@ -165,8 +161,8 @@ void applyDamage_fx(uint slot, ivec2 p, uvec4 ht, uint dmg)
     ht.r -= take;                 // saturated because of min
     ht.a |= FX_ARMED;             // mark for FX
     storeHT(slot, p, ht);
-
-    applyDamageMark(slot, p, ht.r);
+    float strength = 1.0;
+    applyDamageMark(slot, p, ht.r, strength);
 }
 
 // Destroy pixel: zero health and clear the color’s alpha (remove the material pixel).
@@ -398,6 +394,16 @@ void processExplosionDiskFalloff_WorldExact(vec2 W, float radiusW, uint dmgPerHi
         vec2 d = P - W;
         if (dot(d,d) > r2) continue;
 
+
+        float dist = length(d);
+        float t = clamp(dist / radiusW, 0.0, 1.0); // 0 center -> 1 edge
+
+        // invert so center = 1, edge = 0
+        float strength = 1.0 - t;
+
+        // make it sharper 
+        strength = strength * strength; // quadratic falloff
+
         ivec2 p = ivec2(x, y);
 
         uvec4 ht = imageLoad(uProps[nonuniformEXT(TILE)], p); // R=HP, A=flags
@@ -424,7 +430,7 @@ void processExplosionDiskFalloff_WorldExact(vec2 W, float radiusW, uint dmgPerHi
                 imageStore(uProps[nonuniformEXT(TILE)], p, ht);
 
                 
-                applyDamageMark(TILE, p, ht.r);
+                applyDamageMark(TILE, p, ht.r, strength);
             }
         }
     }

@@ -211,6 +211,33 @@ void rearmGlow_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht, uint seed)
     ht.a |= FX_ARMED;
     storeHT(slot, px, ht);
 }
+
+
+void applyDamageMark(uint slot, ivec2 p, uint hpAfter, float radialStrength)
+{
+    float maxHP = 255.0;
+
+    float health01 = clamp(float(hpAfter) / maxHP, 0.0, 1.0);
+    float damage01 = 1.0 - health01;
+
+    // combine health damage + radial falloff
+    float finalDamage = damage01 * radialStrength;
+
+    vec4 c = imageLoad(uColor[nonuniformEXT(slot)], p);
+    if (c.a <= 0.0)
+        return;
+
+    // stronger darkening in center
+    float darken = mix(1.0, 0.2, finalDamage);
+
+    vec3 scorch = vec3(0.18, 0.12, 0.08);
+
+    // blend in scorch more in center
+    vec3 outRGB = mix(c.rgb * darken, scorch, finalDamage * 0.6);
+
+    imageStore(uColor[nonuniformEXT(slot)], p, vec4(outRGB, c.a));
+}
+
 void destroyPixel_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht)
 {
     clearColor(slot, px);
@@ -222,10 +249,12 @@ void destroyPixel_fx(bool fx, uint slot, ivec2 px, inout uvec4 ht)
     }
     storeHT(slot, px, ht);
 
-    // masks (tile-local)
+        
     
 }
-void applyDamage_fx(bool /*fx*/, uint slot, ivec2 px, inout uvec4 ht, uint damage)
+
+
+void applyDamage_fx(bool /*fx*/, uint slot, ivec2 px, inout uvec4 ht, uint damage, float strength)
 {
     uint h = ht.r;
     if (damage >= h)
@@ -242,6 +271,7 @@ void applyDamage_fx(bool /*fx*/, uint slot, ivec2 px, inout uvec4 ht, uint damag
         ht.r = h - damage;
         storeHT(slot, px, ht);
     }
+    applyDamageMark(slot, px, ht.r, strength);
 }
 
 // Falloff (mode 0)
@@ -261,113 +291,8 @@ float falloffWeight(float t, uint mode)
 
 
 
-// Explosion: tile-only (no neighbor writes)
-void processExplosionDiskFalloff(const ProjectileGPU proj, bool fx, ivec2 centerPx, ivec2 curSize)
-{
-
-    int r = int(proj.DestructionRadius);
-    if (r <= 0) return;
-
-    uint  mode     = getFalloffMode();
-    float twoPi    = 6.28318530718;
-    int   rayCount = max(32, int(ceil(twoPi * float(r) * 1.0)));
-    const int BRUSH = 2;
-
-    for (int d = 0; d < rayCount; ++d)
-    {
-        float ang = (twoPi * (float(d) + 0.5)) / float(rayCount);
-        vec2  dir = vec2(cos(ang), sin(ang));
-
-        for (int s = 1; s <= r; ++s)
-        {
-            ivec2 p = ivec2(floor(vec2(centerPx) + dir * float(s) + 0.5));
-            if (p.x < 0 || p.y < 0 || p.x >= curSize.x || p.y >= curSize.y) break;
-
-            vec4  col = imageLoad(uColor[nonuniformEXT(pc.TextureIndex)], p);
-            uvec4 ht  = loadHT(pc.TextureIndex, p);
-            bool  hasHP   = hasHealth(ht);
-            bool  empty   = (col.a <= 0.0) && !hasHP;
-            bool  terrain = (col.a >  0.0) && !hasHP;
-
-            if (empty) { rearmGlow_fx(fx, pc.TextureIndex, p, ht, 20u); continue; }
-            if (terrain)
-            {
-                if ((FLAG_GLOW_TERRAIN) != 0u) { rearmGlow_fx(fx, pc.TextureIndex, p, ht, 20u); }
-                break;
-            }
-
-            float t   = float(s) / float(r);
-            float w   = falloffWeight(t, mode);
-            uint  dmg = uint(floor(float(proj.Damage) * w + 0.5));
-            if (dmg == 0u) break;
-
-            if (dmg < ht.r)
-            {
-                applyDamage_fx(false, pc.TextureIndex, p, ht, dmg);
-                break;
-            }
-            else
-            {
-                destroyPixel_fx(fx, pc.TextureIndex, p, ht);
-
-                for (int oy = -BRUSH; oy <= BRUSH; ++oy)
-                for (int ox = -BRUSH; ox <= BRUSH; ++ox)
-                {
-                    if (ox*ox + oy*oy > BRUSH*BRUSH) continue;
-                    ivec2 q = p + ivec2(ox, oy);
-                    if (q.x < 0 || q.y < 0 || q.x >= curSize.x || q.y >= curSize.y) continue;
-
-                    vec4  bcol = imageLoad(uColor[nonuniformEXT(pc.TextureIndex)], q);
-                    uvec4 bht  = loadHT(pc.TextureIndex, q);
-                    bool  bHas = hasHealth(bht);
-                    bool  bTer = (bcol.a > 0.0) && !bHas;
-
-                    if (bTer) {
-                        // leave terrain alone
-                    }
-                    else if (!bHas) {
-                        rearmGlow_fx(fx, pc.TextureIndex, q, bht, 20u);
-                    }
-                    else {
-                        uint bdmg = max(1u, dmg / 2u);
-                        if (bdmg < bht.r) applyDamage_fx(false, pc.TextureIndex, q, bht, bdmg);
-                        else              destroyPixel_fx(fx,   pc.TextureIndex, q, bht);
-                    }
-                }
-            }
-        }
-    }
-}
 
 
-void doImpactAtPixel(const ProjectileGPU proj, ivec2 pHit, ivec2 curSize)
-{
-    const uint slot = pc.TextureIndex;
-    bool fx = true; // always arm FX for visuals
-
-    // direct hit
-    uvec4 ht  = loadHT(slot, pHit);
-    vec4  col = imageLoad(uColor[nonuniformEXT(slot)], pHit);
-    bool  hasHP   = hasHealth(ht);
-    bool  empty   = (col.a <= 0.0) && !hasHP;
-    bool  terrain = (col.a >  0.0) && !hasHP;
-
-    if (hasHP)
-    {
-        if (proj.Damage < ht.r)
-            applyDamage_fx(false, slot, pHit, ht, proj.Damage);
-        else
-            destroyPixel_fx(fx,  slot, pHit, ht);
-    }
-    else
-    {
-        // no HP → just arm glow so the impact is visible
-        rearmGlow_fx(fx, slot, pHit, ht, 20u);
-    }
-
-    // area effect (stays within this tile by design)
-    processExplosionDiskFalloff(proj, fx, pHit, curSize);
-}
 
 // Ray utilities
 void rayFromProj(in ProjectileGPU proj, out vec2 dir, out float L, out vec2 A)
@@ -617,7 +542,8 @@ void main()
                 else
                 {
                     healthAfterHit = ht.r - proj.Damage;
-                    applyDamage_fx(false, pc.TextureIndex, localPx, ht, proj.Damage);
+                    float strength = 0.3;
+                    applyDamage_fx(false, pc.TextureIndex, localPx, ht, proj.Damage, strength);
                 }
             }
             else if (hasTex)
