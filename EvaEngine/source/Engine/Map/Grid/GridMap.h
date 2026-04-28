@@ -24,9 +24,11 @@ namespace Engine {
 		void BuildFromRegistry(Scene* scene);
 		bool DamageSubCell(uint64_t key, float damage);
 		void RemoveDeadSubCells();
-		void EmitEdgeSubcellsOnSide(const glm::ivec2& cell, FootSide side, uint32_t slot, uint64_t uid, float cellW, float cellH, int subs, float shrinkAlong, float halfThickW);
-		void EmitCenteredStrip(const glm::ivec2& cell, float widthFrac, float thickFrac, float yNudgePx, uint32_t slot, uint64_t uid, float cellW, float cellH);
-		void EmitCenteredDiscApprox(const glm::ivec2& cell, float radiusFrac, uint32_t slot, uint64_t uid, float cellW, float cellH);
+
+		void EmitEdgeSubcellsOnSide(const glm::ivec2& cell, FootSide side, uint32_t slot, uint64_t uid, float cellW, float cellH, int subs, float shrinkAlong, float halfThickW, uint32_t health);
+		void EmitCenteredStrip(const glm::ivec2& cell, float widthFrac, float thickFrac, float yNudgePx, uint32_t slot, uint64_t uid, float cellW, float cellH, uint32_t health);
+		void EmitCenteredDiscApprox(const glm::ivec2& cell, float radiusFrac, uint32_t slot, uint64_t uid, float cellW, float cellH, uint32_t health);
+	
 		void BuildFromTilesNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld);
 		void BuildFromCompactChunksNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld);
 		void UpdateCollisionAroundPlayer(Scene* scene, const glm::vec2& playerWorldPos);

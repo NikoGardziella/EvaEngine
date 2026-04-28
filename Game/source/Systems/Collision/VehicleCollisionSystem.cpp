@@ -54,7 +54,7 @@ void VehicleCollisionSystem::UpdateVehicleCollision(float deltaTime, Engine::Sce
 
             float speed = glm::length(vehicleComp.Velocity);
 
-            float impactEnergy = 2.5f * vehicleComp.Mass * speed * speed;
+            float impactEnergy = 1.0f * vehicleComp.Mass * speed * speed;
 
             uint32_t damage = static_cast<uint32_t>(glm::clamp(impactEnergy * 0.05f, 1.0f, 255.0f));
             vehicleComp.CollisionCooldown -= deltaTime;
@@ -66,18 +66,9 @@ void VehicleCollisionSystem::UpdateVehicleCollision(float deltaTime, Engine::Sce
                 {
                     for (uint64_t  key : result.HitSubCellKeys)
                     {
-                        cellDestroyed = scene->GetGrid()->DamageSubCell(key, damage);
+                        cellDestroyed |= scene->GetGrid()->DamageSubCell(key, damage);
 
-                        if (!cellDestroyed)
-                        {
-                            EE_INFO("hti with damage {}", damage);
-                            break;
-                        }
-                        else
-                        {
-                            EE_INFO("destroyed with damage {}", damage);
-
-                        }
+                        
                     }
                      scene->GetGrid()->RemoveDeadSubCells();
                 }
@@ -91,11 +82,11 @@ void VehicleCollisionSystem::UpdateVehicleCollision(float deltaTime, Engine::Sce
                      ApplyPush(vehicleTransformComp, vehicleComp,result.HitPoint, kPushbackStrength, kVelocityNudge);
 
                 }
-                std::vector<uint64_t> affectedUIDs = BuildVehicleAffectedUIDs(scene, glm::vec2(vehicleTransformComp.Translation),
+                glm::vec2 damagePoint = result.HitPoint + result.HitNormal * 0.10f;
+
+                std::vector<uint64_t> affectedUIDs = BuildVehicleAffectedUIDs(scene, glm::vec2(damagePoint),
                     vehicleHalfExtents, vehicleTransformComp.Rotation.z);
-
-
-                Engine::VulkanRenderer2D::CalculateBoxCollision(vehicleTransformComp.Translation, glm::vec2(1.0f, 2.0f), vehicleTransformComp.Rotation.z,
+                Engine::VulkanRenderer2D::CalculateBoxCollision(damagePoint, glm::vec2(1.0f, 2.0f), vehicleTransformComp.Rotation.z,
                     carIDComponent.ID, Engine::eCollisionType::VEHICLE, damage, affectedUIDs);
 
                 

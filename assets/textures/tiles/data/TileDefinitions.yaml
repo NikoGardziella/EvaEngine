@@ -706,7 +706,7 @@ TileDefinitions:
     Category: Buildings
     Direction: South
     Material: Concrete
-    BaseHealth: 1
+    BaseHealth: 10
     IsDestructible: true
     IsSupportingRoof: true
     IsRoof: false

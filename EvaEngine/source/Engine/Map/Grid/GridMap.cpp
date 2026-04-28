@@ -241,9 +241,7 @@ namespace Engine
 
         float& hp = m_subCellHealth[key];
 
-        if (hp <= 0.0f)
-            hp = 100.0f;
-
+        
         hp -= damage;
 
         for (SubCellOBB& c : m_blockedSubCells)
@@ -254,6 +252,7 @@ namespace Engine
                 break;
             }
         }
+        EE_CORE_INFO("remaining hp {}", hp);
 
         if (hp <= 0.0f)
         {
@@ -282,7 +281,7 @@ namespace Engine
     }
 
     void GridMap::EmitEdgeSubcellsOnSide(const glm::ivec2& cell, FootSide side, uint32_t slot, uint64_t uid,
-        float cellW, float cellH, int subs,float shrinkAlong, float halfThickW)
+        float cellW, float cellH, int subs,float shrinkAlong, float halfThickW, uint32_t health)
     {
         const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
 
@@ -338,7 +337,7 @@ namespace Engine
                 continue;
 
             auto it = m_subCellHealth.find(obb.CollisionKey);
-            obb.Health = (it != m_subCellHealth.end()) ? it->second : 100.0f;
+            obb.Health = health;
 
           
             m_blockedSubCells.push_back(obb);
@@ -346,7 +345,7 @@ namespace Engine
     }
 
     void GridMap::EmitCenteredStrip(const glm::ivec2& cell, float widthFrac, float thickFrac, float yNudgePx,
-        uint32_t slot, uint64_t uid, float cellW, float cellH)
+        uint32_t slot, uint64_t uid, float cellW, float cellH, uint32_t health)
     {
         const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
         const glm::vec2 E = S + glm::vec2(+cellW * 0.5f, -cellH * 0.5f);
@@ -374,14 +373,14 @@ namespace Engine
             return;
 
         auto it = m_subCellHealth.find(obb.CollisionKey);
-        obb.Health = (it != m_subCellHealth.end()) ? it->second : 100.0f;
+        obb.Health = health;
 
        
         m_blockedSubCells.push_back(obb);
     }
 
     void GridMap::EmitCenteredDiscApprox(const glm::ivec2& cell, float radiusFrac, uint32_t slot,
-        uint64_t uid, float cellW, float cellH)
+        uint64_t uid, float cellW, float cellH, uint32_t health)
     {
         const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
         const glm::vec2 E = S + glm::vec2(+cellW * 0.5f, -cellH * 0.5f);
@@ -409,7 +408,7 @@ namespace Engine
                     return;
 
                 auto it = m_subCellHealth.find(obb.CollisionKey);
-                obb.Health = (it != m_subCellHealth.end()) ? it->second : 100.0f;
+                obb.Health = health;
              
                 m_blockedSubCells.push_back(obb);
             };
@@ -501,13 +500,13 @@ namespace Engine
                     // same as building but needs tweak in future(jump trough window)?
                     FootSide side = parseSide(t.name);
                     cell += sideIsoOffset(side);
-                    EmitEdgeSubcellsOnSide(cell, side, t.Slot, t.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W);
+                    EmitEdgeSubcellsOnSide(cell, side, t.Slot, t.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, t.TileHealth);
                 }
                 else if (t.Category == eTileCategory::Buildings)
                 {
                     FootSide side = parseSide(t.name);
                     cell += sideIsoOffset(side);
-                    EmitEdgeSubcellsOnSide(cell, side, t.Slot, t.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W);
+                    EmitEdgeSubcellsOnSide(cell, side, t.Slot, t.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, t.TileHealth);
                 }
                 else if (t.Category == eTileCategory::DynamicObjects)
                 {
@@ -517,9 +516,9 @@ namespace Engine
                     constexpr bool  kUseDiscForPosts = false;
 
                     if (kUseDiscForPosts)
-                        EmitCenteredDiscApprox(cell, 0.18f, t.Slot, t.UID, CELL_W, CELL_H);
+                        EmitCenteredDiscApprox(cell, 0.18f, t.Slot, t.UID, CELL_W, CELL_H, t.TileHealth);
                     else
-                        EmitCenteredStrip(cell, kDefaultWidthFrac, kDefaultThickFrac, yNudgePx, t.Slot, t.UID, CELL_W, CELL_H);
+                        EmitCenteredStrip(cell, kDefaultWidthFrac, kDefaultThickFrac, yNudgePx, t.Slot, t.UID, CELL_W, CELL_H, t.TileHealth);
                 }
             }
         }

@@ -600,29 +600,44 @@ void main()
 
             const uint kMinDestroyHeight = 20u;
             const uint kMaxDestroyHeight = 180u;
-            bool inDestroyBand = (ht.g >= kMinDestroyHeight && ht.g <= kMaxDestroyHeight);
 
+            bool inDestroyBand = (ht.g >= kMinDestroyHeight && ht.g <= kMaxDestroyHeight);
             if (!inDestroyBand)
                 continue;
+
+            uint healthAfterHit = ht.r;
+
+            if (hasHP)
+            {
+                if (proj.Damage >= ht.r)
+                {
+                    healthAfterHit = 0u;
+                    destroyPixel_fx(true, pc.TextureIndex, localPx, ht);
+                }
+                else
+                {
+                    healthAfterHit = ht.r - proj.Damage;
+                    applyDamage_fx(false, pc.TextureIndex, localPx, ht, proj.Damage);
+                }
+            }
+            else if (hasTex)
+            {
+                healthAfterHit = 0u;
+                destroyPixel_fx(true, pc.TextureIndex, localPx, ht);
+            }
 
             uint key = makeKey(0.5, false, L);
 
             CollisionResult result;
             result.hitProjectileID_Low  = proj.ID_Low;
             result.hitProjectileID_High = proj.ID_High;
-            result.DestructionRadius    = proj.DestructionRadius;
+            result.DestructionRadius    = 0.0;
             result.CollisionPosition    = worldPos;
+            result.HealthAfter          = healthAfterHit;
             result.Damage               = proj.Damage;
 
-            uint healthAfterHit = ht.r;
-            if (proj.Damage >= healthAfterHit)
-                healthAfterHit = 0u;
-            else
-                healthAfterHit -= proj.Damage;
-
-            result.HealthAfter = healthAfterHit;
-
             tryClaimMin(i, key, result);
+
             continue;
         }
 
