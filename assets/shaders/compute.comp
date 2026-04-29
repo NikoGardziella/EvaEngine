@@ -542,7 +542,7 @@ void main()
                 else
                 {
                     healthAfterHit = ht.r - proj.Damage;
-                    float strength = 0.3;
+                    float strength = 0.25;
                     applyDamage_fx(false, pc.TextureIndex, localPx, ht, proj.Damage, strength);
                 }
             }

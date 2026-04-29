@@ -300,7 +300,7 @@ use fog of war for tile and roof opacity
     - prefabs       - done
     - doors
     - windows
-    - tiles damage effect
+    - tiles damage effect- done
     - particles
     - improvements on map editor. - done
     - clean EndFrame() - better split for 2d and 3d. move things to Renderer.
