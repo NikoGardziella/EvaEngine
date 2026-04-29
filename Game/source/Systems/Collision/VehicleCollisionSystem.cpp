@@ -8,6 +8,8 @@
 #include <Engine/Map/Grid/GridMap.h>
 #include "Engine/Renderer/Renderer2D/VulkanRenderer2D.h"
 #include <Engine/Map/Utils/IsoTileUtils.h>
+#include "Engine/AssetManager/AssetManager.h"
+#include "Engine/Math/HashUtils.h"
 
 void VehicleCollisionSystem::UpdateVehicleCollision(float deltaTime, Engine::Scene* scene)
 {
@@ -124,10 +126,10 @@ void VehicleCollisionSystem::UpdateVehicleCollision(float deltaTime, Engine::Sce
             
         });
 }
-
-std::vector<uint64_t> VehicleCollisionSystem::BuildVehicleAffectedUIDs(Engine::Scene* scene, const glm::vec2& center,
-    const glm::vec2& halfExtents, float rotationRadians)
+std::vector<uint64_t> VehicleCollisionSystem::BuildVehicleAffectedUIDs(Engine::Scene* scene, const glm::vec2& center, const glm::vec2& halfExtents, float rotationRadians)
 {
+    EE_PROFILE_FUNCTION();
+
     std::vector<uint64_t> result;
 
     if (!scene)
@@ -146,10 +148,10 @@ std::vector<uint64_t> VehicleCollisionSystem::BuildVehicleAffectedUIDs(Engine::S
 
     glm::vec2 corners[4] =
     {
-        center + Rotate({-halfExtents.x, -halfExtents.y}),
-        center + Rotate({ halfExtents.x, -halfExtents.y}),
-        center + Rotate({ halfExtents.x,  halfExtents.y}),
-        center + Rotate({-halfExtents.x,  halfExtents.y})
+        center + Rotate({ -halfExtents.x, -halfExtents.y }),
+        center + Rotate({  halfExtents.x, -halfExtents.y }),
+        center + Rotate({  halfExtents.x,  halfExtents.y }),
+        center + Rotate({ -halfExtents.x,  halfExtents.y })
     };
 
     glm::vec2 minW = corners[0];
@@ -161,7 +163,6 @@ std::vector<uint64_t> VehicleCollisionSystem::BuildVehicleAffectedUIDs(Engine::S
         maxW = glm::max(maxW, corners[i]);
     }
 
-    // Small safety padding
     minW -= glm::vec2(0.25f);
     maxW += glm::vec2(0.25f);
 
@@ -184,6 +185,7 @@ std::vector<uint64_t> VehicleCollisionSystem::BuildVehicleAffectedUIDs(Engine::S
     maxCell += glm::ivec2(1);
 
     Engine::CompactTileMap& compactMap = scene->GetCompactTileMap();
+    Engine::TileDefinitionRegistry& defs = Engine::AssetManager::GetTileDefinitions();
 
     std::unordered_set<uint64_t> uniqueUIDs;
 
@@ -199,10 +201,32 @@ std::vector<uint64_t> VehicleCollisionSystem::BuildVehicleAffectedUIDs(Engine::S
 
             for (const Engine::CompactTile& tile : *compactTiles)
             {
-                if (tile.UID == 0)
+                if (tile.IsEmpty())
                     continue;
 
-                uniqueUIDs.insert(tile.UID);
+                const Engine::TileDefinition* def = defs.Get(tile.TypeId);
+                if (!def)
+                    continue;
+
+                const Engine::CompactGroupInfo* groupInfo =
+                    compactMap.GetGroupInfo(tile.GroupId);
+
+                if (!groupInfo)
+                    continue;
+
+                const glm::vec2 tileWorldPos = Engine::IsoTileUtils::IsoToWorldGround(cell);
+                const glm::vec2 rootWorldPos = Engine::IsoTileUtils::IsoToWorldGround(groupInfo->OriginCell);
+                const glm::vec2 localPos = tileWorldPos - rootWorldPos;
+
+                const uint64_t uid = HashUtils::MakeTileUID(
+                    tile.GroupId, // same as id.ID, because promoted entity ID is set to groupId
+                    localPos,
+                    float(TILE_SIZE),
+                    static_cast<uint32_t>(def->Category),
+                    def->Direction
+                );
+
+                uniqueUIDs.insert(uid);
             }
         }
     }
@@ -214,6 +238,8 @@ std::vector<uint64_t> VehicleCollisionSystem::BuildVehicleAffectedUIDs(Engine::S
 
     return result;
 }
+
+
 CollisionSystemUtils::CollisionMoveResult VehicleCollisionSystem::CollideAndSlideVehicleBox(
     const std::vector<Engine::SubCellOBB>& walls,
     glm::vec2 pos,

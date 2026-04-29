@@ -17,13 +17,16 @@ namespace Engine
         std::string Name;
     };
 
+
+    // Avoid adding too much stuff here.
+    // plan is to have 10 000 000 of these
     struct CompactTile
     {
         uint16_t TypeId = 0;
         uint8_t Flags = 0;
         uint8_t Aux = 0;
         uint64_t GroupId = 0;
-        uint64_t UID = 0;
+        int16_t Floor = 0;
         bool IsEmpty() const;
     };
 

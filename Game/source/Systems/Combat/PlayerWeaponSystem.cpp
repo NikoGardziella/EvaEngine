@@ -20,6 +20,7 @@
 #include <Engine/Scene/Component.h>
 #include "Engine/Map/Tile/CompactTileMap.h"
 #include "Engine/Map/Utils/IsoTileUtils.h"
+#include "Engine/Math/HashUtils.h"
 
 void PlayerWeaponSystem::UpdatePlayerWeaponSystem(float deltaTime, Engine::Scene* scene)
 {
@@ -464,12 +465,9 @@ inline glm::ivec2 WorldToCell(const glm::vec2& world)
         static_cast<int>(std::round(world.y))
     );
 }
-std::vector<uint64_t> PlayerWeaponSystem::BuildProjectileAffectedUIDs(
-    Engine::Scene* scene,
-    const glm::vec2& origin,
-    const glm::vec2& target,
-    float projectileRadius,
-    float destructionRadius)
+
+std::vector<uint64_t> PlayerWeaponSystem::BuildProjectileAffectedUIDs(Engine::Scene* scene, const glm::vec2& origin, const glm::vec2& target,
+    float projectileRadius, float destructionRadius)
 {
     EE_PROFILE_FUNCTION();
 
@@ -479,6 +477,8 @@ std::vector<uint64_t> PlayerWeaponSystem::BuildProjectileAffectedUIDs(
         return resultUIDs;
 
     Engine::CompactTileMap& compactMap = scene->GetCompactTileMap();
+    Engine::TileDefinitionRegistry& defs = Engine::AssetManager::GetTileDefinitions();
+
 
     std::unordered_set<uint64_t> uniqueUIDs;
     std::unordered_set<int64_t> visitedCells;
@@ -489,9 +489,6 @@ std::vector<uint64_t> PlayerWeaponSystem::BuildProjectileAffectedUIDs(
     if (length <= 0.0001f)
         return resultUIDs;
 
-    glm::vec2 dir = delta / length;
-
-    // Step less than one tile, so we do not skip cells.
     const float stepWorld = float(TILE_SIZE) * 0.25f;
     const int steps = std::max(1, int(std::ceil(length / stepWorld)));
 
@@ -513,10 +510,32 @@ std::vector<uint64_t> PlayerWeaponSystem::BuildProjectileAffectedUIDs(
 
             for (const Engine::CompactTile& tile : *compactTiles)
             {
-                const uint64_t uid = tile.UID;
-
-                if (uid == 0)
+                if (tile.IsEmpty())
                     continue;
+
+                const Engine::TileDefinition* def = defs.Get(tile.TypeId);
+                if (!def)
+                    continue;
+
+                const Engine::CompactGroupInfo* groupInfo = compactMap.GetGroupInfo(tile.GroupId);
+                if (!groupInfo)
+                    continue;
+
+                const glm::vec2 tileWorldPos =
+                    Engine::IsoTileUtils::IsoToWorldGround(cell);
+
+                const glm::vec2 rootWorldPos =
+                    Engine::IsoTileUtils::IsoToWorldGround(groupInfo->OriginCell);
+
+                const glm::vec2 localPos = tileWorldPos - rootWorldPos;
+
+                const uint64_t uid = HashUtils::MakeTileUID(
+                    tile.GroupId,
+                    localPos,
+                    float(TILE_SIZE),
+                    static_cast<uint32_t>(def->Category),
+                    def->Direction
+                );
 
                 uniqueUIDs.insert(uid);
             }
@@ -531,7 +550,6 @@ std::vector<uint64_t> PlayerWeaponSystem::BuildProjectileAffectedUIDs(
 
         AddCell(cell);
 
-        // Small safety around the ray.
         AddCell(cell + glm::ivec2(1, 0));
         AddCell(cell + glm::ivec2(-1, 0));
         AddCell(cell + glm::ivec2(0, 1));
@@ -542,8 +560,11 @@ std::vector<uint64_t> PlayerWeaponSystem::BuildProjectileAffectedUIDs(
 
     for (uint64_t uid : uniqueUIDs)
         resultUIDs.push_back(uid);
+
     return resultUIDs;
 }
+
+
 
 float SampleHeightAt_FromTileCenterFudged(
     const glm::vec2& worldXY,
