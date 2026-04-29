@@ -90,7 +90,18 @@ namespace Engine {
             bool tilePropertiesChanged = false;
 
             if (ImGui::InputScalar("Health", ImGuiDataType_U32, &m_selectedTileprops.health))
+            {
                 tilePropertiesChanged = true;
+
+            }
+
+            int16_t minFloor = -2;
+            int16_t maxFloor = 10;
+
+            if (ImGui::SliderScalar("Floor", ImGuiDataType_S16, &m_selectedTileprops.floor,  &minFloor, &maxFloor, "%d"))
+            {
+                tilePropertiesChanged = true;
+            }
 
             static const char* materialOptions[] = {
                 ToString(eTileMaterial::Undefined),

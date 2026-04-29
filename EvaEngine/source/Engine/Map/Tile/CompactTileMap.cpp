@@ -80,22 +80,21 @@ namespace Engine
         return m_cells[worldCell].Tiles;
     }
 
-    CompactTile* CompactTileMap::FindTile(const glm::ivec2& worldCell, uint16_t typeId)
+    CompactTile* CompactTileMap::FindTile(const glm::ivec2& worldCell, uint16_t typeId, int16_t floor)
     {
         auto it = m_cells.find(worldCell);
         if (it == m_cells.end())
             return nullptr;
 
-        auto& tiles = it->second.Tiles;
-        auto found = std::find_if(tiles.begin(), tiles.end(),
-            [&](CompactTile& t)
-            {
-                return t.TypeId == typeId;
-            });
+        for (CompactTile& tile : it->second.Tiles)
+        {
+            if (tile.TypeId == typeId && tile.Floor == floor)
+                return &tile;
+        }
 
-        return (found != tiles.end()) ? &(*found) : nullptr;
+        return nullptr;
     }
-
+    /*
     const CompactTile* CompactTileMap::FindTile(const glm::ivec2& worldCell, uint16_t typeId) const
     {
         auto it = m_cells.find(worldCell);
@@ -111,10 +110,25 @@ namespace Engine
 
         return (found != tiles.end()) ? &(*found) : nullptr;
     }
+    */
+    
 
-    bool CompactTileMap::HasTileType(const glm::ivec2& worldCell, uint16_t typeId) const
+    bool CompactTileMap::HasTileType(const glm::ivec2& worldCell, uint16_t typeId, int16_t floor) const
     {
-        return FindTile(worldCell, typeId) != nullptr;
+        const std::vector<CompactTile>* tiles = GetTiles(worldCell);
+
+        if (!tiles)
+            return false;
+
+        for (size_t i = 0; i < tiles->size(); i++)
+        {
+            const CompactTile& tile = (*tiles)[i];
+
+            if (tile.TypeId == typeId && tile.Floor == floor)
+                return true;
+        }
+
+        return false;
     }
 
 
@@ -125,7 +139,8 @@ namespace Engine
         auto it = std::find_if(cell.Tiles.begin(), cell.Tiles.end(),
             [&](const CompactTile& t)
             {
-                return t.TypeId == tile.TypeId;
+                return t.TypeId == tile.TypeId &&
+                    t.Floor == tile.Floor;
             });
 
         if (it != cell.Tiles.end())
@@ -268,8 +283,7 @@ namespace Engine
         m_groupInfo.clear();
     }
 
-
-    bool CompactTileMap::RemoveTilesByCategory(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category)
+    bool CompactTileMap::RemoveTilesByCategory(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category, int16_t floor)
     {
         auto it = m_cells.find(worldCell);
         if (it == m_cells.end())
@@ -282,7 +296,7 @@ namespace Engine
         {
             const TileDefinition* def = defs.Get(tileIt->TypeId);
 
-            if (def && def->Category == category)
+            if (def && def->Category == category && tileIt->Floor == floor)
             {
                 const uint64_t oldGroupId = tileIt->GroupId;
                 tileIt = cell.Tiles.erase(tileIt);
@@ -302,9 +316,7 @@ namespace Engine
                     }
 
                     if (!stillHasGroupInCell)
-                    {
                         RemoveCellFromGroup(oldGroupId, worldCell);
-                    }
                 }
             }
             else
@@ -314,10 +326,7 @@ namespace Engine
         }
 
         if (removed)
-        {
             MarkChunkDirtyForCell(worldCell);
-        }
-
 
         return removed;
     }
@@ -328,10 +337,12 @@ namespace Engine
             || category == eTileCategory::Windows
             || category == eTileCategory::Doors;
     }
-
-
-    bool CompactTileMap::RemoveTileByCategoryAndDirection(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs,
-        eTileCategory category, eTileDirection direction)
+    bool CompactTileMap::RemoveTileByCategoryAndDirection(
+        const glm::ivec2& worldCell,
+        const TileDefinitionRegistry& defs,
+        eTileCategory category,
+        eTileDirection direction,
+        int16_t floor)
     {
         auto it = m_cells.find(worldCell);
         if (it == m_cells.end())
@@ -348,16 +359,12 @@ namespace Engine
 
             bool shouldRemove = false;
 
-            if (def && def->Direction == direction)
+            if (def && tileIt->Floor == floor && def->Direction == direction)
             {
                 if (newTileIsWallReplaceable && IsWallReplaceableCategory(def->Category))
-                {
                     shouldRemove = true;
-                }
                 else if (def->Category == category)
-                {
                     shouldRemove = true;
-                }
             }
 
             if (shouldRemove)
@@ -368,7 +375,6 @@ namespace Engine
 
                 if (oldGroupId != 0)
                 {
-                    // Better: only remove cell from group if no other tile from same group remains.
                     bool stillHasGroupInCell = false;
 
                     for (const CompactTile& t : cell.Tiles)

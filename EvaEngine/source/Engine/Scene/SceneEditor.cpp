@@ -187,7 +187,17 @@ namespace Engine {
 
                     glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
                     // Use flippedUV for rendering, don't overwrite original UV
-                    Engine::VulkanRenderer2D::DrawTile(ground, uv, color);
+                    constexpr float FloorVisualYOffset = TILE_SIZE;
+                    constexpr float FloorZStep = 0.001f;
+
+                    int16_t floor = tileComponent.tiles[i].floor;
+
+                    glm::vec2 drawPos = ground;
+                    drawPos.y += float(floor) * FloorVisualYOffset;
+
+                    float zBias = float(floor) * FloorZStep;
+
+                    Engine::VulkanRenderer2D::DrawTile(drawPos, uv, color, zBias);
                 }
 
             }

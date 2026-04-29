@@ -11,8 +11,9 @@ namespace Engine {
 
         WallDirectionalTypeSet DirectionSet{};
 
-        uint64_t GroupId = 0;
-        uint8_t WallFlags = 0;
-        uint8_t WallAux = 0;
+        uint64_t    GroupId = 0;
+        uint8_t     WallFlags = 0;
+        uint8_t     WallAux = 0;
+        int16_t    floor;
     };
 }

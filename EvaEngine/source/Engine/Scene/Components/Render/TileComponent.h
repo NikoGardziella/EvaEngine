@@ -98,9 +98,11 @@ namespace Engine {
         eTileMaterial   Material;
         uint32_t        TileHealth;
         uint32_t        Slot = UINT32_MAX;
-        eTileDirection   TileDirection;
+        eTileDirection  TileDirection;
+        int16_t         floor;
         glm::ivec2      opaqueMin = { 999, 999 };
         glm::ivec2      opaqueMax = { 999, 999 };
+
 
 
         TileInfo(const glm::vec2& pos = glm::vec2(0.0f), const glm::vec4& uvCoords = glm::vec4(0.0f),

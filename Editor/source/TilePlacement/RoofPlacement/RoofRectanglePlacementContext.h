@@ -12,8 +12,10 @@ namespace Engine {
 
         RoofDirectionalTypeSet TypeSet{};
 
-        uint64_t GroupId = 0;
-        uint8_t Flags = 0;
-        uint8_t Aux = 0;
+        uint64_t    GroupId = 0;
+        uint8_t     Flags = 0;
+        uint8_t     Aux = 0;
+        int16_t    Floor= 0;
+
     };
 }

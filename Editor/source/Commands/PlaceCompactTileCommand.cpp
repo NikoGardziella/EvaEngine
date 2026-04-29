@@ -11,20 +11,20 @@ namespace Engine
 
     PlaceCompactTileCommand::PlaceCompactTileCommand(Scene* scene, const glm::ivec2& worldCell, const CompactTile& newTile,
         const eTileDirection& tileDir)
-        : m_Scene(scene), m_WorldCell(worldCell), m_NewTile(newTile), m_tileDir(tileDir)
+        : m_Scene(scene), m_WorldCell(worldCell), m_newTile(newTile), m_tileDir(tileDir)
     {
         if (!m_Scene)
             return;
 
-        CompactTile* existing = m_Scene->GetCompactTileMap().FindTile(m_WorldCell, m_NewTile.TypeId);
+        CompactTile* existing = m_Scene->GetCompactTileMap().FindTile(m_WorldCell, m_newTile.TypeId, m_newTile.Floor);
         if (existing && !existing->IsEmpty())
         {
-            m_OldTile = *existing;
+            m_oldTile = *existing;
             m_HadOldTile = true;
         }
         else
         {
-            m_OldTile = CompactTile{};
+            m_oldTile = CompactTile{};
             m_HadOldTile = false;
         }
     }
@@ -34,17 +34,17 @@ namespace Engine
         if (!m_Scene)
             return;
 
-        if (m_NewTile.IsEmpty())
+        if (m_newTile.IsEmpty())
             return;
 
         CompactTileMap& compactMap = m_Scene->GetCompactTileMap();
         TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
 
-        if (compactMap.HasTileType(m_WorldCell, m_NewTile.TypeId))
+        if (compactMap.HasTileType(m_WorldCell, m_newTile.TypeId, m_newTile.Floor))
             return;
 
 
-        const TileDefinition* newDef = defs.Get(m_NewTile.TypeId);
+        const TileDefinition* newDef = defs.Get(m_newTile.TypeId);
         if (!newDef)
             return;
 
@@ -54,7 +54,8 @@ namespace Engine
             compactMap.RemoveTilesByCategory(
                 m_WorldCell,
                 defs,
-                newDef->Category);
+                newDef->Category,
+                m_newTile.Floor);
         }
         else
         {
@@ -62,20 +63,21 @@ namespace Engine
                 m_WorldCell,
                 defs,
                 newDef->Category,
-                newDef->Direction);
+                newDef->Direction,
+                m_newTile.Floor);
         }
 
-        compactMap.AddTile(m_WorldCell, m_NewTile);
+        compactMap.AddTile(m_WorldCell, m_newTile);
 
-        if (m_NewTile.GroupId != 0)
-            compactMap.RegisterCellForGroup(m_NewTile.GroupId, m_WorldCell);
+        if (m_newTile.GroupId != 0)
+            compactMap.RegisterCellForGroup(m_newTile.GroupId, m_WorldCell);
 
         compactMap.MarkChunkDirtyForCell(m_WorldCell);
 
-        if (m_NewTile.GroupId != 0)
+        if (m_newTile.GroupId != 0)
         {
-            compactMap.ClearPromotionFlagsForGroup(m_NewTile.GroupId);
-            m_Scene->GetCompactTilePromotion().PromoteGroup(m_Scene, m_NewTile.GroupId);
+            compactMap.ClearPromotionFlagsForGroup(m_newTile.GroupId);
+            m_Scene->GetCompactTilePromotion().PromoteGroup(m_Scene, m_newTile.GroupId);
         }
 
         m_Scene->GetCompactTilePromotion().InvalidateEditorViewportCache();
@@ -88,7 +90,7 @@ namespace Engine
 
         CompactTileMap& compactMap = m_Scene->GetCompactTileMap();
 
-        CompactTile* existing = compactMap.FindTile(m_WorldCell, m_NewTile.TypeId);
+        CompactTile* existing = compactMap.FindTile(m_WorldCell, m_newTile.TypeId, m_newTile.Floor);
         if (!existing)
             return;
 
@@ -107,7 +109,7 @@ namespace Engine
                 destroyIfLastTile);
         }
 
-        compactMap.RemoveTile(m_WorldCell, m_NewTile.TypeId);
+        compactMap.RemoveTile(m_WorldCell, m_newTile.TypeId);
 
         // If no more tiles from this group remain in this cell, unregister the cell from the group
         if (groupId != 0)

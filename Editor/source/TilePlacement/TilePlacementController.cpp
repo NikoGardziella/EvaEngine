@@ -229,7 +229,7 @@ namespace Engine
             WallRectanglePlacementContext ctx;
             ctx.ActiveScene = GetEditorScene().get();
             ctx.CompactMap = &GetEditorScene()->GetCompactTileMap();
-
+            ctx.floor = m_tileEditorPanel.GetSelectedTileProperties().floor;
             ctx.DirectionSet = BuildDirectionalWallTypeSetFromSelectedTile();
             if (!ctx.DirectionSet.IsValid())
             {
@@ -297,8 +297,9 @@ namespace Engine
         }
 
         const glm::ivec2 isoCell = m_hoveredCell;
+        const int16_t tileFloor = m_tileEditorPanel.GetSelectedTileProperties().floor;
 
-        if (!CanPlaceTile(selectedTile, isoCell))
+        if (!CanPlaceTile(selectedTile, isoCell, tileFloor))
             return;
 
         CompactTile compactTile = BuildCompactTileForSelection(selectedEntity, isoCell);
@@ -306,7 +307,7 @@ namespace Engine
             return;
 
         const eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTile);
-
+        compactTile.Floor = tileFloor;
         Scope<PlaceCompactTileCommand> cmd = std::make_unique<PlaceCompactTileCommand>(
             GetEditorScene().get(),
             isoCell,
@@ -373,9 +374,10 @@ namespace Engine
         tile.Flags = Engine::CompactTileFlags::None;
         tile.Aux = 0;
         tile.GroupId = groupID;
+        tile.Floor = m_tileEditorPanel.GetSelectedTileProperties().floor;
 
 
-        if (compactMap.HasTileType(isoCell, tile.TypeId))
+        if (compactMap.HasTileType(isoCell, tile.TypeId, tile.Floor))
         {
             EE_CORE_INFO("Compact tile type {} already exists at cell ({}, {})",
                 tile.TypeId, isoCell.x, isoCell.y);
@@ -385,26 +387,31 @@ namespace Engine
         return tile;
     }
 
-    bool TilePlacementController::CanPlaceTile(std::string selectedTileName, glm::ivec2 isoCell)
+
+    bool TilePlacementController::CanPlaceTile(std::string selectedTileName, glm::ivec2 isoCell, int16_t floor)
     {
         auto& registry = m_sceneHierarchyPanel.GetEditorScene()->GetRegistry();
+
+        auto view = registry.view<TileComponent, TransformComponent, IDComponent>();
+
+        for (auto entity : view)
         {
-            auto view = registry.view<TileComponent, TransformComponent, IDComponent>();
-            for (auto entity : view)
+            const auto& tc = view.get<TileComponent>(entity);
+            const auto& tr = view.get<TransformComponent>(entity);
+
+            for (const auto& tinfo : tc.tiles)
             {
-                const auto& tc = view.get<TileComponent>(entity);
-                const auto& tr = view.get<TransformComponent>(entity);
-                for (const auto& tinfo : tc.tiles)
+                glm::vec2 tileGround = glm::vec2(tr.Translation) + tinfo.position;
+
+                if (IsoTileUtils::WorldToIsoCellInt(tileGround) == isoCell &&
+                    tinfo.name == selectedTileName &&
+                    tinfo.floor == floor)
                 {
-                    glm::vec2 tileGround = glm::vec2(tr.Translation) + tinfo.position;
-                    if (IsoTileUtils::WorldToIsoCellInt(tileGround) == isoCell &&
-                        tinfo.name == selectedTileName)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
         }
+
         return true;
     }
 

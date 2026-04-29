@@ -19,6 +19,7 @@ namespace Engine
 
         uint8_t Flags = 0;
         uint8_t Aux = 0;
+        int16_t Floor = 0;
     };
 
     class TerrainRectanglePlacementTool

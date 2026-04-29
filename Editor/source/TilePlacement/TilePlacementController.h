@@ -52,7 +52,7 @@ namespace Engine
 
         void CancelAllDragging();
         
-        bool CanPlaceTile(std::string selectedTileName, glm::ivec2 isoCell);
+        bool CanPlaceTile(std::string selectedTileName, glm::ivec2 isoCell, int16_t floor);
         CompactTile BuildCompactTileForSelection(Entity selectedEntity, glm::ivec2 isoCell);
 
 

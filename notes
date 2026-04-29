@@ -341,3 +341,10 @@ use fog of war for tile and roof opacity
     collision grid is rebuild even when there are parts destroyed.
     
 }
+
+29.04.2026
+{
+    BuildVehicleAffectedUIDs 0.120 ms -> 0.155 ms
+
+
+}

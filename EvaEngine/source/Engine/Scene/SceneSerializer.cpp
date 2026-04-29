@@ -1103,12 +1103,13 @@ namespace Engine {
             tile.Flags = CompactTileFlags::None;
             tile.Aux = static_cast<uint8_t>(tileNode["Aux"].as<int>());
             tile.GroupId = tileNode["GroupId"].as<uint64_t>();
+            tile.Floor = tileNode["Floor"].as<int16_t>();
 
             if (tile.IsEmpty())
                 continue;
 
             // Avoid duplicate same TypeId in same cell
-            if (compactMap.HasTileType(cell, tile.TypeId))
+            if (compactMap.HasTileType(cell, tile.TypeId, tile.Floor))
             {
                 EE_CORE_WARN(
                     "DeserializeCompactTiles: tile type {} already exists at cell ({}, {})",

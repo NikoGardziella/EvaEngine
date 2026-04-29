@@ -30,7 +30,7 @@ namespace Engine
                 continue;
 
             // Skip exact duplicate type already in this cell
-            if (compactMap.HasTileType(placement.WorldCell, placement.NewTile.TypeId))
+            if (compactMap.HasTileType(placement.WorldCell, placement.NewTile.TypeId, placement.NewTile.Floor))
                 continue;
 
 
@@ -41,18 +41,12 @@ namespace Engine
             if (newDef->Category == eTileCategory::Terrain ||
                 newDef->Category == eTileCategory::Roofs)
             {
-                compactMap.RemoveTilesByCategory(
-                    placement.WorldCell,
-                    defs,
-                    newDef->Category);
+                compactMap.RemoveTilesByCategory(placement.WorldCell, defs, newDef->Category, placement.NewTile.Floor);
             }
             else
             {
-                compactMap.RemoveTileByCategoryAndDirection(
-                    placement.WorldCell,
-                    defs,
-                    newDef->Category,
-                    newDef->Direction);
+                compactMap.RemoveTileByCategoryAndDirection(placement.WorldCell, defs, newDef->Category,
+                    newDef->Direction , placement.NewTile.Floor);
             }
 
 
@@ -92,7 +86,7 @@ namespace Engine
                 placement.WorldCell.x,
                 placement.WorldCell.y);
 
-            CompactTile* existing = compactMap.FindTile(placement.WorldCell, placement.NewTile.TypeId);
+            CompactTile* existing = compactMap.FindTile(placement.WorldCell, placement.NewTile.TypeId, placement.NewTile.Floor);
             EE_CORE_WARN("existing found = {}", existing ? 1 : 0);
             if (!existing)
                 continue;

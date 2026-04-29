@@ -21,10 +21,9 @@ namespace Engine
         Scene* m_Scene = nullptr;
         glm::ivec2 m_WorldCell{};
 
-        CompactTile m_NewTile{};
-        CompactTile m_OldTile{};
+        CompactTile m_newTile{};
+        CompactTile m_oldTile{};
         eTileDirection m_tileDir;
-
         bool m_HadOldTile = false;
     };
 }

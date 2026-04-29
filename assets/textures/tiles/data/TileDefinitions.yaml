@@ -877,7 +877,7 @@ TileDefinitions:
     Category: Buildings
     Direction: North
     Material: Concrete
-    BaseHealth: 200
+    BaseHealth: 50
     IsDestructible: true
     IsSupportingRoof: true
     IsRoof: false

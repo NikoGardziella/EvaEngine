@@ -80,10 +80,14 @@ namespace Engine
         const std::vector<CompactTile>* GetTiles(const glm::ivec2& worldCell) const;
         std::vector<CompactTile>& GetOrCreateTiles(const glm::ivec2& worldCell);
 
-        CompactTile* FindTile(const glm::ivec2& worldCell, uint16_t typeId);
-        const CompactTile* FindTile(const glm::ivec2& worldCell, uint16_t typeId) const;
+        CompactTile* FindTile(const glm::ivec2& worldCell, uint16_t typeId, int16_t floor);
 
-        bool HasTileType(const glm::ivec2& worldCell, uint16_t typeId) const;
+       // CompactTile* FindTile(const glm::ivec2& worldCell, uint16_t typeId);
+       // const CompactTile* FindTile(const glm::ivec2& worldCell, uint16_t typeId) const;
+
+        bool HasTileType(const glm::ivec2& worldCell, uint16_t typeId, int16_t floor) const;
+
+        //bool HasTileType(const glm::ivec2& worldCell, uint16_t typeId) const;
         CompactTile& AddTile(const glm::ivec2& worldCell, const CompactTile& tile);
         bool RemoveTile(const glm::ivec2& worldCell, uint16_t typeId);
 
@@ -100,9 +104,9 @@ namespace Engine
         void ClearPromotionFlags();
         void ClearPromotionFlagsForGroup(uint64_t groupId);
         void Clear();
-        bool RemoveTilesByCategory(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category);
+        bool RemoveTilesByCategory(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category, int16_t floor);
         bool IsWallReplaceableCategory(eTileCategory category);
-        bool RemoveTileByCategoryAndDirection(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category, eTileDirection direction);
+        bool RemoveTileByCategoryAndDirection(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category, eTileDirection direction, int16_t floor);
         void RebuildChunkDrawCache(TileChunk& chunk, const TileDefinitionRegistry& defs);
         void MarkChunkDirtyForCell(const glm::ivec2& worldCell);
 

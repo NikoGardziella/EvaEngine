@@ -106,7 +106,7 @@ namespace Engine
             {
                 const glm::ivec2 cell{ x, y };
 
-                if (compactMap.HasTileType(cell, ctx.TypeId))
+                if (compactMap.HasTileType(cell, ctx.TypeId, ctx.Floor))
                     continue;
 
                 CompactTile tile{};
@@ -114,7 +114,7 @@ namespace Engine
                 tile.GroupId = ctx.GroupId;
                 tile.Flags = ctx.Flags;
                 tile.Aux = ctx.Aux;
-
+                tile.Floor = ctx.Floor;
 
                 PlaceCompactTilesCommand::Placement p{};
                 p.WorldCell = cell;

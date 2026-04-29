@@ -197,7 +197,7 @@ namespace Engine
         if (typeId == 0)
             return;
 
-        if (compactMap.HasTileType(cell, typeId))
+        if (compactMap.HasTileType(cell, typeId, ctx.floor))
             return;
 
         CompactTile tile{};
@@ -205,7 +205,7 @@ namespace Engine
         tile.GroupId = ctx.GroupId;
         tile.Flags = ctx.WallFlags;
         tile.Aux = ctx.WallAux;
-
+        tile.Floor = ctx.floor;
      //   compactMap.AddTile(cell, tile);
 
         PlaceCompactTilesCommand::Placement p{};

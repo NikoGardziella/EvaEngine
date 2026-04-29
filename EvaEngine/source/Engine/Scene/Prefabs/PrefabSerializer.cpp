@@ -127,6 +127,7 @@ namespace Engine {
 
             CompactTile tile{};
             tile.TypeId = tileNode["TypeId"].as<uint16_t>();
+            tile.Floor = tileNode["Floor"].as<int16_t>();
             tile.Flags = CompactTileFlags::None;
             tile.Aux = static_cast<uint8_t>(tileNode["Aux"].as<int>());
             tile.GroupId = newGroupId;
@@ -135,7 +136,7 @@ namespace Engine {
                 continue;
 
             // Do not duplicate same TypeId in the same cell
-            if (compactMap.HasTileType(worldCell, tile.TypeId))
+            if (compactMap.HasTileType(worldCell, tile.TypeId, tile.Floor))
             {
                 EE_CORE_WARN(
                     "DeserializeCompactTilesPrefab: tile type {} already exists at cell ({}, {})",
@@ -282,6 +283,9 @@ namespace Engine {
                 tile.position.y = posNode[1].as<float>();
             }
 
+            if (tileNode["Floor"])
+                tile.floor = tileNode["Floor"].as<int16_t>();
+
             if (tileNode["Name"])
                 tile.name = tileNode["Name"].as<std::string>();
 
@@ -346,8 +350,8 @@ namespace Engine {
             compact.Flags = CompactTileFlags::None;
             compact.Aux = 0;
             compact.GroupId = groupId;
-
-            if (!compactMap.HasTileType(worldCell, compact.TypeId))
+            compact.Floor = tile.floor;
+            if (!compactMap.HasTileType(worldCell, compact.TypeId, compact.Floor))
             {
                 compactMap.AddTile(worldCell, compact);
                 //compactMap.SetGroupOrigin(compact.GroupId, worldCell);
