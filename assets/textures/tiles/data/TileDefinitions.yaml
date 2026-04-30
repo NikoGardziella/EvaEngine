@@ -1763,3 +1763,39 @@ TileDefinitions:
     IsDestructible: true
     IsSupportingRoof: false
     IsRoof: false
+  - TypeId: 197
+    Name: Roof C1_E
+    Category: Roofs
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 198
+    Name: Roof C1_N
+    Category: Roofs
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 199
+    Name: Roof C1_S
+    Category: Roofs
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true
+  - TypeId: 200
+    Name: Roof C1_W
+    Category: Roofs
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: true

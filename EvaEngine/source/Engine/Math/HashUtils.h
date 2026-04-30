@@ -48,8 +48,8 @@ namespace HashUtils
 
     // Main: entity + local tile coords -> 64-bit UID
     inline static uint64_t MakeTileUID(uint64_t entID, const glm::vec2& localPos, float tileSizeWorld,
-        uint32_t layerOrVariant = 0, Engine::eTileDirection direction = Engine::eTileDirection::North,
-        uint64_t nameHash = 0)
+        uint32_t layerOrVariant, Engine::eTileDirection direction, 
+        int16_t floor,  uint64_t nameHash = 0)
     {
         auto normBits = [](float f) -> uint32_t {
             if (!std::isfinite(f)) f = 0.0f;
@@ -64,9 +64,9 @@ namespace HashUtils
         HashCombine(h, (uint64_t)normBits(localPos.y));
         HashCombine(h, (uint64_t)normBits(tileSizeWorld));
         HashCombine(h, (uint64_t)layerOrVariant);
-
         
         HashCombine(h, (uint64_t)direction);
+        HashCombine(h, (int32_t)floor);
 
         HashCombine(h, nameHash);
 

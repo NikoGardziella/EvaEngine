@@ -38,6 +38,7 @@ namespace Engine {
 
 
         glm::vec2 ScreenToWorld2D(const glm::vec2& screenPos, float worldZ) const;
+        glm::vec3 ScreenToWorld(const glm::vec2& screenPos, float depthNdc) const;
 
         void GetViewportWorldBounds2D(glm::vec2& outMin, glm::vec2& outMax, float worldZ) const;
 
@@ -64,7 +65,6 @@ namespace Engine {
 
     private:
        
-        glm::vec3 ScreenToWorld(const glm::vec2& screenPos, float depthNdc) const;
 
         //void OnMouseScroll(const ImVec2& delta);
         void OnMousePan(const glm::vec2& delta);

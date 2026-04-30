@@ -29,9 +29,9 @@ namespace Engine {
 		void EmitCenteredStrip(const glm::ivec2& cell, float widthFrac, float thickFrac, float yNudgePx, uint32_t slot, uint64_t uid, float cellW, float cellH, uint32_t health);
 		void EmitCenteredDiscApprox(const glm::ivec2& cell, float radiusFrac, uint32_t slot, uint64_t uid, float cellW, float cellH, uint32_t health);
 	
-		void BuildFromTilesNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld);
+		void BuildFromTilesNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld, const int16_t playerFloor);
 		void BuildFromCompactChunksNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld);
-		void UpdateCollisionAroundPlayer(Scene* scene, const glm::vec2& playerWorldPos);
+		void UpdateCollisionAroundPlayer(Scene* scene, const glm::vec2& playerWorldPos, const int16_t playerFloor);
 		void GridMap::MarkBlockedSubtilesFromTexture(const glm::vec2& worldPosition,
 			const std::vector<uint8_t>& textureData, uint32_t textureWidth, uint32_t textureHeight);
 
@@ -118,6 +118,7 @@ namespace Engine {
 		std::unordered_set<uint64_t> m_destroyedSubCells;
 
 		glm::vec2 m_LastGridBuildPos = glm::vec2(FLT_MAX);
+		int16_t m_lastPlayerFloor = 0;
 		struct DebugAABB {
 			glm::vec2 minW;
 			glm::vec2 maxW;

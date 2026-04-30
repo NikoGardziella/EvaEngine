@@ -43,6 +43,9 @@ namespace Engine
         void HandleWallPlacement(bool controlPressed, const glm::ivec2& hoveredCell);
         void HandleSingleTilePlacement();
 
+        void SortIsometricTilesByY();
+
+
         // Preview
         void DrawSingleTilePreview();
         void DrawTerrainRectanglePreview();

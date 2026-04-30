@@ -91,7 +91,7 @@ namespace Engine {
 
         
 
-        m_vulkanGameRenderShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanRenderer2D_Quad.GLSL").string());
+        m_vulkanGameRenderShader = std::make_shared<VulkanShader>(AssetManager::GetAssetPath("shaders/VulkanGameRenderer2D_Quad.GLSL").string());
         // 1. Buffers and samplers
         CreatePresentSampler();
         CreateGPUCollisionResultBuffer();

@@ -114,7 +114,7 @@ namespace Engine
                     tile.GroupId = ctx.GroupId;
                     tile.Flags = ctx.Flags;
                     tile.Aux = ctx.Aux;
-
+                    tile.Floor = ctx.Floor;
                     //compactMap.AddTile(cell, tile);
                     PlaceCompactTilesCommand::Placement p{};
                     p.WorldCell = cell;

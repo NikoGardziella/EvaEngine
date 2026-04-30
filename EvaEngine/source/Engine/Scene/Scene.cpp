@@ -39,6 +39,7 @@
 #include <Engine/Math/HashUtils.h>
 #include <Engine/Map/Tile/CompactTileMap.h>
 #include <Engine/Map/Tile/TileDefinitionRegistry.h>
+#include "Components/Map/FloorComponent.h"
 
 
 namespace Engine {
@@ -148,7 +149,12 @@ namespace Engine {
         AmmoComponent& AmmoComp = playerEntity.AddComponent<AmmoComponent>();
         PlayerVisionComp& visionComp = playerEntity.AddComponent<PlayerVisionComp>();
         visionComp.visionDistanceW = 10.0f;
-        /// there will bne day i will move this
+
+        playerEntity.AddComponent<FloorComponent>().Floor = 0;
+
+
+
+        
 
 
         //****************** spawn car ********************

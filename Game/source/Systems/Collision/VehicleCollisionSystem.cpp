@@ -223,7 +223,8 @@ std::vector<uint64_t> VehicleCollisionSystem::BuildVehicleAffectedUIDs(Engine::S
                     localPos,
                     float(TILE_SIZE),
                     static_cast<uint32_t>(def->Category),
-                    def->Direction
+                    def->Direction,
+                    tile.Floor
                 );
 
                 uniqueUIDs.insert(uid);
@@ -240,11 +241,8 @@ std::vector<uint64_t> VehicleCollisionSystem::BuildVehicleAffectedUIDs(Engine::S
 }
 
 
-CollisionSystemUtils::CollisionMoveResult VehicleCollisionSystem::CollideAndSlideVehicleBox(
-    const std::vector<Engine::SubCellOBB>& walls,
-    glm::vec2 pos,
-    glm::vec2 delta,
-    glm::vec2 vehicleHalfExtents)
+CollisionSystemUtils::CollisionMoveResult VehicleCollisionSystem::CollideAndSlideVehicleBox(const std::vector<Engine::SubCellOBB>& walls,
+    glm::vec2 pos, glm::vec2 delta, glm::vec2 vehicleHalfExtents)
 {
     CollisionSystemUtils::CollisionMoveResult result{};
     result.FinalPosition = pos;
@@ -273,12 +271,7 @@ CollisionSystemUtils::CollisionMoveResult VehicleCollisionSystem::CollideAndSlid
 
     for (int iter = 0; iter < maxIters; ++iter)
     {
-        const CollisionSystemUtils::AABB2 sweptAABB =
-            CollisionSystemUtils::MakeSweptAABB(
-                pos,
-                rem,
-                glm::length(vehicleHalfExtents)
-            );
+        const CollisionSystemUtils::AABB2 sweptAABB = CollisionSystemUtils::MakeSweptAABB(pos, rem, glm::length(vehicleHalfExtents));
 
         CollisionSystemUtils::SweepHit bestDynamic{};
         uint64_t bestDynamicKey = 0;
@@ -297,20 +290,12 @@ CollisionSystemUtils::CollisionMoveResult VehicleCollisionSystem::CollideAndSlid
             Engine::SubCellOBB expanded = wall;
             expanded.halfExtents += vehicleHalfExtents;
 
-            const CollisionSystemUtils::AABB2 wallAABB =
-                CollisionSystemUtils::MakeOBBAABB(expanded);
+            const CollisionSystemUtils::AABB2 wallAABB = CollisionSystemUtils::MakeOBBAABB(expanded);
 
             if (!CollisionSystemUtils::Overlaps(sweptAABB, wallAABB))
                 continue;
 
-            CollisionSystemUtils::SweepHit h =
-                CollisionSystemUtils::SweepCircleVsOBB(
-                    expanded,
-                    pos,
-                    rem,
-                    0.0f,
-                    skin
-                );
+            CollisionSystemUtils::SweepHit h = CollisionSystemUtils::SweepCircleVsOBB(expanded, pos, rem, 0.0f, skin);
 
             if (!h.hit)
                 continue;
@@ -393,13 +378,8 @@ CollisionSystemUtils::CollisionMoveResult VehicleCollisionSystem::CollideAndSlid
     return result;
 }
 
-void VehicleCollisionSystem::ApplyPush(
-    Engine::TransformComponent& transform,
-    VehicleComponent& vehicle,
-    const glm::vec2& sourcePosition,
-    float basePushStrength,
-    float baseVelocityNudge
-)
+void VehicleCollisionSystem::ApplyPush(Engine::TransformComponent& transform, VehicleComponent& vehicle, const glm::vec2& sourcePosition,
+    float basePushStrength, float baseVelocityNudge)
 {
     glm::vec2 vehiclePos = glm::vec2(transform.Translation);
     glm::vec2 pushDir = glm::normalize(vehiclePos - sourcePosition);

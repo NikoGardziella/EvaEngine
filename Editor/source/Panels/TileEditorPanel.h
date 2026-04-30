@@ -32,6 +32,8 @@ namespace Engine
 		TileProperties& GetSelectedTileProperties() { return m_selectedTileprops; }
 
 		uint32_t GetSelectedTile() const { return m_selectedTile; }
+		uint16_t GetActiveFloor() const { return m_activeFloor; }
+		bool	ShowAllFloors() const { return m_showAllFloors; }
 		std::string GetSelectedTileName() const { return m_selectedTileName; }
 		void SetSelectedTile(uint32_t tileIndex, const std::string& tileName)
 		{
@@ -68,6 +70,8 @@ namespace Engine
 
 		TileProperties& m_selectedTileprops = TileProperties{};
 		uint16_t m_selectedTileTypeId;
+		uint16_t m_activeFloor;
+		bool m_showAllFloors = false;
 		std::unordered_map<eTileCategory, eTileMaterial> m_selectedMaterials;
 
 		

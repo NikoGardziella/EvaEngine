@@ -36,11 +36,13 @@
 #include "Components/Map/AreaComponent.h"
 #include <Engine/Platform/Vulkan/VulkanBindlessDescriptorSet.h>
 
+#include "Components/Map/FloorComponent.h"
 
-// testing
 #include "Engine/Map/Tile/CompactTileMap.h"
 #include "Engine/Map/Tile/TileDefinitionRegistry.h"
 #include "Engine/Map/Utils/IsoTileUtils.h"
+
+
 
 namespace Engine {
 
@@ -178,6 +180,8 @@ namespace Engine {
             Engine::IDComponent& playerIDComp = playerEntity.GetComponent<Engine::IDComponent>();
             playerID = playerIDComp.ID;
 
+            playerStateData.playerCurrentFloor = playerEntity.GetComponent<FloorComponent>().Floor;
+
             /*
             if (!playerEntity.HasComponent<DriverComponent>())
             {
@@ -201,7 +205,9 @@ namespace Engine {
 
 
         }
-        m_gridMap->UpdateCollisionAroundPlayer(this, playerPos);
+
+
+        m_gridMap->UpdateCollisionAroundPlayer(this, playerPos, playerStateData.playerCurrentFloor);
         float promoteRadius = 10.0f;
         float compactRadius = 15.0f;
         m_compactTilePromotion.EnsurePromotedAndCompactedAroundPlayer(this, playerPos, promoteRadius, compactRadius, m_tileMananger);
@@ -424,13 +430,23 @@ namespace Engine {
                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::IsRoof;
                                     }
 
-                                    if (playerIsInsideEntityArea)
+                                    if (playerIsInsideEntityArea &&
+                                        tile.floor > playerStateData.playerCurrentFloor)
                                     {
-                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::PlayerInsideEntityArea;
+                                        continue; // hide floors above player
                                     }
-                                   
 
-
+                                    if (playerIsInsideEntityArea &&
+                                        tile.floor == playerStateData.playerCurrentFloor)
+                                    {
+                                        if (tile.Category == eTileCategory::Buildings ||
+                                            tile.Category == eTileCategory::Roofs ||
+                                            tile.IsRoof)
+                                        {
+                                            flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::PlayerInsideEntityArea;
+                                        }
+                                    }
+                                  
                                     
 
                                     // Trivial submit: NO residency work here, just append an instance
@@ -443,7 +459,8 @@ namespace Engine {
                                         tile.TileDirection,
                                         tile.opaqueMin,
                                         tile.opaqueMax,
-                                        flags
+                                        flags,
+                                        tile.floor
                                     );
                                     minWorld.x = std::min(minWorld.x, transformComp.Translation.x);
                                     minWorld.y = std::min(minWorld.y, transformComp.Translation.y);
@@ -685,8 +702,9 @@ namespace Engine {
                             EE_CORE_ERROR("invalid render slot for projectile");
                             continue;
                         }
-
-                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation, eTileDirection::Center, outOpaqueMin, outOpaqueMax, size);
+                        const int16_t projectileFloor = 0;
+                        const int16_t projectileFlags = 0;
+                        VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation, eTileDirection::Center, outOpaqueMin, outOpaqueMax, size, projectileFlags, projectileFloor);
 
                     }
 

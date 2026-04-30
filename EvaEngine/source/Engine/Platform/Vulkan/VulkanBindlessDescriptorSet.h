@@ -80,7 +80,10 @@ namespace Engine {
             uint32_t  slot;         // 24
             uint32_t  flags;        // 28
             uint32_t  tileDirection;// 32
-            uint32_t  _pad0;        // 36 (Ensures the following uvec2 is on 8-byte boundary)
+            
+            int16_t     floor;      // 36
+            uint16_t  _pad0;        // 38
+
 
             // alignas(8) ensures C++ starts this at byte 40
             alignas(8) glm::uvec2 uvMin16;     // 40
@@ -108,7 +111,7 @@ namespace Engine {
 
         void BeginFrame(uint32_t frameIndex);
         void AddSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation, eTileDirection  tileDirection);
-        void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, eTileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, glm::vec2 size,uint32_t flags = 0);
+        void AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, eTileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, glm::vec2 size,uint32_t flags, int16_t floor);
         void EndFrameAndUpload(uint32_t frameIndex);
         void UpdateTileParams(uint32_t frameIndex, PlayerData playerData) const;
 

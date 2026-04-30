@@ -11,7 +11,7 @@ namespace Engine {
 
 
 
-    void Scene::OnUpdateEditor(Timestep timestep, EditorCamera& camera)
+    void Scene::OnUpdateEditor(Timestep timestep, EditorCamera& camera, int16_t activeFloor, bool showAllFloors)
     {
         EE_PROFILE_FUNCTION();
 
@@ -134,7 +134,6 @@ namespace Engine {
                     // Flip V like before
                     glm::vec4 uv = t.UV;
                     //  glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
-
                     Engine::VulkanRenderer2D::DrawTile(worldPosCenter, uv, glm::vec4(1.0f));
                 }
             }
@@ -177,6 +176,13 @@ namespace Engine {
                         // skip terrain and draw everything else 
                         continue;
                     }
+                    glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+                    if (activeFloor != tileComponent.tiles[i].floor && !showAllFloors)
+                    {
+                        // set tiles that are not in active floor to transparent
+                        color.a = 0.1f;
+                    }
 
 
                     glm::vec2 ground = glm::vec2(transformComponent.Translation) + tileComponent.tiles[i].position; // position = WORLD delta to GROUND
@@ -185,7 +191,6 @@ namespace Engine {
                     glm::vec4 uv = tileComponent.tiles[i].UV;
                    // glm::vec4 flippedUV(uv.x, uv.w, uv.z, uv.y);
 
-                    glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
                     // Use flippedUV for rendering, don't overwrite original UV
                     constexpr float FloorVisualYOffset = TILE_SIZE;
                     constexpr float FloorZStep = 0.001f;

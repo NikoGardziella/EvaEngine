@@ -266,18 +266,21 @@ namespace Engine {
 				continue;
 			}
 
-			// CENTER is provided by you:
-			const glm::vec2 center = submitTile.worldPos + submitTile.localPos;
+			constexpr float FloorVisualYOffset = float(TILE_SIZE);
+			constexpr float FloorSortStep = 100000.0f;
 
-			// Painter’s order: sort by “ground” (bottom edge) Y
+			glm::vec2 renderLocalPos = submitTile.localPos;
+			renderLocalPos.y += float(submitTile.floor) * FloorVisualYOffset;
+
+			const glm::vec2 center = submitTile.worldPos + renderLocalPos;
+
 			const float groundY = center.y * tileWorldH;
-			const uint32_t h32 = (uint32_t)((uid ^ (uid >> 32)) * 0x9E3779B1u);
-			const float tie = float(h32 & 0x3FF) * 1e-6f; // tiny final fallback only
 
-			
+			const uint32_t h32 = (uint32_t)((uid ^ (uid >> 32)) * 0x9E3779B1u);
+			const float tie = float(h32 & 0x3FF) * 1e-6f;
 
 			float dirTie = 0.0f;
-			switch (submitQueu[i].tileDirection)
+			switch (submitTile.tileDirection)
 			{
 			case eTileDirection::North: dirTie = 4.0000f; break;
 			case eTileDirection::East:  dirTie = 3.0000f; break;
@@ -285,14 +288,21 @@ namespace Engine {
 			case eTileDirection::West:  dirTie = 1.0000f; break;
 			default:                    dirTie = 0.0000f; break;
 			}
-			
 
 			const float layerBias = (submitTile.zBias >= 1.0f) ? -100000.0f : 0.0f;
-			const float zKey = layerBias + groundY * 1024.0f + dirTie + tie;
+			const float floorFrontBias = -float(submitTile.floor) * FloorSortStep;
+
+
+			const float zKey =
+				floorFrontBias +
+				layerBias +
+				groundY * 1024.0f +
+				dirTie +
+				tie;
 			// Pass the real world size so the quad matches exactly
 			glm::vec2 size = glm::vec2(TILE_SIZE, TILE_SIZE * 2);
 
-			s_bindlessDescitproRenderer->AddInstance(center, zKey, slot, 0.0f,submitQueu[i].tileDirection, submitTile.outOpaqueMin, submitTile.outOpaqueMax, size, submitTile.flags);
+			s_bindlessDescitproRenderer->AddInstance(center, zKey, slot, 0.0f,submitQueu[i].tileDirection, submitTile.outOpaqueMin, submitTile.outOpaqueMax, size, submitTile.flags, submitTile.floor);
 
 			// Compute wants bottom-left in world units
 			const float tileWorldW = float(TILE_SIZE);

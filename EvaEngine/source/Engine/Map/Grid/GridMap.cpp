@@ -442,7 +442,7 @@ namespace Engine
         PushStrip(N - S, 1u);
     }
 
-    void GridMap::BuildFromTilesNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld)
+    void GridMap::BuildFromTilesNearPlayer(Scene* scene, const glm::vec2& playerWorldPos, float radiusWorld, const int16_t playerFloor)
     {
         EE_PROFILE_FUNCTION();
 
@@ -513,13 +513,21 @@ namespace Engine
                     continue;
                 }
 
+                if (t.floor != playerFloor)
+                {
+                    // only make collision on same floor where player is. 
+                    // NPCs ??
+                    continue;
+                }
+
                 const glm::vec2 ground = glm::vec2(tr.Translation) + glm::vec2(t.position);
 
                 if (glm::length2(ground - playerWorldPos) > radiusSq)
                     continue;
 
                 glm::ivec2 cell = IsoTileUtils::WorldToIsoCell(ground);
-
+                cell.y += playerFloor;
+                cell.x += playerFloor;
                 if (t.Category == eTileCategory::Windows)
                 {
                     // same as building but needs tweak in future(jump trough window)?
@@ -552,15 +560,22 @@ namespace Engine
     }
 
 
-    void GridMap::UpdateCollisionAroundPlayer(Scene* scene, const glm::vec2& playerWorldPos)
+    void GridMap::UpdateCollisionAroundPlayer(Scene* scene, const glm::vec2& playerWorldPos, const int16_t playerFloor)
     {
+
+        if (playerFloor != m_lastPlayerFloor)
+        {
+            m_lastPlayerFloor = playerFloor;
+            BuildFromTilesNearPlayer(scene, playerWorldPos, 25.0f, playerFloor);
+            return;
+        }
 
         if (glm::length2(playerWorldPos - m_LastGridBuildPos) < 4.0f)
             return;
 
         m_LastGridBuildPos = playerWorldPos;
 
-        BuildFromTilesNearPlayer(scene, playerWorldPos, 25.0f);
+        BuildFromTilesNearPlayer(scene, playerWorldPos, 25.0f, playerFloor);
     }
 
     void GridMap::MarkBlockedSubtilesFromTexture( const glm::vec2& worldPosition,

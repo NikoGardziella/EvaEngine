@@ -234,8 +234,11 @@ namespace Engine {
                             (uint64_t)idComp.ID,
                             tile.position,
                             float(TILE_SIZE),
-                            (uint32_t)tile.Category),
-                            tile.TileDirection;
+                            (uint32_t)tile.Category,
+                            tile.TileDirection,
+                            tile.floor);
+
+
                         EE_CORE_INFO("tile uid {}", uid);
                         tile.UID = uid;
                     }
@@ -440,7 +443,8 @@ namespace Engine {
                 tile.position,
                 float(TILE_SIZE),
                 (uint32_t)tile.Category,
-                tile.TileDirection             
+                tile.TileDirection,
+                tile.floor
             );
             EE_CORE_INFO("tile uid {}", uid);
 

@@ -749,6 +749,35 @@ namespace Engine {
         return isoCell;
     }
 
+    glm::vec2 EditorLayer::GetMouseWorldPosition()
+    {
+        glm::vec2 ndc;
+        ndc.x = (m_localMousePosInViewport.x / m_viewportSize.x) * 2.0f - 1.0f;
+        ndc.y = 1.0f - (m_localMousePosInViewport.y / m_viewportSize.y) * 2.0f;
+
+        glm::vec4 clipNear(ndc.x, ndc.y, -1.0f, 1.0f);
+        glm::vec4 clipFar(ndc.x, ndc.y, 1.0f, 1.0f);
+
+        glm::mat4 invViewProj = glm::inverse(m_editorCamera.GetViewProjection());
+
+        glm::vec4 worldNear = invViewProj * clipNear;
+        glm::vec4 worldFar = invViewProj * clipFar;
+
+        worldNear /= worldNear.w;
+        worldFar /= worldFar.w;
+
+        glm::vec3 ro = glm::vec3(worldNear);
+        glm::vec3 rd = glm::normalize(glm::vec3(worldFar - worldNear));
+
+        if (std::abs(rd.z) < 0.00001f)
+            return glm::vec2(ro.x, ro.y);
+
+        float t = -ro.z / rd.z;
+        glm::vec3 hit = ro + rd * t;
+
+        return glm::vec2(hit.x, hit.y);
+    }
+
 
     //remove
     TileInfo EditorLayer::OnCreateTileEntity(std::string selectedTileName, glm::vec4 UV, eTileCategory tileCategory)
@@ -797,8 +826,8 @@ namespace Engine {
                 groundPos,
                 float(TILE_SIZE),
                 static_cast<uint32_t>(tileCategory),
-                tileDir
-            );
+                tileDir,
+                m_tileEditorPanel.GetActiveFloor());
 
             EE_CORE_WARN(
                 "TileUID inputs -> entID: {}, pos: ({:.3f}, {:.3f}), tileSize: {:.3f}, category: {}, direction: {}",
@@ -847,13 +876,13 @@ namespace Engine {
             transformCmp.Translation.y = groundPos.y;
             eTileDirection tileDir = EditorUtils::GetDirectionFromTileName(selectedTileName);
 
-            uint64_t tileID  = HashUtils::MakeTileUID(
+            uint64_t tileID = HashUtils::MakeTileUID(
                 (uint64_t)idComp.ID,
                 groundPos,
                 float(TILE_SIZE),
                 static_cast<uint32_t>(tileCategory),
-                tileDir
-            );
+                tileDir,
+                m_tileEditorPanel.GetActiveFloor());
             
             TileComponent& tileComp = newEntity.AddComponent<TileComponent>();
             
@@ -1144,7 +1173,7 @@ namespace Engine {
 
 
                 // m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetCompactTileMap().Render(m_editor.get()->GetGameLayer()->GetActiveGameScene()->GetTileDefinitions());
-                m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateEditor(timestep, m_editorCamera);
+                m_editor.get()->GetGameLayer()->GetActiveGameScene()->OnUpdateEditor(timestep, m_editorCamera, m_tileEditorPanel.GetActiveFloor(), m_tileEditorPanel.ShowAllFloors());
                 break;
 
             }
@@ -1176,7 +1205,13 @@ namespace Engine {
 
             if (m_mouseIsInViewPort)
             {
-                const glm::ivec2 hoveredCell = GetSnappedIsoPosition();
+                glm::vec2 mouseWorld = GetMouseWorldPosition();
+
+                constexpr float FloorVisualYOffset = TILE_SIZE;
+                mouseWorld.y -= float(m_tileEditorPanel.GetActiveFloor()) * FloorVisualYOffset;
+
+                glm::ivec2 hoveredCell = IsoTileUtils::WorldToIsoCellInt(mouseWorld);
+
                 bool isEditMote = m_sceneState == eSceneState::Edit;
                 m_tilePlacementController.HandleInput(m_mouseIsInViewPort, isEditMote, m_controlPressed, hoveredCell);
 

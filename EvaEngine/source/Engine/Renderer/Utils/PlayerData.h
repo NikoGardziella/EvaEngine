@@ -12,6 +12,7 @@ namespace Engine {
 		float		SceneRadius;
 		glm::vec2	screenSize;
 		bool		InGame;
+		int16_t		playerCurrentFloor;
 
 		// dont submit
 		glm::vec2	screenMin;

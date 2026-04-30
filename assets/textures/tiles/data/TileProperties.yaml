@@ -73,3 +73,8 @@ Wall B1_W:
   Health: 1
   Material: 4
   UV: [0.1352539, 0.4831661, 0.25927734, 0.5168339]
+Wall A7_N:
+  Name: Wall A7_N
+  Health: 1
+  Material: 4
+  UV: [0.1352539, 0.4142461, 0.25927734, 0.44791391]

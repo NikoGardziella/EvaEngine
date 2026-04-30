@@ -245,7 +245,8 @@ namespace Engine
                 runtimeTile.position,
                 float(TILE_SIZE),
                 (uint32_t)runtimeTile.Category,
-                pendingTile.def->Direction);
+                pendingTile.def->Direction,
+                pendingTile.floor);
             
             runtimeTile.floor = pendingTile.floor;
 

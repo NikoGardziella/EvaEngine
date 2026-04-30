@@ -521,11 +521,9 @@ std::vector<uint64_t> PlayerWeaponSystem::BuildProjectileAffectedUIDs(Engine::Sc
                 if (!groupInfo)
                     continue;
 
-                const glm::vec2 tileWorldPos =
-                    Engine::IsoTileUtils::IsoToWorldGround(cell);
+                const glm::vec2 tileWorldPos = Engine::IsoTileUtils::IsoToWorldGround(cell);
 
-                const glm::vec2 rootWorldPos =
-                    Engine::IsoTileUtils::IsoToWorldGround(groupInfo->OriginCell);
+                const glm::vec2 rootWorldPos = Engine::IsoTileUtils::IsoToWorldGround(groupInfo->OriginCell);
 
                 const glm::vec2 localPos = tileWorldPos - rootWorldPos;
 
@@ -534,7 +532,8 @@ std::vector<uint64_t> PlayerWeaponSystem::BuildProjectileAffectedUIDs(Engine::Sc
                     localPos,
                     float(TILE_SIZE),
                     static_cast<uint32_t>(def->Category),
-                    def->Direction
+                    def->Direction,
+                    tile.Floor
                 );
 
                 uniqueUIDs.insert(uid);

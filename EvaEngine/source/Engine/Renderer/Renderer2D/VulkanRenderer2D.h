@@ -145,6 +145,7 @@ namespace Engine {
 		glm::ivec2		outOpaqueMin = glm::ivec2(TILE_PIXEL_WIDTH, TILE_PIXEL_HEIGHT);
 		glm::ivec2		outOpaqueMax = glm::ivec2(0);
 		uint32_t		flags;
+		int16_t			floor;
 	};
 
 	struct SpriteSubmit {
@@ -328,7 +329,7 @@ namespace Engine {
 		static void EndScene();
 
 		static void SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, 
-			uint64_t nameHash, float zBias, eTileDirection tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMa, uint32_t flags);
+			uint64_t nameHash, float zBias, eTileDirection tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMa, uint32_t flags, int16_t floor);
 
 		static void SubmitAnimationSpriteInstance(glm::vec2 worldCenter, float zKey, uint32_t spriteSlot, glm::uvec2 uvMin16, glm::uvec2 uvMax16, glm::vec2 sizeWorld, float rotation);
 

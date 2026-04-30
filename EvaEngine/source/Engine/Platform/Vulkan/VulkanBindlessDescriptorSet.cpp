@@ -164,7 +164,8 @@ namespace Engine {
     }
 
 
-    void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, eTileDirection  tileDirection, const glm::ivec2 opaqueMin, const glm::ivec2 opaqueMax, glm::vec2 size, uint32_t flags)
+    void VulkanBindlessDescriptorSetRenderer::AddInstance(glm::vec2 worldPos, float zSortKey, uint32_t slot, float rotation, eTileDirection  tileDirection,
+        const glm::ivec2 opaqueMin, const glm::ivec2 opaqueMax, glm::vec2 size, uint32_t flags, int16_t floor)
     {
 
         RenderInstance I{};
@@ -178,6 +179,7 @@ namespace Engine {
         I.uvMax16 = { 65535u, 65535u };
         I.rotation = rotation;
         I.tileDirection = static_cast<uint32_t>(tileDirection);
+        I.floor = floor;
         constexpr float pixelW = TILE_PIXEL_WIDTH;
         constexpr float pixelH = TILE_PIXEL_HEIGHT;
 

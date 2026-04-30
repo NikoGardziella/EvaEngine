@@ -27,6 +27,7 @@
 #include <imgui_internal.h>
 #include <Engine/Scene/Components/Environment/DayNightComponent.h>
 #include "Engine/Map/Utils/IsoTileUtils.h"
+#include <Engine/Scene/Components/Map/FloorComponent.h>
 
 
 namespace Engine {
@@ -418,7 +419,7 @@ namespace Engine {
 
             // Unique tree node flags
             const ImGuiTreeNodeFlags treeNodeFlags =
-                ImGuiTreeNodeFlags_DefaultOpen |
+               // ImGuiTreeNodeFlags_DefaultOpen |
                 ImGuiTreeNodeFlags_AllowItemOverlap |
                 ImGuiTreeNodeFlags_Framed |
                 ImGuiTreeNodeFlags_FramePadding |
@@ -1260,6 +1261,8 @@ namespace Engine {
 
                             ImGui::InputScalar("Health", ImGuiDataType_U32, &tile.TileHealth);
 
+                            ImGui::InputScalar("Floor", ImGuiDataType_U16, &tile.floor);
+
                             ImGui::Unindent();
 
                             // Important: TreePop must happen before EndTable.
@@ -1320,6 +1323,80 @@ namespace Engine {
                 if (newEntity)
                     m_sceneHierarchyPanelScene->GetRegistry().get<TileComponent>(newEntity) = component;
             });
+
+
+
+            DrawComponent<FloorComponent>("Floor", entity, m_sceneHierarchyPanelScene.get(),
+                [this, &entity](auto& component)
+                {
+                    bool changed = false;
+
+                    int floor = (int)component.Floor;
+                    if (ImGui::DragInt("Floor", &floor, 0.1f, -5, 10))
+                    {
+                        component.Floor = (int16_t)floor;
+                        changed = true;
+                    }
+
+                    ImGui::SeparatorText("Transition");
+
+                    changed |= ImGui::Checkbox("Is Changing Floor", &component.IsChangingFloor);
+
+                    int targetFloor = (int)component.TargetFloor;
+                    if (ImGui::DragInt("Target Floor", &targetFloor, 0.1f, -5, 10))
+                    {
+                        component.TargetFloor = (int16_t)targetFloor;
+                        changed = true;
+                    }
+
+                    if (ImGui::Button("Go Up"))
+                    {
+                        component.TargetFloor = component.Floor + 1;
+                        component.FloorT = 0.0f;
+                        component.IsChangingFloor = true;
+                        changed = true;
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Go Down"))
+                    {
+                        component.TargetFloor = component.Floor - 1;
+                        component.FloorT = 0.0f;
+                        component.IsChangingFloor = true;
+                        changed = true;
+                    }
+
+                    changed |= ImGui::DragFloat("Progress (T)", &component.FloorT, 0.01f, 0.0f, 1.0f);
+                    changed |= ImGui::DragFloat("Climb Speed", &component.ClimbSpeed, 0.01f, 0.1f, 10.0f);
+
+                    float visualFloor = float(component.Floor);
+                    if (component.IsChangingFloor)
+                    {
+                        visualFloor = glm::mix(
+                            float(component.Floor),
+                            float(component.TargetFloor),
+                            component.FloorT);
+                    }
+
+                    ImGui::Text("Visual Floor: %.2f", visualFloor);
+
+                    if (changed)
+                    {
+                        Entity newEntity = Entity{
+                            Scene::GetEntityByUUID(
+                                m_sceneHierarchyPanelScene->GetRegistry(),
+                                entity.GetComponent<IDComponent>().ID),
+                            m_sceneHierarchyPanelScene.get()
+                        };
+
+                        if (newEntity)
+                        {
+                            m_sceneHierarchyPanelScene->GetRegistry()
+                                .get<FloorComponent>(newEntity) = component;
+                        }
+                    }
+                });
 
 
         DrawComponent<CircleRendererComponent>("Circle  renderer", entity, m_sceneHierarchyPanelScene.get(), [this, &entity](auto& component)

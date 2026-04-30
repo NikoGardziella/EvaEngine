@@ -956,6 +956,7 @@ namespace Engine {
                         out << YAML::Key << "TypeId" << YAML::Value << tile.TypeId;
                         out << YAML::Key << "Flags" << YAML::Value << (int)tile.Flags;
                         out << YAML::Key << "Aux" << YAML::Value << (int)tile.Aux;
+                        out << YAML::Key << "Floor" << YAML::Value << (int)tile.Floor;
                         out << YAML::Key << "GroupId" << YAML::Value << tile.GroupId;
 
                         out << YAML::EndMap;

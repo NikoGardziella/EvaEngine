@@ -112,6 +112,8 @@ namespace Engine {
 
 		glm::vec2 GetSnappedIsoPosition();
 
+		glm::vec2 GetMouseWorldPosition();
+
 		void OnOverlayRender();
 
 		

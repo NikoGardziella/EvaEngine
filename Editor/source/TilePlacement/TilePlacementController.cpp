@@ -29,10 +29,7 @@ namespace Engine
 
     }
 
-    void TilePlacementController::HandleInput(bool mouseIsInViewport,
-        bool isEditMode,
-        bool controlPressed,
-        const glm::ivec2& hoveredCell)
+    void TilePlacementController::HandleInput(bool mouseIsInViewport, bool isEditMode, bool controlPressed, const glm::ivec2& hoveredCell)
     {
         if (!mouseIsInViewport)
             return;
@@ -66,6 +63,8 @@ namespace Engine
         }
 
         HandleSingleTilePlacement();
+        SortIsometricTilesByY();
+        
     }
 
     void TilePlacementController::DrawPreview(bool mouseIsInViewport, bool isEditMode)
@@ -118,6 +117,8 @@ namespace Engine
             ctx.CompactMap = &GetEditorScene()->GetCompactTileMap();
 
             ctx.TypeSet = BuildRoofTypeSetFromSelectedTile();
+            ctx.Floor = m_tileEditorPanel.GetActiveFloor();
+
             if (!ctx.TypeSet.IsValid())
             {
                 EE_CORE_WARN("Invalid roof set");
@@ -173,6 +174,7 @@ namespace Engine
             ctx.ActiveScene = GetEditorScene().get();
             ctx.CompactMap = &GetEditorScene()->GetCompactTileMap();
             ctx.TypeId = GetOrCreateDefinitionForSelectedTile();
+            ctx.Floor = m_tileEditorPanel.GetActiveFloor();
 
             if (ctx.TypeId == 0)
             {
@@ -191,7 +193,7 @@ namespace Engine
 
             ctx.Flags = CompactTileFlags::None;
             ctx.Aux = 0;
-
+            ctx.Floor = m_tileEditorPanel.GetActiveFloor();
             m_terrainRectTool.CommitDrag(ctx);
             ctx.ActiveScene->GetCompactTilePromotion().InvalidateEditorViewportCache();
 
@@ -229,7 +231,7 @@ namespace Engine
             WallRectanglePlacementContext ctx;
             ctx.ActiveScene = GetEditorScene().get();
             ctx.CompactMap = &GetEditorScene()->GetCompactTileMap();
-            ctx.floor = m_tileEditorPanel.GetSelectedTileProperties().floor;
+            ctx.floor = m_tileEditorPanel.GetActiveFloor();
             ctx.DirectionSet = BuildDirectionalWallTypeSetFromSelectedTile();
             if (!ctx.DirectionSet.IsValid())
             {
@@ -297,7 +299,7 @@ namespace Engine
         }
 
         const glm::ivec2 isoCell = m_hoveredCell;
-        const int16_t tileFloor = m_tileEditorPanel.GetSelectedTileProperties().floor;
+        const int16_t tileFloor = m_tileEditorPanel.GetActiveFloor();
 
         if (!CanPlaceTile(selectedTile, isoCell, tileFloor))
             return;
@@ -319,7 +321,52 @@ namespace Engine
         m_activeStroke->AddCommand(std::move(cmd));
 
         m_strokeCreatedNewEntity = false;
+        SortIsometricTilesByY();
+    }
 
+    void TilePlacementController::SortIsometricTilesByY()
+    {
+        Engine::Scene* scene = m_sceneHierarchyPanel.GetEditorScene().get();
+        if (!scene)
+            return;
+
+        auto getCategoryLayer = [](const TileInfo& tile) -> int
+            {
+                if (tile.Category == eTileCategory::Roofs)
+                    return 2;
+
+                if (tile.Category == eTileCategory::Buildings)
+                    return 1;
+
+                return 0;
+            };
+
+        scene->ForEach<Engine::TransformComponent, TileComponent>(
+            [&](Engine::Entity entity,
+                Engine::TransformComponent& transformComp,
+                TileComponent& tileComp)
+            {
+                std::stable_sort(tileComp.tiles.begin(), tileComp.tiles.end(),
+                    [&](const TileInfo& a, const TileInfo& b)
+                    {
+                        if (a.floor != b.floor)
+                            return a.floor < b.floor;
+
+                        const int layerA = getCategoryLayer(a);
+                        const int layerB = getCategoryLayer(b);
+
+                        if (layerA != layerB)
+                            return layerA < layerB;
+
+                        const float yA = transformComp.Translation.y + a.position.y;
+                        const float yB = transformComp.Translation.y + b.position.y;
+
+                        if (yA != yB)
+                            return yA > yB;
+
+                        return a.UID < b.UID;
+                    });
+            });
     }
 
 
@@ -374,7 +421,7 @@ namespace Engine
         tile.Flags = Engine::CompactTileFlags::None;
         tile.Aux = 0;
         tile.GroupId = groupID;
-        tile.Floor = m_tileEditorPanel.GetSelectedTileProperties().floor;
+        tile.Floor = m_tileEditorPanel.GetActiveFloor();
 
 
         if (compactMap.HasTileType(isoCell, tile.TypeId, tile.Floor))
@@ -424,8 +471,8 @@ namespace Engine
         const glm::vec4 uv = m_tileEditorPanel.GetTileUV(selectedTile);
         const glm::vec4 previewColor(0.3f, 1.0f, 0.3f, 0.45f);
 
-        const glm::vec2 ground = IsoTileUtils::IsoToWorldGround(m_hoveredCell);
-
+        glm::vec2 ground = IsoTileUtils::IsoToWorldGround(m_hoveredCell);
+        ground.y += m_tileEditorPanel.GetActiveFloor();
         VulkanRenderer2D::DrawTile(ground, uv, previewColor);
 
     }
@@ -583,7 +630,8 @@ namespace Engine
         if (!def)
             return;
 
-        const glm::vec2 ground = IsoTileUtils::IsoToWorldGround(cell);
+        glm::vec2 ground = IsoTileUtils::IsoToWorldGround(cell);
+        ground.y += m_tileEditorPanel.GetActiveFloor();
         VulkanRenderer2D::DrawTile(ground, def->UV, color);
     }
 
@@ -771,8 +819,9 @@ namespace Engine
 
         const std::string selectedTileName = TilePlacementUtils::RemoveExtension(selectedTileNameRaw);
 
-        if (selectedTileName.rfind("Roof A3_", 0) == 0 ||
-            selectedTileName.rfind("Roof B1_", 0) == 0)
+        if (selectedTileName.rfind("Roof C1_", 0) == 0 || 
+            selectedTileName.rfind("Roof A3_", 0) == 0 ||
+            selectedTileName.rfind("Roof B1_", 0) == 0 )
         {
             out.FillOnly = true;
             out.Fill = GetOrCreateDefinitionForTileByName(selectedTileName);

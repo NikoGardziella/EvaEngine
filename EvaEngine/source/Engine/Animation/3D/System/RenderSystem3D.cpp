@@ -12,6 +12,7 @@
 #include "Engine/Animation/3D/System/Render3DUtils/Render3DUtils.h"
 #include <Engine/Scene/Components/NPC/Destruction/EnemyDestructibleComponent.h>
 #include <Engine/Renderer/Renderer2D/VulkanRenderer2D.h>
+#include <Engine/Scene/Components/Map/FloorComponent.h>
 
 namespace Engine {
 
@@ -25,6 +26,29 @@ namespace Engine {
         {
             const glm::mat4* pWorldTransform = xforms.TryGetWorld(entity);
             if (!pWorldTransform) continue;
+
+            glm::mat4 visualWorld = *pWorldTransform;
+
+            if (const FloorComponent* floor = scene->TryGet<FloorComponent>(entity))
+            {
+                float visualFloor = float(floor->Floor);
+
+                if (floor->IsChangingFloor)
+                {
+                    visualFloor = glm::mix(
+                        float(floor->Floor),
+                        float(floor->TargetFloor),
+                        floor->FloorT);
+                }
+
+                constexpr float FloorVisualYOffset = TILE_SIZE * 0.5f;
+
+                visualWorld = glm::translate(
+                    glm::mat4(1.0f),
+                    glm::vec3(0.0f, visualFloor * FloorVisualYOffset, 0.0f)
+                ) * visualWorld;
+            }
+
 
             const TransformComponent& transformComp = entity.GetComponent<TransformComponent>();
             // Static meshes
@@ -46,7 +70,7 @@ namespace Engine {
 
 
 
-                inst.world = *pWorldTransform;
+                inst.world = visualWorld;
                // inst.worldPrev = *pWorldTransform;
                
                 //inst.meshId = mr->meshId;
@@ -86,7 +110,7 @@ namespace Engine {
             if (auto smr = scene->TryGet<SkinnedMeshRefComponent>(entity))
             {
                 InstanceDataGPU inst{};
-                inst.world = *pWorldTransform;
+                inst.world = visualWorld;
                 //inst.meshId = smr->meshId;
                 //inst.worldPrev = *pWorldTransform;
                // inst.flags = 0;

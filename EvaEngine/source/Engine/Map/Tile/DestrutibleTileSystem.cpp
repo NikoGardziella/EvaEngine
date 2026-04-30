@@ -491,8 +491,8 @@ namespace Engine {
 
                         Engine::TileComponent& tcNew = newEntity.AddComponent<Engine::TileComponent>();
 
-
-                        uint64_t newTileUID = HashUtils::MakeTileUID((uint64_t)idNew.ID, srcTi.position, float(TILE_SIZE));
+                        eTileCategory newTileCategoru = eTileCategory::DynamicObjects;
+                        uint64_t newTileUID = HashUtils::MakeTileUID((uint64_t)idNew.ID, srcTi.position, float(TILE_SIZE), (uint32_t)newTileCategoru, srcTi.TileDirection, srcTi.floor);
                         const uint32_t W = TILE_PIXEL_WIDTH;
                         const uint32_t H = TILE_PIXEL_HEIGHT;
                         const size_t bytes = size_t(W) * size_t(H) * 4; std::vector<uint8_t> zeroColor(bytes, 0);

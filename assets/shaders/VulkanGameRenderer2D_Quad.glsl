@@ -239,6 +239,9 @@ void main()
     
     // final color = ambient + shadowed direct light
     vec3 finalColor = ambient + (direct * shadow);
-    
-    o_Color = vec4(finalColor, tex.a);
+
+    // input color/tint
+    finalColor *= v_Color.rgb;
+
+    o_Color = vec4(finalColor, tex.a * v_Color.a);
 }

@@ -78,7 +78,7 @@ namespace Engine {
 
 		void OnUpdateRuntime(Timestep timestep, bool isPlaying = true);
 		void OnUpdateECSRuntime(Timestep timestep);
-		void OnUpdateEditor(Timestep timestep, EditorCamera& camera);
+		void OnUpdateEditor(Timestep timestep, EditorCamera& camera, int16_t activeFloor, bool showAllFloors);
 		void ResetCompactTilePromotionState();
 		void OnViewportResize(uint32_t width, uint32_t height, std::array<glm::vec2, 2> viewportBounds);
 

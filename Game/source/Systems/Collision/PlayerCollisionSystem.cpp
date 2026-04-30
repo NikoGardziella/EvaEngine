@@ -9,6 +9,7 @@
 
 
 void PlayerCollisionSystem::UpdatePlayerCollision(float dt, Engine::Scene* scene)
+
 {
     EE_PROFILE_FUNCTION();
 
@@ -28,7 +29,6 @@ void PlayerCollisionSystem::UpdatePlayerCollision(float dt, Engine::Scene* scene
             trsformComp.Translation.y = p1.y;
         });
 }
-
 
 glm::vec2 PlayerCollisionSystem::CollideAndSlideOBBs( const std::vector<Engine::SubCellOBB>& walls,
     glm::vec2 pos, glm::vec2 delta, float radius)

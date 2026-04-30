@@ -316,6 +316,8 @@
     <ClInclude Include="source\Engine\Scene\Components\Light\PointLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Light\SpotLightComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\Map\AreaComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Map\FloorComponent.h" />
+    <ClInclude Include="source\Engine\Scene\Components\Map\StairsComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NPCDeathComponent.h" />
     <ClInclude Include="source\Engine\Scene\Components\NPC\NpcAIComponent.h" />
@@ -944,7 +946,7 @@
     <None Include="..\assets\shaders\PixelGameShader.glsl" />
     <None Include="..\assets\shaders\Renderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\Vulkan3DRender.glsl" />
-    <None Include="..\assets\shaders\VulkanRenderer2D_Quad.glsl" />
+    <None Include="..\assets\shaders\VulkanGameRenderer2D_Quad.glsl" />
     <None Include="..\assets\shaders\VulkanRenderer2D_projectile.glsl" />
     <None Include="..\assets\shaders\VulkanUIShader.glsl" />
     <None Include="..\assets\shaders\VulkanUITextShader.glsl" />

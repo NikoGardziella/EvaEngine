@@ -16,7 +16,7 @@ namespace Engine {
         AssetManager::CreateTileAtlas();
 		m_tileUVMap = AssetManager::GetTileTextureAtalsUVs();
 
-       
+        m_activeFloor = 0;
     }
 
     void TileEditorPanel::OnImGuiRender()
@@ -98,9 +98,12 @@ namespace Engine {
             int16_t minFloor = -2;
             int16_t maxFloor = 10;
 
-            if (ImGui::SliderScalar("Floor", ImGuiDataType_S16, &m_selectedTileprops.floor,  &minFloor, &maxFloor, "%d"))
+            if (ImGui::SliderScalar("Floor", ImGuiDataType_S16, &m_activeFloor,  &minFloor, &maxFloor, "%d"))
             {
-                tilePropertiesChanged = true;
+               
+            }
+            if (ImGui::Checkbox("Show all floors", &m_showAllFloors))
+            {
             }
 
             static const char* materialOptions[] = {

@@ -10,7 +10,7 @@ struct Instance {
     uint  slot;
     uint  flags;
     uint  direction;
-    uint  _pad0;
+    uint  floor;  // contains floor in low 16 bits
     uvec2 uvMin16;
     uvec2 uvMax16;
     uvec2 opaqueMin16;
@@ -105,6 +105,7 @@ layout(location=8) in flat float vZkey;
 layout(location=0) out vec4 outColor;
 
 layout(set=0, binding=0) uniform sampler2D uTiles[];
+//layout(set=0, binding=1, rgba8ui) readonly uniform uimage2D uProps[];
 layout(set=0, binding=3) uniform sampler2D uSprites[];
 layout(set=0, binding=5) uniform sampler2D uShadowMap3D;
 layout(set=0, binding=6) uniform sampler2D uShadowMapTiles;
@@ -448,6 +449,9 @@ void main()
 
     if (base.a <= 0.001) discard;
 
+  
+
+
     // 2. Flags and Visibility Setup
     bool isRoof = (vFlags & 2u) != 0u;
 
@@ -460,6 +464,7 @@ void main()
 
     if(playerInsideEntityArea)
     {
+    // remove visibility
         visibility = 0.1;
     }
 

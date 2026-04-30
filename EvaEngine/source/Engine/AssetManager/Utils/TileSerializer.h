@@ -27,7 +27,6 @@ namespace Engine {
         uint32_t        pivotYOffsetPx = 0;        // rows of transparent padding at bottom
         uint32_t        pivotXCenterOffsetPx = 0;
         bool            pivotAuto = true;
-        int16_t         floor; // support basement
     };
 
     struct TileSource {
