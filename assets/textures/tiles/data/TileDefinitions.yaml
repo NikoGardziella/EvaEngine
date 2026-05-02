@@ -1785,7 +1785,7 @@ TileDefinitions:
     Name: Roof C1_S
     Category: Roofs
     Direction: South
-    Material: Default
+    Material: None
     BaseHealth: 1
     IsDestructible: false
     IsSupportingRoof: false
@@ -1794,8 +1794,89 @@ TileDefinitions:
     Name: Roof C1_W
     Category: Roofs
     Direction: West
-    Material: Default
+    Material: None
     BaseHealth: 1
     IsDestructible: false
     IsSupportingRoof: false
     IsRoof: true
+  - TypeId: 201
+    Name: Stairs A1_E
+    Category: stairs
+    Direction: East
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 202
+    Name: Stairs A1_N
+    Category: Undefined
+    Direction: North
+    Material: None
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 203
+    Name: Stairs A1_S
+    Category: stairs
+    Direction: South
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 204
+    Name: Stairs A1_W
+    Category: stairs
+    Direction: West
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 205
+    Name: Stairs B1_E
+    Category: Undefined
+    Direction: East
+    Material: None
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 206
+    Name: Stairs C1_E
+    Category: Undefined
+    Direction: East
+    Material: None
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 207
+    Name: Stairs D1_E
+    Category: Undefined
+    Direction: East
+    Material: None
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 208
+    Name: Stairs Bottom A1_N
+    Category: stairs
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false
+  - TypeId: 209
+    Name: Stairs Top B1_N
+    Category: stairs
+    Direction: North
+    Material: Default
+    BaseHealth: 1
+    IsDestructible: false
+    IsSupportingRoof: false
+    IsRoof: false

@@ -11,6 +11,7 @@
 #include "Engine/AssetManager/AssetManager.h"
 #include <Engine/Scene/Components/Map/AreaComponent.h>
 #include "TileDefinitionRegistry.h"
+#include <Engine/Scene/Components/Map/StairsComponent.h>
 
 namespace Engine
 {
@@ -226,8 +227,9 @@ namespace Engine
         IDComponent& idComp = e.GetOrAddComponent<IDComponent>();
 
         tileComp.tiles.clear();
+        tileComp.stairLinks.clear();
         tileComp.tiles.reserve(tilesToPromote.size());
-
+        std::vector<StairPiece> stairPieces;
 
 
 
@@ -252,6 +254,25 @@ namespace Engine
 
             EE_CORE_INFO("runtimeTile.UID {}, floor {}", runtimeTile.UID, runtimeTile.floor);
             tileComp.tiles.push_back(runtimeTile);
+
+
+            if (runtimeTile.Category == eTileCategory::Stairs)
+            {
+                StairPiece piece{};
+                piece.worldCell = pendingTile.worldCell;
+                piece.localPos = localPos;
+                piece.worldPos = tileWorldPos;
+                piece.floor = pendingTile.floor;
+                piece.direction = pendingTile.def->Direction;
+                piece.uid = runtimeTile.UID;
+                piece.slot = runtimeTile.Slot;
+                piece.health = runtimeTile.TileHealth;
+
+                piece.isBottom = runtimeTile.name.find("Bottom") != std::string::npos;
+                piece.isTop = runtimeTile.name.find("Top") != std::string::npos;
+
+                stairPieces.push_back(piece);
+            }
         }
 
         // Mark only this group's cells as hidden/promoted
@@ -264,6 +285,69 @@ namespace Engine
             compact->Flags |= CompactTileFlags::Hidden;
             compactMap.MarkChunkDirtyForCell(p.worldCell);
         }
+
+        for (const StairPiece& bottom : stairPieces)
+        {
+            if (!bottom.isBottom)
+                continue;
+
+            const StairPiece* bestTop = nullptr;
+            float bestDistSq = FLT_MAX;
+
+            for (const StairPiece& top : stairPieces)
+            {
+                if (!top.isTop)
+                    continue;
+
+                if (top.floor != bottom.floor)
+                    continue;
+
+                if (top.direction != bottom.direction)
+                    continue;
+
+                float distSq = glm::length2(top.worldPos - bottom.worldPos);
+
+                if (distSq < bestDistSq)
+                {
+                    bestDistSq = distSq;
+                    bestTop = &top;
+                }
+            }
+
+            if (!bestTop)
+                continue;
+
+            StairLink link{};
+
+            glm::vec2 stairDir = IsoTileUtils::StairDirectionToIsoVector(bottom.direction);
+
+            constexpr float StairTopOffset = float(TILE_SIZE);
+
+            link.BottomLocal = bottom.localPos;
+            link.TopLocal = bestTop->localPos + stairDir * StairTopOffset;
+
+            link.FromFloor = bottom.floor;
+            link.ToFloor = bottom.floor + 1;
+
+            link.Direction = bottom.direction;
+
+            link.BottomUID = bottom.uid;
+            link.TopUID = bestTop->uid;
+
+            link.TriggerRadius = TILE_SIZE * 0.35f;
+            link.ProgressSpeed = 1.0f;
+            link.BottomUID = bottom.uid;
+            link.TopUID = bestTop->uid;
+
+            link.BottomSlot = bottom.slot;
+            link.TopSlot = bestTop->slot;
+
+            link.BottomHealth = bottom.health;
+            link.TopHealth = bestTop->health;
+
+            tileComp.stairLinks.push_back(link);
+        }
+
 
         RebuildAreaForTileEntity(e);
 

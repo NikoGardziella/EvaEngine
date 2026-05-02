@@ -1332,7 +1332,10 @@ namespace Engine {
                     bool changed = false;
 
                     int floor = (int)component.Floor;
-                    if (ImGui::DragInt("Floor", &floor, 0.1f, -5, 10))
+                    int minfloor = -2;
+                    int maxfloor = 15;
+
+                    if (ImGui::SliderScalar("Floor", ImGuiDataType_S16, &floor, &minfloor, &maxfloor, "%d"))
                     {
                         component.Floor = (int16_t)floor;
                         changed = true;

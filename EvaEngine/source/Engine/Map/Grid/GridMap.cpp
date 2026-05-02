@@ -12,6 +12,7 @@
 #include "Engine/Scene/Scene.h"
 #include "Engine/Map/Grid/TileCollisionMask.h"
 #include <Engine/Core/Config.h>
+#include <Engine/Scene/Components/Map/StairsComponent.h>
 
 
 namespace Engine
@@ -205,7 +206,24 @@ namespace Engine
                     cell += sideIsoOffset(side);           // edge anchoring like your walls
                     emitEdgeSubcellsOnSide(cell, side, t.Slot);
                 }
-                
+                else if (t.Category == eTileCategory::Stairs)
+                {
+                    glm::vec2 bottom = ground;
+
+                    glm::vec2 top = ground;
+                    top.y += float(TILE_SIZE); // same visual slope offset you use in stair logic
+
+                    EmitStairSideSubcells(
+                        bottom,
+                        top,
+                        t.Slot,
+                        t.UID,
+                        3,                  // subs, like walls
+                        SHRINK_ALONG,
+                        HALF_THICK_W,
+                        TILE_SIZE * 0.35f,  // distance from center to side rails
+                        t.TileHealth);
+                }
                 else if (t.Category == eTileCategory::DynamicObjects)
                 {
                     // Defaults that work well for lamps/signs; make these data-driven later:
@@ -349,6 +367,73 @@ namespace Engine
             }
 
             m_blockedSubCells.push_back(obb);
+        }
+    }
+    void GridMap::EmitStairSideSubcells(
+        const glm::vec2& bottom,
+        const glm::vec2& top,
+        uint32_t slot,
+        uint64_t uid,
+        int subs,
+        float shrinkAlong,
+        float halfThickW,
+        float halfWalkWidth,
+        uint32_t health)
+    {
+        const glm::vec2 e = top - bottom;
+        const float L = glm::length(e);
+
+        if (L <= 1e-6f)
+            return;
+
+        const glm::vec2 T = e / L;
+
+        // Perpendicular to stair direction
+        const glm::vec2 N = glm::vec2(-T.y, T.x);
+
+        const float segLen = L / float(subs);
+        const float halfAlong = 0.5f * segLen * shrinkAlong;
+
+        for (int s = 0; s < subs; ++s)
+        {
+            const float t0 = float(s) * segLen;
+            const float t1 = float(s + 1) * segLen;
+            const float tm = 0.5f * (t0 + t1);
+
+            const glm::vec2 center = bottom + T * tm;
+
+            for (uint32_t side = 0; side < 2; ++side)
+            {
+                const float sign = side == 0 ? -1.0f : 1.0f;
+
+                SubCellOBB obb{};
+                obb.center = center + N * sign * halfWalkWidth;
+                obb.halfExtents = { halfAlong, halfThickW };
+                obb.tangent = T;
+                obb.TileSlot = slot;
+
+                obb.CollisionKey = GridUtils::MakeSubCellKey(
+                    uid,
+                    9000u + side, // left/right stair side
+                    static_cast<uint32_t>(s)
+                );
+
+                if (m_destroyedSubCells.find(obb.CollisionKey) != m_destroyedSubCells.end())
+                    continue;
+
+                auto it = m_subCellHealth.find(obb.CollisionKey);
+                if (it == m_subCellHealth.end())
+                {
+                    obb.Health = health;
+                    m_subCellHealth[obb.CollisionKey] = obb.Health;
+                }
+                else
+                {
+                    obb.Health = it->second;
+                }
+
+                m_blockedSubCells.push_back(obb);
+            }
         }
     }
 
@@ -541,6 +626,7 @@ namespace Engine
                     cell += sideIsoOffset(side);
                     EmitEdgeSubcellsOnSide(cell, side, t.Slot, t.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, t.TileHealth);
                 }
+
                 else if (t.Category == eTileCategory::DynamicObjects)
                 {
                     constexpr float kDefaultWidthFrac = 0.35f;
@@ -549,12 +635,54 @@ namespace Engine
                     constexpr bool  kUseDiscForPosts = false;
 
                     if (kUseDiscForPosts)
+                    {
                         EmitCenteredDiscApprox(cell, 0.18f, t.Slot, t.UID, CELL_W, CELL_H, t.TileHealth);
+                    }
                     else
+                    {
                         EmitCenteredStrip(cell, kDefaultWidthFrac, kDefaultThickFrac, yNudgePx, t.Slot, t.UID, CELL_W, CELL_H, t.TileHealth);
+                    }
                 }
             }
+
+            for (const StairLink& stair : tc.stairLinks)
+            {
+                glm::vec2 bottom = glm::vec2(tr.Translation) + stair.BottomLocal;
+                glm::vec2 top = glm::vec2(tr.Translation) + stair.TopLocal;
+
+                EmitStairSideSubcells(
+                    bottom,
+                    top,
+                    stair.BottomSlot, // or valid stair slot
+                    stair.BottomUID,
+                    6,
+                    SHRINK_ALONG,
+                    HALF_THICK_W,
+                    TILE_SIZE * 0.35f,
+                    100);
+            }
         }
+
+        scene->ForEach<TransformComponent, StairsComponent>(
+            [&](Entity e, TransformComponent& tr, StairsComponent& stairs)
+            {
+                glm::vec2 bottom = stairs.BottomPos;
+                glm::vec2 top = stairs.TopPos;
+
+                glm::vec2 dir = glm::normalize(top - bottom);
+                /*
+                EmitStairSideSubcells(
+                    bottom,
+                    top,
+                    stairs.Slot,
+                    stairs.UID,
+                    6,                 // use 6 because two tiles together
+                    SHRINK_ALONG,
+                    HALF_THICK_W,
+                    TILE_SIZE * 0.35f,
+                    stairs.Health);
+                */
+            });
 
         RebuildSubcellBuckets();
     }

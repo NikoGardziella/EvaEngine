@@ -70,6 +70,12 @@ namespace Engine {
                 * glm::scale(glm::mat4(1.0f), Scale);
         }
 
+        void Set2DTranslation(const glm::vec2 ranslation2D)
+        {
+            Translation.x = ranslation2D.x;
+            Translation.y = ranslation2D.y;
+        }
+
         void SetTransform(const glm::mat4& transform)
         {
             Translation = glm::vec3(transform[3]);

@@ -26,6 +26,8 @@
 #include "Systems/Combat/Weapon/EquippedWeaponAttachSystem.h"
 #include "Systems/Player/Animation/CharacterAnimStateSystem.h"
 #include "Systems/Player/Animation/CharacterAnimationControllerSystem.h"
+#include "Systems/Player/PlayerFloorSystem.h"
+
 #include <Engine/UI/WeaponHUD.h>
 #include "Systems/Player/PlayerMovementSystem.h"
 #include "Systems/Environment/DayNightSystem.h"
@@ -90,6 +92,7 @@ void PixelGame::RegisterSystems()
 	m_activeScene->RegisterSystem(CharacterAnimStateSystem::UpdateCharacterAnimStateSystem);
 	m_activeScene->RegisterSystem(CharacterAnimationControllerSystem::UpdateCharacterAnimationControllerSystem);
 	m_activeScene->RegisterSystem(DayNightSystem::UpdateDayNightSystem);
+	m_activeScene->RegisterSystem(PlayerFloorSystem::UpdatePlayerFloorSystem);
 
 }
 

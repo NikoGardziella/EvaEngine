@@ -35,13 +35,11 @@ namespace Engine {
 
                 if (floor->IsChangingFloor)
                 {
-                    visualFloor = glm::mix(
-                        float(floor->Floor),
-                        float(floor->TargetFloor),
-                        floor->FloorT);
+                    float dir = float(floor->TargetFloor - floor->Floor); // +1 up, -1 down
+                    visualFloor += floor->FloorT * dir;
                 }
 
-                constexpr float FloorVisualYOffset = TILE_SIZE * 0.5f;
+                constexpr float FloorVisualYOffset = TILE_SIZE * 0.5;
 
                 visualWorld = glm::translate(
                     glm::mat4(1.0f),

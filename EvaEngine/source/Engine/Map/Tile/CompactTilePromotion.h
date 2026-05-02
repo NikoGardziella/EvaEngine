@@ -11,6 +11,24 @@ namespace Engine {
 	class CompactTilePromotion
 	{
 	public:
+		struct StairPiece
+		{
+			glm::ivec2 worldCell{};
+			glm::vec2 localPos{};
+			glm::vec2 worldPos{};
+
+			int16_t floor = 0;
+			eTileDirection direction{};
+
+			uint64_t uid = 0;
+			uint32_t slot = UINT32_MAX;
+			uint32_t health = 100;
+
+			bool isBottom = false;
+			bool isTop = false;
+		};
+
+	public:
 
 
 		//bool PromoteTileAt(Scene* scene, const glm::ivec2& worldCell);

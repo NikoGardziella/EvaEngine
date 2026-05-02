@@ -597,7 +597,8 @@ namespace Engine {
             { eTileCategory::Vehicles,  "vehicles" },
             { eTileCategory::DynamicObjects,  "dynamicObjects" },
             { eTileCategory::Doors,  "doors" },
-            { eTileCategory::Windows,  "windows" }
+            { eTileCategory::Windows,  "windows" },
+            { eTileCategory::Stairs,  "stairs" }
         };
 
         const fs::path baseTilePath = AssetManager::GetAssetPath("textures/tiles");

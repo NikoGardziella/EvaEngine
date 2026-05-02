@@ -34,6 +34,7 @@ namespace Engine {
         Roofs,
         Doors,
         Windows,
+        Stairs
     };
 
     enum class eTileDirection : uint32_t
@@ -84,7 +85,30 @@ namespace Engine {
             return h;
         }
     };
+    struct StairLink
+    {
+        glm::vec2 BottomLocal{};
+        glm::vec2 TopLocal{};
 
+        int16_t FromFloor = 0;
+        int16_t ToFloor = 1;
+
+        eTileDirection Direction{};
+
+        uint64_t BottomUID = 0;
+        uint64_t TopUID = 0;
+
+        uint32_t BottomSlot = UINT32_MAX;
+        uint32_t TopSlot = UINT32_MAX;
+
+        uint32_t BottomHealth = 100;
+        uint32_t TopHealth = 100;
+
+        float TriggerRadius = 1.0f;
+        float ProgressSpeed = 1.0f;
+    };
+
+   
     struct TileInfo {
         glm::vec2       position; // local position within group
         glm::vec4       UV;
@@ -122,6 +146,28 @@ namespace Engine {
         uint32_t TileID;
         Ref<VulkanTexture> Texture;
         std::vector<TileInfo> tiles;
+        std::vector<StairLink> stairLinks;
+
+
+        void RefreshStairLinkRuntimeData()
+        {
+            for (StairLink& link : stairLinks)
+            {
+                for (const TileInfo& tile : tiles)
+                {
+                    if (tile.UID == link.BottomUID)
+                    {
+                        link.BottomSlot = tile.Slot;
+                        link.BottomHealth = tile.TileHealth;
+                    }
+                    else if (tile.UID == link.TopUID)
+                    {
+                        link.TopSlot = tile.Slot;
+                        link.TopHealth = tile.TileHealth;
+                    }
+                }
+            }
+        }
     };
 
     // for editor
@@ -138,6 +184,7 @@ namespace Engine {
         case eTileCategory::Vehicles:  return "Vehicles";
         case eTileCategory::Doors:     return "Doors";
         case eTileCategory::Windows:  return "Windows";
+        case eTileCategory::Stairs:  return "stairs";
         case eTileCategory::DynamicObjects:  return "DynamicObjects";
 
         default: return "Unknown";
@@ -211,6 +258,7 @@ namespace Engine {
         if (str == "DynamicObjects") return eTileCategory::DynamicObjects;
         if (str == "Doors") return eTileCategory::Doors;
         if (str == "Windows") return eTileCategory::Windows;
+        if (str == "Stairs") return eTileCategory::Stairs;
         return eTileCategory::Undefined;
     }
 

@@ -177,6 +177,8 @@ namespace Engine {
         }
     }
 
+
+
     uint32_t TileManager::EnsureVisualResident(uint64_t uid)
     {
         auto slotIt = m_slotByUID.find(uid);
@@ -399,6 +401,7 @@ namespace Engine {
         {
             RegisterPromotedTileResidency(scene, entity, tile, focusPos);
         }
+        tc.RefreshStairLinkRuntimeData();
     }
 
     void TileManager::RegisterPromotedEntity(Entity entity)
