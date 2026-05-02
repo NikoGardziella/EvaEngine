@@ -430,14 +430,22 @@ namespace Engine {
                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::IsRoof;
                                     }
 
-                                    if (playerIsInsideEntityArea &&
-                                        tile.floor > playerStateData.playerCurrentFloor)
+                                    if (playerIsInsideEntityArea)
                                     {
-                                        continue; // hide floors above player
+                                        // Hide everything above the player's floor
+                                        if (tile.floor > playerStateData.playerCurrentFloor)
+                                            continue;
+
+                                        // Hide current floor roof/ceiling
+                                        if (tile.floor == playerStateData.playerCurrentFloor &&
+                                            (tile.Category == eTileCategory::Roofs || tile.IsRoof))
+                                        {
+                                            continue;
+                                        }
                                     }
 
-                                    if (playerIsInsideEntityArea &&
-                                        tile.floor == playerStateData.playerCurrentFloor)
+
+                                    if (playerIsInsideEntityArea)
                                     {
                                         if (tile.Category == eTileCategory::Buildings ||
                                             tile.Category == eTileCategory::Roofs ||
@@ -446,22 +454,38 @@ namespace Engine {
                                             flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::PlayerInsideEntityArea;
                                         }
                                     }
+                                    
+                                    const int16_t playerFloor = playerStateData.playerCurrentFloor;
 
-                                    glm::vec2 tileCenter = tile.position + transformComp.GetVec2Translation();
-                                    tileCenter.y += float(TILE_SIZE) / 1.75f;
+                                    bool isRoof = tile.Category == eTileCategory::Roofs || tile.IsRoof;
 
-                                    glm::vec2 d = playerPos - tileCenter;
+                                    // Roof of floor 0 acts like floor 1 surface
+                                    float tileVisualFloor = float(tile.floor);
+                                    if (isRoof)
+                                        tileVisualFloor += 1.0f;
 
-                                    // Bigger X weight = tiles stay in front more at the sides/between tiles
-                                    float sortValue = d.y + std::abs(d.x) * 0.35f;
+                                    float playerVisualFloor = float(playerFloor);
 
-                                    if (sortValue < -0.25f)
+                                    if (tileVisualFloor < playerVisualFloor)
                                     {
                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawBehindPlayer;
                                     }
-                                    else
+                                    else if (tileVisualFloor > playerVisualFloor)
                                     {
                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawInFrontOfPlayer;
+                                    }
+                                    else
+                                    {
+                                        glm::vec2 tileCenter = tile.position + transformComp.GetVec2Translation();
+                                        tileCenter.y += float(TILE_SIZE) / 1.75f;
+
+                                        glm::vec2 d = playerPos - tileCenter;
+                                        float sortValue = d.y + std::abs(d.x) * 0.35f;
+
+                                        if (sortValue < -0.25f)
+                                            flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawBehindPlayer;
+                                        else
+                                            flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawInFrontOfPlayer;
                                     }
                                     
 

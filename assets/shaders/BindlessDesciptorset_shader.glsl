@@ -526,11 +526,7 @@ void main()
        // occulsonAlpha  = 0.1;
     }
 
-    if(isRoof && playerInsideEntityArea)
-    {
-    // disable for now
-        occulsonAlpha  = 0.;
-    }
+   
 
     outColor = vec4(finalColor, base.a * occulsonAlpha);
 }
