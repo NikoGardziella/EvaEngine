@@ -2,6 +2,9 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier : require
 
+const uint DRAW_BEHIND_PLAYER = 1u << 3;
+const uint DRAW_FRONT_PLAYER  = 1u << 4;
+
 struct Instance {
     vec2  worldPos;
     vec2  size;
@@ -30,6 +33,7 @@ layout(location=8) out flat float vZkey;
 layout(push_constant) uniform PC {
     mat4 VP;
     mat4 lightSpaceMatrix;
+    uint drawPass; // 0 = behind, 1 = front
 } pc;
 
 layout(std430, set=0, binding=2) readonly buffer Instances {
@@ -44,6 +48,21 @@ const vec2 quad[4] = vec2[](
 void main()
 {
     uint i = gl_InstanceIndex;
+
+    bool wantsBehind = (inst[i].flags & DRAW_BEHIND_PLAYER) != 0u;
+    bool wantsFront  = (inst[i].flags & DRAW_FRONT_PLAYER)  != 0u;
+
+    if (pc.drawPass == 0u && !wantsBehind)
+    {
+        gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+        return;
+    }
+
+    if (pc.drawPass == 1u && !wantsFront)
+    {
+        gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+        return;
+    }
     vec2 q = quad[gl_VertexIndex];
 
     vec2 anchor = inst[i].worldPos;
@@ -503,7 +522,14 @@ void main()
     float occulsonAlpha = 1.0;
     if(playerInsideEntityArea)
     {
-        occulsonAlpha  = 0.1;
+    // disable for now
+       // occulsonAlpha  = 0.1;
+    }
+
+    if(isRoof && playerInsideEntityArea)
+    {
+    // disable for now
+        occulsonAlpha  = 0.;
     }
 
     outColor = vec4(finalColor, base.a * occulsonAlpha);

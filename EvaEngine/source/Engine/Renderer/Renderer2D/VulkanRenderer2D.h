@@ -273,7 +273,7 @@ namespace Engine {
 
 		void Init(Ref<VulkanShadowMap> shadowMap);
 		void DrawFrame(uint32_t currentFrame, VkCommandBuffer cmd);
-		void DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd, Ref<VulkanShadowMap> shadowMap);
+		void DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd, Ref<VulkanShadowMap> shadowMap, uint32_t drawMode);
 		void DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap);
 		void ReadAndResetCollisionBuffer(uint32_t currentFrame);
 		void BeginFrame(uint32_t currentFrame);

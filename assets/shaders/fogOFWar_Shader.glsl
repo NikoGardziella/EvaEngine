@@ -47,5 +47,5 @@ void main()
     if (vis > 0.5)
         discard;
     else
-        outColor = vec4(0.0, 0.0, 0.0, 0.3);
+        outColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

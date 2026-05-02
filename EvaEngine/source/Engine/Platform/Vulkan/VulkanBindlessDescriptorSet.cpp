@@ -1571,7 +1571,7 @@ namespace Engine {
 
 
     void VulkanBindlessDescriptorSetRenderer::RecordTiles(VkCommandBuffer cmd,  uint32_t frameIndex, 
-        const glm::mat4& VP, VkExtent2D fbExtent, const glm::mat4& lightMat)
+        const glm::mat4& VP, VkExtent2D fbExtent, const glm::mat4& lightMat, uint32_t drawMode)
     {
         if (m_drawCount == 0) return;
 
@@ -1584,6 +1584,7 @@ namespace Engine {
         TilePC tilePC{};
         tilePC.VP = VP;
         tilePC.LightSpaceMatrix = lightMat;
+        tilePC.drawPass = drawMode;
         vkCmdPushConstants(cmd, m_tilesPipelineLayout,
             VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
             0, sizeof(TilePC), &tilePC);

@@ -719,11 +719,11 @@ namespace Engine {
 
 	}
 
-	void VulkanRenderer2D::DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd, Ref<VulkanShadowMap> shadowMap)
+	void VulkanRenderer2D::DrawTiles(uint32_t currentFrame, VkCommandBuffer cmd, Ref<VulkanShadowMap> shadowMap, uint32_t drawMode)
 	{
 
 		s_bindlessDescitproRenderer->RecordTiles(cmd, currentFrame,
-			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent(), shadowMap->GetLightSpaceMatrix());
+			s_VulkanData.CameraBuffer.ViewProjection, m_vulkanContext->GetVulkanSwapchain().GetSwapchainExtent(), shadowMap->GetLightSpaceMatrix(), drawMode);
 	}
 
 	void VulkanRenderer2D::DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, Ref<VulkanShadowMap> shadowMap)

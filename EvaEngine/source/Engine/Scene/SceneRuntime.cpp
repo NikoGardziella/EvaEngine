@@ -446,7 +446,23 @@ namespace Engine {
                                             flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::PlayerInsideEntityArea;
                                         }
                                     }
-                                  
+
+                                    glm::vec2 tileCenter = tile.position + transformComp.GetVec2Translation();
+                                    tileCenter.y += float(TILE_SIZE) / 1.75f;
+
+                                    glm::vec2 d = playerPos - tileCenter;
+
+                                    // Bigger X weight = tiles stay in front more at the sides/between tiles
+                                    float sortValue = d.y + std::abs(d.x) * 0.35f;
+
+                                    if (sortValue < -0.25f)
+                                    {
+                                        flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawBehindPlayer;
+                                    }
+                                    else
+                                    {
+                                        flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawInFrontOfPlayer;
+                                    }
                                     
 
                                     // Trivial submit: NO residency work here, just append an instance

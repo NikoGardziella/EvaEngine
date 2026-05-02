@@ -30,13 +30,16 @@ namespace Engine {
         enum eTileFlags {
             IsSprite = 1 << 0, //   (binary 0001)
             IsRoof = 1 << 1 , //  (binary 0010)
-            PlayerInsideEntityArea = 1 << 2  //  (binary 0100)
+            PlayerInsideEntityArea = 1 << 2,  //  (binary 0100)
+            DrawBehindPlayer = 1 << 3,
+            DrawInFrontOfPlayer = 1 << 4
         };
 
         struct TilePC
         {
             glm::mat4 VP;
             glm::mat4 LightSpaceMatrix;
+            uint32_t drawPass; // 0 = behind, 1 = front
         };
 
 
@@ -134,7 +137,7 @@ namespace Engine {
         void EvictTileBySlot(uint32_t slot);
         void ReadbackArrayLayer(uint32_t slot, std::vector<uint8_t>& outColor, std::vector<uint8_t>& outProps);
         // Build visible instances and stream into SSBO; updates binding 2 for this frame
-        void RecordTiles(VkCommandBuffer cmd, uint32_t frameIndex, const glm::mat4& VP, VkExtent2D fbExtent, const glm::mat4& lightMat);
+        void RecordTiles(VkCommandBuffer cmd, uint32_t frameIndex, const glm::mat4& VP, VkExtent2D fbExtent, const glm::mat4& lightMat, uint32_t drawMode);
         void DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix, const glm::vec3 lightDir);
         uint32_t GetTileSlotWithUid(uint64_t uid);
         uint32_t EnsureTileResident(uint64_t uid, const glm::vec4& atlasUV, VkCommandBuffer uploadCmd);
