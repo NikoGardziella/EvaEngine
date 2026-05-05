@@ -31,7 +31,7 @@ namespace Engine {
 
     class AssetManager
     {
-        
+
 
     public:
         static void Initialize(int maxDepth = 5);
@@ -138,6 +138,7 @@ namespace Engine {
 
         static Ref<Font> s_fontAtlas;
         static TileDefinitionRegistry s_TileDefinitions;
+
     };
 
 }

@@ -61,7 +61,10 @@ void PlayerFloorSystem::UpdatePlayerFloorSystem(float dt, Engine::Scene* scene)
                                 continue;
 
                             glm::vec2 center = (bottomPoint + topPoint) * 0.5f;
-                            center += 0.3f;
+                            center.x += -0.12f;
+                            center.y += 0.5f;
+                           //center.x += Engine::DebugInterface::s_debugValues.x;
+                           // center.y += Engine::DebugInterface::s_debugValues.y;
 
                             bottomPoint = center - dir * (stairLength * 0.5f);
                             topPoint = center + dir * (stairLength * 0.5f);

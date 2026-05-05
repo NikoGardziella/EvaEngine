@@ -554,7 +554,7 @@ namespace Engine
                 case eTileDirection::North: return { +3.0, +4.0 };
                 case eTileDirection::South: return { +1, +0 };
                 case eTileDirection::West:  return { +1, +1 };
-                case eTileDirection::East:  return { +1, +1 };
+                case eTileDirection::East:  return { +3, +2 };
                 }
                 return { 0, 0 };
             };

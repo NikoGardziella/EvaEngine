@@ -10,9 +10,10 @@
 #include "../EditorApp.h"
 #include "Engine/Map/Grid/GridMap.h"
 #include <imgui_internal.h>
+#include <Engine/AssetManager/AssetManager.h>
 
 namespace Engine {
-   
+
     void DebugPanel::OnImGuiRender()
     {
         EE_PROFILE_FUNCTION();
@@ -32,7 +33,11 @@ namespace Engine {
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-         
+        ImGui::DragFloat("Debug x", &DebugInterface::s_debugValues.x, 0.01f, -100.01f, 100.0f);
+        ImGui::DragFloat("Debug y", &DebugInterface::s_debugValues.y, 0.01f, -100.01f, 100.0f);
+        ImGui::DragFloat("Debug z", &DebugInterface::s_debugValues.z, 0.01f, -100.01f, 100.0f);
+        ImGui::DragFloat("Debug a", &DebugInterface::s_debugValues.a, 0.01f, -100.01f, 100.0f);
+
 
         if (ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)1, flags, "Textures:"))
         {

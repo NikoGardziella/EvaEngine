@@ -5,6 +5,7 @@
 namespace Engine {
 
 	//TextureStreamingSystem* DebugInterface::s_textureSystem = nullptr;
+	glm::vec4 DebugInterface::s_debugValues;
 
 	void Engine::DebugInterface::ResetAllTextures(Scene* scene)
 	{
