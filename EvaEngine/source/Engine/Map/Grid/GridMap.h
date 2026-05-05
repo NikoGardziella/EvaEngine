@@ -19,13 +19,12 @@ namespace Engine {
 	public:
 
 	public:
-		enum class FootSide : uint8_t { North, East, South, West };
 
 		void BuildFromRegistry(Scene* scene);
 		bool DamageSubCell(uint64_t key, float damage);
 		void RemoveDeadSubCells();
 
-		void EmitEdgeSubcellsOnSide(const glm::ivec2& cell, FootSide side, uint32_t slot, uint64_t uid, float cellW, float cellH, int subs, float shrinkAlong, float halfThickW, uint32_t health, uint32_t floor);
+		void EmitEdgeSubcellsOnSide(const glm::ivec2& cell, eTileDirection side, uint32_t slot, uint64_t uid, float cellW, float cellH, int subs, float shrinkAlong, float halfThickW, uint32_t health, uint32_t floor);
 		void EmitStairSideSubcells(const glm::vec2& bottom, const glm::vec2& top, uint32_t slot, uint64_t uid, int subs, float shrinkAlong, float halfThickW, float halfWalkWidth, uint32_t health, uint32_t floor);
 		void EmitCenteredStrip(const glm::ivec2& cell, float widthFrac, float thickFrac, float yNudgePx, uint32_t slot, uint64_t uid, float cellW, float cellH, uint32_t health, uint32_t floor);
 		void EmitCenteredDiscApprox(const glm::ivec2& cell, float radiusFrac, uint32_t slot, uint64_t uid, float cellW, float cellH, uint32_t health, uint32_t floor);

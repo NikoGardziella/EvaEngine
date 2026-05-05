@@ -299,7 +299,7 @@ namespace Engine
         RebuildSubcellBuckets();
     }
 
-    void GridMap::EmitEdgeSubcellsOnSide(const glm::ivec2& cell, FootSide side, uint32_t slot, uint64_t uid,
+    void GridMap::EmitEdgeSubcellsOnSide(const glm::ivec2& cell, eTileDirection side, uint32_t slot, uint64_t uid,
         float cellW, float cellH, int subs,float shrinkAlong, float halfThickW, uint32_t health, uint32_t floor)
     {
         const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
@@ -313,10 +313,10 @@ namespace Engine
 
         switch (side)
         {
-        case FootSide::North: A = N; B = E; break;
-        case FootSide::East:  A = E; B = S; break;
-        case FootSide::South: A = S; B = W; break;
-        case FootSide::West:  A = W; B = N; break;
+        case eTileDirection::North: A = N; B = E; break;
+        case eTileDirection::East:  A = E; B = S; break;
+        case eTileDirection::South: A = S; B = W; break;
+        case eTileDirection::West:  A = W; B = N; break;
         }
 
         const glm::vec2 e = B - A;
@@ -544,36 +544,14 @@ namespace Engine
         const float HALF_THICK_W = 0.5f * (0.22f * std::min(CELL_W, CELL_H));
 
 
-        auto parseSide = [](const std::string& name) -> FootSide
-            {
-                auto pos = name.find_last_of('_');
-                if (pos != std::string::npos && pos + 1 < name.size())
-                {
-                    char c = (char)std::toupper(name[pos + 1]);
-                    if (c == 'N') return FootSide::North;
-                    if (c == 'E') return FootSide::East;
-                    if (c == 'S') return FootSide::South;
-                    if (c == 'W') return FootSide::West;
-                }
-                return FootSide::South;
-            };
-        auto stairEndSideFromDirection = [](eTileDirection dir) -> FootSide
-            {
-                switch (dir)
-                {
-                case eTileDirection::North: return FootSide::North;
-                case eTileDirection::East:  return FootSide::East;
-                case eTileDirection::South: return FootSide::South;
-                case eTileDirection::West:  return FootSide::West;
-                default:                    return FootSide::North;
-                }
-            };
+       
+
 
         auto stairTopEndIsoOffset = [](eTileDirection dir) -> glm::ivec2
             {
                 switch (dir)
                 {
-                case eTileDirection::North: return { +1, +1 };
+                case eTileDirection::North: return { +0.0, +1.0 };
                 case eTileDirection::South: return { +1, +0 };
                 case eTileDirection::West:  return { +1, +1 };
                 case eTileDirection::East:  return { +1, +1 };
@@ -582,14 +560,14 @@ namespace Engine
             };
 
 
-        auto sideIsoOffset = [](FootSide s) -> glm::ivec2
+        auto sideIsoOffset = [](eTileDirection s) -> glm::ivec2
             {
                 switch (s)
                 {
-                case FootSide::North: return { +1, +2 };
-                case FootSide::South: return { +1, +0 };
-                case FootSide::West:  return { +1, +1 };
-                case FootSide::East:  return { +1, +1 };
+                case eTileDirection::North: return { +1, +2 };
+                case eTileDirection::South: return { +1, +0 };
+                case eTileDirection::West:  return { +1, +1 };
+                case eTileDirection::East:  return { +1, +1 };
                 }
                 return { 0, 0 };
             };
@@ -626,15 +604,13 @@ namespace Engine
                 if (tile.Category == eTileCategory::Windows)
                 {
                     // same as building but needs tweak in future(jump trough window)?
-                    FootSide side = parseSide(tile.name);
-                    cell += sideIsoOffset(side);
-                    EmitEdgeSubcellsOnSide(cell, side, tile.Slot, tile.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, tile.TileHealth, tile.floor);
+                    cell += sideIsoOffset(tile.TileDirection);
+                    EmitEdgeSubcellsOnSide(cell, tile.TileDirection, tile.Slot, tile.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, tile.TileHealth, tile.floor);
                 }
                 else if (tile.Category == eTileCategory::Buildings)
                 {
-                    FootSide side = parseSide(tile.name);
-                    cell += sideIsoOffset(side);
-                    EmitEdgeSubcellsOnSide(cell, side, tile.Slot, tile.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, tile.TileHealth, tile.floor);
+                    cell += sideIsoOffset(tile.TileDirection);
+                    EmitEdgeSubcellsOnSide(cell, tile.TileDirection, tile.Slot, tile.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, tile.TileHealth, tile.floor);
                 }
              
                 else if (tile.Category == eTileCategory::DynamicObjects)
@@ -699,14 +675,13 @@ namespace Engine
                     // End cap at the top of the stairs
                     glm::ivec2 topCell = IsoTileUtils::WorldToIsoCell(top);
 
-                    FootSide endSide = stairEndSideFromDirection(stair.Direction);
 
                     topCell += stairTopEndIsoOffset(stair.Direction);
-                    constexpr float stairEndWidth = 2.0f;
+                    constexpr float stairEndWidth = 1.5f;
 
                     EmitEdgeSubcellsOnSide(
                         topCell,
-                        endSide,
+                        stair.Direction,
                         stair.TopSlot,
                         stair.TopUID,
                         CELL_W,
