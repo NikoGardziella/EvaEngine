@@ -104,6 +104,9 @@ namespace Engine {
         uint32_t BottomHealth = 100;
         uint32_t TopHealth = 100;
 
+        glm::ivec2 TopCell;
+        glm::ivec2 BottomCell;
+
         float TriggerRadius = 1.0f;
         float ProgressSpeed = 1.0f;
 

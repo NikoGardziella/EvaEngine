@@ -551,7 +551,7 @@ namespace Engine
             {
                 switch (dir)
                 {
-                case eTileDirection::North: return { +0.0, +1.0 };
+                case eTileDirection::North: return { +3.0, +4.0 };
                 case eTileDirection::South: return { +1, +0 };
                 case eTileDirection::West:  return { +1, +1 };
                 case eTileDirection::East:  return { +1, +1 };
@@ -673,7 +673,7 @@ namespace Engine
                 {
 
                     // End cap at the top of the stairs
-                    glm::ivec2 topCell = IsoTileUtils::WorldToIsoCell(top);
+                    glm::ivec2 topCell = stair.TopCell;
 
 
                     topCell += stairTopEndIsoOffset(stair.Direction);

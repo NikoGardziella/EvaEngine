@@ -347,6 +347,8 @@ namespace Engine
             link.BottomHealth = bottom.health;
             link.TopHealth = bestTop->health;
 
+            link.BottomCell = bottom.worldCell;
+            link.TopCell = bestTop->worldCell;
 
             tileComp.stairLinks.push_back(link);
         }
