@@ -1289,8 +1289,14 @@ namespace Engine {
         constexpr float pixelToWorldX = tileWorldW / float(TILE_PIXEL_WIDTH);
         constexpr float pixelToWorldY = tileWorldH / float(TILE_PIXEL_HEIGHT);
 
-        const float opaqueW = float(tile.opaqueMax.x - tile.opaqueMin.x) * pixelToWorldX;
-        const float opaqueH = float(tile.opaqueMax.y - tile.opaqueMin.y) * pixelToWorldY;
+        float opaqueW = float(tile.opaqueMax.x - tile.opaqueMin.x) * pixelToWorldX;
+        float opaqueH = float(tile.opaqueMax.y - tile.opaqueMin.y) * pixelToWorldY;
+
+        if (tile.Category == eTileCategory::Roofs)
+        {
+            opaqueW = 0.5f;
+            opaqueH = 0.5f;
+        }
 
         if (opaqueW <= 0.0f || opaqueH <= 0.0f)
             return;
