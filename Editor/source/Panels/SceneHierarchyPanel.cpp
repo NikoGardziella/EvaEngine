@@ -278,8 +278,47 @@ namespace Engine {
 
                         if (removeTile)
                         {
+                            auto& tile = tileComp.tiles[i];
+
+                            Scene* scene = m_sceneHierarchyPanelScene.get();
+                            CompactTileMap& compactMap = scene->GetCompactTileMap();
+                            TileDefinitionRegistry& defs = AssetManager::GetTileDefinitions();
+
+                            const auto& transform = entity.GetComponent<TransformComponent>();
+
+                            // 1. Convert to world cell
+                            glm::vec2 worldPos = transform.GetVec2Translation() + tile.position;
+                            glm::ivec2 worldCell = IsoTileUtils::WorldToIsoCellInt(worldPos);
+
+                            // 2. Rebuild TileTypeKey (IMPORTANT)
+                            TileTypeKey key{};
+                            key.name = tile.name;              // must match definition system
+                            key.category = tile.Category;
+                            key.direction = tile.TileDirection;
+
+                            uint16_t typeId = 0;
+                            if (!defs.FindTypeId(key, typeId))
+                            {
+                                EE_CORE_WARN("RemoveTile: Failed to find TypeId for tile '{}'", tile.name);
+                            }
+                            else
+                            {
+                                // 3. Build compact tile
+                                CompactTile compactTile{};
+                                compactTile.TypeId = typeId;
+                                compactTile.GroupId = entity.GetUUID();
+                                compactTile.Flags = 0;        // adjust if needed
+                                compactTile.Aux = 0;        // adjust if needed
+                                compactTile.Floor = tile.floor;
+
+                                // 4. Remove from compact map
+                                compactMap.RemoveTile(worldCell, typeId);
+                            }
+
+                            // 5. Remove from runtime
                             tileComp.tiles.erase(tileComp.tiles.begin() + i);
 
+                            // selection fix (unchanged)
                             if (m_selectedTileIndex)
                             {
                                 if (*m_selectedTileIndex == i)
