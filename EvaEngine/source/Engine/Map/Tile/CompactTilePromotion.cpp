@@ -321,7 +321,9 @@ namespace Engine
 
             glm::vec2 stairDir = IsoTileUtils::StairDirectionToIsoVector(bottom.direction);
 
-            constexpr float StairTopOffset = float(TILE_SIZE);
+            constexpr float StairTopOffset = float(TILE_SIZE) * 0.5f;
+
+
 
             link.BottomLocal = bottom.localPos;
             link.TopLocal = bestTop->localPos + stairDir * StairTopOffset;
@@ -334,7 +336,7 @@ namespace Engine
             link.BottomUID = bottom.uid;
             link.TopUID = bestTop->uid;
 
-            link.TriggerRadius = TILE_SIZE * 0.35f;
+            link.TriggerRadius = TILE_SIZE * 0.15f;
             link.ProgressSpeed = 1.0f;
             link.BottomUID = bottom.uid;
             link.TopUID = bestTop->uid;
@@ -344,6 +346,7 @@ namespace Engine
 
             link.BottomHealth = bottom.health;
             link.TopHealth = bestTop->health;
+
 
             tileComp.stairLinks.push_back(link);
         }

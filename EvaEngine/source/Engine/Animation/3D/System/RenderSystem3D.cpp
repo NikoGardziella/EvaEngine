@@ -29,21 +29,27 @@ namespace Engine {
 
             glm::mat4 visualWorld = *pWorldTransform;
 
-            if (const FloorComponent* floor = scene->TryGet<FloorComponent>(entity))
+            /*
+            */
+            if (FloorComponent* floorComp = scene->TryGet<FloorComponent>(entity))
             {
-                float visualFloor = float(floor->Floor);
+                float targetVisualFloor = float(floorComp->Floor);
+                constexpr float FloorVisualYOffset = TILE_SIZE * 0.5;
 
-                if (floor->IsChangingFloor)
+                if (floorComp->IsChangingFloor)
                 {
-                    float dir = float(floor->TargetFloor - floor->Floor); // +1 up, -1 down
-                    visualFloor += floor->FloorT * dir;
+                    float dir = float(floorComp->TargetFloor - floorComp->Floor);
+                    targetVisualFloor += floorComp->FloorT * dir;
                 }
 
-                constexpr float FloorVisualYOffset = TILE_SIZE * 0.5;
+                floorComp->VisualFloor = glm::mix(
+                    floorComp->VisualFloor,
+                    targetVisualFloor,
+                    1.0f - std::exp(-12.0f * scene->GetDeltatime()));
 
                 visualWorld = glm::translate(
                     glm::mat4(1.0f),
-                    glm::vec3(0.0f, visualFloor * FloorVisualYOffset, 0.0f)
+                    glm::vec3(0.0f, floorComp->VisualFloor * FloorVisualYOffset, 0.0f)
                 ) * visualWorld;
             }
 

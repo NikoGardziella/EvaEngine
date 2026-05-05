@@ -4,10 +4,10 @@ Entities:
 CompactGroups:
   - GroupId: 15712514280312815523
     GroupName: ""
-    OriginCell: [-12, -10]
+    OriginCell: [9, 10]
   - GroupId: 10478195493138261282
     GroupName: ""
-    OriginCell: [-11, -9]
+    OriginCell: [10, 11]
 CompactTiles:
   - Cell: [-12, -10]
     TypeId: 1
@@ -2049,6 +2049,12 @@ CompactTiles:
     Aux: 0
     Floor: 2
     GroupId: 10478195493138261282
+  - Cell: [2, -3]
+    TypeId: 208
+    Flags: 3
+    Aux: 0
+    Floor: 0
+    GroupId: 10478195493138261282
   - Cell: [3, -3]
     TypeId: 1
     Flags: 3
@@ -2186,6 +2192,12 @@ CompactTiles:
     Flags: 3
     Aux: 0
     Floor: 2
+    GroupId: 10478195493138261282
+  - Cell: [2, -2]
+    TypeId: 209
+    Flags: 3
+    Aux: 0
+    Floor: 0
     GroupId: 10478195493138261282
   - Cell: [3, -2]
     TypeId: 1
@@ -2493,6 +2505,12 @@ CompactTiles:
     Aux: 0
     Floor: 0
     GroupId: 15712514280312815523
+  - Cell: [-6, 0]
+    TypeId: 208
+    Flags: 3
+    Aux: 0
+    Floor: 1
+    GroupId: 10478195493138261282
   - Cell: [-5, 0]
     TypeId: 1
     Flags: 3
@@ -2583,6 +2601,12 @@ CompactTiles:
     Aux: 0
     Floor: 0
     GroupId: 15712514280312815523
+  - Cell: [-6, 1]
+    TypeId: 209
+    Flags: 3
+    Aux: 0
+    Floor: 1
+    GroupId: 10478195493138261282
   - Cell: [-5, 1]
     TypeId: 1
     Flags: 3

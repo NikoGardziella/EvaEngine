@@ -87,7 +87,7 @@ namespace Engine {
 
 
 
-
+        m_deltatime = timestep;
         CameraComponent* mainCameraComp = nullptr;
         glm::mat4 cameraTransform = glm::mat4(1.0f);
         glm::mat4 cameraView = glm::mat4(1.0f);
@@ -118,6 +118,7 @@ namespace Engine {
 
 
 
+        FloorComponent  playerFloorComp;
 
         glm::vec2 playerPos;
         auto playerView = m_registry.view<Engine::TransformComponent, CharacterControllerComponent>();
@@ -179,8 +180,8 @@ namespace Engine {
 
             Engine::IDComponent& playerIDComp = playerEntity.GetComponent<Engine::IDComponent>();
             playerID = playerIDComp.ID;
-
             playerStateData.playerCurrentFloor = playerEntity.GetComponent<FloorComponent>().Floor;
+            playerFloorComp = playerEntity.GetComponent<FloorComponent>();
 
             /*
             if (!playerEntity.HasComponent<DriverComponent>())
@@ -466,26 +467,55 @@ namespace Engine {
 
                                     float playerVisualFloor = float(playerFloor);
 
-                                    if (tileVisualFloor < playerVisualFloor)
+                                    bool isStairs = tile.Category == eTileCategory::Stairs;
+
+                                    // 
+
+                                    if (playerFloorComp.IsChangingFloor)
+                                    {
+                                        float dir = float(playerFloorComp.TargetFloor - playerFloorComp.Floor);
+                                        playerVisualFloor += playerFloorComp.FloorT * dir;
+                                    }
+
+                                    // Tile visual floor
+
+                                 
+
+                                    // Stairs get fractional height so they don’t pop
+                                    if (isStairs)
+                                    {
+                                        tileVisualFloor -= 1.0f;
+                                    }
+
+                                    // Compare with tolerance
+                                    constexpr float FloorEpsilon = 0.15f;
+
+                                    if (tileVisualFloor < playerVisualFloor - FloorEpsilon)
                                     {
                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawBehindPlayer;
                                     }
-                                    else if (tileVisualFloor > playerVisualFloor)
+                                    else if (tileVisualFloor > playerVisualFloor + FloorEpsilon)
                                     {
                                         flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawInFrontOfPlayer;
                                     }
                                     else
                                     {
+                                        // Same "layer" -> use iso sorting
                                         glm::vec2 tileCenter = tile.position + transformComp.GetVec2Translation();
                                         tileCenter.y += float(TILE_SIZE) / 1.75f;
 
                                         glm::vec2 d = playerPos - tileCenter;
+
                                         float sortValue = d.y + std::abs(d.x) * 0.35f;
 
                                         if (sortValue < -0.25f)
+                                        {
                                             flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawBehindPlayer;
+                                        }
                                         else
+                                        {
                                             flags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawInFrontOfPlayer;
+                                        }
                                     }
                                     
 

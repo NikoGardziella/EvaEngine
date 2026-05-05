@@ -211,7 +211,7 @@ namespace Engine
                     glm::vec2 bottom = ground;
 
                     glm::vec2 top = ground;
-                    top.y += float(TILE_SIZE); // same visual slope offset you use in stair logic
+                    //top.y += float(TILE_SIZE); // same visual slope offset in stair logic
 
                     EmitStairSideSubcells(
                         bottom,
@@ -222,7 +222,8 @@ namespace Engine
                         SHRINK_ALONG,
                         HALF_THICK_W,
                         TILE_SIZE * 0.35f,  // distance from center to side rails
-                        t.TileHealth);
+                        t.TileHealth,
+                        t.floor);
                 }
                 else if (t.Category == eTileCategory::DynamicObjects)
                 {
@@ -299,7 +300,7 @@ namespace Engine
     }
 
     void GridMap::EmitEdgeSubcellsOnSide(const glm::ivec2& cell, FootSide side, uint32_t slot, uint64_t uid,
-        float cellW, float cellH, int subs,float shrinkAlong, float halfThickW, uint32_t health)
+        float cellW, float cellH, int subs,float shrinkAlong, float halfThickW, uint32_t health, uint32_t floor)
     {
         const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
 
@@ -344,7 +345,7 @@ namespace Engine
             obb.halfExtents = { halfAlong, halfThickW };
             obb.tangent = T;
             obb.TileSlot = slot;
-
+            obb.Floor = floor;
             obb.CollisionKey = GridUtils::MakeSubCellKey(
                 uid,
                 static_cast<uint32_t>(side),
@@ -369,16 +370,9 @@ namespace Engine
             m_blockedSubCells.push_back(obb);
         }
     }
-    void GridMap::EmitStairSideSubcells(
-        const glm::vec2& bottom,
-        const glm::vec2& top,
-        uint32_t slot,
-        uint64_t uid,
-        int subs,
-        float shrinkAlong,
-        float halfThickW,
-        float halfWalkWidth,
-        uint32_t health)
+
+    void GridMap::EmitStairSideSubcells(const glm::vec2& bottom, const glm::vec2& top, uint32_t slot, uint64_t uid, int subs,
+        float shrinkAlong, float halfThickW, float halfWalkWidth, uint32_t health, uint32_t floor)
     {
         const glm::vec2 e = top - bottom;
         const float L = glm::length(e);
@@ -411,12 +405,10 @@ namespace Engine
                 obb.halfExtents = { halfAlong, halfThickW };
                 obb.tangent = T;
                 obb.TileSlot = slot;
-
-                obb.CollisionKey = GridUtils::MakeSubCellKey(
-                    uid,
-                    9000u + side, // left/right stair side
-                    static_cast<uint32_t>(s)
-                );
+                obb.Floor = floor;
+                obb.Type = eSubCellType::StairRail;
+                obb.CollisionKey = GridUtils::MakeSubCellKey(uid,  9000u + side, // left/right stair side
+                    static_cast<uint32_t>(s) );
 
                 if (m_destroyedSubCells.find(obb.CollisionKey) != m_destroyedSubCells.end())
                     continue;
@@ -438,7 +430,7 @@ namespace Engine
     }
 
     void GridMap::EmitCenteredStrip(const glm::ivec2& cell, float widthFrac, float thickFrac, float yNudgePx,
-        uint32_t slot, uint64_t uid, float cellW, float cellH, uint32_t health)
+        uint32_t slot, uint64_t uid, float cellW, float cellH, uint32_t health, uint32_t floor)
     {
         const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
         const glm::vec2 E = S + glm::vec2(+cellW * 0.5f, -cellH * 0.5f);
@@ -455,7 +447,7 @@ namespace Engine
         obb.halfExtents = { halfAlong, halfThick };
         obb.tangent = T;
         obb.TileSlot = slot;
-
+        obb.Floor = floor;
         obb.CollisionKey = GridUtils::MakeSubCellKey(
             uid,
             1000u, // centered strip type
@@ -481,7 +473,7 @@ namespace Engine
     }
 
     void GridMap::EmitCenteredDiscApprox(const glm::ivec2& cell, float radiusFrac, uint32_t slot,
-        uint64_t uid, float cellW, float cellH, uint32_t health)
+        uint64_t uid, float cellW, float cellH, uint32_t health, uint32_t floor)
     {
         const glm::vec2 S = IsoTileUtils::IsoToWorldGround(cell);
         const glm::vec2 E = S + glm::vec2(+cellW * 0.5f, -cellH * 0.5f);
@@ -498,7 +490,7 @@ namespace Engine
                 obb.tangent = glm::normalize(tangent);
                 obb.halfExtents = { R, 0.5f * R };
                 obb.TileSlot = slot;
-
+                obb.Floor = floor;
                 obb.CollisionKey = GridUtils::MakeSubCellKey(
                     uid,
                     2000u, // disc approximation type
@@ -565,6 +557,29 @@ namespace Engine
                 }
                 return FootSide::South;
             };
+        auto stairEndSideFromDirection = [](eTileDirection dir) -> FootSide
+            {
+                switch (dir)
+                {
+                case eTileDirection::North: return FootSide::North;
+                case eTileDirection::East:  return FootSide::East;
+                case eTileDirection::South: return FootSide::South;
+                case eTileDirection::West:  return FootSide::West;
+                default:                    return FootSide::North;
+                }
+            };
+
+        auto stairTopEndIsoOffset = [](eTileDirection dir) -> glm::ivec2
+            {
+                switch (dir)
+                {
+                case eTileDirection::North: return { +1, +1 };
+                case eTileDirection::South: return { +1, +0 };
+                case eTileDirection::West:  return { +1, +1 };
+                case eTileDirection::East:  return { +1, +1 };
+                }
+                return { 0, 0 };
+            };
 
 
         auto sideIsoOffset = [](FootSide s) -> glm::ivec2
@@ -587,25 +602,20 @@ namespace Engine
             const auto& tc = view.get<TileComponent>(e);
             const auto& tr = view.get<TransformComponent>(e);
 
-            for (const auto& t : tc.tiles)
+            for (const auto& tile : tc.tiles)
             {
-                if (t.Category == eTileCategory::Terrain)
+                if (tile.Category == eTileCategory::Terrain)
                     continue;
 
-                if (t.IsSpawned)
+                if (tile.IsSpawned)
                 {
                     // this tile was spawned from destuction system so dont make new grid for it
                     continue;
                 }
 
-                if (t.floor != playerFloor)
-                {
-                    // only make collision on same floor where player is. 
-                    // NPCs ??
-                    continue;
-                }
+               
 
-                const glm::vec2 ground = glm::vec2(tr.Translation) + glm::vec2(t.position);
+                const glm::vec2 ground = glm::vec2(tr.Translation) + glm::vec2(tile.position);
 
                 if (glm::length2(ground - playerWorldPos) > radiusSq)
                     continue;
@@ -613,21 +623,21 @@ namespace Engine
                 glm::ivec2 cell = IsoTileUtils::WorldToIsoCell(ground);
                 cell.y += playerFloor;
                 cell.x += playerFloor;
-                if (t.Category == eTileCategory::Windows)
+                if (tile.Category == eTileCategory::Windows)
                 {
                     // same as building but needs tweak in future(jump trough window)?
-                    FootSide side = parseSide(t.name);
+                    FootSide side = parseSide(tile.name);
                     cell += sideIsoOffset(side);
-                    EmitEdgeSubcellsOnSide(cell, side, t.Slot, t.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, t.TileHealth);
+                    EmitEdgeSubcellsOnSide(cell, side, tile.Slot, tile.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, tile.TileHealth, tile.floor);
                 }
-                else if (t.Category == eTileCategory::Buildings)
+                else if (tile.Category == eTileCategory::Buildings)
                 {
-                    FootSide side = parseSide(t.name);
+                    FootSide side = parseSide(tile.name);
                     cell += sideIsoOffset(side);
-                    EmitEdgeSubcellsOnSide(cell, side, t.Slot, t.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, t.TileHealth);
+                    EmitEdgeSubcellsOnSide(cell, side, tile.Slot, tile.UID, CELL_W, CELL_H, SUBS, SHRINK_ALONG, HALF_THICK_W, tile.TileHealth, tile.floor);
                 }
-
-                else if (t.Category == eTileCategory::DynamicObjects)
+             
+                else if (tile.Category == eTileCategory::DynamicObjects)
                 {
                     constexpr float kDefaultWidthFrac = 0.35f;
                     constexpr float kDefaultThickFrac = 0.12f;
@@ -636,30 +646,91 @@ namespace Engine
 
                     if (kUseDiscForPosts)
                     {
-                        EmitCenteredDiscApprox(cell, 0.18f, t.Slot, t.UID, CELL_W, CELL_H, t.TileHealth);
+                        EmitCenteredDiscApprox(cell, 0.18f, tile.Slot, tile.UID, CELL_W, CELL_H, tile.TileHealth, tile.floor);
                     }
                     else
                     {
-                        EmitCenteredStrip(cell, kDefaultWidthFrac, kDefaultThickFrac, yNudgePx, t.Slot, t.UID, CELL_W, CELL_H, t.TileHealth);
+                        EmitCenteredStrip(cell, kDefaultWidthFrac, kDefaultThickFrac, yNudgePx, tile.Slot, tile.UID, CELL_W, CELL_H, tile.TileHealth, tile.floor);
                     }
                 }
             }
 
             for (const StairLink& stair : tc.stairLinks)
             {
+                constexpr float FloorVisualYOffset = float(TILE_SIZE);
+
                 glm::vec2 bottom = glm::vec2(tr.Translation) + stair.BottomLocal;
                 glm::vec2 top = glm::vec2(tr.Translation) + stair.TopLocal;
 
-                EmitStairSideSubcells(
-                    bottom,
-                    top,
-                    stair.BottomSlot, // or valid stair slot
-                    stair.BottomUID,
-                    6,
-                    SHRINK_ALONG,
-                    HALF_THICK_W,
-                    TILE_SIZE * 0.35f,
-                    100);
+                bottom.y += float(stair.FromFloor) * FloorVisualYOffset;
+                top.y += float(stair.ToFloor) * FloorVisualYOffset;
+
+                glm::vec2 dir = IsoTileUtils::StairDirectionToIsoVector(stair.Direction);
+
+                float stairLength = glm::length(top - bottom);
+                if (stairLength <= 0.0001f)
+                    continue;
+
+                glm::vec2 center = (bottom + top) * 0.5f;
+
+                bottom = center - dir * (stairLength * 0.5f);
+                top = center + dir * (stairLength * 0.5f);
+
+                glm::vec2 mid = (bottom + top) * 0.5f;
+
+                if (stair.BottomSlot != UINT32_MAX)
+                {
+                    EmitStairSideSubcells(
+                        bottom,
+                        mid,
+                        stair.BottomSlot,
+                        stair.BottomUID,
+                        3,
+                        SHRINK_ALONG,
+                        HALF_THICK_W,
+                        TILE_SIZE * 0.35f,
+                        stair.BottomHealth,
+                        stair.FromFloor);
+                }
+
+                if (stair.TopSlot != UINT32_MAX)
+                {
+
+                    // End cap at the top of the stairs
+                    glm::ivec2 topCell = IsoTileUtils::WorldToIsoCell(top);
+
+                    FootSide endSide = stairEndSideFromDirection(stair.Direction);
+
+                    topCell += stairTopEndIsoOffset(stair.Direction);
+                    constexpr float stairEndWidth = 2.0f;
+
+                    EmitEdgeSubcellsOnSide(
+                        topCell,
+                        endSide,
+                        stair.TopSlot,
+                        stair.TopUID,
+                        CELL_W,
+                        CELL_H,
+                        SUBS,
+                        stairEndWidth,
+                        HALF_THICK_W,
+                        stair.TopHealth,
+                        stair.FromFloor);
+
+                    EmitStairSideSubcells(
+                        mid,
+                        top,
+                        stair.TopSlot,
+                        stair.TopUID,
+                        3,
+                        SHRINK_ALONG,
+                        HALF_THICK_W,
+                        TILE_SIZE * 0.35f,
+                        stair.TopHealth,
+                        stair.FromFloor);
+
+                    
+                }
             }
         }
 
@@ -693,6 +764,7 @@ namespace Engine
 
         if (playerFloor != m_lastPlayerFloor)
         {
+            // remove this?
             m_lastPlayerFloor = playerFloor;
             BuildFromTilesNearPlayer(scene, playerWorldPos, 25.0f, playerFloor);
             return;

@@ -4,6 +4,7 @@
 #include "Engine/Map/Grid/GridUtils/GridUtils.h"
 #include <Engine/Scene/Scene.h>
 #include "CollisionSystemUtils.h"
+#include <Engine/Scene/Components/Map/FloorComponent.h>
 
 
 class Scene;
@@ -20,7 +21,7 @@ public:
 private:
     static CollisionSystemUtils::SweepHit SweepCircleVsOBB(const Engine::SubCellOBB& obb, const glm::vec2& p0, const glm::vec2& delta, float radius, float skin);
 
-    static glm::vec2 CollideAndSlideOBBs(const std::vector<Engine::SubCellOBB>& walls, glm::vec2 pos, glm::vec2 delta, float radius);
+    static glm::vec2 CollideAndSlideOBBs(const std::vector<Engine::SubCellOBB>& walls, glm::vec2 pos, glm::vec2 delta, float radius, const FloorComponent& floorComp);
 
  
 

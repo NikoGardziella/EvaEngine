@@ -6,32 +6,38 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Component.h>
 #include "Engine/Scene/Entity.h"
+#include <Engine/Scene/Components/Map/FloorComponent.h>
+
+
+
+
 
 
 void PlayerCollisionSystem::UpdatePlayerCollision(float dt, Engine::Scene* scene)
-
 {
     EE_PROFILE_FUNCTION();
 
-    
     const auto& walls = scene->GetGrid()->GetGridSubcells();
 
-    scene->ForEach<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent>(
-        [&](Engine::Entity e, Engine::TransformComponent& trsformComp, CharacterControllerComponent& ctrlComp, Engine::CircleCollider2DComponent& cir)
-        {
-            glm::vec2 p0 = glm::vec2(trsformComp.Translation);
-            glm::vec2 delta = ctrlComp.velocity * (ctrlComp.speed * dt);
-            float R = cir.Radius;
+    scene->ForEach<Engine::TransformComponent, CharacterControllerComponent, Engine::CircleCollider2DComponent,
+        FloorComponent>([&](Engine::Entity e, Engine::TransformComponent& transformComp, CharacterControllerComponent& ctrlComp,
+                Engine::CircleCollider2DComponent& cir, FloorComponent& floorComp)
+            {
+                glm::vec2 delta = ctrlComp.velocity * (ctrlComp.speed * dt);
+                float R = cir.Radius;
 
-            glm::vec2 p1 = CollideAndSlideOBBs(walls, p0, delta, R);
+                glm::vec2 p0 = glm::vec2(transformComp.Translation);
+                glm::vec2 p1 = CollideAndSlideOBBs(walls, p0, delta, R, floorComp);
 
-            trsformComp.Translation.x = p1.x;
-            trsformComp.Translation.y = p1.y;
-        });
+
+                transformComp.Translation.x = p1.x;
+                transformComp.Translation.y = p1.y;
+
+            });
 }
 
 glm::vec2 PlayerCollisionSystem::CollideAndSlideOBBs( const std::vector<Engine::SubCellOBB>& walls,
-    glm::vec2 pos, glm::vec2 delta, float radius)
+    glm::vec2 pos, glm::vec2 delta, float radius, const FloorComponent& floorComp)
 {
     if (glm::length2(delta) < 1e-12f)
         return pos;
@@ -52,14 +58,34 @@ glm::vec2 PlayerCollisionSystem::CollideAndSlideOBBs( const std::vector<Engine::
 
         for (const auto& obb : walls)
         {
+            if (floorComp.IsChangingFloor)
+            {
+                if (obb.Type != Engine::eSubCellType::StairRail)
+                {
+                    continue;
+                }
+            }
+            else
+            {
+
+                if (obb.Floor != floorComp.Floor)
+                {
+
+                    continue;
+                }
+            }
             // Cheap broadphase first
             const CollisionSystemUtils::AABB2 obbAABB = CollisionSystemUtils::MakeOBBAABB(obb);
             if (!CollisionSystemUtils::Overlaps(sweptAABB, obbAABB))
+            {
                 continue;
+            }
 
             CollisionSystemUtils::SweepHit h = CollisionSystemUtils::SweepCircleVsOBB(obb, pos, rem, radius, skin);
             if (!h.hit)
+            {
                 continue;
+            }
 
             // Static overlap candidate: keep only the strongest push
             if (h.toi == 0.0f && glm::length2(h.normal) > 0.0f)

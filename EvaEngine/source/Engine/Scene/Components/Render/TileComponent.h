@@ -106,6 +106,7 @@ namespace Engine {
 
         float TriggerRadius = 1.0f;
         float ProgressSpeed = 1.0f;
+
     };
 
    

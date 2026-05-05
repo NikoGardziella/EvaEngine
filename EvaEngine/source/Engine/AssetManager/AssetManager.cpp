@@ -849,10 +849,7 @@ namespace Engine {
         eTileMaterial material, eTileDirection tileDirection)
     {
         TileDefinitionRegistry& defs = GetTileDefinitions();
-        if (category == eTileCategory::Undefined)
-        {
-            EE_CORE_ERROR("wrong category");
-        }
+       
 
         // Prefer name-based lookup first
         uint16_t existingTypeId = defs.GetTypeIdByName(name);

@@ -5,10 +5,7 @@ namespace Engine
 {
     bool TileDefinitionRegistry::Register(const TileDefinition& def, const TileTypeKey& key)
     {
-        if (key.category == eTileCategory::Undefined)
-        {
-            EE_CORE_ERROR("wrong category");
-        }
+       
         if (def.TypeId == 0)
             return false;
 

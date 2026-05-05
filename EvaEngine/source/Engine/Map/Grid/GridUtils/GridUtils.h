@@ -4,6 +4,13 @@
 
 namespace Engine
 {
+
+	enum class eSubCellType : uint8_t
+	{
+		Wall,
+		StairRail
+	};
+
 	struct SubCellOBB {
 		glm::vec2 center;       // world-space center
 		glm::vec2 halfExtents;  // {half-length along edge, half-thickness}
@@ -12,6 +19,8 @@ namespace Engine
 
 		uint64_t CollisionKey = 0;
 		float Health = 1.0f;
+		int16_t Floor = 0;
+		eSubCellType Type = eSubCellType::Wall;
 	};
 
 

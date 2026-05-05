@@ -155,7 +155,7 @@ namespace Engine {
 		std::array<glm::vec2, 2>& GetViewportBounds() { return m_viewportBounds; }
 		uint32_t GetViewortHeight() { return m_viewportHeight; }
 		uint32_t GetViewportWidth() { return m_viewportWidth; }
-
+		float GetDeltatime() { return m_deltatime;  }
 
 		void RegisterSystem(const std::function<void(float, Scene*)>& system);
 		void SetDebugDrawLOS(bool drawLOS) { m_debugDrawLOS = drawLOS; }
@@ -178,6 +178,7 @@ namespace Engine {
 
 	private:
 
+		float m_deltatime = 0.0f;
 		entt::registry m_registry;
 		uint32_t m_viewportWidth = 0;
 		uint32_t m_viewportHeight = 0;
