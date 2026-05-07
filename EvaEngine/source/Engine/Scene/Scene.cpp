@@ -273,7 +273,7 @@ namespace Engine {
 
         // makes sure textures are reloaded to the right registry
         // editor to game
-        //m_textureStreamingSystem->ResetAllChunks(this);
+       // m_textureStreamingSystem->ResetAllChunks(this);
         m_textureStreamingSystem->SortIsoTilesByY(this);
 
         m_tileMananger->BuildTemplatesForScene(this);

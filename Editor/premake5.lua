@@ -10,11 +10,11 @@ project "Editor"
     objdir    ("build/bin-int/" .. outputdir .. "/%{prj.name}")
     targetname "Editor"
 
-	postbuildcommands 
-	{
- 	   "{COPY} \"../../EvaEngine/vendor/vcpkg_installed/x64-windows/bin/*.dll\" \"%{cfg.targetdir}\""
-	}
-
+    postbuildcommands
+    {
+        "{MKDIR} \"%{cfg.targetdir}\"",
+        "if exist \"../../EvaEngine/vendor/vcpkg_installed/x64-windows/bin/*.dll\" xcopy /Q /Y /I \"../../EvaEngine/vendor/vcpkg_installed/x64-windows/bin/*.dll\" \"%{cfg.targetdir}\""
+    }
     files
     {
         "source/**.h",

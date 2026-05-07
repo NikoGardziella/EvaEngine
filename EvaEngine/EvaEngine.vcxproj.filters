@@ -85,6 +85,9 @@
     <Filter Include="source\Engine\Map\Tile">
       <UniqueIdentifier>{85AAAC4D-71A4-D59F-5A11-6CB046AA3B0C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\Engine\Map\Tile\TileStabilitySystem">
+      <UniqueIdentifier>{3C1911C7-2881-D794-91EC-EBAA7D73EE80}</UniqueIdentifier>
+    </Filter>
     <Filter Include="source\Engine\Map\Tile\Utils">
       <UniqueIdentifier>{A5BBEB7C-9176-DB28-3A2E-547326C825B9}</UniqueIdentifier>
     </Filter>
@@ -474,6 +477,9 @@
     <ClInclude Include="source\Engine\Map\Tile\TileManager.h">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClInclude>
+    <ClInclude Include="source\Engine\Map\Tile\TileStabilitySystem\TileStabilitySystem.h">
+      <Filter>source\Engine\Map\Tile\TileStabilitySystem</Filter>
+    </ClInclude>
     <ClInclude Include="source\Engine\Map\Tile\TileStreaming.h">
       <Filter>source\Engine\Map\Tile</Filter>
     </ClInclude>
@@ -718,6 +724,12 @@
       <Filter>source\Engine\Scene\Components\Light</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\Map\AreaComponent.h">
+      <Filter>source\Engine\Scene\Components\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Map\FloorComponent.h">
+      <Filter>source\Engine\Scene\Components\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Engine\Scene\Components\Map\StairsComponent.h">
       <Filter>source\Engine\Scene\Components\Map</Filter>
     </ClInclude>
     <ClInclude Include="source\Engine\Scene\Components\NPC\Destruction\EnemyDestructibleComponent.h">
@@ -2151,8 +2163,6 @@
     <ClInclude Include="vendor\tiny_gltf\tiny_gltf.h">
       <Filter>vendor\tiny_gltf</Filter>
     </ClInclude>
-    <ClInclude Include="source\Engine\Scene\Components\Map\FloorComponent.h" />
-    <ClInclude Include="source\Engine\Scene\Components\Map\StairsComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Engine\Animation\2D\AnimationBank2D.cpp">
@@ -2289,6 +2299,9 @@
     </ClCompile>
     <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp">
       <Filter>source\Engine\Map\Tile</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Engine\Map\Tile\TileStabilitySystem\TileStabilitySystem.cpp">
+      <Filter>source\Engine\Map\Tile\TileStabilitySystem</Filter>
     </ClCompile>
     <ClCompile Include="source\Engine\Map\Tile\TileStreaming.cpp">
       <Filter>source\Engine\Map\Tile</Filter>

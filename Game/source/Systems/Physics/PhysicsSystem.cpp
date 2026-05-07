@@ -13,8 +13,12 @@
 void PhysicsSystem::UpdatePhysicsSystem(float dt, Engine::Scene* scene)
 {
     EE_PROFILE_FUNCTION();
+
     std::vector<Engine::Entity> entitiesToDestroy;
 
+
+    //constexpr float debugTimeScale = 0.1f; // smaller = slower
+    //dt *= debugTimeScale;
 
     scene->ForEach<Engine::TransformComponent, PhysicsComponent>(
         [&](Engine::Entity e, Engine::TransformComponent& xf, PhysicsComponent& phys)

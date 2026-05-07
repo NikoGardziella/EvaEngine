@@ -131,6 +131,76 @@ namespace Engine
         return false;
     }
 
+    bool CompactTileMap::HasStabilityTile(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, int16_t floor) const
+    {
+        const std::vector<CompactTile>* tiles = GetTiles(worldCell);
+        if (!tiles)
+            return false;
+
+        for (const CompactTile& tile : *tiles)
+        {
+            const bool canCollapse = (tile.Flags & CompactTileFlags::CanCollapse) != 0;
+
+            if (canCollapse)
+                return true;
+        }
+
+        return false;
+    }
+
+    bool CompactTileMap::HasSupportingTile(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, int16_t floor) const
+    {
+        const std::vector<CompactTile>* tiles = GetTiles(worldCell);
+        if (!tiles)
+            return false;
+
+        for (const CompactTile& tile : *tiles)
+        {
+            const bool canSupport = (tile.Flags & CompactTileFlags::CanSupport) != 0;
+
+            if (tile.Floor != floor)
+                continue;
+
+
+            if (canSupport)
+                return true;
+        }
+
+        return false;
+    }
+        
+
+    bool CompactTileMap::FindFirstStabilityTile(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs,
+        int16_t floor, CompactTile& outTile) const
+    {
+        const std::vector<CompactTile>* tiles = GetTiles(worldCell);
+        if (!tiles)
+            return false;
+
+        for (const CompactTile& tile : *tiles)
+        {
+            if (tile.Floor != floor)
+                continue;
+
+            if (tile.IsEmpty())
+                continue;
+
+            const TileDefinition* def = defs.Get(tile.TypeId);
+            if (!def)
+                continue;
+
+            const bool isRoof = def->Category == eTileCategory::Roofs;
+            const bool isUpperFloorTile = tile.Floor > 0;
+
+            if (isRoof || isUpperFloorTile)
+            {
+                outTile = tile;
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     CompactTile& CompactTileMap::AddTile(const glm::ivec2& worldCell, const CompactTile& tile)
     {
@@ -273,6 +343,29 @@ namespace Engine
 
             MarkChunkDirtyForCell(worldCell);
         }
+    }
+
+    bool CompactTileMap::ClearTileFlag(const glm::ivec2& worldCell, uint16_t typeId, int16_t floor, uint8_t flag)
+    {
+        std::vector<CompactTile>* tiles = GetTiles(worldCell);
+        if (!tiles)
+            return false;
+
+        for (CompactTile& tile : *tiles)
+        {
+            if (tile.TypeId != typeId)
+                continue;
+
+            if (tile.Floor != floor)
+                continue;
+
+            tile.Flags &= ~flag;
+
+            MarkChunkDirtyForCell(worldCell);
+            return true;
+        }
+
+        return false;
     }
 
     void CompactTileMap::Clear()

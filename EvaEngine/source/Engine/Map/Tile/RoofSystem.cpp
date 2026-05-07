@@ -204,12 +204,13 @@ namespace Engine {
         return false;
     }
 
-    void RoofSystem::EvaluateDirtyRegionsAndScheduleCollapses(RoofSystemState& st,  const SceneRoofTileAccess* access,
+    void RoofSystem::EvaluateDirtyRegionsAndScheduleCollapses(RoofSystemState& st, const SceneRoofTileAccess* access,
         const RoofSystemConfig& cfg)
     {
         EE_PROFILE_FUNCTION();
 
-        if (st.dirtyMerged.empty()) return;
+        if (st.dirtyMerged.empty())
+            return;
 
         std::vector<glm::ivec2> compTiles;
         compTiles.reserve(512);
@@ -221,7 +222,9 @@ namespace Engine {
 
             const int regionW = regionMax.x - regionMin.x + 1;
             const int regionH = regionMax.y - regionMin.y + 1;
-            if (regionW <= 0 || regionH <= 0) continue;
+
+            if (regionW <= 0 || regionH <= 0)
+                continue;
 
             std::vector<uint8_t> visited((size_t)regionW * (size_t)regionH, 0);
 
@@ -230,47 +233,37 @@ namespace Engine {
                 for (int rx = 0; rx < regionW; ++rx)
                 {
                     const size_t li = RoofUtils::LocalIndex(rx, ry, regionW);
-                    if (visited[li]) continue;
 
-                    glm::ivec2 p(regionMin.x + rx, regionMin.y + ry);
+                    if (visited[li])
+                        continue;
 
-                    // Mark visited even if out of bounds, to avoid reprocessing
                     visited[li] = 1;
 
-
+                    const glm::ivec2 p(regionMin.x + rx, regionMin.y + ry);
 
                     if (!access->HasRoof(p))
-                    {
-                        // EE_CORE_INFO("evaluating dirty region, does not have roof{}", p);
-
                         continue;
-                    }
 
-                    // p is a roof tile seed, do flood fill within region
+                    compTiles.clear();
+
                     FloodFillRoofComponent(access, cfg, p, regionMin, regionMax, visited, regionW, regionH, compTiles);
-                    if (compTiles.empty()) continue;
 
-                    std::vector<glm::ivec2> unsupported;
-                    unsupported.reserve(compTiles.size());
+                    if (compTiles.empty())
+                        continue;
+
+                    bool componentHasSupport = false;
 
                     for (const glm::ivec2& roofCell : compTiles)
                     {
-                        if (!IsRoofCellSupported(access, cfg, roofCell))
+                        if (IsRoofCellSupported(access, cfg, roofCell))
                         {
-
-                            unsupported.push_back(roofCell);
+                            componentHasSupport = true;
+                            break;
                         }
                     }
 
-                    if (!unsupported.empty())
-                    {
-                        // simplest: collapse all unsupported tiles
-                        ScheduleCollapse(st, cfg, unsupported);
-
-
-
-
-                    }
+                    if (!componentHasSupport)
+                        ScheduleCollapse(st, cfg, compTiles);
                 }
             }
         }

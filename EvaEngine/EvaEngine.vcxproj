@@ -234,6 +234,7 @@
     <ClInclude Include="source\Engine\Map\Tile\TileDefinition.h" />
     <ClInclude Include="source\Engine\Map\Tile\TileDefinitionRegistry.h" />
     <ClInclude Include="source\Engine\Map\Tile\TileManager.h" />
+    <ClInclude Include="source\Engine\Map\Tile\TileStabilitySystem\TileStabilitySystem.h" />
     <ClInclude Include="source\Engine\Map\Tile\TileStreaming.h" />
     <ClInclude Include="source\Engine\Map\Tile\Utils\CompressUtils.h" />
     <ClInclude Include="source\Engine\Map\Tile\Utils\RoofUtils.h" />
@@ -842,6 +843,7 @@
     <ClCompile Include="source\Engine\Map\Tile\SceneRoofTileAccess.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\TileDefinitionRegistry.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\TileManager.cpp" />
+    <ClCompile Include="source\Engine\Map\Tile\TileStabilitySystem\TileStabilitySystem.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\TileStreaming.cpp" />
     <ClCompile Include="source\Engine\Map\Tile\Utils\TileManagerUtils.cpp" />
     <ClCompile Include="source\Engine\Math\Math.cpp" />

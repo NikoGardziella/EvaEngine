@@ -35,6 +35,8 @@ namespace Engine
         inline constexpr uint8_t None = 0;
         inline constexpr uint8_t Hidden = 1 << 0;
         inline constexpr uint8_t Promoted = 1 << 1;
+        inline constexpr uint8_t CanCollapse = 1 << 2;
+        inline constexpr uint8_t CanSupport = 1 << 3;
     }
 
     struct CompactTileCell
@@ -87,6 +89,10 @@ namespace Engine
 
         bool HasTileType(const glm::ivec2& worldCell, uint16_t typeId, int16_t floor) const;
 
+        bool HasStabilityTile(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, int16_t floor) const;
+        bool HasSupportingTile(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, int16_t floor) const;
+        bool FindFirstStabilityTile(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, int16_t floor, CompactTile& outTile) const;
+
         //bool HasTileType(const glm::ivec2& worldCell, uint16_t typeId) const;
         CompactTile& AddTile(const glm::ivec2& worldCell, const CompactTile& tile);
         bool RemoveTile(const glm::ivec2& worldCell, uint16_t typeId);
@@ -103,6 +109,7 @@ namespace Engine
         void RemoveGroup(uint64_t groupId);
         void ClearPromotionFlags();
         void ClearPromotionFlagsForGroup(uint64_t groupId);
+        bool ClearTileFlag(const glm::ivec2& worldCell, uint16_t typeId, int16_t floor, uint8_t flag);
         void Clear();
         bool RemoveTilesByCategory(const glm::ivec2& worldCell, const TileDefinitionRegistry& defs, eTileCategory category, int16_t floor);
         bool IsWallReplaceableCategory(eTileCategory category);

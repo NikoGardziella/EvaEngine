@@ -282,7 +282,21 @@ namespace Engine
             if (!compact)
                 continue;
             compact->Flags |= CompactTileFlags::Promoted;
+
             compact->Flags |= CompactTileFlags::Hidden;
+            if (p.def->Category == eTileCategory::Roofs)
+                compact->Flags |= CompactTileFlags::CanCollapse;
+
+            if (p.def->Category != eTileCategory::Terrain && p.floor > 0)
+                compact->Flags |= CompactTileFlags::CanCollapse;
+
+            if (p.def->Category == eTileCategory::Buildings ||
+                p.def->Category == eTileCategory::Pillars ||
+                p.def->Category == eTileCategory::Terrain)
+            {
+                compact->Flags |= CompactTileFlags::CanSupport;
+            }
+
             compactMap.MarkChunkDirtyForCell(p.worldCell);
         }
 

@@ -11,6 +11,7 @@
 
 #include "Engine/Map/Tile/RoofSystem.h"
 #include "Engine/Map/Tile/SceneRoofTileAccess.h"
+#include "TileStabilitySystem/TileStabilitySystem.h"
 namespace Engine
 {
 
@@ -68,6 +69,7 @@ namespace Engine
 
         // roofs
         RoofSystem m_roofSystem;
+        TileStabilitySystem m_tileStabilitySystem;
         SceneRoofTileAccess m_roofAccess;
        
     private:

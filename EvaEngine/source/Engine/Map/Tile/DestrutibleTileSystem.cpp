@@ -12,6 +12,8 @@
 
 #include <Engine/Scene/Components/Render/TileComponent.h>
 #include "Engine/Scene/Components/Physics/PhysicUtils.h"
+#include "Engine/Map/Utils/IsoTileUtils.h"
+#include "Engine/AssetManager/AssetManager.h"
 
 namespace Engine {
 
@@ -354,7 +356,9 @@ namespace Engine {
         Engine::RoofSystemConfig cfg;
         cfg.minSupportsPerComponent = 2;
 
-        m_roofSystem.Init(scene, &m_roofAccess, cfg);
+       // m_roofSystem.Init(scene, &m_roofAccess, cfg);
+
+        m_tileStabilitySystem.InitTileStabilitySystem(scene);
     }
 
     // =========================
@@ -365,6 +369,7 @@ namespace Engine {
         EE_PROFILE_FUNCTION();
 
         m_roofSystem.Update(deltaTime);
+        m_tileStabilitySystem.Update(deltaTime);
 
         const auto& tiles = Engine::TileBlockedMaskCPU::DirtyTileRuntime;
         if (tiles.empty()) return;
@@ -440,6 +445,16 @@ namespace Engine {
                     bx0, by0, bx1, by1, rowPop, cutY);
                 if (got)
                 {
+                    const int minCutY = by0 + 1;
+                    const int maxCutY = by1 - 1;
+
+                    if (minCutY > maxCutY)
+                    {
+                        EE_CORE_WARN("Skipping split: bbox too small for cut. cutY={}, by0={}, by1={}, minCutY={}, maxCutY={}",
+                            cutY, by0, by1, minCutY, maxCutY);
+
+                        continue;
+                    }
                     cutY = std::clamp(cutY, by0 + 1, by1 - 1);
 
                     // Find owner tile entity for this slot
@@ -465,7 +480,26 @@ namespace Engine {
                                     tc.tiles[i].IsSupportingRoof = false;
 
                                     EE_CORE_INFO("xform.Translation.x {}, xform.Translation.y {}, tile local pos {}", xform.Translation.x, xform.Translation.y, tc.tiles[i].position);
-                                    m_roofSystem.NotifySupportLostAtWorld(tilePos);
+                                   // m_roofSystem.NotifySupportLostAtWorld(tilePos);
+
+                                    glm::vec2 tileWorldPos = glm::vec2(xform.Translation.x, xform.Translation.y) + tc.tiles[i].position;
+                                    glm::ivec2 cell = IsoTileUtils::WorldToIsoCellInt(tileWorldPos);
+
+                                    TileTypeKey key;
+                                    key.name = tc.tiles[i].name;
+                                    key.category = tc.tiles[i].Category;
+                                    key.direction = tc.tiles[i].TileDirection;
+
+                                    uint16_t typeId = 0;
+                                    const TileDefinitionRegistry& tileDefReg = AssetManager::GetTileDefinitions();
+
+                                    if (tileDefReg.FindTypeId(key, typeId))
+                                    {
+                                        scene->GetCompactTileMap().ClearTileFlag(cell, typeId, tc.tiles[i].floor, CompactTileFlags::CanCollapse);
+                                        scene->GetCompactTileMap().ClearTileFlag(cell, typeId, tc.tiles[i].floor, CompactTileFlags::CanSupport);
+                                       // scene->GetCompactTileMap().ClearTileFlag(cell, typeId, tc.tiles[i].floor, CompactTileFlags::Promoted);
+                                    }
+                                    m_tileStabilitySystem.NotifySupportLostAtCell(cell, tc.tiles[i].floor);
 
                                     return;
                                 }
@@ -503,6 +537,7 @@ namespace Engine {
                         Ref<VulkanBindlessDescriptorSetRenderer>& bindless = VulkanRenderer2D::GetBindlessDescriptorSetRenderer();
                         VkImage colorImg = bindless->GetColorImageArray();
                         VkImage propsImg = bindless->GetPropsArrayImage();
+                        EE_CORE_INFO("stad clamp cutY {}, max {}", cutY, H);
                         const uint32_t copyY = std::clamp(cutY, 0, (int)H);
                         const uint32_t copyH = (copyY < H) ? (H - copyY) : 0u;
                         // helper: per-layer barrier
@@ -519,6 +554,7 @@ namespace Engine {
                         newTIle.opaqueMax = glm::ivec2(0);
                         newTIle.opaqueMin = glm::ivec2(0);
                         newTIle.IsSpawned = true;
+                        newTIle.IsSupportingRoof = false;
                         tcNew.tiles.push_back(newTIle);
 
                         cfg.lastAlive = totalAlive;
@@ -533,7 +569,7 @@ namespace Engine {
                         float     w0 = glm::radians(120.0f);
 
                         PhysicsUtils::AttachSimplePhysics(newEntity, v0, w0, simulateSeconds,
-                            /*destroyOnFinish*/false, { 0.f, -gravityMag });
+                            /*destroyOnFinish*/true, { 0.f, -gravityMag });
 
                     }
                 }

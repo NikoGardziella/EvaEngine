@@ -759,7 +759,7 @@ namespace Engine {
                             projectile.TargetPositionAtFireTime, projectile.DistanceToTargetatFireTime, projectile.TargetPositionHeightZ1,
                             projectile.AffectedTileUIDs);
 
-                        float zKey = 0.0f;
+                        float zKey = 0.1f;
                         float rotation = std::atan2(projectile.Direction.y, projectile.Direction.x);
 
                         // this could be set somwhere
@@ -773,7 +773,9 @@ namespace Engine {
                             continue;
                         }
                         const int16_t projectileFloor = 0;
-                        const int16_t projectileFlags = 0;
+                        int16_t projectileFlags = 0;
+                        projectileFlags |= VulkanBindlessDescriptorSetRenderer::eTileFlags::DrawInFrontOfPlayer;
+
                         VulkanRenderer2D::GetBindlessDescriptorSetRenderer()->AddInstance(projectilePos, zKey, projectile.renderSlot, rotation, eTileDirection::Center, outOpaqueMin, outOpaqueMax, size, projectileFlags, projectileFloor);
 
                     }
