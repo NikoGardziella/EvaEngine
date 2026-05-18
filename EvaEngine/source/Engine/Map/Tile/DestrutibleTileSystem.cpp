@@ -133,6 +133,7 @@ namespace Engine {
     // -------------------------
     // Connectivity (thresholded)
     // -------------------------
+
     bool DestructibleTileSystem::AnyPathConnectedBBoxThresholded(const std::vector<uint32_t>& words,
         int W, int H, const ConnCfg& cfg,
         int bx0, int by0, int bx1, int by1,
@@ -197,6 +198,206 @@ namespace Engine {
         }
         return false;
     }
+
+
+    bool DestructibleTileSystem::HasLostTooMuchArea(
+        int currentAlive,
+        int originalAlive,
+        float minRemainingRatio)
+    {
+        if (originalAlive <= 0)
+            return false;
+
+        const float ratio = float(currentAlive) / float(originalAlive);
+        return ratio <= minRemainingRatio;
+    }
+
+    bool DestructibleTileSystem::HasWideDestroyedBand(
+        const std::vector<int>& rowPop,
+        int topY,
+        int botY,
+        int tileAliveWidth,
+        float maxAliveRatio,
+        int minConsecutiveRows)
+    {
+        int run = 0;
+
+        for (int y = topY + 1; y < botY; ++y)
+        {
+            const float aliveRatio = float(rowPop[y]) / float(tileAliveWidth);
+
+            if (aliveRatio <= maxAliveRatio)
+            {
+                ++run;
+
+                if (run >= minConsecutiveRows)
+                    return true;
+            }
+            else
+            {
+                run = 0;
+            }
+        }
+
+        return false;
+    }
+
+    int DestructibleTileSystem::CountAlivePixelsNearOriginalBase(
+        const std::vector<int>& rowPop,
+        int baselineBotY,
+        int baseBandRows)
+    {
+        if (rowPop.empty())
+            return 0;
+
+        const int maxY = int(rowPop.size()) - 1;
+        baselineBotY = std::clamp(baselineBotY, 0, maxY);
+
+        const int y0 = std::max(0, baselineBotY - baseBandRows + 1);
+        const int y1 = baselineBotY;
+
+        int aliveInBaseBand = 0;
+
+        for (int y = y0; y <= y1; ++y)
+            aliveInBaseBand += rowPop[y];
+
+        return aliveInBaseBand;
+    }
+
+
+    bool DestructibleTileSystem::HasWideEnoughBaseSupport(
+        const std::vector<uint32_t>& words,
+        int W,
+        int H,
+        const ConnCfg& cfg,
+        int y0,
+        int y1,
+        int minX,
+        int maxX,
+        float minWidthRatio)
+    {
+        int minAliveX = W;
+        int maxAliveX = -1;
+
+        y0 = std::clamp(y0, 0, H - 1);
+        y1 = std::clamp(y1, 0, H - 1);
+
+        for (int y = y0; y <= y1; ++y)
+        {
+            for (int x = minX; x <= maxX; ++x)
+            {
+                if (!ReadBitPackedAt(words, W, H, x, y, cfg))
+                    continue;
+
+                minAliveX = std::min(minAliveX, x);
+                maxAliveX = std::max(maxAliveX, x);
+            }
+        }
+
+        if (maxAliveX < minAliveX)
+            return false;
+
+        const int aliveWidth = maxAliveX - minAliveX + 1;
+        const int requiredWidth = int(float(maxX - minX + 1) * minWidthRatio);
+
+        return aliveWidth >= requiredWidth;
+    }
+
+    bool DestructibleTileSystem::HasAlivePixelsNearOriginalBase(const std::vector<int>& rowPop, int baselineBotY,
+        int baseBandRows, int minAlivePixels)
+    {
+        if (baselineBotY < 0)
+            return true;
+
+        const int y0 = std::max(0, baselineBotY - baseBandRows + 1);
+        const int y1 = baselineBotY;
+
+        int aliveInBaseBand = 0;
+
+        for (int y = y0; y <= y1; ++y)
+        {
+            aliveInBaseBand += rowPop[y];
+        }
+
+        return aliveInBaseBand >= minAlivePixels;
+    }
+
+
+    bool DestructibleTileSystem::HasMultipleAliveComponents(const std::vector<uint32_t>& words, int W, int H,
+        const ConnCfg& cfg, int bx0, int by0, int bx1, int by1, int minComponentPixels)
+    {
+        const int BW = bx1 - bx0 + 1;
+        const int BH = by1 - by0 + 1;
+
+        std::vector<uint8_t> visited(size_t(BW) * size_t(BH), 0);
+
+        auto LIDX = [&](int x, int y) -> size_t
+            {
+                return size_t(y - by0) * size_t(BW) + size_t(x - bx0);
+            };
+
+        static const int DX4[4] = { +1, -1, 0, 0 };
+        static const int DY4[4] = { 0, 0, +1, -1 };
+
+        int largeComponents = 0;
+
+        for (int y = by0; y <= by1; ++y)
+        {
+            for (int x = bx0; x <= bx1; ++x)
+            {
+                if (visited[LIDX(x, y)])
+                    continue;
+
+                if (!ReadBitPackedAt(words, W, H, x, y, cfg))
+                    continue;
+
+                int count = 0;
+                std::queue<std::pair<int, int>> q;
+
+                visited[LIDX(x, y)] = 1;
+                q.emplace(x, y);
+
+                while (!q.empty())
+                {
+                    auto [cx, cy] = q.front();
+                    q.pop();
+
+                    ++count;
+
+                    for (int k = 0; k < 4; ++k)
+                    {
+                        int nx = cx + DX4[k];
+                        int ny = cy + DY4[k];
+
+                        if (nx < bx0 || nx > bx1 || ny < by0 || ny > by1)
+                            continue;
+
+                        size_t li = LIDX(nx, ny);
+
+                        if (visited[li])
+                            continue;
+
+                        if (!ReadBitPackedAt(words, W, H, nx, ny, cfg))
+                            continue;
+
+                        visited[li] = 1;
+                        q.emplace(nx, ny);
+                    }
+                }
+
+                if (count >= minComponentPixels)
+                {
+                    ++largeComponents;
+
+                    if (largeComponents >= 2)
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 
     bool DestructibleTileSystem::HasDeadRowGapInBBoxThresholded(const std::vector<int>& rowPop,
         int topY, int botY)
@@ -371,55 +572,105 @@ namespace Engine {
         m_roofSystem.Update(deltaTime);
         m_tileStabilitySystem.Update(deltaTime);
 
-        const auto& tiles = Engine::TileBlockedMaskCPU::DirtyTileRuntime;
-        if (tiles.empty()) return;
-
-        const int W = TILE_PIXEL_WIDTH;
-        const int H = TILE_PIXEL_HEIGHT;
-        const size_t expectedWords = (size_t(W) * size_t(H) + 31) / 32;
-
-        for (const auto& tr : tiles)
+        const auto& dirtyTiles = Engine::TileBlockedMaskCPU::DirtyTileRuntime;
+        if (dirtyTiles.empty())
         {
-            const uint32_t slot = tr.slot;
+            return;
+        }
 
-            // Ensure per-slot storage
-            if (slot >= m_connCfg.size())            m_connCfg.resize(slot + 1);
-            if (slot >= m_initialized.size())        m_initialized.resize(slot + 1, 0);
-            if (slot >= m_topBottomConnected.size()) m_topBottomConnected.resize(slot + 1, 0);
-            if (slot >= m_aliveCount.size())         m_aliveCount.resize(slot + 1, -1);
-            if (slot >= m_maskCrc.size())            m_maskCrc.resize(slot + 1, 0);
+        const int tilePixelWidth = TILE_PIXEL_WIDTH;
+        const int tilePixelHeight = TILE_PIXEL_HEIGHT;
+        const size_t expectedWordCount = (size_t(tilePixelWidth) * size_t(tilePixelHeight) + 31) / 32;
 
-            if (tr.aliveWords.size() < expectedWords)
+        Ref<VulkanBindlessDescriptorSetRenderer>& bindlessRenderer = VulkanRenderer2D::GetBindlessDescriptorSetRenderer();
+
+        for (const auto& dirtyTile : dirtyTiles)
+        {
+            const uint32_t slot = dirtyTile.slot;
+
+            if (slot >= m_connCfg.size())
+            {
+                m_connCfg.resize(slot + 1);
+            }
+
+            if (slot >= m_initialized.size())
+            {
+                m_initialized.resize(slot + 1, 0);
+            }
+
+            if (slot >= m_topBottomConnected.size())
+            {
+                m_topBottomConnected.resize(slot + 1, 0);
+            }
+
+            if (slot >= m_aliveCount.size())
+            {
+                m_aliveCount.resize(slot + 1, -1);
+            }
+
+            if (slot >= m_maskCrc.size())
+            {
+                m_maskCrc.resize(slot + 1, 0);
+            }
+
+            if (slot >= m_slotUID.size())
+            {
+                m_slotUID.resize(slot + 1, 0);
+            }
+
+            if (dirtyTile.aliveWords.size() < expectedWordCount)
             {
                 continue;
             }
-            // Change detection
-            const uint32_t curCrc = Crc32Words(tr.aliveWords);
-            const bool changed = (curCrc != m_maskCrc[slot]);
-            m_maskCrc[slot] = curCrc;
-            if (!changed)
+
+            const uint64_t currentUID = bindlessRenderer->GetTileUIDFromSlot(slot);
+            if (currentUID == 0)
             {
                 continue;
             }
-            // Calibrate bit sense once
-            ConnCfg& cfg = m_connCfg[slot];
-            if (!cfg.set)
+
+            if (m_slotUID[slot] != currentUID)
             {
-                const long long t = static_cast<long long>(tr.aliveCount);
-                const long long c1 = CountAliveWithSense(tr.aliveWords, W, H, /*lsbFirst*/true,  /*oneIsAlive*/true);
-                const long long c0 = CountAliveWithSense(tr.aliveWords, W, H, /*lsbFirst*/true,  /*oneIsAlive*/false);
-                const bool pickOneIsAlive = (std::llabs(c1 - t) <= std::llabs(c0 - t));
-                cfg.set = true;
-                cfg.lsbFirst = true;      // if you also need to calibrate msb/lsb, add logic here
-                cfg.oneIsAlive = pickOneIsAlive;
-                cfg.lastAlive = int(t);
+                m_slotUID[slot] = currentUID;
+                m_connCfg[slot] = ConnCfg{};
+                m_initialized[slot] = 0;
+                m_topBottomConnected[slot] = 0;
+                m_aliveCount[slot] = -1;
+                m_maskCrc[slot] = 0;
             }
 
-            // Build bbox + frontiers
-            int bx0, by0, bx1, by1, topY, botY;
-            std::vector<int> rowPop;
-            if (!BBoxFrontiersWithThreshold(tr.aliveWords, W, H, cfg,
-                bx0, by0, bx1, by1, topY, botY, rowPop))
+            const uint32_t currentMaskCrc = Crc32Words(dirtyTile.aliveWords);
+            const bool maskChanged = currentMaskCrc != m_maskCrc[slot];
+            m_maskCrc[slot] = currentMaskCrc;
+
+            if (!maskChanged)
+            {
+                continue;
+            }
+
+            ConnCfg& connectionConfig = m_connCfg[slot];
+
+            if (!connectionConfig.set)
+            {
+                const long long targetAliveCount = static_cast<long long>(dirtyTile.aliveCount);
+                const long long oneIsAliveCount = CountAliveWithSense(dirtyTile.aliveWords, tilePixelWidth, tilePixelHeight, true, true);
+                const long long zeroIsAliveCount = CountAliveWithSense(dirtyTile.aliveWords, tilePixelWidth, tilePixelHeight, true, false);
+
+                connectionConfig.set = true;
+                connectionConfig.lsbFirst = true;
+                connectionConfig.oneIsAlive = std::llabs(oneIsAliveCount - targetAliveCount) <= std::llabs(zeroIsAliveCount - targetAliveCount);
+                connectionConfig.lastAlive = int(targetAliveCount);
+            }
+
+            int boundsMinX = 0;
+            int boundsMinY = 0;
+            int boundsMaxX = 0;
+            int boundsMaxY = 0;
+            int topAliveY = 0;
+            int bottomAliveY = 0;
+            std::vector<int> alivePixelsPerRow;
+
+            if (!BBoxFrontiersWithThreshold(dirtyTile.aliveWords, tilePixelWidth, tilePixelHeight, connectionConfig, boundsMinX, boundsMinY, boundsMaxX, boundsMaxY, topAliveY, bottomAliveY, alivePixelsPerRow))
             {
                 m_initialized[slot] = 1;
                 m_topBottomConnected[slot] = 0;
@@ -427,158 +678,209 @@ namespace Engine {
                 continue;
             }
 
-            // Connectivity and gap checks
-            int tY = -1, bY = -1;
-            const bool connected_any = AnyPathConnectedBBoxThresholded(tr.aliveWords, W, H, cfg,
-                bx0, by0, bx1, by1, topY, botY, tY, bY);
-            const bool gap = HasDeadRowGapInBBoxThresholded(rowPop, topY, botY);
-            const bool disconnected = (!connected_any) || gap;
-            
-            // total alive within bbox
-            int totalAlive = 0;
-            for (int y = by0; y <= by1; ++y) totalAlive += rowPop[y];
-
-            if (disconnected)
+            int totalAlivePixels = 0;
+            for (int row = boundsMinY; row <= boundsMaxY; ++row)
             {
-                int cutY = -1;
-                bool got = ComputeCutYTrueConnectivity(tr.aliveWords, W, H, cfg.lsbFirst,
-                    bx0, by0, bx1, by1, rowPop, cutY);
-                if (got)
-                {
-                    const int minCutY = by0 + 1;
-                    const int maxCutY = by1 - 1;
-
-                    if (minCutY > maxCutY)
-                    {
-                        EE_CORE_WARN("Skipping split: bbox too small for cut. cutY={}, by0={}, by1={}, minCutY={}, maxCutY={}",
-                            cutY, by0, by1, minCutY, maxCutY);
-
-                        continue;
-                    }
-                    cutY = std::clamp(cutY, by0 + 1, by1 - 1);
-
-                    // Find owner tile entity for this slot
-                    Engine::Entity srcEntity{};
-                    size_t srcTileIndex = SIZE_MAX;
-                    bool found = false;
-
-                    scene->ForEach<Engine::TransformComponent, Engine::TileComponent, Engine::IDComponent>(
-                        [&](Engine::Entity e,
-                            Engine::TransformComponent& xform,
-                            Engine::TileComponent& tc,
-                            Engine::IDComponent& idc)
-                        {
-                            for (size_t i = 0; i < tc.tiles.size(); ++i) 
-                            {
-                                if (tc.tiles[i].Slot == slot)
-                                {
-                                    srcEntity = e;
-                                    srcTileIndex = i;
-                                    found = true;
-
-                                    glm::vec2 tilePos = glm::vec2(xform.Translation.x, xform.Translation.y) + tc.tiles[i].position;
-                                    tc.tiles[i].IsSupportingRoof = false;
-
-                                    EE_CORE_INFO("xform.Translation.x {}, xform.Translation.y {}, tile local pos {}", xform.Translation.x, xform.Translation.y, tc.tiles[i].position);
-                                   // m_roofSystem.NotifySupportLostAtWorld(tilePos);
-
-                                    glm::vec2 tileWorldPos = glm::vec2(xform.Translation.x, xform.Translation.y) + tc.tiles[i].position;
-                                    glm::ivec2 cell = IsoTileUtils::WorldToIsoCellInt(tileWorldPos);
-
-                                    TileTypeKey key;
-                                    key.name = tc.tiles[i].name;
-                                    key.category = tc.tiles[i].Category;
-                                    key.direction = tc.tiles[i].TileDirection;
-
-                                    uint16_t typeId = 0;
-                                    const TileDefinitionRegistry& tileDefReg = AssetManager::GetTileDefinitions();
-
-                                    if (tileDefReg.FindTypeId(key, typeId))
-                                    {
-                                        scene->GetCompactTileMap().ClearTileFlag(cell, typeId, tc.tiles[i].floor, CompactTileFlags::CanCollapse);
-                                        scene->GetCompactTileMap().ClearTileFlag(cell, typeId, tc.tiles[i].floor, CompactTileFlags::CanSupport);
-                                       // scene->GetCompactTileMap().ClearTileFlag(cell, typeId, tc.tiles[i].floor, CompactTileFlags::Promoted);
-                                    }
-                                    m_tileStabilitySystem.NotifySupportLostAtCell(cell, tc.tiles[i].floor);
-
-                                    return;
-                                }
-                            }
-                        });
-
-                    if (!found)
-                    {
-                        EE_CORE_WARN("Split: owner entity for slot {} not found", slot);
-                    }
-                    else 
-                    {
-                        const Engine::TransformComponent& srcXf = srcEntity.GetComponent<Engine::TransformComponent>();
-                        const Engine::TileComponent& srcTc = srcEntity.GetComponent<Engine::TileComponent>();
-                        const Engine::IDComponent& srcId = srcEntity.GetComponent<Engine::IDComponent>();
-                        const Engine::TileInfo& srcTi = srcTc.tiles[srcTileIndex];
-
-                        // Create a new entity for the top piece (new slot is allocated inside RemoveTilePixels path)
-                        Engine::Entity newEntity = scene->CreateEntity(srcTi.name + " Top");
-                        Engine::IDComponent& idNew = newEntity.GetComponent<Engine::IDComponent>();
-                        Engine::TransformComponent& xfNew = newEntity.AddComponent<Engine::TransformComponent>();
-                        xfNew.SetTransform(srcXf.GetTransform()); // copy transform
-
-                        Engine::TileComponent& tcNew = newEntity.AddComponent<Engine::TileComponent>();
-
-                        eTileCategory newTileCategoru = eTileCategory::DynamicObjects;
-                        uint64_t newTileUID = HashUtils::MakeTileUID((uint64_t)idNew.ID, srcTi.position, float(TILE_SIZE), (uint32_t)newTileCategoru, srcTi.TileDirection, srcTi.floor);
-                        const uint32_t W = TILE_PIXEL_WIDTH;
-                        const uint32_t H = TILE_PIXEL_HEIGHT;
-                        const size_t bytes = size_t(W) * size_t(H) * 4; std::vector<uint8_t> zeroColor(bytes, 0);
-                        std::vector<uint8_t> zeroProps(bytes, 0);
-
-                        VulkanContext* ctx = VulkanContext::Get();
-                        VkCommandBuffer cb = ctx->BeginSingleTimeCommands();
-                        Ref<VulkanBindlessDescriptorSetRenderer>& bindless = VulkanRenderer2D::GetBindlessDescriptorSetRenderer();
-                        VkImage colorImg = bindless->GetColorImageArray();
-                        VkImage propsImg = bindless->GetPropsArrayImage();
-                        EE_CORE_INFO("stad clamp cutY {}, max {}", cutY, H);
-                        const uint32_t copyY = std::clamp(cutY, 0, (int)H);
-                        const uint32_t copyH = (copyY < H) ? (H - copyY) : 0u;
-                        // helper: per-layer barrier
-                        uint32_t newSlot = bindless->EnsureTileResidentFromRaw(newTileUID, zeroColor.data(), zeroColor.size(), zeroProps.data(), zeroProps.size(), cb);
-                        ctx->EndSingleTimeCommands(cb);
-
-
-                        
-                        Engine::VulkanRenderer2D::RemoveTilePixels(slot, newSlot, tr.aliveWords, cutY);
-                        
-                        TileInfo newTIle = srcTi;
-                        newTIle.Slot = newSlot;
-                        newTIle.UID  = newTileUID;
-                        newTIle.opaqueMax = glm::ivec2(0);
-                        newTIle.opaqueMin = glm::ivec2(0);
-                        newTIle.IsSpawned = true;
-                        newTIle.IsSupportingRoof = false;
-                        tcNew.tiles.push_back(newTIle);
-
-                        cfg.lastAlive = totalAlive;
-
-                        // Physics kick for the top piece
-                        const float pxW = float(TILE_SIZE) / float(TILE_PIXEL_WIDTH);
-                        const float gravityMag = 9.81f;
-
-                        float simulateSeconds = DurationFromCutY(cutY, TILE_PIXEL_HEIGHT, pxW, gravityMag, /*isTopPiece=*/true);
-
-                        glm::vec2 v0 = glm::vec2(+20.0f * pxW, +40.0f * pxW); // tweak
-                        float     w0 = glm::radians(120.0f);
-
-                        PhysicsUtils::AttachSimplePhysics(newEntity, v0, w0, simulateSeconds,
-                            /*destroyOnFinish*/true, { 0.f, -gravityMag });
-
-                    }
-                }
+                totalAlivePixels += alivePixelsPerRow[row];
             }
 
-            // Update state
+            if (connectionConfig.baselineAlive < 0)
+            {
+                connectionConfig.baselineAlive = totalAlivePixels;
+                connectionConfig.baselineTopY = topAliveY;
+                connectionConfig.baselineBotY = bottomAliveY;
+                connectionConfig.baselineBx0 = boundsMinX;
+                connectionConfig.baselineBy0 = boundsMinY;
+                connectionConfig.baselineBx1 = boundsMaxX;
+                connectionConfig.baselineBy1 = boundsMaxY;
+            }
+
+            int connectedTopY = -1;
+            int connectedBottomY = -1;
+
+            const bool hasTopToBottomPath = AnyPathConnectedBBoxThresholded(dirtyTile.aliveWords, tilePixelWidth, tilePixelHeight, connectionConfig, boundsMinX, boundsMinY, boundsMaxX, boundsMaxY, topAliveY, bottomAliveY, connectedTopY, connectedBottomY);
+            const bool hasDeadRowGap = HasDeadRowGapInBBoxThresholded(alivePixelsPerRow, topAliveY, bottomAliveY);
+            const bool hasMultipleAliveComponents = HasMultipleAliveComponents(dirtyTile.aliveWords, tilePixelWidth, tilePixelHeight, connectionConfig, boundsMinX, boundsMinY, boundsMaxX, boundsMaxY, 32);
+
+            const int aliveWidth = boundsMaxX - boundsMinX + 1;
+            const bool hasWideDestroyedBand = HasWideDestroyedBand(alivePixelsPerRow, topAliveY, bottomAliveY, aliveWidth, 0.15f, 4);
+
+            const int hardcodedBaselineBottomY = 184;
+            const int baseBandRows = 24;
+            const int minimumBasePixels = 64;
+
+            const bool hasBasePixels = HasAlivePixelsNearOriginalBase(alivePixelsPerRow, hardcodedBaselineBottomY, baseBandRows, minimumBasePixels);
+
+            const int minimumRequiredBaseY = 50;
+            const bool lostHardcodedBase = bottomAliveY < minimumRequiredBaseY;
+
+            const int minimumExpectedTopY = 30;
+            const bool isFloatingTopPiece = topAliveY > minimumExpectedTopY;
+
+            const bool shouldCollapseWholeRemainingPiece = !hasBasePixels || lostHardcodedBase || isFloatingTopPiece;
+
+            const bool isDisconnected = !hasTopToBottomPath || hasDeadRowGap || hasMultipleAliveComponents || hasWideDestroyedBand || shouldCollapseWholeRemainingPiece;
+
+            if (!isDisconnected)
+            {
+                m_initialized[slot] = 1;
+                m_topBottomConnected[slot] = 1;
+                m_aliveCount[slot] = totalAlivePixels;
+                continue;
+            }
+
+            int cutY = -1;
+            bool foundCut = false;
+
+            if (shouldCollapseWholeRemainingPiece)
+            {
+                cutY = topAliveY + 1;
+                foundCut = true;
+            }
+            else
+            {
+                foundCut = ComputeCutYTrueConnectivity(dirtyTile.aliveWords, tilePixelWidth, tilePixelHeight, connectionConfig.lsbFirst, boundsMinX, boundsMinY, boundsMaxX, boundsMaxY, alivePixelsPerRow, cutY);
+            }
+
+            if (!foundCut)
+            {
+                m_initialized[slot] = 1;
+                m_topBottomConnected[slot] = 0;
+                m_aliveCount[slot] = totalAlivePixels;
+                continue;
+            }
+
+            if (!shouldCollapseWholeRemainingPiece)
+            {
+                const int minimumCutY = boundsMinY + 1;
+                const int maximumCutY = boundsMaxY - 1;
+
+                if (minimumCutY > maximumCutY)
+                {
+                    m_initialized[slot] = 1;
+                    m_topBottomConnected[slot] = 0;
+                    m_aliveCount[slot] = totalAlivePixels;
+                    continue;
+                }
+
+                cutY = std::clamp(cutY, minimumCutY, maximumCutY);
+            }
+
+            Engine::Entity sourceEntity{};
+            size_t sourceTileIndex = SIZE_MAX;
+            bool foundSourceTile = false;
+
+            scene->ForEach<Engine::TransformComponent, Engine::TileComponent, Engine::IDComponent>(
+                [&](Engine::Entity entity, Engine::TransformComponent& transformComponent, Engine::TileComponent& tileComponent, Engine::IDComponent& idComponent)
+                {
+                    for (size_t tileIndex = 0; tileIndex < tileComponent.tiles.size(); ++tileIndex)
+                    {
+                        Engine::TileInfo& tileInfo = tileComponent.tiles[tileIndex];
+
+                        if (tileInfo.IsSpawned)
+                        {
+                            continue;
+                        }
+
+                        if (tileComponent.tiles[tileIndex].UID != currentUID)
+                        {
+                            continue;
+                        }
+
+                        if (tileInfo.Slot != slot)
+                        {
+                            continue;
+                        }
+
+                        sourceEntity = entity;
+                        sourceTileIndex = tileIndex;
+                        foundSourceTile = true;
+
+                        tileInfo.IsSupportingRoof = false;
+
+                        const glm::vec2 tileWorldPosition = glm::vec2(transformComponent.Translation.x, transformComponent.Translation.y) + tileInfo.position;
+                        const glm::ivec2 tileCell = IsoTileUtils::WorldToIsoCellInt(tileWorldPosition);
+
+                        TileTypeKey tileTypeKey;
+                        tileTypeKey.name = tileInfo.name;
+                        tileTypeKey.category = tileInfo.Category;
+                        tileTypeKey.direction = tileInfo.TileDirection;
+
+                        uint16_t typeId = 0;
+                        const TileDefinitionRegistry& tileDefinitionRegistry = AssetManager::GetTileDefinitions();
+
+                        if (tileDefinitionRegistry.FindTypeId(tileTypeKey, typeId))
+                        {
+                            scene->GetCompactTileMap().ClearTileFlag(tileCell, typeId, tileInfo.floor, CompactTileFlags::CanCollapse);
+                            scene->GetCompactTileMap().ClearTileFlag(tileCell, typeId, tileInfo.floor, CompactTileFlags::CanSupport);
+                        }
+
+                        m_tileStabilitySystem.NotifySupportLostAtCell(tileCell, tileInfo.floor);
+                        return;
+                    }
+                });
+
+            if (!foundSourceTile)
+            {
+                m_initialized[slot] = 1;
+                m_topBottomConnected[slot] = 0;
+                m_aliveCount[slot] = totalAlivePixels;
+                continue;
+            }
+
+            const Engine::TransformComponent& sourceTransformComponent = sourceEntity.GetComponent<Engine::TransformComponent>();
+            const Engine::TileComponent& sourceTileComponent = sourceEntity.GetComponent<Engine::TileComponent>();
+            const Engine::TileInfo& sourceTileInfo = sourceTileComponent.tiles[sourceTileIndex];
+
+            Engine::Entity newEntity = scene->CreateEntity(sourceTileInfo.name + " Top");
+            EE_CORE_INFO("spawning new entity {} ", sourceTileInfo.name);
+            Engine::IDComponent& newIdComponent = newEntity.GetComponent<Engine::IDComponent>();
+
+            Engine::TransformComponent& newTransformComponent = newEntity.AddComponent<Engine::TransformComponent>();
+            newTransformComponent.SetTransform(sourceTransformComponent.GetTransform());
+
+            Engine::TileComponent& newTileComponent = newEntity.AddComponent<Engine::TileComponent>();
+
+            const eTileCategory newTileCategory = eTileCategory::DynamicObjects;
+            const uint64_t newTileUID = HashUtils::MakeTileUID((uint64_t)newIdComponent.ID, sourceTileInfo.position, float(TILE_SIZE), (uint32_t)newTileCategory, sourceTileInfo.TileDirection, sourceTileInfo.floor);
+
+            const size_t textureByteCount = size_t(tilePixelWidth) * size_t(tilePixelHeight) * 4;
+            std::vector<uint8_t> zeroColor(textureByteCount, 0);
+            std::vector<uint8_t> zeroProps(textureByteCount, 0);
+
+            VulkanContext* vulkanContext = VulkanContext::Get();
+            VkCommandBuffer commandBuffer = vulkanContext->BeginSingleTimeCommands();
+
+            uint32_t newSlot = bindlessRenderer->EnsureTileResidentFromRaw(newTileUID, zeroColor.data(), zeroColor.size(), zeroProps.data(), zeroProps.size(), commandBuffer);
+
+            vulkanContext->EndSingleTimeCommands(commandBuffer);
+
+            Engine::VulkanRenderer2D::RemoveTilePixels(slot, newSlot, dirtyTile.aliveWords, cutY);
+
+            TileInfo newTileInfo = sourceTileInfo;
+            newTileInfo.Slot = newSlot;
+            newTileInfo.UID = newTileUID;
+            newTileInfo.opaqueMax = glm::ivec2(0);
+            newTileInfo.opaqueMin = glm::ivec2(0);
+            newTileInfo.IsSpawned = true;
+            newTileInfo.IsSupportingRoof = false;
+            newTileInfo.Category = eTileCategory::DynamicObjects;
+            newTileComponent.tiles.push_back(newTileInfo);
+
+            connectionConfig.lastAlive = totalAlivePixels;
+
+            const float pixelWorldSize = float(TILE_SIZE) / float(TILE_PIXEL_WIDTH);
+            const float gravityMagnitude = 9.81f;
+            const float simulateSeconds = DurationFromCutY(cutY, TILE_PIXEL_HEIGHT, pixelWorldSize, gravityMagnitude, true);
+
+            const glm::vec2 initialVelocity = glm::vec2(+20.0f * pixelWorldSize, +40.0f * pixelWorldSize);
+            const float initialAngularVelocity = glm::radians(120.0f);
+
+            PhysicsUtils::AttachSimplePhysics(newEntity, initialVelocity, initialAngularVelocity, simulateSeconds, false, { 0.0f, -gravityMagnitude });
+
             m_initialized[slot] = 1;
-            m_topBottomConnected[slot] = disconnected ? 0 : 1;
-            m_aliveCount[slot] = totalAlive;
+            m_topBottomConnected[slot] = 0;
+            m_aliveCount[slot] = totalAlivePixels;
         }
     }
 

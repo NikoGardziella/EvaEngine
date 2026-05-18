@@ -418,8 +418,14 @@ void processExplosionDiskFalloff_WorldExact(vec2 W, float radiusW, uint dmgPerHi
                 ht.a |= FX_ARMED;
                 imageStore(uProps[nonuniformEXT(TILE)], p, ht);
                 imageStore(uColor[nonuniformEXT(TILE)], p, vec4(0.0));
-                atomicOr(gAlive.words[pc.TextureIndex * WORDS_PER_TILE + 0u], 1u);
-                memoryBarrierBuffer();
+               
+                //uint bitIndex = uint(y * tileSz.x + x);
+                //uint wordIndex = bitIndex >> 5u;
+                //uint bitInWord = bitIndex & 31u;
+                //uint mask = 1u << bitInWord;
+
+                //atomicAnd(gAlive.words[pc.TextureIndex * WORDS_PER_TILE + wordIndex], ~mask);
+                
 
             }
             else
@@ -678,19 +684,40 @@ void drawHealthOverlay(uint TILE)
     }
 }
 
+void clearAliveTile(uint tile)
+{
+    for (uint i = 0u; i < WORDS_PER_TILE; ++i)
+    {
+        gAlive.words[tile * WORDS_PER_TILE + i] = 0u;
+    }
+
+    memoryBarrierBuffer();
+}
+
 void markAlivePixelsTile(uint tile, ivec2 tileSz, bool doBufBarrier)
 {
     memoryBarrierImage();
 
     for (int y = 0; y < tileSz.y; ++y)
-    for (int x = 0; x < tileSz.x; ++x)
     {
-        uint health = imageLoad(uProps[nonuniformEXT(tile)], ivec2(x, y)).r;
-        if (health > 0u)
-            mark_alive_pixel(tile, uvec2(x, y));
-    }
+        for (int x = 0; x < tileSz.x; ++x)
+        {
+            ivec2 p = ivec2(x, y);
 
-    if (doBufBarrier) memoryBarrierBuffer();
+            uint health = imageLoad(uProps[nonuniformEXT(tile)], p).r;
+            vec4 color  = imageLoad(uColor[nonuniformEXT(tile)], p);
+
+            if (health > 0u && color.a > 0.01)
+            {
+                mark_alive_pixel(tile, uvec2(x, y));
+            }
+        }
+
+        if (doBufBarrier)
+        {
+            memoryBarrierBuffer();
+        }
+    }
 }
 
 
@@ -811,6 +838,9 @@ void main()
             return;
 
         uint  TILE  = pc.TextureIndex;
+
+
+        
         ivec2 tileSz = imageSize(uColor[nonuniformEXT(TILE)]);
 
         vec2 rectMinW = pc.textureOrigin;
@@ -827,7 +857,11 @@ void main()
         int   R         = max(1, int(round(radiusPxF)));
 
         processExplosionDiskFalloff_WorldExact(WorldPos, radiusW, pc.hitDamage);
+
+        clearAliveTile(TILE);
         markAlivePixelsTile(TILE, tileSz, false);
+
+        memoryBarrierBuffer();
         return;
     }
 

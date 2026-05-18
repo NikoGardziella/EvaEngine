@@ -408,6 +408,7 @@ namespace Engine
 
         Entity fallingEntity = m_scene->CreateEntity(collapsedTile.name + " Falling");
         IDComponent& fallingId = fallingEntity.GetComponent<IDComponent>();
+        EE_CORE_INFO("creating new entity in TileStabilitySystem {}", (uint64_t)fallingId.ID);
 
         TransformComponent& fallingXf = fallingEntity.AddComponent<TransformComponent>();
 

@@ -140,6 +140,7 @@ namespace Engine {
         void RecordTiles(VkCommandBuffer cmd, uint32_t frameIndex, const glm::mat4& VP, VkExtent2D fbExtent, const glm::mat4& lightMat, uint32_t drawMode);
         void DrawTilesShadowPass(VkCommandBuffer cmd, uint32_t frameIndex, VkPipeline shadowPipeline, VkPipelineLayout shadowPipelineLayout, const glm::mat4& lightSpaceMatrix, const glm::vec3 lightDir);
         uint32_t GetTileSlotWithUid(uint64_t uid);
+        uint64_t GetTileUIDFromSlot(uint32_t slot) const;
         uint32_t EnsureTileResident(uint64_t uid, const glm::vec4& atlasUV, VkCommandBuffer uploadCmd);
         uint32_t EnsureTileResidentFromRaw(uint64_t uid, const uint8_t* colorData, size_t colorSize, const uint8_t* propsData, size_t propsSize, VkCommandBuffer uploadCB);
         void ComputeBindBuffers(uint32_t frameIndex, VkBuffer resultsBuf, VkDeviceSize resultsSize, VkBuffer projectilesBuf, VkDeviceSize projSize, VkBuffer blockedMaskBuf, VkDeviceSize maskSize);
@@ -297,6 +298,7 @@ namespace Engine {
 
         // Residency map: tile UID -> slot (layer)
         std::unordered_map<uint64_t, uint32_t> m_tileToSlot;
+        std::unordered_map<uint32_t, uint64_t> m_slotToUID;
 
 
         //spritesheet

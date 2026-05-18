@@ -255,7 +255,7 @@ namespace Engine {
 			const DestructibleSubmit& submitTile = submitQueu[i];
 
 			//glm::ivec2 qpos = HashUtils::QuantizeToTile(submitTile.localPos, float(TILE_SIZE));
-			const uint64_t uid = submitTile.nameHash;
+			const uint64_t uid = submitTile.UID;
 
 			
 

@@ -1134,7 +1134,7 @@ namespace Engine {
 		
 	}
 
-	void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t nameHash,
+	void VulkanRenderer2D::SubmitDestructibleTile(const glm::vec2& worldPos, const glm::vec2& localPos, const glm::vec4& atlasUV, uint64_t UID,
 		float zBias, eTileDirection  tileDirection, const glm::ivec2 outOpaqueMin, const glm::ivec2 outOpaqueMax, uint32_t flags, int16_t floor)
 	{
 
@@ -1144,7 +1144,7 @@ namespace Engine {
 		std::vector<DestructibleSubmit>& submitQueue = s_VulkanBindlessData.submitQueues[fi];
 
 		// Push one item
-		submitQueue.emplace_back(DestructibleSubmit{worldPos, localPos, atlasUV, nameHash, zBias, tileDirection, outOpaqueMin ,outOpaqueMax,flags, floor});
+		submitQueue.emplace_back(DestructibleSubmit{worldPos, localPos, atlasUV, UID, zBias, tileDirection, outOpaqueMin ,outOpaqueMax,flags, floor});
 	
 		
 	}

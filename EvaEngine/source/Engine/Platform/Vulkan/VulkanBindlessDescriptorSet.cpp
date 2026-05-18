@@ -222,14 +222,24 @@ namespace Engine {
         m_colorLayerPool.Release(slot);
         m_propsLayerPool.Release(slot);
         m_tileToSlot.erase(it);
+
+        m_slotToUID.erase(slot);
     }
 
     void VulkanBindlessDescriptorSetRenderer::EvictTileBySlot(uint32_t slot)
     {
-       
+        auto slotIt = m_slotToUID.find(slot);
+
+        if (slotIt != m_slotToUID.end())
+        {
+            const uint64_t uid = slotIt->second;
+
+            m_tileToSlot.erase(uid);
+            m_slotToUID.erase(slotIt);
+        }
+
         m_colorLayerPool.Release(slot);
         m_propsLayerPool.Release(slot);
-        m_tileToSlot.erase(slot);
     }
 
     void VulkanBindlessDescriptorSetRenderer::ReadbackArrayLayer(uint32_t slot, std::vector<uint8_t>& outColor, std::vector<uint8_t>& outProps)
@@ -1058,6 +1068,7 @@ namespace Engine {
         }
 
         m_tileToSlot.clear();
+        m_slotToUID.clear();
     }
 
 
@@ -1106,7 +1117,7 @@ namespace Engine {
 
             ComputeWriteImageSlot(f, slot, colorView, propsView);
         }
-
+        m_slotToUID.emplace(slot, uid);
         m_tileToSlot.emplace(uid, slot);
         return slot;
     }
@@ -1631,6 +1642,16 @@ namespace Engine {
         return UINT32_MAX;
     }
 
+    uint64_t VulkanBindlessDescriptorSetRenderer::GetTileUIDFromSlot(uint32_t slot) const
+    {
+        auto it = m_slotToUID.find(slot);
+
+        if (it != m_slotToUID.end())
+            return it->second;
+
+        return 0;
+    }
+
     uint32_t VulkanBindlessDescriptorSetRenderer::EnsureTileResident(uint64_t uid,  const glm::vec4& atlasUV,
         VkCommandBuffer uploadCmd)
     {
@@ -1664,7 +1685,7 @@ namespace Engine {
 
            
         }
-
+        m_slotToUID.emplace(layer, uid);
         m_tileToSlot.emplace(uid, layer);
         return layer;
     }

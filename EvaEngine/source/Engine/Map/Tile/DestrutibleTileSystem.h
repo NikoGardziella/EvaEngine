@@ -20,6 +20,13 @@ namespace Engine
         bool oneIsAlive = true;   // whether bit=1 means "alive" (will calibrate)
         bool set = false;
         int  lastAlive = -1;     // last measured alive count using chosen sense
+        int baselineAlive = -1;
+        int baselineTopY = -1;
+        int baselineBotY = -1;
+        int baselineBx0 = -1;
+        int baselineBy0 = -1;
+        int baselineBx1 = -1;
+        int baselineBy1 = -1;
     };
     struct CompSpan {
         bool connected;  // component spans bbox top-alive frontier -> bottom-alive frontier
@@ -66,6 +73,7 @@ namespace Engine
         std::vector<int>      m_aliveCount;          // last totalAlive we reported
         std::vector<uint32_t> m_maskCrc;             // CRC of aliveWords
         std::vector<ConnCfg>  m_connCfg;             // packing config per slot
+        std::vector<uint64_t> m_slotUID;
 
         // roofs
         RoofSystem m_roofSystem;
@@ -92,6 +100,20 @@ namespace Engine
         bool BBoxFrontiersWithThreshold(const std::vector<uint32_t>& words, int W, int H, const ConnCfg& cfg, int& bx0, int& by0, int& bx1, int& by1, int& topY, int& botY, std::vector<int>& rowPop);
 
         bool AnyPathConnectedBBoxThresholded(const std::vector<uint32_t>& words, int W, int H, const ConnCfg& cfg, int bx0, int by0, int bx1, int by1, int topY, int botY, int& outTopY, int& outBotY);
+
+        bool HasLostTooMuchArea(int currentAlive, int originalAlive, float minRemainingRatio);
+
+        bool HasWideDestroyedBand(const std::vector<int>& rowPop, int topY, int botY, int tileAliveWidth, float maxAliveRatio, int minConsecutiveRows);
+
+        int CountAlivePixelsNearOriginalBase(const std::vector<int>& rowPop, int baselineBotY, int baseBandRows);
+
+        bool HasWideEnoughBaseSupport(const std::vector<uint32_t>& words, int W, int H, const ConnCfg& cfg, int y0, int y1, int minX, int maxX, float minWidthRatio);
+
+        bool HasAlivePixelsNearOriginalBase(const std::vector<int>& rowPop, int baselineBotY, int baseBandRows, int minAlivePixels);
+
+        bool HasLostBottomSupport(const std::vector<int>& rowPop, int H, int bottomRowsToCheck, int minAlivePerRow);
+
+        bool HasMultipleAliveComponents(const std::vector<uint32_t>& words, int W, int H, const ConnCfg& cfg, int bx0, int by0, int bx1, int by1, int minComponentPixels);
 
         bool HasDeadRowGapInBBoxThresholded(const std::vector<int>& rowPop, int topY, int botY);
 
