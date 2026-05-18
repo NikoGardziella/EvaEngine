@@ -562,9 +562,7 @@ namespace Engine {
         m_tileStabilitySystem.InitTileStabilitySystem(scene);
     }
 
-    // =========================
     // Public: OnTilesUpdated
-    // =========================
     void DestructibleTileSystem::OnTilesUpdated(Scene* scene, float deltaTime)
     {
         EE_PROFILE_FUNCTION();
@@ -703,13 +701,13 @@ namespace Engine {
             const bool hasMultipleAliveComponents = HasMultipleAliveComponents(dirtyTile.aliveWords, tilePixelWidth, tilePixelHeight, connectionConfig, boundsMinX, boundsMinY, boundsMaxX, boundsMaxY, 32);
 
             const int aliveWidth = boundsMaxX - boundsMinX + 1;
-            const bool hasWideDestroyedBand = HasWideDestroyedBand(alivePixelsPerRow, topAliveY, bottomAliveY, aliveWidth, 0.15f, 4);
+           // const bool hasWideDestroyedBand = HasWideDestroyedBand(alivePixelsPerRow, topAliveY, bottomAliveY, aliveWidth, 0.15f, 4);
 
             const int hardcodedBaselineBottomY = 184;
             const int baseBandRows = 24;
             const int minimumBasePixels = 64;
 
-            const bool hasBasePixels = HasAlivePixelsNearOriginalBase(alivePixelsPerRow, hardcodedBaselineBottomY, baseBandRows, minimumBasePixels);
+           // const bool hasBasePixels = HasAlivePixelsNearOriginalBase(alivePixelsPerRow, hardcodedBaselineBottomY, baseBandRows, minimumBasePixels);
 
             const int minimumRequiredBaseY = 50;
             const bool lostHardcodedBase = bottomAliveY < minimumRequiredBaseY;
@@ -717,9 +715,9 @@ namespace Engine {
             const int minimumExpectedTopY = 30;
             const bool isFloatingTopPiece = topAliveY > minimumExpectedTopY;
 
-            const bool shouldCollapseWholeRemainingPiece = !hasBasePixels || lostHardcodedBase || isFloatingTopPiece;
+            const bool shouldCollapseWholeRemainingPiece =  lostHardcodedBase || isFloatingTopPiece;
 
-            const bool isDisconnected = !hasTopToBottomPath || hasDeadRowGap || hasMultipleAliveComponents || hasWideDestroyedBand || shouldCollapseWholeRemainingPiece;
+            const bool isDisconnected = !hasTopToBottomPath || hasDeadRowGap || hasMultipleAliveComponents  || shouldCollapseWholeRemainingPiece;
 
             if (!isDisconnected)
             {
@@ -782,7 +780,7 @@ namespace Engine {
                             continue;
                         }
 
-                        if (tileComponent.tiles[tileIndex].UID != currentUID)
+                        if (tileInfo.UID != currentUID)
                         {
                             continue;
                         }
@@ -875,8 +873,8 @@ namespace Engine {
 
             const glm::vec2 initialVelocity = glm::vec2(+20.0f * pixelWorldSize, +40.0f * pixelWorldSize);
             const float initialAngularVelocity = glm::radians(120.0f);
-
-            PhysicsUtils::AttachSimplePhysics(newEntity, initialVelocity, initialAngularVelocity, simulateSeconds, false, { 0.0f, -gravityMagnitude });
+            const bool destroyOnFinish = true;
+            PhysicsUtils::AttachSimplePhysics(newEntity, initialVelocity, initialAngularVelocity, simulateSeconds, destroyOnFinish, { 0.0f, -gravityMagnitude });
 
             m_initialized[slot] = 1;
             m_topBottomConnected[slot] = 0;
